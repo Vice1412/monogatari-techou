@@ -12,6 +12,7 @@
  * ※ 武器**類別名**（奧術／弓／鬥毆…）來自**核心規則書 p.129**，權威是核心漢化 PDF，
  * 不是這份 Excel（Excel 把 brawling 寫成「格鬥」）。所以類別沿用專案既有的「鬥毆」。
  */
+import { applyEquipmentChoice } from '../utils/equipmentRules';
 
 /** 基礎規格（原書 p.106 的固定值，玩家不能改） */
 export const CUSTOM_WEAPON_BASE = Object.freeze({
@@ -296,3 +297,25 @@ export const buildCustomWeaponEntries = (character) => (character?.customWeapons
 export const findCustomWeaponEntry = (character, name) => (
   buildCustomWeaponEntries(character).find((w) => w.name === name) || null
 );
+
+/**
+ * 把一把定制武器裝到主手，回傳**裝備物件本身**（不是包裝過的結果）。
+ *
+ * 為什麼要有這個函式：這段邏輯原本寫在 `CharacterEditor` 的 onClick 裡，
+ * 而 `applyEquipmentChoice` 回傳的是 `{ equipment, clearedOffHand }`——
+ * 內嵌版本把整包直接塞進 `equipment` 欄位，於是 `equipment.mainHand` 變成 undefined，
+ * 畫面看起來**完全沒反應**（而且裝備物件被污染）。元件裡的 inline 邏輯沒有測試碰得到，
+ * 所以抽成純函式，讓測試直接驗行為。
+ *
+ * 定制武器一律是雙手武器（HF p.106），所以副手一定會被清空。
+ */
+export const equipCustomWeapon = (character, weaponName, weaponMap = null) => {
+  const map = weaponMap || new Map(buildCustomWeaponEntries(character).map((w) => [w.name, w]));
+  const { equipment, clearedOffHand } = applyEquipmentChoice(
+    character?.equipment,
+    'mainHand',
+    weaponName,
+    map
+  );
+  return { equipment, clearedOffHand };
+};

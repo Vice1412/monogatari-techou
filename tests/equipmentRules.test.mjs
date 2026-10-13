@@ -24,7 +24,8 @@ import {
   isMartialCustomWeapon,
   remainingSlots,
   usedSlots,
-  validateCustomWeapon
+  validateCustomWeapon,
+  equipCustomWeapon
 } from '../src/features/character-sheet/data/customWeapons';
 import {
   WEAPON_CATEGORIES,
@@ -730,6 +731,24 @@ check('定制武器是雙手武器 → 官方配置的副手一律清空',
     .filter((p) => p.equipment.offHand !== '無盾牌').map((p) => p.title), []);
 check('只剩 1 筆是純出處（科技奇幻樣本，沒有規格）',
   ALL_STARTER_PRESETS.filter((p) => p.customWeapon && !(p.customWeapons || []).length).length, 1);
+
+// 裝到主手：回傳的必須是**裝備物件本身**。
+// 這裡是使用者實測抓到的 bug：`applyEquipmentChoice` 回傳 `{ equipment, clearedOffHand }`，
+// 但呼叫端把整包塞進 `equipment` 欄位 → `mainHand` 變 undefined，按鈕看起來完全沒反應。
+const equipChar = {
+  equipment: { mainHand: '徒手打擊', offHand: '青銅圓盾', armor: '無裝甲 / 冒險服', accessory: '' },
+  customWeapons: [createCustomWeaponSpec({ name: '戰車', category: '重型', customizations: ['accurate'] })]
+};
+const equipResult = equipCustomWeapon(equipChar, '戰車');
+check('裝到主手：mainHand 真的變成那把武器', equipResult.equipment.mainHand, '戰車');
+check('定制武器是雙手武器 → 副手被清空', equipResult.equipment.offHand, '無盾牌');
+check('回報被卸下的副手（介面據此提示）', equipResult.clearedOffHand, '青銅圓盾');
+check('回傳的是裝備物件本身，不是包裝過的結果',
+  [equipResult.equipment.equipment, equipResult.equipment.clearedOffHand], [undefined, undefined]);
+check('原本的其他欄位沒有被動到', equipResult.equipment.armor, '無裝甲 / 冒險服');
+check('副手本來就是空的 → 不提示卸下',
+  equipCustomWeapon({ ...equipChar, equipment: { ...equipChar.equipment, offHand: '無盾牌' } }, '戰車').clearedOffHand,
+  null);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

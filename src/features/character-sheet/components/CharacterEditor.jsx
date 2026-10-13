@@ -46,7 +46,8 @@ import CustomWeaponForgeModal from './CustomWeaponForgeModal';
 import {
   CUSTOM_WEAPON_BASE,
   buildCustomWeaponEntries,
-  describeCustomWeapon
+  describeCustomWeapon,
+  equipCustomWeapon
 } from '../data/customWeapons';
 import EquipmentSlotCard from './EquipmentSlotCard';
 import rulesData from '../data/rulesData.json';
@@ -177,13 +178,23 @@ export default function CharacterEditor({
     });
   };
 
-  /** 裝到主手（雙手武器，副手由 `applyEquipmentChoice` 自動清空） */
+  /**
+   * 裝到主手。
+   *
+   * 這裡**必須**解構 `{ equipment, clearedOffHand }`——`applyEquipmentChoice` 回傳的是
+   * 包裝過的結果，不是裝備物件本身。原本寫成 `const next = applyEquipmentChoice(...)` 再
+   * `updateField('equipment', next)`，等於把整包塞進 equipment 欄位，`mainHand` 變成 undefined，
+   * 按鈕看起來完全沒反應（而且污染裝備物件）。現在邏輯在 `equipCustomWeapon` 純函式裡，測試驗得到。
+   */
   const handleEquipCustomWeapon = (name) => {
-    const next = applyEquipmentChoice(character.equipment, 'mainHand', name, weaponByName);
-    updateField('equipment', next, {
+    const { equipment: nextEquipment, clearedOffHand } = equipCustomWeapon(character, name, weaponByName);
+    updateField('equipment', nextEquipment, {
       kind: 'equipment',
       title: `更換主手武器：${name}`
     });
+    if (clearedOffHand && showToast) {
+      showToast(`已卸下副手「${clearedOffHand}」——定制武器佔滿兩個手部欄位`);
+    }
   };
 
   if (!character) return null;

@@ -874,6 +874,22 @@ check('官方配置的定制武器會進裝備欄（presetApply 有帶）',
 check('裝備挑選器與預算試算共用同一張武器表（含定制武器）',
   editorCode.includes('...buildCustomWeaponEntries(character).map(w => [w.name, w])'), true);
 
+// ─────────────────────────────────────────────────────────── O
+section('O. 「裝到主手」按了沒反應（使用者回報）');
+
+// 根因：`applyEquipmentChoice` 回傳 `{ equipment, clearedOffHand }`，
+// 但編輯器把整包當成 equipment 塞回去 → mainHand 變 undefined，按鈕看起來毫無反應。
+// 行為測試在 test:equipment（`equipCustomWeapon` 純函式）；這裡擋的是**接線**。
+check('編輯器用純函式 equipCustomWeapon，不是自己拼 applyEquipmentChoice',
+  [editorCode.includes('equipCustomWeapon(character, name, weaponByName)'),
+    /const\s+\w+\s*=\s*applyEquipmentChoice\(/.test(editorCode)],
+  [true, false]);
+check('編輯器有解構回傳值（equipment 與 clearedOffHand 都要拿）',
+  [editorCode.includes('equipment: nextEquipment'), editorCode.includes('clearedOffHand')],
+  [true, true]);
+check('副手被清空時會提示（不然玩家不知道盾牌去哪了）',
+  editorCode.includes('定制武器佔滿兩個手部欄位'), true);
+
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
 console.log(`\n${'='.repeat(56)}`);

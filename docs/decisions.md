@@ -3768,3 +3768,60 @@ Excel 的 `【定制武器】` 分頁就是這套子系統的譯名權威（規�
 
 > **教訓**：§V 的欄位集護欄只保證「**欄位有讀取端**」，不保證「**玩家碰得到**」。
 > 兩者都要有，否則就會做出一個寫著「請打開開關」卻沒有開關的介面。
+
+
+#### AS10. Bug：「裝到主手」按了沒反應（使用者實測回報）
+
+**回報**：「我試試看定制武器的功能了，但點擊裝到主手的按鈕毫無反應。」
+
+**根因**：`applyEquipmentChoice` 回傳的是 `{ equipment, clearedOffHand }`，
+而編輯器的 onClick 寫成：
+
+```js
+const next = applyEquipmentChoice(character.equipment, 'mainHand', name, weaponByName);
+updateField('equipment', next, {...});   // ← next 是整包，不是裝備物件
+```
+
+於是 `character.equipment` 變成 `{ equipment: {...}, clearedOffHand: null }`——
+`equipment.mainHand` 是 `undefined`，畫面看起來**完全沒反應**，而且裝備物件被污染。
+
+**為什麼測試沒抓到（這才是重點）**：`test:ui` 當時的護欄是
+
+```js
+editorCode.includes('handleEquipCustomWeapon')   // ← 只檢查名字存在
+```
+
+**驗證的是「處理函式叫什麼名字」，不是「按下去會發生什麼」**。
+這與 §Z 的教訓同源：**護欄的驗證方式本身要被驗證**——一個只比對字串的護欄，
+對行為錯誤完全沒有防禦力。
+
+**修法（兩層）**：
+1. 邏輯抽成純函式 `equipCustomWeapon(character, weaponName, weaponMap)`（`data/customWeapons.js`），
+   回傳解構後的 `{ equipment, clearedOffHand }`。**元件裡的 inline 邏輯沒有任何測試碰得到**，
+   抽出來才有辦法驗行為。
+2. 補 **6 條行為測試**（`test:equipment`）：`mainHand` 真的變了、副手被清空、
+   回報被卸下的副手、**回傳的是裝備物件本身**（不是包裝過的結果）、其他欄位沒被動到、
+   副手本來空的就不提示。再加 3 條**接線護欄**（`test:ui`）：用純函式、
+   有解構、有提示，並擋掉 `const x = applyEquipmentChoice(...)` 這種寫法。
+
+**驗證方式：真的按下去。** 使用者是點出來的，所以驗證也必須是點——
+駕駛艙 `scratch/repro_equip.jsx` 真的掛載 `CharacterSheet`、走
+「名冊 → 構築與成長 → 裝備配置 → 裝到主手」，然後讀回 localStorage：
+
+| 檢查 | 結果 |
+|---|---|
+| 出現「已裝備主手」徽章 | true |
+| 存檔的 `mainHand` | `"戰車"` |
+| 存檔的 `offHand` | `"無盾牌"`（雙手武器佔滿兩手） |
+| 裝備物件沒有被污染 | true |
+
+> **教訓（與 §AS9 同一條線）**：§AS9 是「有欄位、有讀取端，卻沒有開關」；
+> 這次是「有按鈕、有處理函式，卻接錯回傳值」。
+> **兩者都是「零件齊了但沒接上」，而兩者的護欄都只檢查零件的存在。**
+> 護欄要驗的是**行為**（純函式的回傳值、真實點擊的結果），不是名字。
+
+#### AS11. 過程失誤：第 5 次把 emoji 寫進註解
+
+修這個 bug 時，我在 `CharacterEditor` 的註解裡打了 `⚠️`——**被零 Emoji 關卡當場抓到**
+（§3.2 記的前四次也都是同一種失誤）。這條關卡現在是 `npm test` 的第一道，
+所以它每次都在我回覆使用者之前攔下來。**這就是把它自動化的價值。**
