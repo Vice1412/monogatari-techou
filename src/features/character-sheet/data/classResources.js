@@ -100,7 +100,7 @@ export const CLASS_RESOURCES = [
     max: 5,
     resetLabel: '場景結束',
     resetTo: 0,
-    hint: '上限 5，每場景結束清空。藥水與元素碎片 +【霧化點】傷害；恢復藥水 +【霧化點×5】',
+    hint: '上限 5，每場景結束清空。藥水與元素碎片 +【霧化點×2】傷害；恢復藥水 +【霧化點×5】',
     source: 'Playtest 2026-06-22 p.13',
   },
 
