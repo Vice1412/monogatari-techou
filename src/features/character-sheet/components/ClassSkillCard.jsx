@@ -15,6 +15,9 @@ import GameIcon from '../../../components/ui/GameIcon';
 import JRPGBadge from '../../../components/ui/JRPGBadge';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import SkillStarPips from './SkillStarPips';
+import CoreBookVariantCard from './CoreBookVariantCard';
+import { getVariantsForClass } from '../data/coreBookVariants';
+import { resolveCreationRules } from '../data/creationRules';
 import SkillDescription from '../utils/skillFormulaEvaluator';
 import SkillSuboptionModal from './SkillSuboptionModal';
 import SuboptionDetailsList from './SuboptionDetailsList';
@@ -697,6 +700,15 @@ export default function ClassSkillCard({
                   </div>
                 );
               })}
+
+                  {/* 核心書技能變體（Core Book Variants）——勾選【官方公測修訂】才出現。
+                      與原版技能**並存**、不改原版；標【公測】徽章，差異用粗體。 */}
+                  {((character || {}).enabledSourcebooks
+                    ?? resolveCreationRules((character || {}).creationRules || {}).defaultSourcebooks
+                    ?? []).includes('playtest')
+                    && getVariantsForClass(classItem.name).map((v) => (
+                      <CoreBookVariantCard key={v.id} variant={v} theme={theme} />
+                    ))}
             </div>
           )}
         </div>

@@ -301,7 +301,7 @@ export const PLAYTEST_HEROIC_SKILLS = Object.freeze([
   },
   {
     name: '收割行者',
-    requirement: '熵師或遊蕩者',
+    requirement: '熵師或遊蕩者，且已取得【高速】或【竊取時間】',
     source: PLAYTEST_SOURCE,
     effect: '當你使一個敵人 HP 降至 0 之後，你可以立即進行一次自由攻擊，或執行一次咒語動作施放一個攻擊性咒語（O）。此效果每回合只能觸發一次。'
   },

@@ -91,12 +91,12 @@ export const CORE_BOOK_VARIANTS = Object.freeze([
   },
   {
     id: 'secondSlicer',
-    className: '遊蕩者',
-    replaces: '盜取時間',
+    className: '熵師',
+    replaces: '竊取時間',
     name: '二度斬擊',
     en: 'SECOND SLICER',
     maxSL: 4,
-    origin: 'Playtest 2026-10-01（遊蕩者 p.198 的變體）',
+    origin: 'Playtest 2026-10-01（熵師【竊取時間】的變體）',
     desc:
       '你可以使用一個動作並花費 10 點 MP，以你裝備的一把武器進行一次**自由攻擊**；'
       + '該攻擊**必須以單一敵人為目標**，命中檢定獲得等同【SL】的加值。\n'
@@ -104,7 +104,7 @@ export const CORE_BOOK_VARIANTS = Object.freeze([
       + '你可以選擇至多兩個選項：該攻擊額外造成【SL＋1】傷害；或目標失去【SL×10】點 MP；'
       + '或一個你能看見的生物從緩慢中恢復；或一個你能看見、且本輪尚未行動的盟友'
       + '可以在你之後立即行動。\n'
-      + '就英雄技能的要求而言，此技能的名稱視為「盜取時間」。',
+      + '就英雄技能的要求而言，此技能的名稱視為「竊取時間」。',
   },
   {
     id: 'magitechArmament',

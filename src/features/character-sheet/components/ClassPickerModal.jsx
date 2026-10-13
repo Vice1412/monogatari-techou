@@ -12,6 +12,8 @@ import JRPGBadge from '../../../components/ui/JRPGBadge';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import SkillStarPips from './SkillStarPips';
 import SkillDescription from '../utils/skillFormulaEvaluator';
+import CoreBookVariantCard from './CoreBookVariantCard';
+import { getVariantsForClass } from '../data/coreBookVariants';
 import { SOURCEBOOKS, getClassInfo } from '../data/sourcebookConfig';
 import { DEFAULT_CREATION_RULES, resolveCreationRules } from '../data/creationRules';
 import rulesData from '../data/rulesData.json';
@@ -59,6 +61,11 @@ export default function ClassPickerModal({
   locked = false
 }) {
   const rules = resolveCreationRules(creationRules);
+  // 核心書技能變體是**選用**的：只有勾選【官方公測修訂】才顯示。
+  // 原版技能永遠都在，變體只是接在旁邊（使用者裁定：不可改到原版內容）。
+  // ※ 來源是 `enabledBooks` prop，不是 `rules`——`resolveCreationRules()` 的回傳裡
+  //   沒有 `enabledSourcebooks`（只有 allowedSourcebooks 與 defaultSourcebooks）。
+  const showVariants = (enabledBooks || []).includes('playtest');
   const [search, setSearch] = useState('');
   const [activeClassName, setActiveClassName] = useState(null);
   /**
@@ -599,6 +606,12 @@ export default function ClassPickerModal({
                     </div>
                   );
                 })}
+
+                {/* 核心書技能變體（Core Book Variants）——勾選【官方公測修訂】才出現。
+                    與原版技能**並存**，不改原版；標【公測】徽章，差異用粗體。 */}
+                {showVariants && getVariantsForClass(activeClassItem.className).map((v) => (
+                  <CoreBookVariantCard key={v.id} variant={v} theme={theme} />
+                ))}
 
                 {/* 精通這個職業之後能解鎖哪些英雄技能——放在**職業技能下面**，
                     預設收合、按鈕展開（使用者定調：它是選職業的參考，不是常駐面板）。
