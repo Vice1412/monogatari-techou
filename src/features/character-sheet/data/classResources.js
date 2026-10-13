@@ -79,7 +79,7 @@ export const CLASS_RESOURCES = [
     resetTo: 0,
     hint: '無上限。未裝備職業防具與盾牌時，格鬥類近戰攻擊 +【2+勇氣】傷害；'
       + '場景結束、或回合結束時已累積 ≥5 就必須全部失去，若因此失去至少 1 點則恢復 10 HP 與 10 MP（固定，不是每點）',
-    source: 'Playtest 2026-06-22 p.12',
+    source: 'High Fantasy Atlas p.158',
   },
   {
     id: 'momentum',
@@ -90,7 +90,7 @@ export const CLASS_RESOURCES = [
     resetLabel: '歸零',
     resetTo: 0,
     hint: '上限 5。投擲攻擊 +【氣勢】傷害；被命中時必須全消耗加物防；場景結束或裝備防具／盾牌時歸零',
-    source: 'Playtest 2026-06-22 p.12',
+    source: 'High Fantasy Atlas p.160',
   },
   {
     id: 'nebulization',
@@ -101,7 +101,7 @@ export const CLASS_RESOURCES = [
     resetLabel: '場景結束',
     resetTo: 0,
     hint: '上限 5，每場景結束清空。藥水與元素碎片 +【霧化點×2】傷害；恢復藥水 +【霧化點×5】',
-    source: 'Playtest 2026-06-22 p.13',
+    source: 'Techno Fantasy Atlas p.175',
   },
 
   // ── 金手指的資源池 ─────────────────────────────────────────────────────
