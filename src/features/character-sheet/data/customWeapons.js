@@ -311,10 +311,13 @@ export const buildCustomWeaponEntry = (spec, { siblings = [] } = {}) => {
     martial,
     isCustomWeapon: true,
     customWeaponId: spec?.id || '',
-    // 說明＝規格摘要 ＋ **需要敘述的效果**（數字看不出來的那些，見 describeCustomWeaponEffects）
+    // 說明＝規格摘要 ＋ **需要敘述的效果**（數字看不出來的那些，見 describeCustomWeaponEffects）。
+    // 另外單獨留一份 `effectText`：跑團面板已經用藥丸顯示命中／傷害了，
+    // 那裡只該顯示「數字看不出來的規則」，再印一次規格摘要是噪音。
     note: [`定制武器：${describeCustomWeapon(spec)}`, describeCustomWeaponEffects(spec, { siblings })]
       .filter(Boolean)
       .join('　｜　'),
+    effectText: describeCustomWeaponEffects(spec, { siblings }),
     // 引擎與技能判定用的旗標（原書 p.107：物防提升＝視為裝備著一面盾牌）
     countsAsShield: picks.includes('defenseBoost'),
     defBoost: picks.includes('defenseBoost') ? 2 : 0,

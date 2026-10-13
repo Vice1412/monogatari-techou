@@ -1301,6 +1301,18 @@ export default function CharacterPlayHUD({
                       <span className="text-[11px] font-sans text-slate-600">{mainDamage.damageType}</span>
                     </span>
                   </div>
+
+                  {/* 定制武器的效果：物防提升＝視為裝備盾牌、迅捷＝打兩次、可變形＝切換型態。
+                      這些是**數字看不出來的規則**，跑團當下就要查得到，所以跟著主手卡片一起顯示。
+                      只印效果、不印規格摘要——命中與傷害上面已經有藥丸了。 */}
+                  {mainWeapon.isCustomWeapon && mainWeapon.effectText && (
+                    <p
+                      className="text-[10px] mt-2 leading-relaxed"
+                      style={{ color: theme.textMuted }}
+                    >
+                      {renderTextWithAffinities(mainWeapon.effectText)}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-1.5 self-end sm:self-center">

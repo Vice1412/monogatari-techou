@@ -982,6 +982,22 @@ check('變形走同一條 equip 路徑並寫進履歷',
 check('編輯器改名時會同步裝備欄（使用者回報的 bug）',
   editorCode.includes('syncEquipmentNames(character.equipment'), true);
 
+// 跑團面板只印效果、不印規格摘要（命中與傷害在那裡已經是藥丸了）
+check('effectText 只放效果，不含規格摘要',
+  [effectEntries[0].effectText.includes('視為裝備著一面盾牌'),
+    effectEntries[0].effectText.includes('定制武器：')],
+  [true, false]);
+check('note 仍然同時有規格摘要與效果（編輯器與匯出用）',
+  [effectEntries[0].note.includes('定制武器：'), effectEntries[0].note.includes('視為裝備著一面盾牌')],
+  [true, true]);
+check('純數值組合的 effectText 是空的（沒有需要敘述的規則）', effectEntries[2].effectText, '');
+
+check('跑團面板印出定制武器的效果（數字看不出來的規則）',
+  [hudSrc.includes('mainWeapon.effectText'), hudSrc.includes('renderTextWithAffinities(mainWeapon.effectText)')],
+  [true, true]);
+check('跑團面板不重複印規格摘要（那裡的命中／傷害已經是藥丸）',
+  hudSrc.includes('mainWeapon.note'), false);
+
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
 console.log(`\n${'='.repeat(56)}`);
