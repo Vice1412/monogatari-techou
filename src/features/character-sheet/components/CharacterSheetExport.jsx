@@ -8,6 +8,7 @@ import SkillDescription from '../utils/skillFormulaEvaluator';
 import iconFontUrl from '../../../assets/FabulaUltimaIcons-Regular.otf';
 import { calculateCharacterStats, getProficiencies, getCharacterLevel, HEROIC_SKILLS } from '../utils/characterEngine';
 import { ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
+import { buildCustomWeaponEntries } from '../data/customWeapons';
 import { buildImagePdf, dataUrlToBytes } from '../utils/pdfWriter';
 
 /**
@@ -253,13 +254,20 @@ export const buildSheetModel = (character, stats = null) => {
   });
 
   // 裝備：四列，各自帶規則書上的說明
-  const findWeapon = (n) => rulesData.equipment.weapons.find((w) => w.name === n);
+  // 官方武器表找不到時，改找**這個角色自己鍛造的定制武器**（HF p.106）。
+  // 沒有這一行的話，主手是定制武器時裝備列只會印出一個光禿禿的名字、說明全空。
+  const ownCustomWeapons = buildCustomWeaponEntries(ch);
+  const findWeapon = (n) => rulesData.equipment.weapons.find((w) => w.name === n)
+    || ownCustomWeapons.find((w) => w.name === n);
   const findShield = (n) => rulesData.equipment.shields.find((x) => x.name === n);
   const findArmor = (n) => rulesData.equipment.armors.find((x) => x.name === n);
   const findAccessory = (n) => rulesData.equipment.accessories.find((x) => x.name === n);
   const describe = (item) => {
     if (!item) return '';
-    if (item.damage) return `${item.attr} ｜ ${item.damage} ｜ ${item.range}`;
+    // 定制武器的「物防提升＝視為裝備盾牌」「迅捷＝打兩次」「可變形＝切換型態」
+    // 是數字看不出來的規則，跑團時要查得到，所以跟著裝備列一起印。
+    const effects = item.isCustomWeapon && item.note ? ` ｜ ${item.note}` : '';
+    if (item.damage) return `${item.attr} ｜ ${item.damage} ｜ ${item.range}${effects}`;
     return item.desc || '';
   };
   const equipmentRows = EQUIP_SLOTS.map(([slot, label]) => {

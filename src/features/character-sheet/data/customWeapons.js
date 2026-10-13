@@ -259,13 +259,45 @@ export const describeCustomWeapon = (spec) => {
 };
 
 /**
+ * 需要**額外敘述**的訂製能力效果（使用者指示：「有需要額外敘述的能力，記得要寫在武器的效果。
+ * 數值類的就直接加沒關係」）。
+ *
+ * 判準：**從數字看不出來的規則**才寫在這裡。
+ * - 精準 +2／強力 +5（重型 +7）／魔防提升 +2 → 已經反映在命中式、傷害式、防禦逐項裡，不重複寫。
+ * - 元素 → 傷害式已經印成「【HR + 7】火」，屬性一目了然，不重複寫。
+ * - 物防提升 → **「技能判定上視為裝備著一面盾牌」是數字看不出來的**（關係到防守掌握／閃避），要寫。
+ * - 迅捷 → 兩次攻擊、且要照雙武器戰鬥規則，數字看不出來，要寫。
+ * - 可變形 → 第二型態與每回合一次的變形限制，數字看不出來，要寫。
+ */
+export const describeCustomWeaponEffects = (spec, { siblings = [] } = {}) => {
+  const picks = spec?.customizations || [];
+  const parts = [];
+
+  if (picks.includes('defenseBoost')) {
+    parts.push('物防提升：技能判定上視為裝備著一面盾牌');
+  }
+  if (picks.includes('quick')) {
+    parts.push('迅捷：使用該武器執行攻擊動作時可進行兩次攻擊，兩次都遵循雙武器戰鬥規則（失去多重、HR 視為 0）');
+  }
+  if (picks.includes('transforming')) {
+    const other = siblings.find((s) => s.id === spec?.transformingId);
+    const formName = other?.name ? `「${other.name}」` : '第二型態';
+    parts.push(`可變形：可切換為${formName}，衝突場景中每回合一次`);
+  }
+
+  return parts.join('。');
+};
+
+/**
  * 把規格轉成**裝備表用的武器條目**——欄位與 `rulesData.equipment.weapons` 完全一致。
  *
  * 這樣引擎、裝備挑選器、跑團卡、三頁匯出**全部不用改就能吃下它**，
  * 因為它們本來就只認這幾個欄位。做法與 §U 的 `DUAL_SHIELD`（雙盾）相同：
  * 「不是官方表裡的東西，但長得一樣」。
+ *
+ * `siblings` 只用來在效果文字裡寫出可變形第二型態的名字（拿不到就寫「第二型態」）。
  */
-export const buildCustomWeaponEntry = (spec) => {
+export const buildCustomWeaponEntry = (spec, { siblings = [] } = {}) => {
   const martial = isMartialCustomWeapon(spec);
   const picks = spec?.customizations || [];
   return {
@@ -279,7 +311,10 @@ export const buildCustomWeaponEntry = (spec) => {
     martial,
     isCustomWeapon: true,
     customWeaponId: spec?.id || '',
-    note: `定制武器：${describeCustomWeapon(spec)}`,
+    // 說明＝規格摘要 ＋ **需要敘述的效果**（數字看不出來的那些，見 describeCustomWeaponEffects）
+    note: [`定制武器：${describeCustomWeapon(spec)}`, describeCustomWeaponEffects(spec, { siblings })]
+      .filter(Boolean)
+      .join('　｜　'),
     // 引擎與技能判定用的旗標（原書 p.107：物防提升＝視為裝備著一面盾牌）
     countsAsShield: picks.includes('defenseBoost'),
     defBoost: picks.includes('defenseBoost') ? 2 : 0,
@@ -289,9 +324,11 @@ export const buildCustomWeaponEntry = (spec) => {
   };
 };
 
-/** 把角色身上的定制武器全部轉成武器條目 */
-export const buildCustomWeaponEntries = (character) => (character?.customWeapons || [])
-  .map((spec) => buildCustomWeaponEntry(spec));
+/** 把角色身上的定制武器全部轉成武器條目（帶上彼此，可變形才寫得出第二型態的名字） */
+export const buildCustomWeaponEntries = (character) => {
+  const siblings = character?.customWeapons || [];
+  return siblings.map((spec) => buildCustomWeaponEntry(spec, { siblings }));
+};
 
 /** 依名稱找一件定制武器的條目（找不到回 null） */
 export const findCustomWeaponEntry = (character, name) => (

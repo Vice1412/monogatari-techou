@@ -33,6 +33,12 @@ import { HeroicSkillPickerBody } from '../src/features/character-sheet/component
 import ClassHeroicSkillsBlock from '../src/features/character-sheet/components/ClassHeroicSkillsBlock.jsx';
 import { LOG_KINDS } from '../src/features/character-sheet/utils/characterLog.js';
 import { EQUIPMENT_ICONS } from '../src/features/character-sheet/utils/equipmentRules.js';
+import {
+  buildCustomWeaponEntries,
+  buildCustomWeaponEntry,
+  createCustomWeaponSpec
+} from '../src/features/character-sheet/data/customWeapons.js';
+import rulesData from '../src/features/character-sheet/data/rulesData.json';
 import { ATTRIBUTE_NAMES } from '../src/features/character-sheet/data/sourcebookConfig.js';
 import { GAME_ICONS_MAP } from '../src/components/ui/GameIcon.jsx';
 import { readIconMapKeys, findDuplicateIconKeys } from './helpers/gameIconMap.mjs';
@@ -889,6 +895,61 @@ check('編輯器有解構回傳值（equipment 與 clearedOffHand 都要拿）',
   [true, true]);
 check('副手被清空時會提示（不然玩家不知道盾牌去哪了）',
   editorCode.includes('定制武器佔滿兩個手部欄位'), true);
+
+// ─────────────────────────────────────────────────────────── P
+section('P. 定制武器的效果文字與譯名（使用者回報）');
+
+// ① 譯名：使用者問「【猴子握法】英雄技能的翻譯真的是這樣嗎？」
+//    查證後：專案資料層與 HF 漢化章節都寫【靈猴握 Monkey Grip】——原本那句是我自己直譯的。
+check('面板提到的英雄技能用的是專案既有譯名【靈猴握】', forgeSrc.includes('【靈猴握】'), true);
+check('沒有留下自己直譯的「猴子握法」', forgeSrc.includes('猴子握法'), false);
+check('【靈猴握】真的在英雄技能資料裡（不是我編的）',
+  rulesData.heroicSkills.some((h) => h.name === '靈猴握'), true);
+
+// ② 效果文字：使用者指示「有需要額外敘述的能力，記得要寫在武器的效果。數值類的就直接加」
+const effectSpecs = [
+  createCustomWeaponSpec({ name: '甲', customizations: ['defenseBoost'] }),
+  createCustomWeaponSpec({ name: '乙', customizations: ['quick'] }),
+  createCustomWeaponSpec({ name: '丙', customizations: ['accurate', 'powerful'] })
+];
+const effectEntries = buildCustomWeaponEntries({ customWeapons: effectSpecs });
+check('物防提升：寫出「視為裝備著一面盾牌」',
+  effectEntries[0].note.includes('視為裝備著一面盾牌'), true);
+check('迅捷：寫出兩次攻擊與雙武器戰鬥規則',
+  [effectEntries[1].note.includes('兩次攻擊'), effectEntries[1].note.includes('雙武器戰鬥規則')],
+  [true, true]);
+check('純數值組合（精準＋強力）不會多出敘述',
+  [effectEntries[2].note.includes('視為裝備著一面盾牌'), effectEntries[2].note.includes('兩次攻擊')],
+  [false, false]);
+check('精準的 +2 反映在命中式（不是靠文字敘述）', effectEntries[2].attr, 'DEX + INS + 2');
+check('強力的 +5 反映在傷害式', effectEntries[2].damage, '【HR + 10】物理');
+check('元素反映在傷害式的屬性（不是靠文字敘述）',
+  buildCustomWeaponEntries({ customWeapons: [createCustomWeaponSpec({ name: '丁', customizations: ['elemental'], element: '火' })] })[0].damage,
+  '【HR + 7】火');
+
+// 可變形：效果文字要寫得出第二型態的名字（所以要帶 siblings）
+const twin = [
+  createCustomWeaponSpec({ id: 'f1', name: '形態一', customizations: ['transforming'], transformingId: 'f2' }),
+  createCustomWeaponSpec({ id: 'f2', name: '形態二', customizations: ['transforming'], transformingId: 'f1' })
+];
+check('可變形：效果文字寫出第二型態的名字',
+  buildCustomWeaponEntries({ customWeapons: twin })[0].note.includes('形態二'), true);
+check('拿不到 siblings 時退回「第二型態」而不炸',
+  buildCustomWeaponEntry(twin[0]).note.includes('第二型態'), true);
+
+// ③ 三頁匯出：裝備列要看得到效果（跑團時要查得到）
+const cwSheet = buildSheetModel({
+  ...sheetChar,
+  customWeapons: effectSpecs,
+  equipment: { ...sheetChar.equipment, mainHand: '甲' }
+});
+// 裝備列的順序是 配件→防具→主手→副手，所以要按 slot 找，不能抓第 0 列
+const cwMainRow = cwSheet.equipmentRows.find((r) => r.slot === 'mainHand');
+check('三頁匯出的主手列印出定制武器的效果',
+  cwMainRow.desc.includes('視為裝備著一面盾牌'), true);
+check('三頁匯出的主手列也印出規格（命中式與傷害式）',
+  [cwMainRow.desc.includes('DEX + INS'), cwMainRow.desc.includes('【HR + 5】')],
+  [true, true]);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

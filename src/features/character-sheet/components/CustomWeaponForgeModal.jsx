@@ -221,7 +221,7 @@ export default function CustomWeaponForgeModal({
           </p>
           <p style={{ color: theme.textDark }}>
             成本 {CUSTOM_WEAPON_BASE.cost}z（可變形 +{CUSTOM_WEAPON_BASE.transformingCost}z）、
-            雙手武器（永遠佔滿兩個手部欄位，不能配【猴子握法】）、
+            雙手武器（永遠佔滿兩個手部欄位，不能配【靈猴握】英雄技能）、
             傷害【HR + {CUSTOM_WEAPON_BASE.damageBonus}】物理、
             命中檢定與遠近類型自選、類別自選。
           </p>
