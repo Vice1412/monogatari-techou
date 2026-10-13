@@ -967,6 +967,21 @@ check('切換鈕寫明規則限制（衝突中每回合一次）',
 check('列上顯示目前是哪個型態（形態一／形態二）',
   [editorCode.includes('形態一'), editorCode.includes('形態二')], [true, true]);
 
+// ─────────────────────────────────────────────────────────── R
+section('R. 可變形要在跑團面板切換（使用者：「衝突進行時應該也是要開跑團面板而非編輯」）');
+
+const hudSrc = read('../src/features/character-sheet/components/CharacterPlayHUD.jsx');
+check('跑團面板會解析定制武器（不然主手是空殼：命中 DEX+MIG、HR+0）',
+  hudSrc.includes('buildCustomWeaponEntries(character)'), true);
+check('跑團面板有變形按鈕', hudSrc.includes('變形 → '), true);
+check('變形按鈕寫明原書限制（衝突中每回合一次）',
+  hudSrc.includes('衝突場景中只能在你的回合、且每回合一次'), true);
+check('變形走同一條 equip 路徑並寫進履歷',
+  [hudSrc.includes('equipCustomWeapon(character, switchForm.name)'), hudSrc.includes('變形：')],
+  [true, true]);
+check('編輯器改名時會同步裝備欄（使用者回報的 bug）',
+  editorCode.includes('syncEquipmentNames(character.equipment'), true);
+
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
 console.log(`\n${'='.repeat(56)}`);

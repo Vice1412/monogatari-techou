@@ -28,7 +28,8 @@ import {
   equipCustomWeapon,
   groupCustomWeapons,
   equippedFormIndex,
-  nextFormFor
+  nextFormFor,
+  syncEquipmentNames
 } from '../src/features/character-sheet/data/customWeapons';
 import {
   WEAPON_CATEGORIES,
@@ -790,6 +791,29 @@ check('切換形態會真的換掉主手（走的是同一條 equip 路徑）',
     nextFormFor(twinGroup[0], '柔性纏手布').name
   ).equipment.mainHand,
   '柔性纏手布（第二型態）');
+
+// ─────────────────────────────────────────────────────────── Y
+section('Y. 改名要跟著改裝備欄（使用者回報：第二型態改名後切換完全不會顯示新名字）');
+
+const renamedTwin = twinForms.map((s) => (s.id === 'g2' ? { ...s, name: '織炎型態' } : s));
+const synced = syncEquipmentNames(
+  { mainHand: '柔性纏手布（第二型態）', offHand: '無盾牌', armor: '無裝甲 / 冒險服' },
+  twinForms,
+  renamedTwin
+);
+check('改名後裝備欄跟著換成新名字', synced.equipment.mainHand, '織炎型態');
+check('有回報改名（供履歷用）', synced.renamed, true);
+check('其他欄位沒被動到', synced.equipment.armor, '無裝甲 / 冒險服');
+check('沒改名時不動裝備欄',
+  syncEquipmentNames({ mainHand: '柔性纏手布' }, twinForms, twinForms).renamed, false);
+check('改名後群組仍認得被裝備的是第二型態（這就是使用者踩到的情境）',
+  equippedFormIndex(groupCustomWeapons(renamedTwin)[0], synced.equipment.mainHand), 1);
+check('改名後切換形態會回到第一個型態',
+  nextFormFor(groupCustomWeapons(renamedTwin)[0], synced.equipment.mainHand).name, '柔性纏手布');
+check('沒裝備的武器改名不影響裝備欄',
+  syncEquipmentNames({ mainHand: '青銅劍' }, twinForms, renamedTwin).equipment.mainHand, '青銅劍');
+check('副手也可以被同步（例如盾牌類定制武器）',
+  syncEquipmentNames({ offHand: '柔性纏手布（第二型態）' }, twinForms, renamedTwin).equipment.offHand, '織炎型態');
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

@@ -331,6 +331,37 @@ export const buildCustomWeaponEntries = (character) => {
 };
 
 /**
+ * 改名後把**裝備欄裡的名字**一起換掉。
+ *
+ * 為什麼需要：`equipment.mainHand` 記的是武器的**名字**，不是 id（整個專案的裝備都這樣存，
+ * 因為官方武器表是用名字當鍵）。所以玩家在鍛造台把武器改名之後，裝備欄會留著一個
+ * **已經不存在的名字**——主手看起來像空的，而且可變形武器會因為找不到「哪個型態被裝備」
+ * 而退回顯示第一個型態（使用者就是這樣回報的：「第二形態寫新的名字，切換後完全不會顯示，
+ * 依然是寫第一個名字」）。
+ *
+ * 比對用 **id**（名字會變，id 不會）。回傳新的 equipment 與改名對照，讓呼叫端能寫履歷。
+ */
+export const syncEquipmentNames = (equipment, previousSpecs = [], nextSpecs = []) => {
+  const renamed = new Map();
+  (previousSpecs || []).forEach((old) => {
+    const now = (nextSpecs || []).find((s) => s.id === old.id);
+    if (now && old.name && now.name !== old.name) renamed.set(old.name, now.name);
+  });
+
+  const next = { ...(equipment || {}) };
+  const changes = [];
+  ['mainHand', 'offHand'].forEach((slot) => {
+    const current = next[slot];
+    if (current && renamed.has(current)) {
+      next[slot] = renamed.get(current);
+      changes.push({ slot, from: current, to: next[slot] });
+    }
+  });
+
+  return { equipment: next, changes, renamed: changes.length > 0 };
+};
+
+/**
  * 把規格**分組**：可變形的兩個型態算**同一把武器**。
  *
  * 為什麼需要：規格層為了讓兩個型態各自能有類別／命中／傷害（原書 p.107 要求第二型態

@@ -27,7 +27,8 @@ import {
   GiPocketWatch,
   GiRoundBottomFlask,
   GiCrystalBall,
-  GiCheckMark
+  GiCheckMark,
+  GiCycle
 } from 'react-icons/gi';
 import GameIcon from '../../../components/ui/GameIcon';
 import FUIcon, { renderTextWithAffinities } from '../../../components/ui/FUIcon';
@@ -47,6 +48,13 @@ import CharacterPreviewModal from './CharacterPreviewModal';
 import { STATUS_AFFLICTIONS, ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
 import { getCharacterTheme } from '../utils/characterThemes';
 import { getDualShieldState } from '../utils/equipmentRules';
+import {
+  buildCustomWeaponEntries,
+  equipCustomWeapon,
+  groupCustomWeapons,
+  equippedFormIndex,
+  nextFormFor
+} from '../data/customWeapons';
 import { loggableChange } from '../utils/characterLog';
 import NumberStepper from '../../../components/ui/NumberStepper';
 import SkillDescription, { openRuleCodex } from '../utils/skillFormulaEvaluator';
@@ -451,9 +459,16 @@ export default function CharacterPlayHUD({
     offIsShield: Boolean(offShield)
   });
 
+  // 定制武器（HF p.106）也是武器：官方武器表找不到時，改找**這個角色自己鍛造的那些**。
+  // 沒有這一段的話，主手是定制武器時跑團面板會退回一個沒數值的空殼（命中 DEX+MIG、HR+0），
+  // 玩家在衝突中看到的就是錯的數字。
+  const ownCustomWeapons = buildCustomWeaponEntries(character);
+  const resolveWeapon = (name) => rulesData.equipment.weapons.find(w => w.name === name)
+    || ownCustomWeapons.find(w => w.name === name);
+
   const mainWeapon = dualShield.active
     ? dualShield.weapon
-    : (rulesData.equipment.weapons.find(w => w.name === character.equipment?.mainHand) || {
+    : (resolveWeapon(character.equipment?.mainHand) || {
         name: character.equipment?.mainHand || '徒手打擊',
         attr: 'DEX + MIG',
         damage: '【HR + 0】物理',
@@ -461,7 +476,24 @@ export default function CharacterPlayHUD({
         category: '鬥毆'
       });
 
-  const offWeapon = rulesData.equipment.weapons.find(w => w.name === character.equipment?.offHand);
+  const offWeapon = resolveWeapon(character.equipment?.offHand);
+
+  // 可變形武器：**跑團時就在這裡切換型態**（原書 p.107 說裝備其中一種型態就能隨時變形，
+  // 所以玩家在衝突中需要的是這一顆按鈕，而不是回編輯器改裝備）。
+  const transformingGroup = groupCustomWeapons(character.customWeapons || [])
+    .find((g) => g.isTransforming && equippedFormIndex(g, character.equipment?.mainHand) >= 0);
+  const switchForm = transformingGroup
+    ? nextFormFor(transformingGroup, character.equipment?.mainHand)
+    : null;
+
+  const handleSwitchForm = () => {
+    if (!switchForm) return;
+    const { equipment } = equipCustomWeapon(character, switchForm.name);
+    onChange(loggableChange(character, { ...character, equipment }, {
+      kind: 'equipment',
+      title: `變形：${character.equipment?.mainHand} → ${switchForm.name}`
+    }));
+  };
 
   // Parse weapon checks & damage
   const mainCheck = parseCheckFormula(mainWeapon.attr, stats);
@@ -1226,6 +1258,19 @@ export default function CharacterPlayHUD({
                     <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
                       主手 · {mainWeapon.range || '近戰'}
                     </span>
+                    {/* 可變形武器：衝突中就靠這一顆換型態（原書 p.107：每回合一次） */}
+                    {switchForm && (
+                      <button
+                        type="button"
+                        onClick={handleSwitchForm}
+                        title="可變形武器：隨時可切換型態。衝突場景中只能在你的回合、且每回合一次（HF p.107）"
+                        className="text-[10px] px-2 py-0.5 rounded-lg border font-bold flex items-center gap-1 transition-colors"
+                        style={{ borderColor: theme.border, color: theme.accent, backgroundColor: theme.cardBg }}
+                      >
+                        <GiCycle className="w-3 h-3" />
+                        <span>變形 → {switchForm.name}</span>
+                      </button>
+                    )}
                   </div>
 
                   {/* Formula Pills */}

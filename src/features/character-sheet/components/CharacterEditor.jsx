@@ -50,7 +50,8 @@ import {
   equipCustomWeapon,
   groupCustomWeapons,
   equippedFormIndex,
-  nextFormFor
+  nextFormFor,
+  syncEquipmentNames
 } from '../data/customWeapons';
 import EquipmentSlotCard from './EquipmentSlotCard';
 import rulesData from '../data/rulesData.json';
@@ -161,7 +162,12 @@ export default function CharacterEditor({
       const idx = list.findIndex((x) => x.id === spec.id);
       if (idx >= 0) list[idx] = spec; else list.push(spec);
     });
-    updateField('customWeapons', list, {
+    // 改名要跟著改裝備欄（裝備記的是名字，不是 id）——不然主手會留著一個不存在的名字，
+    // 可變形武器也會退回顯示第一個型態。見 data/customWeapons.js 的 syncEquipmentNames。
+    const { equipment, renamed } = syncEquipmentNames(character.equipment, character.customWeapons, list);
+    const patch = { customWeapons: list };
+    if (renamed) patch.equipment = equipment;
+    updateField(patch, {
       kind: 'equipment',
       title: `鍛造${CUSTOM_WEAPON_BASE.label}：${specs[0]?.name || ''}`
     });
