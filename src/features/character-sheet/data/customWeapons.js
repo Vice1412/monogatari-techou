@@ -330,6 +330,59 @@ export const buildCustomWeaponEntries = (character) => {
   return siblings.map((spec) => buildCustomWeaponEntry(spec, { siblings }));
 };
 
+/**
+ * 把規格**分組**：可變形的兩個型態算**同一把武器**。
+ *
+ * 為什麼需要：規格層為了讓兩個型態各自能有類別／命中／傷害（原書 p.107 要求第二型態
+ * 「必須設計成另一件定制武器」），所以存成兩筆。但**規則上它是一件武器**——
+ * 原書明講「一件可變形武器仍然只能擁有一個特性，兩個型態共用」。
+ * 介面照規格層分兩列，玩家看到的就是「兩把武器」，那不對。
+ *
+ * 只有**互指**才算同一把（`a.transformingId === b.id` 且 `b.transformingId === a.id`）。
+ * 單邊指向的壞資料當成獨立的一把，**不要吞掉它**——寧可顯示成兩把，也不要讓玩家的武器消失。
+ */
+export const groupCustomWeapons = (specs = []) => {
+  const byId = new Map((specs || []).map((s) => [s.id, s]));
+  const seen = new Set();
+  const groups = [];
+  (specs || []).forEach((spec) => {
+    if (seen.has(spec.id)) return;
+    const partner = spec.transformingId ? byId.get(spec.transformingId) : null;
+    const paired = Boolean(partner) && partner.transformingId === spec.id;
+    seen.add(spec.id);
+    if (paired) {
+      seen.add(partner.id);
+      groups.push({ id: spec.id, name: spec.name, forms: [spec, partner], isTransforming: true });
+      return;
+    }
+    groups.push({ id: spec.id, name: spec.name, forms: [spec], isTransforming: false });
+  });
+  return groups;
+};
+
+/**
+ * 這一組武器目前**裝在主手的是哪個型態**（沒裝備回 -1）。
+ * 群組以「型態的名字」判定，因為 `equipment.mainHand` 存的是名稱。
+ */
+export const equippedFormIndex = (group, mainHandName) => (
+  (group?.forms || []).findIndex((f) => f.name === mainHandName)
+);
+
+/**
+ * 切換形態要裝上去的那一個。
+ *
+ * 原書 p.107：「當你裝備了兩種型態的其中一種時，你可以隨時變形成另一種形態；
+ * 在衝突場景中，你只能在你的回合的一個動作使用之前或之後進行，並且每個回合只能變形一次。」
+ * ——所以**切換只在已裝備時有意義**；沒裝備時回傳第一個型態（介面會顯示成「裝到主手」）。
+ */
+export const nextFormFor = (group, mainHandName) => {
+  const forms = group?.forms || [];
+  if (forms.length < 2) return forms[0] || null;
+  const idx = equippedFormIndex(group, mainHandName);
+  if (idx < 0) return forms[0];
+  return forms[(idx + 1) % forms.length];
+};
+
 /** 依名稱找一件定制武器的條目（找不到回 null） */
 export const findCustomWeaponEntry = (character, name) => (
   buildCustomWeaponEntries(character).find((w) => w.name === name) || null

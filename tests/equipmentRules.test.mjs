@@ -25,7 +25,10 @@ import {
   remainingSlots,
   usedSlots,
   validateCustomWeapon,
-  equipCustomWeapon
+  equipCustomWeapon,
+  groupCustomWeapons,
+  equippedFormIndex,
+  nextFormFor
 } from '../src/features/character-sheet/data/customWeapons';
 import {
   WEAPON_CATEGORIES,
@@ -749,6 +752,44 @@ check('原本的其他欄位沒有被動到', equipResult.equipment.armor, '無�
 check('副手本來就是空的 → 不提示卸下',
   equipCustomWeapon({ ...equipChar, equipment: { ...equipChar.equipment, offHand: '無盾牌' } }, '戰車').clearedOffHand,
   null);
+
+// ─────────────────────────────────────────────────────────── X
+section('X. 可變形武器＝同一把（分組與切換形態，使用者回報「分成兩把有點彆扭」）');
+
+const twinForms = [
+  createCustomWeaponSpec({ id: 'g1', name: '柔性纏手布', customizations: ['transforming', 'quick'], transformingId: 'g2' }),
+  createCustomWeaponSpec({ id: 'g2', name: '柔性纏手布（第二型態）', customizations: ['transforming', 'accurate', 'powerful'], transformingId: 'g1' })
+];
+const twinGroup = groupCustomWeapons(twinForms);
+check('可變形的兩個型態分成同一組', twinGroup.length, 1);
+check('那一組有兩個型態', twinGroup[0].forms.length, 2);
+check('組名取第一個型態的名字', twinGroup[0].name, '柔性纏手布');
+check('標記為可變形', twinGroup[0].isTransforming, true);
+check('單一武器各自一組',
+  groupCustomWeapons([
+    createCustomWeaponSpec({ id: 'a', name: '甲' }),
+    createCustomWeaponSpec({ id: 'b', name: '乙' })
+  ]).length,
+  2);
+check('單邊指向的壞資料不吞掉任何一把',
+  groupCustomWeapons([createCustomWeaponSpec({ id: 'a', name: '孤兒', transformingId: '不存在' })]).length,
+  1);
+
+check('裝上形態一 → 目前是第 0 個', equippedFormIndex(twinGroup[0], '柔性纏手布'), 0);
+check('裝上形態二 → 目前是第 1 個', equippedFormIndex(twinGroup[0], '柔性纏手布（第二型態）'), 1);
+check('沒裝備 → -1', equippedFormIndex(twinGroup[0], '徒手打擊'), -1);
+check('切換形態：形態一 → 形態二', nextFormFor(twinGroup[0], '柔性纏手布').name, '柔性纏手布（第二型態）');
+check('切換形態：形態二 → 回到形態一', nextFormFor(twinGroup[0], '柔性纏手布（第二型態）').name, '柔性纏手布');
+check('沒裝備時按下去＝裝上第一個型態', nextFormFor(twinGroup[0], '徒手打擊').name, '柔性纏手布');
+check('不可變形時沒有第二個型態可切',
+  nextFormFor(groupCustomWeapons([createCustomWeaponSpec({ id: 's', name: '單一' })])[0], '單一').name,
+  '單一');
+check('切換形態會真的換掉主手（走的是同一條 equip 路徑）',
+  equipCustomWeapon(
+    { equipment: { mainHand: '柔性纏手布', offHand: '無盾牌' }, customWeapons: twinForms },
+    nextFormFor(twinGroup[0], '柔性纏手布').name
+  ).equipment.mainHand,
+  '柔性纏手布（第二型態）');
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

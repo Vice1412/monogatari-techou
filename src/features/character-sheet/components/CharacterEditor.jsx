@@ -47,7 +47,10 @@ import {
   CUSTOM_WEAPON_BASE,
   buildCustomWeaponEntries,
   describeCustomWeapon,
-  equipCustomWeapon
+  equipCustomWeapon,
+  groupCustomWeapons,
+  equippedFormIndex,
+  nextFormFor
 } from '../data/customWeapons';
 import EquipmentSlotCard from './EquipmentSlotCard';
 import rulesData from '../data/rulesData.json';
@@ -147,6 +150,9 @@ export default function CharacterEditor({
   const [isForgeOpen, setIsForgeOpen] = useState(false);
   const [forgeEditingId, setForgeEditingId] = useState('');
   const customWeaponList = character.customWeapons || [];
+  // 可變形的兩個型態是同一把武器（見 data/customWeapons.js 的 groupCustomWeapons），
+  // 所以列表與「N 把」的計數都用**分組後**的數量。
+  const customWeaponGroups = groupCustomWeapons(customWeaponList);
 
   /** 鍛造完成：同 id 覆蓋、新 id 追加（可變形會一次交出兩個型態） */
   const handleSaveCustomWeapons = (specs) => {
@@ -1704,7 +1710,7 @@ export default function CharacterEditor({
                     <GameIcon name="cat_sword" size={16} />
                     <span className="text-xs font-bold" style={{ color: theme.textDark }}>{CUSTOM_WEAPON_BASE.label}</span>
                     <span className="text-[11px] text-slate-500">
-                      {customWeaponList.length > 0 ? `${customWeaponList.length} 把` : '尚未鍛造'}
+                      {customWeaponGroups.length > 0 ? `${customWeaponGroups.length} 把` : '尚未鍛造'}
                     </span>
                   </div>
                   {rules.allowCustomWeapon ? (
@@ -1724,57 +1730,89 @@ export default function CharacterEditor({
                   )}
                 </div>
 
-                {customWeaponList.length > 0 && (
+                {customWeaponGroups.length > 0 && (
                   <div className="space-y-1.5">
-                    {customWeaponList.map((w) => (
-                      <div
-                        key={w.id}
-                        className="flex items-center gap-2 p-2 rounded-lg border text-xs"
-                        style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}
-                      >
-                        <GameIcon name={CATEGORY_ICON[w.category] || 'cat_sword'} size={16} />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-bold" style={{ color: theme.textDark }}>{w.name}</span>
-                            {w.martial && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
-                                職業武器
-                              </span>
-                            )}
-                            {character.equipment?.mainHand === w.name && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
-                                已裝備主手
-                              </span>
-                            )}
+                    {customWeaponGroups.map((group) => {
+                      // 可變形的兩個型態是**同一把武器**（原書 p.107：只有一個特性，兩型態共用）。
+                      // 規格層存成兩筆只是因為兩個型態各自要有類別／命中／傷害，
+                      // 介面照規格層分兩列的話，玩家看到的會是「兩把武器」——那不對。
+                      const idx = equippedFormIndex(group, character.equipment?.mainHand);
+                      const isEquipped = idx >= 0;
+                      const shown = isEquipped ? group.forms[idx] : group.forms[0];
+                      const other = group.isTransforming ? nextFormFor(group, character.equipment?.mainHand) : null;
+                      return (
+                        <div
+                          key={group.id}
+                          className="flex items-center gap-2 p-2 rounded-lg border text-xs"
+                          style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}
+                        >
+                          <GameIcon name={CATEGORY_ICON[shown.category] || 'cat_sword'} size={16} />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-bold" style={{ color: theme.textDark }}>{group.name}</span>
+                              {group.isTransforming && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.textDark }}>
+                                  可變形
+                                </span>
+                              )}
+                              {shown.martial && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
+                                  職業武器
+                                </span>
+                              )}
+                              {isEquipped && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
+                                  已裝備主手
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] truncate" style={{ color: theme.textDark }}>
+                              {group.isTransforming && (
+                                <span className="font-bold">〔{idx === 0 ? '形態一' : idx === 1 ? '形態二' : '未裝備'}〕</span>
+                              )}
+                              {describeCustomWeapon(shown)}
+                            </p>
                           </div>
-                          <p className="text-[11px] truncate" style={{ color: theme.textDark }}>{describeCustomWeapon(w)}</p>
+                          {isEquipped && other ? (
+                            // 已裝備的可變形武器：一顆按鈕切換形態（原書：衝突中每回合一次）
+                            <button
+                              type="button"
+                              onClick={() => handleEquipCustomWeapon(other.name)}
+                              title="衝突場景中只能在你的回合、且每回合一次（HF p.107）"
+                              className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
+                              style={{ borderColor: theme.border, color: theme.accent }}
+                            >
+                              切換形態
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleEquipCustomWeapon(shown.name)}
+                              className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
+                              style={{ borderColor: theme.border, color: theme.textDark }}
+                            >
+                              裝到主手
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => { setForgeEditingId(group.id); setIsForgeOpen(true); }}
+                            className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
+                            style={{ borderColor: theme.border, color: theme.textDark }}
+                          >
+                            編輯
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCustomWeapon(group.id)}
+                            className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
+                            style={{ borderColor: theme.border, color: '#9f1239' }}
+                          >
+                            刪除
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleEquipCustomWeapon(w.name)}
-                          className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
-                          style={{ borderColor: theme.border, color: theme.textDark }}
-                        >
-                          裝到主手
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setForgeEditingId(w.id); setIsForgeOpen(true); }}
-                          className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
-                          style={{ borderColor: theme.border, color: theme.textDark }}
-                        >
-                          編輯
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCustomWeapon(w.id)}
-                          className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
-                          style={{ borderColor: theme.border, color: '#9f1239' }}
-                        >
-                          刪除
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

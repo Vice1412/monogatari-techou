@@ -951,6 +951,22 @@ check('三頁匯出的主手列也印出規格（命中式與傷害式）',
   [cwMainRow.desc.includes('DEX + INS'), cwMainRow.desc.includes('【HR + 5】')],
   [true, true]);
 
+// ─────────────────────────────────────────────────────────── Q
+section('Q. 可變形武器在介面上是一把（使用者：「分成兩把有點彆扭」）');
+
+check('列表用分組渲染，不是逐筆規格',
+  [editorCode.includes('groupCustomWeapons(customWeaponList)'), /customWeaponGroups\.map\(/.test(editorCode)],
+  [true, true]);
+check('「N 把」的計數用分組後的數量（兩筆規格＝1 把）',
+  editorCode.includes('customWeaponGroups.length > 0 ?'), true);
+check('已裝備的可變形武器有「切換形態」按鈕', editorCode.includes('切換形態'), true);
+check('切換走的是同一條 equip 路徑（不另外寫一套）',
+  editorCode.includes('handleEquipCustomWeapon(other.name)'), true);
+check('切換鈕寫明規則限制（衝突中每回合一次）',
+  editorCode.includes('衝突場景中只能在你的回合、且每回合一次'), true);
+check('列上顯示目前是哪個型態（形態一／形態二）',
+  [editorCode.includes('形態一'), editorCode.includes('形態二')], [true, true]);
+
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
 console.log(`\n${'='.repeat(56)}`);
