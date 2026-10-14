@@ -32,6 +32,91 @@
   --codex-muted: #6b5a4b;
 }
 
+/* ==========================================================================
+   v5 設計權杖：「全程淺色 · 冷暖分層」
+   ==========================================================================
+
+   規範見 `design-mockups/design-tokens-v5.html`（非版控）。
+
+   ## 為什麼是這樣
+
+   本專案先後淘汰了兩個方向：
+   - **v2 黑金**：深底 ＋ 金箔 ＋ 發光 → GM 判定「滿滿 AI 感」。
+   - **v4 HD-2D 雙世界**：深底 ＋ 白字 ＋ 高密度 → GM 回報「看起來很累」。
+
+   GM 最後給出的底線是：**「我不喜歡的是深色＋白色字，如果字體全擠在一起
+   看起來很累。」** 換句話說，問題變數不是「深色」，而是
+   **「深底 ＋ 白字 ＋ 高密度」這個組合**——白字在深底上會光學膨脹（字重變重、
+   邊緣泛光），密度一高就變成一整面發光的字牆。
+
+   v5 的解法是**把「明暗對比」整組換成「冷暖對比」**：
+   兩區都是淺底深字，靠色溫差（冷灰底 ＋ 暖紙面板）做層次。
+
+   ## 兩區分配
+
+   - `data-theme="cool"` → **操作型**畫面（戰鬥輪次、建角流程、擲骰結算）
+   - `data-theme="warm"` → **閱讀型**畫面（角色卡、規則速查、NPC 工坊）
+
+   判準不變：「使用者在這裡是要『做』還是要『讀』？」
+
+   ## 怎麼用
+
+   在畫面最外層容器加 `data-theme="cool"` 或 `"warm"`，內部用變數取色；
+   Tailwind 側另有 `cool-*` / `warm-*` / `ink-*` / `signal-*` 類別可直接用。
+   ========================================================================== */
+
+[data-theme="cool"] {
+  --ui-0: #e9edf0;
+  --ui-1: #dfe5ea;
+  --ui-2: #ccd6dd;
+  --ui-line: #a8b6c0;
+  --ui-line-2: #8a9aa6;
+
+  --paper: #f7f3e8;         /* 面板色：暖紙放冷底上＝自然浮起，不需陰影 */
+  --paper-2: #efeade;
+
+  --ink: #2a3240;
+  --ink-2: #5c6878;
+  --ink-3: #8b95a3;
+
+  --accent: #a63d40;
+  --accent-soft: #fff7f6;
+  --accent-halo: rgba(166, 61, 64, 0.16);
+
+  --hp: #b83b34;
+  --mp: #3a6f96;
+  --ip: #a8781f;
+  --ok: #3d7a55;
+
+  --r: 2px;
+}
+
+[data-theme="warm"] {
+  --ui-0: #f7f3e8;
+  --ui-1: #efeade;
+  --ui-2: #e4dcc9;
+  --ui-line: #c5bba4;
+  --ui-line-2: #a1957c;
+
+  --paper: #fffdf7;         /* 暖區裡面板要比底更亮，才能浮起 */
+  --paper-2: #f7f3e8;
+
+  --ink: #2a3240;
+  --ink-2: #5c6878;
+  --ink-3: #8b95a3;
+
+  --accent: #a63d40;
+  --accent-soft: #fff7f6;
+  --accent-halo: rgba(166, 61, 64, 0.16);
+
+  --hp: #b83b34;
+  --mp: #3a6f96;
+  --ip: #a8781f;
+  --ok: #3d7a55;
+
+  --r: 2px;
+}
+
 [data-codex-theme="blue"] {
   --codex-accent: #1d4ed8;
   --codex-accent-dark: #1e40af;
@@ -86,6 +171,65 @@ html, body, #root, button, input, select, textarea {
   font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', '微軟正黑體', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* ==========================================================================
+   v5 狀態工具類（淺底專用）
+
+   淺底上「選中」與「已行動」的表現方式與深底完全相反，不能用同一套：
+
+   - 深底：選中＝發光；已行動＝降 opacity 壓暗。壓暗在深底上是「變黑」，
+     在淺底上是「變灰」，但兩者都會讓文字對比崩掉。
+   - 淺底：選中＝**加粗邊框 ＋ 極淡同色暈**；已行動＝**去飽和**
+     （`filter: saturate()`），產生「褪色」而非「變黑」，文字對比得以維持。
+
+   這些是狀態語言，不是裝飾。改動前請先想清楚它對應哪個狀態。
+   ========================================================================== */
+
+/* 選中：2px accent 邊框 ＋ 極淡同色暈。不用 box-shadow 做「浮起」。 */
+.ui-sel {
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-halo);
+}
+
+/* 已行動：去飽和 ＋ 退半步。刻意保留可讀對比（不像深底那樣壓到 .42）。 */
+.ui-done {
+  filter: saturate(0.25);
+  opacity: 0.65;
+  border-style: dashed;
+  transform: translateX(-8px);
+}
+
+/* 未選中／非焦點：輕度去飽和。比 .ui-done 輕，用於「非當前但可操作」。 */
+.ui-mute {
+  filter: saturate(0.55);
+}
+
+/* 已行動（卡片版）：去飽和 ＋ 略降不透明 ＋ 實線轉虛線。
+   刻意不用位移——卡片在格狀排列中位移會讓整排跳動，這是實裝後才發現的。 */
+.sat-hiber {
+  filter: saturate(0.25);
+  opacity: 0.7;
+  border-style: dashed;
+}
+
+/* 溫差面板：在冷底上放暖紙。這是 v5 唯一允許的「浮起」手法（無陰影）。 */
+.ui-panel {
+  background: var(--paper);
+  border: 1px solid var(--ui-line);
+  border-radius: var(--r);
+}
+
+/* 這一區的底 */
+.ui-zone {
+  background: var(--ui-0);
+  color: var(--ink);
+}
+
+/* 數值／英文／拉丁標籤用的像素字（中文無可讀像素字型，勿套在中文上） */
+.ui-pixel {
+  font-family: 'Press Start 2P', 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+}
+
 body {
   background-color: var(--codex-bg, #fbf7ee);
   color: var(--codex-text, #2c221e);
@@ -114,15 +258,18 @@ body {
   background: #b45309;
 }
 
-/* Pulse Animations for Crisis */
+/* 危機警示脈動。
+   v1 版本振幅是 `0 0 20px` 外發光——那是「裝飾性光暈」，v5 禁用。
+   這裡只保留邊框色變化 ＋ 極輕微的內縮暈影，強度約為原本的三分之一，
+   目的是「抓注意力」而非「發光」。 */
 @keyframes crisisPulseWarm {
   0%, 100% {
-    border-color: rgba(185, 28, 28, 0.4);
-    box-shadow: 0 0 10px rgba(185, 28, 28, 0.15);
+    border-color: rgba(184, 59, 52, 0.45);
+    box-shadow: 0 0 0 0 rgba(184, 59, 52, 0);
   }
   50% {
-    border-color: rgba(185, 28, 28, 0.9);
-    box-shadow: 0 0 20px rgba(185, 28, 28, 0.35);
+    border-color: rgba(184, 59, 52, 1);
+    box-shadow: 0 0 0 3px rgba(184, 59, 52, 0.12);
   }
 }
 

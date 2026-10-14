@@ -17,13 +17,19 @@ import {
 import JRPGBadge from '../../../components/ui/JRPGBadge';
 import GameIcon from '../../../components/ui/GameIcon';
 
+/**
+ * 狀態異常定義。
+ *
+ * 顏色已改為 v5 淺底族系：`border-*` 用中彩度，
+ * `bg-*` 一律極淡（-50 級），`text-*` 用 -800/-900 確保淺底上的對比。
+ */
 const STATUS_EFFECTS = [
-  { key: 'slow', name: '遲緩', en: 'Slow', desc: '靈巧降階', color: 'border-amber-400 text-amber-800 bg-amber-50' },
-  { key: 'dazed', name: '眩暈', en: 'Dazed', desc: '洞察降階', color: 'border-sky-400 text-sky-800 bg-sky-50' },
-  { key: 'weak', name: '虛弱', en: 'Weak', desc: '力量降階', color: 'border-rose-400 text-rose-800 bg-rose-50' },
-  { key: 'shaken', name: '動搖', en: 'Shaken', desc: '意志降階', color: 'border-purple-400 text-purple-800 bg-purple-50' },
-  { key: 'enraged', name: '憤怒', en: 'Enraged', desc: '靈巧·洞察降階·限普攻', color: 'border-red-400 text-red-800 bg-red-50' },
-  { key: 'poisoned', name: '中毒', en: 'Poison', desc: '回合結束受到5毒傷', color: 'border-emerald-400 text-emerald-800 bg-emerald-50' }
+  { key: 'slow', name: '遲緩', en: 'Slow', desc: '靈巧降階', color: 'border-signal-ip text-[#7a5616] bg-signal-ip/10' },
+  { key: 'dazed', name: '眩暈', en: 'Dazed', desc: '洞察降階', color: 'border-signal-mp text-[#26506e] bg-signal-mp/10' },
+  { key: 'weak', name: '虛弱', en: 'Weak', desc: '力量降階', color: 'border-signal-hp text-[#8b2d27] bg-signal-hp/10' },
+  { key: 'shaken', name: '動搖', en: 'Shaken', desc: '意志降階', color: 'border-[#7a6a9c] text-[#4a4068] bg-[#7a6a9c]/10' },
+  { key: 'enraged', name: '憤怒', en: 'Enraged', desc: '靈巧·洞察降階·限普攻', color: 'border-[#c0603f] text-[#8a3f26] bg-[#c0603f]/10' },
+  { key: 'poisoned', name: '中毒', en: 'Poison', desc: '回合結束受到5毒傷', color: 'border-signal-ok text-[#28553a] bg-signal-ok/10' }
 ];
 
 export default function CombatantCard({
@@ -89,40 +95,48 @@ export default function CombatantCard({
     });
   };
 
+  /**
+   * v5 卡片外框狀態。
+   *
+   * 舊版（v1）用 `opacity-60` 表示「已行動」，那在深底上是合理的，
+   * 但本卡是淺底：壓暗會連帶把文字對比壓掉。v5 改為**去飽和**——
+   * 卡片「褪色」但文字仍清晰可讀，這是 v5 最重要的狀態語言之一。
+   *
+   * 危機狀態刻意保留一個低強度脈動：它是**警示**，需要抓注意力，
+   * 與「裝飾性光暈」不同。振幅已從 20px blur 降到 10px。
+   */
+  const cardState = combatant.hasActed
+    ? 'sat-hiber'
+    : isCrisis
+      ? 'crisis-pulse-active border-signal-hp bg-signal-hp/5'
+      : isPlayer
+        ? 'border-signal-mp/45 hover:border-signal-mp'
+        : 'border-warm-line hover:border-ink-3';
+
   return (
     <div
-      className={`bg-[#fffdf9] rounded-xl border transition-all duration-200 shadow-sm overflow-hidden flex flex-col relative ${
-        combatant.hasActed
-          ? 'opacity-60 border-[#d6c7ab] bg-[#f5efdf]'
-          : isCrisis
-            ? 'crisis-pulse-active border-rose-500 bg-rose-50/40'
-            : isPlayer
-              ? 'border-sky-300 hover:border-sky-500'
-              : 'border-[#d6c7ab] hover:border-amber-600'
-      }`}
+      className={`bg-warm-0 rounded border transition-all duration-160 overflow-hidden flex flex-col relative ${cardState}`}
     >
-      {/* Top Border Indicator */}
-      <div className={`h-1.5 w-full ${isPlayer ? 'bg-gradient-to-r from-sky-600 to-cyan-500' : 'bg-gradient-to-r from-amber-600 to-rose-600'}`} />
+      {/* 頂部識別條：玩家隊＝藍、敵方＝暖紅。v5 改為實色，不用漸層。 */}
+      <div className={`h-1 w-full ${isPlayer ? 'bg-signal-mp' : 'bg-signal-accent'}`} />
 
-      {/* Header Profile */}
-      <div className="p-3.5 border-b border-[#d6c7ab]/80 bg-[#f4ebd9]/40 flex items-start gap-3">
-        {/* Avatar */}
-        <div className="w-11 h-11 rounded-lg bg-[#f5efdf] border border-[#d6c7ab] overflow-hidden shrink-0 flex items-center justify-center font-serif text-base text-amber-800 font-bold shadow-inner">
+      {/* 頭像與身分 */}
+      <div className="p-3.5 border-b border-warm-line/70 bg-warm-1/60 flex items-start gap-3">
+        <div className="w-11 h-11 rounded bg-cool-1 border border-warm-line overflow-hidden shrink-0 flex items-center justify-center font-serif text-base text-ink font-bold">
           {combatant.avatar ? (
             combatant.avatar.startsWith('http') || combatant.avatar.startsWith('data:') ? (
               <img src={combatant.avatar} alt={combatant.name} className="w-full h-full object-cover" />
             ) : (
-              <GameIcon name={combatant.avatar} size={24} className="text-amber-800" />
+              <GameIcon name={combatant.avatar} size={24} className="text-ink" />
             )
           ) : (
             combatant.name?.[0] || '戰'
           )}
         </div>
 
-        {/* Identity */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <h4 className="font-serif font-bold text-base text-[#2c221e] truncate">
+            <h4 className="font-serif font-bold text-base text-ink truncate">
               {combatant.name}
             </h4>
             <JRPGBadge variant={isPlayer ? 'cyan' : 'gold'} size="xs">
@@ -135,24 +149,26 @@ export default function CombatantCard({
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-[11px] text-[#6b5a4b] mt-0.5 font-mono">
+          <div className="flex items-center gap-2 text-[11px] text-ink-2 mt-0.5 font-mono">
             <span>{combatant.species || combatant.role}</span>
-            <span>·</span>
+            <span className="text-ink-3">·</span>
             <span>物防 {combatant.defense}</span>
-            <span>·</span>
+            <span className="text-ink-3">·</span>
             <span>魔防 {combatant.magicDefense}</span>
-            <span>·</span>
+            <span className="text-ink-3">·</span>
             <span>先攻 +{combatant.initiative}</span>
           </div>
         </div>
 
-        {/* Has Acted Checkbox Button */}
+        {/* 行動狀態切換。
+            待行動時舊版會 `animate-pulse` 無限循環——那是「裝飾性動態」，
+            v5 禁用。改為靜態實色，靠色塊本身抓注意力即可。 */}
         <button
           onClick={handleToggleActed}
-          className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+          className={`px-2.5 py-1.5 rounded text-xs font-mono font-bold transition-colors duration-160 flex items-center gap-1.5 shrink-0 border ${
             combatant.hasActed
-              ? 'bg-[#eee6d3] text-[#6b5a4b] border border-[#d6c7ab]'
-              : 'bg-amber-700 text-white shadow-sm hover:bg-amber-800 animate-pulse'
+              ? 'bg-warm-2 text-ink-2 border-warm-line'
+              : 'bg-signal-hp text-white border-transparent hover:bg-[#9d302a]'
           }`}
           title="切換本輪是否已行動"
         >
@@ -161,122 +177,107 @@ export default function CombatantCard({
         </button>
       </div>
 
-      {/* HP Bar & Stepper */}
-      <div className="px-3.5 py-2.5 border-b border-[#d6c7ab]/80 bg-[#fbf7ee] space-y-1.5">
+      {/* HP */}
+      <div className="px-3.5 py-2.5 border-b border-warm-line/70 bg-warm-0 space-y-1.5">
         <div className="flex items-center justify-between text-xs font-mono">
-          <div className="flex items-center gap-1.5 font-bold text-red-700 font-sans">
-            <GiHealthNormal className="w-3.5 h-3.5 text-red-600" />
+          <div className="flex items-center gap-1.5 font-bold text-signal-hp font-sans">
+            <GiHealthNormal className="w-3.5 h-3.5" />
             <span>HP</span>
             {isCrisis && (
-              <span className="text-[10px] text-rose-700 font-sans font-bold flex items-center gap-0.5 animate-bounce">
-                <AlertTriangle className="w-3 h-3" /> 危機!
+              <span className="text-[10px] text-signal-hp font-sans font-bold flex items-center gap-0.5">
+                <AlertTriangle className="w-3 h-3" /> 危機
               </span>
             )}
           </div>
-          <div className="text-[#2c221e]">
-            <strong className="text-sm text-red-800 font-bold">{curHp}</strong>
-            <span className="text-[#8c7b6c]"> / {maxHp}</span>
+          <div className="text-ink">
+            <strong className="text-sm text-signal-hp font-bold">{curHp}</strong>
+            <span className="text-ink-3"> / {maxHp}</span>
           </div>
         </div>
 
-        {/* Progress Track */}
-        <div className="w-full h-2 rounded-full bg-[#eee6d3] overflow-hidden border border-[#d6c7ab]">
+        {/* 進度條。v5 移除漸層（漸層是 v2 黑金的病灶之一），改單色實心。 */}
+        <div className="w-full h-2 rounded-full bg-cool-2 overflow-hidden">
           <div
-            className={`h-full transition-all duration-200 ${isCrisis ? 'bg-gradient-to-r from-red-600 to-rose-500' : 'bg-gradient-to-r from-red-500 to-amber-500'}`}
+            className="h-full bg-signal-hp transition-all duration-200"
             style={{ width: `${hpPercent}%` }}
           />
         </div>
 
-        {/* Stepper Buttons */}
         <div className="flex items-center justify-between gap-1 pt-1">
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => handleAdjustHp(-5)}
-              className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-red-400 text-[11px] font-mono text-[#2c221e] hover:text-red-700 transition-colors"
-            >
-              -5
-            </button>
-            <button
-              onClick={() => handleAdjustHp(-1)}
-              className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-red-400 text-[11px] font-mono text-[#2c221e] hover:text-red-700 transition-colors"
-            >
-              -1
-            </button>
+            {[-5, -1].map(d => (
+              <button
+                key={d}
+                onClick={() => handleAdjustHp(d)}
+                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-hp text-[11px] font-mono text-ink hover:text-signal-hp transition-colors duration-120"
+              >
+                {d}
+              </button>
+            ))}
           </div>
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => handleAdjustHp(1)}
-              className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-emerald-500 text-[11px] font-mono text-[#2c221e] hover:text-emerald-700 transition-colors"
-            >
-              +1
-            </button>
-            <button
-              onClick={() => handleAdjustHp(5)}
-              className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-emerald-500 text-[11px] font-mono text-[#2c221e] hover:text-emerald-700 transition-colors"
-            >
-              +5
-            </button>
+            {[1, 5].map(d => (
+              <button
+                key={d}
+                onClick={() => handleAdjustHp(d)}
+                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-ok text-[11px] font-mono text-ink hover:text-signal-ok transition-colors duration-120"
+              >
+                +{d}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* MP Bar & Stepper */}
-      <div className="px-3.5 py-2.5 border-b border-[#d6c7ab]/80 bg-[#fbf7ee]/60 space-y-1.5">
+      {/* MP */}
+      <div className="px-3.5 py-2.5 border-b border-warm-line/70 bg-warm-1/40 space-y-1.5">
         <div className="flex items-center justify-between text-xs font-mono">
-          <div className="flex items-center gap-1.5 font-bold text-sky-800 font-sans">
-            <GiLightningTear className="w-3.5 h-3.5 text-sky-600" />
+          <div className="flex items-center gap-1.5 font-bold text-signal-mp font-sans">
+            <GiLightningTear className="w-3.5 h-3.5" />
             <span>MP</span>
           </div>
-          <div className="text-[#2c221e]">
-            <strong className="text-sm text-sky-900 font-bold">{curMp}</strong>
-            <span className="text-[#8c7b6c]"> / {maxMp}</span>
+          <div className="text-ink">
+            <strong className="text-sm text-signal-mp font-bold">{curMp}</strong>
+            <span className="text-ink-3"> / {maxMp}</span>
           </div>
         </div>
 
-        {/* Progress Track */}
-        <div className="w-full h-1.5 rounded-full bg-[#eee6d3] overflow-hidden border border-[#d6c7ab]">
+        <div className="w-full h-1.5 rounded-full bg-cool-2 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-sky-500 to-cyan-400 transition-all duration-200"
+            className="h-full bg-signal-mp transition-all duration-200"
             style={{ width: `${mpPercent}%` }}
           />
         </div>
 
-        {/* Stepper Buttons */}
         <div className="flex items-center justify-between gap-1 pt-0.5">
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => handleAdjustMp(-5)}
-              className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-sky-400 text-[11px] font-mono text-[#2c221e] hover:text-sky-700 transition-colors"
-            >
-              -5
-            </button>
-            <button
-              onClick={() => handleAdjustMp(-1)}
-              className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-sky-400 text-[11px] font-mono text-[#2c221e] hover:text-sky-700 transition-colors"
-            >
-              -1
-            </button>
+            {[-5, -1].map(d => (
+              <button
+                key={d}
+                onClick={() => handleAdjustMp(d)}
+                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-mp text-[11px] font-mono text-ink hover:text-signal-mp transition-colors duration-120"
+              >
+                {d}
+              </button>
+            ))}
           </div>
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => handleAdjustMp(1)}
-              className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-sky-400 text-[11px] font-mono text-[#2c221e] hover:text-sky-700 transition-colors"
-            >
-              +1
-            </button>
-            <button
-              onClick={() => handleAdjustMp(5)}
-              className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-sky-400 text-[11px] font-mono text-[#2c221e] hover:text-sky-700 transition-colors"
-            >
-              +5
-            </button>
+            {[1, 5].map(d => (
+              <button
+                key={d}
+                onClick={() => handleAdjustMp(d)}
+                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-mp text-[11px] font-mono text-ink hover:text-signal-mp transition-colors duration-120"
+              >
+                +{d}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* 6 Status Effects Toggles */}
-      <div className="p-3 border-b border-[#d6c7ab]/80 bg-[#f5efdf]/40">
-        <div className="text-[10px] font-mono text-[#8c7b6c] uppercase tracking-wider mb-1.5 font-bold">
+      {/* 狀態異常 */}
+      <div className="p-3 border-b border-warm-line/70 bg-warm-1/30">
+        <div className="text-[10px] font-mono text-ink-3 uppercase tracking-wider mb-1.5 font-bold">
           狀態異常
         </div>
         <div className="grid grid-cols-3 gap-1">
@@ -287,10 +288,10 @@ export default function CombatantCard({
                 key={st.key}
                 type="button"
                 onClick={() => handleToggleStatus(st.key)}
-                className={`px-1.5 py-1 rounded-md text-[11px] font-mono border transition-all text-center flex flex-col items-center ${
+                className={`px-1.5 py-1 rounded text-[11px] font-mono border transition-colors duration-120 text-center flex flex-col items-center ${
                   isActive
-                    ? `${st.color} font-bold ring-1 ring-amber-500/50 shadow-sm`
-                    : 'border-[#d6c7ab] bg-[#fffdf9] text-[#6b5a4b] hover:border-amber-600'
+                    ? `${st.color} font-bold`
+                    : 'border-warm-line bg-warm-0 text-ink-2 hover:border-ink-3'
                 }`}
                 title={st.desc}
               >
@@ -302,14 +303,14 @@ export default function CombatantCard({
         </div>
       </div>
 
-      {/* Gradual Skill Reveal (NPC Only) */}
+      {/* 技能逐格揭露（僅 NPC） */}
       {!isPlayer && combatant.skills && combatant.skills.length > 0 && (
-        <div className="p-3 border-b border-[#d6c7ab]/80 bg-[#f5efdf]/60 space-y-1.5">
-          <div className="text-[10px] font-mono text-[#6b5a4b] flex items-center justify-between font-bold">
+        <div className="p-3 border-b border-warm-line/70 bg-warm-1/50 space-y-1.5">
+          <div className="text-[10px] font-mono text-ink-2 flex items-center justify-between font-bold">
             <span className="inline-flex items-center gap-1">
-              技能組 (點擊 <Eye className="w-3 h-3 text-amber-700" /> 向全員揭露)
+              技能組（點擊 <Eye className="w-3 h-3 text-ink-2" /> 向全員揭露）
             </span>
-            <span className="text-amber-800 text-[10px]">
+            <span className="text-signal-ip text-[10px]">
               已揭露: {combatant.skills.filter(s => s.isRevealed).length} / {combatant.skills.length}
             </span>
           </div>
@@ -318,29 +319,29 @@ export default function CombatantCard({
             {combatant.skills.map(sk => (
               <div
                 key={sk.id}
-                className={`p-1.5 rounded-md border text-xs flex items-center justify-between gap-2 transition-colors ${
+                className={`p-1.5 rounded border text-xs flex items-center justify-between gap-2 transition-colors duration-120 ${
                   sk.isRevealed
-                    ? 'border-amber-400 bg-amber-50 text-amber-900 shadow-sm'
-                    : 'border-[#d6c7ab] bg-[#fffdf9] text-[#8c7b6c]'
+                    ? 'border-signal-ip/60 bg-signal-ip/8 text-ink'
+                    : 'border-warm-line bg-warm-0 text-ink-3'
                 }`}
               >
                 <div className="flex-1 min-w-0">
                   <div className="font-bold flex items-center gap-1.5 truncate">
                     <span>{sk.name}</span>
-                    {!sk.isRevealed && <span className="text-[10px] text-[#8c7b6c] font-mono">(未公開)</span>}
+                    {!sk.isRevealed && <span className="text-[10px] text-ink-3 font-mono">(未公開)</span>}
                   </div>
                   {sk.desc && sk.isRevealed && (
-                    <p className="text-[10px] text-[#6b5a4b] font-sans line-clamp-1 mt-0.5">{sk.desc}</p>
+                    <p className="text-[10px] text-ink-2 font-sans line-clamp-1 mt-0.5">{sk.desc}</p>
                   )}
                 </div>
 
                 <button
                   type="button"
                   onClick={() => handleToggleRevealSkill(sk.id)}
-                  className={`p-1 rounded transition-colors ${
+                  className={`p-1 rounded transition-colors duration-120 ${
                     sk.isRevealed
-                      ? 'text-amber-700 hover:text-amber-800'
-                      : 'text-[#8c7b6c] hover:text-[#2c221e]'
+                      ? 'text-signal-ip hover:text-[#7a5616]'
+                      : 'text-ink-3 hover:text-ink'
                   }`}
                   title={sk.isRevealed ? "收回隱藏" : "向所有人公開此技能"}
                 >
@@ -352,12 +353,12 @@ export default function CombatantCard({
         </div>
       )}
 
-      {/* Card Actions Footer */}
-      <div className="p-2.5 bg-[#f4ebd9]/30 flex items-center justify-between gap-2 mt-auto border-t border-[#d6c7ab]/80">
+      {/* 卡片底部動作 */}
+      <div className="p-2.5 bg-warm-1/50 flex items-center justify-between gap-2 mt-auto border-t border-warm-line/70">
         <button
           type="button"
           onClick={() => onOpenDrawer(combatant)}
-          className="text-xs text-amber-800 hover:text-amber-900 flex items-center gap-1 font-bold transition-colors"
+          className="text-xs text-signal-accent hover:text-[#8a3234] flex items-center gap-1 font-bold transition-colors duration-120"
         >
           <FileText className="w-3.5 h-3.5" /> 查看完整資訊
         </button>
@@ -365,7 +366,7 @@ export default function CombatantCard({
         <button
           type="button"
           onClick={() => onRemove(combatant.instanceId)}
-          className="text-[#8c7b6c] hover:text-rose-700 p-1 transition-colors"
+          className="text-ink-3 hover:text-signal-hp p-1 transition-colors duration-120"
           title="從戰鬥移除"
         >
           <Trash2 className="w-3.5 h-3.5" />

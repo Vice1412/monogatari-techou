@@ -27,6 +27,10 @@ dist-ssr
 scratch/
 .gemini/
 
+# UI 設計稿（純設計探索，非專案產出；GM 裁定不進版控）
+# 2026-10-14 使用者裁定移出版控。檔案仍在磁碟上，只是不再被 git 追蹤。
+design-mockups/
+
 # Test bundle output
 .test-build/
 
