@@ -4128,3 +4128,69 @@ Core 31 筆先前已完成（§AJ3）；本次補完其餘四本。
 
 **教訓：新增程式碼若引用既有效果文，那個效果文本身也必須先核對過。**
 兩次都是稽核才發現——所以**稽核的順序應該在實作之前**，或至少在實作引用它之前。
+
+---
+
+### AV. 核心書技能變體（Core Book Variants）：收尾 —— ✅ 2026-10-14
+
+> 前置：`99726b8`（資料層）、`803a27c`（接介面）。本輪是**收尾**，不是新功能。
+
+**使用者裁定的鐵律**（`803a27c` 原文）：
+
+> 「要勾選【官方公測修訂】才會出現的項目，千萬不可用修改到原本規則書的內容。
+>   勾選之後，那些有改過的內容要在後面標記【公測】，然後和原版的技能同時存在，
+>   並把不一樣的內容粗體化讓用戶看到。」
+
+來源：`Fabula Ultima Playtest Materials (ENG) (October 1st, 2026)` 的
+`VARIANT RULES AND SKILLS` 段。使用者裁定該版為唯一基準，先前所有 Playtest 內容作廢。
+
+#### AV1. 收尾時抓到的三個缺陷（都不是新功能，是「做了但接錯」）
+
+| # | 位置 | 問題 | 為什麼測試/build 都沒抓到 |
+|---|---|---|---|
+| 1 | `ClassSkillCard.jsx:709` | 用 `classItem.name` 取職業名，但 `classItem` 來自 `rulesData.classes[...]`，**那個物件只有 key、沒有 `name` 也沒有 `className`** → `getVariantsForClass(undefined)` 回空陣列，變體一個都不顯示 | 是「陣列恆為空」而非例外，React 不會報錯 |
+| 2 | `ClassSkillCard.jsx:704-711` | 變體區塊寫在**空狀態的 `else` 分支內** → 角色**沒配點**時看不到變體（有配點反而才看得到） | 同上，條件不成立就是靜默不渲染 |
+| 3 | `tests/coreBookVariants.test.mjs` | 測試把 `rulesData.classes['嵌合師']` 直接當 `classItem` 傳入——**與真實呼叫端契約不符**（真實端是 `character.classes[]` 的元素，見 `CharacterEditor.jsx:1452`） | 測試自己傳錯物件，於是「全過」是假的 |
+
+**缺陷 3 是這一輪最值得記的**：測試檔是 `10-14 08:19` 建的，它寫得很好、註解也對
+（甚至預言了「條件永遠為 false」這個失敗模式），但**它從未被執行過**——
+`package.json` 的 `npm test` 串鏈裡沒有它。**一道不跑的護欄等於不存在。**
+
+#### AV2. 修法
+
+- `ClassSkillCard.jsx`：`getVariantsForClass(className)`（元件在第 364 行就算好了
+  `const className = classItem.className`）；變體區塊**移出**空狀態判斷，
+  與技能清單同層——變體是「這個職業有變體」的事實，與角色配了幾點無關。
+- `tests/coreBookVariants.test.mjs`：新增 `mkClassItem(className, skills)` 組出真實契約的物件；
+  新增 D／E2／E3 三段護欄（D 改為「角色已配過該技能」才有原版可看）。
+- `package.json`：新增 `test:variants` 子指令，並接進 `test` 串鏈末端。
+
+#### AV3. 護欄的驗證方式：故意破壞
+
+把 `getVariantsForClass(className)` 改回 `classItem.name` → **6 條 FAIL**
+（D 段 0 條、E 段 4 條、E2 段 1 條、E3 段 1 條）。還原 → 50/50 全過。
+**護欄本身被驗證過，不是只寫了就跑。**
+
+#### AV4. 視覺驗證（`803a27c` 明載「尚未做」的那一項）
+
+- 駕駛艙：`scratch/render_variants.mjs` → `scratch/variants_preview.html`
+  → Chrome headless 截圖 `scratch/shots/variants_preview.png`。
+- **這裡用 SSR 是合法的**：`ClassSkillCard` **不是 portal**（`JRPGModal` 才是），
+  SSR 會真的渲染。§AS6 的「SSR 對 portal 元件無效」不適用。
+- 樣式另接 `dist/assets/index-*.css`（build 產物），所以**版面也一起被驗證**，
+  不只是無樣式的文字堆。
+- 三個情境的實測結果：
+
+| 情境 | `hasPlaytestBadge` | 變體 | 原版 |
+|---|---|---|---|
+| 公測關閉（`['core']`） | **false** | 不出現 | 【咒語模仿】在 |
+| 公測開啟（嵌合師） | true | 【咒語自助餐】 | 【咒語模仿】**並存** |
+| 公測開啟（狂怒鬥士） | true | 【勇猛打手】＋【隕石猛擊】兩張 | 【暴怒】並存 |
+
+#### AV5. 教訓
+
+**「零件齊了但沒接上」的第三種形態。** §AS9 是「有欄位、有讀取端卻沒有開關」，
+§AS 修 bug 那次是「有按鈕、有處理函式卻接錯回傳值」——這次是
+**「有測試檔、卻沒接進測試指令」**。三次的共同點：**護欄只檢查零件的存在，不檢查零件之間的線。**
+
+推論出去的規則：**新增測試檔時，同步改 `package.json` 是改動的一部分，不是後續工作。**

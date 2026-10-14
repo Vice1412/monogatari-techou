@@ -701,16 +701,21 @@ export default function ClassSkillCard({
                 );
               })}
 
-                  {/* 核心書技能變體（Core Book Variants）——勾選【官方公測修訂】才出現。
-                      與原版技能**並存**、不改原版；標【公測】徽章，差異用粗體。 */}
-                  {((character || {}).enabledSourcebooks
-                    ?? resolveCreationRules((character || {}).creationRules || {}).defaultSourcebooks
-                    ?? []).includes('playtest')
-                    && getVariantsForClass(classItem.name).map((v) => (
-                      <CoreBookVariantCard key={v.id} variant={v} theme={theme} />
-                    ))}
             </div>
           )}
+
+          {/* 核心書技能變體（Core Book Variants）——勾選【官方公測修訂】才出現。
+              與原版技能**並存**、不改原版；標【公測】徽章，差異用粗體。
+              ※ 放在空狀態判斷**外面**：變體是「這個職業有變體」的事實，
+                與「這個角色配了幾點技能」無關，沒配點時也該看得到。
+              ※ 職業名一律讀 `className`（元件在第 364 行就算好了）。
+                `classItem` 來自 `rulesData.classes[...]`，那裡**沒有 `name` 欄位**。 */}
+          {((character || {}).enabledSourcebooks
+            ?? resolveCreationRules((character || {}).creationRules || {}).defaultSourcebooks
+            ?? []).includes('playtest')
+            && getVariantsForClass(className).map((v) => (
+              <CoreBookVariantCard key={v.id} variant={v} theme={theme} />
+            ))}
         </div>
       )}
 

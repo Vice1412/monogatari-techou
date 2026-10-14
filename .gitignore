@@ -33,3 +33,6 @@ scratch/
 # 官方原書節錄與民間漢化（他人著作，不得進公開 repo）
 # 2026-10-04 使用者裁定移出版控。檔案仍在磁碟上，只是不再被 git 追蹤。
 resources/
+
+# WorkBuddy 本地記憶（agent 的工作日誌與長期筆記，非專案產出）
+.workbuddy-ai/
