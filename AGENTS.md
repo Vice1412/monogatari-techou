@@ -64,6 +64,18 @@
   `--headless=old`／`=new` 都一樣；`--dump-dom` 在這個版本沒有輸出。
   完整過程與教訓見 `docs/decisions.md` §AT。
 - **樣式系統**：Tailwind 3。全站為**羊皮紙暖色調**（`#fbf7ee` / `#3c2415` / `#d6c7ab`），**非**深色石板底。
+- **推送（push）的陷阱**：在 WorkBuddy 的 bash 環境裡直接 `git push` **會永遠掛住**——
+  harness 的 PortableGit 把自己的 `etc/gitconfig` 設成 `credential.helper = helper-selector`，
+  那是**會彈 GUI 視窗的互動式選擇器**，它不讀 `GIT_TERMINAL_PROMPT=0`，所以在無 GUI 環境下
+  就卡在那裡等認證（沒有輸出、最後被 SIGTERM）。
+  **解法：改用系統 Git。**
+  ```bash
+  GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never \
+    "/c/Program Files/Git/bin/git.exe" push origin main
+  ```
+  系統 Git 的 helper 是 `manager`（GCM 2.7.3），且 Windows 憑證管理員裡已有 GitHub 憑證。
+  診斷方式：`git config --show-origin --get-all credential.helper`——
+  來源若是 `WorkBuddyAI/resources/vendor/PortableGit/etc/gitconfig` 就是撞上這個坑。
 - **資料層**：純 localStorage，但**已收斂為單一存取層**（2026-10-04，見 `docs/decisions.md` §L）：
   - 鍵註冊表 `src/data/keys.js`：**7 個權威鍵 + 3 個舊鍵**
   - 存取層 `src/data/store.js`：`readJSON`／`writeJSON`／`readRaw`／`writeRaw`／`subscribe`／`migrateLegacyStorage`
