@@ -7,6 +7,7 @@ import { DEFAULT_CREATION_RULES, resolveCreationRules } from '../data/creationRu
 import { buildLoadoutIssues } from './equipmentRules';
 import { buildCustomWeaponEntries, validateCustomWeapon, CUSTOM_WEAPON_BASE } from '../data/customWeapons';
 import { appendLog, createLogEntry } from './characterLog';
+import { findVariantHeroicSkillConflicts } from '../data/coreBookVariants';
 
 // Dice ladder for step reductions
 const DICE_STEPS = [6, 8, 10, 12];
@@ -1266,6 +1267,20 @@ export const validateCharacter = (char, rules = null) => {
         message: `【${name}】最多只能取得 ${max} 次（目前 ${count} 次）`
       });
     }
+  });
+
+  // ── 核心書技能變體的互斥條款（2026-10-14 GM 裁定實作）
+  //
+  // 變體效果文各自寫著「若你使用此變體，你不能取得【某某】英雄技能」，
+  // 但在此之前**完全沒有程式檢查**——那些條款只是 desc 裡的自由文字。
+  // 判定與資料都在 `coreBookVariants.js`，這裡只負責轉成驗證訊息。
+  findVariantHeroicSkillConflicts(char).forEach((c) => {
+    warnings.push({
+      step: 5,
+      field: 'heroicSkills',
+      type: 'error',
+      message: c.message
+    });
   });
 
   // 步驟 6: 命名與背景（原書第 8 步，p.154／p.170）

@@ -13,7 +13,7 @@ import JRPGButton from '../../../components/ui/JRPGButton';
 import SkillStarPips from './SkillStarPips';
 import SkillDescription from '../utils/skillFormulaEvaluator';
 import CoreBookVariantCard from './CoreBookVariantCard';
-import { getVariantsForClass } from '../data/coreBookVariants';
+import { getVariantsForClass, getVariantById, buildSkillEntry } from '../data/coreBookVariants';
 import { SOURCEBOOKS, getClassInfo } from '../data/sourcebookConfig';
 import { DEFAULT_CREATION_RULES, resolveCreationRules } from '../data/creationRules';
 import rulesData from '../data/rulesData.json';
@@ -62,7 +62,7 @@ export default function ClassPickerModal({
 }) {
   const rules = resolveCreationRules(creationRules);
   // 核心書技能變體是**選用**的：只有勾選【官方公測修訂】才顯示。
-  // 原版技能永遠都在，變體只是接在旁邊（使用者裁定：不可改到原版內容）。
+  // ※ 選用後**原版技能收起來**（GM 裁定 2026-10-14），由玩家自己按——見 coreBookVariants.js。
   // ※ 來源是 `enabledBooks` prop，不是 `rules`——`resolveCreationRules()` 的回傳裡
   //   沒有 `enabledSourcebooks`（只有 allowedSourcebooks 與 defaultSourcebooks）。
   const showVariants = (enabledBooks || []).includes('playtest');
@@ -74,6 +74,12 @@ export default function ClassPickerModal({
    * 所以一次只能確定一個職業。
    */
   const [draft, setDraft] = useState({});
+  /**
+   * 變體選用草稿：`{ 職業名: { 原版技能名: 變體id } }`。
+   * **與配點草稿分開**——因為配點是按「確定」才寫入，而變體選用也是。
+   * 但兩者的 key 不同層（一個是技能、一個是變體），硬塞進同一個字典會讓兩邊都很難讀。
+   */
+  const [draftVariants, setDraftVariants] = useState({});
   // 手機端導航步驟：'list' (挑選名冊) | 'detail' (技能加點與確認)
   const [mobileStep, setMobileStep] = useState('list');
 
@@ -143,6 +149,7 @@ export default function ClassPickerModal({
       // 關掉就整份草稿清空——沒有「確定」的配點不該留著
       setActiveClassName(null);
       setDraft({});
+      setDraftVariants({});
       setSearch('');
       setMobileStep('list');
     }
@@ -201,15 +208,44 @@ export default function ClassPickerModal({
     }));
   };
 
+  /** 某個技能在草稿裡選用了哪個變體（null＝用原版） */
+  const activeVariantOf = (skillName) => (draftVariants[activeClassName] || {})[skillName] || null;
+
+  /**
+   * 選用／取消選用變體（草稿）。
+   *
+   * ※ 這裡是**創角流程**，草稿按「確定」才寫入——與 `ClassSkillCard` 的編輯模式不同
+   *   （那邊是已存在的角色，選用立即生效）。同一個概念在兩處有不同時序，是刻意的：
+   *   創角時整包一起決定，改卡時單項即時生效。
+   */
+  const handleToggleVariant = (skillName, variantId) => {
+    if (!activeClassName) return;
+    setDraftVariants(prev => {
+      const forClass = { ...(prev[activeClassName] || {}) };
+      if (variantId) forClass[skillName] = variantId;
+      else delete forClass[skillName];
+      return { ...prev, [activeClassName]: forClass };
+    });
+  };
+
   /** 把草稿轉成 `onSelectClasses` 要的形狀 */
   const handleConfirm = () => {
     if (!canConfirm) return;
     const entries = assignedEntries.map(({ className }) => {
       const allSkills = (rulesData.classes[className] || {}).skills || [];
+      const forClassVariants = draftVariants[className] || {};
       const skills = [];
       allSkills.forEach(sk => {
         const sl = draft[className]?.[sk.name] || 0;
-        if (sl > 0) skills.push({ name: sk.name, sl: Math.min(sk.maxSL || 5, sl) });
+        if (sl > 0) {
+          // ※ 別忘了 `variantId`——漏了它，玩家在創角時選的變體會在按下確定後消失。
+          //   上限也要用「當前版本」的：選用變體後是變體的上限（【暴怒】5 →【勇猛打手】3）。
+          //   邏輯集中在 `buildSkillEntry`（純函式，可單測）。
+          skills.push(buildSkillEntry(sk.name, sl, {
+            variantId: forClassVariants[sk.name] || null,
+            originalMaxSL: sk.maxSL
+          }));
+        }
       });
       return { className, skills };
     }).filter(e => e.skills.length > 0);
@@ -541,7 +577,10 @@ export default function ClassPickerModal({
                 {/* 5 項技能卡片 */}
                 {(activeClassItem.def.skills || []).map((sk) => {
                   const currentSL = activeDraftSkills[sk.name] || 0;
-                  const maxSL = sk.maxSL || 5;
+                  // 選用變體後：這一列顯示變體的名稱／描述，原版收起來（GM 裁定）。
+                  const pickedVariantId = showVariants ? activeVariantOf(sk.name) : null;
+                  const pickedVariant = getVariantById(pickedVariantId);
+                  const maxSL = pickedVariant ? (pickedVariant.maxSL || sk.maxSL || 5) : (sk.maxSL || 5);
 
                   return (
                     <div
@@ -549,7 +588,9 @@ export default function ClassPickerModal({
                       className="p-2.5 sm:p-3 rounded-xl border space-y-2 shadow-2xs"
                       style={{
                         backgroundColor: currentSL > 0 ? theme.subpanelBg : theme.cardBg,
-                        borderColor: currentSL > 0 ? theme.accent : theme.border
+                        borderColor: pickedVariant
+                          ? theme.accent
+                          : (currentSL > 0 ? theme.accent : theme.border)
                       }}
                     >
                       {/* 手機版直向堆疊：技能名自己一行、控制項在下面。
@@ -559,10 +600,20 @@ export default function ClassPickerModal({
                           加上 `whitespace-nowrap shrink-0` 讓名字永不被壓縮。 */}
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <span
-                          className="font-serif font-black text-sm whitespace-nowrap shrink-0"
+                          className="font-serif font-black text-sm whitespace-nowrap shrink-0 flex items-center gap-1.5 flex-wrap"
                           style={{ color: theme.textDark }}
                         >
-                          {sk.name}
+                          {pickedVariant ? pickedVariant.name : sk.name}
+                          {pickedVariant && (
+                            <>
+                              <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-violet-100 text-violet-800 border border-violet-300">
+                                公測
+                              </span>
+                              <span className="text-[10px] text-slate-500 font-bold">
+                                取代【{sk.name}】
+                              </span>
+                            </>
+                          )}
                         </span>
 
                         <div className="flex items-center gap-2 flex-wrap">
@@ -599,19 +650,57 @@ export default function ClassPickerModal({
                         </div>
                       </div>
 
-                      {/* 需求：技能規則說明字體放大 */}
+                      {/* 需求：技能規則說明字體放大
+                          ※ 選用變體後顯示變體描述；原版描述收起來。 */}
                       <div className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-sans pl-3 border-l-2 border-slate-200">
-                        <SkillDescription desc={sk.desc} sl={currentSL} />
+                        <SkillDescription
+                          desc={pickedVariant ? pickedVariant.desc : sk.desc}
+                          sl={currentSL}
+                        />
+                        {pickedVariant && (
+                          <div className="mt-1 text-[10px] text-violet-800 font-bold">
+                            原版〈{sk.name}〉暫不適用（已由【{pickedVariant.name}】取代）
+                          </div>
+                        )}
                       </div>
+
+                      {/* 這個技能有變體可選 → 開一顆切換鈕。
+                          ※ 只在勾選【官方公測修訂】時出現。
+                          ※ 已配點也照樣可以選：選用會沿用目前的級數。 */}
+                      {showVariants && getVariantsForClass(activeClassItem.className)
+                        .filter(v => v.replaces === sk.name)
+                        .map(v => (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => handleToggleVariant(sk.name, pickedVariantId === v.id ? null : v.id)}
+                            className="w-full text-left text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition-all active:scale-[.99] cursor-pointer flex items-center gap-1.5"
+                            style={
+                              pickedVariantId === v.id
+                                ? { backgroundColor: theme.accent, borderColor: theme.accentDark || theme.accent, color: '#ffffff' }
+                                : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }
+                            }
+                            title={pickedVariantId === v.id ? '改回原版技能' : `選用【${v.name}】取代【${sk.name}】`}
+                          >
+                            {pickedVariantId === v.id ? <GiCheckMark className="w-3 h-3 shrink-0" /> : <GiSparkles className="w-3 h-3 shrink-0" />}
+                            <span>{pickedVariantId === v.id ? `使用中：${v.name}（點此改回原版）` : `選用公測變體【${v.name}】`}</span>
+                          </button>
+                        ))}
                     </div>
                   );
                 })}
 
-                {/* 核心書技能變體（Core Book Variants）——勾選【官方公測修訂】才出現。
-                    與原版技能**並存**，不改原版；標【公測】徽章，差異用粗體。 */}
-                {showVariants && getVariantsForClass(activeClassItem.className).map((v) => (
-                  <CoreBookVariantCard key={v.id} variant={v} theme={theme} />
-                ))}
+                {/* 核心書技能變體——**沒有對應原版技能**的那些（例如無人能用的新技能）。
+                    有 `replaces` 的已在上面各技能卡片裡就地選用，這裡只列剩下的，
+                    避免同一個變體出現兩次、出現兩個入口。 */}
+                {showVariants && getVariantsForClass(activeClassItem.className)
+                  .filter(v => {
+                    const skillNames = (activeClassItem.def.skills || []).map(s => s.name);
+                    return !skillNames.includes(v.replaces);
+                  })
+                  .map((v) => (
+                    <CoreBookVariantCard key={v.id} variant={v} theme={theme} />
+                  ))}
 
                 {/* 精通這個職業之後能解鎖哪些英雄技能——放在**職業技能下面**，
                     預設收合、按鈕展開（使用者定調：它是選職業的參考，不是常駐面板）。

@@ -16,7 +16,14 @@ import JRPGBadge from '../../../components/ui/JRPGBadge';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import SkillStarPips from './SkillStarPips';
 import CoreBookVariantCard from './CoreBookVariantCard';
-import { getVariantsForClass } from '../data/coreBookVariants';
+import {
+  getVariantsForClass,
+  getVariantById,
+  getSkillVariant,
+  withSkillVariant,
+  resolveSkillDisplay,
+  buildSkillEntry
+} from '../data/coreBookVariants';
 import { resolveCreationRules } from '../data/creationRules';
 import SkillDescription from '../utils/skillFormulaEvaluator';
 import SkillSuboptionModal from './SkillSuboptionModal';
@@ -366,6 +373,61 @@ export default function ClassSkillCard({
   const classDef = rulesData.classes[className] || {};
   const allAvailableSkills = classDef.skills || [];
 
+  // 核心書技能變體是**選用**的：只有勾選【官方公測修訂】才顯示（GM 口頭告知的團規則）。
+  // ※ 來源是 `character.enabledSourcebooks`，不是 `resolveCreationRules()` 的回傳——
+  //   後者**沒有** `enabledSourcebooks` 這個欄位（見 §AV1）。
+  const showPlaytestVariants = (
+    character?.enabledSourcebooks
+    ?? resolveCreationRules(character?.creationRules || {}).defaultSourcebooks
+    ?? []
+  ).includes('playtest');
+
+  /** 這個技能條目目前選用了哪個變體（沒選回 null）。 */
+  const adoptedVariantId = (skillName) => {
+    const entry = (classItem.skills || []).find(s => s.name === skillName);
+    return entry?.variantId || null;
+  };
+  /** 某個變體是否正被這個職業的某個技能使用中。 */
+  const isVariantAdopted = (variantId) => {
+    const v = getVariantById(variantId);
+    if (!v) return false;
+    return (classItem.skills || []).some(s => s.variantId === variantId);
+  };
+
+  /**
+   * 選用／取消選用變體。
+   *
+   * 這裡**直接寫回**（不走 draft），因為選用是「這個技能是哪一版」的決定，
+   * 與配點的草稿是兩件事——配點可以按取消放棄，但選用一旦按下就該生效，
+   * 否則玩家會以為選了卻沒存到。
+   *
+   * 三件必須同時做的事：
+   *  1. 該技能必須**存在**於 `skills[]`（未配點的技能沒有條目可改）。
+   *     若玩家還沒配點就按選用，先幫他建立一個 sl=1 的條目——否則選用無處可存。
+   *  2. `sl` 要用新版本的 maxSL 重新夾住（【暴怒】5 ↔【勇猛打手】3）。
+   *  3. 選用變體後，**原版技能在這個職業裡就沒有別的條目了**——
+   *     因為變體是「取代」原版，`name` 保持不變，所以同一列會顯示變體內容。
+   */
+  const handleToggleVariant = (skillName, variantId) => {
+    const variant = getVariantById(variantId);
+    const classSkills = JSON.parse(JSON.stringify(classItem.skills || []));
+    const idx = classSkills.findIndex(s => s.name === skillName);
+    const rawDef = allAvailableSkills.find(s => s.name === skillName);
+
+    if (idx >= 0) {
+      classSkills[idx] = withSkillVariant(classSkills[idx], variantId, { maxSL: rawDef?.maxSL });
+    } else {
+      // 還沒配點 → 先給他 1 級，否則選用狀態無處可存
+      classSkills.push(withSkillVariant(
+        { name: skillName, sl: 1, selectedOptions: [] },
+        variantId,
+        { maxSL: rawDef?.maxSL }
+      ));
+    }
+
+    onUpdateSkills(classIndex, classSkills);
+  };
+
   // 免費增益二選一：只有「最大 HP 或 最大 MP」的職業需要玩家指定（引擎未指定時預設 HP）
   const isHpMpChoice = isHpMpChoiceBenefit((classDef.freeBenefits || '') + ' ' + (classDef.freeBonus || ''));
   const chosenBenefit = classItem.chosenBenefit || 'HP';
@@ -432,11 +494,14 @@ export default function ClassSkillCard({
     allAvailableSkills.forEach(sk => {
       const sl = draftSkills[sk.name] || 0;
       if (sl > 0) {
-        activeSkills.push({
-          name: sk.name,
-          sl: Math.min(sk.maxSL || 5, sl),
+        // ※ 這裡是**重建** `skills[]`，所以每一個要保留的欄位都得自己帶上。
+        //   忘記帶 `variantId` 的後果是：玩家選了變體、按了儲存，選用狀態就被無聲清掉。
+        //   （這個 bug SSR 測試抓不到，所以邏輯抽到 `buildSkillEntry` 單獨測。）
+        activeSkills.push(buildSkillEntry(sk.name, sl, {
+          variantId: adoptedVariantId(sk.name),
+          originalMaxSL: sk.maxSL,
           selectedOptions: draftSuboptions[sk.name] || []
-        });
+        }));
       }
     });
 
@@ -624,25 +689,38 @@ export default function ClassSkillCard({
           ) : (
             <div className="space-y-2">
               {classItem.skills.map((sk, sIdx) => {
-                const skillDef = allAvailableSkills.find(s => s.name === sk.name);
-                const maxSL = skillDef?.maxSL || 5;
+                const rawDef = allAvailableSkills.find(s => s.name === sk.name);
+                // 選了變體就顯示變體的內容；`sk.name` 是識別字仍保持原版技能名
+                // （見 coreBookVariants.js 的說明：改了會讓 20 處子系統找不到）。
+                const disp = resolveSkillDisplay(sk, rawDef);
+                const maxSL = disp.maxSL || 5;
 
                 return (
                   <div
                     key={sIdx}
                     className="p-3 rounded-xl border text-xs space-y-1.5 transition-colors shadow-2xs"
-                    style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+                    style={{
+                      backgroundColor: theme.cardBg,
+                      borderColor: disp.isVariant ? theme.accent : theme.border,
+                      borderWidth: disp.isVariant ? 2 : 1
+                    }}
                   >
                     {/* 手機版直向堆疊：技能名自己一行、星星在下面。
                         原本是橫向列，技能名是可壓縮的 flex 項目——窄螢幕上會被擠成直排
                         （SL 星星越多越嚴重，例如【咒語模仿】5 顆）。 */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2">
                       <span
-                        className="font-bold flex items-center gap-1.5 text-sm sm:text-base whitespace-nowrap shrink-0"
+                        className="font-bold flex items-center gap-1.5 text-sm sm:text-base whitespace-nowrap shrink-0 flex-wrap"
                         style={{ color: theme.textDark }}
                       >
                         <span style={{ color: theme.accent }}>✦</span>
-                        {sk.name}
+                        {disp.name}
+                        {disp.isVariant && (
+                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded border"
+                            style={{ borderColor: theme.accent, color: theme.accent }}>
+                            公測
+                          </span>
+                        )}
                       </span>
 
                       {/* 視覺化星芒 */}
@@ -656,7 +734,7 @@ export default function ClassSkillCard({
 
                     {/* 自動算好數值的動態公式 */}
                     <div className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-sans pt-0.5">
-                      <SkillDescription desc={skillDef?.desc || ''} sl={sk.sl} />
+                      <SkillDescription desc={disp.desc} sl={sk.sl} />
                     </div>
 
                     {/* 子項目狀態與配置條 / 個人載具條 / 忠實夥伴條 */}
@@ -705,17 +783,25 @@ export default function ClassSkillCard({
           )}
 
           {/* 核心書技能變體（Core Book Variants）——勾選【官方公測修訂】才出現。
-              與原版技能**並存**、不改原版；標【公測】徽章，差異用粗體。
+              這裡是**檢視模式**，只顯示「這個職業有哪些變體、哪個正在使用中」，
+              不提供選用／取消（選用只發生在編輯模式，避免瀏覽時誤觸）。
               ※ 放在空狀態判斷**外面**：變體是「這個職業有變體」的事實，
                 與「這個角色配了幾點技能」無關，沒配點時也該看得到。
-              ※ 職業名一律讀 `className`（元件在第 364 行就算好了）。
-                `classItem` 來自 `rulesData.classes[...]`，那裡**沒有 `name` 欄位**。 */}
-          {((character || {}).enabledSourcebooks
-            ?? resolveCreationRules((character || {}).creationRules || {}).defaultSourcebooks
-            ?? []).includes('playtest')
-            && getVariantsForClass(className).map((v) => (
-              <CoreBookVariantCard key={v.id} variant={v} theme={theme} />
+              ※ 職業名一律讀 `className`（元件在第 370 行就算好了）。
+                `classItem` 來自 `rulesData.classes[...]`，那裡**沒有 `name` 欄位**。
+              ※ `data-testid`：測試要能把「技能列」與「這一區」分開檢查。
+                沒有這個錨點的話，「技能列忘了顯示變體」的 bug 會被這一區的
+                同名文字蓋掉——護欄會永遠為真（見 §AV 的刻意破壞驗證紀錄）。 */}
+          <div data-testid="variant-browse">
+            {showPlaytestVariants && getVariantsForClass(className).map((v) => (
+              <CoreBookVariantCard
+                key={v.id}
+                variant={v}
+                theme={theme}
+                isSelected={isVariantAdopted(v.id)}
+              />
             ))}
+          </div>
         </div>
       )}
 
@@ -740,12 +826,22 @@ export default function ClassSkillCard({
               const isLearned = currentSL > 0;
               const currentSuboptions = draftSuboptions[sk.name] || [];
 
+              // 這個技能選用了哪個變體（null＝用原版）。
+              // ※ 讀的是 `classItem.skills`（已存的狀態），不是 draft——選用是立即生效的。
+              const activeVariantId = adoptedVariantId(sk.name);
+              const activeVariant = getVariantById(activeVariantId);
+              // 選用變體後：這一列顯示變體的名稱／描述／上限，原版內容收起來。
+              const disp = activeVariant
+                ? resolveSkillDisplay({ name: sk.name, variantId: activeVariantId }, sk)
+                : null;
+              const rowMaxSL = activeVariant ? (activeVariant.maxSL || maxSL) : maxSL;
+
               return (
                 <div
                   key={sk.name}
                   onClick={() => {
                     // 點擊卡片若未習得則設為 1，若已習得且小於上限則加 1，若滿了則循環為 0
-                    if (currentSL < maxSL) {
+                    if (currentSL < rowMaxSL) {
                       handleSetSkillSL(sk.name, currentSL + 1);
                     } else {
                       handleSetSkillSL(sk.name, 0);
@@ -769,19 +865,31 @@ export default function ClassSkillCard({
                           isLearned ? 'text-amber-950 font-serif' : 'text-slate-700'
                         }`}
                       >
-                        {sk.name}
+                        {activeVariant ? activeVariant.name : sk.name}
                       </span>
-                      {isLearned && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 font-mono">
-                          已學習
-                        </span>
+                      {/* 選用變體時：顯示【公測】徽章＋原版技能名（讓玩家知道取代了什麼） */}
+                      {activeVariant ? (
+                        <>
+                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-violet-100 text-violet-800 border border-violet-300">
+                            公測
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-bold">
+                            取代【{sk.name}】
+                          </span>
+                        </>
+                      ) : (
+                        isLearned && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 font-mono">
+                            已學習
+                          </span>
+                        )
                       )}
                     </div>
 
                     {/* 星星指示器 + 加減快捷鍵 */}
                     <div className="flex items-center gap-2">
                       <SkillStarPips
-                        maxSL={maxSL}
+                        maxSL={rowMaxSL}
                         currentSL={currentSL}
                         onChange={(newSL) => handleSetSkillSL(sk.name, newSL)}
                         size={18}
@@ -800,7 +908,7 @@ export default function ClassSkillCard({
                         <button
                           type="button"
                           onClick={() => handleSetSkillSL(sk.name, currentSL + 1)}
-                          disabled={currentSL >= maxSL}
+                          disabled={currentSL >= rowMaxSL}
                           className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs disabled:opacity-20 hover:bg-white active:scale-95 transition-all cursor-pointer"
                           style={{ borderColor: theme.border, color: theme.textDark }}
                         >
@@ -810,9 +918,15 @@ export default function ClassSkillCard({
                     </div>
                   </div>
 
-                  {/* 動態公式求值 (未點時展示公式，點亮後展示精算結果) */}
+                  {/* 動態公式求值 (未點時展示公式，點亮後展示精算結果)
+                      ※ 選用變體後顯示變體描述；原版描述收起來（GM 裁定：選用之後原版要收起來）。 */}
                   <div className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-sans pl-4 border-l border-slate-200">
-                    <SkillDescription desc={sk.desc} sl={currentSL} />
+                    <SkillDescription desc={activeVariant ? activeVariant.desc : sk.desc} sl={currentSL} />
+                    {activeVariant && (
+                      <div className="mt-1 text-[10px] text-violet-800 font-bold">
+                        原版〈{sk.name}〉暫不適用（已由【{activeVariant.name}】取代）
+                      </div>
+                    )}
                   </div>
 
                   {/* 子項目狀態與配置條 / 個人載具條 / 忠實夥伴條 */}
@@ -859,6 +973,39 @@ export default function ClassSkillCard({
               );
             })}
           </div>
+
+          {/* ======= 核心書技能變體（Core Book Variants）選用區 =======
+              只在勾選【官方公測修訂】時出現。
+
+              ※ 誰按：**玩家**。GM 只口頭告知團開哪些書，按鈕由玩家在自己的角色卡上按。
+              ※ 何時生效：**立刻**，不等「儲存技能配置」——選用是「這技能是哪一版」的決定，
+                與配點草稿是兩件事；混在一起會讓玩家按了取消後以為選用也取消了。
+              ※ 選用後：上面那一列直接改成變體的內容，原版收起來（GM 裁定）。
+              ※ 一個技能只能選一個變體；同職業不同技能可以各選各的（官方 p.34：
+                變體**規則**須全團一致，變體**技能**是每位玩家的個人選擇）。 */}
+          {showPlaytestVariants && getVariantsForClass(className).length > 0 && (
+            <div className="pt-3 border-t space-y-2.5" style={{ borderColor: theme.border }}>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                <GiSparkles className="w-3.5 h-3.5" style={{ color: theme.accent }} />
+                核心書技能變體（公測）
+                <span className="text-[10px] font-normal text-slate-500">
+                  —— 選用後原版技能會收起來，一次只能選一個
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {getVariantsForClass(className).map((v) => (
+                  <CoreBookVariantCard
+                    key={v.id}
+                    variant={v}
+                    theme={theme}
+                    isSelected={isVariantAdopted(v.id)}
+                    onToggle={(vid) => handleToggleVariant(v.replaces, vid)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 底部儲存確認列 */}
           <div className="pt-2 border-t flex items-center justify-between gap-3" style={{ borderColor: theme.border }}>

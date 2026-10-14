@@ -563,3 +563,27 @@
 *⑤ **護欄的有效性被驗證過**：故意把 `className` 改回 `classItem.name` → 6 條 FAIL；還原 → 50/50 全過。*
 
 *測試：`test:variants` 為新增關卡（50 條）；`npm test` 由 16 道擴為 **17 道**全過 exit 0；`npm run build` exit 0（2,260.04 kB / gzip 653.33 kB）。決策紀錄見 `docs/decisions.md` §AV。*
+
+*2026-10-14（核心書技能變體**選用機制**）：GM 追問「我該怎麼選擇那些核心變體？」→ 這一輪把「顯示」做成「可選」，並推翻上一輪的語意。*
+
+*① **官方依據（PDF p.34）**：「Variant rules must be equally adopted by the entire group. Variant Skills, on the other hand, are a choice **each Player** may make individually.」→ 變體**規則**是團級的（GM 口頭宣布開哪些書）；變體**技能**是玩家個人的。狀態存**角色**上。*
+
+*② **GM 三句話定調**：「公測按鈕是玩家點的，不是 GM」「開角色卡的人是玩家，不是 GM」「**選用之後，原版要收起來**」。第三句**推翻了上一輪的語意**——上一輪碼與測試都寫「變體與原版同時存在、不可覆寫」，現在是**取代**。測試 D／E 段已同步反轉（舊斷言會擋住正確行為，留著就是負債）。*
+
+*③ **最關鍵的設計決定：`name` 不變，`variantId` 才是選擇。** 變體是取代原版，但 `skills[].name` **永遠保持原版技能名**。理由：全專案 **20 處** `find(s => s.name === '小工具')` 這類硬編碼查詢（小工具 20、咒語模仿 7、混合變形 5、暴怒 4、保鏢 2），改 `name` 會讓子系統**靜默失效**——不報錯，只是「什麼都沒反應」。官方文字也支持：「就英雄技能的要求而言，此技能的名稱視為『咒語模仿』」。顯示端一律走新函式 `resolveSkillDisplay()`。*
+
+*④ **資料層新增**：`getVariantById`／`getSkillVariant`／`withSkillVariant`（id 為 null 時 `delete` 欄位、並用**當前版本**的上限重夾 `sl`——【暴怒】5 →【勇猛打手】自動降到 3）／`resolveSkillDisplay`／`getAdoptedVariants`／`findVariantHeroicSkillConflicts`／`buildSkillEntry`。*
+
+*⑤ **三種互斥**：同技能多變體（【暴怒】有兩個，切換＝覆蓋）／變體↔英雄技能（【咒語自助餐】排除【嵌合精通】、【魔導武裝】排除【量子魔加農】，已接進 `validateCharacter` 回 `type:'error'`）／變體↔原版（選用即取代）。*
+
+*⑥ **寫入路徑兩條都改**：`ClassSkillCard` 編輯模式（**立即生效**——選用是「這技能是哪一版」的決定，與配點草稿分開，否則玩家按取消會以為選用也取消了）與 `ClassPickerModal`（**按確定才寫**——創角時整包一起決定）。*
+
+*⑦ **抓到一個「儲存就消失」的 bug**：`handleSave` 是**重建** `skills[]`（只留 SL >= 1），漏寫 `variantId` → 玩家選了變體、按了儲存，選用狀態**無聲消失**。*
+
+*⑧ **更重要的：第一版護欄抓不到 ⑦，而且第一版護欄自己恆真。** `handleSave` 只在 `onClick` 裡，**SSR 不跑事件** → 測不到；section I 的 `html.includes('咒語自助餐')` 看起來合理，但同一張卡底下的「變體瀏覽區」本來就會印變體名 → **永遠為真**。修法：把儲存邏輯抽成純函式 `buildSkillEntry` 放進資料層直接單測；加 `data-testid="variant-browse"` 當錨點切出「技能列」，並改用**出現次數**比較 ＋ 直接驗 SL 上限（`SL 3/6` vs `SL 3/10`）。*
+
+*⑨ **護欄有效性：四次刻意破壞。** 檢視模式忽略 variantId → 5 FAIL；編輯模式忽略 → 5 FAIL；`buildSkillEntry` 不寫 variantId → 1 FAIL；**`handleSave` 不寫 → 0 FAIL（護欄破了，才發現 ⑦⑧）**。前三次證明護欄有效，**第四次證明護欄無效——那才是本輪最重要的收穫。***
+
+*⑩ **視覺驗證**：駕駛艙 `scratch/render_variants.mjs` 改寫成四格對照（公測關閉／開啟未選用／已選用／編輯模式選用區），掛 build 產出的 Tailwind。實測「技能列」文字：未選用＝`咒語模仿 · SL 3/10 · 原版描述`；已選用＝`咒語自助餐 · 公測 · 取代【咒語模仿】 · SL 3/6 · 變體描述 ＋「原版暫不適用」`。編輯模式按鈕在「選用此變體」與「改回原版」之間切換。*
+
+*測試：`test:variants` **50 → 118**（新增 G~O 八節）；`npm test` 17 道全過 exit 0；`npm run build` exit 0（2,265.44 kB / gzip 655.39 kB）。決策紀錄見 `docs/decisions.md` §AW。*

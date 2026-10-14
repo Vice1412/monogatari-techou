@@ -34,6 +34,8 @@ export const CORE_BOOK_VARIANTS = Object.freeze([
     en: 'SPELL BUFFET',
     maxSL: 6,
     origin: 'Playtest 2026-10-01（嵌合師 p.183 的變體）',
+    /** 選用此變體後**不可**取得的英雄技能（官方原文寫在效果文末）。 */
+    excludesHeroicSkills: ['嵌合精通'],
     desc:
       '你隨時知道你看得見的非類人敵人中，哪些當前 HP 等於或低於【20＋你等級的一半】。\n'
       + '在衝突中，你可以使用一個動作選擇其中一個敵人：該敵人 HP 降至 0，且 GM 揭露牠知道的全部咒語。'
@@ -114,6 +116,7 @@ export const CORE_BOOK_VARIANTS = Object.freeze([
     en: 'MAGITECH ARMAMENT',
     maxSL: 5,
     origin: 'Playtest 2026-10-01（修補匠的魔導科技分支之一）',
+    excludesHeroicSkills: ['量子魔加農'],
     desc:
       '**基礎武裝**：你可以執行**庫存動作並花費 2 點庫存點**，創造一件魔導武裝'
       + '（並摧毀你先前創造的魔導武裝）。創造時選擇一個類別、選擇近戰或遠程，'
@@ -151,3 +154,195 @@ export const getVariantsForSkill = (skillName) =>
 /** 依職業反查變體。 */
 export const getVariantsForClass = (className) =>
   CORE_BOOK_VARIANTS.filter((v) => v.className === className);
+
+/** 依 id 反查單一變體（選用狀態存的是 id）。 */
+export const getVariantById = (variantId) =>
+  CORE_BOOK_VARIANTS.find((v) => v.id === variantId) || null;
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * 選用狀態的資料模型（GM 裁定 2026-10-14）
+ *
+ * ## 官方規則（Playtest 2026-10-01, PDF p.34 原文）
+ *
+ *   「Variant rules must be equally adopted by the entire group.
+ *     Variant Skills, on the other hand, are **a choice each Player may make
+ *     individually**.」
+ *
+ * → **職業技能變體是玩家各自選的**，不是 GM 開關。所以狀態存在**角色身上**，
+ *   欄位是 `classes[].skills[].variantId`。
+ *
+ * ## 為什麼保留原版技能名（最關鍵的一個設計決定）
+ *
+ * 選用變體後，`skills[]` 的 `name` **仍然寫原版技能名**（例如「咒語模仿」），
+ * 只多一個 `variantId: 'spellBuffet'`。
+ *
+ * 理由：【小工具】在專案裡有 20 處硬編查詢、【咒語模仿】7 處、【混合變形】5 處
+ * （修補匠工坊、嵌合師管理器、載具表、跑團面板…）。若把 `name` 改成變體名，
+ * **所有 `skills.find(s => s.name === '小工具')` 會當場找不到而靜默失效**。
+ *
+ * 而官方本身也支持這個模型——變體自己的效果文就寫著：
+ *   「就英雄技能的要求而言，此技能的名稱視為『咒語模仿』。」
+ * 變體就是「同一個技能的另一種版本」，不是新技能。
+ *
+ * → 所以：**`name` 是識別字（不變），`variantId` 是顯示與說明層（可變）。**
+ *   這讓全部既有讀取端（引擎、子系統、匯出）**一行都不用改**。
+ * ────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * 這個技能條目選用了哪個變體（沒選回 null）。
+ * 舊存檔沒有這個欄位 → 回 null，行為與以往完全相同。
+ */
+export const getSkillVariant = (skill) => getVariantById(skill?.variantId);
+
+/**
+ * 選用／取消選用某個變體，回傳**新的**技能條目（不改原物件）。
+ *
+ * @param {object} skill 既有技能條目 `{ name, sl, selectedOptions }`
+ * @param {string|null} variantId 變體 id；傳 null 表示取消選用、回到原版
+ * @param {object} [opts]
+ * @param {number} [opts.maxSL] 原版技能的 SL 上限——切換變體時用來重新夾住 sl
+ * @returns {object} 新的技能條目
+ *
+ * 兩個要處理的邊界：
+ *  1. **SL 上限可能不同**（【咒語模仿】上限 5、【咒語自助餐】上限 6；
+ *     【暴怒】上限 5、【勇猛打手】上限 3）。切換時要重新夾住，否則會出現
+ *     超出上限的 SL。取消選用時也一樣要夾回原版的上限。
+ *  2. **取消選用**要真的把 `variantId` 拿掉，不是設成 null——
+ *     這樣存檔形狀與舊版一致。
+ */
+export const withSkillVariant = (skill, variantId, { maxSL } = {}) => {
+  const next = { ...skill };
+  if (variantId) {
+    next.variantId = variantId;
+  } else {
+    delete next.variantId;
+  }
+
+  const variant = getVariantById(variantId);
+  const cap = variant ? variant.maxSL : maxSL;
+  if (Number.isFinite(cap) && Number.isFinite(next.sl)) {
+    next.sl = Math.min(cap, next.sl);
+  }
+  return next;
+};
+
+/**
+ * 組出一筆要寫進 `skills[]` 的條目。
+ *
+ * ## 這支函式為什麼存在（它是被一個**沒抓到的 bug** 逼出來的）
+ *
+ * 儲存技能配置時是**重建**整個 `skills[]`（只留 SL >= 1 的），不是在原物件上改。
+ * 所以「把 `variantId` 一起帶過去」這一步必須手寫，而**漏寫不會有任何錯誤訊息**——
+ * 玩家選了變體、按了儲存，選用狀態就無聲消失。
+ *
+ * 這個 bug 用 SSR 測試**抓不到**（`handleSave` 只在 onClick 裡，SSR 不跑事件）。
+ * 所以把這段邏輯抽成純函式，讓它可以被直接呼叫、直接斷言。
+ *
+ * @param {string} name           原版技能名（**識別字**，永遠不改）
+ * @param {number} sl            要寫入的等級
+ * @param {object} opts
+ * @param {string|null} opts.variantId  選用的變體（null＝用原版）
+ * @param {number} opts.originalMaxSL   原版技能上限（沒選變體時用它夾）
+ * @param {string[]} opts.selectedOptions 子項目
+ * @returns {{name:string, sl:number, selectedOptions:string[], variantId?:string}}
+ */
+export const buildSkillEntry = (name, sl, { variantId = null, originalMaxSL, selectedOptions = [] } = {}) => {
+  const variant = getVariantById(variantId);
+  const cap = variant ? (variant.maxSL || originalMaxSL || 5) : (originalMaxSL || 5);
+  const entry = {
+    name,
+    sl: Math.min(cap, sl),
+    selectedOptions: selectedOptions || []
+  };
+  if (variantId) entry.variantId = variantId;
+  return entry;
+};
+
+/**
+ * 這個技能「實際顯示」的內容——原版或變體。
+ *
+ * 顯示端（角色卡、跑團面板、三頁匯出、編輯器）一律走這裡取
+ * `{ name, en, desc, maxSL, isVariant, variant }`，不要自己去 `find` 原版定義，
+ * 否則選了變體卻顯示原版的說明。
+ *
+ * @param {object} skill 技能條目
+ * @param {object} fallbackDef 原版技能定義（`rulesData.classes[c].skills[]` 的那一筆）
+ */
+export const resolveSkillDisplay = (skill, fallbackDef) => {
+  const variant = getSkillVariant(skill);
+  if (variant) {
+    return {
+      className: variant.className,
+      name: variant.name,
+      en: variant.en,
+      desc: variant.desc,
+      maxSL: variant.maxSL,
+      isVariant: true,
+      variant,
+      /** 這個變體取代掉的原版技能名——顯示端可用來寫「取代【咒語模仿】」。 */
+      replaces: variant.replaces,
+    };
+  }
+  return {
+    name: fallbackDef?.name ?? skill?.name ?? '',
+    en: fallbackDef?.en,
+    desc: fallbackDef?.desc ?? '',
+    maxSL: fallbackDef?.maxSL ?? 5,
+    isVariant: false,
+    variant: null,
+    replaces: null,
+  };
+};
+
+/**
+ * 從「這個角色已選的技能」收集出**被選用的變體**清單。
+ * 用來檢查變體自帶的互斥條款（例如選了【咒語自助餐】就不能取【嵌合精通】）。
+ *
+ * @param {object} character
+ * @returns {Array<{variant: object, className: string}>}
+ */
+export const getAdoptedVariants = (character) => {
+  const out = [];
+  for (const cls of character?.classes || []) {
+    for (const sk of cls?.skills || []) {
+      const v = getSkillVariant(sk);
+      if (v) out.push({ variant: v, className: cls.className });
+    }
+  }
+  return out;
+};
+
+/**
+ * 檢查「變體 ↔ 英雄技能」的互斥條款。
+ *
+ * 三筆變體的效果文各自寫了一條「若你使用此變體，你不能取得【某某】英雄技能」：
+ *   - 【咒語自助餐】→ 不可取【嵌合精通】
+ *   - 【魔導武裝】  → 不可取【量子魔加農】
+ * （其餘變體無此條款，所以 `excludesHeroicSkills` 不存在。）
+ *
+ * 這個檢查以前**完全不存在**——那些條款只是 desc 裡的自由文字。
+ *
+ * @returns {Array<{variantName: string, heroicSkill: string, message: string}>}
+ */
+export const findVariantHeroicSkillConflicts = (character) => {
+  const adopted = getAdoptedVariants(character);
+  if (adopted.length === 0) return [];
+
+  const owned = (character?.heroicSkills || []).map((h) =>
+    typeof h === 'string' ? h : h?.name
+  ).filter(Boolean);
+
+  const conflicts = [];
+  for (const { variant } of adopted) {
+    for (const blocked of variant.excludesHeroicSkills || []) {
+      if (owned.includes(blocked)) {
+        conflicts.push({
+          variantName: variant.name,
+          heroicSkill: blocked,
+          message: `【${variant.name}】與英雄技能【${blocked}】不能並存——使用此變體就不能取得該英雄技能。`,
+        });
+      }
+    }
+  }
+  return conflicts;
+};

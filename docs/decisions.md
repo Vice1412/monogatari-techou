@@ -4194,3 +4194,116 @@ Core 31 筆先前已完成（§AJ3）；本次補完其餘四本。
 **「有測試檔、卻沒接進測試指令」**。三次的共同點：**護欄只檢查零件的存在，不檢查零件之間的線。**
 
 推論出去的規則：**新增測試檔時，同步改 `package.json` 是改動的一部分，不是後續工作。**
+
+---
+
+### AW. 核心書技能變體（Core Book Variants）：選用機制 —— ✅ 2026-10-14
+
+§AV 只做到「變體**顯示**在職業卡底下」。GM 追問「我該怎麼選擇那些核心變體？」，
+於是有了這一節：**選用**。
+
+#### AW1. 官方裁定（PDF p.34，權威）
+
+> "Variant rules must be equally adopted by the entire group. **Variant Skills, on the
+> other hand, are a choice each Player may make individually.**"
+
+→ **變體__規則__是團級的（GM 宣布）；變體__技能__是玩家個人的。**
+狀態存**角色**上（`character.classes[].skills[].variantId`），不存 GM 設定。
+
+#### AW2. GM 裁定的三句話（本節的需求來源）
+
+1. 「**公測按鈕是玩家點的，不是 GM。**」→ 入口在角色卡，不在團設定。
+2. 「**開角色卡的人是玩家，不是 GM。**」→ 不要做任何「GM 統一設定」的介面。
+3. 「**選用之後，原版要收起來。**」→ 這是**取代**語意，不是並列。
+   ※ 這**推翻了 §AU/AV 的舊語意**（舊碼與舊測試都寫「變體與原版同時存在、不可覆寫」）。
+   §AV 的 D/E 段斷言已同步反轉。
+
+#### AW3. 最關鍵的設計決定：`name` 不變，`variantId` 才是選擇
+
+變體是「取代」原版技能，但 **`skills[].name` 永遠保持原版技能名**。
+
+理由：全專案有 **20 處** `skills.find(s => s.name === '小工具')` 這種硬編碼查詢
+（小工具 20、咒語模仿 7、混合變形 5、暴怒 4、保鏢 2…）。一旦把 `name` 改成變體名，
+這些子系統會**靜默失效**——不會報錯，只會「什麼都沒反應」。
+
+官方文字也支持這個做法：變體明載
+「就英雄技能的要求而言，此技能的名稱視為『咒語模仿』」。
+
+所以：
+- `skills[].name` ＝ 識別字（永不變）
+- `skills[].variantId` ＝ 顯示層的選擇
+- 顯示端一律走 `resolveSkillDisplay(skill, rawDef)` 取 `{ name, en, desc, maxSL, isVariant, replaces }`
+
+#### AW4. 新增的資料層 API（`coreBookVariants.js`）
+
+| 函式 | 用途 |
+|---|---|
+| `getVariantById(id)` | id → 變體（找不到回 null） |
+| `getSkillVariant(skill)` | 技能條目 → 它選用的變體 |
+| `withSkillVariant(skill, id, {maxSL})` | 回**新**條目；id 為 null 時 **`delete`** 掉欄位（不是設 null） |
+| `resolveSkillDisplay(skill, fallbackDef)` | 顯示層唯一入口 |
+| `getAdoptedVariants(character)` | `[{variant, className}]`——匯出／摘要用 |
+| `findVariantHeroicSkillConflicts(character)` | 變體 ↔ 被排除英雄技能的衝突 |
+| `buildSkillEntry(name, sl, opts)` | **重建 `skills[]` 時用**（見 AW6） |
+
+`withSkillVariant` 會用**當前版本**的上限重新夾 `sl`：
+【暴怒】5 級改用上限 3 的【勇猛打手】→ 自動降到 3。
+
+#### AW5. 互斥：三種
+
+1. **同技能多變體**：官方 p.36【暴怒】有兩個變體（【勇猛打手】／【隕石猛擊】）。
+   一個 `variantId` 只能有一個值，切換＝覆蓋。
+2. **變體 ↔ 英雄技能**：【咒語自助餐】排除【嵌合精通】、【魔導武裝】排除【量子魔加農】。
+   已接進 `validateCharacter` → 回 `type: 'error'`（不是 warning）。
+3. **變體 ↔ 原版**：選用即取代（AW2 第 3 點）。
+
+#### AW6. 兩個「沒接上」的 bug（都是刻意破壞驗證抓到的）
+
+**(a) `handleSave` 重建 `skills[]` 時漏掉 `variantId`。**
+儲存是**重建**（只留 SL >= 1 的），不是在原物件上改，所以每個要保留的欄位都得手寫。
+漏了 → 玩家選了變體、按了儲存，選用狀態**無聲消失**。
+
+**(b) 第一版護欄抓不到 (a)。**
+因為 `handleSave` 只存在於 `onClick` 裡，**SSR 不執行事件** → 測不到。
+修法：把邏輯抽成純函式 `buildSkillEntry` 放進資料層，測試直接打它。
+`ClassSkillCard` 與 `ClassPickerModal` 兩條寫入路徑都改用它。
+
+**(c) 第一版 section I 的斷言永遠為真。**
+`adoptedCard.includes('咒語自助餐')` 看起來合理，但同一張卡底下本來就有
+「變體瀏覽區」會印變體名 → **恆真**。
+修法：加 `data-testid="variant-browse"` 當錨點切出「技能列」，並改用**出現次數**比較
+（選用後多一次），再直接驗 SL 上限（`SL 3/6` vs `SL 3/10`）。
+
+#### AW7. 護欄的驗證方式：四次刻意破壞
+
+| 破壞 | 結果 |
+|---|---|
+| 檢視模式的 `resolveSkillDisplay(sk, rawDef)` → `variantId: null` | **5 FAIL** |
+| 編輯模式的 `adoptedVariantId(sk.name)` → `null` | **5 FAIL** |
+| `buildSkillEntry` 不寫 `variantId` | **1 FAIL** |
+| （（b）之前）`handleSave` 不寫 `variantId` | **0 FAIL ← 護欄破了，才發現 (b)(c)** |
+
+**前三次證明護欄有效；第四次證明護欄無效——第四次才是這一節最重要的收穫。**
+
+#### AW8. 實測結果（`tests/coreBookVariants.test.mjs`）
+
+**118 / 118**（§AV 是 50/50）。新增 G~O 八節：資料模型、顯示解析、收起來行為、
+互斥、英雄技能衝突、規則層整合、回溯相容、儲存路徑、編輯模式。
+
+`npm test` 17 關全綠；`npm run build` exit 0。
+
+#### AW9. 教訓
+
+**「護欄綠燈」不等於「行為正確」——它只等於「護欄問的那個問題，答案對了」。**
+
+§AV5 的教訓是「有測試檔卻沒接進指令」。這一節更深一層：
+**測試接上了、也全綠了，但它問的問題是錯的。**
+
+三個 bug 裡有兩個（(b)(c)）是「測試自己壞掉」，不是「程式壞掉」——
+而它們的表現**一模一樣**：全綠。要分辨這兩者，唯一的辦法是**故意把它弄壞，看它會不會叫**。
+
+推論出去的規則：
+1. 新增護欄後，**必須**做一次刻意破壞驗證（不是「有空再做」）。
+2. 斷言 `html.includes('某字串')` 前，先問「這個字串在**別的區塊**是不是也有？」
+   有 → 用錨點切片或比次數。
+3. 事件的邏輯（`onClick` 內的）**SSR 測不到**，要抽成純函式才測得到。
