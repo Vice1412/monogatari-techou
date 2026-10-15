@@ -4,39 +4,44 @@
 >
 > **規範不靠本檔傳承。** `AGENTS.md` 會被 harness 自動注入成 workspace instructions，
 > `GEMINI.md` 是上位規範——那兩份才是規則本體，會自動生效。
-> **本檔只補三件它們沒有的事**：專案剛搬家、目前做到哪、以及幾個踩過會痛的坑。
+> **本檔只補三件它們沒有的事**：專案搬到哪、目前做到哪、以及幾個踩過會痛的坑。
 >
 > 建立：2026-10-05　｜　建立時的 HEAD：`e0a36c5`（**2026-10-05 歷史改寫後為 `0454519`**，見 §8）
+>
+> ⚠️ **2026-10-15 修訂**：§1（搬家，已完成）、§4（四個缺陷，已修完）、§6（下一步）三節已過時，
+> 本次一併更正。**本檔的「現況」欄位一律以 `AGENTS.md` §1 與 `docs/decisions.md` 為準**——
+> 本檔的價值在「踩過的坑」與「歷史脈絡」，不在數字。
 
 ---
 
 ## 0. 先做這三件事
 
-1. **確認實際工作目錄**：harness 會回報，**以它為準**。本檔與 `AGENTS.md` §1 記載的路徑可能是舊的（見 §1）。
-2. **跑一次 `npm test` 與 `npm run build`**，確認接手的是一個綠燈的基準。基準數字見 §2。
-3. **讀 `docs/decisions.md` 的 §L（資料層）與 §K7／K8（近期兩次裁定）**，那是最新的決策上下文。
+1. **確認實際工作目錄**：harness 會回報，**以它為準**（現為 `E:\MINGWAN\Projects\monogatari-techou`，已穩定）。
+2. **跑一次 `npm test` 與 `npm run build`**，確認接手的是一個綠燈的基準。**權威數字見 `AGENTS.md` §1**。
+3. **讀 `docs/decisions.md` 近期幾節**（越新越重要：§AW 核心書變體、§AR 金手指、§AD 引擎修正），
+   那是最新的決策上下文。
 
 ---
 
-## 1. 專案剛搬家（最急，先處理這個）
+## 1. 專案搬家的歷史（✅ 已完成，保留作脈絡）
 
 **專案已從 `FU Companion` 更名為《物語手帳》**（套件名 `monogatari-techou`），
-且**本機路徑即將變更**。
+本機路徑亦已同步為 `E:\MINGWAN\Projects\monogatari-techou`。**這件事已經做完了。**
 
 ### 1.1 會被路徑變更影響的地方
 
 | 位置 | 現況 | 新 session 該怎麼做 |
 |---|---|---|
-| `AGENTS.md:25`「工作目錄」 | 仍寫舊路徑 `E:\MINGWAN\Projects\FU Companion` | **以 harness 回報為準**，並把該行更新成新路徑 |
+| `AGENTS.md:25`「工作目錄」 | ✅ **已更新為** `E:\MINGWAN\Projects\monogatari-techou`（2026-10-05 更名時同步） | 已完成，無需處理 |
 | `PROJECT_SPEC.md:21`、`:179` | 也寫舊路徑 | 該檔已標記為**過時歷史文件**，不必改（依 `GEMINI.md` 規則六） |
 | `.github/workflows/deploy.yml` | 用相對路徑，**不受影響** | 不用動 |
 | `vite.config.js` | `base: './'`，**不受影響** | 不用動 |
 
 ### 1.2 一個已經過時的記述（順手修掉）
 
-`AGENTS.md` §6.1 寫「GitHub repo 改名 —— 已決定改，指令待執行 —— **待執行**」。
+`AGENTS.md` §6.1 原寫「GitHub repo 改名 —— 已決定改，指令待執行 —— **待執行**」。
 但**實測 `git remote -v` 已經是 `https://github.com/Vice1412/monogatari-techou.git`**——
-改名其實已經完成。該列應改為「已結案」。
+改名其實已經完成。該列已改為「✅ 已結案」（2026-10-05 複驗更正）。
 
 > 這正是 `GEMINI.md` 規則六存在的理由：**寫下來的狀態會過時，每次都要重新實測。**
 
@@ -52,16 +57,19 @@
 
 ## 2. 現況快照（實測，非記憶）
 
+> ⚠️ **這張表是建檔當下（2026-10-05）的實測值，會過時。** 承接時請重跑一次
+> `npm test`／`npm run build` 再以**當下輸出**為準（規則六）。以下數字未逐次同步。
+
 | 項目 | 值 |
 |---|---|
 | 套件名 | `monogatari-techou`　｜　顯示名《物語手帳》 |
 | 分支 | `main` |
-| 工作樹 | **乾淨**（全部已提交，無未追蹤檔案） |
-| `npm run build` | exit 0，約 4.6 秒，**2,023 kB / gzip 574 kB**（chunk-size 警告為既有現象） |
-| `npm test` | exit 0，**60 + 33 + 75 + 56 + 235 + 211 + 322 + 86 + 99 + 270 ＋ Emoji 掃描** |
-| 測試檔 | `tests/` 共 11 檔（emojiScan／sentinel／properNouns／tinkererProjects／classResources／gourmet／aceOfCards／characterEngine／dataLayer／starterPresets／ruleCodex） |
+| 工作樹 | 乾淨（全部已提交） |
+| `npm run build` | exit 0 |
+| `npm test` | exit 0（**17 道關卡**；權威數字見 `AGENTS.md` §1「測試指令」） |
+| 測試檔 | `tests/` 共 **17 檔**（emojiScan／sentinelMigration／properNouns／tinkererProjects／classResources／gourmet／aceOfCards／characterEngine／dataLayer／starterPresets／ruleCodex／creationRules／equipmentRules／characterLog／characterSheetUi／affinityText／coreBookVariants） |
 | 資料層 | `src/data/keys.js`（7 權威鍵 + 3 舊鍵）、`src/data/store.js`、`shared/schema.js` |
-| 文件 | `docs/`：`decisions.md`、`agents-changelog.md`、`room-sync-plan.md`、`skill-coverage.md` |
+| 文件 | `docs/`：`decisions.md`、`agents-changelog.md`、`room-sync-plan.md`、`skill-coverage.md`、`handoff.md`（本檔） |
 | Git 歷史 | ⚠️ **2026-10-05 改寫過**（`resources/` 徹底清除），所有 SHA 與改寫前不同，見 §8 |
 
 ---
@@ -104,19 +112,28 @@
 
 ---
 
-## 4. 四個未修的既有缺陷（等使用者裁定）
+## 4. 角色卡引擎的四個既有缺陷 —— ✅ 已於 2026-10-06 全部修完（§AD）
 
-`tests/characterEngine.test.mjs` 在驗證官方 Camilla 向量時發現，**已以 `// TODO(bug):` 記錄，未動 `src/`**：
+> **本節原本寫「四個未修的既有缺陷（等使用者裁定）」——那是 2026-10-05 的狀態，已經過時。**
+> 2026-10-06 使用者裁定後，四個缺陷在同一天一次修完（見 `docs/decisions.md` §AD、
+> `AGENTS.md` §6.2 的 AD 列）。**接手時不要再把它當成待辦去修——它已經修好了。**
+> 保留本節的理由是**歷史**：說明這四個缺陷長什麼樣、為什麼危險，以及護欄在哪。
 
-| # | 位置 | 問題 |
-|---|---|---|
-| 1 | `characterEngine.js:349-358` | `applyLevelUp` 遇到不存在的職業名仍扣 10 EXP 並升級，但 `classes` 完全不變——玩家付出 EXP 卻什麼都沒得到 |
-| 2 | `characterEngine.js:524` | `fabulaPoints: char.fabulaPoints \|\| 3`——物語點合法可為 0，導出時卻被還原成 3 |
-| 3 | `characterEngine.js:127` | 等級被 `Math.max(5, ...)` 夾住，等級 1~4 的 HP/MP 偏高（等級 1 實測 HP 50，原書公式應為 46）。路徑可達：`fultimatorConverter.js:88` 可匯入 lvl < 5 |
-| 4 | `characterEngine.js:232-233` | 防具／盾牌找不到時回退 `armors[0]`／`shields[0]`，語意錯誤。目前因索引 0 恰為中性而無偏差，屬**潛伏**缺陷 |
+`tests/characterEngine.test.mjs` 在驗證官方 Camilla 向量時發現。以下是原始記錄與現況：
 
-> **不要自行開修**。使用者尚未裁定；`GEMINI.md` 規則四要求先取得確認。
-> 缺陷 1 與 3 有實際數值／資源損失，建議優先提請裁定。
+| # | 原位置（2026-10-05） | 問題 | 現況 |
+|---|---|---|---|
+| 1 | `characterEngine.js:349-358` | `applyLevelUp` 遇到不存在的職業名仍扣 10 EXP 並升級，但 `classes` 完全不變——玩家付出 EXP 卻什麼都沒得到 | ✅ 已修：`if (!targetClass) return char;`（約 line 889） |
+| 2 | `characterEngine.js:524` | `fabulaPoints: char.fabulaPoints \|\| 3`——物語點合法可為 0，導出時卻被還原成 3 | ✅ 已修：改 `?? 3`（空值合併，約 line 1426） |
+| 3 | `characterEngine.js:127` | 等級被 `Math.max(5, ...)` 夾住，等級 1~4 的 HP/MP 偏高（等級 1 實測 HP 50，原書公式應為 46） | ✅ 已修：`Math.max(5` 已完全移除，改讀 `creation.startingLevel` |
+| 4 | `characterEngine.js:232-233` | 防具／盾牌找不到時回退 `armors[0]`／`shields[0]`，語意錯誤（潛伏缺陷） | ✅ 已修：改回**具名中性條目** `findByName(..., NEUTRAL_ARMOR／NEUTRAL_SHIELD)`（line 626／640-642） |
+
+**護欄**（防止回流，見 §AD4）：`tests/characterEngine.test.mjs` 有針對每一條的回歸斷言
+（未知職業升級不扣 EXP、`fabulaPoints` 0 不變 3、等級讀取點、裝備回退），
+另有全站護欄「不得再出現 `fabulaPoints || N`」與「`characterEngine.js` 不得出現寫死的 `Math.max(5`」。
+
+> **本項不是「不要自行開修」的待裁定項，而是「已完成」。** 若在別處（舊 changelog、舊 session 草稿）
+> 看到「四個未修缺陷」，那是過時記述——以本節與 `docs/decisions.md` §AD 為準。
 
 ---
 
@@ -130,10 +147,10 @@
 | 規則五 | 每次改動後**必須**跑 Emoji 掃描 + `npm run build`（exit 0），兩項未過不得宣稱完成 |
 | 規則六 | **嚴禁**引用歷史報告、舊 Session 草稿或 `PROJECT_CHANGELOG.md` 作為現況結論——一律重新實測源碼 |
 
-### 5.2 已踩過五次的地雷
+### 5.2 已踩過多次的地雷
 
-**把 `⚠️` 寫進自己的註解。** 五次分別在 `properNouns.js`、`tinkererProjects.js`、
-`classResources.js`、`aceOfCardsData.js`、`AceOfCardsTable.jsx`。
+**把 `⚠️` 或打勾的表情符號寫進自己的註解。** 至少六次，最近一次是 2026-10-08 修 §AS10 時——
+**每一次都被 `npm run test:emoji` 當場抓到，也就是說「自動化關卡有效，但寫的時候就別用」。**
 `npm run test:emoji` 會攔下，但那是**事後**攔——寫的時候就別用。
 掃描範圍是 `src/` **與 `shared/`**；新增原始碼目錄時記得同步掃描範圍，否則新目錄會成為盲區。
 
@@ -159,11 +176,13 @@
 
 ## 6. 建議的下一步（依序）
 
-1. 更新 `AGENTS.md:25` 的工作目錄為新路徑；把 §6.1 的「repo 改名」改為已結案。
+1. 更新 `AGENTS.md:25` 的工作目錄為新路徑（**已完成**）；把 §6.1 的「repo 改名」改為已結案（**已完成**）。
 2. 跑 `npm test` + `npm run build`，確認基準綠燈。
-3. 向使用者提請裁定 §4 的四個缺陷（特別是 1 與 3）。
+3. ~~向使用者提請裁定 §4 的四個缺陷~~ —— **已於 2026-10-06 修完（§AD）**，不需提請。
 4. 若使用者要繼續連線功能：進 `room-sync-plan.md` 的**階段 1**（`wrangler dev` 本機雙瀏覽器互驗），
    開工前先修 §3.1 那處過時記述。
+5. 其餘**真正**尚未裁定的事項以 `AGENTS.md` §6.1 為準（金手指效果逐筆核對、Bonus Collection
+   其餘 7 項、先攻變體、Playtest 其餘選用規則、Playtest 修訂既有技能約 20 項等）。
 
 ---
 
