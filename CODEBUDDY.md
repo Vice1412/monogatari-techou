@@ -67,13 +67,16 @@
 | `tests/` | 17 道測試關卡源碼（bundle 輸出至 `.test-build/`） | 在版控 |
 | `docs/` | `decisions.md`（決策本體）、`agents-changelog.md`（變更紀錄）、`handoff.md`、`room-sync-plan.md`、`skill-coverage.md` | 在版控 |
 
-## 6. 文件分工（別寫錯地方）
+## 6. 文件分工
+
+> **完整判準（含「這段資訊之後會變嗎？」的決策樹）在 `AGENTS.md` §7.1——這裡只留速查，避免兩份分岔。**
 
 | 想寫什麼 | 寫到哪 |
 |---|---|
 | 規範、規則、環境事實、技術債基準 | `AGENTS.md`（會被注入，**硬上限 65,536 bytes**） |
 | 「為什麼這樣決定」的完整紀錄 | `docs/decisions.md` |
 | 變更紀錄 | `docs/agents-changelog.md` |
+| **不會變的坑、除錯方法、歷史脈絡** | `docs/handoff.md`（**其餘一律不要放這裡**，見 §7.1） |
 | 最高規範 | `GEMINI.md`（**只讀，不得改寫原文**） |
 
 `AGENTS.md` 曾在 68 KB 時被 harness 截斷，而截掉的正是最新的變更紀錄——所以細節一律往外放，`AGENTS.md` 只留索引。
