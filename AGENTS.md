@@ -8,8 +8,9 @@
 > 兩份文件並存，互不覆寫。
 
 > **接手的 session 請先讀 [`docs/handoff.md`](docs/handoff.md)。**
-> 本檔是規範本體（會被 harness 自動注入），但**不含**「專案剛搬到哪、目前做到哪、哪些坑踩過」——
+> 本檔是規範本體（會被 harness 自動注入），但**不含**「踩過的坑、除錯方法、Git 歷史改寫始末」——
 > 那些在交接簡報裡。規範自動生效，狀態要另外讀。
+> ※ 交接簡報**刻意不放**現況數字與待辦清單（那些會過時）——**狀態一律以本檔 §1 與 §6 為準**。
 
 ---
 
@@ -26,10 +27,9 @@
 
 ## 1. 環境事實（DSH 專用）
 
-- **工作目錄**：`E:\MINGWAN\Projects\monogatari-techou`（2026-10-05 由 `FU Companion` 更名）
-  ⚠️ **此為舊路徑。** 專案已更名《物語手帳》（套件名 `monogatari-techou`）並正在搬遷。
-  **一律以 harness 回報的實際工作目錄為準**，接手後請把本行更新為新路徑（見 `docs/handoff.md` §1）。
-  本機路徑與 repo 名稱無關；`.github/workflows/deploy.yml` 與 `vite.config.js` 皆用相對路徑，**不受搬遷影響**。
+- **工作目錄**：`E:\MINGWAN\Projects\monogatari-techou`（2026-10-05 由 `FU Companion` 更名，**已完成**）
+  **一律以 harness 回報的實際工作目錄為準**（目前與本行一致）。
+  本機路徑與 repo 名稱無關；`.github/workflows/deploy.yml` 與 `vite.config.js` 皆用相對路徑，**不受更名影響**。
 - **可用工具**：`pwsh`、`read`、`write`、`edit`、`glob`、`grep`
 - **建置指令**：`npm run build`（Vite 6，實測約 4.2 秒，exit 0）
 - **建置產物**：`dist/`，JS 2,247 kB（gzip 649 kB）。chunk-size 警告為**已知既有現象**，非本次改動造成。

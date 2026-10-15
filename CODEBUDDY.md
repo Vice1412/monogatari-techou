@@ -2,16 +2,17 @@
 
 > **本檔是 bootstrap，不是規範本體。**
 > WorkBuddy 只讀 `CODEBUDDY.md` → `.codebuddy/CODEBUDDY.md` → `AGENTS.md` **三者中第一個存在的**，
-> 並且**硬截斷在 8000 字元**。`AGENTS.md` 有 49 KB，直接餵進去會被砍掉 84%——所以用本檔把新 session 送進正確的檔案。
+> 並且**硬截斷在 8000 字元**。`AGENTS.md` 有約 52 KB，直接餵進去會被砍掉 84%——所以用本檔把新 session 送進正確的檔案。
 > **完整順位**：`GEMINI.md`（最高規範，只讀不改）＞ `AGENTS.md`（執行細則）＞ 本檔。
 
 ---
 
 ## 0. 新 session 開場必做（照順序）
 
-1. 讀 `AGENTS.md` 全文（49 KB，規則本體；本檔只是索引與入口）。
-2. 讀 `docs/handoff.md`（專案搬到哪、做到哪、踩過哪些坑）。
-3. 讀 `docs/decisions.md` 的 §L（資料層）、§AT（手機版量測陷阱）、§AP／§AU（逐字比對方法論）。
+1. 讀 `AGENTS.md` 全文（約 52 KB，規則本體；本檔只是索引與入口）。
+2. 讀 `docs/handoff.md`（**踩過的坑、除錯方法、Git 歷史改寫始末**——它刻意不記現況與待辦，那些看 `AGENTS.md` §1 與 §6）。
+3. 讀 `docs/decisions.md` 的**近期幾節**（越新越重要：§AW 核心書技能變體、§AR 金手指、§AD 引擎修正）、
+   §L（資料層）、§AP／§AU（逐字比對方法論）、§AT（手機版量測陷阱）。
 4. 跑 `npm test` 與 `npm run build`，確認基準綠燈再動手。
 
 ## 1. 專案事實
@@ -23,7 +24,7 @@
 | repo | https://github.com/Vice1412/monogatari-techou （**公開**） |
 | 技術 | Vite 6 + React + Tailwind 3；全站羊皮紙暖色調（`#fbf7ee` / `#3c2415` / `#d6c7ab`），**非**深色石板底 |
 | 資料層 | 純 localStorage，但已收斂為單一存取層 `src/data/store.js`；鍵註冊表 `src/data/keys.js`（7 權威鍵 + 3 舊鍵）；房間契約 `shared/schema.js`。**`src/` 內不得直接呼叫 `localStorage`** |
-| 指令 | `npm run build`、`npm test`（16 道關卡）、`npm run test:emoji`、`npm run audit:affinity` |
+| 指令 | `npm run build`、`npm test`（17 道關卡）、`npm run test:emoji`、`npm run audit:affinity` |
 
 ## 2. 硬性關卡（每次改動後必跑，沒過不得宣稱完成）
 
@@ -63,7 +64,7 @@
 |---|---|---|
 | `resources/角色卡/` | 官方原書節錄 54 PDF ＋ 漢化 26 MD／25 HTML（106 檔 / 92 MB） | **不在版控**（`.gitignore`），但**仍在 git 歷史層**，repo 公開 |
 | `scratch/` | 抽取腳本、量測頁、舊 bundle、`pre-purge-backup.git` | **不在版控**；測試**嚴禁**放這裡（會與源碼脫鉤） |
-| `tests/` | 16 道測試關卡源碼（bundle 輸出至 `.test-build/`） | 在版控 |
+| `tests/` | 17 道測試關卡源碼（bundle 輸出至 `.test-build/`） | 在版控 |
 | `docs/` | `decisions.md`（決策本體）、`agents-changelog.md`（變更紀錄）、`handoff.md`、`room-sync-plan.md`、`skill-coverage.md` | 在版控 |
 
 ## 6. 文件分工（別寫錯地方）
@@ -81,8 +82,11 @@
 
 - `chrome --headless --window-size=390` 的**實際視窗是 500px**（Chromium 最小寬度）——「手機版橫向溢出」常是截圖工具的假象。要驗真手機寬度得用 iframe（`scratch/mobile_viewport.html`）。
 - `resources/` 已移出版控但**仍在歷史層**；查「公開 repo 有沒有不該公開的檔案」要三層都查：`git ls-files`（索引）、`git check-ignore -v`（忽略規則）、`git rev-list --objects --all`（歷史層）。
-- 未裁定事項見 `AGENTS.md` §6.1；**未裁定前不要自行開修**（例如 `characterEngine.js` 的四個已知缺陷）。
-- 未結案的既有工作：連線房間同步（`docs/room-sync-plan.md`，狀態待裁定）、英雄技能的 Playtest 修訂項。
+- 未裁定事項見 `AGENTS.md` §6.1；**未裁定前不要自行開修**。
+  ※ 曾以此處的「`characterEngine.js` 四個已知缺陷」為例——**那四個已於 2026-10-06 §AD 全部修完**，
+  不要再拿它當待辦（這是「舉例本身會過時」的教訓）。
+- 未結案的既有工作：連線房間同步（`docs/room-sync-plan.md`，**待裁定**；前置階段 0 已完成）、
+  英雄技能的 Playtest 修訂項（約 20 筆，見 `AGENTS.md` §6.1）。
 
 ## 8. 我的資源地圖與報告慣例
 
