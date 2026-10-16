@@ -1856,71 +1856,13 @@ export default function CharacterPlayHUD({
                                 </div>
                               )}
 
-                              {/* 植物學家專屬生長命刻 */}
-                              {cl.className === '植物學家' && sk.name === '植生術' && (
-                                <div className="mt-2 p-2.5 bg-emerald-50/80 rounded-xl border border-emerald-200/90 flex items-center justify-between gap-3 flex-wrap">
-                                  <div className="flex items-center gap-3">
-                                    <ClockTracker
-                                      title=""
-                                      totalSegments={4}
-                                      filledSegments={character.growthClock || 0}
-                                      theme="green"
-                                      size={54}
-                                      compact={true}
-                                      onChange={(newVal) => {
-                                        updateField('growthClock', newVal);
-                                      }}
-                                    />
-                                    <div>
-                                      <div className="font-bold text-xs text-emerald-950 flex items-center gap-1.5">
-                                        <span>生長命刻</span>
-                                        <span className="font-mono text-xs text-emerald-700 font-bold">({character.growthClock || 0} / 4)</span>
-                                      </div>
-                                      <p className="text-[10px] text-slate-500 leading-tight">
-                                        回合結束填入 1 格並觸發效果。滿 4 格離園清空。
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const cur = character.growthClock || 0;
-                                        updateField('growthClock', Math.max(0, cur - 1));
-                                      }}
-                                      disabled={(character.growthClock || 0) <= 0}
-                                      className="px-2 py-1 text-xs rounded-lg bg-white hover:bg-emerald-100 disabled:opacity-30 border border-emerald-200 text-emerald-900 font-bold transition-colors cursor-pointer"
-                                      title="命刻 -1"
-                                    >
-                                      -1
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const cur = character.growthClock || 0;
-                                        updateField('growthClock', Math.min(4, cur + 1));
-                                      }}
-                                      disabled={(character.growthClock || 0) >= 4}
-                                      className="px-2.5 py-1 text-xs rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:opacity-30 text-white font-bold transition-colors cursor-pointer shadow-2xs"
-                                      title="命刻 +1"
-                                    >
-                                      +1 格
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        updateField('growthClock', 0);
-                                        showToast('已清空生長命刻');
-                                      }}
-                                      disabled={(character.growthClock || 0) === 0}
-                                      className="px-2 py-1 text-xs rounded-lg bg-white hover:bg-rose-50 disabled:opacity-30 border border-emerald-200 text-slate-600 hover:text-rose-700 font-medium transition-colors cursor-pointer"
-                                      title="清空生長命刻"
-                                    >
-                                      清空
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
+                              {/* 植物學家專屬生長命刻：**已移除**（2026-10-16）。
+                                  這裡原本是第二個「生長命刻」控制項（讀寫 `character.growthClock` 純量），
+                                  與同一區塊上方【植生術】常駐的 `FloristGardenTracker` 並存——
+                                  同一個計數器兩套資料（`floristGarden` 陣列 vs `growthClock` 純量）、
+                                  兩個可各自設定不同數字的控制項。官方只有**一條**生長命刻
+                                  （`ruleCodexExpansion.js`「生長命刻」節），而花園生長盤是完整的那一套
+                                  （綁種子、高亮當前階級、結算離園），所以留它、移掉這裡的殘留。 */}
                             </div>
                           )}
 

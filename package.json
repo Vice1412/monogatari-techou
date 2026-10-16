@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "npm run test:emoji && npm run test:affinity && npm run test:sentinel && npm run test:propernouns && npm run test:aliases && npm run test:projects && npm run test:resources && npm run test:gourmet && npm run test:cards && npm run test:engine && npm run test:equipment && npm run test:creation && npm run test:log && npm run test:ui && npm run test:datalayer && npm run test:presets && npm run test:codex && npm run test:variants && npm run test:npcworkshop && npm run test:npcworkshopui",
+    "test": "npm run test:emoji && npm run test:affinity && npm run test:sentinel && npm run test:propernouns && npm run test:aliases && npm run test:projects && npm run test:resources && npm run test:gourmet && npm run test:cards && npm run test:engine && npm run test:equipment && npm run test:creation && npm run test:log && npm run test:ui && npm run test:datalayer && npm run test:presets && npm run test:codex && npm run test:florist && npm run test:variants && npm run test:npcworkshop && npm run test:npcworkshopui",
     "test:emoji": "esbuild tests/emojiScan.test.mjs --bundle --platform=node --format=esm --outfile=.test-build/emojiScan.mjs --log-level=warning && node .test-build/emojiScan.mjs",
     "test:affinity": "esbuild tests/affinityText.test.mjs --bundle --platform=node --format=esm --loader:.json=json --outfile=.test-build/affinityText.mjs --log-level=warning && node .test-build/affinityText.mjs",
     "audit:affinity": "esbuild scripts/affinity-audit.mjs --bundle --platform=node --format=esm --loader:.json=json --outfile=.test-build/affinityAudit.mjs --log-level=warning && node .test-build/affinityAudit.mjs",
@@ -26,6 +26,7 @@
     "test:cards": "esbuild tests/aceOfCards.test.mjs --bundle --platform=node --format=esm --outfile=.test-build/aceOfCards.mjs --log-level=warning && node .test-build/aceOfCards.mjs",
     "test:presets": "esbuild tests/starterPresets.test.mjs --bundle --platform=node --format=esm --packages=external --loader:.json=json --outfile=.test-build/starterPresets.mjs --log-level=warning && node .test-build/starterPresets.mjs",
     "test:codex": "esbuild tests/ruleCodex.test.mjs --bundle --platform=node --format=esm --loader:.json=json --outfile=.test-build/ruleCodex.mjs --log-level=warning && node .test-build/ruleCodex.mjs",
+    "test:florist": "esbuild tests/floristGarden.test.mjs --bundle --platform=node --format=esm --packages=external --loader:.json=json --loader:.otf=dataurl --outfile=.test-build/floristGarden.mjs --log-level=warning && node .test-build/floristGarden.mjs",
     "test:variants": "esbuild tests/coreBookVariants.test.mjs --bundle --platform=node --format=esm --packages=external --loader:.json=json --loader:.otf=dataurl --outfile=.test-build/coreBookVariants.mjs --log-level=warning && node .test-build/coreBookVariants.mjs",
     "test:npcworkshop": "esbuild tests/npcWorkshop.test.mjs --bundle --platform=node --format=esm --loader:.json=json --outfile=.test-build/npcWorkshop.mjs --log-level=warning && node .test-build/npcWorkshop.mjs",
     "test:npcworkshopui": "esbuild tests/npcWorkshopUi.test.mjs --bundle --platform=node --format=esm --packages=external --loader:.json=json --outfile=.test-build/npcWorkshopUi.mjs --log-level=warning && node .test-build/npcWorkshopUi.mjs"

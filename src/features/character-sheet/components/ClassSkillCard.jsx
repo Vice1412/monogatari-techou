@@ -28,6 +28,7 @@ import { resolveCreationRules } from '../data/creationRules';
 import SkillDescription from '../utils/skillFormulaEvaluator';
 import SkillSuboptionModal from './SkillSuboptionModal';
 import SuboptionDetailsList from './SuboptionDetailsList';
+import FloristGardenPreview from './companions/FloristGardenPreview';
 import PilotVehicleModal from './companions/PilotVehicleModal';
 import WayfarerCompanionModal from './companions/WayfarerCompanionModal';
 import TinkererGadgetsModal from './companions/TinkererGadgetsModal';
@@ -587,13 +588,18 @@ export default function ClassSkillCard({
                 </JRPGBadge>
               </div>
 
-              {/* 免費職業福利 */}
+              {/* 免費職業福利
+                  ※ 二選一職業（HP +5 或 MP +5：植物學家／死靈術士／秘儀師【Playtest】）
+                    **不重複印長句**。`freeBenefits` 與 `freeBonus` 在這裡是同義的
+                    （"你的最大HP永久提高5點或最大MP永久提高5點（二選一）" vs "HP +5 或 MP +5"），
+                    而下面那排二選一按鈕已經把選項講白了。短標籤＋長句＋按鈕三個一起出現，
+                    萌新會讀成「兩個都給」——留短標籤與按鈕就夠了。 */}
               {classDef.freeBonus && (
                 <div className="flex items-center gap-2 flex-wrap mt-1">
                   <span className="text-xs font-mono font-bold text-amber-900 bg-amber-200/90 px-2 py-0.5 rounded border border-amber-300 shadow-2xs">
                     <SkillDescription desc={classDef.freeBonus} />
                   </span>
-                  {classDef.freeBenefits && (
+                  {classDef.freeBenefits && !isHpMpChoice && (
                     <span className="text-xs text-slate-600 line-clamp-1" title={classDef.freeBenefits}>
                       <SkillDescription desc={classDef.freeBenefits} />
                     </span>
@@ -767,13 +773,25 @@ export default function ClassSkillCard({
                         }}
                       />
                     ) : (
-                      <SkillSuboptionBar
-                        className={className}
-                        skillName={sk.name}
-                        sl={sk.sl}
-                        selectedOptions={sk.selectedOptions || []}
-                        onOpenModal={() => handleOpenSuboptionModal(sk.name, sk.sl, sk.selectedOptions || [])}
-                      />
+                      <>
+                        <SkillSuboptionBar
+                          className={className}
+                          skillName={sk.name}
+                          sl={sk.sl}
+                          selectedOptions={sk.selectedOptions || []}
+                          onOpenModal={() => handleOpenSuboptionModal(sk.name, sk.sl, sk.selectedOptions || [])}
+                        />
+                        {/* 植物學家【植生術】：建角時的花園與生長命刻預覽。
+                            挑選器只教「這顆種子有什麼效果」，這裡補上「花園怎麼運作」——
+                            那套畫面原本只存在於跑團卡（CharacterPlayHUD 掛的 FloristGardenTracker），
+                            正在車卡的人看不到。 */}
+                        {className === '植物學家' && sk.name === '植生術' && (
+                          <FloristGardenPreview
+                            selectedOptions={sk.selectedOptions || []}
+                            skillName={sk.name}
+                          />
+                        )}
+                      </>
                     )}
                   </div>
                 );
@@ -960,13 +978,22 @@ export default function ClassSkillCard({
                         }}
                       />
                     ) : (
-                      <SkillSuboptionBar
-                        className={className}
-                        skillName={sk.name}
-                        sl={currentSL}
-                        selectedOptions={currentSuboptions}
-                        onOpenModal={() => handleOpenSuboptionModal(sk.name, currentSL, currentSuboptions)}
-                      />
+                      <>
+                        <SkillSuboptionBar
+                          className={className}
+                          skillName={sk.name}
+                          sl={currentSL}
+                          selectedOptions={currentSuboptions}
+                          onOpenModal={() => handleOpenSuboptionModal(sk.name, currentSL, currentSuboptions)}
+                        />
+                        {/* 同檢視模式：編輯中也要看得到花園機制（見上方說明）。 */}
+                        {className === '植物學家' && sk.name === '植生術' && (
+                          <FloristGardenPreview
+                            selectedOptions={currentSuboptions}
+                            skillName={sk.name}
+                          />
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

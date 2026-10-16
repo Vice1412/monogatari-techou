@@ -33,8 +33,10 @@
 - **可用工具**：`pwsh`、`read`、`write`、`edit`、`glob`、`grep`
 - **建置指令**：`npm run build`（Vite 6，實測約 4.2 秒，exit 0）
 - **建置產物**：`dist/`，JS 2,247 kB（gzip 649 kB）。chunk-size 警告為**已知既有現象**，非本次改動造成。
-- **測試指令**：`npm test`（實測 **1 + 176/176 + 60/60 + 33/33 + 75/75 + 80/80 + 235/235 + 211/211 + 362/362 + 249/249 + 229/229 + 86/86 + 278/278 + 86/86 + 100/100 + 270/270 + 118/118** 通過，exit 0）。
-  二十道測試關卡（其中兩道是自動化的規則關卡）：
+- **測試指令**：`npm test`（實測 **21 道關卡全過**，exit 0）。
+  ※ 各關卡的斷言數**刻意不列在這裡**——這行原本寫著「17 道時期」的數字，後來補了 4 道也沒人發現。
+    這種數字自己就會腐化；要精確數字請看該關卡自己的輸出。
+  二十一道測試關卡（其中兩道是自動化的規則關卡）：
   - `npm run test:emoji` —— **規則五.1 已自動化**（見 §3.2）；掃描範圍**已含 `shared/`**
   - `npm run test:affinity` —— 九相屬性標記（誤標表、正標表、資料層掃描、渲染器同步；見 §4 F）
   - `npm run test:equipment` —— 裝備配置（原書裝備表逐筆核對、裝備圖示對照表、熟練度與載入衝突、雙重盾牌、SSR 煙霧；見 `docs/decisions.md` §U）
@@ -50,7 +52,8 @@
   - `npm run test:engine` —— 角色卡數值引擎（HP/MP/IP/危機/DEF/M.DEF，對照原書 p.163–164）
   - `npm run test:datalayer` —— 鍵註冊表、存取層、舊鍵遷移、房間同步契約
   - `npm run test:presets` —— 官方經典職業搭配 81 組（五本手冊，含篩選分組純函式與 SSR 渲染煙霧）
-  - `npm run test:codex` —— 規則概念速查（16 條覆蓋率、關鍵字唯一性、授權合規、**譯名與定譯表逐字比對**）
+  - `npm run test:codex` —— 規則概念速查（16 條覆蓋率、關鍵字唯一性、授權合規、**譯名與定譯表逐字比對**、**技能 `見【…】` 交叉引用逐一可解析**、**9 個子項目技能都有速查頁**；見 `docs/decisions.md` §BA）
+  - `npm run test:florist` —— 植物學家花園／生長命刻（43 列標籤**全部**解析得出命刻區間、**「1~3」「1~2」在 T=1 必須生效的回歸**、建角預覽 SSR、階級判斷單一來源的原始碼護欄；見 `docs/decisions.md` §BB）
   - `npm run test:variants` —— 核心書技能變體（取代目標必須存在於該職業、差異粗體成對、**公測開啟／關閉兩態的渲染契約**、閘門欄位形狀、**選用狀態的資料模型／顯示解析／互斥／規則層整合／回溯相容／儲存路徑**；見 `docs/decisions.md` §AV §AW）
   - `npm run test:aliases` —— 職業別稱（官方原書職業頁的「ALSO:」行）：`SOURCEBOOKS ↔ CLASS_ALIASES` **雙向覆蓋率**、28 職英文別稱與出處頁碼**逐條釘死**、顯示（`zh`）／檢索（`en` ＋ `zhExtra`）分流、搜尋純函式逐例、SSR 渲染煙霧與 `zhExtra` 不外洩（見 `docs/decisions.md` §AZ）
   - `npm run test:npcworkshop` —— NPC 工坊純函式（見 `docs/decisions.md` §AX／§AY）
@@ -444,7 +447,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 - `npm run build` 通過（exit 0，2026-10-06 實測 9.77 秒）。
 - JS bundle 2,252 kB / gzip 651 kB，觸發 Vite chunk-size 警告（>500 kB）。
   建議未來以 `manualChunks` 或 `import()` 拆分，但**非當前規範要求**。
-- `npm test` 通過（**1 + 176/176 + 60/60 + 33/33 + 75/75 + 80/80 + 235/235 + 211/211 + 362/362 + 249/249 + 229/229 + 86/86 + 278/278 + 86/86 + 100/100 + 270/270 + 118/118**，exit 0）。
+- `npm test` 通過（**21 道關卡全過**，exit 0）。
   已補上測試的模組：造物專案成本與每日推進（`test:projects`）、職業資源池（`test:resources`）、
   美食家食材／食譜書（`test:gourmet`）、專有名詞對照（`test:propernouns`）、
   哨兵遷移（`test:sentinel`）、零 Emoji（`test:emoji`）、卡牌大師牌組（`test:cards`）、
@@ -620,6 +623,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 | AP | 職業技能的全面比對 | 140 筆逐條比對，**兩輪共修 41 處**。觸發點：`靈光一閃` 的 ①~⑤ 範例是**憑空寫進去的**（規則書與 Excel 都沒有，`git log -S` 只命中初始建檔）→ 使用者裁定「刪到光」。含 4 筆術語錯（champion＝「冠位」、Hinder/Objective＝「阻礙／推進目標」、dazed＝「眩暈」、`verse`＝「樂句」） | 2026-10-06 |
 | AX／AY | `NPCWorkshop.jsx` 拆檔（**先補護欄，再動結構**） | 6,448 → 4,597 行。① 第一批：抽 `utils/displayText.jsx`／8 個元件／`data/workshopThemes.js`，並新增**元件層 SSR 護欄**（`test:npcworkshopui`）② 第二批：`handleCopyFullNpc`（448 行）→ 純函式 `buildNpcText`，並補上**四格式分支**的溢額過濾護欄 ③ 前置：加**測試注入點 props**，讓 8 道建角步驟（約 2,100 行）**首次有 SSR 覆蓋**。**第三階段未完成**：`renderStepContent` 尚未搬、`useState` 未分組、`renderCharacterCard` 未抽 | 2026-10-16 |
 | AZ | 職業別稱（官方原書職業頁的「ALSO:」行） | 28 職各 3 個（核心 15＋三手冊 11＋特典 2）；`zh` 才顯示、`zhExtra`（測試版漢化獨有）只搜不顯示；搜尋抽成資料層純函式 `matchesClassQuery`；5 個無漢化譯名者**經 GM 裁定語義補譯**並以 `zhDerived` 逐筆登記來源；新增 `test:aliases`（78 條） | 2026-10-16 |
+| BB | 植物學家【植生術】：建角缺口與階級判斷 | ① 建角新增 `FloristGardenPreview`（撥生長命刻格數，看已挑選種子在該格數**實際生效**的那一階）② 修掉「生長命刻 1~3 格」「1~2 格」兩類標籤在 **T=1 不亮**（舊版用字串 `includes` 猜階級，誤判成 2~3 格）③ 跑團卡移除與花園盤並存的**第二套純量時鐘**（`growthClock`）④ 種子標籤與速查欄位名統一為「生長命刻」（原為「命刻」／「T」）⑤ 二選一職業不再重複印同義長句 ⑥ 新增 `test:florist`（50 條） | 2026-10-16 |
 
 ## 7. 本檔維護
 

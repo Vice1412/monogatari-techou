@@ -267,7 +267,8 @@ export default function SkillSuboptionModal({
               )}
             </div>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              依據官方規則，技能等級為你解鎖相應數量的專屬項目。
+              本清單共 {rawItems.length} 項；技能等級決定你能掌握幾項
+              （目前 SL {sl} → 上限 {maxQuota} 項，不是全部都能拿）。
               {codexRule && `完整機制（含運作方式與出處頁碼）見「規則速查：${codexRule.title}」。`}
             </p>
           </div>

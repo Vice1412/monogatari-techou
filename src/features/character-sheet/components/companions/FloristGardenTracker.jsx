@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { GiSprout, GiFlowerPot, GiSparkles, GiCheckMark, GiHazardSign, GiPlantRoots } from 'react-icons/gi';
 import { Plus, Trash2, RotateCcw } from 'lucide-react';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
-import { FLORIST_MAGISEEDS } from '../../data/skillSuboptionsData';
+import { FLORIST_MAGISEEDS, isSeedEffectActiveAt } from '../../data/skillSuboptionsData';
 
 /**
  * 植物學家花園生長盤 (FloristGardenTracker)
@@ -176,11 +176,6 @@ export default function FloristGardenTracker({
             const seedDef = FLORIST_MAGISEEDS.find(s => s.name === item.seedName);
             const clock = item.clock || 0;
 
-            // 判斷當前命刻階級
-            const isTier1 = clock <= 1;
-            const isTier2 = clock >= 2 && clock <= 3;
-            const isTier3 = clock >= 4;
-
             return (
               <div
                 key={item.instanceId}
@@ -259,15 +254,11 @@ export default function FloristGardenTracker({
                 {seedDef?.effects && (
                   <div className="pt-1.5 space-y-1 text-xs">
                     {seedDef.effects.map((ef, efIdx) => {
-                      // 判定此條目是否在當前生效
-                      let isActive = false;
-                      if (ef.clock.includes('0~1') || ef.clock.includes('1 回合') || ef.clock.includes('1 格')) {
-                        isActive = isTier1;
-                      } else if (ef.clock.includes('2~3') || ef.clock.includes('2 格') || ef.clock.includes('3 格')) {
-                        isActive = isTier2;
-                      } else if (ef.clock.includes('4') || ef.clock.includes('離園')) {
-                        isActive = isTier3;
-                      }
+                      // 判定此條目是否在當前生效 —— 一律走資料層的純函式，元件不自己比對字串。
+                      // 舊版是在 clock 標籤上做子字串比對（找「0~1」「3 格」之類），把
+                      // 「生長命刻 1~3 格」（熾焰菊／月光玉蘭／蒲公英之舞）與
+                      // 「生長命刻 1~2 格」（朝聖者羚羊花）誤判成 2~3 格 → T = 1 時那一列不亮。
+                      const isActive = isSeedEffectActiveAt(ef.clock, clock);
 
                       return (
                         <div
