@@ -19,11 +19,11 @@
 
 | 項目 | 值 |
 |---|---|
-| 名稱 | 《物語手帳》（套件名 `monogatari-techou`），原名 FU Companion |
+| 名稱 | 《物語手帳》（套件名 `monogatari-techou`）。原名 FU Companion **已因版權問題廢棄，不得再用於新增的路徑／識別字／對外文件**；既有文件中的「原名」屬歷史敘述 |
 | 路徑 | `E:\MINGWAN\Projects\monogatari-techou` |
 | repo | https://github.com/Vice1412/monogatari-techou （**公開**） |
 | 技術 | Vite 6 + React + Tailwind 3；全站羊皮紙暖色調（`#fbf7ee` / `#3c2415` / `#d6c7ab`），**非**深色石板底 |
-| 資料層 | 純 localStorage，但已收斂為單一存取層 `src/data/store.js`；鍵註冊表 `src/data/keys.js`（7 權威鍵 + 3 舊鍵）；房間契約 `shared/schema.js`。**`src/` 內不得直接呼叫 `localStorage`** |
+| 資料層 | 純 localStorage，但已收斂為單一存取層 `src/data/store.js`；鍵註冊表 `src/data/keys.js`（7 權威鍵，前綴 `monogatari_techou_`；11 個舊鍵只讀不寫，由 `migrateLegacyStorage()` 於啟動時搬移）；房間契約 `shared/schema.js`。**`src/` 內不得直接呼叫 `localStorage`** |
 | 指令 | `npm run build`、`npm test`（17 道關卡）、`npm run test:emoji`、`npm run audit:affinity` |
 
 ## 2. 硬性關卡（每次改動後必跑，沒過不得宣稱完成）

@@ -31,8 +31,8 @@ import { createNewCharacter, calculateCharacterStats, getCharacterLevel } from '
 import { CHARACTER_THEMES, getCharacterTheme } from './utils/characterThemes';
 import {
   isFultimatorCharacter,
-  convertFultimatorToFUCompanion,
-  convertFUCompanionToFultimator
+  convertFultimatorToMonogatari,
+  convertMonogatariToFultimator
 } from './utils/fultimatorConverter.js';
 import JRPGButton from '../../components/ui/JRPGButton';
 import JRPGBadge from '../../components/ui/JRPGBadge';
@@ -216,7 +216,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
   // Single Character Export (Native or Fultimator format)
   const handleExportSingleCharacter = (char, format = 'native') => {
     const isFult = format === 'fultimator';
-    const data = isFult ? convertFUCompanionToFultimator(char) : char;
+    const data = isFult ? convertMonogatariToFultimator(char) : char;
     const filename = isFult
       ? `fultimator_${(char.name || 'pc').replace(/\s+/g, '_')}_${Date.now()}.json`
       : `fu_char_${(char.name || 'pc').replace(/\s+/g, '_')}_${Date.now()}.json`;
@@ -243,7 +243,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
           const convertedList = parsed.map(item => {
             if (isFultimatorCharacter(item)) {
               fultimatorCount++;
-              return convertFultimatorToFUCompanion(item);
+              return convertFultimatorToMonogatari(item);
             }
             return item;
           });
@@ -259,7 +259,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
             : `成功匯入 ${convertedList.length} 張角色卡！`);
         } else if (parsed && typeof parsed === 'object') {
           if (isFultimatorCharacter(parsed)) {
-            const converted = convertFultimatorToFUCompanion(parsed);
+            const converted = convertFultimatorToMonogatari(parsed);
             setRoster(prev => [converted, ...prev]);
             showToast(`成功匯入 Fultimator 角色「${converted.name}」！已無縫轉換為《物語手帳》格式。`);
           } else {

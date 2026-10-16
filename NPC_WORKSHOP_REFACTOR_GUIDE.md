@@ -1,3 +1,22 @@
+> ## ※ 本文件已過時（2026-10-16 加註）
+>
+> **本指南針對的檔案 `src/features/npc-workshop/components/NPCBuilder.jsx` 已經不存在。**
+> 實測 `find src -name "NPCBuilder*"` 回空；現在的結構是單一的
+> `src/features/npc-workshop/NPCWorkshop.jsx`（6,443 行）＋ 已抽出的
+> `data/`（7 檔）與 `utils/npcEngine.js`。**照著本文件開工會找不到檔案。**
+>
+> 另外本文件建立於 2026-09-20，當時專案名仍是舊名 `FU Companion`（已因版權問題廢棄）。
+>
+> **仍可參考的部分**（這是本文件不被刪除的唯一理由）：
+> - §2 官方《快速建構》8 步驟架構
+> - §3 配額算法（`calculateNpcBudgets` 的階級／等級／負面技能／物種／弱點加成公式）
+> - §6 驗收測試清單（劍聖機甲 HP 260 等官方範例數值）
+>
+> **現況與重構方案請看**：`docs/functional-audit-2026-10-16.md`（第五節）。
+> 該節以當前實際源碼重新量測，並給出「先補快照護欄 → 就地拆 state → 才拆元件」的順序。
+
+---
+
 # ⚔️ 《最終物語》NPC 工坊重構與官方快速建構規範對齊指南
 
 > **文件定位**：本手冊為交由 IDE / AI Agent 進行程式碼重構的完整執行規範指南。  

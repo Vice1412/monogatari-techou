@@ -10,7 +10,9 @@
  * `writeJSON` 加一個轉發鉤子，就能接上遠端同步，不必改動任何呼叫端。
  *
  * 設計取捨：
- * - 提供 `subscribe`：目前供跨分頁與 UI 使用，未來供遠端快照套用。
+ * - 提供 `subscribe`：**目前沒有任何生產端呼叫端**（2026-10-16 實測；只有
+ *   `tests/dataLayer.test.mjs` 覆蓋它）。它是為「未來接上遠端快照套用」預留的掛鉤，
+ *   不是已實作的功能——不要把它當成跨分頁同步已經做好了。跨分頁需另接 `storage` 事件。
  * - 儲存後端可抽換：Node 測試環境沒有 localStorage，故內建記憶體後備。
  */
 
@@ -60,7 +62,10 @@ const emit = (key, value) => {
 
 /**
  * 訂閱某個鍵的變更。回傳退訂函式。
- * 注意：目前只涵蓋「同一個分頁內」的寫入。跨分頁需另接 storage 事件。
+ *
+ * ※ 現況（2026-10-16 實測）：**生產端 0 個呼叫端**，只有測試在用。
+ * 因此「跨分頁同步」「遠端快照套用」都**尚未實作**——這裡只是預留的掛鉤。
+ * 另外注意：目前只涵蓋「同一個分頁內」的寫入，跨分頁需另接 `storage` 事件。
  */
 export const subscribe = (key, fn) => {
   if (!listeners.has(key)) listeners.set(key, new Set());
@@ -134,7 +139,17 @@ export const removeKey = (key) => {
   }
 };
 
-/** 清空全部鍵。語意等同原本的 localStorage.clear()。 */
+/**
+ * 清空全部鍵。語意等同原本的 localStorage.clear()。
+ *
+ * ※ **這是不可逆的資料破壞操作**：它會連 `LEGACY_KEYS` 一起清掉，因此
+ * 「舊鍵永不刪除、遷移完全可逆」的保證在呼叫它之後不再成立。
+ * 現況（2026-10-16）：生產端 **0 個呼叫端**——原本唯一的使用者是
+ * `ErrorBoundary` 的 `handleHardReset`，該函式因文案誤導（只寫「清除暫存」，
+ * 實際會刪光角色名冊與 NPC 檔案庫）已於同日移除。
+ * 本函式保留給測試與未來的「使用者明確要求重置全部資料」流程使用；
+ * **任何要接上 UI 的用法都必須先列出會被刪除的資料並要求二次確認。**
+ */
 export const clearAll = () => {
   try {
     const keys = [];
@@ -153,15 +168,50 @@ export const clearAll = () => {
 // ── 一次性舊鍵遷移 ──────────────────────────────────────────
 
 /**
+ * 遷移計畫：權威鍵 → 依優先序排列的來源舊鍵。
+ *
+ * `format` 決定要不要驗證內容：
+ *   - `'json'`：內容必須能通過 `JSON.parse` 才搬移（避免把壞資料升級成權威資料）。
+ *   - `'raw'` ：內容本來就是純字串（`'true'`／`'amber'`），**不可**用 JSON 驗證——
+ *     否則 `amber` 會被判為壞資料而**靜默不搬**，等於使用者設定消失。
+ *     （`npcCardTheme` 與 `soundEnabled` 就是這一類，見 `docs/decisions.md` §L2。）
+ *
+ * ※ 來源順序＝優先序，**最新的世代排最前面**。以 NPC 檔案庫為例：
+ *   世代 2 的 `fu_companion_npc_library` 才是 2026-10-04 之後真正被寫入的鍵，
+ *   世代 1 的 `fabula-npc-library-v2` 在更名後就不再更新（內容可能較舊）。
+ */
+const MIGRATION_PLAN = Object.freeze([
+  {
+    canonical: STORAGE_KEYS.npcLibrary,
+    sources: [LEGACY_KEYS.npcLibraryLegacy, LEGACY_KEYS.npcLibraryV2, LEGACY_KEYS.npcLibraryStray],
+    format: 'json',
+  },
+  { canonical: STORAGE_KEYS.characterRoster, sources: [LEGACY_KEYS.characterRosterLegacy], format: 'json' },
+  { canonical: STORAGE_KEYS.activeCombat, sources: [LEGACY_KEYS.activeCombatLegacy], format: 'json' },
+  { canonical: STORAGE_KEYS.fateClocks, sources: [LEGACY_KEYS.fateClocksLegacy], format: 'json' },
+  { canonical: STORAGE_KEYS.soundEnabled, sources: [LEGACY_KEYS.soundEnabledLegacy], format: 'raw' },
+  { canonical: STORAGE_KEYS.characterTheme, sources: [LEGACY_KEYS.characterThemeLegacy], format: 'raw' },
+  {
+    canonical: STORAGE_KEYS.npcCardTheme,
+    sources: [LEGACY_KEYS.npcCardThemeLegacy, LEGACY_KEYS.npcCardThemeV1],
+    format: 'raw',
+  },
+]);
+
+/**
  * 把舊鍵的內容搬到權威鍵。
  *
  * 策略（刻意保守，因為這是使用者資料）：
  *   1. 權威鍵**已有內容**時一律跳過，絕不覆寫。
  *   2. 只在權威鍵為空時，才從舊鍵複製。
  *   3. 舊鍵**永不刪除** —— 因此本操作完全可逆。
- *   4. 內容必須能通過 JSON.parse 才會搬移，避免把壞資料升級成權威資料。
+ *   4. `json` 格式的內容必須能通過 `JSON.parse` 才會搬移，避免把壞資料升級成權威資料。
  *
  * 可重複執行（idempotent）：跑第二次不會有任何副作用。
+ *
+ * ※ 2026-10-16 起涵蓋全部 7 個權威鍵（前綴由 `fu_companion_` 改為 `monogatari_techou_`），
+ *   不再只有 NPC 檔案庫。`LEGACY_KEYS.creationRulesCampaign` 刻意不在計畫內——
+ *   它沒有任何寫入端，本來就是空的。
  *
  * @returns {{migrated: Array<{canonical:string, from:string}>, skipped: string[], empty: string[]}}
  *   回傳報告而非只做事，是為了讓它能在 Node 中被測試。
@@ -171,7 +221,7 @@ export const migrateLegacyStorage = () => {
 
   const isBlank = (v) => v === null || v === undefined || v === '';
 
-  const migrateKey = (canonical, legacyKeys) => {
+  const migrateKey = (canonical, legacyKeys, format) => {
     if (!isBlank(readRaw(canonical))) {
       report.skipped.push(canonical);
       return;
@@ -182,21 +232,27 @@ export const migrateLegacyStorage = () => {
       return;
     }
     const raw = readRaw(source);
-    try {
-      JSON.parse(raw);
-    } catch (e) {
-      report.skipped.push(`${canonical}（來源 ${source} 無法解析）`);
-      return;
+    if (format === 'json') {
+      try {
+        JSON.parse(raw);
+      } catch (e) {
+        // 不靜默：壞掉的舊資料會讓使用者看到「資料不見了」，這裡留下線索供排障。
+        console.error(`store 遷移跳過（來源 ${source} 無法解析為 JSON）:`, e);
+        report.skipped.push(`${canonical}（來源 ${source} 無法解析）`);
+        return;
+      }
     }
     try {
       backend.setItem(canonical, raw);
       report.migrated.push({ canonical, from: source });
     } catch (e) {
+      console.error(`store 遷移寫入失敗（${canonical}）:`, e);
       report.skipped.push(`${canonical}（寫入失敗）`);
     }
   };
 
-  migrateKey(STORAGE_KEYS.npcLibrary, [LEGACY_KEYS.npcLibraryV2, LEGACY_KEYS.npcLibraryStray]);
+  MIGRATION_PLAN.forEach(({ canonical, sources, format }) => migrateKey(canonical, sources, format));
 
   return report;
 };
+

@@ -13,6 +13,22 @@
  * 而全站備份也備不到真正的 NPC 檔案庫。
  *
  * 本表確立單一權威鍵。舊鍵降級為 LEGACY_KEYS，僅供一次性遷移讀取，不得再寫入。
+ *
+ * ── 2026-10-16：前綴由 `fu_companion_` 更名為 `monogatari_techou_` ──
+ *
+ * 背景：`FU Companion` 是已因版權問題廢棄的舊名（見 `docs/decisions.md` 命名節），
+ * 但 6 個權威鍵仍帶著舊名前綴，而本 repo 是**公開的**——舊名因此仍公開可見。
+ *
+ * 這**不是單純改字串**：這些鍵承載使用者資料，直接改會讓既有玩家的角色卡全部讀不到。
+ * 因此走 `LEGACY_KEYS` ＋ `store.migrateLegacyStorage()` 的漸進遷移：
+ *
+ *   1. 權威鍵改用新前綴
+ *   2. 舊名整批降級進 `LEGACY_KEYS`
+ *   3. 遷移策略：**權威鍵為空才複製、絕不覆寫、舊鍵永不刪除** → 冪等且完全可逆
+ *
+ * ※ 這**覆寫**了 `docs/decisions.md` 命名節「刻意不改 keys.js 的 fu_companion_*」的舊決定。
+ *   舊決定的理由是「改了會讓使用者資料讀不到」——該理由在遷移機制建立後已不成立。
+ *   完整理由與回滾方式見 `docs/decisions.md` 的 2026-10-16 條目。
  */
 
 /**
@@ -21,19 +37,19 @@
  */
 export const STORAGE_KEYS = Object.freeze({
   /** NPC 檔案庫（NPC 工坊的產出） */
-  npcLibrary: 'fu_companion_npc_library',
+  npcLibrary: 'monogatari_techou_npc_library',
   /** 角色名冊（角色卡的集合） */
-  characterRoster: 'fu_companion_character_roster',
+  characterRoster: 'monogatari_techou_character_roster',
   /** 進行中的戰鬥（輪次、參戰者、場景命刻） */
-  activeCombat: 'fu_companion_active_combat',
+  activeCombat: 'monogatari_techou_active_combat',
   /** 命刻記錄頁的獨立命刻 */
-  fateClocks: 'fu_companion_fate_clocks',
+  fateClocks: 'monogatari_techou_fate_clocks',
   /** 音效開關 */
-  soundEnabled: 'fu_companion_sound_enabled',
+  soundEnabled: 'monogatari_techou_sound_enabled',
   /** NPC 卡片配色 */
-  npcCardTheme: 'fabula-npc-card-theme',
+  npcCardTheme: 'monogatari_techou_npc_card_theme',
   /** 角色卡配色 */
-  characterTheme: 'fu_companion_character_theme',
+  characterTheme: 'monogatari_techou_character_theme',
 });
 
 /**
@@ -43,6 +59,23 @@ export const STORAGE_KEYS = Object.freeze({
  * 遷移採「權威鍵為空才複製」策略，且**永不刪除舊鍵**，因此完全可逆。
  */
 export const LEGACY_KEYS = Object.freeze({
+  // ── 世代 2：2026-10-16 更名前綴時降級 ──────────────────────
+  /** NPC 檔案庫的 `fu_companion_` 前綴版 */
+  npcLibraryLegacy: 'fu_companion_npc_library',
+  /** 角色名冊的 `fu_companion_` 前綴版 */
+  characterRosterLegacy: 'fu_companion_character_roster',
+  /** 進行中戰鬥的 `fu_companion_` 前綴版 */
+  activeCombatLegacy: 'fu_companion_active_combat',
+  /** 命刻的 `fu_companion_` 前綴版 */
+  fateClocksLegacy: 'fu_companion_fate_clocks',
+  /** 音效開關的 `fu_companion_` 前綴版 */
+  soundEnabledLegacy: 'fu_companion_sound_enabled',
+  /** 角色卡配色的 `fu_companion_` 前綴版 */
+  characterThemeLegacy: 'fu_companion_character_theme',
+  /** NPC 卡片配色的 `fabula-npc-card-theme` 版 */
+  npcCardThemeLegacy: 'fabula-npc-card-theme',
+
+  // ── 世代 1：2026-10-04 資料層收斂時降級 ────────────────────
   /** NPC 工坊在 2026-10-04 之前實際使用的鍵 */
   npcLibraryV2: 'fabula-npc-library-v2',
   /** 匯入備份時誤寫的鍵，從未有讀取端 */

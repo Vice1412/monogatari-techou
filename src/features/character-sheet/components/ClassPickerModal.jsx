@@ -15,6 +15,7 @@ import SkillDescription from '../utils/skillFormulaEvaluator';
 import CoreBookVariantCard from './CoreBookVariantCard';
 import { getVariantsForClass, getVariantById, buildSkillEntry } from '../data/coreBookVariants';
 import { SOURCEBOOKS, getClassInfo } from '../data/sourcebookConfig';
+import { matchesClassQuery, formatClassAliases, classAliasSource } from '../data/classAliases';
 import { DEFAULT_CREATION_RULES, resolveCreationRules } from '../data/creationRules';
 import rulesData from '../data/rulesData.json';
 import { withEn } from '../../../utils/properNouns';
@@ -58,7 +59,19 @@ export default function ClassPickerModal({
   // 開卡規則：技能點數上限與職業數上下限由此決定（見 data/creationRules.js）
   creationRules = DEFAULT_CREATION_RULES,
   // 角色已定稿 → 收掉英雄技能的**瀏覽**入口（目錄是創角輔助；自己已拿到的效果照常顯示）
-  locked = false
+  locked = false,
+  /**
+   * **測試注入點**（生產端永不傳入）：讓 SSR 護欄能直接渲染到「右側詳情」，
+   * 因為詳情是靠 `useEffect` 在使用者開啟彈窗時才選定職業的，而 SSR 不執行 effect
+   * ——等於詳情區塊原本完全沒有護欄（`AGENTS.md` §AW9）。
+   * **不傳時行為逐字不變**（維持 null，由 effect 決定）。
+   */
+  initialClassName = null,
+  /**
+   * **測試注入點**（生產端永不傳入）：跳過彈窗外框直接渲染內容。
+   * 見下方 `Panel` 的說明；**不傳時行為逐字不變**。
+   */
+  panelOnly = false
 }) {
   const rules = resolveCreationRules(creationRules);
   // 核心書技能變體是**選用**的：只有勾選【官方公測修訂】才顯示。
@@ -67,7 +80,7 @@ export default function ClassPickerModal({
   //   沒有 `enabledSourcebooks`（只有 allowedSourcebooks 與 defaultSourcebooks）。
   const showVariants = (enabledBooks || []).includes('playtest');
   const [search, setSearch] = useState('');
-  const [activeClassName, setActiveClassName] = useState(null);
+  const [activeClassName, setActiveClassName] = useState(initialClassName || null);
   /**
    * 這一次挑選的草稿：`{ 職業名: { 技能名: 級數 } }`。
    * **跨職業累積**——這是流程重構的核心，舊版只存「當前職業」那一份，
@@ -109,17 +122,15 @@ export default function ClassPickerModal({
   }, [enabledBooks]);
 
   // 搜尋過濾
-  const filteredClasses = useMemo(() => {
-    if (!search.trim()) return availableClasses;
-    const q = search.toLowerCase().trim();
-    return availableClasses.filter(c => {
-      const matchZh = c.className.toLowerCase().includes(q);
-      const matchEn = (c.info?.en || '').toLowerCase().includes(q);
-      const matchTag = (c.info?.tagline || '').toLowerCase().includes(q);
-      const matchBook = c.bookName.toLowerCase().includes(q);
-      return matchZh || matchEn || matchTag || matchBook;
-    });
-  }, [availableClasses, search]);
+  //
+  // 比對範圍（含**官方別稱**）集中在資料層的 `matchesClassQuery`——
+  // 官方原書在每個職業頁印了一行「ALSO:」（例：遊蕩者也叫強盜／忍者／盜賊），
+  // 那些別稱同樣要能被搜到，見 `data/classAliases.js`。
+  // ※ 抽成純函式放資料層的理由：`filter()` 回呼裡的邏輯 SSR 測不到（`AGENTS.md` §AW9）。
+  const filteredClasses = useMemo(
+    () => availableClasses.filter((c) => matchesClassQuery(c, search)),
+    [availableClasses, search]
+  );
 
   /** 某個職業在草稿裡的技能表（沒有就補一份全 0 的） */
   const draftSkillsOf = (cName) => {
@@ -256,12 +267,24 @@ export default function ClassPickerModal({
 
   const allBooksOn = Object.keys(SOURCEBOOKS).every(k => enabledBooks.includes(k));
 
+  /**
+   * **測試注入點**（生產端永不傳入）：`panelOnly` 為 true 時跳過彈窗外框。
+   *
+   * 為什麼需要：`JRPGModal` 內部是 `createPortal` ＋ 一個 `mounted` effect，
+   * 而 **SSR 不執行 effect**，所以整個彈窗內容在 SSR 一律渲染成 null——
+   * 等於底下五百多行 JSX 一道護欄都沒有（`AGENTS.md` §AW9 的「加測試注入點」）。
+   * **不傳時走原本的 `JRPGModal`，行為逐字不變。**
+   */
+  const Panel = panelOnly ? React.Fragment : JRPGModal;
+
   return (
-    <JRPGModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="選擇職業與技能分配"
-      maxWidth="max-w-5xl"
+    <Panel
+      {...(panelOnly ? {} : {
+        isOpen,
+        onClose,
+        title: '選擇職業與技能分配',
+        maxWidth: 'max-w-5xl'
+      })}
     >
       <div className="flex flex-col h-[82vh] md:h-[76vh] max-h-[730px] overflow-hidden -m-1">
         {/* ==================== 頂部上排：拓展開關 ＋ 已選職業配點 ==================== */}
@@ -392,7 +415,7 @@ export default function ClassPickerModal({
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="搜尋職業名稱（中文 / 英文 / 特性關鍵字）..."
+              placeholder="搜尋職業名稱（中文 / 英文 / 別稱 / 特性關鍵字）..."
               className="w-full pl-9 pr-3 py-1.5 rounded-xl text-xs border outline-none font-sans shadow-inner transition-colors"
               style={{
                 backgroundColor: theme.cardBg,
@@ -457,6 +480,15 @@ export default function ClassPickerModal({
                         <div className="font-mono text-[10px] font-bold text-slate-400 uppercase truncate">
                           {item.info.en}
                         </div>
+                        {/* 官方別稱（原書職業頁的「ALSO:」行）。沒有的一律不顯示，不補佔位符。 */}
+                        {formatClassAliases(item.className) && (
+                          <div
+                            className="text-[10px] text-slate-500 truncate"
+                            title={classAliasSource(item.className) || undefined}
+                          >
+                            又稱：{formatClassAliases(item.className)}
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -535,6 +567,18 @@ export default function ClassPickerModal({
                     <p className="text-xs text-slate-600 italic mt-0.5 truncate">
                       {activeClassItem.info.tagline}
                     </p>
+                    {/* 官方別稱 ＋ 出處頁碼：原書每個職業頁標題下的「ALSO:」行。
+                        出處一定要跟著顯示——沒有出處的別稱無法回溯核對（比照 NPC 檢定的規矩）。 */}
+                    {formatClassAliases(activeClassItem.className) && (
+                      <p className="text-[11px] mt-0.5 truncate" style={{ color: theme.textDark }}>
+                        <span className="font-bold">又稱</span>
+                        <span className="mx-1">·</span>
+                        {formatClassAliases(activeClassItem.className)}
+                        <span className="text-slate-400 ml-2 font-mono text-[10px]">
+                          ※ {classAliasSource(activeClassItem.className)}
+                        </span>
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -793,6 +837,6 @@ export default function ClassPickerModal({
         </div>
         </div>
       </div>
-    </JRPGModal>
+    </Panel>
   );
 }

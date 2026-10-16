@@ -1,0 +1,106 @@
+/**
+ * 由 `NPCWorkshop.jsx` 抽出的獨立元件（2026-10-16 拆檔第一批）。
+ *
+ * 抽出原則：這些元件本來就只透過 props 與外界溝通，不讀元件外的可變狀態。
+ * 因此「搬到別的檔案」在行為上應完全等價——護欄見 `tests/npcWorkshopUi.test.mjs`。
+ *
+ * ※ 下方 import 由腳本依「區塊實際用到的識別字」自動產生，未使用的都已剔除。
+ */
+import React, { useState, useEffect, useRef } from 'react';
+import { Edit3, Save, CheckCircle2, Lock, AlertCircle } from 'lucide-react';
+import { CATEGORIES, TYPE_STYLES, SPELLS_DATA, isOffensiveSpell, normalizeSpellName } from '../data';
+import { resolveTemplateVariablesForDisplay, renderFormattedText } from '../utils/displayText';
+
+const SpellCard = ({ skillId, spellName, isActive, isDisabled, isOverBudget, isClaimedElsewhere, onToggle, selections, selectionsConfig, onSelectionChange, isSecretArt, npcLevel, partyLevel }) => {
+  const isClickableTag = (tag) => ['select', 'input', 'textarea', 'button'].includes(tag);
+  const textareaRef = useRef(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (!isActive) setIsEditing(false);
+  }, [isActive]);
+
+  const isOffensive = isOffensiveSpell(spellName);
+  const isMaxMp = spellName === "最大 MP +10";
+  const cleanSpellName = normalizeSpellName(spellName);
+  const spellData = SPELLS_DATA[cleanSpellName];
+
+  const getCleanTextForEditor = (text) => {
+    if (!text) return "";
+    return text.replace(/<\/?(?:meta|status)[^>]*>/gi, '');
+  };
+
+  const effectiveDesc = spellData?.effect || "無詳細資料。";
+  const currentDesc = selections?.customDesc !== undefined ? selections.customDesc : effectiveDesc;
+
+  const adjustHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    if (isActive) {
+      adjustHeight();
+    }
+  }, [isActive, currentDesc]);
+
+  return (
+    <div className={`relative flex flex-col p-4 rounded-xl border-2 transition-all duration-200 text-left overflow-hidden group ${isClaimedElsewhere ? 'bg-stone-100/50 border-stone-300 opacity-60 cursor-not-allowed' : isOverBudget && isActive ? 'bg-red-50 border-red-400 opacity-90 shadow-md transform scale-[1.01] z-10' : isSecretArt && isActive ? 'bg-fuchsia-50/90 border-fuchsia-500 shadow-md transform scale-[1.02] z-10' : isActive ? 'bg-purple-50/90 border-purple-500 shadow-md transform scale-[1.02] z-10' : isDisabled ? 'bg-stone-100/50 border-stone-300 opacity-60 grayscale cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-purple-500 hover:bg-[#fbf7ee] cursor-pointer'}`} onClick={(e) => { if (isClickableTag(e.target.tagName.toLowerCase())) return; if (isClaimedElsewhere) return; if (!isDisabled || isActive) onToggle(); }}>
+      {isClaimedElsewhere ? <div className="absolute top-3 right-3 text-[10px] bg-[#eee6d3] text-[#6b5a4b] px-2 py-0.5 rounded border border-[#d6c7ab] font-bold flex items-center gap-1"><Lock size={10} /> 已學習</div> : <div className="absolute top-3 right-3 transition-transform flex flex-col items-end gap-1 z-10">
+        {!isActive && <div className="w-5 h-5 rounded-full border-2 border-[#d6c7ab] group-hover:border-purple-400"></div>}
+        {isActive && (
+          <div className="flex flex-col items-end gap-2">
+            {!isOverBudget && <CheckCircle2 className={`drop-shadow-sm ${isSecretArt ? 'text-fuchsia-700' : 'text-purple-700'}`} size={24} />}
+            {!isMaxMp && (
+              !isEditing ? (
+                <button onClick={(e) => { e.stopPropagation(); setIsEditing(true); }} className={`p-1.5 bg-[#eee6d3] border rounded-lg transition-all shadow-sm group/edit hide-on-export ${isSecretArt ? 'text-fuchsia-900 border-fuchsia-300 hover:bg-fuchsia-100' : 'text-purple-900 border-purple-300 hover:bg-purple-100'}`} title="編輯咒語文字"><Edit3 size={16} className="group-hover/edit:scale-110 transition-transform" /></button>
+              ) : (
+                <button onClick={(e) => { e.stopPropagation(); setIsEditing(false); }} className={`p-1.5 text-white rounded-lg transition-all animate-pulse hide-on-export ${isSecretArt ? 'bg-fuchsia-700 hover:bg-fuchsia-600 shadow-sm' : 'bg-purple-700 hover:bg-purple-600 shadow-sm'}`} title="完成編輯"><Save size={16} /></button>
+              )
+            )}
+          </div>
+        )}
+      </div>}
+      <div className={`font-bold text-[16px] mb-2 pr-6 flex flex-col sm:flex-row sm:items-center gap-1 ${isOverBudget && isActive ? 'text-red-900' : isActive ? (isSecretArt ? 'text-fuchsia-950' : 'text-purple-950') : 'text-[#3c2f21]'}`}>
+        <div className="flex items-center gap-1 w-full">
+          {isMaxMp ? '●' : <span className="fu-icon text-xl text-purple-700 drop-shadow-sm shrink-0">{CATEGORIES.find(c => c.id === 'spell')?.fuIcon || 'c'}</span>}
+          {isEditing ? (
+            <div className="flex-1 relative group/input">
+              <input type="text" className={`bg-transparent border border-transparent rounded px-1 -mx-1 outline-none w-full transition-colors hover:border-[#d6c7ab] hover:bg-[#fbf7ee] focus:border-purple-500 focus:bg-[#fffdf9] ${isOverBudget ? 'text-red-900' : selections?.customName !== undefined ? 'text-amber-900 font-bold' : (isSecretArt ? 'text-fuchsia-950' : 'text-purple-950')}`} value={selections?.customName !== undefined ? selections.customName : cleanSpellName} onChange={(e) => onSelectionChange(skillId, spellName, 'customName', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) onSelectionChange(skillId, spellName, 'customName', undefined); }} onClick={(e) => e.stopPropagation()} />
+              <div className="absolute -bottom-4 left-0 text-[10px] text-amber-700 font-bold opacity-0 group-focus-within/input:opacity-100 transition-opacity pointer-events-none">正在編輯自定義名稱</div>
+            </div>
+          ) : (
+            <span className={`flex items-center gap-1 ${selections?.customName !== undefined ? 'text-amber-900 font-bold' : ''}`}>
+              {isOffensive && <span className="fu-icon text-lg text-red-700 drop-shadow-sm shrink-0" title="攻擊性咒語">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}
+              <span>{renderFormattedText(normalizeSpellName(selections?.customName !== undefined ? selections.customName : cleanSpellName), selections, npcLevel, partyLevel)}</span>
+            </span>
+          )}
+          {isOverBudget && isActive && <span className="text-[10px] bg-red-100 text-red-800 border border-red-400 px-2 py-0.5 rounded flex items-center gap-1 shrink-0 w-fit animate-pulse ml-2"><AlertCircle size={10} /> 失效</span>}
+        </div>
+      </div>
+      {isMaxMp ? <div className={`text-sm font-bold mt-1 ${isOverBudget && isActive ? 'text-red-800' : 'text-blue-800'}`}>增加 10 點最大 MP</div> : <>
+        <div className={`flex flex-wrap gap-2 text-[11px] font-bold mb-2 bg-[#fffdf9] p-1.5 rounded w-fit border ${isOverBudget && isActive ? 'text-red-800 border-red-300' : 'text-[#6b5a4b] border-[#d6c7ab]'}`}><span>MP: <span className={isOverBudget && isActive ? 'text-red-800' : 'text-blue-800 font-bold'}>{spellData?.mp || '?'}</span></span><span className="text-[#d6c7ab]">|</span><span>目標: <span className={isOverBudget && isActive ? 'text-red-800' : 'text-[#2c221e]'}>{spellData ? renderFormattedText(spellData.target, selections, npcLevel, partyLevel) : '?'}</span></span><span className="text-[#d6c7ab]">|</span><span>持續: <span className={isOverBudget && isActive ? 'text-red-800' : 'text-[#2c221e]'}>{spellData?.duration || '?'}</span></span></div>
+        {isEditing ? (
+          <textarea ref={textareaRef} className={`text-sm leading-relaxed w-full bg-transparent border border-transparent rounded px-1 -mx-1 outline-none resize-none overflow-hidden transition-colors hover:border-[#d6c7ab] hover:bg-[#fbf7ee] focus:border-purple-500 focus:bg-[#fffdf9] min-h-[3rem] ${isOverBudget ? 'text-red-800' : selections?.customDesc !== undefined ? 'text-amber-900 font-medium' : 'text-[#574c43]'}`} value={resolveTemplateVariablesForDisplay(getCleanTextForEditor(selections?.customDesc !== undefined ? selections.customDesc : effectiveDesc), selections, { damageEmojis: true })} placeholder={resolveTemplateVariablesForDisplay(getCleanTextForEditor(effectiveDesc), selections, { damageEmojis: true })} onChange={(e) => { onSelectionChange(skillId, spellName, 'customDesc', e.target.value); adjustHeight(); }} onBlur={(e) => { if (!e.target.value.trim()) { onSelectionChange(skillId, spellName, 'customDesc', undefined); setTimeout(adjustHeight, 0); } }} onClick={(e) => e.stopPropagation()} />
+        ) : (
+          <div className={`text-xs leading-relaxed ${isOverBudget && isActive ? 'text-red-800' : selections?.customDesc !== undefined ? 'text-amber-900 font-medium' : 'text-[#574c43]'}`}>{renderFormattedText(currentDesc, selections, npcLevel, partyLevel)}{isSecretArt && isActive && !isOverBudget && <div className="text-fuchsia-900 mt-1 text-[11px] font-bold">*(此咒語為祕技，除了目標之外沒有人會意識到那是什麼。)*</div>}</div>
+        )}
+      </>}
+      {isActive && selectionsConfig && <div className={`mt-4 pt-3 border-t flex flex-col gap-2 animate-in slide-in-from-top-2 ${isOverBudget ? 'border-red-300' : 'border-[#d6c7ab]'}`}>
+        {selectionsConfig.filter(cfg => !cfg.showIfKey || (selections?.[cfg.showIfKey] || "").includes(cfg.showIfValue)).map(cfg => (
+          <label key={cfg.key} className={`flex justify-between items-center text-xs font-bold bg-[#fffdf9] p-2 rounded border ${isOverBudget ? 'text-red-900 border-red-300' : 'text-purple-950 border-[#d6c7ab]'}`}>{cfg.label}
+            <select className={`bg-[#fbf7ee] text-[#2c221e] border p-1 rounded outline-none w-32 transition-colors ${isOverBudget ? 'border-red-400 focus:border-red-600' : 'border-[#d6c7ab] focus:border-purple-600'}`} value={selections?.[cfg.key] || ''} onChange={(e) => onSelectionChange(skillId, spellName, cfg.key, e.target.value)} onClick={e => e.stopPropagation()} >
+              <option value="">選擇...</option>{cfg.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </label>
+        ))}
+      </div>
+      }
+    </div>
+  );
+};
+
+export default SpellCard;

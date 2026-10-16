@@ -60,8 +60,10 @@ export default function CombatTracker() {
   const [characterRoster, setCharacterRoster] = useState([]);
 
   useEffect(() => {
-    // NPC 檔案庫改讀權威鍵；在此之前這裡讀的是 `fu_companion_npc_library`，
+    // NPC 檔案庫改讀權威鍵。歷史上這裡讀 `fu_companion_npc_library`，
     // 而 NPC 工坊寫的是 `fabula-npc-library-v2` —— 兩者不同，所以永遠是空的。
+    // 2026-10-16 起權威鍵為 `monogatari_techou_npc_library`，舊鍵由
+    // store.migrateLegacyStorage() 在啟動時搬移（見 main.jsx 與 src/data/keys.js）。
     const savedNpcs = readJSON(STORAGE_KEYS.npcLibrary, []);
     setNpcLibrary(Array.isArray(savedNpcs) ? savedNpcs.map(migrateNpcState) : []);
 

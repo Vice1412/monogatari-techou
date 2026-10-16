@@ -34,7 +34,7 @@
 - **建置指令**：`npm run build`（Vite 6，實測約 4.2 秒，exit 0）
 - **建置產物**：`dist/`，JS 2,247 kB（gzip 649 kB）。chunk-size 警告為**已知既有現象**，非本次改動造成。
 - **測試指令**：`npm test`（實測 **1 + 176/176 + 60/60 + 33/33 + 75/75 + 80/80 + 235/235 + 211/211 + 362/362 + 249/249 + 229/229 + 86/86 + 278/278 + 86/86 + 100/100 + 270/270 + 118/118** 通過，exit 0）。
-  十七道測試關卡（其中兩道是自動化的規則關卡）：
+  二十道測試關卡（其中兩道是自動化的規則關卡）：
   - `npm run test:emoji` —— **規則五.1 已自動化**（見 §3.2）；掃描範圍**已含 `shared/`**
   - `npm run test:affinity` —— 九相屬性標記（誤標表、正標表、資料層掃描、渲染器同步；見 §4 F）
   - `npm run test:equipment` —— 裝備配置（原書裝備表逐筆核對、裝備圖示對照表、熟練度與載入衝突、雙重盾牌、SSR 煙霧；見 `docs/decisions.md` §U）
@@ -52,6 +52,9 @@
   - `npm run test:presets` —— 官方經典職業搭配 81 組（五本手冊，含篩選分組純函式與 SSR 渲染煙霧）
   - `npm run test:codex` —— 規則概念速查（16 條覆蓋率、關鍵字唯一性、授權合規、**譯名與定譯表逐字比對**）
   - `npm run test:variants` —— 核心書技能變體（取代目標必須存在於該職業、差異粗體成對、**公測開啟／關閉兩態的渲染契約**、閘門欄位形狀、**選用狀態的資料模型／顯示解析／互斥／規則層整合／回溯相容／儲存路徑**；見 `docs/decisions.md` §AV §AW）
+  - `npm run test:aliases` —— 職業別稱（官方原書職業頁的「ALSO:」行）：`SOURCEBOOKS ↔ CLASS_ALIASES` **雙向覆蓋率**、28 職英文別稱與出處頁碼**逐條釘死**、顯示（`zh`）／檢索（`en` ＋ `zhExtra`）分流、搜尋純函式逐例、SSR 渲染煙霧與 `zhExtra` 不外洩（見 `docs/decisions.md` §AZ）
+  - `npm run test:npcworkshop` —— NPC 工坊純函式（見 `docs/decisions.md` §AX／§AY）
+  - `npm run test:npcworkshopui` —— NPC 工坊元件層 SSR（8 道建角步驟的內容錨點；見 §AX）
   測試源碼位於受版控的 `tests/`；bundle 產物輸出至 `.test-build/`（已列入 `.gitignore`）。
   ⚠️ **新增測試檔時，同步改 `package.json` 的 `test` 串鏈是改動的一部分，不是後續工作**——
   `coreBookVariants.test.mjs` 曾被建立後隔了一天都沒被執行（見 §AV1 缺陷 3）。一道不跑的護欄等於不存在。
@@ -63,6 +66,15 @@
   否則斷言會恆真（§AW6(c)）。
   ⚠️ **`onClick` 內的邏輯 SSR 測不到**（SSR 不執行事件）。要測就得抽成**純函式**放資料層
   （如 `buildSkillEntry`），見 §AW6(b)。
+  ⚠️ **SSR 測不到的區塊，優先「加測試注入點」而不是「放棄覆蓋」。**
+  例：`NPCWorkshop` 的 8 道建角步驟需要 `state !== null` 才渲染，而 `state` 原本只能由
+  使用者點擊產生——等於 `renderStepContent` 約 2,100 行**完全沒有護欄**。
+  解法是加三個**生產端永不傳入**的 props（`initialDraft`／`initialMainTab`／`initialStep`），
+  讓護欄能把流程直接渲染到指定步驟（見 `tests/npcWorkshopUi.test.mjs` E 段）。
+  **注入點的鐵律：不傳時行為必須逐字不變**，否則就是為了測試而改動生產行為。
+  ⚠️ **「渲染得出來」不等於「內容對」——每一步都要有「只出現在該步」的內容錨點。**
+  2026-10-16 實測：把某一步的 `case` 改壞讓它落不到內容，**長度斷言仍然綠**
+  （外框與右側預覽就撐過 1,500 字元），是**錨點斷言**抓到的。
   ⚠️ `scratch/` 整個目錄**不在版控內**（`.gitignore:27`），凡置於該處的測試或 bundle 都會與源碼脫鉤——
   2026-10-03 的舊 `stage1.bundle.mjs` 即因早於源碼 40 秒打包，執行後產生 1 筆假失敗。**測試一律放 `tests/`。**
 - **截圖量測的陷阱**：`chrome --headless --window-size=390` 的**實際視窗是 500px**
@@ -85,7 +97,7 @@
   診斷方式：`git config --show-origin --get-all credential.helper`——
   來源若是 `WorkBuddyAI/resources/vendor/PortableGit/etc/gitconfig` 就是撞上這個坑。
 - **資料層**：純 localStorage，但**已收斂為單一存取層**（2026-10-04，見 `docs/decisions.md` §L）：
-  - 鍵註冊表 `src/data/keys.js`：**7 個權威鍵 + 3 個舊鍵**
+  - 鍵註冊表 `src/data/keys.js`：**7 個權威鍵（`monogatari_techou_` 前綴）+ 11 個舊鍵**
   - 存取層 `src/data/store.js`：`readJSON`／`writeJSON`／`readRaw`／`writeRaw`／`subscribe`／`migrateLegacyStorage`
   - **全站不得再直接呼叫 `localStorage`**（`src/` 內已零殘留，僅註解提及）
   - 舊鍵遷移於 `main.jsx` 首次渲染前執行；**冪等、不覆寫、不刪除舊鍵**
@@ -547,6 +559,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 | D5 金手指選項 | 金手指「倖存者」的第三個選項「**IP 永久 +2**」未實作；「墮落天使」選項③「**最大 MP +10**」未實作（自然 p.129／科技 p.129／特典 p.18）。**結構性原因**：金手指目前只有「名稱比對」（`characterEngine.js` 的 `quirkName.includes(...)`），**無法承載「選項」** | 待裁定 |
 | D6 官方飾品「洋蔥戒指」 | Core p.289：每個**不同職業**使最大 HP 與 MP 各 +2。**實測不在** `rulesData.equipment.accessories`（現僅 6 筆）→ 玩家無法選用 | 待裁定 |
 | D7 暗黑之刃【Playtest】遠程 | 「職業近戰**或**遠程（二選一）」永遠只判定為近戰 → 職業遠程永遠 ✗ | 待裁定 |
+| NPC 工坊重複函式 | `NPCWorkshop.jsx` 與 `utils/npcEngine.js` 之間有三組**同名函式**：`getInitialAffinities`（邏輯相同，可安全收斂）、**`migrateNpcState`（48 vs 18 行）**、**`getSpeciesAffinities`（66 vs 70 行）**——後兩者**行為不同**，且測試只覆蓋 `npcEngine.js` 那份、**生產端元件用的是另一份**（與 §AW「測試與生產分歧」同型）。**需裁定以哪份為準**（涉及既有 NPC 資料的遷移與相性計算）。詳見 `docs/decisions.md` §AX／§AY | 待裁定 |
 
 ### 6.2 已結案（索引）
 
@@ -572,7 +585,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 | K6 | 卡牌大師牌組 | 30 張牌組狀態機；花色改用 gi | 2026-10-04 |
 | K7 | 規則概念速查授權合規 | 只收機制不收畫風；覆蓋率 6 → 16 | 2026-10-05 |
 | K8 | 應用名稱改為《物語手帳》 | 授權 §8 避險；localStorage 鍵名刻意不改 | 2026-10-05 |
-| L | 資料層收斂 | 7 權威鍵 + 3 舊鍵；全站零直接 `localStorage` | 2026-10-04 |
+| L | 資料層收斂 | 7 權威鍵（2026-10-16 前綴更名 `monogatari_techou_`，舊鍵降級不刪）＋ 11 舊鍵；全站零直接 `localStorage` | 2026-10-16 |
 | M | 速查譯名稽核 | 約 140 處改回定譯；`test:codex` G 區段比對 121 個名稱 | 2026-10-05 |
 | N | 職業技能改數值 ＋ 數值構成公式 | 35 職僅 2 項改上限；新增 `StatFormulaPanel`；D1～D3 已修，**D5～D7 待裁定**（D4 已隨 D3 移除），見 6.1 | 2026-10-05 |
 | P | 官方經典職業搭配擴充 | 五本手冊共 **81 組**；套用時連技能子選擇與小工具／阿爾卡納／載具一起選好 | 2026-10-05 |
@@ -605,6 +618,8 @@ Get-ChildItem -Path "src" -Recurse -File |
 | AU | 英雄技能逐字比對：HF／NF／TF／Bonus 共 84 筆 | **對齊不用位置**（書上字母序）——改用**條件裡的職業名**按語意配對。**共修 18 處**；錯誤模式四類：可見性條件被換、前提被刪、數字／倍率、**別條目的措辭被誤植**（最危險）。抽取器修 4 個 bug，其中「刪掉整行數字」會**刪到遊戲數值**（代理發現）。**教訓**：新增程式碼引用既有效果文前，那個效果文必須先核對——我因此兩次把錯誤傳播進 `classResources.js` | 2026-10-13 |
 | AT | 手機版佈局：一次由**量測工具**造成的假 bug | 技能名直排是真的（`flex-col sm:flex-row` ＋ `whitespace-nowrap shrink-0`）。但我多報了「彈窗橫向溢出」——**Chrome 視窗最小寬度是 500px**（詳見 §1）。`JRPGModal` 的 `min-w-0` 保留（原理對），但**不是為了一個真實存在的溢出而加的** | 2026-10-13 |
 | AP | 職業技能的全面比對 | 140 筆逐條比對，**兩輪共修 41 處**。觸發點：`靈光一閃` 的 ①~⑤ 範例是**憑空寫進去的**（規則書與 Excel 都沒有，`git log -S` 只命中初始建檔）→ 使用者裁定「刪到光」。含 4 筆術語錯（champion＝「冠位」、Hinder/Objective＝「阻礙／推進目標」、dazed＝「眩暈」、`verse`＝「樂句」） | 2026-10-06 |
+| AX／AY | `NPCWorkshop.jsx` 拆檔（**先補護欄，再動結構**） | 6,448 → 4,597 行。① 第一批：抽 `utils/displayText.jsx`／8 個元件／`data/workshopThemes.js`，並新增**元件層 SSR 護欄**（`test:npcworkshopui`）② 第二批：`handleCopyFullNpc`（448 行）→ 純函式 `buildNpcText`，並補上**四格式分支**的溢額過濾護欄 ③ 前置：加**測試注入點 props**，讓 8 道建角步驟（約 2,100 行）**首次有 SSR 覆蓋**。**第三階段未完成**：`renderStepContent` 尚未搬、`useState` 未分組、`renderCharacterCard` 未抽 | 2026-10-16 |
+| AZ | 職業別稱（官方原書職業頁的「ALSO:」行） | 28 職各 3 個（核心 15＋三手冊 11＋特典 2）；`zh` 才顯示、`zhExtra`（測試版漢化獨有）只搜不顯示；搜尋抽成資料層純函式 `matchesClassQuery`；5 個無漢化譯名者**經 GM 裁定語義補譯**並以 `zhDerived` 逐筆登記來源；新增 `test:aliases`（78 條） | 2026-10-16 |
 
 ## 7. 本檔維護
 

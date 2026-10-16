@@ -81,7 +81,7 @@ export const isFultimatorCharacter = (data) => {
 /**
  * 將 Fultimator 角色數據轉化為《物語手帳》內部規範格式
  */
-export const convertFultimatorToFUCompanion = (fChar) => {
+export const convertFultimatorToMonogatari = (fChar) => {
   const base = createNewCharacter();
 
   const name = fChar.name && fChar.name !== '-' ? fChar.name : (fChar.info?.name || '無名冒險者');
@@ -283,10 +283,15 @@ export const convertFultimatorToFUCompanion = (fChar) => {
 /**
  * 將《物語手帳》角色導出為 Fultimator 規範之 JSON 結構
  */
-export const convertFUCompanionToFultimator = (char) => {
+export const convertMonogatariToFultimator = (char) => {
   const engineStats = calculateCharacterStats(char);
   return {
-    uid: 'fu_companion_export',
+    // 2026-10-16 由 `'fu_companion_export'` 更名（舊名已因版權問題廢棄，且本 repo 公開）。
+    // 已確認全 `src/` 內**沒有任何地方讀取這個欄位**——`isFultimatorCharacter()` 判的是
+    // `attributes` / `info` / `stats`，`convertFultimatorToMonogatari()` 也完全不看 `uid`。
+    // 它只是寫進匯出檔的識別字。※ 殘留風險：Fultimator 端是否在意這個值**無法離線驗證**；
+    // 但該欄位本來就是全角色共用的常數字串，不是唯一 id，理論上不會被當成鍵值使用。
+    uid: 'monogatari_techou_export',
     name: char.name || '冒險者',
     lvl: getCharacterLevel(char),
     info: {

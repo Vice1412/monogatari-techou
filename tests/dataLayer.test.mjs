@@ -107,9 +107,43 @@ section('A. 鍵註冊表完整性');
   check('ALL_STORAGE_KEYS 為兩者聯集', ALL_STORAGE_KEYS.length, values.length + legacyValues.length);
 
   // 這三條是本次修 bug 的核心：NPC 檔案庫只能有一個權威鍵
-  check('NPC 檔案庫權威鍵', STORAGE_KEYS.npcLibrary, 'fu_companion_npc_library');
+  check('NPC 檔案庫權威鍵', STORAGE_KEYS.npcLibrary, 'monogatari_techou_npc_library');
   check('NPC 工坊舊鍵仍登記為舊鍵', LEGACY_KEYS.npcLibraryV2, 'fabula-npc-library-v2');
   check('死鍵仍登記為舊鍵', LEGACY_KEYS.npcLibraryStray, 'fu_npc_library');
+
+  // ── 2026-10-16 前綴更名（fu_companion_ → monogatari_techou_）的護欄 ──
+  // 這一組是「舊名不得再出現在權威鍵上」的機器守門人，取代過去的人工檢查。
+  const DEPRECATED_PREFIX = 'fu_companion_';
+  check('所有權威鍵都使用新前綴', values.every((v) => v.startsWith('monogatari_techou_')), true);
+  check('權威鍵不得含舊前綴', values.filter((v) => v.includes(DEPRECATED_PREFIX)), []);
+  check('權威鍵不得含 fabula 字樣（授權 §8 禁止語）', values.filter((v) => /fabula/i.test(v)), []);
+
+  // 世代 2 的 6 個舊鍵必須全部登記，否則使用者資料會被留在無人讀取的抽屜裡
+  const GEN2_LEGACY = [
+    LEGACY_KEYS.npcLibraryLegacy,
+    LEGACY_KEYS.characterRosterLegacy,
+    LEGACY_KEYS.activeCombatLegacy,
+    LEGACY_KEYS.fateClocksLegacy,
+    LEGACY_KEYS.soundEnabledLegacy,
+    LEGACY_KEYS.characterThemeLegacy,
+  ];
+  check('世代 2 的 6 個舊鍵全部登記', GEN2_LEGACY.every((k) => typeof k === 'string' && k.startsWith(DEPRECATED_PREFIX)), true);
+  check('世代 2 舊鍵之間無重複', new Set(GEN2_LEGACY).size, 6);
+  check('世代 2 舊鍵與權威鍵一對一對應', GEN2_LEGACY.length, values.length - 1); // npcCardTheme 的舊鍵是 fabula-npc-card-theme
+
+  // 每一個權威鍵都必須有對應的舊鍵可遷移（否則更名等於直接刪資料）
+  const CANONICAL_WITH_LEGACY = [
+    STORAGE_KEYS.npcLibrary,
+    STORAGE_KEYS.characterRoster,
+    STORAGE_KEYS.activeCombat,
+    STORAGE_KEYS.fateClocks,
+    STORAGE_KEYS.soundEnabled,
+    STORAGE_KEYS.characterTheme,
+    STORAGE_KEYS.npcCardTheme,
+  ];
+  check('7 個權威鍵全部列入遷移計畫', CANONICAL_WITH_LEGACY.length, values.length);
+  check('NPC 卡片配色舊鍵（世代 2）', LEGACY_KEYS.npcCardThemeLegacy, 'fabula-npc-card-theme');
+  check('NPC 卡片配色舊鍵（世代 1）', LEGACY_KEYS.npcCardThemeV1, 'fabula-npc-theme');
 }
 
 // ─────────────────────────────────────────────────────────── B
@@ -166,33 +200,33 @@ section('C. 壞資料不得讓程式崩潰');
 }
 
 // ─────────────────────────────────────────────────────────── D
-section('D. 舊鍵遷移（本次修 bug 的核心，動到使用者資料）');
+section('D. 舊鍵遷移（動到使用者資料，每一條安全保證都必須被斷言）');
 {
   // D1 舊鍵有資料、權威鍵為空 -> 搬移
-  let b = reset({ [LEGACY_KEYS.npcLibraryV2]: '[{"id":"npc1"}]' });
+  let b = reset({ [LEGACY_KEYS.npcLibraryLegacy]: '[{"id":"npc1"}]' });
   let rep = migrateLegacyStorage();
-  check('D1 回報已遷移', rep.migrated, [{ canonical: STORAGE_KEYS.npcLibrary, from: LEGACY_KEYS.npcLibraryV2 }]);
+  check('D1 回報已遷移', rep.migrated, [{ canonical: STORAGE_KEYS.npcLibrary, from: LEGACY_KEYS.npcLibraryLegacy }]);
   check('D1 權威鍵取得內容', readJSON(STORAGE_KEYS.npcLibrary, null), [{ id: 'npc1' }]);
-  check('D1 舊鍵未被刪除（可逆）', readRaw(LEGACY_KEYS.npcLibraryV2), '[{"id":"npc1"}]');
+  check('D1 舊鍵未被刪除（可逆）', readRaw(LEGACY_KEYS.npcLibraryLegacy), '[{"id":"npc1"}]');
 
   // D2 權威鍵已有資料 -> 絕不覆寫
   b = reset({
     [STORAGE_KEYS.npcLibrary]: '[{"id":"new"}]',
-    [LEGACY_KEYS.npcLibraryV2]: '[{"id":"old"}]',
+    [LEGACY_KEYS.npcLibraryLegacy]: '[{"id":"old"}]',
   });
   rep = migrateLegacyStorage();
   check('D2 回報跳過', rep.skipped, [STORAGE_KEYS.npcLibrary]);
   check('D2 權威鍵內容未被覆寫', readJSON(STORAGE_KEYS.npcLibrary, null), [{ id: 'new' }]);
   check('D2 未誤報遷移', rep.migrated.length, 0);
 
-  // D3 兩邊都空 -> 什麼都不做
+  // D3 兩邊都空 -> 什麼都不做（7 個權威鍵全部回報 empty）
   reset();
   rep = migrateLegacyStorage();
-  check('D3 回報為空', rep.empty, [STORAGE_KEYS.npcLibrary]);
+  check('D3 七個鍵全部回報 empty', rep.empty.length, 7);
   check('D3 未產生權威鍵', readRaw(STORAGE_KEYS.npcLibrary), null);
 
   // D4 舊鍵內容損壞 -> 不升級成權威資料
-  reset({ [LEGACY_KEYS.npcLibraryV2]: '{壞掉的' });
+  reset({ [LEGACY_KEYS.npcLibraryLegacy]: '{壞掉的' });
   rep = migrateLegacyStorage();
   check('D4 未遷移', rep.migrated.length, 0);
   check('D4 權威鍵仍為空', readRaw(STORAGE_KEYS.npcLibrary), null);
@@ -204,20 +238,89 @@ section('D. 舊鍵遷移（本次修 bug 的核心，動到使用者資料）');
   check('D5 從死鍵遷移', rep.migrated, [{ canonical: STORAGE_KEYS.npcLibrary, from: LEGACY_KEYS.npcLibraryStray }]);
 
   // D6 冪等：連跑兩次不得有副作用
-  b = reset({ [LEGACY_KEYS.npcLibraryV2]: '[{"id":"npc1"}]' });
+  b = reset({ [LEGACY_KEYS.npcLibraryLegacy]: '[{"id":"npc1"}]' });
   migrateLegacyStorage();
   const afterFirst = readRaw(STORAGE_KEYS.npcLibrary);
   const rep2 = migrateLegacyStorage();
-  check('D6 第二次執行回報跳過', rep2.skipped, [STORAGE_KEYS.npcLibrary]);
+  check('D6 第二次執行沒有任何遷移', rep2.migrated.length, 0);
+  check('D6 第二次執行把已遷移的鍵列為跳過', rep2.skipped, [STORAGE_KEYS.npcLibrary]);
   check('D6 第二次執行未改變內容', readRaw(STORAGE_KEYS.npcLibrary), afterFirst);
 
-  // D7 遷移優先取較新的舊鍵
+  // D7 遷移優先取較新的舊鍵（世代 2 勝過世代 1）
   reset({
-    [LEGACY_KEYS.npcLibraryV2]: '[{"id":"v2"}]',
+    [LEGACY_KEYS.npcLibraryLegacy]: '[{"id":"gen2"}]',
+    [LEGACY_KEYS.npcLibraryV2]: '[{"id":"gen1"}]',
     [LEGACY_KEYS.npcLibraryStray]: '[{"id":"stray"}]',
   });
   rep = migrateLegacyStorage();
-  check('D7 優先來源為 v2', rep.migrated[0].from, LEGACY_KEYS.npcLibraryV2);
+  check('D7 優先來源為世代 2', rep.migrated[0].from, LEGACY_KEYS.npcLibraryLegacy);
+
+  // D8 世代 2 不存在時，世代 1 仍可作為來源
+  reset({
+    [LEGACY_KEYS.npcLibraryV2]: '[{"id":"gen1"}]',
+    [LEGACY_KEYS.npcLibraryStray]: '[{"id":"stray"}]',
+  });
+  rep = migrateLegacyStorage();
+  check('D8 世代 1 可作為來源', rep.migrated[0].from, LEGACY_KEYS.npcLibraryV2);
+
+  // ── D9 起：2026-10-16 前綴更名（fu_companion_ → monogatari_techou_）新增的覆蓋 ──
+  // 這是本次最危險的一步：7 個權威鍵同時換名。以下幾條確保「沒有任何一個鍵漏掉」。
+
+  // D9 全部 7 個舊鍵都有資料時，7 個權威鍵都必須被搬移
+  const ALL_GEN2_SEED = {
+    [LEGACY_KEYS.npcLibraryLegacy]: '[]',
+    [LEGACY_KEYS.characterRosterLegacy]: '[]',
+    [LEGACY_KEYS.activeCombatLegacy]: '{}',
+    [LEGACY_KEYS.fateClocksLegacy]: '[]',
+    [LEGACY_KEYS.soundEnabledLegacy]: 'true',
+    [LEGACY_KEYS.characterThemeLegacy]: 'amber',
+    [LEGACY_KEYS.npcCardThemeLegacy]: 'amber',
+  };
+  reset(ALL_GEN2_SEED);
+  rep = migrateLegacyStorage();
+  check('D9 七個權威鍵全部遷移', rep.migrated.length, 7);
+  check('D9 沒有任何鍵被跳過', rep.skipped, []);
+  check('D9 沒有空的鍵', rep.empty, []);
+
+  // D10 原始字串鍵不得被 JSON 驗證擋下（'amber' 不是合法 JSON）
+  reset({ [LEGACY_KEYS.characterThemeLegacy]: 'amber' });
+  rep = migrateLegacyStorage();
+  check('D10 原始字串鍵成功遷移', readRaw(STORAGE_KEYS.characterTheme), 'amber');
+  check('D10 未被誤判為壞資料', rep.skipped, []);
+
+  reset({ [LEGACY_KEYS.soundEnabledLegacy]: 'false' });
+  migrateLegacyStorage();
+  check('D10 音效開關遷移', readRaw(STORAGE_KEYS.soundEnabled), 'false');
+
+  // D11 NPC 卡片配色：世代 2 優先，世代 1 可退回
+  reset({ [LEGACY_KEYS.npcCardThemeLegacy]: 'forest', [LEGACY_KEYS.npcCardThemeV1]: 'amber' });
+  migrateLegacyStorage();
+  check('D11 配色優先取世代 2', readRaw(STORAGE_KEYS.npcCardTheme), 'forest');
+
+  reset({ [LEGACY_KEYS.npcCardThemeV1]: 'amber' });
+  migrateLegacyStorage();
+  check('D11 配色可退回世代 1', readRaw(STORAGE_KEYS.npcCardTheme), 'amber');
+
+  // D12 某一個鍵壞掉不得拖累其他鍵
+  reset({
+    [LEGACY_KEYS.npcLibraryLegacy]: '{壞掉的',
+    [LEGACY_KEYS.characterRosterLegacy]: '[{"id":"c1"}]',
+  });
+  rep = migrateLegacyStorage();
+  check('D12 壞掉的鍵被跳過', rep.skipped, [`${STORAGE_KEYS.npcLibrary}（來源 ${LEGACY_KEYS.npcLibraryLegacy} 無法解析）`]);
+  check('D12 其他鍵仍完成遷移', readJSON(STORAGE_KEYS.characterRoster, null), [{ id: 'c1' }]);
+
+  // D13 舊鍵永不刪除 → 完全可逆（這是「更名不會害使用者掉資料」的最強保證）
+  b = reset(ALL_GEN2_SEED);
+  const beforeDump = b.dump();
+  migrateLegacyStorage();
+  const afterDump = b.dump();
+  const legacyStillThere = Object.values(LEGACY_KEYS).every(
+    (k) => !(k in beforeDump) || afterDump[k] === beforeDump[k]
+  );
+  check('D13 遷移後舊鍵的值一字未改', legacyStillThere, true);
+  check('D13 七個舊鍵仍在', Object.values(LEGACY_KEYS).filter((k) => k in afterDump).length, 7);
+  check('D13 七個新鍵已產生', Object.values(STORAGE_KEYS).filter((k) => k in afterDump).length, 7);
 }
 
 // ─────────────────────────────────────────────────────────── E

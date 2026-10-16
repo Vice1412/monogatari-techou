@@ -1,7 +1,7 @@
 import React from 'react';
 import { GiHazardSign, GiSparkles, GiBookAura } from 'react-icons/gi';
 import { STORAGE_KEYS } from '../../data/keys';
-import { removeKey, clearAll } from '../../data/store';
+import { removeKey } from '../../data/store';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -37,12 +37,11 @@ export default class ErrorBoundary extends React.Component {
     }
   };
 
-  handleHardReset = () => {
-    if (window.confirm('確定要清除所有暫存並恢復預設狀態嗎？（建議先匯出備份）')) {
-      clearAll();
-      window.location.reload();
-    }
-  };
+  // 2026-10-16 移除 `handleHardReset`。
+  // 它呼叫 store.clearAll() 清空**全部** localStorage，但確認文案只寫「清除所有暫存」——
+  // 「暫存」聽起來像快取，實際上會連角色名冊與 NPC 檔案庫一起刪掉，是不可逆的資料破壞。
+  // 它同時與 `src/data/keys.js` 的明文承諾（舊鍵永不刪除、遷移完全可逆）直接衝突。
+  // 該函式從未被任何 JSX 接線（全檔僅出現定義處一次），故直接移除而非改寫文案。
 
   render() {
     if (this.state.hasError) {

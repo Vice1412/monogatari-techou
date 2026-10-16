@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import {
   GiRollingDices,
   GiDragonHead,
@@ -9,10 +9,6 @@ import {
 import BookCoverHub from './components/book/BookCoverHub';
 import ChapterHeader from './components/book/ChapterHeader';
 import BookPageFlipOverlay from './components/book/BookPageFlipOverlay';
-import NPCWorkshop from './features/npc-workshop/NPCWorkshop';
-import CharacterSheet from './features/character-sheet/CharacterSheet';
-import CombatTracker from './features/combat-tracker/CombatTracker';
-import FateClockPage from './features/clocks/FateClockPage';
 import DiceRollerModal from './features/dice-roller/DiceRollerModal';
 import ChapterDevWarningModal from './components/book/ChapterDevWarningModal';
 import RuleCodexDrawer from './features/character-sheet/components/RuleCodexDrawer';
@@ -20,6 +16,41 @@ import { openRuleCodex } from './features/character-sheet/utils/skillFormulaEval
 import { playPageFlipSound } from './utils/soundEffects';
 import { STORAGE_KEYS } from './data/keys';
 import { readJSON, writeJSON } from './data/store';
+
+// ── 四個章節改為「按需下載」（2026-10-16）────────────────────
+//
+// 為什麼：實測打包後單一 chunk 2,265 kB（gzip 655 kB），而**「角色卡」一章就佔 50.7%**
+// （1,148 kB／gzip 304 kB）。`App.jsx` 本來就是「一次只顯示一個章節」，
+// 所以讓瀏覽器「用到哪一章才下載哪一章」是零架構成本的事。
+//
+// 實測效果（`npm run build`，2026-10-16）：
+//   首屏 JS  gzip 655.42 kB → 251.82 kB（**省 403.6 kB，約 −62%**）
+//   之後按需要才下載：角色卡 283 kB／NPC 工坊 83 kB／戰鬥輪次 37 kB／命刻 11 kB（皆 gzip）
+//
+// ※ 刻意**不引入路由**：章節切換沿用既有的 `activeChapter` 狀態，
+//   這裡只把 import 換成 `lazy()`，其餘邏輯一行未動。
+const CHAPTER_LOADERS = {
+  workshop: () => import('./features/npc-workshop/NPCWorkshop'),
+  character: () => import('./features/character-sheet/CharacterSheet'),
+  combat: () => import('./features/combat-tracker/CombatTracker'),
+  clocks: () => import('./features/clocks/FateClockPage'),
+};
+
+const NPCWorkshop = lazy(CHAPTER_LOADERS.workshop);
+const CharacterSheet = lazy(CHAPTER_LOADERS.character);
+const CombatTracker = lazy(CHAPTER_LOADERS.combat);
+const FateClockPage = lazy(CHAPTER_LOADERS.clocks);
+
+/**
+ * 章節載入中的過場。
+ * 正常情況下**看不到**——翻頁動畫有 550ms，而 `proceedToChapter` 會在那段時間
+ * 先偷跑下載（見該函式）。只有在網路極慢時才會短暫出現，故做成安靜的置中文字。
+ */
+const ChapterLoading = () => (
+  <div className="flex-1 flex items-center justify-center py-16 text-xs text-[#8c7b6c] font-serif">
+    正在展開章節……
+  </div>
+);
 
 const CHAPTER_METAS = {
   character: {
@@ -77,6 +108,13 @@ export default function App() {
   // 實際執行章節翻書切換動作
   const proceedToChapter = (chapterId) => {
     if (transitionState) return;
+
+    // 偷跑：翻頁動畫有 550ms，趁這段時間先把該章的程式碼抓下來，
+    // 讓使用者在章節真正出現時不需要等。動態 import 由瀏覽器快取，
+    // 這裡先呼叫不會造成重複下載（`lazy()` 之後取的是同一份模組）。
+    // 失敗不處理——真的載不到時，`lazy()` 那一側會照常拋錯給 ErrorBoundary。
+    CHAPTER_LOADERS[chapterId]?.().catch(() => {});
+
     playPageFlipSound();
     setCharacterSubNav(null);
     setWorkshopSubNav(null);
@@ -293,7 +331,8 @@ export default function App() {
             extraRight={activeChapter === 'workshop' ? headerExtraRight : null}
           />
 
-          {/* Exclusive Main Body */}
+          {/* Exclusive Main Body —— 章節程式碼按需下載，載入期間顯示極簡過場 */}
+          <Suspense fallback={<ChapterLoading />}>
           {activeChapter === 'workshop' ? (
             <main className="flex-1 w-full flex flex-col min-h-0 overflow-hidden">
               <NPCWorkshop
@@ -349,6 +388,7 @@ export default function App() {
               </footer>
             </>
           )}
+          </Suspense>
         </div>
       )}
 
