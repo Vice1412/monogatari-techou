@@ -123,25 +123,30 @@ check('關閉時看不到【公測】徽章', off.includes('公測'), false);
 check('關閉時原版【咒語模仿】仍在', off.includes('咒語模仿'), true);
 
 // ─────────────────────────────────────────────────────────── E
-section('E. 公測開啟但**未選用**：變體可選，原版仍是主角');
+section('E. 公測開啟但**未選用**：檢視模式不渲染變體卡（§BC GM 裁定 2026-10-16）');
+/**
+ * 「乖乖藏起來」——未選用的變體卡在檢視模式完全不渲染。
+ * 玩家要在檢視模式看變體，必須先在編輯模式選用；選用後才會出現在檢視模式。
+ * 這個翻轉是 GM 裁定的（見 decisions.md §BC），把舊語意「開啟就並列顯示給玩家看」
+ * 改成「開啟了但沒選就看不見」。
+ */
 const on = renderToStaticMarkup(React.createElement(ClassSkillCard, {
   classItem: mkClassItem('嵌合師'), classIndex: 0,
   character: mkChar(['core', 'playtest']), theme
 }));
-check('開啟時看得到變體【咒語自助餐】', on.includes('咒語自助餐'), true);
-check('開啟時看得到【公測】徽章', on.includes('公測'), true);
-check('開啟時說明它取代【咒語模仿】', on.includes('咒語模仿'), true);
+check('未選用時變體【咒語自助餐】不渲染（乖乖藏起來）', on.includes('咒語自助餐'), false);
+// ※ 編輯模式仍要給玩家入口——這個由 §O 與新 §P 一起驗。
+// 檢視模式公測徽章「公測」這個字也可能不再出現（因為精簡入口在編輯模式才渲染）
 
 // ─────────────────────────────────────────────────────────── E2
-section('E2. 已配點時變體也要在（`classItem.skills` 非空的那條分支）');
-// 真實情境：角色已經配過【咒語模仿】。第一版把變體寫在空狀態的 else 分支裡，
-// 所以「有配點」反而看不到變體——這條護欄就是為了那個錯而存在的。
+section('E2. 已配點但未選用：變體仍不渲染（避免「有配點反而看不到」的舊 bug）');
+// 真實情境：角色已經配過【咒語模仿】但沒選變體——檢視模式該乾淨，不該突然冒出大卡。
 const onWithSkills = renderToStaticMarkup(React.createElement(ClassSkillCard, {
   classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 2, selectedOptions: [] }]),
   classIndex: 0, character: mkChar(['core', 'playtest']), theme
 }));
-check('已配點時仍看得到變體【咒語自助餐】', onWithSkills.includes('咒語自助餐'), true);
-check('已配點時原版【咒語模仿】也在', onWithSkills.includes('咒語模仿'), true);
+check('已配點但未選用時變體【咒語自助餐】仍不渲染', onWithSkills.includes('咒語自助餐'), false);
+check('已配點時原版【咒語模仿】仍在（技能列的內容）', onWithSkills.includes('咒語模仿'), true);
 
 // ─────────────────────────────────────────────────────────── E3
 section('E3. 職業名的來源必須是 `className`（元件吃的是 character.classes 的元素）');
@@ -149,11 +154,13 @@ check('rulesData 的職業物件沒有 className（所以不能直接當 classIt
   'className' in rulesData.classes['嵌合師'], false);
 check('rulesData 的職業物件沒有 name',
   'name' in rulesData.classes['嵌合師'], false);
-check('有兩個變體的職業（狂怒鬥士）兩張都出現',
+// ※ 舊斷言「有兩個變體的職業（狂怒鬥士）兩張都出現」已反轉為
+// 「都沒選時兩張都不渲染」——「不選就藏起來」是 §BC 的精神。
+check('狂怒鬥士未選用時【勇猛打手】與【隕石猛擊】都不渲染',
   (renderToStaticMarkup(React.createElement(ClassSkillCard, {
     classItem: mkClassItem('狂怒鬥士'), classIndex: 0,
     character: mkChar(['core', 'playtest']), theme
-  })).match(/勇猛打手|隕石猛擊/g) || []).length, 2);
+  })).match(/勇猛打手|隕石猛擊/g) || []).length, 0);
 
 // ─────────────────────────────────────────────────────────── F
 section('F. 閘門來源必須正確（這是最容易寫錯、而且不會報錯的地方）');
@@ -225,10 +232,12 @@ section('I. 選用後介面要「收起來原版」（GM 裁定：選用之後�
  * 那裡本來就會印變體的名字。於是「技能列忘了用 variantId」這個 bug
  * 完全不會被這條護欄抓到（實際做了刻意破壞驗證才發現）。
  *
- * 現在改成用**出現次數**來判斷：
- *   未選用時「咒語自助餐」只出現在瀏覽區（1 次）
- *   選用後 技能列 + 瀏覽區各 1 次（2 次）
- * 再把「技能列」那段 HTML 切出來單獨檢查，兩層都顧到。
+ * 現在改成：把「技能列」那段 HTML 切出來單獨檢查（瀏覽區之前），
+ * 變體名 / 上限 / 描述都只看技能列，兩層都顧到。
+ *
+ * ※ 舊斷言「選用後多出現一次（差=1）」在 §BC 反轉後已不再有意義——
+ *   編輯模式的精簡入口按鈕（`原版【咒語模仿】→ 公測變體【咒語自助餐】`）也會
+ *   含變體名，所以「次數差」隨之改變。改用「技能列切片」直接驗，更穩。
  */
 const adoptedCard = renderToStaticMarkup(React.createElement(ClassSkillCard, {
   classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 3, variantId: 'spellBuffet', selectedOptions: [] }]),
@@ -248,10 +257,6 @@ const skillRowOf = (html) => {
   return at >= 0 ? html.slice(0, at) : html;
 };
 
-check('★ 選用後「咒語自助餐」多出現一次（技能列也印了，不只瀏覽區）',
-  countOf(adoptedCard, '咒語自助餐') - countOf(notAdoptedCard, '咒語自助餐'), 1);
-check('★ 選用後「取代」多出現（技能列標示取代關係）',
-  countOf(adoptedCard, '取代') > countOf(notAdoptedCard, '取代'), true);
 // 技能列本身直接驗：瀏覽區之前的內容才是「技能列」
 const adoptedRow = skillRowOf(adoptedCard);
 const notAdoptedRow = skillRowOf(notAdoptedCard);
@@ -418,6 +423,73 @@ const editClosed = renderToStaticMarkup(React.createElement(ClassSkillCard, {
   classIndex: 0, character: mkChar(['core']), theme, isInitialEdit: true
 }));
 check('編輯模式：公測關閉時變體一個都不出現', editClosed.includes('咒語自助餐'), false);
+
+// ─────────────────────────────────────────────────────────── P
+section('P. §BC 反轉後的編輯模式入口：未選用時顯示精簡按鈕、選用後不顯示（§AW ＋ §BC）');
+/**
+ * GM 裁定 2026-10-16：「乖乖藏起來」——檢視模式不渲染未選用變體卡（§E）。
+ * 但玩家還是要能在編輯模式選用——所以另開精簡入口（`data-testid="variant-picker"`），
+ * 每個未選用變體顯示一行「原版【咒語模仿】→ 公測變體【咒語自助餐】 點此選用」。
+ * 選用後入口消失，因為 pickable 變空。
+ *
+ * 為什麼不在原版技能列旁加按鈕？因為【暴怒】有兩個變體（勇猛打手／隕石猛擊），
+ * 玩家要能看到「同技能多變體」這件事——集中顯示比散在各列清楚。
+ */
+const editPickerHTML = renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 3, selectedOptions: [] }]),
+  classIndex: 0, character: mkChar(['core', 'playtest']), theme, isInitialEdit: true
+}));
+// 切到選用面板後（標題「核心書技能變體（公測）」）的精簡入口區
+const pickerIdx = editPickerHTML.indexOf('variant-picker');
+const pickerSection = pickerIdx >= 0 ? editPickerHTML.slice(pickerIdx) : '';
+check('編輯模式：未選用時顯示 variant-picker 精簡入口', pickerIdx >= 0, true);
+check('編輯模式：精簡入口內含原版技能名【咒語模仿】', pickerSection.includes('咒語模仿'), true);
+check('編輯模式：精簡入口內含變體名【咒語自助餐】', pickerSection.includes('咒語自助餐'), true);
+check('編輯模式：精簡入口的按鈕文案是「點此選用」', pickerSection.includes('點此選用'), true);
+// 同一段內不該出現完整的變體 desc（精簡入口只是一行按鈕，不是大卡）
+check('編輯模式：精簡入口內不出現大卡描述字串',
+  pickerSection.includes('不能取得【嵌合精通】英雄技能'), false);
+
+// 選用後：精簡入口不應再出現（因為 pickable 變空）
+const editAdoptedPickerHTML = renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 3, variantId: 'spellBuffet', selectedOptions: [] }]),
+  classIndex: 0, character: mkChar(['core', 'playtest']), theme, isInitialEdit: true
+}));
+const adoptedPickerIdx = editAdoptedPickerHTML.indexOf('variant-picker');
+check('編輯模式：已選用時 pick 不該再出現（沒有未選用變體）', adoptedPickerIdx, -1);
+// 但「改回原版」鈕的文案還要在（因為 CoreBookVariantCard 仍渲染）
+const adoptedSection = editAdoptedPickerHTML.indexOf('核心書技能變體（公測）') >= 0
+  ? editAdoptedPickerHTML.slice(editAdoptedPickerHTML.indexOf('核心書技能變體（公測）'))
+  : editAdoptedPickerHTML;
+check('編輯模式：已選用時仍有「改回原版」鈕（CoreBookVariantCard 仍在）',
+  adoptedSection.includes('改回原版'), true);
+
+// 公測關閉時也沒有精簡入口
+const editClosedPickerIdx = editClosed.indexOf('variant-picker');
+check('編輯模式：公測關閉時也沒有 variant-picker', editClosedPickerIdx, -1);
+
+// 【暴怒】有兩個變體 → 精簡入口要看得到兩筆「點此選用」
+const editTwoVariantsHTML = renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('狂怒鬥士', [{ name: '暴怒', sl: 3, selectedOptions: [] }]),
+  classIndex: 0, character: mkChar(['core', 'playtest']), theme, isInitialEdit: true
+}));
+const twoVariantsPickerIdx = editTwoVariantsHTML.indexOf('variant-picker');
+const twoPickerSection = twoVariantsPickerIdx >= 0 ? editTwoVariantsHTML.slice(twoVariantsPickerIdx) : '';
+check('狂怒鬥士：兩個未選用變體 → 兩顆「點此選用」按鈕',
+  (twoPickerSection.match(/點此選用/g) || []).length, 2);
+check('狂怒鬥士：精簡入口內含【勇猛打手】', twoPickerSection.includes('勇猛打手'), true);
+check('狂怒鬥士：精簡入口內含【隕石猛擊】', twoPickerSection.includes('隕石猛擊'), true);
+
+// 「↑ [Repeat]」型護欄——故意讓「pickable 重複渲染」這類 bug 被抓到。
+// 第一版破壞驗證時，故意把 `pickable = allForClass` 沒過濾，
+// 結果大卡區跟精簡入口區同時渲染「點此選用」——但「精簡入口點此選用」這條只驗「有沒有」，
+// 沒驗「幾次」，所以沒叫到。下面這條就為了抓「渲染次數錯」這類壞法。
+check('嵌合師編輯模式：「點此選用」按鈕只出現 1 顆（不是 0 也不是 2）',
+  (editPickerHTML.match(/點此選用/g) || []).length, 1);
+check('狂怒鬥士編輯模式：「點此選用」按鈕剛好出現 2 顆（兩個變體各一）',
+  (editTwoVariantsHTML.match(/點此選用/g) || []).length, 2);
+check('已選用後「點此選用」按鈕不應再出現（pickable 已空）',
+  (editAdoptedPickerHTML.match(/點此選用/g) || []).length, 0);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

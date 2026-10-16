@@ -677,3 +677,5 @@
 *測試：`test:florist` 新增 50 條；`test:codex` 274/274；`npm test` **21 道全過 exit 0**；`npm run build` exit 0。決策紀錄見 `docs/decisions.md` §BB（BB1–BB10）。*
 
 *※ `AGENTS.md` 因本輪新增 1 道關卡與 1 列索引，由 58,237 → **59,212 bytes**（上限 65,536，餘裕 6,324）。壓縮（§1 測試清單與 §6.2 索引）仍是**待辦**，低於 §7 的約 15,000 門檻。*
+
+*2026-10-17：公測變體卡「乖乖藏起來」＋ Playtest PDF 2026-10-01 比對。使用者原話「沒有選到的話就給我乖乖藏起來」→ `ClassSkillCard.jsx` 檢視模式加 `.filter(isVariantAdopted)` 只渲染已選用變體；編輯模式分兩區（已選用大卡＋未選用精簡入口按鈕 `variant-picker`）。反轉 §AV4「並存」語意。PDF 比對結果：秘儀師 2 處 SL 上限錯（幻影之力 6→5、快速召喚 2→4，已修 `rulesData.json`）；其餘 6 個【Playtest】職業 PDF 無對應，推 `AGENTS.md` §6.1 BC1 列待裁定。測試 114→128 條，§E/§E2/§E3 反轉＋§P 新增 14 條；刻意破壞驗證兩輪（檢視 3 條 FAIL、編輯 2 條 FAIL）。`npm test` 21 道全過 exit 0；`npm run build` exit 0；`npm run test:emoji` 0 命中。決策紀錄見 `docs/decisions.md` §BC。`AGENTS.md` 由 59,212 → **60,186 bytes**（餘裕 5,350）。*

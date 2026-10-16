@@ -562,6 +562,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 | D5 金手指選項 | 金手指「倖存者」的第三個選項「**IP 永久 +2**」未實作；「墮落天使」選項③「**最大 MP +10**」未實作（自然 p.129／科技 p.129／特典 p.18）。**結構性原因**：金手指目前只有「名稱比對」（`characterEngine.js` 的 `quirkName.includes(...)`），**無法承載「選項」** | 待裁定 |
 | D6 官方飾品「洋蔥戒指」 | Core p.289：每個**不同職業**使最大 HP 與 MP 各 +2。**實測不在** `rulesData.equipment.accessories`（現僅 6 筆）→ 玩家無法選用 | 待裁定 |
 | D7 暗黑之刃【Playtest】遠程 | 「職業近戰**或**遠程（二選一）」永遠只判定為近戰 → 職業遠程永遠 ✗ | 待裁定 |
+| **BC1** 6 個【Playtest】職業無官方對應 | `sourcebookConfig.js` 列出 7 個職業帶【Playtest】後綴：秘儀師、守護者、武器大師、博學士、暗黑之刃、神射手、吟唱者。**比對 Playtest Materials 2026-10-01 (45 頁) 後**：① 秘儀師【Playtest】→ PDF p.24「ARCANIST (variant)」**有對應**，但兩個 SL 上限錯（幻影之力 PHANTOM STRENGTH 系統 6/PDF 5；快速召喚 QUICK SUMMONING 系統 2/PDF 4——後者官方 changelog 還特別提到「fix typo」）。② **其餘 6 個【Playtest】職業 PDF 內完全沒有對應**（初始 commit 就在、`sourcebookConfig.js` 的 tagline 寫「公測重製版」但內容懸空）。**三條可能決議**：A. 整批標「系統自製、不掛 Playtest 名義」、移除【Playtest】後綴與官方出處；B. 從 PDF 重新翻譯這 6 個職業（用既有資料當起點）；C. 保留現狀、明示標記「無官方對應」。**未裁定** | 待裁定 |
 | NPC 工坊重複函式 | `NPCWorkshop.jsx` 與 `utils/npcEngine.js` 之間有三組**同名函式**：`getInitialAffinities`（邏輯相同，可安全收斂）、**`migrateNpcState`（48 vs 18 行）**、**`getSpeciesAffinities`（66 vs 70 行）**——後兩者**行為不同**，且測試只覆蓋 `npcEngine.js` 那份、**生產端元件用的是另一份**（與 §AW「測試與生產分歧」同型）。**需裁定以哪份為準**（涉及既有 NPC 資料的遷移與相性計算）。詳見 `docs/decisions.md` §AX／§AY | 待裁定 |
 
 ### 6.2 已結案（索引）

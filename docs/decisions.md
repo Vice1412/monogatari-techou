@@ -4930,3 +4930,131 @@ const CLOCK_SINGLE_RE = /(\d+)\s*格/;
   而錯誤表現是「**畫面少亮一條**」——不是崩潰、不是紅字，所以沒有任何人回報。
   凡是「從顯示文字反推語意」的邏輯，都應該在資料層留一支純函式 ＋ 一道「全部標籤都解析得出」的護欄。
 
+---
+
+### BC. 公測變體卡「乖乖藏起來」+ Playtest PDF 2026-10-01 比對 —— ✅ 2026-10-17
+
+> 承 §AV（變體顯示）、§AW（選用機制）。本節有兩條主線：
+> ① 使用者要求「未選用的變體卡不要顯示」（反轉 §AV/§AW 舊語意）；
+> ② 對 7 個【Playtest】職業比對最新 PDF，修 2 處 SL 上限錯誤、推 6 職為待裁定。
+
+#### BC1. 需求來源（使用者原話）
+
+> 「角色卡功能裡面有公測的技能，只有在選擇了那個技能的時候角色卡界面才會顯示那個公測技能的內容，
+> 沒有選到的話就給我乖乖藏起來。」
+
+舊語意（§AV4 + §AW2 第 3 點）：公測開啟時，**所有變體卡並列顯示**在職業卡底下，
+讓玩家瀏覽。選用後原版「收起來」（取代），但未選用的變體仍然可見。
+
+新語意（本節）：**未選用的變體卡不渲染**——「乖乖藏起來」。
+玩家仍可在**編輯模式**看到精簡入口按鈕（一行寫「原版【X】→ 公測變體【Y】 點此選用」），
+但不再是完整的大卡。檢視模式則完全不渲染未選用變體。
+
+**與 §AV/§AW 的關係**：§AV4 的「並存」表格（公測開啟 → 變體＋原版並列）被推翻；
+§AW2 第 3 點「選用後原版收起來」仍成立（選用後原版被取代），但**未選用的變體也收起來**了。
+
+#### BC2. 設計決定（使用者裁定）
+
+透過 AskUserQuestion 確認兩項：
+
+1. **「兩個模式都藏（推薦）」**——檢視模式 + 跨輯模式都隱藏未選用變體卡。
+   - 檢視模式：`variant-browse` 區塊加 `.filter((v) => isVariantAdopted(v.id))`，只渲染已選用變體。
+   - 編輯模式：分兩區——已選用走 `CoreBookVariantCard`（沿用舊元件），未選用走精簡入口按鈕
+     （`data-testid="variant-picker"`），按鈕文案「原版【X】→ 公測變體【Y】 點此選用」。
+
+2. **「兩個上限都修，推 6 職為『待裁定』（推薦）」**——修 PDF 比對出的 2 個 SL 上限錯誤，
+   6 個【Playtest】職業無官方對應的事實推到 `AGENTS.md` §6.1 待裁定清單（BC1 列），本輪不刪除。
+
+#### BC3. 實作變更
+
+**`ClassSkillCard.jsx`**（核心修改點）：
+
+檢視模式（`variant-browse` 區塊）：
+```jsx
+{showPlaytestVariants && getVariantsForClass(className)
+  .filter((v) => isVariantAdopted(v.id))   // ← 新增：只渲染已選用
+  .map((v) => (
+    <CoreBookVariantCard key={v.id} variant={v} theme={theme} isSelected />
+  ))}
+```
+
+編輯模式（新增 `variant-picker` 精簡入口區塊）：
+- 已選用變體：沿用 `CoreBookVariantCard`（帶「改回原版」鈕）。
+- 未選用變體：精簡按鈕（一行），文案「原版【X】→ 公測變體【Y】 點此選用」，
+  `onClick` 呼叫同一條 `handleToggleVariant(replaces, id)` 路徑。
+- 多變體職業（如【暴怒】有兩個變體）→ 兩顆按鈕集中顯示，比散在技能列各列更清楚。
+
+**`rulesData.json`**（SL 上限修正，與 PDF 2026-10-01 p.24 對齊）：
+
+| 技能 | 修正前 | 修正後 | PDF 依據 |
+|---|---|---|---|
+| 幻影之力（PHANTOM STRENGTH） | maxSL: 6 | maxSL: 5 | PDF p.24 `PHANTOM STRENGTH (ç5)` |
+| 快速召喚（QUICK SUMMONING） | maxSL: 2 | maxSL: 4 | PDF p.24 `QUICK SUMMONING (ç4)`，changelog 明列 "fix typo" |
+
+**`AGENTS.md` §6.1**：新增 BC1 列（6 個【Playtest】職業無官方對應，標「待裁定」）。
+
+#### BC4. PDF 比對結果（2026-10-01 版，45 頁）
+
+比對方法：pypdf 抽取全文 → 逐職業 grep 關鍵技能名。
+
+| 職業 | 系統內名稱 | PDF 對應 | 結論 |
+|---|---|---|---|
+| 秘儀師【Playtest】 | sourcebookConfig | PDF p.24-32「ARCANIST (variant)」 | **有對應**，但 2 處 SL 上限錯（已修） |
+| 守護者【Playtest】 | sourcebookConfig | **無**（grep BREAK BONES / MARTIAL MASTERY 未找到） | 無官方對應 |
+| 武器大師【Playtest】 | sourcebookConfig | **無** | 同上 |
+| 博學士【Playtest】 | sourcebookConfig | **無** | 同上 |
+| 暗黑之刃【Playtest】 | sourcebookConfig | **無** | 同上 |
+| 神射手【Playtest】 | sourcebookConfig | **無**（grep HAWK EYE 未找到） | 同上 |
+| 吟唱者【Playtest】 | sourcebookConfig | **無**（grep DENOUNCEMENT 未找到） | 同上 |
+
+`git log -S` 確認這 6 個職業從 initial commit `cd832e5` 就在；
+`sourcebookConfig.js` 的 tagline 寫「公測重製版」——前任留下的遺產，非本輪引入。
+
+截圖顯示的【二度斬擊】（SECOND SLICER）：與 PDF p.34 `STOLEN TIME > SECOND SLICER (ç4)` 完全對齊，無過期。
+
+#### BC5. 護欄與刻意破壞驗證
+
+`tests/coreBookVariants.test.mjs`：114 → **128 條**。
+
+**§E / §E2 / §E3 改寫**（反轉語意）：
+- 舊：「公測開啟就並列顯示」→ 新：「未選用時不渲染」。
+- 斷言 `on.includes('咒語自助餐')` 改為 `false`（未選用時不渲染）。
+- 狂怒鬥士兩個變體：`on.match(/勇猛打手|隕石猛擊/g).length` 改為期望 `0`。
+
+**§I 改寫**：舊斷言「多出現一次（差=1）」在新行為下差變 2（精簡入口按鈕文案也含變體名），
+改用 `skillRowOf` 切片直接驗技能列，不依賴計數差。
+
+**§P 新增（14 條）**——驗證編輯模式精簡入口：
+- `variant-picker` 錨點存在／不存在。
+- 精簡入口含原版名、變體名、「點此選用」文案。
+- 精簡入口不含大卡描述字串（不渲染完整卡）。
+- 已選用時 picker 不再出現。
+- 已選用時仍有「改回原版」鈕（`CoreBookVariantCard` 仍在）。
+- 公測關閉時也沒有 picker。
+- **「出現次數」型護欄**：`點此選用` 按鈕應該剛好出現 N 顆（嵌合師 1 顆、狂怒鬥士 2 顆、已選用 0 顆）。
+
+**刻意破壞驗證兩輪**：
+
+| 破壞 | 結果 |
+|---|---|
+| 檢視模式 `.filter((v) => isVariantAdopted(v.id))` 拿掉 | **3 條 FAIL**（§E 3 條：未選用變體渲染了） |
+| 編輯模式 `pickable` 改成 `allForClass`（沒過濾） | **2 條 FAIL**（`pick 不該再出現` + `點此選用按鈕不應再出現`） |
+
+第一輪只抓到 1/3 條——因為「字串包含」型斷言在渲染重複時仍 PASS（字串還在）。
+加入「出現次數」型護欄後，第二輪抓到 2 條。
+
+**教訓（承 §AW9）**：「字串包含」型斷言太弱——渲染重複時字串仍在，斷言恆真。
+要改用「**出現次數**」型護欄：按鈕應該剛好出現 N 顆，不是「至少有一顆」。
+這與 §AW9 第 5 條（「至少有一個」型斷言太弱）是同一類教訓的延續。
+
+#### BC6. 語意演進摘要
+
+| 版本 | 語意 | 來源 |
+|---|---|---|
+| §AV（2026-10-14） | 變體與原版**並存**，公測開啟就全部顯示 | GM 原話「和原版的技能同時存在」 |
+| §AW（2026-10-14） | 選用後原版**收起來**（取代） | GM 第 3 句「選用之後，原版要收起來」 |
+| **§BC（2026-10-17）** | **未選用的變體也收起來**（乖乖藏起來） | 使用者原話「沒有選到的話就給我乖乖藏起來」 |
+
+§BC 不推翻 §AW3 的 `name` 不變鐵律——`variantId` 仍是選擇載體，`name` 仍是識別字。
+§BC 只改**渲染邏輯**（未選用時不渲染完整卡），不改資料模型。
+

@@ -800,25 +800,25 @@ export default function ClassSkillCard({
             </div>
           )}
 
-          {/* 核心書技能變體（Core Book Variants）——勾選【官方公測修訂】才出現。
-              這裡是**檢視模式**，只顯示「這個職業有哪些變體、哪個正在使用中」，
-              不提供選用／取消（選用只發生在編輯模式，避免瀏覽時誤觸）。
-              ※ 放在空狀態判斷**外面**：變體是「這個職業有變體」的事實，
-                與「這個角色配了幾點技能」無關，沒配點時也該看得到。
-              ※ 職業名一律讀 `className`（元件在第 370 行就算好了）。
-                `classItem` 來自 `rulesData.classes[...]`，那裡**沒有 `name` 欄位**。
-              ※ `data-testid`：測試要能把「技能列」與「這一區」分開檢查。
-                沒有這個錨點的話，「技能列忘了顯示變體」的 bug 會被這一區的
-                同名文字蓋掉——護欄會永遠為真（見 §AV 的刻意破壞驗證紀錄）。 */}
+          {/* 核心書技能變體（Core Book Variants）——只列**已被這個角色選用**的變體卡。
+              未選用的變體**不**渲染（GM 裁定 2026-10-16：「沒有選到的話就給我乖乖藏起來」——
+              對齊官方 PDF 的公開行為：變體卡只在「真的在用」時展開）。
+              編輯模式下另有「核心書技能變體（公測）」選用區提供入口（見下方）。
+
+              ※ `data-testid`：測試要能把「技能列」與「這裡的變體卡」分開檢查。
+                沒有這個錨點的話，「忘了收未選用的變體」這個 bug 會被技能列的
+                同名文字蓋掉——護欄會永遠為真（見 §BC 的刻意破壞驗證紀錄）。 */}
           <div data-testid="variant-browse">
-            {showPlaytestVariants && getVariantsForClass(className).map((v) => (
-              <CoreBookVariantCard
-                key={v.id}
-                variant={v}
-                theme={theme}
-                isSelected={isVariantAdopted(v.id)}
-              />
-            ))}
+            {showPlaytestVariants && getVariantsForClass(className)
+              .filter((v) => isVariantAdopted(v.id))
+              .map((v) => (
+                <CoreBookVariantCard
+                  key={v.id}
+                  variant={v}
+                  theme={theme}
+                  isSelected
+                />
+              ))}
           </div>
         </div>
       )}
@@ -1009,30 +1009,70 @@ export default function ClassSkillCard({
                 與配點草稿是兩件事；混在一起會讓玩家按了取消後以為選用也取消了。
               ※ 選用後：上面那一列直接改成變體的內容，原版收起來（GM 裁定）。
               ※ 一個技能只能選一個變體；同職業不同技能可以各選各的（官方 p.34：
-                變體**規則**須全團一致，變體**技能**是每位玩家的個人選擇）。 */}
-          {showPlaytestVariants && getVariantsForClass(className).length > 0 && (
-            <div className="pt-3 border-t space-y-2.5" style={{ borderColor: theme.border }}>
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                <GiSparkles className="w-3.5 h-3.5" style={{ color: theme.accent }} />
-                核心書技能變體（公測）
-                <span className="text-[10px] font-normal text-slate-500">
-                  —— 選用後原版技能會收起來，一次只能選一個
-                </span>
-              </div>
+                變體**規則**須全團一致，變體**技能**是每位玩家的個人選擇）。
 
-              <div className="space-y-2">
-                {getVariantsForClass(className).map((v) => (
-                  <CoreBookVariantCard
-                    key={v.id}
-                    variant={v}
-                    theme={theme}
-                    isSelected={isVariantAdopted(v.id)}
-                    onToggle={(vid) => handleToggleVariant(v.replaces, vid)}
-                  />
-                ))}
+              ※ 未選用的變體**不**渲染成大卡（GM 裁定 2026-10-16：「乖乖藏起來」），
+                只在下方列一行「公測可選：○○」當做選用入口。
+                已選用的變體**仍**渲染成大卡（讓玩家隨時看到「取代了什麼」與完整說明）。 */}
+          {showPlaytestVariants && getVariantsForClass(className).length > 0 && (() => {
+            const allForClass = getVariantsForClass(className);
+            const adopted = allForClass.filter((v) => isVariantAdopted(v.id));
+            const pickable = allForClass.filter((v) => !isVariantAdopted(v.id));
+            return (
+              <div className="pt-3 border-t space-y-2.5" style={{ borderColor: theme.border }}>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                  <GiSparkles className="w-3.5 h-3.5" style={{ color: theme.accent }} />
+                  核心書技能變體（公測）
+                  <span className="text-[10px] font-normal text-slate-500">
+                    —— 選用後原版技能會收起來，一次只能選一個
+                  </span>
+                </div>
+
+                {/* 已選用的大卡：沿用既有 CoreBookVariantCard 渲染（含完整 desc 與「改回原版」鈕） */}
+                {adopted.length > 0 && (
+                  <div className="space-y-2">
+                    {adopted.map((v) => (
+                      <CoreBookVariantCard
+                        key={v.id}
+                        variant={v}
+                        theme={theme}
+                        isSelected
+                        onToggle={(vid) => handleToggleVariant(v.replaces, vid)}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* 未選用的精簡入口：一行一顆按鈕，按下去＝選用該變體。
+                    為什麼不放成大卡？見頂部使用者的裁定（§BC）。 */}
+                {pickable.length > 0 && (
+                  <div
+                    className="space-y-1 text-xs"
+                    data-testid="variant-picker"
+                  >
+                    {pickable.map((v) => (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => handleToggleVariant(v.replaces, v.id)}
+                        title={`用【${v.name}】取代原版【${v.replaces}】`}
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg border border-dashed cursor-pointer transition-all hover:border-solid hover:bg-white active:scale-[.99] flex items-center justify-between gap-2"
+                        style={{ borderColor: theme.border, color: theme.textDark }}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded border" style={{ borderColor: theme.accent, color: theme.accent }}>
+                            公測
+                          </span>
+                          <span>原版【{v.replaces}】→ 公測變體【{v.name}】</span>
+                        </span>
+                        <span className="text-[10px] font-bold opacity-70">點此選用</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* 底部儲存確認列 */}
           <div className="pt-2 border-t flex items-center justify-between gap-3" style={{ borderColor: theme.border }}>
