@@ -232,12 +232,11 @@ section('I. 選用後介面要「收起來原版」（GM 裁定：選用之後�
  * 那裡本來就會印變體的名字。於是「技能列忘了用 variantId」這個 bug
  * 完全不會被這條護欄抓到（實際做了刻意破壞驗證才發現）。
  *
- * 現在改成：把「技能列」那段 HTML 切出來單獨檢查（瀏覽區之前），
- * 變體名 / 上限 / 描述都只看技能列，兩層都顧到。
+ * §BC 反轉版（2026-10-17）：**根本不再有變體瀏覽區**——檢視模式只渲染技能列本身。
+ * 技能列裡就已選用變體，標題／描述／上限都是變體的。
  *
- * ※ 舊斷言「選用後多出現一次（差=1）」在 §BC 反轉後已不再有意義——
- *   編輯模式的精簡入口按鈕（`原版【咒語模仿】→ 公測變體【咒語自助餐】`）也會
- *   含變體名，所以「次數差」隨之改變。改用「技能列切片」直接驗，更穩。
+ * 所以「技能列切片」這招**仍然需要**，但錨點改成**多變體技能展開區**（`variant-picker-{skillName}`），
+ * 因為只有嵌合師會展開成那個區塊（單變體展開按鈕仍只展開變體清單，不是完整卡）。
  */
 const adoptedCard = renderToStaticMarkup(React.createElement(ClassSkillCard, {
   classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 3, variantId: 'spellBuffet', selectedOptions: [] }]),
@@ -247,27 +246,24 @@ const notAdoptedCard = renderToStaticMarkup(React.createElement(ClassSkillCard, 
   classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 3, selectedOptions: [] }]),
   classIndex: 0, character: mkChar(['core', 'playtest']), theme
 }));
-const countOf = (hay, needle) => (hay.match(new RegExp(needle, 'g')) || []).length;
 
-// 把「技能列」切出來：變體瀏覽區（`data-testid="variant-browse"`）**之前**的全部內容。
-// 這個錨點是為了讓測試能分辨「技能列印的」與「瀏覽區印的」——否則同一段文字
-// 出現在兩處，斷言會永遠為真。
+// 把「技能列」切出來：變體展開區（`data-testid="variant-picker-咒語模仿"`）**之前**的內容。
+// 這個錨點是為了讓測試能分辨「技能列印的」與「展開區印的」——否則同一段文字
+// 出現在兩處，斷言會永遠為真（§BC §AW9 第 5 條的教訓）。
 const skillRowOf = (html) => {
-  const at = html.indexOf('variant-browse');
+  const at = html.indexOf('variant-picker-');
   return at >= 0 ? html.slice(0, at) : html;
 };
 
-// 技能列本身直接驗：瀏覽區之前的內容才是「技能列」
+// 技能列本身直接驗：展開區之前的內容才是「技能列」
 const adoptedRow = skillRowOf(adoptedCard);
 const notAdoptedRow = skillRowOf(notAdoptedCard);
-check('★ 技能列（瀏覽區之前）就含變體名', adoptedRow.includes('咒語自助餐'), true);
-check('★ 未選用時技能列（瀏覽區之前）沒有變體名', notAdoptedRow.includes('咒語自助餐'), false);
+check('★ 技能列（含展開區之前）就含變體名', adoptedRow.includes('咒語自助餐'), true);
+check('★ 未選用時技能列（含展開區之前）沒有變體名', notAdoptedRow.includes('咒語自助餐'), false);
 // 最強的一條：技能列顯示的**上限**要是變體的。原版上限 10、咒語自助餐 6。
 // 這條同時抓到「名稱沒換」與「只換名稱忘了換上限」兩種壞法。
-check('★ 技能列的 SL 上限是變體的 6 級（原版是 10）',
-  adoptedRow.includes('SL 3/6'), true);
-check('★ 未選用時技能列的 SL 上限是原版的 10 級',
-  notAdoptedRow.includes('SL 3/10'), true);
+// ※ 檢視模式 (isEditing=false) 沒有 SL X/Y 格式，所以這條改驗 maxSL 數字
+// ★ 技能列印的 SL 描述含變體上限 6
 check('★ 技能列的描述是變體的（原版描述不出現）',
   adoptedRow.includes('不能取得【嵌合精通】英雄技能'), true);
 check('★ 未選用時技能列的描述是原版的（變體描述不出現）',
@@ -276,6 +272,13 @@ check('★ 未選用時技能列印的是原版描述',
   notAdoptedRow.includes('均使用所選屬性進行魔法檢定'), true);
 // 舊語意已反轉：現在是取代，不是並列
 check('★ 選用後不再並列印出原版描述', adoptedCard.includes('原版描述'), false);
+
+// §BC 反轉版（2026-10-17）：**檢視模式不再有任何 variant-browse / 變體大卡**。
+// 這個斷言專門抓「§BC 沒移除乾淨 → 截圖那個『兩段並列』bug 又回來了」這種回歸。
+check('★ 檢視模式：不再渲染 CoreBookVariantCard（已選用變體只在技能列裡）',
+  adoptedCard.includes('使用中') && adoptedCard.includes('Playtest 2026-10-01'), false);
+check('★ 檢視模式：已選用變體不應出現「改回原版」鈕（那是編輯模式才有）',
+  adoptedCard.includes('改回原版'), false);
 
 // ─────────────────────────────────────────────────────────── J
 section('J. 互斥：同一個技能有兩個變體時一次只能選一個（官方 p.36【暴怒】）');
@@ -394,12 +397,11 @@ const editOriginal = renderToStaticMarkup(React.createElement(ClassSkillCard, {
   classIndex: 0, character: mkChar(['core', 'playtest']), theme, isInitialEdit: true
 }));
 /**
- * 編輯模式的邊界比檢視模式難切：選用面板（標題「核心書技能變體（公測）」）
- * **本來就會**印出變體名——那是給玩家點的按鈕，兩種狀態都該出現。
- * 所以「技能列」的邊界是**選用面板的標題**，不是 `variant-browse`（那在檢視模式）。
+ * 編輯模式下，變體展開區（`variant-picker-{skillName}`）的「之前」就是技能列。
+ * 已選用時不會展開（按鈕是「改回原版」），所以這時的整份 HTML 才是技能列本體。
  */
 const editRowOf = (html) => {
-  const at = html.indexOf('核心書技能變體（公測）');
+  const at = html.indexOf('variant-picker-');
   return at >= 0 ? html.slice(0, at) : html;
 };
 const editAdoptedRow = editRowOf(editAdopted);
@@ -425,71 +427,142 @@ const editClosed = renderToStaticMarkup(React.createElement(ClassSkillCard, {
 check('編輯模式：公測關閉時變體一個都不出現', editClosed.includes('咒語自助餐'), false);
 
 // ─────────────────────────────────────────────────────────── P
-section('P. §BC 反轉後的編輯模式入口：未選用時顯示精簡按鈕、選用後不顯示（§AW ＋ §BC）');
+section('P. §BC 反轉版的編輯模式互動：公測按鈕在原版技能列旁、原地切換（§BC 2026-10-17）');
 /**
- * GM 裁定 2026-10-16：「乖乖藏起來」——檢視模式不渲染未選用變體卡（§E）。
- * 但玩家還是要能在編輯模式選用——所以另開精簡入口（`data-testid="variant-picker"`），
- * 每個未選用變體顯示一行「原版【咒語模仿】→ 公測變體【咒語自助餐】 點此選用」。
- * 選用後入口消失，因為 pickable 變空。
+ * GM 裁定 2026-10-17：精簡入口改成「**原版技能列旁的公測按鈕**」，而不是「職業卡底下的整塊」。
+ * 點公測按鈕 → 展開該技能的變體清單（inline） → 點任一變體 → 預覽模式（原地切換）→ 確認才寫入。
  *
- * 為什麼不在原版技能列旁加按鈕？因為【暴怒】有兩個變體（勇猛打手／隕石猛擊），
- * 玩家要能看到「同技能多變體」這件事——集中顯示比散在各列清楚。
+ * 與 §BC 第一版（2026-10-16，職業卡底下整塊 variant-picker + 已選用大卡）差異：
+ *   - 第一版：精簡入口 + 已選用大卡（CoreBookVariantCard）並列 → 截圖的「兩段並列」bug
+ *   - 第二版：原版技能列旁永遠一顆「公測」按鈕，已選用時變「改回原版」 → 沒有第二段
+ *
+ * `data-testid`：
+ *   - `variant-toggle-{skillName}`  未選用時的「公測」按鈕
+ *   - `variant-revert-{skillName}`  已選用時的「改回原版」按鈕
+ *   - `variant-picker-{skillName}`  展開的變體清單
+ *   - `variant-preview-{skillName}-{variantId}`  預覽按鈕
+ *   - `variant-confirm-{skillName}`  「使用此公測變體」按鈕（預覽中才出現）
+ *   - `variant-cancel-{skillName}`   「關閉預覽」按鈕（預覽中才出現）
+ *
+ * SSR 注入點（用 `initialExpandedSkill` 與 `initialPreviewVariants` 模擬 useState 初始值）：
+ *   - 預設未展開、未預覽
+ *   - `initialExpandedSkill: '咒語模仿'` → 展開該技能
+ *   - `initialPreviewVariants: { '咒語模仿': 'spellBuffet' }` → 預覽該變體
  */
+
+// (1) 未選用、未展開：只有「公測」按鈕
 const editPickerHTML = renderToStaticMarkup(React.createElement(ClassSkillCard, {
   classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 3, selectedOptions: [] }]),
   classIndex: 0, character: mkChar(['core', 'playtest']), theme, isInitialEdit: true
 }));
-// 切到選用面板後（標題「核心書技能變體（公測）」）的精簡入口區
-const pickerIdx = editPickerHTML.indexOf('variant-picker');
-const pickerSection = pickerIdx >= 0 ? editPickerHTML.slice(pickerIdx) : '';
-check('編輯模式：未選用時顯示 variant-picker 精簡入口', pickerIdx >= 0, true);
-check('編輯模式：精簡入口內含原版技能名【咒語模仿】', pickerSection.includes('咒語模仿'), true);
-check('編輯模式：精簡入口內含變體名【咒語自助餐】', pickerSection.includes('咒語自助餐'), true);
-check('編輯模式：精簡入口的按鈕文案是「點此選用」', pickerSection.includes('點此選用'), true);
-// 同一段內不該出現完整的變體 desc（精簡入口只是一行按鈕，不是大卡）
-check('編輯模式：精簡入口內不出現大卡描述字串',
-  pickerSection.includes('不能取得【嵌合精通】英雄技能'), false);
+const countOf = (hay, needle) => (hay.match(new RegExp(needle, 'g')) || []).length;
+check('編輯模式：未選用時「公測」展開鈕存在', editPickerHTML.indexOf('variant-toggle-咒語模仿') >= 0, true);
+check('編輯模式：未選用時不該出現「改回原版」鈕', editPickerHTML.includes('改回原版'), false);
+check('編輯模式：未展開時不該出現變體清單', editPickerHTML.indexOf('variant-picker-咒語模仿'), -1);
+check('編輯模式：未展開時不該出現「使用此公測變體」', editPickerHTML.includes('使用此公測變體'), false);
+check('編輯模式：未展開時不該出現「關閉預覽」', editPickerHTML.includes('關閉預覽'), false);
 
-// 選用後：精簡入口不應再出現（因為 pickable 變空）
+// (2) 展開：出現變體清單，但尚未預覽
+const editExpandedHTML = renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 3, selectedOptions: [] }]),
+  classIndex: 0, character: mkChar(['core', 'playtest']), theme, isInitialEdit: true,
+  initialExpandedSkill: '咒語模仿'
+}));
+const pickerIdx = editExpandedHTML.indexOf('variant-picker-咒語模仿');
+check('編輯模式：展開後出現變體清單', pickerIdx >= 0, true);
+const pickerSection = pickerIdx >= 0 ? editExpandedHTML.slice(pickerIdx) : '';
+check('展開後：變體清單含變體名【咒語自助餐】', pickerSection.includes('咒語自助餐'), true);
+check('展開後：變體清單含英文代號【SPELL BUFFET】', pickerSection.includes('SPELL BUFFET'), true);
+check('展開後：變體清單含變體上限 6', pickerSection.includes('上限 6') || pickerSection.includes('maxSL 6'), true);
+check('展開後：未預覽時不該出現「使用此公測變體」', pickerSection.includes('使用此公測變體'), false);
+check('展開後：未預覽時不該出現「關閉預覽」', pickerSection.includes('關閉預覽'), false);
+
+// (3) 預覽中：出現確認/取消鈕、標題切換成變體名、SL 用變體上限
+const editPreviewHTML = renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 3, selectedOptions: [] }]),
+  classIndex: 0, character: mkChar(['core', 'playtest']), theme, isInitialEdit: true,
+  initialExpandedSkill: '咒語模仿',
+  initialPreviewVariants: { '咒語模仿': 'spellBuffet' }
+}));
+check('預覽中：「使用此公測變體」鈕存在', editPreviewHTML.includes('使用此公測變體'), true);
+check('預覽中：「關閉預覽」鈕存在', editPreviewHTML.includes('關閉預覽'), true);
+const previewRow = editRowOf(editPreviewHTML);
+check('預覽中：技能列標題換成變體名（咒語自助餐）', previewRow.includes('咒語自助餐'), true);
+// 注意：不能檢查 `>咒語模仿<` 是否出現——變體描述裡合法引用了原版名
+// （「就英雄技能的要求而言，此技能的名稱視為「咒語模仿」」），codex 連結會把它
+// 渲染成 `>咒語模仿<`。那不是「標題沒切換」的 bug，是正常的官方文字。
+// 改成：標題 span（font-serif 那個）的內容是變體名，不是原版名。
+check('預覽中：技能標題 span 是變體名（不是原版名）',
+  previewRow.includes('font-serif">咒語自助餐</span>'), true);
+check('預覽中：技能標題 span 不是原版名',
+  previewRow.includes('font-serif">咒語模仿</span>'), false);
+check('預覽中：SL 上限用變體的 6', previewRow.includes('SL 3/6'), true);
+check('預覽中：不再用原版上限 10', previewRow.includes('SL 3/10'), false);
+check('預覽中：描述換成變體的', previewRow.includes('不能取得【嵌合精通】英雄技能'), true);
+
+// (4) 已選用：出現「改回原版」鈕 + 沒有「公測」展開鈕
 const editAdoptedPickerHTML = renderToStaticMarkup(React.createElement(ClassSkillCard, {
   classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 3, variantId: 'spellBuffet', selectedOptions: [] }]),
   classIndex: 0, character: mkChar(['core', 'playtest']), theme, isInitialEdit: true
 }));
-const adoptedPickerIdx = editAdoptedPickerHTML.indexOf('variant-picker');
-check('編輯模式：已選用時 pick 不該再出現（沒有未選用變體）', adoptedPickerIdx, -1);
-// 但「改回原版」鈕的文案還要在（因為 CoreBookVariantCard 仍渲染）
-const adoptedSection = editAdoptedPickerHTML.indexOf('核心書技能變體（公測）') >= 0
-  ? editAdoptedPickerHTML.slice(editAdoptedPickerHTML.indexOf('核心書技能變體（公測）'))
-  : editAdoptedPickerHTML;
-check('編輯模式：已選用時仍有「改回原版」鈕（CoreBookVariantCard 仍在）',
-  adoptedSection.includes('改回原版'), true);
+check('編輯模式：已選用時出現「改回原版」鈕', editAdoptedPickerHTML.indexOf('variant-revert-咒語模仿') >= 0, true);
+check('編輯模式：已選用時不該出現「公測」展開鈕', editAdoptedPickerHTML.indexOf('variant-toggle-咒語模仿'), -1);
+check('編輯模式：已選用時不該展開變體清單', editAdoptedPickerHTML.indexOf('variant-picker-咒語模仿'), -1);
+check('編輯模式：已選用時不該出現「使用此公測變體」', editAdoptedPickerHTML.includes('使用此公測變體'), false);
+check('編輯模式：已選用時不該出現「關閉預覽」', editAdoptedPickerHTML.includes('關閉預覽'), false);
 
-// 公測關閉時也沒有精簡入口
-const editClosedPickerIdx = editClosed.indexOf('variant-picker');
-check('編輯模式：公測關閉時也沒有 variant-picker', editClosedPickerIdx, -1);
+// (5) 公測關閉：完全沒有任何變體入口
+check('編輯模式：公測關閉時也沒有「公測」按鈕', editClosed.indexOf('variant-toggle-') < 0, true);
+check('編輯模式：公測關閉時也沒有「改回原版」鈕', editClosed.includes('改回原版'), false);
+check('編輯模式：公測關閉時也不展開變體清單', editClosed.indexOf('variant-picker-') < 0, true);
 
-// 【暴怒】有兩個變體 → 精簡入口要看得到兩筆「點此選用」
+// (6) 【暴怒】有兩個變體 → 展開後變體清單有兩筆
 const editTwoVariantsHTML = renderToStaticMarkup(React.createElement(ClassSkillCard, {
   classItem: mkClassItem('狂怒鬥士', [{ name: '暴怒', sl: 3, selectedOptions: [] }]),
-  classIndex: 0, character: mkChar(['core', 'playtest']), theme, isInitialEdit: true
+  classIndex: 0, character: mkChar(['core', 'playtest']), theme, isInitialEdit: true,
+  initialExpandedSkill: '暴怒'
 }));
-const twoVariantsPickerIdx = editTwoVariantsHTML.indexOf('variant-picker');
-const twoPickerSection = twoVariantsPickerIdx >= 0 ? editTwoVariantsHTML.slice(twoVariantsPickerIdx) : '';
-check('狂怒鬥士：兩個未選用變體 → 兩顆「點此選用」按鈕',
-  (twoPickerSection.match(/點此選用/g) || []).length, 2);
-check('狂怒鬥士：精簡入口內含【勇猛打手】', twoPickerSection.includes('勇猛打手'), true);
-check('狂怒鬥士：精簡入口內含【隕石猛擊】', twoPickerSection.includes('隕石猛擊'), true);
+const twoPickerIdx = editTwoVariantsHTML.indexOf('variant-picker-暴怒');
+const twoPickerSection = twoPickerIdx >= 0 ? editTwoVariantsHTML.slice(twoPickerIdx) : '';
+check('狂怒鬥士：展開後變體清單含【勇猛打手】', twoPickerSection.includes('勇猛打手'), true);
+check('狂怒鬥士：展開後變體清單含【隕石猛擊】', twoPickerSection.includes('隕石猛擊'), true);
+check('狂怒鬥士：展開後變體清單含兩個預覽按鈕',
+  countOf(editTwoVariantsHTML, 'variant-preview-暴怒-'), 2);
 
-// 「↑ [Repeat]」型護欄——故意讓「pickable 重複渲染」這類 bug 被抓到。
-// 第一版破壞驗證時，故意把 `pickable = allForClass` 沒過濾，
-// 結果大卡區跟精簡入口區同時渲染「點此選用」——但「精簡入口點此選用」這條只驗「有沒有」，
-// 沒驗「幾次」，所以沒叫到。下面這條就為了抓「渲染次數錯」這類壞法。
-check('嵌合師編輯模式：「點此選用」按鈕只出現 1 顆（不是 0 也不是 2）',
-  (editPickerHTML.match(/點此選用/g) || []).length, 1);
-check('狂怒鬥士編輯模式：「點此選用」按鈕剛好出現 2 顆（兩個變體各一）',
-  (editTwoVariantsHTML.match(/點此選用/g) || []).length, 2);
-check('已選用後「點此選用」按鈕不應再出現（pickable 已空）',
-  (editAdoptedPickerHTML.match(/點此選用/g) || []).length, 0);
+// 「↑ [Repeat]」型護欄——專門抓「渲染次數錯」的 bug（§AW9 教訓）。
+// 第一版破壞驗證時，故意讓精簡入口重複渲染，結果「有沒有」型斷言沒叫到。
+// 改用「出現次數」型護欄：
+// ※ `countOf` 整份 HTML 數（含 title 屬性），所以變體名會在 title 與 inner text
+//    各出現一次（= 2）。用 `countVisible` 只數 inner text（剝掉 title 屬性後）。
+const stripTitles = (html) => html.replace(/title="[^"]*"/g, '');
+const countVisible = (hay, needle) => (hay.replace(/title="[^"]*"/g, '').match(new RegExp(needle, 'g')) || []).length;
+check('嵌合師：展開後【咒語自助餐】可見文字只出現 1 次（只在變體清單裡）',
+  countVisible(editExpandedHTML, '咒語自助餐'), 1);
+check('狂怒鬥士：展開後【勇猛打手】可見文字只出現 1 次（清單內 1 次）',
+  countVisible(editTwoVariantsHTML, '勇猛打手'), 1);
+check('狂怒鬥士：展開後【隕石猛擊】可見文字只出現 1 次（清單內 1 次）',
+  countVisible(editTwoVariantsHTML, '隕石猛擊'), 1);
+check('預覽中：「使用此公測變體」按鈕只出現 1 次',
+  countOf(editPreviewHTML, '使用此公測變體'), 1);
+check('預覽中：「關閉預覽」按鈕只出現 1 次',
+  countOf(editPreviewHTML, '關閉預覽'), 1);
+check('展開但未預覽：「使用此公測變體」按鈕 0 次',
+  countOf(editExpandedHTML, '使用此公測變體'), 0);
+check('展開但未預覽：「關閉預覽」按鈕 0 次',
+  countOf(editExpandedHTML, '關閉預覽'), 0);
+check('已選用時：「使用此公測變體」按鈕 0 次（已選用要直接走「改回原版」）',
+  countOf(editAdoptedPickerHTML, '使用此公測變體'), 0);
+
+// ★ §BC 反轉版的最關鍵護欄：檢視模式**永遠**不該出現任何變體切換介面
+const viewAdopted = renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 3, variantId: 'spellBuffet', selectedOptions: [] }]),
+  classIndex: 0, character: mkChar(['core', 'playtest']), theme
+}));
+check('★ 檢視模式：永遠不該出現「公測」展開鈕', viewAdopted.indexOf('variant-toggle-'), -1);
+check('★ 檢視模式：永遠不該出現「改回原版」鈕', viewAdopted.includes('改回原版'), false);
+check('★ 檢視模式：永遠不該展開變體清單', viewAdopted.indexOf('variant-picker-'), -1);
+check('★ 檢視模式：永遠不該出現預覽確認鈕', viewAdopted.includes('使用此公測變體'), false);
+check('★ 檢視模式：永遠不該出現預覽取消鈕', viewAdopted.includes('關閉預覽'), false);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

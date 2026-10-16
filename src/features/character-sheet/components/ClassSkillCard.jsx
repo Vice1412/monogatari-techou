@@ -15,11 +15,9 @@ import GameIcon from '../../../components/ui/GameIcon';
 import JRPGBadge from '../../../components/ui/JRPGBadge';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import SkillStarPips from './SkillStarPips';
-import CoreBookVariantCard from './CoreBookVariantCard';
 import {
-  getVariantsForClass,
+  getVariantsForSkill,
   getVariantById,
-  getSkillVariant,
   withSkillVariant,
   resolveSkillDisplay,
   buildSkillEntry
@@ -362,6 +360,8 @@ export default function ClassSkillCard({
   character = {},
   theme,
   isInitialEdit = false,
+  initialExpandedSkill = null,
+  initialPreviewVariants = {},
   onUpdateSkills,
   onUpdateClassBenefit,
   onRemoveClass,
@@ -453,6 +453,13 @@ export default function ClassSkillCard({
     });
     return map;
   });
+
+  // 公測變體預覽狀態（§BC 反轉版：原地切換，不另開大卡）
+  // - `expandedSkillName`: 哪個技能的「公測」按鈕列被展開（null = 都收起來）
+  // - `previewVariantBySkill`: { [skillName]: variantId } 預覽中的變體（未寫入）
+  // SSR 注入點：`initialExpandedSkill` / `initialPreviewVariants` 讓測試直接渲染特定狀態（生產端永不傳入）
+  const [expandedSkillName, setExpandedSkillName] = useState(initialExpandedSkill);
+  const [previewVariantBySkill, setPreviewVariantBySkill] = useState(initialPreviewVariants);
 
   // 暫存的子項目配置字典 (用於編輯模式，保存各特技的子項目選項)
   const [draftSuboptions, setDraftSuboptions] = useState(() => {
@@ -799,27 +806,6 @@ export default function ClassSkillCard({
 
             </div>
           )}
-
-          {/* 核心書技能變體（Core Book Variants）——只列**已被這個角色選用**的變體卡。
-              未選用的變體**不**渲染（GM 裁定 2026-10-16：「沒有選到的話就給我乖乖藏起來」——
-              對齊官方 PDF 的公開行為：變體卡只在「真的在用」時展開）。
-              編輯模式下另有「核心書技能變體（公測）」選用區提供入口（見下方）。
-
-              ※ `data-testid`：測試要能把「技能列」與「這裡的變體卡」分開檢查。
-                沒有這個錨點的話，「忘了收未選用的變體」這個 bug 會被技能列的
-                同名文字蓋掉——護欄會永遠為真（見 §BC 的刻意破壞驗證紀錄）。 */}
-          <div data-testid="variant-browse">
-            {showPlaytestVariants && getVariantsForClass(className)
-              .filter((v) => isVariantAdopted(v.id))
-              .map((v) => (
-                <CoreBookVariantCard
-                  key={v.id}
-                  variant={v}
-                  theme={theme}
-                  isSelected
-                />
-              ))}
-          </div>
         </div>
       )}
 
@@ -848,11 +834,28 @@ export default function ClassSkillCard({
               // ※ 讀的是 `classItem.skills`（已存的狀態），不是 draft——選用是立即生效的。
               const activeVariantId = adoptedVariantId(sk.name);
               const activeVariant = getVariantById(activeVariantId);
-              // 選用變體後：這一列顯示變體的名稱／描述／上限，原版內容收起來。
-              const disp = activeVariant
-                ? resolveSkillDisplay({ name: sk.name, variantId: activeVariantId }, sk)
-                : null;
-              const rowMaxSL = activeVariant ? (activeVariant.maxSL || maxSL) : maxSL;
+
+              // 公測預覽（§BC 反轉版：原地切換）
+              // - 預覽時：技能列標題/描述/上限全部顯示**預覽中的變體**（漸隱漸顯切換）
+              // - 確認才寫入（handleToggleVariant）；取消就清除預覽
+              // - `previewVariantBySkill[sk.name]` 為 null/undefined = 沒在預覽
+              const previewVariantId = previewVariantBySkill[sk.name] || null;
+              const previewVariant = previewVariantId ? getVariantById(previewVariantId) : null;
+              const isPreviewing = !!previewVariant;
+
+              // 顯示用：優先用預覽變體；其次用已選用變體；最後用原版
+              const dispSource = previewVariant
+                ? { name: sk.name, variantId: previewVariant.id }
+                : (activeVariant
+                    ? { name: sk.name, variantId: activeVariantId }
+                    : sk);
+              const disp = resolveSkillDisplay(dispSource, sk);
+              // 這個技能在這個職業裡**有哪些**公測變體
+              const skillVariants = getVariantsForSkill(sk.name);
+              // 預覽／已選用時，上限以變體的為準
+              const rowMaxSL = (previewVariant || activeVariant)
+                ? ((previewVariant && previewVariant.maxSL) || (activeVariant && activeVariant.maxSL) || maxSL)
+                : maxSL;
 
               return (
                 <div
@@ -878,28 +881,88 @@ export default function ClassSkillCard({
                           isLearned ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]' : 'bg-slate-300'
                         }`}
                       />
+                      {/* 技能名：預覽時原地切換（漸隱/漸顯靠 transition 處理） */}
                       <span
-                        className={`text-sm sm:text-base tracking-wide font-black ${
+                        key={disp.name /* 變體切換時重新觸發 transition */}
+                        className={`text-sm sm:text-base tracking-wide font-black transition-opacity duration-200 ${
                           isLearned ? 'text-amber-950 font-serif' : 'text-slate-700'
                         }`}
                       >
-                        {activeVariant ? activeVariant.name : sk.name}
+                        {disp.name}
                       </span>
-                      {/* 選用變體時：顯示【公測】徽章＋原版技能名（讓玩家知道取代了什麼） */}
-                      {activeVariant ? (
-                        <>
-                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-violet-100 text-violet-800 border border-violet-300">
-                            公測
-                          </span>
-                          <span className="text-[10px] text-slate-500 font-bold">
-                            取代【{sk.name}】
-                          </span>
-                        </>
-                      ) : (
-                        isLearned && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 font-mono">
-                            已學習
-                          </span>
+                      {/* 選用變體時：顯示【公測】徽章（沿用舊徽章；預覽時不顯示徽章，只靠 desc 切換） */}
+                      {disp.isVariant && !isPreviewing && (
+                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-violet-100 text-violet-800 border border-violet-300">
+                          公測
+                        </span>
+                      )}
+                      {disp.isVariant && !isPreviewing && (
+                        <span className="text-[10px] text-slate-500 font-bold">
+                          取代【{sk.name}】
+                        </span>
+                      )}
+                      {!disp.isVariant && isLearned && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 font-mono">
+                          已學習
+                        </span>
+                      )}
+                      {/* 公測按鈕（§BC 反轉版）：原版技能列旁永遠顯示一顆。
+                          條件：勾選公測修訂 + 該技能有公測變體。
+                          - 未選用：顯示「公測」+ 變體徽章
+                          - 已選用：顯示「改回原版」
+                          - 展開中：「公測 ●」狀態 */}
+                      {showPlaytestVariants && skillVariants.length > 0 && (
+                        activeVariant ? (
+                          <button
+                            type="button"
+                            data-testid={`variant-revert-${sk.name}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // 改回原版：呼叫 handleToggleVariant(sk.name, null) 取消選用
+                              handleToggleVariant(sk.name, null);
+                              // 收合展開 + 清掉預覽
+                              setExpandedSkillName(null);
+                              setPreviewVariantBySkill((prev) => {
+                                const next = { ...prev };
+                                delete next[sk.name];
+                                return next;
+                              });
+                            }}
+                            className="text-[10px] font-black px-1.5 py-0.5 rounded border bg-violet-100 text-violet-800 border-violet-300 transition-all hover:scale-105 active:scale-95 hover:bg-violet-200"
+                            title={`已選用公測變體【${activeVariant.name}】—— 點此改回原版【${sk.name}】`}
+                          >
+                            改回原版
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            data-testid={`variant-toggle-${sk.name}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (expandedSkillName === sk.name) {
+                                // 再按一次：收合（也順便取消預覽）
+                                setExpandedSkillName(null);
+                                setPreviewVariantBySkill((prev) => {
+                                  const next = { ...prev };
+                                  delete next[sk.name];
+                                  return next;
+                                });
+                              } else {
+                                // 換技能：清掉別的技能的展開
+                                setExpandedSkillName(sk.name);
+                                // 切換技能時也清掉別的技能的預覽（保留自己的預覽以防再點回來）
+                                setPreviewVariantBySkill({ [sk.name]: previewVariantBySkill[sk.name] || null });
+                              }
+                            }}
+                            className={`text-[10px] font-black px-1.5 py-0.5 rounded border transition-all hover:scale-105 active:scale-95 ${
+                              expandedSkillName === sk.name
+                                ? 'bg-violet-200 text-violet-900 border-violet-400'
+                                : 'bg-white text-violet-700 border-violet-300 hover:bg-violet-50'
+                            }`}
+                            title={`此技能有公測變體（${skillVariants.length} 個）—— 點此預覽`}
+                          >
+                            {expandedSkillName === sk.name ? '公測 ●' : '公測'}
+                          </button>
                         )
                       )}
                     </div>
@@ -939,13 +1002,118 @@ export default function ClassSkillCard({
                   {/* 動態公式求值 (未點時展示公式，點亮後展示精算結果)
                       ※ 選用變體後顯示變體描述；原版描述收起來（GM 裁定：選用之後原版要收起來）。 */}
                   <div className="text-xs sm:text-[13px] text-slate-700 leading-relaxed font-sans pl-4 border-l border-slate-200">
-                    <SkillDescription desc={activeVariant ? activeVariant.desc : sk.desc} sl={currentSL} />
-                    {activeVariant && (
+                    <div
+                      key={disp.name /* 變體切換時重新觸發 transition */}
+                      className="transition-opacity duration-200"
+                    >
+                      <SkillDescription desc={disp.desc} sl={currentSL} />
+                    </div>
+                    {disp.isVariant && !isPreviewing && (
                       <div className="mt-1 text-[10px] text-violet-800 font-bold">
-                        原版〈{sk.name}〉暫不適用（已由【{activeVariant.name}】取代）
+                        原版〈{sk.name}〉暫不適用（已由【{disp.name}】取代）
                       </div>
                     )}
                   </div>
+
+                  {/* ======= 變體清單 + 預覽確認區（§BC 反轉版：原地切換） =======
+                      只在這個技能的「公測」按鈕被展開時渲染。
+                      單變體技能：直接顯示一顆「預覽此變體」鈕。
+                      多變體技能：列出所有變體清單，點任一顆 → 預覽。 */}
+                  {showPlaytestVariants && expandedSkillName === sk.name && skillVariants.length > 0 && !activeVariant && (
+                    <div
+                      data-testid={`variant-picker-${sk.name}`}
+                      className="rounded-lg border border-dashed p-2 space-y-1.5 text-xs"
+                      style={{ borderColor: theme.border, backgroundColor: 'rgba(245, 243, 255, 0.5)' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="text-[10px] text-slate-500 font-bold flex items-center gap-1.5">
+                        <span className="font-black px-1 py-0.5 rounded bg-violet-100 text-violet-800 border border-violet-300">
+                          公測
+                        </span>
+                        點任一變體預覽（原地切換內容，確認才寫入）：
+                      </div>
+                      <div className="space-y-1">
+                        {skillVariants.map((v) => (
+                          <button
+                            key={v.id}
+                            type="button"
+                            data-testid={`variant-preview-${sk.name}-${v.id}`}
+                            onClick={() => {
+                              // 預覽：設 previewVariantId，**不寫入** skills[]
+                              setPreviewVariantBySkill((prev) => ({ ...prev, [sk.name]: v.id }));
+                            }}
+                            className={`w-full text-left px-2 py-1.5 rounded border transition-all hover:bg-white ${
+                              isPreviewing && previewVariantId === v.id
+                                ? 'bg-violet-100 border-violet-400 text-violet-900 font-bold'
+                                : 'bg-white/60 border-slate-200 text-slate-700'
+                            }`}
+                            title={`預覽公測變體【${v.name}】`}
+                          >
+                            <span className="font-bold">{v.name}</span>
+                            <span className="text-[10px] text-slate-500 font-mono ml-1.5">
+                              {v.en} · 上限 {v.maxSL}
+                            </span>
+                            {isPreviewing && previewVariantId === v.id && (
+                              <span className="ml-2 text-[10px] text-violet-700 font-bold">（預覽中）</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* 預覽確認區：出現於「正在預覽某個變體」時 */}
+                      {isPreviewing && previewVariant && (
+                        <div
+                          data-testid={`variant-confirm-panel-${sk.name}`}
+                          className="pt-2 border-t flex items-center gap-2"
+                          style={{ borderColor: theme.border }}
+                        >
+                          <button
+                            type="button"
+                            data-testid={`variant-confirm-${sk.name}`}
+                            onClick={() => {
+                              // 確認使用此變體：寫入 variantId（handleToggleVariant 會自動建 sl=1 條目）
+                              handleToggleVariant(sk.name, previewVariant.id);
+                              // 收合 + 清預覽
+                              setExpandedSkillName(null);
+                              setPreviewVariantBySkill((prev) => {
+                                const next = { ...prev };
+                                delete next[sk.name];
+                                return next;
+                              });
+                            }}
+                            className="flex-1 px-2.5 py-1.5 rounded border-2 font-black text-xs transition-all hover:scale-[1.02] active:scale-95"
+                            style={{
+                              backgroundColor: '#7c3aed',
+                              color: 'white',
+                              borderColor: '#6d28d9',
+                            }}
+                          >
+                            使用此公測變體
+                          </button>
+                          <button
+                            type="button"
+                            data-testid={`variant-cancel-${sk.name}`}
+                            onClick={() => {
+                              // 關閉預覽：清掉這個技能的 preview
+                              setPreviewVariantBySkill((prev) => {
+                                const next = { ...prev };
+                                delete next[sk.name];
+                                return next;
+                              });
+                            }}
+                            className="flex-1 px-2.5 py-1.5 rounded border-2 font-bold text-xs transition-all hover:bg-slate-50 active:scale-95"
+                            style={{
+                              backgroundColor: 'white',
+                              color: theme.textDark,
+                              borderColor: theme.border,
+                            }}
+                          >
+                            關閉預覽
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* 子項目狀態與配置條 / 個人載具條 / 忠實夥伴條 */}
                   <div onClick={e => e.stopPropagation()}>
@@ -1000,79 +1168,6 @@ export default function ClassSkillCard({
               );
             })}
           </div>
-
-          {/* ======= 核心書技能變體（Core Book Variants）選用區 =======
-              只在勾選【官方公測修訂】時出現。
-
-              ※ 誰按：**玩家**。GM 只口頭告知團開哪些書，按鈕由玩家在自己的角色卡上按。
-              ※ 何時生效：**立刻**，不等「儲存技能配置」——選用是「這技能是哪一版」的決定，
-                與配點草稿是兩件事；混在一起會讓玩家按了取消後以為選用也取消了。
-              ※ 選用後：上面那一列直接改成變體的內容，原版收起來（GM 裁定）。
-              ※ 一個技能只能選一個變體；同職業不同技能可以各選各的（官方 p.34：
-                變體**規則**須全團一致，變體**技能**是每位玩家的個人選擇）。
-
-              ※ 未選用的變體**不**渲染成大卡（GM 裁定 2026-10-16：「乖乖藏起來」），
-                只在下方列一行「公測可選：○○」當做選用入口。
-                已選用的變體**仍**渲染成大卡（讓玩家隨時看到「取代了什麼」與完整說明）。 */}
-          {showPlaytestVariants && getVariantsForClass(className).length > 0 && (() => {
-            const allForClass = getVariantsForClass(className);
-            const adopted = allForClass.filter((v) => isVariantAdopted(v.id));
-            const pickable = allForClass.filter((v) => !isVariantAdopted(v.id));
-            return (
-              <div className="pt-3 border-t space-y-2.5" style={{ borderColor: theme.border }}>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                  <GiSparkles className="w-3.5 h-3.5" style={{ color: theme.accent }} />
-                  核心書技能變體（公測）
-                  <span className="text-[10px] font-normal text-slate-500">
-                    —— 選用後原版技能會收起來，一次只能選一個
-                  </span>
-                </div>
-
-                {/* 已選用的大卡：沿用既有 CoreBookVariantCard 渲染（含完整 desc 與「改回原版」鈕） */}
-                {adopted.length > 0 && (
-                  <div className="space-y-2">
-                    {adopted.map((v) => (
-                      <CoreBookVariantCard
-                        key={v.id}
-                        variant={v}
-                        theme={theme}
-                        isSelected
-                        onToggle={(vid) => handleToggleVariant(v.replaces, vid)}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {/* 未選用的精簡入口：一行一顆按鈕，按下去＝選用該變體。
-                    為什麼不放成大卡？見頂部使用者的裁定（§BC）。 */}
-                {pickable.length > 0 && (
-                  <div
-                    className="space-y-1 text-xs"
-                    data-testid="variant-picker"
-                  >
-                    {pickable.map((v) => (
-                      <button
-                        key={v.id}
-                        type="button"
-                        onClick={() => handleToggleVariant(v.replaces, v.id)}
-                        title={`用【${v.name}】取代原版【${v.replaces}】`}
-                        className="w-full text-left px-2.5 py-1.5 rounded-lg border border-dashed cursor-pointer transition-all hover:border-solid hover:bg-white active:scale-[.99] flex items-center justify-between gap-2"
-                        style={{ borderColor: theme.border, color: theme.textDark }}
-                      >
-                        <span className="flex items-center gap-2">
-                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded border" style={{ borderColor: theme.accent, color: theme.accent }}>
-                            公測
-                          </span>
-                          <span>原版【{v.replaces}】→ 公測變體【{v.name}】</span>
-                        </span>
-                        <span className="text-[10px] font-bold opacity-70">點此選用</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
 
           {/* 底部儲存確認列 */}
           <div className="pt-2 border-t flex items-center justify-between gap-3" style={{ borderColor: theme.border }}>
