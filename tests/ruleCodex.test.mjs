@@ -15,7 +15,8 @@ import { RULE_CODEX, findCodexRule } from '../src/features/character-sheet/data/
 import rulesData from '../src/features/character-sheet/data/rulesData.json';
 import {
   DANCER_DANCES, CHANTER_DATA, ESPER_GIFTS,
-  MUTANT_THERIOFORMS, FLORIST_MAGISEEDS, SYMBOLIST_SYMBOLS
+  MUTANT_THERIOFORMS, FLORIST_MAGISEEDS, SYMBOLIST_SYMBOLS,
+  SUBOPTION_SKILLS_CONFIG
 } from '../src/features/character-sheet/data/skillSuboptionsData.js';
 import {
   PILOT_FRAMES, PILOT_ARMOR_MODULES, PILOT_WEAPON_MODULES, PILOT_SUPPORT_MODULES
@@ -120,6 +121,45 @@ for (const codexId of EXPANSION_IDS) {
   }
   checkTrue(`${RULE_CODEX[codexId].title}：被 ${hits} 個技能引用`, hits > 0);
 }
+
+section('C3. 技能文字裡的「見【X】」交叉引用必須解析得到速查條目');
+// 為什麼要有這一節：§C 只驗「該職業至少有一個關鍵詞命中技能描述」——太寬。
+// 2026-10-17 實測發現 5 個職業的交叉引用有 4 個是死引用（舞步表／徽記表／祈喚表／園藝表），
+// 全部因為「有別的關鍵詞命中」而通過了 §C。
+//
+// 根因：漢化把英文的頁碼指路（see next page／see page 144）翻成了不存在的「XX表」表名，
+// 而本專案的速查頁名取自**機制名**（舞步／徽記／元素源泉／花園與魔法種子），兩邊對不上。
+// 這裡逐一要求：技能文字裡寫的每一個表名，`findCodexRule` 都必須查得到。
+const crossRefs = [];
+for (const [cls, c] of Object.entries(CLASSES)) {
+  for (const s of c.skills || []) {
+    const re = /見【([^】]+)】/g;
+    let m;
+    while ((m = re.exec(s.desc || '')) !== null) crossRefs.push([cls, s.name, m[1]]);
+  }
+}
+checkTrue(`掃到交叉引用（現有 ${crossRefs.length} 處）`, crossRefs.length >= 6);
+const unresolved = crossRefs.filter(([, , term]) => findCodexRule(term) === null);
+check(
+  '每個交叉引用都查得到速查條目（有值＝死引用）',
+  unresolved.map(([cls, sk, term]) => `${cls}／${sk} → 【${term}】`),
+  []
+);
+
+section('C4. 每個子項目技能的「規則速查」入口都必須按得動');
+// `SkillSuboptionModal` 的「規則速查」按鈕以 `findCodexRule(skillName)` 為顯示條件——
+// 查不到就不顯示。這裡反過來要求：9 個有子項目的技能**全部**都要查得到，
+// 否則那個技能就少了一個入口（而且不會有任何錯誤訊息，只是安靜地不出現）。
+const suboptionPairs = [];
+for (const [cls, skills] of Object.entries(SUBOPTION_SKILLS_CONFIG)) {
+  for (const skillName of Object.keys(skills)) suboptionPairs.push([cls, skillName]);
+}
+checkTrue(`子項目技能共 ${suboptionPairs.length} 個`, suboptionPairs.length >= 9);
+check(
+  '每個子項目技能都查得到速查條目（有值＝按鈕不會出現）',
+  suboptionPairs.filter(([, sk]) => findCodexRule(sk) === null).map(([c, s]) => `${c}／${s}`),
+  []
+);
 
 // ─────────────────────────────────────────────────────────── D
 section('D. 無額外子系統章節的職業，不應有專屬速查條目');

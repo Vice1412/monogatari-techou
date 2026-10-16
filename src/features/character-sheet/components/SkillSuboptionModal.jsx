@@ -18,6 +18,8 @@ import {
   calculateSkillSuboptionMax,
   CHANTER_DATA
 } from '../data/skillSuboptionsData';
+import { findCodexRule } from '../data/ruleCodexData';
+import { openRuleCodex } from '../utils/skillFormulaEvaluator';
 import rulesData from '../data/rulesData.json';
 
 /**
@@ -40,6 +42,10 @@ export default function SkillSuboptionModal({
 }) {
   const config = getSkillSuboptionConfig(className, skillName);
   const maxQuota = calculateSkillSuboptionMax(className, skillName, sl);
+
+  // 本技能有沒有對應的規則速查頁（用技能名當關鍵字查，例：植生術 → 花園與魔法種子）。
+  // 有才顯示「規則速查」按鈕——沒有的技能不該多一顆按不出東西的按鈕。
+  const codexRule = findCodexRule(skillName);
 
   // 搜尋與篩選狀態
   const [searchQuery, setSearchQuery] = useState('');
@@ -243,9 +249,26 @@ export default function SkillSuboptionModal({
               <span className="text-xs text-slate-500 font-mono">
                 {config.quotaHint ? config.quotaHint(sl) : `上限 ${maxQuota} 個`}
               </span>
+
+              {/* 規則速查入口 —— 只在這個技能有對應速查頁時出現。
+                  為什麼要給按鈕，而不是只靠技能文字裡的可點關鍵詞：技能文字寫的是
+                  「見【園藝表】」這種漢化留下來的表名，字體上只是一條細細的虛線，
+                  萌新不容易發現它是可以點的。 */}
+              {codexRule && (
+                <button
+                  type="button"
+                  onClick={() => openRuleCodex(skillName)}
+                  title={`開啟規則速查「${codexRule.title}」（${codexRule.page}）`}
+                  className="text-[11px] font-bold px-2 py-0.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <GiBookCover className="w-3.5 h-3.5" />
+                  <span>規則速查：{codexRule.title}</span>
+                </button>
+              )}
             </div>
             <p className="text-[11px] text-slate-500 mt-0.5">
               依據官方規則，技能等級為你解鎖相應數量的專屬項目。
+              {codexRule && `完整機制（含運作方式與出處頁碼）見「規則速查：${codexRule.title}」。`}
             </p>
           </div>
 
