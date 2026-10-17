@@ -36,7 +36,6 @@ import {
 } from './utils/fultimatorConverter.js';
 import JRPGButton from '../../components/ui/JRPGButton';
 import JRPGBadge from '../../components/ui/JRPGBadge';
-import { withEn } from '../../utils/properNouns';
 import { STORAGE_KEYS } from '../../data/keys';
 import { readJSON, writeJSON } from '../../data/store';
 import { findDuplicateStartingHeroicSkills } from './utils/characterEngine';
@@ -633,7 +632,8 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                           {char.identity || '未設定身份'} · <span style={{ color: charTheme.accent, fontWeight: 'bold' }}>{char.theme || '未設定主題'}</span>
                         </p>
 
-                        {/* Classes Badges */}
+                        {/* Classes Badges — roster 是對外展示界面，不顯示英文職業名（截圖 §BD）。
+                            保留 `c.className` 原樣（含【Playtest】標記），讓玩家看出哪些職業有公測狀態。 */}
                         <div className="flex items-center gap-1 mt-1.5 flex-wrap">
                           {(char.classes || []).map((c, i) => (
                             <span
@@ -641,7 +641,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                               className="text-[10px] px-1.5 py-0.5 rounded border font-mono font-medium"
                               style={{ backgroundColor: '#fffdf9', borderColor: charTheme.border, color: charTheme.textDark }}
                             >
-                              {withEn(c.className)} Lv{c.level}
+                              {c.className} Lv{c.level}
                             </span>
                           ))}
                         </div>

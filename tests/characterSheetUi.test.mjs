@@ -45,6 +45,7 @@ import { readIconMapKeys, findDuplicateIconKeys } from './helpers/gameIconMap.mj
 import CharacterEditor from '../src/features/character-sheet/components/CharacterEditor.jsx';
 import CharacterCard from '../src/features/character-sheet/components/CharacterCard.jsx';
 import AttributeMatrixPicker from '../src/features/character-sheet/components/AttributeMatrixPicker.jsx';
+import ClassPickerModal from '../src/features/character-sheet/components/ClassPickerModal.jsx';
 import {
   buildImagePdf,
   buildImagePdfBytes,
@@ -997,6 +998,65 @@ check('跑團面板印出定制武器的效果（數字看不出來的規則）'
   [true, true]);
 check('跑團面板不重複印規格摘要（那裡的命中／傷害已經是藥丸）',
   hudSrc.includes('mainWeapon.note'), false);
+
+// ─────────────────────────────────────────────────────────── BD
+// §BD 截圖回報：職業卡標題重複英文 / roster gallery 對外展示多印英文
+//   - 圖 1：ClassPickerModal 標題「暗黑之刃 · DARKBLADE」後又多了一個淺色的「/ DARKBLADE」
+//   - 圖 2：roster gallery 卡片下「元素師 · ELEMENTALIST Lv 3」英文不該出現
+section('BD. 職業卡標題／roster gallery：不重複顯示英文');
+
+const countOf = (s, t) => (s.match(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+
+/** ClassPickerModal 詳情 SSR：靠 `initialClassName` + `panelOnly` 跳過彈窗外框直接渲染內容 */
+const renderClassPickerDetail = (className) => renderToStaticMarkup(React.createElement(ClassPickerModal, {
+  isOpen: true, onClose: () => {},
+  theme: {},
+  enabledBooks: ['core'],
+  onToggleSourcebook: () => {},
+  onSetSourcebooks: () => {},
+  existingClassNames: [],
+  onSelectClasses: () => {},
+  budgetUsed: 0,
+  initialClassName: className,
+  panelOnly: true
+}));
+
+const detailHTML = renderClassPickerDetail('暗黑之刃');
+
+// 「暗黑之刃 · DARKBLADE」是 withEn() 的標準形式，會在「清單項目」與「詳情標題」兩處各出現一次，
+// 兩個都是規範 §2-3 允許的中英並列形式。**修復前的 bug 是「/ DARKBLADE」斜線後又重複英文**。
+check('詳情標題：「暗黑之刃 · DARKBLADE」仍要出現（withEn 標準形式，至少 1 次）',
+  countOf(detailHTML, '暗黑之刃 · DARKBLADE') >= 1, true);
+check('詳情標題：「/ DARKBLADE」（斜線後英文）不應該出現——這是修復前的 bug',
+  detailHTML.includes('/ DARKBLADE'), false);
+check('詳情標題：「/ DARKBLADE」（斜線後英文，大小寫變體）也不應該出現',
+  detailHTML.includes('/ Darkblade'), false);
+
+// 清單項目也要乾淨（line 478+481 原本是「暗黑之刃 · DARKBLADE」+ 「DARKBLADE」分兩行）
+// 修復後清單與詳情都只剩「中文 · ENGLISH」並列，不該有單獨秀英文的行。
+// 「裸的英文行」會渲染成 `>DARKBLADE<`（前面是 `>` 後面是 `<`）。
+check('清單：「>DARKBLADE<」單獨秀英文的行不存在',
+  detailHTML.includes('>DARKBLADE<'), false);
+check('清單：「>Darkblade<」單獨秀英文的行不存在（大小寫變體）',
+  detailHTML.includes('>Darkblade<'), false);
+
+// roster gallery（§BD 第二個截圖）：CharacterSheet.jsx 的職業徽章原本用 `withEn(c.className)`
+// 導致對外展示卡顯示「元素師 · ELEMENTALIST Lv 3」。**roster 屬對外展示**，不應該有英文。
+// 用原始碼護欄（CharacterSheet 沒 SSR 注入點，SSR 渲染只會拿到空 roster 看不到 gallery）。
+const rosterSheetSrc = stripComments(sheet);
+check('roster gallery：職業徽章不再用 withEn() 顯示英文',
+  /\{\s*withEn\s*\(\s*c\.className\s*\)\s*\}/.test(rosterSheetSrc), false);
+check('roster gallery：職業徽章改用純中文（c.className Lv{...}）',
+  /\{\s*c\.className\s*\}\s*Lv\{c\.level\}/.test(rosterSheetSrc), true);
+
+// 邊界護欄：roster gallery 改了，**戰鬥抽屜與 play 模式仍要顯示英文**（使用者沒說要改）
+// ——驗證「沒被誤改」。CharacterCard 與 CharacterPlayHUD 是另外兩個檔，SSR 這裡不直接跑，
+// 但確保 import / 函式呼叫都還在。
+const charCardSrc = read('../src/features/character-sheet/components/CharacterCard.jsx');
+check('CharacterCard.jsx：戰鬥抽屜仍用 withEn(cl.className) 顯示英文（沒被誤改）',
+  /\{\s*withEn\s*\(\s*cl\.className\s*\)\s*\}/.test(stripComments(charCardSrc)), true);
+check('CharacterPlayHUD.jsx：play 模式職業標題仍用 withEn(cl.className)（沒被誤改）',
+  /\{\s*withEn\s*\(\s*cl\.className\s*\)\s*\}/.test(hudCode), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

@@ -474,11 +474,10 @@ export default function ClassPickerModal({
                         <GameIcon name={item.info.icon || item.className} size={16} />
                       </div>
                       <div className="min-w-0">
+                        {/* 職業標題：withEn() 已含「中文 · ENGLISH」並列（規範 §2-3），
+                            不再外加 info.en，否則會重複顯示英文（清單變成「暗黑之刃 · DARKBLADE\nDARKBLADE」）。 */}
                         <div className="font-serif font-black text-xs text-slate-800 truncate">
                           {withEn(item.className)}
-                        </div>
-                        <div className="font-mono text-[10px] font-bold text-slate-400 uppercase truncate">
-                          {item.info.en}
                         </div>
                         {/* 官方別稱（原書職業頁的「ALSO:」行）。沒有的一律不顯示，不補佔位符。 */}
                         {formatClassAliases(item.className) && (
@@ -554,12 +553,11 @@ export default function ClassPickerModal({
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
+                      {/* 職業標題：withEn() 已含「中文 · ENGLISH」並列（規範 §2-3），
+                          不再外加 / {info.en}，否則會變成「暗黑之刃 · DARKBLADE / DARKBLADE」重複。 */}
                       <h3 className="font-serif font-black text-base" style={{ color: theme.textDark }}>
                         {withEn(activeClassItem.className)}
                       </h3>
-                      <span className="font-mono text-xs font-bold text-slate-400 uppercase">
-                        / {activeClassItem.info.en}
-                      </span>
                       <JRPGBadge variant={activeClassItem.badgeColor} size="xs">
                         {activeClassItem.bookName}
                       </JRPGBadge>
