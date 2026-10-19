@@ -592,7 +592,7 @@ export default function ClassSkillCard({
               </div>
 
               {/* 免費職業福利
-                  ※ 二選一職業（HP +5 或 MP +5：植物學家／死靈術士／秘儀師【Playtest】）
+                  ※ 二選一職業（HP +5 或 MP +5：植物學家／死靈術士／秘儀師【變體】）
                     **不重複印長句**。`freeBenefits` 與 `freeBonus` 在這裡是同義的
                     （"你的最大HP永久提高5點或最大MP永久提高5點（二選一）" vs "HP +5 或 MP +5"），
                     而下面那排二選一按鈕已經把選項講白了。短標籤＋長句＋按鈕三個一起出現，

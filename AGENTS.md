@@ -432,7 +432,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 
 **仍待處理 / 刻意不改**：
 - ~~`BookCoverHub.jsx:104` 的 `FU COMPANION 《物語助手》`~~ —— ✅ **2026-10-05 已改為《物語手帳》**（見 `docs/decisions.md` §K8）
-- `rulesData.json` 的 `秘儀師【Playtest】` 等英文標籤
+- ~~`rulesData.json` 的 `秘儀師【Playtest】` 等英文標籤~~ —— ✅ **2026-10-19 已消滅**：6 個【Playtest】職業刪除（§BE）＋ 唯一保留者改名為「秘儀師【變體】」（§BF）後，`rulesData.classes` 的鍵與 `name` 已無任何拉丁字母
 - `CharacterEditor.jsx` 的 `✓` / `✗`（dingbat，依 2026-10-03 裁定允許）
 - ⚠️ `NPCWorkshop.jsx` 的 ccfolia 參數 `{ label: "INIT", … }`——**這是外部工具（ccfolia）的欄位識別字，
   不是顯示文案，刻意保留**。改掉會破壞使用者既有的 ccfolia 聊天巨集。
@@ -562,7 +562,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 | D5 金手指選項 | 金手指「倖存者」的第三個選項「**IP 永久 +2**」未實作；「墮落天使」選項③「**最大 MP +10**」未實作（自然 p.129／科技 p.129／特典 p.18）。**結構性原因**：金手指目前只有「名稱比對」（`characterEngine.js` 的 `quirkName.includes(...)`），**無法承載「選項」** | 待裁定 |
 | D6 官方飾品「洋蔥戒指」 | Core p.289：每個**不同職業**使最大 HP 與 MP 各 +2。**實測不在** `rulesData.equipment.accessories`（現僅 6 筆）→ 玩家無法選用 | 待裁定 |
 | ~~D7 暗黑之刃【Playtest】遠程~~ | ✅ **已隨 BC1 結案**：該職業已於 2026-10-19 刪除（無官方對應），此缺陷不再存在。核心職業「暗黑之刃」的免費增益是「HP +5，職業近戰/防具」，沒有二選一歧義 | ✅ 已結案 |
-| ~~BC1~~ 6 個【Playtest】職業無官方對應 | ✅ **2026-10-19 已依使用者裁定結案**：覆核最新修訂文件（Playtest Materials ENG **2026-10-01**，45 頁）——整份只有 p.24「ARCANIST (variant)」一個職業級變體；守護者／武器大師／博學士／暗黑之刃／神射手／吟唱者**只作為英雄技能的前提被提到**（那是核心職業本身），沒有任何職業資料。**已刪除這 6 個職業**（`SOURCEBOOKS.playtest.classes`、`CLASS_METADATA`、`rulesData.classes`）。**秘儀師【Playtest】保留**（使用者原話「我們待會從長計議」），其兩個 SL 上限錯（幻影之力 6/PDF 5、快速召喚 2/PDF 4）仍未修 | ✅ 已結案 |
+| ~~BC1~~ 6 個【Playtest】職業無官方對應 | ✅ **2026-10-19 已依使用者裁定結案**：覆核最新修訂文件（Playtest Materials ENG **2026-10-01**，45 頁）——整份只有 p.24「ARCANIST (variant)」一個職業級變體；守護者／武器大師／博學士／暗黑之刃／神射手／吟唱者**只作為英雄技能的前提被提到**（那是核心職業本身），沒有任何職業資料。**已刪除這 6 個職業**（`SOURCEBOOKS.playtest.classes`、`CLASS_METADATA`、`rulesData.classes`）。唯一保留的變體職業已於 **§BF** 改名為「秘儀師【變體】」並整份對齊原文；兩個 SL 上限（幻影之力 5、快速召喚 4）已於 §BC 修正，與 PDF 一致 | ✅ 已結案 |
 | NPC 工坊重複函式 | `NPCWorkshop.jsx` 與 `utils/npcEngine.js` 之間有三組**同名函式**：`getInitialAffinities`（邏輯相同，可安全收斂）、**`migrateNpcState`（48 vs 18 行）**、**`getSpeciesAffinities`（66 vs 70 行）**——後兩者**行為不同**，且測試只覆蓋 `npcEngine.js` 那份、**生產端元件用的是另一份**（與 §AW「測試與生產分歧」同型）。**需裁定以哪份為準**（涉及既有 NPC 資料的遷移與相性計算）。詳見 `docs/decisions.md` §AX／§AY | 待裁定 |
 
 ### 6.2 已結案（索引）
@@ -628,6 +628,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 | BC | 公測變體卡「乖乖藏起來」＋ Playtest PDF 2026-10-01 比對 | 未選用的變體不渲染；**反轉版**改為「原版技能列旁一顆公測鈕 → 原地切換預覽 → 確認才寫入」，檢視模式永不出現切換介面；修 2 處 SL 上限（幻影之力 6→5、快速召喚 2→4） | 2026-10-17 |
 | BD | 職業卡標題重複英文 ＋ roster gallery 不顯示英文 | `ClassPickerModal` 移除 `withEn()` 之後多餘的 `/ {info.en}`（標題與清單各一處）；roster gallery 改純中文職業名，戰鬥抽屜與 play 模式**保留**英文 | 2026-10-17 |
 | BE | 公測修訂＝開卡規則 tickbox（不是手冊）＋ 刪 6 職 | `creationRules.allowPlaytest`（預設 false）單一控制；`allowedSourcebooks`／`defaultSourcebooks` 依開關進出 playtest；面板新增【開放公測修訂內容】、手冊清單不再列公測；**刪除 6 個無官方對應的【Playtest】職業**（35→29），保留秘儀師【Playtest】待裁定 | 2026-10-19 |
+| BF | 秘儀師【變體】：對齊 ARCANIST (variant) ＋ 阿爾卡納改版 | ① 改名 `秘儀師【Playtest】`→`秘儀師【變體】`（`VARIANT_ARCANIST_CLASS_NAME` 單一來源）② 技能文本對齊 p.24，修 3 處實質錯誤（快速召喚偷加「在衝突中」、選項②把「若已連結」寫成「召喚即連結」、綁定和召喚謊稱「必須從清單選」）③ 阿爾卡納規則連動：召喚 30MP、等級 +5／+10、新增【脈衝】層；`RULE_CODEX.arcanaVariant` 與核心 9 個**並列不覆寫**，速查分頁 16→17 ④ 新增 11 個範例阿爾卡納（各含 domains／merge／pulse／dismiss）⑤ 召喚面板依「角色實際職業」切換數值與脈衝欄 ⑥ 舊存檔職業名唯讀正名（`normalizeRosterClassNames`）⑦ `stripClassSuffix` 收斂後綴剝除，禁止再手寫 `replace('【Playtest】')` | 2026-10-19 |
 
 ## 7. 本檔維護
 

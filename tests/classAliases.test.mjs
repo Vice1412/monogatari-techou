@@ -124,7 +124,7 @@ check('每個主名都有別稱（無缺漏）',
 check('別稱表沒有孤兒鍵（每筆都對得上真實職業）',
   Object.keys(CLASS_ALIASES).filter((n) => !ALL_BASE_NAMES.includes(n)), []);
 check('公測變體沿用主名的別稱',
-  getClassAliases('秘儀師【Playtest】')?.en, getClassAliases('秘儀師')?.en);
+  getClassAliases('秘儀師【變體】')?.en, getClassAliases('秘儀師')?.en);
 check('別稱表的鍵數 = 28', Object.keys(CLASS_ALIASES).length, 28);
 
 // ─────────────────────────────────────────────────────────── C
@@ -182,7 +182,7 @@ check('祈喚者顯示三個（含補譯的 Ascetic）', formatClassAliases('祈
 check('商人顯示三個（含補譯的 Antiquarian／Pharmacist）', formatClassAliases('商人'), '古董商、收藏家、藥劑師');
 check('突變體顯示三個（含補譯的 Experiment）', formatClassAliases('突變體'), '憎惡、實驗體、獸化人');
 check('公測變體沿用主名的顯示字串',
-  formatClassAliases('秘儀師【Playtest】'), formatClassAliases('秘儀師'));
+  formatClassAliases('秘儀師【變體】'), formatClassAliases('秘儀師'));
 check('查無職業回傳 null', [formatClassAliases('不存在'), formatClassAliases(''), formatClassAliases(null)],
   [null, null, null]);
 check('出處：植物學家', classAliasSource('植物學家'), '自然奇幻手冊 p.138');

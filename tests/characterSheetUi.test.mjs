@@ -39,7 +39,9 @@ import {
   createCustomWeaponSpec
 } from '../src/features/character-sheet/data/customWeapons.js';
 import rulesData from '../src/features/character-sheet/data/rulesData.json';
-import { ATTRIBUTE_NAMES } from '../src/features/character-sheet/data/sourcebookConfig.js';
+import { ATTRIBUTE_NAMES, CLASS_METADATA, VARIANT_ARCANIST_CLASS_NAME, normalizeClassName, normalizeRosterClassNames } from '../src/features/character-sheet/data/sourcebookConfig.js';
+import ArcanistManager from '../src/features/character-sheet/components/companions/ArcanistManager.jsx';
+import { stripClassSuffix } from '../src/features/character-sheet/data/classAliases.js';
 import { GAME_ICONS_MAP } from '../src/components/ui/GameIcon.jsx';
 import { readIconMapKeys, findDuplicateIconKeys } from './helpers/gameIconMap.mjs';
 import CharacterEditor from '../src/features/character-sheet/components/CharacterEditor.jsx';
@@ -1083,7 +1085,7 @@ check('官方標準時面板收合（不渲染任何欄位）',
   [rulesPanelDefaultHTML.includes('開放公測修訂內容'), rulesPanelDefaultHTML.includes('官方公測修訂')],
   [false, false]);
 
-// 行為驗證：開關真的決定「秘儀師【Playtest】能不能選」
+// 行為驗證：開關真的決定「秘儀師【變體】能不能選」
 const renderPickerWithRules = (creationRules, enabledBooks) => renderToStaticMarkup(React.createElement(ClassPickerModal, {
   isOpen: true, onClose: () => {}, theme: {},
   enabledBooks,
@@ -1096,19 +1098,130 @@ const renderPickerWithRules = (creationRules, enabledBooks) => renderToStaticMar
 const pickerOnHTML = renderPickerWithRules({ allowPlaytest: true }, ['core', 'playtest']);
 const pickerOffHTML = renderPickerWithRules({ allowPlaytest: false }, ['core']);
 // 縱深防禦：就算呼叫端傳來的 enabledBooks 還留著 playtest（舊角色殘留），
-// 只要規則沒開，秘儀師【Playtest】也不該出現。
+// 只要規則沒開，秘儀師【變體】也不該出現。
 const pickerStaleHTML = renderPickerWithRules({ allowPlaytest: false }, ['core', 'playtest']);
-check('公測開啟 → 秘儀師【Playtest】出現在職業清單',
-  pickerOnHTML.includes('秘儀師【Playtest】'), true);
-check('公測關閉 → 秘儀師【Playtest】完全不出現',
-  pickerOffHTML.includes('秘儀師【Playtest】'), false);
-check('公測關閉但舊資料仍開著 playtest → 秘儀師【Playtest】也不出現（規則優先）',
-  pickerStaleHTML.includes('秘儀師【Playtest】'), false);
+check('公測開啟 → 秘儀師【變體】出現在職業清單',
+  pickerOnHTML.includes('秘儀師【變體】'), true);
+check('公測關閉 → 秘儀師【變體】完全不出現',
+  pickerOffHTML.includes('秘儀師【變體】'), false);
+check('公測關閉但舊資料仍開著 playtest → 秘儀師【變體】也不出現（規則優先）',
+  pickerStaleHTML.includes('秘儀師【變體】'), false);
 check('公測關閉 → 手冊篩選列也沒有「公測修訂」',
   pickerOffHTML.includes('公測修訂'), false);
 check('已刪除的守護者【Playtest】永遠不出現',
   [pickerOnHTML.includes('守護者【Playtest】'), pickerOffHTML.includes('守護者【Playtest】')],
   [false, false]);
+
+// ─────────────────────────────────────────────────────────── BF
+section('BF. 秘儀師【變體】：改名、技能文本、召喚面板與阿爾卡納規則');
+
+// (1) 改名：舊名不准留在程式資料裡（歷史文件另計，見 `docs/decisions.md` §BF）。
+check('rulesData 有【變體】、沒有【Playtest】',
+  [Object.prototype.hasOwnProperty.call(rulesData.classes, VARIANT_ARCANIST_CLASS_NAME),
+    Object.prototype.hasOwnProperty.call(rulesData.classes, '秘儀師【Playtest】')],
+  [true, false]);
+check('CLASS_METADATA 的鍵與 rulesData 同步',
+  [Object.prototype.hasOwnProperty.call(CLASS_METADATA, VARIANT_ARCANIST_CLASS_NAME),
+    Object.prototype.hasOwnProperty.call(rulesData.classes, VARIANT_ARCANIST_CLASS_NAME)],
+  [true, true]);
+// 改名時踩到的真坑：`characterEngine` 曾手寫 replace('【Playtest】', '')，
+// 改名後它安靜地回傳 0 筆。後綴會變，所以剝除邏輯只能有一份。
+check('stripClassSuffix 剝得掉【變體】', stripClassSuffix('秘儀師【變體】'), '秘儀師');
+check('stripClassSuffix 剝得掉【Playtest】（舊存檔仍讀得到）',
+  stripClassSuffix('守護者【Playtest】'), '守護者');
+const engineSrcBf = fs.readFileSync('src/features/character-sheet/utils/characterEngine.js', 'utf8');
+check('引擎不再手寫舊後綴', engineSrcBf.includes("replace('【Playtest】'"), false);
+check('引擎改用共用的 stripClassSuffix', engineSrcBf.includes('stripClassSuffix('), true);
+
+// (2) 技能文本對齊原文（Playtest Materials 2026-10-01, p.24 ARCANIST (variant)）。
+const variantClass = rulesData.classes[VARIANT_ARCANIST_CLASS_NAME];
+check('變體秘儀師仍是 5 個技能（順序即原書順序）',
+  variantClass.skills.map((s) => s.name),
+  ['秘術再生', '綁定和召喚', '幻影之力', '快速召喚', '秘儀學派儀式']);
+check('變體秘儀師的 SL 上限未被動到',
+  variantClass.skills.map((s) => s.maxSL), [6, 1, 5, 4, 1]);
+const skillDescBf = (name) => variantClass.skills.find((s) => s.name === name)?.desc || '';
+check('快速召喚不再擅自加上「在衝突中」（原文只說 during your turn）',
+  skillDescBf('快速召喚').includes('在衝突中'), false);
+check('快速召喚選項②寫明「若你與其處於連結狀態」（原文 if you are merged with it）',
+  skillDescBf('快速召喚').includes('若你與其處於連結狀態'), true);
+check('綁定和召喚允許「與你的團隊共同創作」（原文 or create it with your group）',
+  skillDescBf('綁定和召喚').includes('與你的團隊共同創作'), true);
+check('綁定和召喚不再謊稱「必須從下文的列表中選擇」',
+  skillDescBf('綁定和召喚').includes('必須從下文的列表中選擇'), false);
+check('綁定和召喚寫明 30 點 MP（變體版費用，非核心版 40）',
+  skillDescBf('綁定和召喚').includes('30點MP'), true);
+check('幻影之力把「連接」統一成「連結」（全站用詞）',
+  [skillDescBf('幻影之力').includes('連結狀態'), skillDescBf('幻影之力').includes('連接狀態')],
+  [true, false]);
+
+// (3) 召喚面板要反映「這個角色實際拿到的規則」，不是全域開關。
+const mkArcanistChar = (className, activeSummonId) => ({
+  level: 20,
+  classes: [{ className, level: 20, skills: [{ name: '綁定和召喚', sl: 1 }] }],
+  arcanistData: { boundArcana: [activeSummonId], customArcana: [], activeSummonId }
+});
+const renderArcanist = (char) => renderToStaticMarkup(React.createElement(ArcanistManager, {
+  character: char, onChange: () => {}, showToast: () => {}
+}));
+const variantPanelHTML = renderArcanist(mkArcanistChar(VARIANT_ARCANIST_CLASS_NAME, 'qilin'));
+const corePanelHTML = renderArcanist(mkArcanistChar('秘儀師', 'sword'));
+// 變體角色召喚了一個「核心版沒有脈衝」的阿爾卡納時，要講清楚而不是留空白。
+const variantCoreArcanaHTML = renderArcanist(mkArcanistChar(VARIANT_ARCANIST_CLASS_NAME, 'sword'));
+
+check('變體面板顯示召喚費 30 點 MP', variantPanelHTML.includes('召喚費 30 點 MP'), true);
+check('核心面板顯示召喚費 40 點 MP', corePanelHTML.includes('召喚費 40 點 MP'), true);
+check('變體面板有脈衝欄（技能動作 · 僅衝突場景）',
+  variantPanelHTML.includes('脈衝（技能動作 · 僅衝突場景）'), true);
+check('核心面板沒有脈衝欄', corePanelHTML.includes('脈衝（技能動作'), false);
+check('變體面板列出官方新給的 11 個範例阿爾卡納',
+  variantPanelHTML.includes('麒麟之阿爾卡納'), true);
+check('核心面板不列變體版範例阿爾卡納（兩份清單不該混在一起）',
+  corePanelHTML.includes('麒麟之阿爾卡納'), false);
+check('變體角色 20 級：傷害加值 +5（核心版是 +10）',
+  [variantPanelHTML.includes('(等級 20 傷害 +5)'), corePanelHTML.includes('(等級 20 傷害 +10)')],
+  [true, true]);
+check('變體角色召喚核心版阿爾卡納 → 明說沒有脈衝',
+  variantCoreArcanaHTML.includes('沒有脈衝效果'), true);
+check('召喚面板標出哪些阿爾卡納有脈衝', variantPanelHTML.includes('· 有脈衝'), true);
+
+// (4) 規則速查抽屜：新增分頁，且目錄區塊不再寫死「arcana」。
+const drawerSrcBf = fs.readFileSync('src/features/character-sheet/components/RuleCodexDrawer.jsx', 'utf8');
+check('速查有「阿爾卡納（變體）」分頁', drawerSrcBf.includes("id: 'arcanaVariant'"), true);
+check('目錄區塊改由「有沒有 catalog」決定（不再寫死 activeRuleId === arcana）',
+  [drawerSrcBf.includes("activeRuleId === 'arcana'"), drawerSrcBf.includes('Array.isArray(currentRule.catalog)')],
+  [false, true]);
+check('目錄標題改讀 catalogTitle（不再寫死「9 大」）',
+  [drawerSrcBf.includes('9 大阿爾卡納目錄'), drawerSrcBf.includes('currentRule.catalogTitle')],
+  [false, true]);
+check('目錄卡片會渲染【脈衝】', drawerSrcBf.includes('arcana.pulse &&'), true);
+
+// (5) 舊存檔遷移：職業名同時是 rulesData 的鍵，改名後舊角色會「查不到職業資料」
+//     而安靜地少算技能與免費增益（`classDef` 有 || {} 保護，不會當掉）。
+const staleRoster = [
+  { id: 'a', name: '舊角色', classes: [{ className: '秘儀師【Playtest】', level: 5, skills: [] }] },
+  { id: 'b', name: '核心角色', classes: [{ className: '秘儀師', level: 5, skills: [] }] }
+];
+const migratedRoster = normalizeRosterClassNames(staleRoster);
+check('讀檔時把舊職業名正名為【變體】',
+  migratedRoster[0].classes[0].className, VARIANT_ARCANIST_CLASS_NAME);
+check('正名後真的查得到職業資料（這才是正名的目的）',
+  Array.isArray(rulesData.classes[migratedRoster[0].classes[0].className]?.skills), true);
+check('沒有舊名的角色不受影響（連物件參考都不換）',
+  migratedRoster[1] === staleRoster[1], true);
+check('不改動傳入的名冊（純函式）',
+  staleRoster[0].classes[0].className, '秘儀師【Playtest】');
+const cleanRoster = [staleRoster[1]];
+check('乾淨名冊回傳同一個陣列參考（呼叫端可據此判斷不必寫回）',
+  normalizeRosterClassNames(cleanRoster) === cleanRoster, true);
+check('非陣列輸入不會爆掉', normalizeRosterClassNames(null), null);
+check('單一名稱正名：舊名換新、新名不動、雜訊原樣回傳',
+  [normalizeClassName('秘儀師【Playtest】'), normalizeClassName('秘儀師'), normalizeClassName('')],
+  [VARIANT_ARCANIST_CLASS_NAME, '秘儀師', '']);
+// 正名函式寫好了卻沒接上去，等於沒有——名冊頁必須真的呼叫它。
+const sheetSrcBf = fs.readFileSync('src/features/character-sheet/CharacterSheet.jsx', 'utf8');
+check('名冊頁讀檔時真的呼叫 normalizeRosterClassNames',
+  sheetSrcBf.includes('normalizeRosterClassNames(parsed)'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

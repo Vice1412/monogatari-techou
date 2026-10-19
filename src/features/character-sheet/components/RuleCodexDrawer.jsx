@@ -151,7 +151,9 @@ export default function RuleCodexDrawer({
     { id: 'esper', label: '天賦', icon: GiBrain },
     { id: 'mutant', label: '混合形態', icon: GiWolfHead },
     { id: 'pilot', label: '個人載具', icon: GiSteeringWheel },
-    { id: 'aceOfCards', label: '牌組與組合', icon: GiCardPlay }
+    { id: 'aceOfCards', label: '牌組與組合', icon: GiCardPlay },
+    // 公測修訂（§BF）：變體秘儀師的阿爾卡納規則與核心版並存，不互相覆寫。
+    { id: 'arcanaVariant', label: '阿爾卡納（變體）', icon: GiSparkles }
   ];
 
   const modalContent = (
@@ -194,7 +196,7 @@ export default function RuleCodexDrawer({
         </div>
 
         {/* 類別切換標籤頁 (Tabs)
-            16 個分頁在 max-w-3xl 的面板裡排不進一列。sm 以上改成自動換行（全部可見、零橫向捲動，
+            17 個分頁在 max-w-3xl 的面板裡排不進一列。sm 以上改成自動換行（全部可見、零橫向捲動，
             並以細分隔線標出原書分界）；手機維持單列橫向滑動，另讓滑鼠滾輪也能左右滑。 */}
         <div
           className="flex flex-nowrap sm:flex-wrap items-center gap-1 p-2 bg-[#f4ece1] dark:bg-slate-950 border-b border-[#e2d5c3] dark:border-slate-800 overflow-x-auto sm:overflow-x-visible shrink-0"
@@ -339,12 +341,15 @@ export default function RuleCodexDrawer({
             </div>
           )}
 
-          {/* 1. 阿爾卡納專屬目錄展示 */}
-          {activeRuleId === 'arcana' && (
+          {/* 1. 阿爾卡納目錄展示
+              核心版（9 個，無脈衝）與變體版（11 個，含脈衝）共用同一段渲染：
+              判準是「這條有沒有 catalog」，不是「這條叫不叫 arcana」——
+              否則每加一版阿爾卡納就要再複製一段 JSX。 */}
+          {Array.isArray(currentRule.catalog) && (
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <h3 className="font-bold text-amber-900 dark:text-amber-300 text-xs sm:text-sm">
-                  9 大阿爾卡納目錄
+                  {currentRule.catalogTitle || '阿爾卡納目錄'}
                 </h3>
                 <div className="relative">
                   <input
@@ -377,6 +382,12 @@ export default function RuleCodexDrawer({
                           <strong className="text-amber-800 dark:text-amber-400 font-bold">【連結】：</strong>
                           <span className="text-stone-700 dark:text-stone-300">{renderTextWithAffinities(arcana.merge)}</span>
                         </div>
+                        {arcana.pulse && (
+                          <div>
+                            <strong className="text-sky-800 dark:text-sky-400 font-bold">【脈衝】：</strong>
+                            <span className="text-stone-700 dark:text-stone-300">{renderTextWithAffinities(arcana.pulse)}</span>
+                          </div>
+                        )}
                         <div>
                           <strong className="text-rose-800 dark:text-rose-400 font-bold">【解除】：</strong>
                           <span className="text-stone-700 dark:text-stone-300">{renderTextWithAffinities(arcana.dismiss)}</span>

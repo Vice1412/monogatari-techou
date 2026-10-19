@@ -39,13 +39,16 @@ import JRPGBadge from '../../components/ui/JRPGBadge';
 import { STORAGE_KEYS } from '../../data/keys';
 import { readJSON, writeJSON } from '../../data/store';
 import { findDuplicateStartingHeroicSkills } from './utils/characterEngine';
+import { normalizeRosterClassNames } from './data/sourcebookConfig';
 
 const STORAGE_KEY = STORAGE_KEYS.characterRoster;
 
 export default function CharacterSheet({ onOpenDice = null, onSubNavChange = null }) {
   const [roster, setRoster] = useState(() => {
     const parsed = readJSON(STORAGE_KEY, []);
-    return Array.isArray(parsed) ? parsed : [];
+    // 舊存檔的職業名正名（§BF：秘儀師【Playtest】 → 秘儀師【變體】）。
+    // 不刪不改任何資料，只是把查不到資料的舊鍵換成現行鍵；下面的 writeJSON 會自然寫回。
+    return Array.isArray(parsed) ? normalizeRosterClassNames(parsed) : [];
   });
 
   const [activeCharId, setActiveCharId] = useState(null);
@@ -633,7 +636,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         </p>
 
                         {/* Classes Badges — roster 是對外展示界面，不顯示英文職業名（截圖 §BD）。
-                            保留 `c.className` 原樣（含【Playtest】標記），讓玩家看出哪些職業有公測狀態。 */}
+                            保留 `c.className` 原樣（含【變體】標記），讓玩家看出哪些職業用的是變體規則。 */}
                         <div className="flex items-center gap-1 mt-1.5 flex-wrap">
                           {(char.classes || []).map((c, i) => (
                             <span

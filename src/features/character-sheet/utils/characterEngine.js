@@ -8,6 +8,7 @@ import { buildLoadoutIssues } from './equipmentRules';
 import { buildCustomWeaponEntries, validateCustomWeapon, CUSTOM_WEAPON_BASE } from '../data/customWeapons';
 import { appendLog, createLogEntry } from './characterLog';
 import { findVariantHeroicSkillConflicts } from '../data/coreBookVariants';
+import { stripClassSuffix } from '../data/classAliases';
 
 // Dice ladder for step reductions
 const DICE_STEPS = [6, 8, 10, 12];
@@ -174,7 +175,10 @@ export const HEROIC_SKILL_SOURCE_LABELS = Object.freeze({
  */
 export const heroicSkillsForClass = (className) => {
   if (!className) return [];
-  const bare = String(className).replace('【Playtest】', '');
+  // 用共用剝除器，不要手寫字串替換：變體職業的標記從【Playtest】改成【變體】之後，
+  // 寫死舊標記的版本會安靜地回傳 0 筆（測試才抓到）。
+  const bare = stripClassSuffix(className);
+  if (!bare) return [];
   return HEROIC_SKILLS.filter((h) => h.requirement !== '通用'
     && h.requirement.split(/且|並/)[0].includes(bare));
 };
@@ -262,7 +266,7 @@ export const STARTING_HEROIC_SKILL_BLOCKLIST = Object.freeze([
  * - 「兩個或更多：A、B、C」這種寫法只要求**其中之一**（比原文寬鬆，寧漏不誤）。
  *
  * 職業名互為子字串（`吟唱者` ⊂ `吟唱者【Playtest】`）不會誤判：兩者都進候選清單，
- * 精通任一個都算過。（2026-10-19 起只剩 `秘儀師【Playtest】` 這種帶後綴的變體職業，
+ * 精通任一個都算過。（2026-10-19 起只剩 `秘儀師【變體】` 這種帶後綴的變體職業，
  * 規則不變——後綴比對照樣成立。）
  */
 export const checkHeroicSkillRequirement = (skill, {
@@ -306,7 +310,8 @@ export const checkHeroicSkillRequirement = (skill, {
   const owned = (atCreation || anyClassEnough) ? classes : masteredClasses;
   if (required.some((name) => owned.includes(name))) return { ok: true, reason: '' };
 
-  const shown = [...new Set(required.map((n) => n.replace('【Playtest】', '')))];
+  // 錯誤訊息給玩家看，不帶【變體】這類內部標記。
+  const shown = [...new Set(required.map((n) => stripClassSuffix(n)))];
   return {
     ok: false,
     reason: atCreation
@@ -534,7 +539,7 @@ export const calculateCharacterStats = (char) => {
     const fb = (classDef?.freeBenefits || '') + ' ' + (classDef?.freeBonus || '');
     const clsLabel = cl.className || '未知職業';
 
-    // 二選一職業判定 (秘儀師【Playtest】、死靈術士、舞者、祈喚者、植物學家、卡牌大師)
+    // 二選一職業判定 (秘儀師【變體】、死靈術士、舞者、祈喚者、植物學家、卡牌大師)
     if (isHpMpChoiceBenefit(fb)) {
       // 未指定時預設以 HP+5 為主（避免兩者同時加 5 點導致多送點數）
       if (cl.chosenBenefit === 'MP') {

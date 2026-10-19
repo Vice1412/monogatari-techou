@@ -106,7 +106,7 @@ export default function ClassPickerModal({
 
   // 取得所有可用職業清單
   // ※ 公測修訂**由規則把關**（§BE）：即使呼叫端傳來的 `enabledBooks` 還留著 playtest
-  //   （舊角色的殘留資料），只要【開放公測修訂內容】沒勾，秘儀師【Playtest】就不該出現。
+  //   （舊角色的殘留資料），只要【開放公測修訂內容】沒勾，秘儀師【變體】就不該出現。
   //   這是一層縱深防禦——生產端的 `CharacterEditor` 已經先算過一次。
   const availableClasses = useMemo(() => {
     const list = Object.keys(SOURCEBOOKS)

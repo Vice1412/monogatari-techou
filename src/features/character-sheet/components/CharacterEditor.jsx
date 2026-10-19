@@ -335,7 +335,7 @@ export default function CharacterEditor({
   //
   // 公測修訂**不是手冊**（2026-10-19 使用者裁定，§BE）：它由開卡規則的
   // 【開放公測修訂內容】單獨控制。所以這裡把 `playtest` 當成「規則算出來的隱含來源」——
-  // 開關開著就補進清單（秘儀師【Playtest】可選），關著就剝掉；
+  // 開關開著就補進清單（秘儀師【變體】可選），關著就剝掉；
   // **不改寫角色身上既有的 `enabledSourcebooks`**（舊資料不覆寫）。
   const enabledBooks = (() => {
     const base = character.enabledSourcebooks ?? rules.defaultSourcebooks;

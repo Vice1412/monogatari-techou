@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GiSparkles, GiCancel, GiCheckMark, GiBroadsword, GiFlame } from 'react-icons/gi';
 import { Plus } from 'lucide-react';
 import { RULE_CODEX } from '../../data/ruleCodexData';
+import { VARIANT_ARCANIST_CLASS_NAME } from '../../data/sourcebookConfig';
 import { getCharacterLevel } from '../../utils/characterEngine';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 
@@ -16,7 +17,18 @@ export default function ArcanistManager({
   const [customName, setCustomName] = useState('');
   const [customDomains, setCustomDomains] = useState('');
   const [customMerge, setCustomMerge] = useState('');
+  const [customPulse, setCustomPulse] = useState('');
   const [customDismiss, setCustomDismiss] = useState('');
+
+  /**
+   * 這個角色用的是不是「變體秘儀師」（§BF）。
+   *
+   * 核心版與變體版是**兩套規則**，差在三處：召喚費 40／30、等級傷害 +10·+20／+5·+10、
+   * 以及變體版多一層【脈衝】。判定只認職業名，不認 `allowPlaytest`——
+   * 開關決定「能不能選這個職業」，選了之後面板要反映的則是**這個角色實際拿到的規則**。
+   */
+  const usesVariantArcanist = (character.classes || [])
+    .some((cl) => cl?.className === VARIANT_ARCANIST_CLASS_NAME);
 
   // 取得角色專屬 arcanistData
   const arcanistData = character.arcanistData || {
@@ -25,7 +37,11 @@ export default function ArcanistManager({
     activeSummonId: null
   };
 
-  const officialCatalog = RULE_CODEX.arcana.catalog;
+  // 核心版 9 個阿爾卡納永遠可用（變體版只是多一層脈衝，不是換掉整份清單）；
+  // 變體角色再多出官方新給的 11 個範例阿爾卡納（id 不重疊，可直接串接）。
+  const officialCatalog = usesVariantArcanist
+    ? [...RULE_CODEX.arcana.catalog, ...RULE_CODEX.arcanaVariant.catalog]
+    : RULE_CODEX.arcana.catalog;
   const allArcana = [...officialCatalog, ...(arcanistData.customArcana || [])];
 
   const activeArcana = allArcana.find(a => a.id === arcanistData.activeSummonId);
@@ -89,6 +105,9 @@ export default function ArcanistManager({
       domains: customDomains.trim() || '自訂領域',
       merge: customMerge.trim() || '自訂連攜效果',
       dismiss: customDismiss.trim() || '自訂解除效果',
+      // 只有變體版才有脈衝；空字串＝不寫入，讓 `arcana.pulse` 維持 undefined，
+      // 面板才會顯示「此阿爾卡納為核心版，沒有脈衝效果」而不是一個空括號。
+      ...(usesVariantArcanist && customPulse.trim() ? { pulse: customPulse.trim() } : {}),
       isCustom: true
     };
     const nextCustom = [...(arcanistData.customArcana || []), newArcana];
@@ -97,6 +116,7 @@ export default function ArcanistManager({
     setCustomName('');
     setCustomDomains('');
     setCustomMerge('');
+    setCustomPulse('');
     setCustomDismiss('');
     setIsCustomModalOpen(false);
     showToast(`成功建立並綁定自訂阿爾卡納【${newArcana.name}】！`, 'success');
@@ -114,7 +134,10 @@ export default function ArcanistManager({
   };
 
   const charLevel = getCharacterLevel(character);
-  const levelDamageBonus = charLevel >= 40 ? 20 : charLevel >= 20 ? 10 : 0;
+  // 核心版：20 級 +10／40 級 +20。變體版：20 級 +5／40 級 +10（原文 p.25）。
+  const levelDamageBonus = usesVariantArcanist
+    ? (charLevel >= 40 ? 10 : charLevel >= 20 ? 5 : 0)
+    : (charLevel >= 40 ? 20 : charLevel >= 20 ? 10 : 0);
 
   return (
     <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 via-white to-orange-50/60 dark:from-slate-900 dark:via-slate-800 dark:to-amber-950/20 border border-amber-300/80 dark:border-amber-700/60 shadow-sm space-y-4">
@@ -153,6 +176,9 @@ export default function ArcanistManager({
               <span className="text-[11px] text-blue-200/80 font-mono">
                 領域：{activeArcana.domains}
               </span>
+              <span className="text-[11px] text-blue-200/80 font-mono">
+                召喚費 {usesVariantArcanist ? 30 : 40} 點 MP
+              </span>
             </div>
             <button
               type="button"
@@ -168,6 +194,21 @@ export default function ArcanistManager({
               <span className="text-cyan-300 font-bold">連攜常駐增益：</span>
               <span className="text-blue-100">{renderTextWithAffinities(activeArcana.merge)}</span>
             </div>
+            {usesVariantArcanist && (
+              <div>
+                <span className="text-sky-300 font-bold">脈衝（技能動作 · 僅衝突場景）：</span>
+                <span className="text-blue-100">
+                  {activeArcana.pulse
+                    ? renderTextWithAffinities(activeArcana.pulse)
+                    : '此阿爾卡納為核心版，沒有脈衝效果。'}
+                </span>
+                {activeArcana.pulse && levelDamageBonus > 0 && (
+                  <span className="text-emerald-300 ml-1 font-mono font-bold">
+                    (等級 {charLevel} 傷害 +{levelDamageBonus})
+                  </span>
+                )}
+              </div>
+            )}
             <div>
               <span className="text-amber-300 font-bold">解除爆發效果：</span>
               <span className="text-stone-200">{renderTextWithAffinities(activeArcana.dismiss)}</span>
@@ -253,7 +294,12 @@ export default function ArcanistManager({
                   </div>
                 </div>
 
-                <div className="text-[11px] text-stone-500">領域：{arcana.domains}</div>
+                <div className="text-[11px] text-stone-500">
+                  領域：{arcana.domains}
+                  {arcana.pulse && (
+                    <span className="ml-1 text-sky-700 dark:text-sky-400 font-bold">· 有脈衝</span>
+                  )}
+                </div>
                 <div className="text-[11px] text-stone-700 dark:text-stone-300 line-clamp-2">
                   <span className="font-bold text-blue-700 dark:text-blue-300">連攜：</span>
                   {renderTextWithAffinities(arcana.merge)}
@@ -321,6 +367,23 @@ export default function ArcanistManager({
                 />
               </div>
 
+              {/* 脈衝是變體版獨有的第三層（原文 p.25）。核心版沒有這欄，
+                  填了也沒地方顯示，所以只在變體角色上出現。 */}
+              {usesVariantArcanist && (
+                <div>
+                  <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">
+                    脈衝效果（選填）
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={customPulse}
+                    onChange={e => setCustomPulse(e.target.value)}
+                    placeholder="例如：【日輪灼燒】對一個可見敵人造成 15 點光屬性傷害..."
+                    className="w-full p-2 rounded-lg border border-sky-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-900 dark:text-stone-100 outline-none focus:border-sky-500"
+                  />
+                </div>
+              )}
+
               <div>
                 <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">
                   自願解除效果
@@ -333,6 +396,7 @@ export default function ArcanistManager({
                   className="w-full p-2 rounded-lg border border-amber-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-900 dark:text-stone-100 outline-none focus:border-amber-500"
                 />
               </div>
+
 
               <div className="flex justify-end gap-2 pt-2 border-t border-amber-200 dark:border-slate-800">
                 <button
@@ -386,9 +450,17 @@ export default function ArcanistManager({
                 )}
               </div>
 
-              <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-[11px] text-amber-900 dark:text-amber-200">
-                若你擁有《阿爾卡納圓環》特技且裝備奧術武器，你在同一回合解除時可立即免費執行咒語動作！
-              </div>
+              {/* 變體版沒有《阿爾卡納圓環》這個特技（它的技能表是另一份），
+                  所以那條提示在變體角色身上是錯的，必須換成變體版自己的重點。 */}
+              {usesVariantArcanist ? (
+                <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-[11px] text-amber-900 dark:text-amber-200">
+                  變體版規則：解除效果只在「自願解除」時觸發。場景結束、昏迷或死亡、離開場景造成的自動解除，一律不會觸發解除效果。
+                </div>
+              ) : (
+                <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-[11px] text-amber-900 dark:text-amber-200">
+                  若你擁有《阿爾卡納圓環》特技且裝備奧術武器，你在同一回合解除時可立即免費執行咒語動作！
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-stone-200 dark:border-slate-800">

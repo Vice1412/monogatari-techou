@@ -3,6 +3,73 @@
  * 官方手冊與拓展分類定義
  */
 
+/**
+ * 變體職業的唯一識別名。
+ *
+ * 2026-10-19 起官方只留一個職業級變體：Playtest Materials ENG 2026-10-01 p.24
+ * 「ARCANIST (variant)」。中文名從舊的「秘儀師【Playtest】」改為「秘儀師【變體】」——
+ * 【…】是「限定標記」而非書名，`【Playtest】` 會被誤讀成「這本手冊裡的版本」，
+ * 而它其實是**同一個職業的另一版規則**（見 `docs/decisions.md` §BF）。
+ *
+ * 這個字串同時是 `rulesData.classes` 的鍵、`CLASS_METADATA` 的鍵、
+ * 以及判斷「這個角色用的是變體規則嗎」的唯一依據，所以只准從這裡取。
+ */
+export const VARIANT_ARCANIST_CLASS_NAME = '秘儀師【變體】';
+
+/**
+ * 舊職業名 → 現名。
+ *
+ * 只處理「同一個職業換了名字」，**不做任何語意轉換**：
+ * `秘儀師【Playtest】` 與 `秘儀師【變體】` 是同一份官方變體
+ * （Playtest Materials ENG 2026-10-01 p.24），只是中文標記換了。
+ *
+ * 為什麼需要它：職業名同時是 `rulesData.classes` 的鍵。名字一改，舊存檔的
+ * `char.classes[].className` 就查不到職業資料——技能、免費增益、衍生數值會
+ * **安靜地歸零**（`classDef` 有 `|| {}` 保護，所以不會當掉，只會默默算錯）。
+ * 讀名冊時就地正名，寫回時自然升級，全程不刪任何資料。
+ */
+const LEGACY_CLASS_RENAMES = Object.freeze({
+  '秘儀師【Playtest】': VARIANT_ARCANIST_CLASS_NAME
+});
+
+/**
+ * 把職業名正名為現行名稱；不是舊名就原樣回傳。
+ * @param {string} className
+ * @returns {string}
+ */
+export const normalizeClassName = (className) => (
+  typeof className === 'string' && Object.prototype.hasOwnProperty.call(LEGACY_CLASS_RENAMES, className)
+    ? LEGACY_CLASS_RENAMES[className]
+    : className
+);
+
+/**
+ * 正名整份角色名冊。
+ *
+ * 回傳**新陣列**；若整份名冊都沒有舊名，回傳原本那個陣列（呼叫端可用參考相等
+ * 判斷「有沒有需要寫回」，避免每次開頁都產生新物件）。
+ * @param {Array} roster
+ * @returns {Array}
+ */
+export const normalizeRosterClassNames = (roster) => {
+  if (!Array.isArray(roster)) return roster;
+  let rosterChanged = false;
+  const next = roster.map((char) => {
+    if (!char || !Array.isArray(char.classes)) return char;
+    let charChanged = false;
+    const classes = char.classes.map((cl) => {
+      const name = normalizeClassName(cl?.className);
+      if (name === cl?.className) return cl;
+      charChanged = true;
+      return { ...cl, className: name };
+    });
+    if (!charChanged) return char;
+    rosterChanged = true;
+    return { ...char, classes };
+  });
+  return rosterChanged ? next : roster;
+};
+
 export const SOURCEBOOKS = {
   core: {
     id: 'core',
@@ -71,7 +138,7 @@ export const SOURCEBOOKS = {
     name: '官方公測修訂',
     shortName: '公測修訂',
     badgeColor: 'rose',
-    desc: '官方 Patreon 釋出的實驗性規則：核心書技能變體，以及重製版秘儀師（ARCANIST variant）。',
+    desc: '官方釋出的實驗性規則：核心書技能的變體版本，以及重製版秘儀師。',
     defaultEnabled: false,
     /**
      * 只有**真的有官方對應**的職業才留在這裡。
@@ -83,7 +150,7 @@ export const SOURCEBOOKS = {
      * 屬系統自製內容，已依使用者裁定刪除（見 `AGENTS.md` §6.1 BC1、`docs/decisions.md` §BE）。
      */
     classes: [
-      '秘儀師【Playtest】'
+      VARIANT_ARCANIST_CLASS_NAME
     ]
   }
 };
@@ -302,12 +369,13 @@ export const CLASS_METADATA = {
   // 公測修訂 (Playtest Variants)
   // ※ 2026-10-19 只留官方真的有對應的那一個（Playtest 2026-10-01 p.24「ARCANIST (variant)」）。
   //   其餘 6 個【Playtest】職業在文件裡沒有職業資料，已刪除（§BE）。
-  '秘儀師【Playtest】': {
-    name: '秘儀師【Playtest】',
-    en: 'Arcanist (Playtest)',
+  //   【變體】是「同一職業的另一版規則」，不是另一本書（§BF）。
+  [VARIANT_ARCANIST_CLASS_NAME]: {
+    name: VARIANT_ARCANIST_CLASS_NAME,
+    en: 'Arcanist (Variant)',
     icon: 'GiCrystalBall',
     source: 'playtest',
-    tagline: '公測重製版秘儀師，強化召喚與脈衝。'
+    tagline: '重製版秘儀師：召喚 30 點 MP，阿爾卡納多一層「脈衝」。'
   }
 };
 

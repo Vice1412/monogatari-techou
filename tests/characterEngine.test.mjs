@@ -720,7 +720,7 @@ const fbOf = (cn) => {
   const c = rulesData.classes[cn] || {};
   return (c.freeBenefits || '') + ' ' + (c.freeBonus || '');
 };
-const CHOICE_CLASSES = ['秘儀師【Playtest】', '死靈術士', '舞者', '祈喚者', '植物學家', '卡牌大師'];
+const CHOICE_CLASSES = ['秘儀師【變體】', '死靈術士', '舞者', '祈喚者', '植物學家', '卡牌大師'];
 CHOICE_CLASSES.forEach((cn) => {
   check(`J6 ${cn} 判定為 HP/MP 二選一`, isHpMpChoiceBenefit(fbOf(cn)), true);
 });

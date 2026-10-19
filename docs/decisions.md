@@ -5236,3 +5236,150 @@ roster 用原始碼護欄（`CharacterSheet` 沒有 SSR 注入點，空 roster �
    這次是靠 `npm test` 的 FAIL 抓到的，不是靠記憶。
 
 
+
+---
+
+### BF. 秘儀師【變體】：對齊 ARCANIST (variant)、阿爾卡納改版、規則速查與範例阿爾卡納 —— ✅ 2026-10-19
+
+> 結案 §BE 留下的「秘儀師【Playtest】待長計議」。
+> 一句話：**這個職業不是「公測版的秘儀師」，是「秘儀師的另一版」**，所以標記從
+> 【Playtest】（看起來像書名）改成【變體】（看起來像版本），內容則整份對齊原文。
+
+#### BF1. 需求來源（使用者原話）
+
+> 「根據 arcanist (variant) 的資料，比對資料庫中的秘儀師【PLAYTEST】，一切以原文的修訂文件為主，
+> 跟著 arcanist (variant) 改。然後改名為秘儀師【變體】。只要『開放公測修訂內容』有被打勾，
+> 秘儀師變體就會出現。同時阿爾卡納的規則也會發生改變，規則速查也要加上相應的內容，
+> 還有範例阿爾卡納也要跟著新格式增加」
+
+五件事：① 對齊原文 ② 改名 ③ 由開卡規則開關驅動 ④ 阿爾卡納規則連動（含速查）⑤ 新增範例阿爾卡納。
+
+#### BF2. 原文覆核：技能逐條對照（p.24）
+
+**文件**：`scratch/playtest_2026-10-01.txt`（`Playtest Materials (ENG) (October 1st, 2026)`，45 頁）。
+`ARCANIST FREE BENEFITS` 與 `ARCANIST (variant)` 在 **p.24**，阿爾卡納規則在 **p.25**，
+11 個新範例在 **p.26~31**，英雄技能在 **p.32**，兩版轉換建議在 **p.33**。
+
+| 技能 | 原文（p.24） | 舊資料 | 處置 |
+|---|---|---|---|
+| 秘術再生（SL 6） | After you willingly dismiss an Arcanum **you are merged with**, if you are in Crisis… | 語意正確但用「與你連結」 | 改寫成「與你連結的阿爾卡納」，與全站「連結」用詞統一 |
+| 綁定和召喚（SL 1） | …spend **30** Mind Points… you may choose it from the sample Arcana **or create it with your group** | 寫「**必須**從下文的列表中選擇」 | **實質錯誤**：原文允許自創，舊資料把玩家鎖死在清單裡 |
+| 幻影之力（SL 5） | …merged with an Arcanum… pulses… ignore Affinities | 「連接狀態」 | 統一為「連結狀態」 |
+| 快速召喚（SL 4） | When you summon an Arcanum **during your turn**… | 「當你**在衝突中**於你的回合內召喚」 | **實質錯誤**：原文沒有限制只能在衝突中 |
+| 快速召喚選項② | after you summon the Arcanum, **if you are merged with it**, perform its pulse | 「當你召喚**並連接**一個阿爾卡納之後」 | **實質錯誤**：把條件寫成動作，變成「召喚即連結」 |
+| 秘儀學派儀式（SL 1） | Ritual Arcanism… (WLP + WLP) | 一致 | 只統一括號 |
+
+**兩個 SL 上限的舊帳**（§BE5 記載「幻影之力 6/PDF 5、快速召喚 2/PDF 4」）：本輪實測資料已是
+**幻影之力 5、快速召喚 4**，與原文一致——該筆已於 **§BC** 修正，本節一併結案。
+
+#### BF3. 改名：`秘儀師【Playtest】` → `秘儀師【變體】`
+
+改動點與理由：
+
+| 位置 | 改動 |
+|---|---|
+| `rulesData.json` | 職業鍵與 `name` 同步改名（其餘欄位原樣，JSON 往返位元組不變） |
+| `sourcebookConfig.js` | 新增 `VARIANT_ARCANIST_CLASS_NAME` 常數，`SOURCEBOOKS.playtest.classes` 與 `CLASS_METADATA` 都改用它 |
+| `CLASS_METADATA.en` | `Arcanist (Playtest)` → `Arcanist (Variant)`（對應原文標題 `ARCANIST (variant)`） |
+| `SOURCEBOOKS.playtest.desc` | 去掉中英夾雜的 `（ARCANIST variant）` |
+
+**為什麼叫【變體】而不是【公測】**：`【…】` 在這個專案裡是「限定標記」，`【Playtest】` 讀起來像
+「這本手冊裡的版本」，但它其實是**同一職業的另一版規則**（官方 p.34 稱 `variants`）。
+改名後 `withEn()` 仍會剝除後綴查表，所以顯示是「秘儀師【變體】 · ARCANIST」——不會變成
+「秘儀師【變體】 · ARCANIST (VARIANT)」這種重複英文（§BD 的同型問題）。
+
+#### BF4. 阿爾卡納規則變更（p.25）：三處數字、一個新層級
+
+| 項目 | 核心版 | 變體版（原文 p.25） |
+|---|---|---|
+| 召喚費 | 40 點 MP | **30 點 MP** |
+| 等級傷害加值 | 20 級 +10／40 級 +20 | **20 級 +5／40 級 +10** |
+| 層級 | 連結 ＋ 解除 | 連結 ＋ **脈衝** ＋ 解除 |
+
+新增規則：脈衝用技能動作、**只能在衝突場景**使用；解除效果**只有自願解除**才觸發；
+自願解除不需動作，但衝突中只能在自己回合且無其他效果結算時。
+
+**為什麼不就地改核心條目**：官方 p.33「ARCANA, OLD AND NEW」明說兩版可互相轉換
+（核心→變體＝設計脈衝；變體→核心＝移除脈衝並可強化連結增益）。就地覆寫等於**沒收玩家的舊版**，
+與 §BC／§BE「變體不是 errata」的立場衝突。所以 `RULE_CODEX` 採**並列**：
+`arcana`（9 個，無脈衝）＋ `arcanaVariant`（11 個，含脈衝）。
+
+**速查抽屜的通用化**：原本目錄區塊寫死 `activeRuleId === 'arcana'` 與標題「9 大阿爾卡納目錄」，
+新增第二版阿爾卡納就必須複製整段 JSX。改為判準「這條有沒有 `catalog`」，標題改讀 `catalogTitle`，
+並支援選填 `pulse`。分頁數 16 → 17。
+
+**範例阿爾卡納（11 個，p.26~31）**：安提基特拉、報喪女妖、卡拉德里烏斯、恩奇都、葛葉、
+莫羅茲、妮妙、奧法尼爾、麒麟、土八該隱、瓦納甘德。每筆都是 `{ id, name, domains, merge, pulse, dismiss }`。
+其中 5 個是核心版的改寫（莫羅茲＝霜、妮妙＝劍、奧法尼爾＝塔、麒麟＝魔典、土八該隱＝鍛造），
+測試會檢查這 5 個名字都在。
+
+#### BF5. 召喚面板（`ArcanistManager`）
+
+判準是「**這個角色實際拿到的規則**」，不是全域開關——`allowPlaytest` 決定「能不能選這個職業」，
+選了之後面板要反映的是職業本身。所以用 `usesVariantArcanist`（`character.classes` 是否含
+`VARIANT_ARCANIST_CLASS_NAME`），不看 `allowPlaytest`。
+
+| 項目 | 核心角色 | 變體角色 |
+|---|---|---|
+| 召喚費標示 | 40 點 MP | 30 點 MP |
+| 傷害加值 | 20 級 +10／40 級 +20 | 20 級 +5／40 級 +10 |
+| 脈衝欄 | 不顯示 | 顯示（技能動作 · 僅衝突場景），無脈衝時明說「核心版沒有脈衝」 |
+| 可選阿爾卡納 | 核心 9 個 | 核心 9 個 ＋ 變體 11 個 |
+| 自訂阿爾卡納表單 | 名稱／領域／連結／解除 | 多一欄「脈衝（選填）」 |
+| 解除視窗提示 | 《阿爾卡納圓環》連動 | 改為「解除效果只在自願解除時觸發」（變體版沒有那個特技） |
+
+#### BF6. 舊存檔遷移（改名帶來的副作用）
+
+職業名同時是 `rulesData.classes` 的鍵。改名後舊存檔的 `char.classes[].className` 查不到職業資料；
+`ClassSkillCard` 有 `|| {}` 保護所以**不會當掉，只會默默少算技能與免費增益**——
+這比當掉更危險。
+
+修法：`sourcebookConfig.js` 加 `LEGACY_CLASS_RENAMES` ＋ `normalizeClassName` ＋
+`normalizeRosterClassNames`（純函式、不改傳入物件、無舊名時回傳原陣列參考），
+在 `CharacterSheet` 讀名冊時套用；既有的 `writeJSON` 效果會自然寫回。**不刪任何資料。**
+
+#### BF7. 護欄與刻意破壞驗證
+
+| 檔案 | 新增 | 內容 |
+|---|---|---|
+| `tests/characterSheetUi.test.mjs` | §BF（35 條） | 改名、`CLASS_METADATA` 同步、`stripClassSuffix`、技能文本 3 處錯、面板 SSR（變體／核心／變體召喚核心阿爾卡納三種）、速查抽屜原始碼掃描、舊存檔遷移 |
+| `tests/ruleCodex.test.mjs` | §H（19 條） | 條數 17、兩版目錄並存、核心版無脈衝／變體版必有脈衝、id 不撞號、30／5／10 三個數字、5 個直接對應名稱 |
+
+刻意破壞驗證（8 輪，全部被抓到，每次都已還原）：
+
+| # | 破壞 | 叫的護欄 |
+|---|---|---|
+| ① | 變體等級加值改回 +10 | 「變體角色 20 級：傷害加值 +5」 |
+| ② | 拿掉麒麟的脈衝 | 「變體版 11 個都真的有脈衝」＋「每一筆都有…脈衝」 |
+| ③ | 速查目錄退回寫死 `arcana` | 「目錄區塊改由有沒有 catalog 決定」 |
+| ④ | 快速召喚偷加「在衝突中」 | 「快速召喚不再擅自加上在衝突中」 |
+| ⑤ | 引擎退回手寫 `replace('【Playtest】')` | 「引擎不再手寫舊後綴」 |
+| ⑥ | `CLASS_METADATA` 鍵退回舊名 | 「CLASS_METADATA 的鍵與 rulesData 同步」 |
+| ⑦ | 遷移對照表清空 | 「讀檔時把舊職業名正名為【變體】」等 3 條 |
+| ⑧ | 名冊頁沒接上正名函式 | 「名冊頁讀檔時真的呼叫 normalizeRosterClassNames」 |
+
+全套 **3182 條通過**（`ui` 331、`codex` 298、`creation` 262、`engine` 362 其餘不變）；
+`npm run build` exit 0；`npm run test:emoji` 0 命中。
+
+#### BF8. 未決事項
+
+| 項目 | 狀態 |
+|---|---|
+| `秘術再生` 是否改名為 `阿爾卡納再生`（原文同為 ARCANE REGENERATION，核心版譯作「阿爾卡納再生」） | **未改**。改名會讓舊存檔的技能名查不到資料，需要另一套技能名遷移，本輪不做 |
+| 變體版英雄技能（p.32：`Grand Summoning` 改為「召喚物代你執行脈衝」、`Revelation` 重寫） | 未動。目前 `playtestHeroicSkills` 只有核心版文字 |
+| 核心 9 個阿爾卡納要不要補脈衝（p.33 的轉換建議） | 未做。官方立場是「要轉換的人自己設計」，不是自動給 |
+
+#### BF9. 教訓
+
+1. **改名會踩到寫死的字串**。`characterEngine` 有兩處手寫 `replace('【Playtest】', '')`，
+   改名後 `heroicSkillsForClass` 安靜地回傳 0 筆——**是測試抓到的，不是人眼**。
+   後綴剝除現在只有一份（`stripClassSuffix`），並加原始碼護欄禁止再手寫。
+2. **「查不到資料」比「當掉」難發現**。`classDef` 的 `|| {}` 讓壞掉的職業看起來只是「沒技能」。
+   凡是「用名字當鍵」的資料，改名就必須配遷移。
+3. **原文與舊資料的差異要逐句比，不能只看大意**。三處錯（在衝突中／召喚即連結／必須從清單選）
+   都是「讀起來合理、但原文沒這樣寫」，只看中文是看不出來的。
+4. **通用化目錄區塊的判準要換成「資料形狀」而不是「資料身分」**。
+   `activeRuleId === 'arcana'` 在只有一版時完全正確，加第二版就變成必須複製貼上的技術債。
+5. **關鍵字會變成全域副作用**。`RULE_CODEX` 的 `keywords` 會被 `skillFormulaEvaluator` 拿去把
+   所有技能文本裡的同名字串變成可點連結——原本想加「脈衝」「解除效果」，那會讓全站技能說明
+   冒出上百個連結，所以只留「阿爾卡納（變體）」這類專指詞。

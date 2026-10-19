@@ -870,10 +870,10 @@ check('heroicSkillsForClass：守護者至少解鎖 3 個',
 check('heroicSkillsForClass：Playtest 那批也算得出來',
   heroicSkillsForClass('元素師').some((h) => h.source === 'playtest'), true);
 check('heroicSkillsForClass：沒有職業時回空陣列', heroicSkillsForClass(''), []);
-// 2026-10-19：6 個【Playtest】職業已刪除，只剩秘儀師【Playtest】。
+// 2026-10-19：6 個【Playtest】職業已刪除，只剩秘儀師【變體】。
 // 這條驗的是「帶【…】後綴的變體職業會剝除後綴、對到主名那一組」。
 check('heroicSkillsForClass：【Playtest】變體對到同一組',
-  heroicSkillsForClass('秘儀師【Playtest】').length, heroicSkillsForClass('秘儀師').length);
+  heroicSkillsForClass('秘儀師【變體】').length, heroicSkillsForClass('秘儀師').length);
 check('heroicSkillsForClass：「A或B」型在兩邊都查得到',
   [heroicSkillsForClass('機師').some((h) => h.name === '震顫泰坦'),
     heroicSkillsForClass('守護者').some((h) => h.name === '震顫泰坦')], [true, true]);
@@ -978,12 +978,12 @@ const DELETED_PLAYTEST_CLASSES = [
 ];
 check('rulesData 不再有那 6 個職業',
   DELETED_PLAYTEST_CLASSES.filter((name) => Object.prototype.hasOwnProperty.call(rulesData.classes, name)), []);
-check('SOURCEBOOKS.playtest.classes 只剩秘儀師【Playtest】',
-  SOURCEBOOKS.playtest.classes, ['秘儀師【Playtest】']);
+check('SOURCEBOOKS.playtest.classes 只剩秘儀師【變體】',
+  SOURCEBOOKS.playtest.classes, ['秘儀師【變體】']);
 check('CLASS_METADATA 也不再有那 6 個職業',
   DELETED_PLAYTEST_CLASSES.filter((name) => Object.prototype.hasOwnProperty.call(CLASS_METADATA, name)), []);
-check('秘儀師【Playtest】仍然在（待後續裁定，不可誤刪）',
-  Object.prototype.hasOwnProperty.call(rulesData.classes, '秘儀師【Playtest】'), true);
+check('秘儀師【變體】仍然在（公測唯一的職業級變體，不可誤刪）',
+  Object.prototype.hasOwnProperty.call(rulesData.classes, '秘儀師【變體】'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

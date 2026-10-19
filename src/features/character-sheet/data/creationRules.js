@@ -56,7 +56,7 @@ const ALL_SOURCEBOOK_KEYS = Object.freeze(Object.keys(SOURCEBOOKS));
  * 公測修訂的來源鍵。
  *
  * **它仍然是一個合法的 sourcebook 鍵**（角色身上 `enabledSourcebooks` 用它決定
- * 秘儀師【Playtest】能不能選），但**不是 GM 在「開放的手冊」裡勾的東西**——
+ * 秘儀師【變體】能不能選），但**不是 GM 在「開放的手冊」裡勾的東西**——
  * 使用者裁定（2026-10-19）：公測是一個像金手指／定制武器那樣的**選用規則開關**，
  * 不是一本「手冊」。所以它由 `allowPlaytest` 單獨控制進出
  * `allowedSourcebooks` / `defaultSourcebooks`，兩個清單不再手動勾它。
@@ -172,7 +172,7 @@ export const DEFAULT_CREATION_RULES = Object.freeze({
    * 開啟時：
    * ① 核心書技能的【公測】變體按鈕才會出現（`coreBookVariants.js`）；
    * ② `playtest` 自動進入 `allowedSourcebooks` 與 `defaultSourcebooks`，
-   *    秘儀師【Playtest】才能被選；
+   *    秘儀師【變體】才能被選；
    * ③ 關閉時兩份清單都會剝除 `playtest`（既有角色的資料不動，只是上限擋住）。
    *
    * 預設 false：官方核心規則沒有公測內容。
@@ -232,7 +232,7 @@ export const resolveCreationRules = (overrides = {}) => {
   let defaultSourcebooks = withinCeiling.length > 0
     ? withinCeiling
     : (allowedSourcebooks.includes('core') ? ['core'] : [allowedSourcebooks[0]]);
-  // 公測開啟時，新角色預設就該看得到秘儀師【Playtest】（否則等於白開）
+  // 公測開啟時，新角色預設就該看得到秘儀師【變體】（否則等於白開）
   if (allowPlaytest && !defaultSourcebooks.includes(PLAYTEST_SOURCEBOOK_KEY)) {
     defaultSourcebooks = [...defaultSourcebooks, PLAYTEST_SOURCEBOOK_KEY];
   }

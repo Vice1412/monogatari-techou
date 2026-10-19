@@ -225,18 +225,32 @@ export const CLASS_ALIASES = {
   }
 };
 
-/** 尾端的【…】限定標記（如 `【Playtest】`）；查表時剝除。 */
+/** 尾端的【…】限定標記（如 `【Playtest】`、`【變體】`）；查表時剝除。 */
 const SUFFIX_RE = /【[^】]*】\s*$/;
 
 /**
- * 取得職業別稱。公測變體（`秘儀師【Playtest】`）剝除後綴後沿用本表。
+ * 剝掉職業名尾端的【…】限定標記。
+ *
+ * **不准在別處手寫 `replace('【Playtest】', '')`**——2026-10-19 把變體職業
+ * 改名為「秘儀師【變體】」時，`characterEngine` 裡就有一份寫死舊標記的版本，
+ * 改名後它悄悄回傳 0 筆（測試才抓到）。標記會變，這條規則不會。
+ * @param {string} className
+ * @returns {string}
+ */
+export function stripClassSuffix(className) {
+  if (typeof className !== 'string') return '';
+  return className.replace(SUFFIX_RE, '').trim();
+}
+
+/**
+ * 取得職業別稱。公測變體（`秘儀師【變體】`）剝除後綴後沿用本表。
  * @param {string} className
  * @returns {{zh?: string[], en?: string[], zhExtra?: string[], src?: string}|null}
  */
 export function getClassAliases(className) {
   if (typeof className !== 'string' || !className.trim()) return null;
   const raw = className.trim();
-  const base = raw.replace(SUFFIX_RE, '').trim();
+  const base = stripClassSuffix(raw);
   return CLASS_ALIASES[raw] || CLASS_ALIASES[base] || null;
 }
 

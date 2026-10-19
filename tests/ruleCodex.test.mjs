@@ -45,7 +45,7 @@ const CLASSES = rulesData.classes || {};
 // ─────────────────────────────────────────────────────────── A
 section('A. 條目完整性');
 const ids = Object.keys(RULE_CODEX);
-check('共 16 條（核心 6 + 擴充 10）', ids.length, 16);
+check('共 17 條（核心 6 + 擴充 10 + 公測 1）', ids.length, 17);
 
 const CORE_IDS = ['arcana', 'rituals', 'gadgets', 'projects', 'companion', 'spellbooks'];
 const EXPANSION_IDS = [
@@ -54,8 +54,10 @@ const EXPANSION_IDS = [
   'esper', 'mutant', 'pilot',
   'aceOfCards'
 ];
+const PLAYTEST_IDS = ['arcanaVariant'];
 check('核心 6 條齊全', CORE_IDS.every((x) => ids.includes(x)), true);
 check('擴充 10 條齊全', EXPANSION_IDS.every((x) => ids.includes(x)), true);
+check('公測 1 條齊全', PLAYTEST_IDS.every((x) => ids.includes(x)), true);
 
 for (const id of ids) {
   const e = RULE_CODEX[id];
@@ -311,6 +313,49 @@ matchNames('機師支援模組',
 // 徽記同時維持上限＝SL + 1（已對照原書；`skillSuboptionsData` 的 quotaHint 同值）
 checkTrue('徽記師：同時維持上限為 SL+1',
   RULE_CODEX.symbolist.sections[0].items.some((s) => s.includes('加 1')));
+
+// ─────────────────────────────────────────────────────────── H
+section('H. 阿爾卡納變體（§BF：ARCANIST (variant), Playtest 2026-10-01 p.24~33）');
+// 這條速查的意義是「兩版並列」：核心版 9 個（無脈衝）與變體版 11 個（有脈衝）
+// 必須同時存在、互不覆寫。任何一邊被合併掉，下面就會撞牆。
+const ARC_CORE = RULE_CODEX.arcana;
+const ARC_VAR = RULE_CODEX.arcanaVariant;
+
+check('核心版仍是 9 個阿爾卡納', ARC_CORE.catalog.length, 9);
+check('變體版是 11 個範例阿爾卡納', ARC_VAR.catalog.length, 11);
+check('核心版目錄標題未被改寫', ARC_CORE.catalogTitle, '9 大阿爾卡納目錄');
+check('變體版目錄標題', ARC_VAR.catalogTitle, '11 個範例阿爾卡納');
+check('變體版條目掛在「公測修訂」這本書下（分頁分隔線靠它）',
+  ARC_VAR.page.split(/\s+/)[0], '公測修訂');
+
+// 兩版的差別本身要被守住：核心版**不該**有脈衝，變體版**必須**有。
+check('核心版 9 個都沒有脈衝（這是兩版的根本差別）',
+  ARC_CORE.catalog.filter((a) => a.pulse !== undefined).map((a) => a.id), []);
+check('變體版 11 個都真的有脈衝',
+  ARC_VAR.catalog.filter((a) => typeof a.pulse !== 'string' || !a.pulse.trim()).map((a) => a.id), []);
+check('變體版每一筆都有 id／名稱／領域／連結／脈衝／解除',
+  ARC_VAR.catalog.filter((a) => !(a.id && a.name && a.domains && a.merge && a.pulse && a.dismiss)).map((a) => a.id), []);
+check('變體版 id 不與核心版撞號（撞號會讓召喚面板指錯人）',
+  ARC_VAR.catalog.filter((a) => ARC_CORE.catalog.some((c) => c.id === a.id)).map((a) => a.id), []);
+check('變體版 id 彼此不重複',
+  ARC_VAR.catalog.length - new Set(ARC_VAR.catalog.map((a) => a.id)).size, 0);
+
+// 規則數字（p.25）：召喚 30 點 MP、等級 +5／+10。抄錯就會變成核心版的 40／10／20。
+const arcVarRules = ARC_VAR.rules.join('\n');
+checkTrue('變體規則寫明召喚費 30 點 MP', arcVarRules.includes('30 點 MP'));
+checkTrue('變體規則寫明 20 級 +5', /20 級以上額外 5 點/.test(arcVarRules));
+checkTrue('變體規則寫明 40 級 +10', /40 級以上額外 10 點/.test(arcVarRules));
+checkTrue('變體規則寫明脈衝只能在衝突場景使用', arcVarRules.includes('衝突場景'));
+checkTrue('變體規則寫明自動解除不觸發解除效果', arcVarRules.includes('不會觸發'));
+// 核心版仍是 40／10／20，不能被順手改成變體數字。
+const arcCoreRules = ARC_CORE.rules.join('\n');
+checkTrue('核心版規則仍是 40 點 MP', arcCoreRules.includes('40 點 MP'));
+checkTrue('核心版等級加值仍是 10／20', /額外造成 10 點傷害/.test(arcCoreRules) && /額外造成 20 點傷害/.test(arcCoreRules));
+
+// 官方 p.33 指名 5 個「直接對應」的改寫版，缺一個就代表範例抄漏了。
+const DIRECT_EQUIVALENTS = ['莫羅茲', '妮妙', '奧法尼爾', '麒麟', '土八該隱'];
+check('5 個「直接對應核心版」的範例阿爾卡納都在',
+  DIRECT_EQUIVALENTS.filter((n) => !ARC_VAR.catalog.some((a) => a.name.includes(n))), []);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

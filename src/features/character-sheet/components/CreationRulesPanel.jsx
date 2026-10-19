@@ -54,7 +54,7 @@ const TOGGLE_FIELDS = [
   { key: 'allowCustomWeapon', label: '開放【定制武器】', hint: '高度奇幻手冊 p.106 選用規則；任何團都能單獨開' },
   { key: 'startingHeroicSkill', label: '開局贈送一個英雄技能', hint: 'Playtest 選用規則' },
   // 使用者裁定（2026-10-19）：公測修訂不是「一本手冊」，是像上面兩條一樣的選用規則開關。
-  // 開啟後才會出現核心書技能的【公測】變體，並讓秘儀師【Playtest】可選。
+  // 開啟後才會出現核心書技能的【公測】變體，並讓秘儀師【變體】可選。
   { key: 'allowPlaytest', label: '開放公測修訂內容', hint: '官方公測材料；核心技能變體與秘儀師變體' }
 ];
 
