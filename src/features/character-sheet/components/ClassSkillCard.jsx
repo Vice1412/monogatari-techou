@@ -22,7 +22,7 @@ import {
   resolveSkillDisplay,
   buildSkillEntry
 } from '../data/coreBookVariants';
-import { resolveCreationRules } from '../data/creationRules';
+import { isPlaytestAllowed } from '../data/creationRules';
 import SkillDescription from '../utils/skillFormulaEvaluator';
 import SkillSuboptionModal from './SkillSuboptionModal';
 import SuboptionDetailsList from './SuboptionDetailsList';
@@ -374,14 +374,10 @@ export default function ClassSkillCard({
   const classDef = rulesData.classes[className] || {};
   const allAvailableSkills = classDef.skills || [];
 
-  // 核心書技能變體是**選用**的：只有勾選【官方公測修訂】才顯示（GM 口頭告知的團規則）。
-  // ※ 來源是 `character.enabledSourcebooks`，不是 `resolveCreationRules()` 的回傳——
-  //   後者**沒有** `enabledSourcebooks` 這個欄位（見 §AV1）。
-  const showPlaytestVariants = (
-    character?.enabledSourcebooks
-    ?? resolveCreationRules(character?.creationRules || {}).defaultSourcebooks
-    ?? []
-  ).includes('playtest');
+  // 核心書技能變體是**選用**的：只有【開放公測修訂內容】勾起來才顯示。
+  // ※ 2026-10-19 起改由 `creationRules.allowPlaytest` 單一判定（`isPlaytestAllowed`），
+  //   不再看 `character.enabledSourcebooks`——公測是規則開關，不是一本手冊（§BE）。
+  const showPlaytestVariants = isPlaytestAllowed(character);
 
   /** 這個技能條目目前選用了哪個變體（沒選回 null）。 */
   const adoptedVariantId = (skillName) => {

@@ -117,7 +117,7 @@ section('B. 覆蓋率：SOURCEBOOKS ↔ CLASS_ALIASES 雙向');
 const ALL_CLASS_NAMES = ITEMS.map((i) => i.className);
 const ALL_BASE_NAMES = [...new Set(ALL_CLASS_NAMES.map(baseOf))];
 
-check('可選職業（含公測變體）共 35', ALL_CLASS_NAMES.length, 35);
+check('可選職業（含公測變體）共 29', ALL_CLASS_NAMES.length, 29);
 check('主名共 28（15 核心 ＋ 4 高 ＋ 4 自 ＋ 3 科 ＋ 2 特典）', ALL_BASE_NAMES.length, 28);
 check('每個主名都有別稱（無缺漏）',
   ALL_BASE_NAMES.filter((n) => !getClassAliases(n)), []);

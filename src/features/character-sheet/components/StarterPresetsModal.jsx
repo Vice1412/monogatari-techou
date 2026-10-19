@@ -3,6 +3,7 @@ import { GiMagnifyingGlass, GiLaurelCrown } from 'react-icons/gi';
 import GameIcon from '../../../components/ui/GameIcon';
 import JRPGModal from '../../../components/ui/JRPGModal';
 import { SOURCEBOOKS } from '../data/sourcebookConfig';
+import { PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
 import { describeCustomWeapon } from '../data/customWeapons';
 import { ALL_STARTER_PRESETS } from '../data/starterPresets';
 import { ALL_BOOKS, buildPresetSections } from '../utils/presetFilters';
@@ -58,7 +59,10 @@ export function StarterPresetsPanel({
 
   const bookFilters = [
     { id: ALL_BOOKS, shortName: '全部' },
-    ...Object.keys(SOURCEBOOKS).map((key) => ({ id: key, shortName: SOURCEBOOKS[key].shortName }))
+    // 公測修訂不是手冊、也沒有起始範本——列出來只會是「0 組」的噪音（§BE）
+    ...Object.keys(SOURCEBOOKS)
+      .filter((key) => key !== PLAYTEST_SOURCEBOOK_KEY)
+      .map((key) => ({ id: key, shortName: SOURCEBOOKS[key].shortName }))
   ];
 
   return (

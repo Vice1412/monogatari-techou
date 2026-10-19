@@ -5108,3 +5108,131 @@ const CLOCK_SINGLE_RE = /(\d+)\s*格/;
 | §BC 第一版（2026-10-17） | 未選用的變體也**收起來** | 使用者「沒有選到的話就給我乖乖藏起來」 |
 | **§BC 反轉版（2026-10-17）** | **原地切換，不再有第二段**（精簡入口＋大卡全拿掉） | 截圖回報「兩段並列」→ GM 新設計想法 |
 
+---
+
+### BD. 職業卡標題重複英文 ＋ roster gallery 不顯示英文 —— ✅ 2026-10-17
+
+> 兩個截圖回報。都屬「同一段資訊被印兩次」與「對外展示要不要英文」的邊界問題。
+
+#### BD1. 職業卡標題重複英文
+
+截圖：「暗黑之刃 · DARKBLADE **/ DARKBLADE**」。
+根因：`ClassPickerModal.jsx` 的詳情標題先呼叫 `withEn()`（已含「中文 · ENGLISH」），
+下一行又渲染 `<span>/ {info.en}</span>`；清單項目也有同型問題（第二行單獨秀英文）。
+修法：移除重複的那一段，只留 `withEn()` 的標準形式（符合規範「只有職業／範本／物種可用
+『中文 · ENGLISH』」）。`ClassSkillCard.jsx` 的「中文純名 ＋ `/ {en}`」**不是重複**，不動。
+
+#### BD2. roster gallery 不顯示英文
+
+截圖：名冊卡「紅魔法師」下方的「元素師 · ELEMENTALIST Lv 3」。
+使用者原話：「在外面展示角色名冊的界面時，不需要顯示英文名稱了」。
+修法：`CharacterSheet.jsx` 的 roster gallery 改用 `c.className`（純中文），移除 `withEn` import。
+
+**範圍裁定（AskUserQuestion）**：只改 roster gallery。
+`CharacterCard`（戰鬥抽屜）、`CharacterPlayHUD`（play 模式職業標題、升級下拉）**仍保留英文**——
+戰鬥與升級流程需要查英文，使用者沒有要求改。
+
+**護欄**（`tests/characterSheetUi.test.mjs` §BD，9 條）：
+SSR 渲染 `ClassPickerModal` 詳情，斷言 `/ DARKBLADE` 與 `/ Darkblade`（斜線後英文）不出現、
+`>DARKBLADE<`（裸英文行）不出現、`withEn` 標準形式仍出現；
+roster 用原始碼護欄（`CharacterSheet` 沒有 SSR 注入點，空 roster 渲染不出 gallery）；
+另加「沒被誤改」反向護欄（`CharacterCard`／`CharacterPlayHUD` 仍必須有 `withEn`）。
+
+**教訓**：只看大寫 `DARKBLADE` 會漏——原始 `.en` 是 PascalCase，是 CSS `uppercase` 把它變大寫的。
+斷言要同時點名兩種大小寫，且「單獨一行秀英文」要帶 `>` `<` 邊界。
+
+---
+
+### BE. 公測修訂＝開卡規則的 tickbox（不是手冊）＋ 刪除 6 個無官方對應的【Playtest】職業 —— ✅ 2026-10-19
+
+> 承 §BC（公測變體）與 §6.1 BC1（6 個職業無官方對應，待裁定）。
+> 本節把「公測」從「一本手冊」正名為「一條選用規則」，並結案 BC1。
+
+#### BE1. 需求來源（使用者原話）
+
+> 「在開卡規則中，我希望 playtest 公測的內容也是一個 tickbox，像那些開局的設定同理。
+> 名為【開放公測修訂內容】」
+> 「然後把開放的手冊部分，公測修訂的 tickbox 拿掉不需要。」
+> 「在確認那些名字帶有【Playtest】的職業都已經不在最新的修訂文件出現了的話，就可以把它們刪掉了。
+> 保留 playtest 秘儀師的部分，我們待會從長計議」
+
+#### BE2. 覆核方法與結論（刪除 6 職的依據）
+
+**文件**：`E:\MINGWAN\TRPG\Fabula ultima\Playtest\Fabula Ultima Playtest Materials (ENG) (October 1st, 2026) (single page).pdf`
+（45 頁，changelog 首行 `Last Updated: October 1st, 2026`——資料夾內最新一份）。
+
+**方法**：用既有抽取檔 `scratch/playtest_2026-10-01.txt`（`TOTAL_PAGES=45`）逐項 grep。
+
+| 檢查 | 結果 |
+|---|---|
+| 職業級 stat block（`FREE BENEFITS`／`(variant)`） | 只有 `ARCANIST FREE BENEFITS`（p.24）與 `ARCANIST (variant)`；另有 `THERIOMORPHOSIS (variant)` 但那是突變體**技能**變體，不是職業 |
+| GUARDIAN／WEAPONMASTER／LOREMASTER／DARKBLADE／SHARPSHOOTER／ORATOR | 只出現在**英雄技能的前提**（例：`Punisher Stance — Weaponmaster`、`Dark Blessing — Darkblade`）與 changelog 敘述；**沒有任何職業資料** |
+| 變體規則章節（p.34 起） | 明言「proposed variants to specific **Class Skills**」——逐條是技能變體（Spell Mimic、Frenzy…），不是整職業重製 |
+
+**結論**：那 6 個職業在最新修訂文件裡沒有對應，屬系統自製內容 → 依使用者裁定刪除。
+**秘儀師【Playtest】保留**（使用者明言待後續討論）。
+
+**刪除範圍**：`SOURCEBOOKS.playtest.classes`（7→1）、`CLASS_METADATA`（移除 6 筆）、
+`rulesData.classes`（35→29 個職業，-192 行，JSON 逐位元組一致的重寫，無其他格式變動）。
+
+#### BE3. 設計決定：公測是「規則」不是「手冊」
+
+`playtest` 仍是合法的 sourcebook 鍵（秘儀師要靠它被 `enabledSourcebooks` 選中），
+但**不再由 GM 在「開放的手冊」勾選**，改由 `creationRules.allowPlaytest` 單一控制：
+
+| 位置 | 改動 |
+|---|---|
+| `creationRules.js` | 新增 `allowPlaytest`（預設 `false`）到 `CREATION_RULE_FIELDS`／`DEFAULT_CREATION_RULES`／`resolve`／`diff` |
+| `DEFAULT_CREATION_RULES` | `allowedSourcebooks` 與 `defaultSourcebooks` 改為 **`BASE_SOURCEBOOK_KEYS`（不含 playtest）** |
+| `resolveCreationRules` | `allowPlaytest` true → 兩份清單補上 playtest；false → **剝掉**（即使資料裡明寫） |
+| `isPlaytestAllowed(character)` | **單一判定入口**；含舊角色遷移（`allowPlaytest` 從未設定時退回看 `enabledSourcebooks`） |
+| `CreationRulesPanel` | 新增 tickbox【開放公測修訂內容】；「開放的手冊」改走已過濾的 `SOURCEBOOK_ENTRIES` |
+| `CharacterEditor` | 「官方拓展職業」列過濾掉 playtest；`enabledBooks` 依規則隱含補／剝 playtest（**不改寫角色資料**） |
+| `ClassPickerModal` | 手冊篩選列過濾 playtest；`showVariants = rules.allowPlaytest === true` |
+| `ClassSkillCard` | `showPlaytestVariants = isPlaytestAllowed(character)` |
+| `characterEngine.validateCharacter` | 「超出上限」檢查排除 playtest（它不是手冊，舊資料殘留不該報錯） |
+
+**為什麼 DEFAULT 也必須不含 playtest**：`isDefaultCreationRules()` 是拿 `resolve()` 的結果
+逐欄位比對 `DEFAULT_CREATION_RULES`。若 DEFAULT 仍列 playtest，而 resolve 在關閉時剝掉它，
+「空規則」就會永遠被判成「非官方標準」——面板會一直顯示「自訂」。這是**預設值與推導邏輯必須同步**的典型陷阱。
+
+**為什麼要有 `isPlaytestAllowed` 而不是直接讀 `rules.allowPlaytest`**：
+`character.creationRules` 存的是 **diff**，舊角色根本沒有這個鍵。直接讀會把「沒設定」誤判成
+「關閉」，等於把舊角色已開的公測內容全部藏起來。所以欄位未設定時退回舊的
+`enabledSourcebooks` 判定——**不覆寫、不刪舊值**（與 localStorage 遷移鐵律同一個原則）。
+一旦 GM 勾過或取消過，就以規則為準（規則優先於舊資料）。
+
+#### BE4. 護欄（三段，全部是行為驗證優先）
+
+| 檔案 | 段落 | 內容 |
+|---|---|---|
+| `tests/creationRules.test.mjs` | §S（33 條） | 開關進出兩份清單、關閉時剝掉明寫值、diff 冪等、`isDefaultCreationRules({})` 仍為 true、`diffCreationRules({})` 為空、`isPlaytestAllowed` 四種輸入、面板／編輯器／彈窗／職業卡的原始碼護欄、6 職已不存在、`playtest.classes` 只剩秘儀師 |
+| `tests/coreBookVariants.test.mjs` | §Q（4 條） | **SSR 行為**：規則開（舊資料無 playtest）→ 公測鈕出現；規則關（舊資料有 playtest）→ 不出現；舊角色（無 allowPlaytest）→ 沿用舊判定 |
+| `tests/characterSheetUi.test.mjs` | §BE（4 條） | **SSR 行為**：面板展開後有 tickbox、手冊清單不含「官方公測修訂」、其他手冊仍在、官方標準時面板收合 |
+
+**刻意破壞驗證 6 輪**：
+① 移除面板 toggle → 2 條叫（含「每欄位都要有 UI 開關」的通用護欄）
+② `stripPlaytest` 改成 no-op → 2 條叫（明寫值未剝除、diff 不冪等）
+③ `SOURCEBOOKS.playtest.classes` 加回守護者 → 1 條叫
+④ `ClassSkillCard` 改回 `includes('playtest')` → 1 條叫
+⑤ `isPlaytestAllowed` 永遠回 true → §Q 的「規則關閉」叫
+⑥ 面板改回 `Object.entries(SOURCEBOOKS)` → §BE 的「手冊清單不含公測」叫
+
+#### BE5. 未決事項
+
+| 項目 | 狀態 |
+|---|---|
+| 秘儀師【Playtest】是否保留為獨立職業 | **待裁定**（使用者「我們待會從長計議」） |
+| 秘儀師【Playtest】兩個 SL 上限錯（幻影之力 6/PDF 5、快速召喚 2/PDF 4） | 待修（§BC4 已記錄，本輪未動） |
+
+#### BE6. 教訓
+
+1. **「手冊勾選」與「規則開關」是兩種東西**。前者是資料來源（決定哪些職業／技能可選），
+   後者是選用制度（決定要不要啟用一整套規則）。公測同時具備兩者性質，但**使用者心智模型是後者**——
+   把它塞進手冊清單會讓同一件事有兩個入口（面板一個、編輯器一個），且無法解釋「為什麼公測是一本書」。
+2. **預設值與推導邏輯必須同步改**（BE3 的 `isDefaultCreationRules` 陷阱）。
+3. **舊資料不能因為新欄位而失效**——`allowPlaytest` 未設定 ≠ 關閉，要有遷移回退。
+4. 刪除資料後要同步**測試裡的硬編碼數字**（職業總數 35→29、「全 35 個職業中僅 6 個」）。
+   這次是靠 `npm test` 的 FAIL 抓到的，不是靠記憶。
+
+

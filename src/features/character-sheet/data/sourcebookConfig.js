@@ -71,16 +71,19 @@ export const SOURCEBOOKS = {
     name: '官方公測修訂',
     shortName: '公測修訂',
     badgeColor: 'rose',
-    desc: '官方 Patreon 釋出之實驗性規則與最新重製版職業技能（包含守護者盾反、武器大師破甲變體、秘儀師脈衝重製等）。',
+    desc: '官方 Patreon 釋出的實驗性規則：核心書技能變體，以及重製版秘儀師（ARCANIST variant）。',
     defaultEnabled: false,
+    /**
+     * 只有**真的有官方對應**的職業才留在這裡。
+     *
+     * 2026-10-19 覆核最新修訂文件（Playtest Materials ENG 2026-10-01，45 頁）：
+     * 整份文件只有一個職業級變體——p.24「ARCANIST (variant)」。
+     * 舊版另外 6 個【Playtest】職業（守護者／武器大師／博學士／暗黑之刃／神射手／吟唱者）
+     * 在文件裡**只作為英雄技能的前提被提到**（那是核心職業本身），沒有任何職業資料，
+     * 屬系統自製內容，已依使用者裁定刪除（見 `AGENTS.md` §6.1 BC1、`docs/decisions.md` §BE）。
+     */
     classes: [
-      '秘儀師【Playtest】',
-      '守護者【Playtest】',
-      '武器大師【Playtest】',
-      '博學士【Playtest】',
-      '暗黑之刃【Playtest】',
-      '神射手【Playtest】',
-      '吟唱者【Playtest】'
+      '秘儀師【Playtest】'
     ]
   }
 };
@@ -297,54 +300,14 @@ export const CLASS_METADATA = {
   },
 
   // 公測修訂 (Playtest Variants)
+  // ※ 2026-10-19 只留官方真的有對應的那一個（Playtest 2026-10-01 p.24「ARCANIST (variant)」）。
+  //   其餘 6 個【Playtest】職業在文件裡沒有職業資料，已刪除（§BE）。
   '秘儀師【Playtest】': {
     name: '秘儀師【Playtest】',
     en: 'Arcanist (Playtest)',
     icon: 'GiCrystalBall',
     source: 'playtest',
     tagline: '公測重製版秘儀師，強化召喚與脈衝。'
-  },
-  '守護者【Playtest】': {
-    name: '守護者【Playtest】',
-    en: 'Guardian (Playtest)',
-    icon: 'GiShield',
-    source: 'playtest',
-    tagline: '公測重製版守護者，新增盾牌格擋反震。'
-  },
-  '武器大師【Playtest】': {
-    name: '武器大師【Playtest】',
-    en: 'Weaponmaster (Playtest)',
-    icon: 'GiCrossedSwords',
-    source: 'playtest',
-    tagline: '公測重製版武器大師，優化武器連擊。'
-  },
-  '博學士【Playtest】': {
-    name: '博學士【Playtest】',
-    en: 'Loremaster (Playtest)',
-    icon: 'GiScrollQuill',
-    source: 'playtest',
-    tagline: '公測重製版博學士，強化魔物弱點調查。'
-  },
-  '暗黑之刃【Playtest】': {
-    name: '暗黑之刃【Playtest】',
-    en: 'Darkblade (Playtest)',
-    icon: 'GiDrippingSword',
-    source: 'playtest',
-    tagline: '公測重製版暗黑之刃，提升血刃爆發。'
-  },
-  '神射手【Playtest】': {
-    name: '神射手【Playtest】',
-    en: 'Sharpshooter (Playtest)',
-    icon: 'GiCrossbow',
-    source: 'playtest',
-    tagline: '公測重製版神射手，強化警告射擊控場。'
-  },
-  '吟唱者【Playtest】': {
-    name: '吟唱者【Playtest】',
-    en: 'Orator (Playtest)',
-    icon: 'GiPublicSpeaker',
-    source: 'playtest',
-    tagline: '公測重製版吟唱者，優化演說激勵。'
   }
 };
 

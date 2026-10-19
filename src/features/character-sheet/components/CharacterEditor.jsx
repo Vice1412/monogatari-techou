@@ -55,7 +55,7 @@ import {
 } from '../data/customWeapons';
 import EquipmentSlotCard from './EquipmentSlotCard';
 import rulesData from '../data/rulesData.json';
-import { DEFAULT_CREATION_RULES, resolveCreationRules } from '../data/creationRules';
+import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
 import { loggableChange, formatLogTime } from '../utils/characterLog';
 import { splitParagraphs } from '../utils/paragraphs';
 import CharacterAvatarUploader from './CharacterAvatarUploader';
@@ -332,7 +332,18 @@ export default function CharacterEditor({
   };
 
   // Filter available classes according to enabled sourcebooks
-  const enabledBooks = character.enabledSourcebooks ?? rules.defaultSourcebooks;
+  //
+  // 公測修訂**不是手冊**（2026-10-19 使用者裁定，§BE）：它由開卡規則的
+  // 【開放公測修訂內容】單獨控制。所以這裡把 `playtest` 當成「規則算出來的隱含來源」——
+  // 開關開著就補進清單（秘儀師【Playtest】可選），關著就剝掉；
+  // **不改寫角色身上既有的 `enabledSourcebooks`**（舊資料不覆寫）。
+  const enabledBooks = (() => {
+    const base = character.enabledSourcebooks ?? rules.defaultSourcebooks;
+    const withoutPlaytest = base.filter((k) => k !== PLAYTEST_SOURCEBOOK_KEY);
+    return rules.allowPlaytest
+      ? [...withoutPlaytest, PLAYTEST_SOURCEBOOK_KEY]
+      : withoutPlaytest;
+  })();
   const availableClassNames = [
     ...new Set(
       Object.keys(SOURCEBOOKS)
@@ -1338,27 +1349,30 @@ export default function CharacterEditor({
                   官方拓展職業:
                 </span>
                 <div className="flex items-center gap-2 flex-wrap">
-                  {Object.keys(SOURCEBOOKS).map(sbKey => {
-                    const sb = SOURCEBOOKS[sbKey];
-                    const isEnabled = (character.enabledSourcebooks ?? ['core']).includes(sbKey);
+                  {/* 公測修訂不在這裡——它是開卡規則的【開放公測修訂內容】開關（§BE） */}
+                  {Object.keys(SOURCEBOOKS)
+                    .filter((sbKey) => sbKey !== PLAYTEST_SOURCEBOOK_KEY)
+                    .map(sbKey => {
+                      const sb = SOURCEBOOKS[sbKey];
+                      const isEnabled = enabledBooks.includes(sbKey);
 
-                    return (
-                      <button
-                        key={sbKey}
-                        type="button"
-                        onClick={() => toggleSourcebook(sbKey)}
-                        className="text-xs px-2.5 py-1 rounded-lg border font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
-                        style={
-                          isEnabled
-                            ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#ffffff' }
-                            : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }
-                        }
-                      >
-                        {isEnabled ? <GiCheckMark className="w-3 h-3" /> : null}
-                        <span>{sb.shortName}</span>
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={sbKey}
+                          type="button"
+                          onClick={() => toggleSourcebook(sbKey)}
+                          className="text-xs px-2.5 py-1 rounded-lg border font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                          style={
+                            isEnabled
+                              ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#ffffff' }
+                              : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }
+                          }
+                        >
+                          {isEnabled ? <GiCheckMark className="w-3 h-3" /> : null}
+                          <span>{sb.shortName}</span>
+                        </button>
+                      );
+                    })}
                 </div>
               </div>
 

@@ -46,6 +46,7 @@ import CharacterEditor from '../src/features/character-sheet/components/Characte
 import CharacterCard from '../src/features/character-sheet/components/CharacterCard.jsx';
 import AttributeMatrixPicker from '../src/features/character-sheet/components/AttributeMatrixPicker.jsx';
 import ClassPickerModal from '../src/features/character-sheet/components/ClassPickerModal.jsx';
+import CreationRulesPanel from '../src/features/character-sheet/components/CreationRulesPanel.jsx';
 import {
   buildImagePdf,
   buildImagePdfBytes,
@@ -1057,6 +1058,57 @@ check('CharacterCard.jsx：戰鬥抽屜仍用 withEn(cl.className) 顯示英文�
   /\{\s*withEn\s*\(\s*cl\.className\s*\)\s*\}/.test(stripComments(charCardSrc)), true);
 check('CharacterPlayHUD.jsx：play 模式職業標題仍用 withEn(cl.className)（沒被誤改）',
   /\{\s*withEn\s*\(\s*cl\.className\s*\)\s*\}/.test(hudCode), true);
+
+// ─────────────────────────────────────────────────────────── BE
+// §BE（2026-10-19）：公測修訂是開卡規則的 tickbox，不是「開放的手冊」裡的一本書。
+section('BE. 開卡規則面板：公測是 tickbox，不在手冊清單裡');
+
+const rulesPanelHTML = renderToStaticMarkup(React.createElement(CreationRulesPanel, {
+  // 非預設 → 面板自動展開（預設收合，SSR 會什麼都看不到）
+  rules: resolveCreationRules({ allowPlaytest: true }),
+  diff: { allowPlaytest: true },
+  onChange: () => {},
+  theme: {}
+}));
+check('面板展開後有【開放公測修訂內容】tickbox', rulesPanelHTML.includes('開放公測修訂內容'), true);
+check('面板的「開放的手冊」不再列出公測修訂（書名不該出現）',
+  rulesPanelHTML.includes('官方公測修訂'), false);
+check('其他手冊仍在清單裡（核心規則書）', rulesPanelHTML.includes('核心規則書'), true);
+
+// 預設（官方標準）時面板收合——不是 bug，是刻意設計
+const rulesPanelDefaultHTML = renderToStaticMarkup(React.createElement(CreationRulesPanel, {
+  rules: resolveCreationRules({}), diff: {}, onChange: () => {}, theme: {}
+}));
+check('官方標準時面板收合（不渲染任何欄位）',
+  [rulesPanelDefaultHTML.includes('開放公測修訂內容'), rulesPanelDefaultHTML.includes('官方公測修訂')],
+  [false, false]);
+
+// 行為驗證：開關真的決定「秘儀師【Playtest】能不能選」
+const renderPickerWithRules = (creationRules, enabledBooks) => renderToStaticMarkup(React.createElement(ClassPickerModal, {
+  isOpen: true, onClose: () => {}, theme: {},
+  enabledBooks,
+  onToggleSourcebook: () => {}, onSetSourcebooks: () => {},
+  existingClassNames: [], onSelectClasses: () => {},
+  budgetUsed: 0,
+  creationRules,
+  panelOnly: true
+}));
+const pickerOnHTML = renderPickerWithRules({ allowPlaytest: true }, ['core', 'playtest']);
+const pickerOffHTML = renderPickerWithRules({ allowPlaytest: false }, ['core']);
+// 縱深防禦：就算呼叫端傳來的 enabledBooks 還留著 playtest（舊角色殘留），
+// 只要規則沒開，秘儀師【Playtest】也不該出現。
+const pickerStaleHTML = renderPickerWithRules({ allowPlaytest: false }, ['core', 'playtest']);
+check('公測開啟 → 秘儀師【Playtest】出現在職業清單',
+  pickerOnHTML.includes('秘儀師【Playtest】'), true);
+check('公測關閉 → 秘儀師【Playtest】完全不出現',
+  pickerOffHTML.includes('秘儀師【Playtest】'), false);
+check('公測關閉但舊資料仍開著 playtest → 秘儀師【Playtest】也不出現（規則優先）',
+  pickerStaleHTML.includes('秘儀師【Playtest】'), false);
+check('公測關閉 → 手冊篩選列也沒有「公測修訂」',
+  pickerOffHTML.includes('公測修訂'), false);
+check('已刪除的守護者【Playtest】永遠不出現',
+  [pickerOnHTML.includes('守護者【Playtest】'), pickerOffHTML.includes('守護者【Playtest】')],
+  [false, false]);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

@@ -16,10 +16,18 @@ import CoreBookVariantCard from './CoreBookVariantCard';
 import { getVariantsForClass, getVariantById, buildSkillEntry } from '../data/coreBookVariants';
 import { SOURCEBOOKS, getClassInfo } from '../data/sourcebookConfig';
 import { matchesClassQuery, formatClassAliases, classAliasSource } from '../data/classAliases';
-import { DEFAULT_CREATION_RULES, resolveCreationRules } from '../data/creationRules';
+import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
 import rulesData from '../data/rulesData.json';
 import { withEn } from '../../../utils/properNouns';
 import ClassHeroicSkillsBlock from './ClassHeroicSkillsBlock';
+
+/**
+ * 上排「官方拓展職業」只列**真正的手冊**。
+ * 公測修訂是開卡規則的選用開關（`allowPlaytest`），不是一本書——見 §BE。
+ */
+const BOOK_KEYS = Object.freeze(
+  Object.keys(SOURCEBOOKS).filter((key) => key !== PLAYTEST_SOURCEBOOK_KEY)
+);
 
 /**
  * 職業選擇與技能分配彈窗 (ClassPickerModal)
@@ -74,11 +82,11 @@ export default function ClassPickerModal({
   panelOnly = false
 }) {
   const rules = resolveCreationRules(creationRules);
-  // 核心書技能變體是**選用**的：只有勾選【官方公測修訂】才顯示。
+  // 核心書技能變體是**選用**的：只有【開放公測修訂內容】勾起來才顯示。
   // ※ 選用後**原版技能收起來**（GM 裁定 2026-10-14），由玩家自己按——見 coreBookVariants.js。
-  // ※ 來源是 `enabledBooks` prop，不是 `rules`——`resolveCreationRules()` 的回傳裡
-  //   沒有 `enabledSourcebooks`（只有 allowedSourcebooks 與 defaultSourcebooks）。
-  const showVariants = (enabledBooks || []).includes('playtest');
+  // ※ 2026-10-19 起改由 `rules.allowPlaytest` 單一判定（§BE）——
+  //   公測是規則開關，不是一本手冊，所以不再看 `enabledBooks`。
+  const showVariants = rules.allowPlaytest === true;
   const [search, setSearch] = useState('');
   const [activeClassName, setActiveClassName] = useState(initialClassName || null);
   /**
@@ -97,9 +105,13 @@ export default function ClassPickerModal({
   const [mobileStep, setMobileStep] = useState('list');
 
   // 取得所有可用職業清單
+  // ※ 公測修訂**由規則把關**（§BE）：即使呼叫端傳來的 `enabledBooks` 還留著 playtest
+  //   （舊角色的殘留資料），只要【開放公測修訂內容】沒勾，秘儀師【Playtest】就不該出現。
+  //   這是一層縱深防禦——生產端的 `CharacterEditor` 已經先算過一次。
   const availableClasses = useMemo(() => {
     const list = Object.keys(SOURCEBOOKS)
       .filter(sbKey => enabledBooks.includes(sbKey))
+      .filter(sbKey => rules.allowPlaytest || sbKey !== PLAYTEST_SOURCEBOOK_KEY)
       .flatMap(sbKey => {
         const book = SOURCEBOOKS[sbKey];
         return (book.classes || []).map(cName => ({
@@ -119,7 +131,7 @@ export default function ClassPickerModal({
       seen.add(item.className);
       return true;
     });
-  }, [enabledBooks]);
+  }, [enabledBooks, rules.allowPlaytest]);
 
   // 搜尋過濾
   //
@@ -265,7 +277,7 @@ export default function ClassPickerModal({
     onClose();
   };
 
-  const allBooksOn = Object.keys(SOURCEBOOKS).every(k => enabledBooks.includes(k));
+  const allBooksOn = BOOK_KEYS.every(k => enabledBooks.includes(k));
 
   /**
    * **測試注入點**（生產端永不傳入）：`panelOnly` 為 true 時跳過彈窗外框。
@@ -301,7 +313,7 @@ export default function ClassPickerModal({
               {/* 使用者要求：開一個「全部」，而且預設就是全部，免得切來切去 */}
               <button
                 type="button"
-                onClick={() => onSetSourcebooks && onSetSourcebooks(Object.keys(SOURCEBOOKS))}
+                onClick={() => onSetSourcebooks && onSetSourcebooks([...BOOK_KEYS])}
                 className="text-xs px-2.5 py-1 rounded-lg border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
                 style={
                   allBooksOn
@@ -314,7 +326,7 @@ export default function ClassPickerModal({
                 <span>全部</span>
               </button>
 
-              {Object.keys(SOURCEBOOKS).map(sbKey => {
+              {BOOK_KEYS.map(sbKey => {
                 const sb = SOURCEBOOKS[sbKey];
                 const isEnabled = enabledBooks.includes(sbKey);
 

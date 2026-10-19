@@ -3,7 +3,7 @@ import { PLAYTEST_HEROIC_SKILLS } from '../data/playtestHeroicSkills';
 import { SOURCEBOOKS, STATUS_AFFLICTIONS, ATTRIBUTE_NAMES, ATTRIBUTE_KEYS, ATTRIBUTE_PRESET_ARRAYS } from '../data/sourcebookConfig';
 import { getSkillSuboptionConfig, calculateSkillSuboptionMax } from '../data/skillSuboptionsData';
 import { PILOT_ARMOR_MODULES } from '../data/pilotVehicleData';
-import { DEFAULT_CREATION_RULES, resolveCreationRules } from '../data/creationRules';
+import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
 import { buildLoadoutIssues } from './equipmentRules';
 import { buildCustomWeaponEntries, validateCustomWeapon, CUSTOM_WEAPON_BASE } from '../data/customWeapons';
 import { appendLog, createLogEntry } from './characterLog';
@@ -112,10 +112,10 @@ export const reduceDieStep = (baseDie, steps = 1) => {
 /**
  * 判定職業免費增益是否為「最大 HP 或最大 MP」二選一。
  *
- * 為什麼不能只看有沒有一個「或」字：暗黑之刃【Playtest】的免費增益是
- * 「…獲得裝備職業近戰或遠程武器（二選一）和職業防具的能力。」——
- * 它的「或」指的是武器類別，HP 本身是固定 +5。只看「或」會把它誤判為 HP/MP 二選一，
- * 一旦玩家選了 MP 就會得到錯誤的數值。
+ * 為什麼不能只看有沒有一個「或」字：例如「獲得裝備職業近戰或遠程武器（二選一）和職業防具」
+ * 這種寫法——它的「或」指的是武器類別，HP 本身是固定 +5。只看「或」會把它誤判為
+ * HP/MP 二選一，一旦玩家選了 MP 就會得到錯誤的數值。
+ * （歷史上最容易誤判的是 暗黑之刃【Playtest】，該職業已於 2026-10-19 刪除，但判定規則要守住。）
  * 因此必須同時在句中看到 HP 與 MP 兩側（或英文的 maximum Hit/Mind Points 兩側）。
  */
 export const isHpMpChoiceBenefit = (freeBenefitText = '') => (
@@ -262,7 +262,8 @@ export const STARTING_HEROIC_SKILL_BLOCKLIST = Object.freeze([
  * - 「兩個或更多：A、B、C」這種寫法只要求**其中之一**（比原文寬鬆，寧漏不誤）。
  *
  * 職業名互為子字串（`吟唱者` ⊂ `吟唱者【Playtest】`）不會誤判：兩者都進候選清單，
- * 精通任一個都算過。
+ * 精通任一個都算過。（2026-10-19 起只剩 `秘儀師【Playtest】` 這種帶後綴的變體職業，
+ * 規則不變——後綴比對照樣成立。）
  */
 export const checkHeroicSkillRequirement = (skill, {
   masteredClasses = [],
@@ -944,7 +945,10 @@ export const validateCharacter = (char, rules = null) => {
   }
 
   // 步驟 2 前置: 手冊拓展不得超出這一團開放的上限（GM 自訂開局）
+  // ※ 公測修訂**不算手冊**（2026-10-19，§BE）：它由 `allowPlaytest` 控制，
+  //   舊角色身上殘留的 `playtest` 不該被這裡判成「超出上限」。
   const booksOutOfRange = (char.enabledSourcebooks || [])
+    .filter((key) => key !== PLAYTEST_SOURCEBOOK_KEY)
     .filter((key) => !creation.allowedSourcebooks.includes(key));
   if (booksOutOfRange.length > 0) {
     warnings.push({

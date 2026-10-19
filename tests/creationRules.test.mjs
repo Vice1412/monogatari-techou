@@ -20,7 +20,9 @@ import {
   ZENIT_PER_LEVEL,
   resolveCreationRules,
   isDefaultCreationRules,
-  diffCreationRules
+  diffCreationRules,
+  isPlaytestAllowed,
+  PLAYTEST_SOURCEBOOK_KEY
 } from '../src/features/character-sheet/data/creationRules.js';
 import {
   createNewCharacter,
@@ -49,6 +51,7 @@ import { PLAYTEST_HEROIC_SKILLS } from '../src/features/character-sheet/data/pla
 import { getLog } from '../src/features/character-sheet/utils/characterLog.js';
 import {
   SOURCEBOOKS,
+  CLASS_METADATA,
   CANONICAL_THEMES,
   THEME_ALIASES,
   normalizeTheme,
@@ -75,6 +78,12 @@ const check = (label, actual, expected) => {
 const section = (t) => lines.push(`\n=== ${t} ===`);
 
 const ALL_BOOK_KEYS = Object.keys(SOURCEBOOKS);
+/**
+ * 「手冊」清單（不含公測修訂）。
+ * 2026-10-19 使用者裁定：公測不是一本手冊，是開卡規則的【開放公測修訂內容】開關，
+ * 由 `allowPlaytest` 單獨控制進出 allowedSourcebooks／defaultSourcebooks（§BE）。
+ */
+const MANUAL_BOOK_KEYS = ALL_BOOK_KEYS.filter((k) => k !== 'playtest');
 const msgs = (char, rules) => validateCharacter(char, rules).warnings.map((w) => w.message);
 const errs = (char, rules) => validateCharacter(char, rules).errors.map((w) => w.message);
 
@@ -95,12 +104,12 @@ check('技能點數 = 起始等級（每級 1 點）',
   DEFAULT_CREATION_RULES.skillPointBudget, DEFAULT_CREATION_RULES.startingLevel);
 // 2026-10-06 改成全部（使用者裁定：「默認不要只有核心，而是全部，不然要切換來切換去很麻煩」）。
 // 這一格只決定選單一開始顯示什麼；真正的上限仍是 allowedSourcebooks。
-check('新角色預設全開手冊', [...DEFAULT_CREATION_RULES.defaultSourcebooks],
-  ['core', 'highFantasy', 'technoFantasy', 'naturalFantasy', 'bonus', 'playtest']);
+check('新角色預設全開手冊（公測另由 allowPlaytest 控制）', [...DEFAULT_CREATION_RULES.defaultSourcebooks],
+  MANUAL_BOOK_KEYS);
 check('預設勾選仍受 allowedSourcebooks 上限約束',
   resolveCreationRules({ allowedSourcebooks: ['core'] }).defaultSourcebooks, ['core']);
 check('拓展上限預設為全部手冊（沒有 campaign 時不該擋玩家）',
-  [...DEFAULT_CREATION_RULES.allowedSourcebooks].sort(), [...ALL_BOOK_KEYS].sort());
+  [...DEFAULT_CREATION_RULES.allowedSourcebooks].sort(), [...MANUAL_BOOK_KEYS].sort());
 check('預設不指定必修職業', [...DEFAULT_CREATION_RULES.requiredClasses], []);
 // 官方核心規則沒有金手指這個制度——它是三大奇幻手冊才推出的，所以預設必須是關的。
 // 要玩的團由 GM 在「此團開卡規則」打開。
@@ -163,7 +172,7 @@ check('技能點數明給 → 用它',
 check('拓展含錯字 → 過濾掉，保留合法的',
   resolveCreationRules({ allowedSourcebooks: ['core', '不存在的書'] }).allowedSourcebooks, ['core']);
 check('拓展全部非法 → 退回全部手冊',
-  resolveCreationRules({ allowedSourcebooks: ['不存在的書'] }).allowedSourcebooks.sort(), [...ALL_BOOK_KEYS].sort());
+  resolveCreationRules({ allowedSourcebooks: ['不存在的書'] }).allowedSourcebooks.sort(), [...MANUAL_BOOK_KEYS].sort());
 check('預設勾選超出上限 → 削到上限內',
   resolveCreationRules({ allowedSourcebooks: ['core'], defaultSourcebooks: ['core', 'technoFantasy'] }).defaultSourcebooks,
   ['core']);
@@ -189,9 +198,8 @@ section('C. createNewCharacter：起始等級／資金／拓展由規則決定')
 const fresh = createNewCharacter();
 check('預設新角色等級 5', fresh.level, 5);
 check('預設新角色資金 500z', fresh.zenit, 500);
-check('預設新角色全開手冊（2026-10-06 起；上限仍由 allowedSourcebooks 把關）',
-  fresh.enabledSourcebooks,
-  ['core', 'highFantasy', 'technoFantasy', 'naturalFantasy', 'bonus', 'playtest']);
+check('預設新角色全開手冊（2026-10-06 起；公測由 allowPlaytest 控制）',
+  fresh.enabledSourcebooks, MANUAL_BOOK_KEYS);
 
 const custom = createNewCharacter({}, {
   startingLevel: 10,
@@ -862,11 +870,120 @@ check('heroicSkillsForClass：守護者至少解鎖 3 個',
 check('heroicSkillsForClass：Playtest 那批也算得出來',
   heroicSkillsForClass('元素師').some((h) => h.source === 'playtest'), true);
 check('heroicSkillsForClass：沒有職業時回空陣列', heroicSkillsForClass(''), []);
+// 2026-10-19：6 個【Playtest】職業已刪除，只剩秘儀師【Playtest】。
+// 這條驗的是「帶【…】後綴的變體職業會剝除後綴、對到主名那一組」。
 check('heroicSkillsForClass：【Playtest】變體對到同一組',
-  heroicSkillsForClass('守護者【Playtest】').length, heroicSkillsForClass('守護者').length);
+  heroicSkillsForClass('秘儀師【Playtest】').length, heroicSkillsForClass('秘儀師').length);
 check('heroicSkillsForClass：「A或B」型在兩邊都查得到',
   [heroicSkillsForClass('機師').some((h) => h.name === '震顫泰坦'),
     heroicSkillsForClass('守護者').some((h) => h.name === '震顫泰坦')], [true, true]);
+
+// ─────────────────────────────────────────────────────────── S
+// §BE（2026-10-19 使用者裁定）：
+// ① 公測修訂不是「手冊」，是開卡規則裡的一個 tickbox【開放公測修訂內容】；
+// ② 開放的手冊清單不再有公測修訂；
+// ③ 6 個無官方對應的【Playtest】職業已刪除，只留秘儀師。
+section('S. 公測修訂＝規則開關（不是手冊）＋ 6 個無對應職業已刪除');
+
+check('預設關閉公測修訂（官方核心規則沒有公測內容）', DEFAULT_CREATION_RULES.allowPlaytest, false);
+check('allowPlaytest 在欄位集裡（否則 diff／重設會漏掉它）',
+  CREATION_RULE_FIELDS.includes('allowPlaytest'), true);
+check('公測鍵仍是合法的 sourcebook 鍵（秘儀師要靠它）',
+  ALL_BOOK_KEYS.includes(PLAYTEST_SOURCEBOOK_KEY), true);
+
+// 開關 → 兩份清單的進出
+const withPlaytest = resolveCreationRules({ allowPlaytest: true });
+check('開啟公測 → allowedSourcebooks 含 playtest',
+  withPlaytest.allowedSourcebooks.includes(PLAYTEST_SOURCEBOOK_KEY), true);
+check('開啟公測 → defaultSourcebooks 含 playtest（新角色直接看得到秘儀師）',
+  withPlaytest.defaultSourcebooks.includes(PLAYTEST_SOURCEBOOK_KEY), true);
+check('開啟公測不影響其他手冊（仍全開）',
+  withPlaytest.allowedSourcebooks.filter((k) => k !== PLAYTEST_SOURCEBOOK_KEY).sort(),
+  [...MANUAL_BOOK_KEYS].sort());
+
+const noPlaytest = resolveCreationRules({ allowPlaytest: false });
+check('關閉公測 → allowedSourcebooks 不含 playtest',
+  noPlaytest.allowedSourcebooks.includes(PLAYTEST_SOURCEBOOK_KEY), false);
+check('關閉公測 → defaultSourcebooks 不含 playtest',
+  noPlaytest.defaultSourcebooks.includes(PLAYTEST_SOURCEBOOK_KEY), false);
+
+// 壞資料／殘留資料：就算 allowedSourcebooks 明寫 playtest，關閉時也要被剝掉
+check('關閉公測時，明寫 playtest 的清單也會被剝掉',
+  resolveCreationRules({ allowPlaytest: false, allowedSourcebooks: ['core', PLAYTEST_SOURCEBOOK_KEY] }).allowedSourcebooks,
+  ['core']);
+check('關閉公測時，defaultSourcebooks 明寫 playtest 也會被剝掉',
+  resolveCreationRules({ allowPlaytest: false, defaultSourcebooks: ['core', PLAYTEST_SOURCEBOOK_KEY] }).defaultSourcebooks,
+  ['core']);
+// 冪等：diff 再餵回來不該長出第二個 playtest
+const roundTrip = resolveCreationRules(diffCreationRules(withPlaytest));
+check('開啟公測的 diff 再餵回去仍等值（不會愈套愈多）',
+  roundTrip.allowedSourcebooks.filter((k) => k === PLAYTEST_SOURCEBOOK_KEY).length, 1);
+
+check('官方標準判定：空規則＝預設（allowPlaytest 不破壞 isDefaultCreationRules）',
+  isDefaultCreationRules({}), true);
+check('官方標準的 diff 是空的（不會無故長出 playtest）', diffCreationRules({}), {});
+check('開啟公測 → diff 只帶 allowPlaytest 與被帶動的清單',
+  Object.keys(diffCreationRules({ allowPlaytest: true })).sort(),
+  ['allowPlaytest', 'allowedSourcebooks', 'defaultSourcebooks']);
+
+// isPlaytestAllowed：單一判定入口 ＋ 舊角色遷移
+check('isPlaytestAllowed：allowPlaytest=true → true', isPlaytestAllowed({ creationRules: { allowPlaytest: true } }), true);
+check('isPlaytestAllowed：allowPlaytest=false → false（即使 enabledSourcebooks 有 playtest）',
+  isPlaytestAllowed({ creationRules: { allowPlaytest: false }, enabledSourcebooks: ['core', 'playtest'] }), false);
+check('isPlaytestAllowed：欄位從未設定 → 退回看 enabledSourcebooks（舊角色遷移）',
+  isPlaytestAllowed({ creationRules: {}, enabledSourcebooks: ['core', 'playtest'] }), true);
+check('isPlaytestAllowed：欄位從未設定且沒開過 → false',
+  isPlaytestAllowed({ creationRules: {}, enabledSourcebooks: ['core'] }), false);
+check('isPlaytestAllowed：沒有 character 也不拋錯',
+  [isPlaytestAllowed(null), isPlaytestAllowed(undefined), isPlaytestAllowed({})], [false, false, false]);
+
+// 面板：tickbox 在、手冊清單不含公測
+check('面板有【開放公測修訂內容】開關',
+  [panelSrc.includes("'allowPlaytest'"), panelSrc.includes('開放公測修訂內容')], [true, true]);
+check('面板的「開放的手冊」不再直接遍歷 SOURCEBOOKS（公測會被列進去）',
+  /Object\.entries\(SOURCEBOOKS\)\.map/.test(panelSrc), false);
+check('面板改走已過濾的 SOURCEBOOK_ENTRIES',
+  panelSrc.includes('SOURCEBOOK_ENTRIES.map'), true);
+
+// 其他兩處「手冊開關」也不能再列公測
+const editorSrcBe = read('../src/features/character-sheet/components/CharacterEditor.jsx');
+check('編輯器「官方拓展職業」列不列公測（公測由規則控制）',
+  /Object\.keys\(SOURCEBOOKS\)\.map/.test(editorSrcBe), false);
+check('編輯器以 PLAYTEST_SOURCEBOOK_KEY 過濾掉公測',
+  editorSrcBe.includes('sbKey !== PLAYTEST_SOURCEBOOK_KEY'), true);
+check('編輯器：allowPlaytest 開啟時才把 playtest 補進可用清單',
+  editorSrcBe.includes('rules.allowPlaytest'), true);
+
+const pickerSrcBe = read('../src/features/character-sheet/components/ClassPickerModal.jsx');
+check('選職業彈窗：手冊列不列公測',
+  /Object\.keys\(SOURCEBOOKS\)\.map/.test(pickerSrcBe), false);
+check('選職業彈窗：變體顯示改看 rules.allowPlaytest（不再看 enabledBooks）',
+  [pickerSrcBe.includes('const showVariants = rules.allowPlaytest === true;'),
+    pickerSrcBe.includes("(enabledBooks || []).includes('playtest')")], [true, false]);
+
+const skillCardSrcBe = read('../src/features/character-sheet/components/ClassSkillCard.jsx');
+check('職業卡：公測變體改走 isPlaytestAllowed(character)',
+  [skillCardSrcBe.includes('isPlaytestAllowed(character)'),
+    skillCardSrcBe.includes("includes('playtest')")], [true, false]);
+
+// 起始範本彈窗的手冊篩選列同理（公測沒有起始範本，列出來只會是「0 組」噪音）
+const presetSrcBe = read('../src/features/character-sheet/components/StarterPresetsModal.jsx');
+check('起始範本彈窗：手冊篩選列不列公測',
+  presetSrcBe.includes('key !== PLAYTEST_SOURCEBOOK_KEY'), true);
+
+// 刪除的 6 個職業：資料層與設定層都不得殘留
+const DELETED_PLAYTEST_CLASSES = [
+  '守護者【Playtest】', '武器大師【Playtest】', '博學士【Playtest】',
+  '暗黑之刃【Playtest】', '神射手【Playtest】', '吟唱者【Playtest】'
+];
+check('rulesData 不再有那 6 個職業',
+  DELETED_PLAYTEST_CLASSES.filter((name) => Object.prototype.hasOwnProperty.call(rulesData.classes, name)), []);
+check('SOURCEBOOKS.playtest.classes 只剩秘儀師【Playtest】',
+  SOURCEBOOKS.playtest.classes, ['秘儀師【Playtest】']);
+check('CLASS_METADATA 也不再有那 6 個職業',
+  DELETED_PLAYTEST_CLASSES.filter((name) => Object.prototype.hasOwnProperty.call(CLASS_METADATA, name)), []);
+check('秘儀師【Playtest】仍然在（待後續裁定，不可誤刪）',
+  Object.prototype.hasOwnProperty.call(rulesData.classes, '秘儀師【Playtest】'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

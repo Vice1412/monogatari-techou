@@ -373,8 +373,10 @@ check('當前 HP / MP / IP 皆為 null（null 代表等於最大值）',
   [fresh.currentHp, fresh.currentMp, fresh.currentIp], [null, null, null]);
 check('職業清單預設為空', fresh.classes, []);
 // 2026-10-06 起預設全開（使用者裁定；上限仍由 allowedSourcebooks 把關）
-check('啟用來源手冊預設全開', fresh.enabledSourcebooks,
-  ['core', 'highFantasy', 'technoFantasy', 'naturalFantasy', 'bonus', 'playtest']);
+// 2026-10-19：公測修訂不再是「手冊」——它是開卡規則的【開放公測修訂內容】開關（§BE），
+// 預設關閉，所以 `enabledSourcebooks` 預設不含 playtest；打開開關時 resolve 會自動補上。
+check('啟用來源手冊預設全開（不含公測修訂）', fresh.enabledSourcebooks,
+  ['core', 'highFantasy', 'technoFantasy', 'naturalFantasy', 'bonus']);
 check('情感羈絆預設 0 條（原書 p.154 創角八步驟無羈絆；羈絆於遊戲中建立 p.57）', fresh.bonds.length, 0);
 check('個人命刻預設 0 座（原書創角八步驟無命刻，不預先種一條；見 §AB 的預設羈絆）', fresh.clocks.length, 0);
 check('咒語與英雄技能預設為空', [fresh.spells.length, fresh.heroicSkills.length], [0, 0]);
@@ -722,11 +724,14 @@ const CHOICE_CLASSES = ['秘儀師【Playtest】', '死靈術士', '舞者', '�
 CHOICE_CLASSES.forEach((cn) => {
   check(`J6 ${cn} 判定為 HP/MP 二選一`, isHpMpChoiceBenefit(fbOf(cn)), true);
 });
-// 暗黑之刃【Playtest】的「或」指的是「近戰或遠程武器」，HP 本身固定 +5 —— 這是最容易誤判的一筆
-check('J6 暗黑之刃【Playtest】的「或」屬武器類別，不得判為 HP/MP 二選一', isHpMpChoiceBenefit(fbOf('暗黑之刃【Playtest】')), false);
+// 「或」出現在武器類別（而不是 HP/MP 兩側）時不得誤判——原本這是
+// 暗黑之刃【Playtest】的案例；該職業已於 2026-10-19 依使用者裁定刪除（§BE），
+// 改用合成字串保留同一條回歸護欄（被測的是 `isHpMpChoiceBenefit` 的判定規則）。
+check('J6 「職業近戰 或 遠程」屬武器類別，不得判為 HP/MP 二選一',
+  isHpMpChoiceBenefit('HP +5，職業近戰 或 遠程（二選一）'), false);
 check('J6 守護者（固定 HP +5）不得判為二選一', isHpMpChoiceBenefit(fbOf('守護者')), false);
 check('J6 機師（固定 HP +5，近戰/遠程皆給）不得判為二選一', isHpMpChoiceBenefit(fbOf('機師')), false);
-check('J6 全 35 個職業中，僅 6 個屬 HP/MP 二選一',
+check('J6 全 29 個職業中，僅 6 個屬 HP/MP 二選一',
   Object.keys(rulesData.classes).filter((cn) => isHpMpChoiceBenefit(fbOf(cn))).length, 6);
 
 // ── J7 二選一的實際數值
@@ -739,8 +744,10 @@ CHOICE_CLASSES.forEach((cn) => {
   check(`J7 ${cn} 指定 HP -> HP 50 / MP 45`, [choiceStats(cn, 'HP').maxHp, choiceStats(cn, 'HP').maxMp], [50, 45]);
   check(`J7 ${cn} 未指定 -> 沿用既有預設 HP +5`, [choiceStats(cn).maxHp, choiceStats(cn).maxMp], [50, 45]);
 });
-check('J7 暗黑之刃【Playtest】即使被指定 MP，仍為 HP 50 / MP 45（修正前會誤給 MP +5）',
-  [choiceStats('暗黑之刃【Playtest】', 'MP').maxHp, choiceStats('暗黑之刃【Playtest】', 'MP').maxMp], [50, 45]);
+// 非二選一職業即使被指定 chosenBenefit，也不能改變固定 HP +5
+// （原本用 暗黑之刃【Playtest】 驗這條；該職業已刪除，改用守護者驗同一個不變式）
+check('J7 非二選一職業（守護者）即使被指定 MP，仍為固定 HP +5',
+  [choiceStats('守護者', 'MP').maxHp, choiceStats('守護者', 'MP').maxMp], [50, 45]);
 
 // ── J8 二選一職業的標籤要標明點數落在哪一邊
 check('J8 二選一選 HP 時標籤為（HP）',

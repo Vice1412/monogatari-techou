@@ -45,11 +45,28 @@ export const CREATION_RULE_FIELDS = Object.freeze([
   'requiredClasses',
   'allowQuirk',
   'allowCustomWeapon',
-  'startingHeroicSkill'
+  'startingHeroicSkill',
+  'allowPlaytest'
 ]);
 
-/** 全部手冊的鍵（上限的預設值） */
+/** 全部手冊的鍵（合法值域） */
 const ALL_SOURCEBOOK_KEYS = Object.freeze(Object.keys(SOURCEBOOKS));
+
+/**
+ * 公測修訂的來源鍵。
+ *
+ * **它仍然是一個合法的 sourcebook 鍵**（角色身上 `enabledSourcebooks` 用它決定
+ * 秘儀師【Playtest】能不能選），但**不是 GM 在「開放的手冊」裡勾的東西**——
+ * 使用者裁定（2026-10-19）：公測是一個像金手指／定制武器那樣的**選用規則開關**，
+ * 不是一本「手冊」。所以它由 `allowPlaytest` 單獨控制進出
+ * `allowedSourcebooks` / `defaultSourcebooks`，兩個清單不再手動勾它。
+ */
+export const PLAYTEST_SOURCEBOOK_KEY = 'playtest';
+
+/** 手冊類來源（不含公測修訂）——這是「開放的手冊」勾選清單與預設上限的範圍。 */
+const BASE_SOURCEBOOK_KEYS = Object.freeze(
+  ALL_SOURCEBOOK_KEYS.filter((key) => key !== PLAYTEST_SOURCEBOOK_KEY)
+);
 
 /**
  * 高階角色的每級起始預算加給（原書 p.229）。
@@ -98,16 +115,22 @@ export const DEFAULT_CREATION_RULES = Object.freeze({
   /**
    * 此團開放的拓展**上限**。預設為全部手冊——因為在「沒有 campaign」的情況下
    * 玩家就是自己的 GM，不該被擋；GM 自訂開局時把這裡收窄，才成為真正的上限。
+   *
+   * ※ **不含公測修訂**：公測由 `allowPlaytest` 單獨開關（見 `PLAYTEST_SOURCEBOOK_KEY`）。
+   *   這裡若含 playtest，`isDefaultCreationRules()` 會永遠判定「非官方標準」——
+   *   因為官方核心規則本來就沒有公測內容。
    */
-  allowedSourcebooks: Object.freeze([...ALL_SOURCEBOOK_KEYS]),
+  allowedSourcebooks: Object.freeze([...BASE_SOURCEBOOK_KEYS]),
   /**
    * 新角色預設勾選哪些拓展。
    *
    * 2026-10-06 改成**全部**（使用者裁定）：「默認不要只有核心，而是全部，不然要切換來切換去很麻煩。」
    * 這一格只決定「選單一開始顯示什麼」——**真正的上限是 `allowedSourcebooks`**，
    * 所以 GM 收窄手冊時照樣擋得住（`validateCharacter` 的「啟用了未開放的拓展」是 error）。
+   *
+   * ※ 同樣**不含公測修訂**：`allowPlaytest` 開啟時會自動把 playtest 補進這兩個清單。
    */
-  defaultSourcebooks: Object.freeze([...ALL_SOURCEBOOK_KEYS]),
+  defaultSourcebooks: Object.freeze([...BASE_SOURCEBOOK_KEYS]),
   /** GM 指定必須修習的職業（空陣列＝不指定） */
   requiredClasses: Object.freeze([]),
   /** 是否允許金手指 */
@@ -139,7 +162,22 @@ export const DEFAULT_CREATION_RULES = Object.freeze({
    *
    * 預設 false：這是「給想把角色從一級就做得很複雜的老手團」的選用規則，不是核心規則。
    */
-  startingHeroicSkill: false
+  startingHeroicSkill: false,
+  /**
+   * 選用規則：開放公測修訂內容（Playtest Materials，官方 Patreon 釋出）。
+   *
+   * 使用者裁定（2026-10-19）：「playtest 公測的內容也是一個 tickbox，像那些開局的設定同理。
+   * 名為【開放公測修訂內容】」——所以它是**規則開關**，不是「開放的手冊」裡的一本手冊。
+   *
+   * 開啟時：
+   * ① 核心書技能的【公測】變體按鈕才會出現（`coreBookVariants.js`）；
+   * ② `playtest` 自動進入 `allowedSourcebooks` 與 `defaultSourcebooks`，
+   *    秘儀師【Playtest】才能被選；
+   * ③ 關閉時兩份清單都會剝除 `playtest`（既有角色的資料不動，只是上限擋住）。
+   *
+   * 預設 false：官方核心規則沒有公測內容。
+   */
+  allowPlaytest: false
 });
 
 const toInt = (value, fallback, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}) => {
@@ -180,13 +218,24 @@ export const resolveCreationRules = (overrides = {}) => {
   // 技能點數預設跟著起始等級走（原書：每級 1 點）
   const skillPointBudget = toInt(given.skillPointBudget, startingLevel, { min: 1, max: 50 });
 
-  const allowedSourcebooks = pickSourcebooks(given.allowedSourcebooks, d.allowedSourcebooks);
+  const allowPlaytest = given.allowPlaytest === true;
+
+  // 公測不是「手冊勾選」而是規則開關：由 allowPlaytest 決定 playtest 是否進出兩份清單。
+  // 先算出手冊類清單（去掉 playtest，避免殘留的舊資料讓它復活），再依開關補回。
+  const stripPlaytest = (list) => list.filter((key) => key !== PLAYTEST_SOURCEBOOK_KEY);
+  let allowedSourcebooks = stripPlaytest(pickSourcebooks(given.allowedSourcebooks, d.allowedSourcebooks));
+  if (allowPlaytest) allowedSourcebooks = [...allowedSourcebooks, PLAYTEST_SOURCEBOOK_KEY];
+
   // 預設勾選必須落在上限之內，否則就退回核心
-  const wanted = pickSourcebooks(given.defaultSourcebooks, d.defaultSourcebooks);
+  const wanted = stripPlaytest(pickSourcebooks(given.defaultSourcebooks, d.defaultSourcebooks));
   const withinCeiling = wanted.filter((key) => allowedSourcebooks.includes(key));
-  const defaultSourcebooks = withinCeiling.length > 0
+  let defaultSourcebooks = withinCeiling.length > 0
     ? withinCeiling
     : (allowedSourcebooks.includes('core') ? ['core'] : [allowedSourcebooks[0]]);
+  // 公測開啟時，新角色預設就該看得到秘儀師【Playtest】（否則等於白開）
+  if (allowPlaytest && !defaultSourcebooks.includes(PLAYTEST_SOURCEBOOK_KEY)) {
+    defaultSourcebooks = [...defaultSourcebooks, PLAYTEST_SOURCEBOOK_KEY];
+  }
 
   const requiredClasses = Array.isArray(given.requiredClasses)
     ? [...new Set(given.requiredClasses.filter((name) => ALL_CLASS_NAMES.includes(name)))]
@@ -211,8 +260,30 @@ export const resolveCreationRules = (overrides = {}) => {
     requiredClasses,
     allowQuirk,
     allowCustomWeapon,
-    startingHeroicSkill
+    startingHeroicSkill,
+    allowPlaytest
   };
+};
+
+/**
+ * 這張卡是否開放公測修訂內容（**單一判定入口**）。
+ *
+ * 權威來源是 `character.creationRules.allowPlaytest`。
+ * **舊角色遷移**：這個欄位是 2026-10-19 才加的，在那之前「公測」是靠
+ * `enabledSourcebooks` 裡有沒有 `playtest` 決定的。所以欄位**從未被設定過**時
+ * 退回看舊資料——**不覆寫、不刪舊值**（與 localStorage 遷移鐵律同一個原則）。
+ * 一旦 GM 在面板上勾過或取消過（值變成 true/false），就以那個值為準。
+ *
+ * @param {{creationRules?: object, enabledSourcebooks?: string[]}} character
+ * @returns {boolean}
+ */
+export const isPlaytestAllowed = (character) => {
+  const raw = character && typeof character === 'object' ? character.creationRules : null;
+  if (raw && typeof raw.allowPlaytest === 'boolean') return raw.allowPlaytest;
+  const books = character && Array.isArray(character.enabledSourcebooks)
+    ? character.enabledSourcebooks
+    : [];
+  return books.includes(PLAYTEST_SOURCEBOOK_KEY);
 };
 
 /** 這份規則是否等於官方標準（UI 用來決定要不要顯示「此團自訂規則」提示） */

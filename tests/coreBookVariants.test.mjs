@@ -564,6 +564,37 @@ check('★ 檢視模式：永遠不該展開變體清單', viewAdopted.indexOf('
 check('★ 檢視模式：永遠不該出現預覽確認鈕', viewAdopted.includes('使用此公測變體'), false);
 check('★ 檢視模式：永遠不該出現預覽取消鈕', viewAdopted.includes('關閉預覽'), false);
 
+// ─────────────────────────────────────────────────────────── Q
+// §BE（2026-10-19）：公測變體改由開卡規則的【開放公測修訂內容】控制，
+// 不再看角色身上 `enabledSourcebooks` 有沒有 playtest。
+// 這一段是**行為驗證**（真的 SSR 渲染），不是原始碼掃描。
+section('Q. 公測變體由 creationRules.allowPlaytest 控制（§BE）');
+
+const renderEditRow = (character) => renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 3, selectedOptions: [] }]),
+  classIndex: 0, character, theme, isInitialEdit: true
+}));
+
+// (a) 新規則：allowPlaytest=true，角色 enabledSourcebooks 沒有 playtest → 仍要出現公測鈕
+const ruleOnChar = mkChar(['core']);
+ruleOnChar.creationRules = { allowPlaytest: true };
+check('規則開啟（enabledSourcebooks 沒 playtest）→ 公測鈕出現',
+  renderEditRow(ruleOnChar).indexOf('variant-toggle-咒語模仿') >= 0, true);
+
+// (b) 新規則：allowPlaytest=false，但舊資料 enabledSourcebooks 有 playtest → 不得出現
+const ruleOffChar = mkChar(['core', 'playtest']);
+ruleOffChar.creationRules = { allowPlaytest: false };
+check('規則關閉（舊資料仍留著 playtest）→ 公測鈕不出現',
+  renderEditRow(ruleOffChar).indexOf('variant-toggle-') < 0, true);
+
+// (c) 舊角色遷移：creationRules 完全沒有 allowPlaytest → 退回看 enabledSourcebooks
+const legacyOnChar = mkChar(['core', 'playtest']);
+check('舊角色（無 allowPlaytest、有 playtest）→ 公測鈕仍出現（遷移不破）',
+  renderEditRow(legacyOnChar).indexOf('variant-toggle-咒語模仿') >= 0, true);
+const legacyOffChar = mkChar(['core']);
+check('舊角色（無 allowPlaytest、無 playtest）→ 公測鈕不出現',
+  renderEditRow(legacyOffChar).indexOf('variant-toggle-') < 0, true);
+
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
 console.log(`\n${'='.repeat(56)}`);
