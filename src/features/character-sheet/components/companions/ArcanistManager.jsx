@@ -168,7 +168,7 @@ export default function ArcanistManager({
       {activeArcana ? (
         <div className="p-3.5 rounded-xl bg-gradient-to-r from-blue-900 to-indigo-950 text-white shadow-md border border-blue-400/40 space-y-2 animate-fadeIn">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
               <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
               <span className="font-bold text-sm tracking-wide text-cyan-200">
                 當前召喚中：{activeArcana.name}
