@@ -1223,6 +1223,35 @@ const sheetSrcBf = fs.readFileSync('src/features/character-sheet/CharacterSheet.
 check('名冊頁讀檔時真的呼叫 normalizeRosterClassNames',
   sheetSrcBf.includes('normalizeRosterClassNames(parsed)'), true);
 
+// ─────────────────────────────────────────────────────────── BG
+section('BG. 變體秘儀師的英雄技能：選單與職業卡都只看得到自己那一版');
+
+const renderArcanistHeroicPicker = (className) => renderHeroicPicker({
+  level: 10,
+  classes: [{ className, level: 10, skills: [] }]
+});
+const variantHeroicHtml = renderArcanistHeroicPicker(VARIANT_ARCANIST_CLASS_NAME);
+const coreHeroicHtml = renderArcanistHeroicPicker('秘儀師');
+
+check('變體角色：清單裡有【變體】版',
+  variantHeroicHtml.includes('阿爾卡納迴響【變體】'), true);
+// 邊界比對：變體版的名字包含核心版的名字，只查子字串會誤判成「兩邊都有」。
+check('變體角色：看不到核心版（同名不帶【變體】的那一列）',
+  variantHeroicHtml.includes('>阿爾卡納迴響<'), false);
+check('核心角色：看得到核心版', coreHeroicHtml.includes('>阿爾卡納迴響<'), true);
+check('核心角色：看不到任何【變體】列',
+  coreHeroicHtml.includes('【變體】'), false);
+
+const heroicBlockVariant = renderToStaticMarkup(React.createElement(ClassHeroicSkillsBlock, {
+  className: VARIANT_ARCANIST_CLASS_NAME, theme: {}
+}));
+const heroicBlockCore = renderToStaticMarkup(React.createElement(ClassHeroicSkillsBlock, {
+  className: '秘儀師', theme: {}
+}));
+// 空清單時整個元件回 null——所以「有內容」就等於「這個職業真的解鎖得到英雄技能」。
+check('變體職業卡有英雄技能入口（不是空的）', heroicBlockVariant.length > 0, true);
+check('核心職業卡也有英雄技能入口', heroicBlockCore.length > 0, true);
+
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
 console.log(`\n${'='.repeat(56)}`);

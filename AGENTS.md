@@ -629,6 +629,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 | BD | 職業卡標題重複英文 ＋ roster gallery 不顯示英文 | `ClassPickerModal` 移除 `withEn()` 之後多餘的 `/ {info.en}`（標題與清單各一處）；roster gallery 改純中文職業名，戰鬥抽屜與 play 模式**保留**英文 | 2026-10-17 |
 | BE | 公測修訂＝開卡規則 tickbox（不是手冊）＋ 刪 6 職 | `creationRules.allowPlaytest`（預設 false）單一控制；`allowedSourcebooks`／`defaultSourcebooks` 依開關進出 playtest；面板新增【開放公測修訂內容】、手冊清單不再列公測；**刪除 6 個無官方對應的【Playtest】職業**（35→29），保留秘儀師【Playtest】待裁定 | 2026-10-19 |
 | BF | 秘儀師【變體】：對齊 ARCANIST (variant) ＋ 阿爾卡納改版 | ① 改名 `秘儀師【Playtest】`→`秘儀師【變體】`（`VARIANT_ARCANIST_CLASS_NAME` 單一來源）② 技能文本對齊 p.24，修 3 處實質錯誤（快速召喚偷加「在衝突中」、選項②把「若已連結」寫成「召喚即連結」、綁定和召喚謊稱「必須從清單選」）③ 阿爾卡納規則連動：召喚 30MP、等級 +5／+10、新增【脈衝】層；`RULE_CODEX.arcanaVariant` 與核心 9 個**並列不覆寫**，速查分頁 16→17 ④ 新增 11 個範例阿爾卡納（各含 domains／merge／pulse／dismiss）⑤ 召喚面板依「角色實際職業」切換數值與脈衝欄 ⑥ 舊存檔職業名唯讀正名（`normalizeRosterClassNames`）⑦ `stripClassSuffix` 收斂後綴剝除，禁止再手寫 `replace('【Playtest】')` | 2026-10-19 |
+| BG | 變體英雄技能獨立成條（p.32）＋ 兩項裁決結案 | `秘術再生` **保留原名**、核心 9 個阿爾卡納**不補脈衝**（兩者皆不動程式）。變體英雄技能新增 `data/variantArcanistHeroicSkills.js` **9 筆**（原文 7 條＋同文件 2 條公測技能），全帶【變體】後綴、需求只寫 `秘儀師【變體】`，**與核心版零重疊**；新增 `requiredClassesOf()` 取**最長職業名**（`秘儀師` ⊂ `秘儀師【變體】`，舊的 `includes` 會讓核心角色選到變體技能）；開局封鎖清單改成「原字串或剝後綴」都比 | 2026-10-19 |
 
 ## 7. 本檔維護
 

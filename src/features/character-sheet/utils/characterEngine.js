@@ -1,6 +1,6 @@
 import rulesData from '../data/rulesData.json';
 import { PLAYTEST_HEROIC_SKILLS } from '../data/playtestHeroicSkills';
-import { SOURCEBOOKS, STATUS_AFFLICTIONS, ATTRIBUTE_NAMES, ATTRIBUTE_KEYS, ATTRIBUTE_PRESET_ARRAYS } from '../data/sourcebookConfig';
+import { SOURCEBOOKS, STATUS_AFFLICTIONS, ATTRIBUTE_NAMES, ATTRIBUTE_KEYS, ATTRIBUTE_PRESET_ARRAYS, normalizeClassName } from '../data/sourcebookConfig';
 import { getSkillSuboptionConfig, calculateSkillSuboptionMax } from '../data/skillSuboptionsData';
 import { PILOT_ARMOR_MODULES } from '../data/pilotVehicleData';
 import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
@@ -9,6 +9,7 @@ import { buildCustomWeaponEntries, validateCustomWeapon, CUSTOM_WEAPON_BASE } fr
 import { appendLog, createLogEntry } from './characterLog';
 import { findVariantHeroicSkillConflicts } from '../data/coreBookVariants';
 import { stripClassSuffix } from '../data/classAliases';
+import { VARIANT_ARCANIST_HEROIC_SKILLS } from '../data/variantArcanistHeroicSkills';
 
 // Dice ladder for step reductions
 const DICE_STEPS = [6, 8, 10, 12];
@@ -135,16 +136,19 @@ export const isHpMpChoiceBenefit = (freeBenefitText = '') => (
 export const PLACEHOLDER_CHARACTER_NAME = '新冒險者';
 
 /**
- * 全部英雄技能：正式規則書 111 筆 ＋ Playtest 新增 43 筆。
+ * 全部英雄技能：正式規則書 111 筆 ＋ Playtest 新增 43 筆 ＋ 變體秘儀師 9 筆。
  *
- * 兩份分開存是因為**出處不同**——Playtest 那批官方自己標為「NEW HEROIC SKILLS，
- * designed for inclusion within the Strategy Guide」，也就是還沒進正式規則書。
+ * 三份分開存是因為**出處不同**——Playtest 那批官方自己標為「NEW HEROIC SKILLS，
+ * designed for inclusion within the Strategy Guide」，也就是還沒進正式規則書；
+ * 變體秘儀師那批是同一份文件的 p.32，為了「核心／變體互不相通」而必須獨立成條目
+ * （見 `variantArcanistHeroicSkills.js` 檔頭）。
  * 這一支是唯一的合併入口，所有讀取端（引擎、編輯器、三頁匯出）都走它，
- * 免得有人只讀 `rulesData.heroicSkills` 而看不到 Playtest 那批。
+ * 免得有人只讀 `rulesData.heroicSkills` 而看不到另外兩批。
  */
 export const HEROIC_SKILLS = Object.freeze([
   ...(rulesData.heroicSkills || []),
-  ...PLAYTEST_HEROIC_SKILLS
+  ...PLAYTEST_HEROIC_SKILLS,
+  ...VARIANT_ARCANIST_HEROIC_SKILLS
 ]);
 
 /**
@@ -164,23 +168,44 @@ export const HEROIC_SKILL_SOURCE_LABELS = Object.freeze({
 });
 
 /**
+ * 從 `requirement` 的職業段落抽出**最長**的職業名。
+ *
+ * 為什麼要取最長：職業名互為子字串（`秘儀師` ⊂ `秘儀師【變體】`）。若照舊「有出現就算」，
+ * 變體條目的 requirement 會同時命中核心職業 → 精通核心版的人也能選變體技能，
+ * 「兩者不能相通」就破了。取最長之後，`秘儀師【變體】` 只認變體、`秘儀師` 只認核心。
+ *
+ * 「且／並」之後是額外技能前提，不列入判定（那是自由文字，猜錯會擋掉合法角色）。
+ */
+const requiredClassesOf = (requirement) => {
+  const classPart = String(requirement || '').split(/且|並/)[0];
+  const hits = Object.keys(rulesData.classes).filter((name) => classPart.includes(name));
+  return hits.filter((name) => !hits.some((other) => other !== name && other.includes(name)));
+};
+
+/**
  * 精通某個職業之後能解鎖哪些英雄技能（原書 p.232：把一個職業練到 10 級可獲得一個英雄技能）。
  *
- * 判定與 `checkHeroicSkillRequirement` 共用同一條規則：取 `requirement` 的職業段落
- * （「且／並」之前）比對是否提到這個職業。所以「需精通守護者或機師」會**同時**出現在
- * 守護者與機師底下——那正是玩家要的（兩條路都能走）。
- * `通用` 的技能與職業無關，一律排除。
+ * 判定與 `checkHeroicSkillRequirement` 共用 `requiredClassesOf`，所以「需精通守護者或機師」
+ * 會**同時**出現在守護者與機師底下（兩條路都能走）。`通用` 的技能與職業無關，一律排除。
+ *
+ * **核心版與變體版互不相通**（§BG 使用者裁定）：變體職業的條目需求寫「秘儀師【變體】」，
+ * 因為取最長職業名，精通核心秘儀師的人不會看到它們，反之亦然。
  *
  * 放在引擎而不是元件裡：職業彈窗要顯示它，而它得能被測試直接驗。
  */
 export const heroicSkillsForClass = (className) => {
   if (!className) return [];
-  // 用共用剝除器，不要手寫字串替換：變體職業的標記從【Playtest】改成【變體】之後，
-  // 寫死舊標記的版本會安靜地回傳 0 筆（測試才抓到）。
-  const bare = stripClassSuffix(className);
-  if (!bare) return [];
+  // 舊名先正名（§BF：秘儀師【Playtest】 → 秘儀師【變體】）。
+  const key = normalizeClassName(className);
+  if (!key) return [];
+  // 已刪除／未知的舊職業（例：守護者【Playtest】）退回「剝後綴」比對，讓舊存檔還看得到
+  // 主職業的英雄技能；**現行職業一律精確比對**——否則變體職業會連核心那份一起吃下。
+  const match = Object.prototype.hasOwnProperty.call(rulesData.classes, key)
+    ? key
+    : stripClassSuffix(key);
+  if (!match) return [];
   return HEROIC_SKILLS.filter((h) => h.requirement !== '通用'
-    && h.requirement.split(/且|並/)[0].includes(bare));
+    && requiredClassesOf(h.requirement).includes(match));
 };
 
 /**
@@ -265,9 +290,9 @@ export const STARTING_HEROIC_SKILL_BLOCKLIST = Object.freeze([
  *   它已經顯示在選項標籤上（`[requirement]`），由玩家自己確認。
  * - 「兩個或更多：A、B、C」這種寫法只要求**其中之一**（比原文寬鬆，寧漏不誤）。
  *
- * 職業名互為子字串（`吟唱者` ⊂ `吟唱者【Playtest】`）不會誤判：兩者都進候選清單，
- * 精通任一個都算過。（2026-10-19 起只剩 `秘儀師【變體】` 這種帶後綴的變體職業，
- * 規則不變——後綴比對照樣成立。）
+ * 職業名互為子字串（`秘儀師` ⊂ `秘儀師【變體】`）**會誤判，所以取最長職業名**
+ * （`requiredClassesOf`）：變體條目只認變體職業，核心條目只認核心職業。
+ * 這正是 §BG 使用者裁定的「兩者不能相通」——精通核心版卻能選變體技能，隔離就沒意義了。
  */
 export const checkHeroicSkillRequirement = (skill, {
   masteredClasses = [],
@@ -283,7 +308,13 @@ export const checkHeroicSkillRequirement = (skill, {
   // ——不要求精通，只要**擁有**那個職業其中之一（開局本來就不可能有 10 級職業）。
   // 官方同時明說「Any other requirements … remain unchanged」，所以等級前提照舊。
   if (atCreation) {
-    if (STARTING_HEROIC_SKILL_BLOCKLIST.includes(skill?.name)) {
+    // 比對時要把尾端的【…】剝掉：`啟示【變體】` 是 `啟示` 的變體版，
+    // 官方擋的是「這條技能」，不是「這個名字」——不剝就會出現
+    // 「核心角色開局拿不到啟示、變體角色卻拿得到」的漏洞。
+    const rawName = String(skill?.name || '');
+    const bareName = stripClassSuffix(rawName);
+    if (STARTING_HEROIC_SKILL_BLOCKLIST.includes(rawName)
+      || STARTING_HEROIC_SKILL_BLOCKLIST.includes(bareName)) {
       return { ok: false, reason: '這個英雄技能不能用開局名額取得' };
     }
     if (classes.length === 0) return { ok: false, reason: '開局名額需要至少一個職業' };
@@ -299,8 +330,7 @@ export const checkHeroicSkillRequirement = (skill, {
   }
 
   // 職業段落：「且／並」之後是額外技能前提，不列入判定
-  const classPart = req.split(/且|並/)[0];
-  const required = Object.keys(rulesData.classes).filter((name) => classPart.includes(name));
+  const required = requiredClassesOf(req);
   if (required.length === 0) return { ok: true, reason: '' }; // 抓不到職業名 → 不擋
 
   // 少數技能明文寫著「不必精通」（例：Playtest 的【銃劍士】「you must have acquired the
@@ -310,13 +340,18 @@ export const checkHeroicSkillRequirement = (skill, {
   const owned = (atCreation || anyClassEnough) ? classes : masteredClasses;
   if (required.some((name) => owned.includes(name))) return { ok: true, reason: '' };
 
-  // 錯誤訊息給玩家看，不帶【變體】這類內部標記。
-  const shown = [...new Set(required.map((n) => stripClassSuffix(n)))];
+  // 錯誤訊息照原樣顯示職業名：`【變體】` 現在是玩家必須分辨的東西，
+  // 剝掉它會變成「需精通【秘儀師】」，而對方缺的其實是「秘儀師【變體】」。
+  // 名稱本身已含【…】時不再多加一層外框，免得變成「【秘儀師【變體】】」。
+  const shown = [...new Set(required)];
+  const needsList = shown.some((n) => n.includes('【'))
+    ? shown.join('／')
+    : `【${shown.join('／')}】`;
   return {
     ok: false,
     reason: atCreation
-      ? `開局需擁有【${shown.join('／')}】其中之一`
-      : `需精通【${shown.join('／')}】其中之一`
+      ? `開局需擁有${needsList}其中之一`
+      : `需精通${needsList}其中之一`
   };
 };
 

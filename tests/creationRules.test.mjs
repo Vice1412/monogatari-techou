@@ -48,6 +48,7 @@ import {
   attributeDieUpgradesUsed
 } from '../src/features/character-sheet/utils/characterEngine.js';
 import { PLAYTEST_HEROIC_SKILLS } from '../src/features/character-sheet/data/playtestHeroicSkills.js';
+import { VARIANT_ARCANIST_HEROIC_SKILLS } from '../src/features/character-sheet/data/variantArcanistHeroicSkills.js';
 import { getLog } from '../src/features/character-sheet/utils/characterLog.js';
 import {
   SOURCEBOOKS,
@@ -56,7 +57,8 @@ import {
   THEME_ALIASES,
   normalizeTheme,
   ATTRIBUTE_PRESET_ARRAYS,
-  ATTRIBUTE_KEYS
+  ATTRIBUTE_KEYS,
+  VARIANT_ARCANIST_CLASS_NAME
 } from '../src/features/character-sheet/data/sourcebookConfig.js';
 import { totalStartingEquipCost } from '../src/features/character-sheet/utils/equipmentRules.js';
 import rulesData from '../src/features/character-sheet/data/rulesData.json';
@@ -740,8 +742,10 @@ const sourceCounts = () => {
   return Object.keys(c).sort().map((k) => `${k}:${c[k]}`);
 };
 
-check('正式規則書 115 筆 ＋ Playtest 43 筆 ＝ 158',
-  [HEROIC_SKILLS.length, rulesData.heroicSkills.length, PLAYTEST_HEROIC_SKILLS.length], [158, 115, 43]);
+check('正式規則書 115 筆 ＋ Playtest 43 筆 ＋ 變體秘儀師 9 筆 ＝ 167',
+  [HEROIC_SKILLS.length, rulesData.heroicSkills.length, PLAYTEST_HEROIC_SKILLS.length,
+    VARIANT_ARCANIST_HEROIC_SKILLS.length],
+  [167, 115, 43, 9]);
 // 出處回填自繁中版角色卡 Excel V2.17 的來源區段（位置對齊，已驗證順序完全一致）
 // ＋ 卡牌大師那 4 筆（規則書有、Excel 沒有，使用者指示要實裝）
 check('出處分佈：核心 31／高度奇幻 24／科技 18／自然 21／特典 21（含卡牌大師 4 筆）',
@@ -870,10 +874,19 @@ check('heroicSkillsForClass：守護者至少解鎖 3 個',
 check('heroicSkillsForClass：Playtest 那批也算得出來',
   heroicSkillsForClass('元素師').some((h) => h.source === 'playtest'), true);
 check('heroicSkillsForClass：沒有職業時回空陣列', heroicSkillsForClass(''), []);
-// 2026-10-19：6 個【Playtest】職業已刪除，只剩秘儀師【變體】。
-// 這條驗的是「帶【…】後綴的變體職業會剝除後綴、對到主名那一組」。
-check('heroicSkillsForClass：【Playtest】變體對到同一組',
-  heroicSkillsForClass('秘儀師【變體】').length, heroicSkillsForClass('秘儀師').length);
+// 2026-10-19（§BG）：變體職業**不再**對到核心那一組，而是自己獨立一組。
+// 舊版這條斷言寫的是「兩邊長度相等」——在核心 9 筆、變體也 9 筆時它會**假性通過**，
+// 正好是「護欄綠燈 ≠ 行為正確」的範例，所以改成驗內容而不是驗數量。
+const CORE_ARCANIST_HEROIC = heroicSkillsForClass('秘儀師');
+const VARIANT_ARCANIST_HEROIC = heroicSkillsForClass(VARIANT_ARCANIST_CLASS_NAME);
+check('核心秘儀師的英雄技能：一筆【變體】都沒有',
+  CORE_ARCANIST_HEROIC.filter((h) => h.name.includes('【變體】')).map((h) => h.name), []);
+check('變體秘儀師的英雄技能：每一筆都帶【變體】',
+  VARIANT_ARCANIST_HEROIC.filter((h) => !h.name.includes('【變體】')).map((h) => h.name), []);
+check('兩份清單沒有一個名字重疊（不能相通）',
+  CORE_ARCANIST_HEROIC.filter((h) => VARIANT_ARCANIST_HEROIC.some((v) => v.name === h.name)).map((h) => h.name), []);
+check('變體秘儀師有 9 筆英雄技能',
+  VARIANT_ARCANIST_HEROIC.length, VARIANT_ARCANIST_HEROIC_SKILLS.length);
 check('heroicSkillsForClass：「A或B」型在兩邊都查得到',
   [heroicSkillsForClass('機師').some((h) => h.name === '震顫泰坦'),
     heroicSkillsForClass('守護者').some((h) => h.name === '震顫泰坦')], [true, true]);
@@ -984,6 +997,100 @@ check('CLASS_METADATA 也不再有那 6 個職業',
   DELETED_PLAYTEST_CLASSES.filter((name) => Object.prototype.hasOwnProperty.call(CLASS_METADATA, name)), []);
 check('秘儀師【變體】仍然在（公測唯一的職業級變體，不可誤刪）',
   Object.prototype.hasOwnProperty.call(rulesData.classes, '秘儀師【變體】'), true);
+
+// ─────────────────────────────────────────────────────────── BG
+section('BG. 變體秘儀師的英雄技能：獨立條目 ＋ 與核心版互不相通');
+// 使用者裁定（2026-10-19）：
+// 「變體版的英雄技能全部加進去，然後在後面括號【變體】，不要修改到核心版的原文。
+//   同時要界定邏輯，如果精通的職業是核心版，就只能選核心版的英雄技能，
+//   變體版則只能選變體版的英雄技能，這兩者不能相通。」
+const heroicByName = (n) => HEROIC_SKILLS.find((h) => h.name === n);
+const VAR = '【變體】';
+// 全部走「查不到就給空字串」的取值器：資料檔被改壞時要**回報 FAIL**，
+// 不能丟 TypeError 把整份報告吃掉（第一版就是這樣，刻意破壞驗證才發現它其實沒在守）。
+const effectOf = (n) => heroicByName(n)?.effect ?? '';
+const reqOf = (name, opts) => {
+  const skill = heroicByName(name);
+  return skill ? checkHeroicSkillRequirement(skill, opts) : { ok: null, reason: '（找不到這個技能）' };
+};
+
+// (1) 使用者同日裁定：「秘術再生的翻譯保留」——不改叫「阿爾卡納再生」。
+check('變體秘儀師的技能名保留「秘術再生」',
+  [rulesData.classes[VARIANT_ARCANIST_CLASS_NAME].skills.some((s) => s.name === '秘術再生'),
+    rulesData.classes[VARIANT_ARCANIST_CLASS_NAME].skills.some((s) => s.name === '阿爾卡納再生')],
+  [true, false]);
+
+// (2) 9 筆：命名、需求、完整性
+check('每一筆都帶【變體】後綴',
+  VARIANT_ARCANIST_HEROIC_SKILLS.filter((h) => !h.name.endsWith(VAR)).map((h) => h.name), []);
+check('每一筆的需求都指向變體職業',
+  VARIANT_ARCANIST_HEROIC_SKILLS.filter((h) => !h.requirement.includes(VARIANT_ARCANIST_CLASS_NAME)).map((h) => h.name), []);
+check('每一筆都有名稱／需求／效果',
+  VARIANT_ARCANIST_HEROIC_SKILLS.filter((h) => !h.name || !h.requirement || !h.effect).map((h) => h.name), []);
+check('每一筆都真的併進 HEROIC_SKILLS（否則選單裡根本沒有）',
+  VARIANT_ARCANIST_HEROIC_SKILLS.filter((h) => !heroicByName(h.name)).map((h) => h.name), []);
+// 變體版不該再列出其他職業（否則同一條技能會在別的職業那邊出現兩份）。
+check('變體版需求不再掛其他職業',
+  VARIANT_ARCANIST_HEROIC_SKILLS
+    .filter((h) => /或靈師|或守護者|、商人、徽記師|^卡牌大師/.test(h.requirement))
+    .map((h) => h.name), []);
+
+// (3) 原文照抄的 5 條：效果必須與核心版逐字相同
+const IDENTICAL_HEROIC = ['阿爾卡納迴響', '靈氣掌握', '奧術獻祭', '神符精通', '被封印的儀式'];
+check('原文說「kept identical」的 5 條，效果與核心版逐字相同',
+  IDENTICAL_HEROIC.filter((n) => effectOf(`${n}${VAR}`) !== effectOf(n)), []);
+
+// (4) 真的改了 2 條
+check('啟示【變體】是重寫版（與核心版不同）',
+  effectOf(`啟示${VAR}`) !== effectOf('啟示') && effectOf(`啟示${VAR}`) !== '', true);
+check('啟示【變體】寫入 p.32 的新條款（危機 ＋ 快速召喚兩個選項）',
+  [effectOf(`啟示${VAR}`).includes('危機狀態'),
+    effectOf(`啟示${VAR}`).includes('快速召喚')], [true, true]);
+check('偉大召喚【變體】保留核心全文，只在尾端追加',
+  effectOf(`偉大召喚${VAR}`).startsWith(effectOf('偉大召喚')) && effectOf('偉大召喚') !== '', true);
+check('偉大召喚【變體】追加「顯現體也能執行脈衝」與「不能搭配快速召喚」',
+  [effectOf(`偉大召喚${VAR}`).includes('脈衝'),
+    effectOf(`偉大召喚${VAR}`).includes('沒有使用【快速召喚】')], [true, true]);
+
+// (5) 核心版一個字都沒被動到
+const CORE_ARCANIST_HEROIC_NAMES = [
+  '阿爾卡納迴響', '啟示', '偉大召喚', '靈氣掌握', '奧術獻祭', '神符精通', '被封印的儀式'
+];
+check('核心 7 條的需求都沒有【變體】字樣',
+  CORE_ARCANIST_HEROIC_NAMES.filter((n) => heroicByName(n)?.requirement.includes(VAR)).map((n) => n), []);
+check('核心 7 條的效果都沒有被追加脈衝條款',
+  CORE_ARCANIST_HEROIC_NAMES.filter((n) => heroicByName(n)?.effect.includes('脈衝')).map((n) => n), []);
+
+// (6) 隔離：精通哪一版就只能選哪一版
+check('精通核心秘儀師 → 選不到變體技能',
+  reqOf(`阿爾卡納迴響${VAR}`, { masteredClasses: ['秘儀師'], level: 10 }).ok, false);
+check('精通變體秘儀師 → 選不到核心技能',
+  reqOf('阿爾卡納迴響', { masteredClasses: [VARIANT_ARCANIST_CLASS_NAME], level: 10 }).ok, false);
+check('各自精通 → 各自選得到',
+  [reqOf('阿爾卡納迴響', { masteredClasses: ['秘儀師'], level: 10 }).ok,
+    reqOf(`阿爾卡納迴響${VAR}`, { masteredClasses: [VARIANT_ARCANIST_CLASS_NAME], level: 10 }).ok],
+  [true, true]);
+check('開局名額模式也隔離（擁有核心職業 ≠ 擁有變體職業）',
+  [reqOf(`阿爾卡納迴響${VAR}`, { classes: ['秘儀師'], level: 5, atCreation: true }).ok,
+    reqOf(`阿爾卡納迴響${VAR}`, { classes: [VARIANT_ARCANIST_CLASS_NAME], level: 5, atCreation: true }).ok],
+  [false, true]);
+check('隔離對「需求附帶等級」的那條也成立（偉大召喚 30 級）',
+  [reqOf(`偉大召喚${VAR}`, { masteredClasses: ['秘儀師'], level: 30 }).ok,
+    reqOf(`偉大召喚${VAR}`, { masteredClasses: [VARIANT_ARCANIST_CLASS_NAME], level: 20 }).ok,
+    reqOf(`偉大召喚${VAR}`, { masteredClasses: [VARIANT_ARCANIST_CLASS_NAME], level: 30 }).ok],
+  [false, false, true]);
+
+// (7) 開局名額封鎖不能因為改名而失效
+check('啟示【變體】也不能用開局名額取得（核心版被擋，變體版不能開後門）',
+  reqOf(`啟示${VAR}`, { classes: [VARIANT_ARCANIST_CLASS_NAME], level: 5, atCreation: true }).ok, false);
+
+// (8) 錯誤訊息要說清楚缺的是哪一版
+check('核心角色選變體技能 → 提示寫出「秘儀師【變體】」',
+  reqOf(`阿爾卡納迴響${VAR}`, { masteredClasses: ['秘儀師'], level: 10 }).reason,
+  '需精通秘儀師【變體】其中之一');
+check('變體角色選核心技能 → 提示寫出「秘儀師」',
+  reqOf('阿爾卡納迴響', { masteredClasses: [VARIANT_ARCANIST_CLASS_NAME], level: 10 }).reason,
+  '需精通【秘儀師】其中之一');
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
