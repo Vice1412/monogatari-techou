@@ -13,7 +13,7 @@
 > |---|---|
 > | 專案現況、測試基準、環境事實 | `AGENTS.md` §1 |
 > | 有哪些事還沒做、還沒裁定 | `AGENTS.md` §6.1 |
-> | 已結案的決策索引 | `AGENTS.md` §6.2 |
+> | 已結案的決策索引 | `docs/decisions.md` 開頭〈索引（決策一覽）〉 |
 > | 「為什麼這樣決定」的完整過程 | `docs/decisions.md` |
 > | 變更紀錄 | `docs/agents-changelog.md` |
 > | 最高規範 | `GEMINI.md`（**只讀，不得改寫原文**） |
@@ -109,7 +109,7 @@ git rev-list --objects --all | Select-String "<path>"    # 歷史層（真正會
 ## 3. Git 歷史改寫始末（2026-10-05，**接手前必讀**）
 
 > **這一節是為了防止新 session 撞上「查到的 commit 不存在」而寫的。**
-> 別的檔案（`AGENTS.md` §6.2 的 I 列、`docs/decisions.md` §O）只記了「發生了什麼」；
+> 別的檔案（`docs/decisions.md` 開頭索引的 I 列、同檔 §O）只記了「發生了什麼」；
 > **本節多記的是「怎麼查、備份在哪」，以及新 session 該知道的後續。**
 
 ### 3.1 發生了什麼
