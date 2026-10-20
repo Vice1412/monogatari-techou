@@ -132,3 +132,27 @@ export const getArcanistDismissHeal = (character) => {
 /** 開局可自選的阿爾卡納數量：有綁定和召喚就是 1 個（Core p.133／變體 p.24 同樣是「開局一個」） */
 export const getStartingArcanaQuota = (character) =>
   getArcanistSkillLevel(character, ARCANIST_BINDING_SKILL) > 0 ? 1 : 0;
+
+const arcanistText = (value) => (typeof value === 'string' ? value.trim() : '');
+
+/**
+ * 把一筆阿爾卡納的效果整理成「可渲染的段落清單」。
+ *
+ * 為什麼要有這個純函式：玩家在創角時要挑開局契約，但卡片原本只印「名稱＋領域」——
+ * 等於要人憑名字下注。這裡把效果欄位抽成固定順序的段落，讓 UI 與測試共用同一份判斷。
+ *
+ * 段落順序固定為 連攜（變體叫「連結」）→ 脈衝 → 解除；空字串與 undefined 一律略過，
+ * 呼叫端不必自己寫 `if (arcana.pulse)`。
+ *
+ * @param {object} arcana 阿爾卡納資料（`merge`／`pulse`／`dismiss`）
+ * @param {{variant?: boolean}} [options] `variant` 為真時，第一段標籤用變體原文的「連結」
+ */
+export const buildArcanaEffectSections = (arcana, options = {}) => {
+  if (!arcana) return [];
+  const mergeLabel = options.variant ? '連結' : '連攜';
+  return [
+    { key: 'merge', label: mergeLabel, text: arcanistText(arcana.merge) },
+    { key: 'pulse', label: '脈衝', text: arcanistText(arcana.pulse) },
+    { key: 'dismiss', label: '解除', text: arcanistText(arcana.dismiss) }
+  ].filter(section => section.text);
+};

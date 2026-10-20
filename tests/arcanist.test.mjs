@@ -31,8 +31,10 @@ import {
   getArcanistSummonHeal,
   getArcanistDismissHeal,
   getStartingArcanaQuota,
+  buildArcanaEffectSections,
   isInCrisis
 } from '../src/features/character-sheet/utils/arcanist.js';
+import { RULE_CODEX } from '../src/features/character-sheet/data/ruleCodexData.js';
 import { applyPreset, buildTrayPool, assignPoolInOrder, attributesFromPool } from '../src/features/character-sheet/utils/attributePresets.js';
 import ArcanistManager from '../src/features/character-sheet/components/companions/ArcanistManager.jsx';
 import ArcanistStarterBinding from '../src/features/character-sheet/components/ArcanistStarterBinding.jsx';
@@ -266,6 +268,44 @@ const quotaChar = {
 const quotaWarning = validateCharacter(quotaChar).warnings.find((w) => String(w.message || '').includes('名額未滿'));
 check('名額未滿仍會提醒（沒有把護欄改壞）', !!quotaWarning, true);
 check('提醒文字裡有真實的按鈕名稱線索', /配置|調整/.test(String(quotaWarning?.message || '')), true);
+
+// ─────────────────────────────────────────────────────────────
+section('J. 效果要看得見（挑開局契約不能只靠名字下注）');
+
+const swordArcana = RULE_CODEX.arcana.catalog.find((a) => a.id === 'sword');
+const variantArcana = RULE_CODEX.arcanaVariant.catalog[0];
+
+const coreSections = buildArcanaEffectSections(swordArcana);
+check('核心阿爾卡納的段落標籤是「連攜／解除」', coreSections.map((s) => s.label), ['連攜', '解除']);
+check('連攜段落帶出效果原文', coreSections[0].text.includes('5 點額外傷害'), true);
+check('沒有脈衝的核心阿爾卡納不會硬塞脈衝段',
+  coreSections.some((s) => s.key === 'pulse'), false);
+check('變體阿爾卡納的段落標籤是「連結／脈衝／解除」',
+  buildArcanaEffectSections(variantArcana, { variant: true }).map((s) => s.label),
+  ['連結', '脈衝', '解除']);
+check('空資料回空陣列（呼叫端不必自己防護）', buildArcanaEffectSections(null), []);
+check('空白字串欄位會被濾掉',
+  buildArcanaEffectSections({ merge: '  ', pulse: '', dismiss: '解除效果' }).map((s) => s.label),
+  ['解除']);
+
+check('核心 9 張卡都印出連攜預覽（不是只有名稱＋領域）',
+  (starterHtml.match(/連攜：/g) || []).length, 9);
+check('效果原文真的在畫面上（CSS 截行不代表內容被砍掉）',
+  starterHtml.includes('5 點額外傷害'), true);
+check('變體清單改用原文的「連結」措辭',
+  (starterVariantHtml.match(/連結：/g) || []).length, 20);
+check('有脈衝的變體阿爾卡納標出「脈衝」徽章',
+  (starterVariantHtml.match(/脈衝/g) || []).length > 0, true);
+check('效果文本走九相屬性渲染（規則七：不是純文字）',
+  starterHtml.includes('class="fu-icon'), true);
+
+const starterPicked = renderStarter(mkChar({ bound: ['sword'] }));
+check('選定後出現完整效果面板',
+  starterPicked.includes('data-testid="arcanist-starter-detail"'), true);
+check('完整面板連解除效果都列出來',
+  starterPicked.includes('劍之阿爾卡納沒有自願解除效果'), true);
+check('未選定時不渲染完整面板',
+  starterHtml.includes('data-testid="arcanist-starter-detail"'), false);
 
 // ─────────────────────────────────────────────────────────────
 lines.push(`\n通過 ${pass} / ${pass + fail}　${fail === 0 ? '（全部通過）' : `（失敗 ${fail}）`}`);
