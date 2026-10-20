@@ -73,6 +73,7 @@ import SuboptionDetailsList from './SuboptionDetailsList';
 import ChanterComposer from './companions/ChanterComposer';
 import FloristGardenTracker from './companions/FloristGardenTracker';
 import ErrorBoundary from '../../../components/ui/ErrorBoundary';
+import { shouldRenderArcanistPanel } from '../utils/arcanist';
 import { withEn } from '../../../utils/properNouns';
 import { STORAGE_KEYS } from '../../../data/keys';
 import { readJSON, writeJSON } from '../../../data/store';
@@ -1881,7 +1882,7 @@ export default function CharacterPlayHUD({
                   </div>
 
                   {/* 職業專屬機制互動工具 (Subsystem Companions) */}
-                  {cl.className === '秘儀師' && (cl.skills || []).some(s => s.name === '綁定和召喚' && s.sl > 0) && (
+                  {shouldRenderArcanistPanel(character, cl.className) && (
                     <div className="mt-3">
                       <ArcanistManager
                         character={character}

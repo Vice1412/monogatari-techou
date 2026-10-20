@@ -2,8 +2,16 @@ import React, { useState } from 'react';
 import { GiSparkles, GiCancel, GiCheckMark, GiBroadsword, GiFlame } from 'react-icons/gi';
 import { Plus } from 'lucide-react';
 import { RULE_CODEX } from '../../data/ruleCodexData';
-import { VARIANT_ARCANIST_CLASS_NAME } from '../../data/sourcebookConfig';
-import { getCharacterLevel } from '../../utils/characterEngine';
+import { getCharacterLevel, calculateCharacterStats } from '../../utils/characterEngine';
+import {
+  usesVariantArcanist as detectVariantArcanist,
+  getArcanistSummonCost,
+  getArcanistSummonHeal,
+  getArcanistDismissHeal,
+  getArcanistSkillLevel,
+  getBoundArcanaIds,
+  getStartingArcanaQuota
+} from '../../utils/arcanist';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 
 export default function ArcanistManager({
@@ -14,6 +22,7 @@ export default function ArcanistManager({
 }) {
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [isDismissModalOpen, setIsDismissModalOpen] = useState(false);
+  const [quickSummon, setQuickSummon] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customDomains, setCustomDomains] = useState('');
   const [customMerge, setCustomMerge] = useState('');
@@ -26,16 +35,26 @@ export default function ArcanistManager({
    * 核心版與變體版是**兩套規則**，差在三處：召喚費 40／30、等級傷害 +10·+20／+5·+10、
    * 以及變體版多一層【脈衝】。判定只認職業名，不認 `allowPlaytest`——
    * 開關決定「能不能選這個職業」，選了之後面板要反映的則是**這個角色實際拿到的規則**。
+   * 判定本體在 `utils/arcanist.js`（與跑團面板的顯示條件共用同一份）。
    */
-  const usesVariantArcanist = (character.classes || [])
-    .some((cl) => cl?.className === VARIANT_ARCANIST_CLASS_NAME);
+  const usesVariantArcanist = detectVariantArcanist(character);
 
-  // 取得角色專屬 arcanistData
+  /**
+   * 角色專屬 arcanistData。
+   *
+   * 這裡**刻意不預設任何綁定**：舊版預設把 `sword`（劍之阿爾卡納）塞進 boundArcana，於是新角色
+   * 一打開面板就顯示「已契約 1 種」並掛著劍之阿爾卡納的連攜（+5 傷害、傷害視為無屬性）——
+   * 玩家從沒選過，卻已經吃到數值。開局那一個阿爾卡納依規則是**自選**（Core p.133）。
+   */
   const arcanistData = character.arcanistData || {
-    boundArcana: ['sword'], // 預設綁定劍之阿爾卡納
+    boundArcana: [],
     customArcana: [],
     activeSummonId: null
   };
+
+  const boundArcanaIds = getBoundArcanaIds(character);
+  const startingQuota = getStartingArcanaQuota(character);
+
 
   // 核心版 9 個阿爾卡納永遠可用（變體版只是多一層脈衝，不是換掉整份清單）；
   // 變體角色再多出官方新給的 11 個範例阿爾卡納（id 不重疊，可直接串接）。
@@ -45,6 +64,64 @@ export default function ArcanistManager({
   const allArcana = [...officialCatalog, ...(arcanistData.customArcana || [])];
 
   const activeArcana = allArcana.find(a => a.id === arcanistData.activeSummonId);
+
+  /**
+   * 召喚費明細。
+   *
+   * 舊版面只在「召喚中」那張卡上寫「召喚費 40／30 點 MP」——那句話不影響任何東西：
+   * 按鈕照按、MP 一格沒扣、MP 不夠也照樣召喚。玩家實際玩過一輪的結論是
+   * 「這塊是備忘錄，不是工具」，所以這裡把費用算出來、擋掉付不起的召喚、
+   * 並且真的從 `currentMp` 扣。
+   */
+  const costInfo = getArcanistSummonCost(character, { quickSummon });
+  const summonHeal = getArcanistSummonHeal(character);
+  const dismissHeal = getArcanistDismissHeal(character);
+  const quickSummonSL = usesVariantArcanist ? getArcanistSkillLevel(character, '快速召喚') : 0;
+  const emergencySL = usesVariantArcanist ? 0 : getArcanistSkillLevel(character, '緊急秘儀');
+  const stats = calculateCharacterStats(character) || {};
+  const maxHp = Number(stats.maxHp) || 0;
+
+  const clampHp = (value) => (maxHp > 0 ? Math.min(maxHp, value) : value);
+
+  const handleSummon = (arcanaId) => {
+    if (arcanistData.activeSummonId === arcanaId) {
+      showToast('此阿爾卡納已在召喚中！', 'info');
+      return;
+    }
+    const target = allArcana.find(a => a.id === arcanaId);
+    if (!costInfo.affordable) {
+      showToast(
+        `MP 不足：召喚【${target?.name || '阿爾卡納'}】需要 ${costInfo.cost} 點 MP，目前只有 ${costInfo.curMp} 點。`,
+        'warning'
+      );
+      return;
+    }
+    const nextMp = Math.max(0, costInfo.curMp - costInfo.cost);
+    const curHp = character.currentHp === null || character.currentHp === undefined
+      ? maxHp
+      : Number(character.currentHp);
+    const healedHp = summonHeal > 0 ? clampHp((Number.isFinite(curHp) ? curHp : maxHp) + summonHeal) : curHp;
+    onChange({
+      ...character,
+      currentMp: nextMp,
+      ...(summonHeal > 0 ? { currentHp: healedHp } : {}),
+      arcanistData: {
+        ...arcanistData,
+        activeSummonId: arcanaId,
+        // 快速召喚選項②「執行其脈衝」與「本回合不得自願解除」都只在召喚當下成立，
+        // 這裡記一筆，讓介面能顯示限制而不是靠玩家記。
+        summonLockedTurn: quickSummon && quickSummonSL > 0
+          ? { at: new Date().toISOString(), quickSummon: true }
+          : null
+      },
+      updatedAt: new Date().toISOString()
+    });
+    const parts = [`召喚【${target?.name || '阿爾卡納'}】降臨！消耗 ${costInfo.cost} 點 MP（剩餘 ${nextMp}）`];
+    if (summonHeal > 0) parts.push(`【阿爾卡納再生】恢復 ${summonHeal} 點 HP`);
+    if (quickSummon && quickSummonSL > 0) parts.push('【快速召喚】：本回合結束前不能自願解除此阿爾卡納');
+    showToast(parts.join('；'), 'success');
+  };
+
 
   const updateArcanistData = (newData) => {
     onChange({
@@ -72,25 +149,29 @@ export default function ArcanistManager({
     updateArcanistData({ boundArcana: next });
   };
 
-  const handleSummon = (arcanaId) => {
-    if (arcanistData.activeSummonId === arcanaId) {
-      showToast('此阿爾卡納已在召喚中！', 'info');
-      return;
-    }
-    updateArcanistData({ activeSummonId: arcanaId });
-    const target = allArcana.find(a => a.id === arcanaId);
-    showToast(`召喚【${target?.name || '阿爾卡納'}】降臨！獲得其連攜增益！`, 'success');
-  };
-
   const handleDismiss = () => {
     if (!activeArcana) return;
     setIsDismissModalOpen(true);
   };
 
   const confirmDismiss = () => {
-    updateArcanistData({ activeSummonId: null });
+    const curHp = character.currentHp === null || character.currentHp === undefined
+      ? maxHp
+      : Number(character.currentHp);
+    const healedHp = dismissHeal > 0
+      ? clampHp((Number.isFinite(curHp) ? curHp : maxHp) + dismissHeal)
+      : curHp;
+    onChange({
+      ...character,
+      ...(dismissHeal > 0 ? { currentHp: healedHp } : {}),
+      arcanistData: { ...arcanistData, activeSummonId: null, summonLockedTurn: null },
+      updatedAt: new Date().toISOString()
+    });
     setIsDismissModalOpen(false);
-    showToast(`已自願解除【${activeArcana?.name}】並結算解除效果！`, 'success');
+    const note = dismissHeal > 0
+      ? `；【秘術再生】你與場景內所有盟友恢復 ${dismissHeal} 點 HP`
+      : '';
+    showToast(`已自願解除【${activeArcana?.name}】並結算解除效果${note}！`, 'success');
   };
 
   const handleAddCustomArcana = (e) => {
@@ -149,7 +230,7 @@ export default function ArcanistManager({
             <h3 className="text-sm font-bold text-amber-950 dark:text-amber-100 flex items-center gap-2">
               <span>阿爾卡納契約法典與召喚面板</span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-                已契約: {(arcanistData.boundArcana || []).length} 種
+                已契約: {boundArcanaIds.length} 種
               </span>
             </h3>
           </div>
@@ -164,6 +245,50 @@ export default function ArcanistManager({
         </button>
       </div>
 
+      {/* 召喚費明細：把規則算給玩家看，而不是只在召喚中的卡片上寫一句「40 點」 */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] px-1">
+        <span className="font-mono font-bold text-blue-800 dark:text-blue-300">
+          本次召喚消耗 {costInfo.cost} 點 MP
+        </span>
+        <span className="text-stone-500 dark:text-stone-400 font-mono">
+          （基礎 {costInfo.base}
+          {costInfo.emergencyDiscount > 0 ? ` − 緊急秘儀 ${costInfo.emergencyDiscount}` : ''}
+          {costInfo.quickDiscount > 0 ? ` − 快速召喚 ${costInfo.quickDiscount}` : ''}
+          ／目前 {costInfo.curMp} 點）
+        </span>
+        {costInfo.crisis && (
+          <span className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-800 font-bold">
+            危機狀態
+          </span>
+        )}
+        {emergencySL > 0 && !costInfo.crisis && (
+          <span className="text-stone-500 dark:text-stone-400">
+            【緊急秘儀】只在危機狀態生效
+          </span>
+        )}
+        {quickSummonSL > 0 && (
+          <label className="flex items-center gap-1 cursor-pointer text-stone-700 dark:text-stone-300">
+            <input
+              type="checkbox"
+              checked={quickSummon}
+              onChange={(e) => setQuickSummon(e.target.checked)}
+              className="rounded border-amber-400 text-amber-600 focus:ring-amber-500"
+            />
+            <span>
+              使用【快速召喚】①（MP −{quickSummonSL * 5}；本回合不得自願解除）
+            </span>
+          </label>
+        )}
+      </div>
+
+      {/* 開局自選的額度提示：綁定和召喚在創角時就該選好一個（Core p.133） */}
+      {boundArcanaIds.length === 0 && startingQuota > 0 && (
+        <div className="p-2.5 rounded-lg bg-amber-100/70 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-[11px] text-amber-900 dark:text-amber-200">
+          尚未綁定任何阿爾卡納。【綁定和召喚】讓你在開始遊戲前自選 {startingQuota} 個——
+          勾選下方清單中的一項即可完成開局綁定，之後只能透過探索與故事推進取得新的阿爾卡納。
+        </div>
+      )}
+
       {/* 當前召喚中狀態卡片 */}
       {activeArcana ? (
         <div className="p-3.5 rounded-xl bg-gradient-to-r from-blue-900 to-indigo-950 text-white shadow-md border border-blue-400/40 space-y-2 animate-fadeIn">
@@ -177,7 +302,7 @@ export default function ArcanistManager({
                 領域：{activeArcana.domains}
               </span>
               <span className="text-[11px] text-blue-200/80 font-mono">
-                召喚費 {usesVariantArcanist ? 30 : 40} 點 MP
+                召喚費 {costInfo.base} 點 MP
               </span>
             </div>
             <button
@@ -271,14 +396,19 @@ export default function ArcanistManager({
                       <button
                         type="button"
                         onClick={() => handleSummon(arcana.id)}
-                        disabled={isActive}
+                        disabled={isActive || !costInfo.affordable}
+                        title={!costInfo.affordable
+                          ? `MP 不足：需要 ${costInfo.cost} 點，目前 ${costInfo.curMp} 點`
+                          : `消耗 ${costInfo.cost} 點 MP`}
                         className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all ${
                           isActive
                             ? 'bg-blue-600 text-white cursor-default'
+                            : !costInfo.affordable
+                            ? 'bg-stone-200 text-stone-500 dark:bg-slate-800 dark:text-slate-500 cursor-not-allowed'
                             : 'bg-amber-100 hover:bg-amber-200 text-amber-900 dark:bg-amber-900/60 dark:hover:bg-amber-800 dark:text-amber-200'
                         }`}
                       >
-                        {isActive ? '召喚中' : '召喚'}
+                        {isActive ? '召喚中' : `召喚（${costInfo.cost} MP）`}
                       </button>
                     )}
                     {arcana.isCustom && (

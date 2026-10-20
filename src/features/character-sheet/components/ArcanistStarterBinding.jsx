@@ -1,0 +1,115 @@
+﻿import React from 'react';
+import { GiSparkles } from 'react-icons/gi';
+import { RULE_CODEX } from '../data/ruleCodexData';
+import {
+  getArcanistSkillLevel,
+  getStartingArcanaQuota,
+  usesVariantArcanist,
+  getBoundArcanaIds,
+  ARCANIST_BINDING_SKILL
+} from '../utils/arcanist';
+
+/**
+ * 創角第 2 步的「開局自選阿爾卡納」。
+ *
+ * 為什麼要在創角流程裡就出現：【綁定和召喚】的效果文寫著「如果你在角色創建時獲得
+ * 這個技能，你可以在開始遊戲前自選一個阿爾卡納作為已經綁定的阿爾卡納」。
+ * 2026-10-19 實測時，整個創角六步**沒有任何一處**能完成這件事——玩家只能等定稿、
+ * 進跑團面板才選，而那時角色已經「開始遊戲」了。這裡把規則要求的選擇放回它該在的位置。
+ *
+ * 與跑團面板的關係：面板可以綁更多（探索與故事推進取得的），這裡只給**開局那一個**。
+ */
+export default function ArcanistStarterBinding({ character, onChange, locked = false }) {
+  const bindingSL = getArcanistSkillLevel(character, ARCANIST_BINDING_SKILL);
+  const quota = getStartingArcanaQuota(character);
+  if (bindingSL <= 0 || quota <= 0) return null;
+
+  const variant = usesVariantArcanist(character);
+  const catalog = variant
+    ? [...RULE_CODEX.arcana.catalog, ...RULE_CODEX.arcanaVariant.catalog]
+    : RULE_CODEX.arcana.catalog;
+  const boundIds = getBoundArcanaIds(character);
+  const selectedId = boundIds[0] || '';
+
+  const writeBound = (arcanaId) => {
+    if (locked) return;
+    onChange({
+      ...character,
+      arcanistData: {
+        ...(character.arcanistData || {}),
+        boundArcana: arcanaId ? [arcanaId] : [],
+        customArcana: character.arcanistData?.customArcana || [],
+        activeSummonId: character.arcanistData?.activeSummonId || null
+      },
+      updatedAt: new Date().toISOString()
+    });
+  };
+
+  return (
+    <div className="p-4 rounded-xl border-2 border-amber-300 bg-amber-50/60 space-y-3" data-testid="arcanist-starter-binding">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h4 className="text-sm font-bold text-amber-900 flex items-center gap-2">
+          <GiSparkles className="text-amber-600" />
+          <span>開局自選阿爾卡納</span>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 border border-amber-300 text-amber-800">
+            已選 {boundIds.length} / {quota}
+          </span>
+        </h4>
+        {selectedId && (
+          <button
+            type="button"
+            onClick={() => writeBound('')}
+            disabled={locked}
+            className={`text-[11px] px-2 py-0.5 rounded border border-amber-400 text-amber-800 hover:bg-amber-100 ${
+              locked ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            清除選擇
+          </button>
+        )}
+      </div>
+
+      <p className="text-[11px] leading-relaxed text-amber-900/80">
+        【{ARCANIST_BINDING_SKILL}】讓你在開始遊戲前自選 {quota} 個阿爾卡納作為已綁定的契約
+        {variant ? '（變體版同樣是開局一個，可從範例清單挑選或與隊友共創）' : ''}。
+        除此之外，新的阿爾卡納只能透過探索與故事推進取得。
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {catalog.map((arcana) => {
+          const checked = selectedId === arcana.id;
+          return (
+            <label
+              key={arcana.id}
+              className={`flex items-start gap-2 p-2 rounded-lg border text-[11px] cursor-pointer transition-colors ${
+                checked
+                  ? 'bg-white border-amber-500 shadow-2xs'
+                  : 'bg-white/60 border-amber-200 hover:border-amber-400'
+              } ${locked ? 'opacity-70 cursor-not-allowed' : ''}`}
+            >
+              <input
+                type="radio"
+                name="starting-arcana"
+                checked={checked}
+                disabled={locked}
+                onChange={() => writeBound(arcana.id)}
+                className="mt-0.5 accent-amber-600"
+              />
+              <span className="min-w-0">
+                <span className="block font-bold text-stone-900">{arcana.name}</span>
+                <span className="block text-stone-500">領域：{arcana.domains}</span>
+              </span>
+            </label>
+          );
+        })}
+      </div>
+
+      {!selectedId && (
+        <p className="text-[11px] text-amber-900/70">
+          尚未選擇——這一格空著不算完成創角，規則自檢會提醒。
+        </p>
+      )}
+    </div>
+  );
+}
+

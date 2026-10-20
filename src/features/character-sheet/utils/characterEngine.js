@@ -1,6 +1,6 @@
 import rulesData from '../data/rulesData.json';
 import { PLAYTEST_HEROIC_SKILLS } from '../data/playtestHeroicSkills';
-import { SOURCEBOOKS, STATUS_AFFLICTIONS, ATTRIBUTE_NAMES, ATTRIBUTE_KEYS, ATTRIBUTE_PRESET_ARRAYS, normalizeClassName } from '../data/sourcebookConfig';
+import { SOURCEBOOKS, STATUS_AFFLICTIONS, ATTRIBUTE_NAMES, ATTRIBUTE_KEYS, ATTRIBUTE_PRESET_ARRAYS, normalizeClassName, VARIANT_ARCANIST_CLASS_NAME } from '../data/sourcebookConfig';
 import { getSkillSuboptionConfig, calculateSkillSuboptionMax } from '../data/skillSuboptionsData';
 import { PILOT_ARMOR_MODULES } from '../data/pilotVehicleData';
 import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
@@ -454,6 +454,16 @@ export const createNewCharacter = (overrides = {}, rules = DEFAULT_CREATION_RULE
     currentHp: null,
     currentMp: null,
     currentIp: null,
+
+    // 秘儀師的阿爾卡納契約資料。
+    // **刻意留空**：開局那一個阿爾卡納是玩家自選的（Core p.133），
+    // 舊版由 `ArcanistManager` 在讀取時預設 `boundArcana: ['sword']`，
+    // 等於送玩家一個沒選過的契約與它的連攜增益（+5 傷害、傷害視為無屬性）。
+    arcanistData: {
+      boundArcana: [],
+      customArcana: [],
+      activeSummonId: null
+    },
 
     // 創角定稿狀態（見下方 isCharacterLocked／lockCharacter）
     locked: false,
@@ -1146,7 +1156,10 @@ export const validateCharacter = (char, rules = null) => {
               step: 2,
               field: `skill_suboptions_${cl.className}_${sk.name}`,
               type: 'warning',
-              message: `【${cl.className}】的【${sk.name}】名額未滿：目前已配置 ${currentCount} 個，尚有 ${maxQuota - currentCount} 個名額可供選擇。請前往特技分頁完成構築。`
+              // 這句原本把玩家指向一個不存在的「特技分頁」——子選項的介面其實就在第 2 步
+              // 「職業與技能」的技能卡上（`ClassSkillCard` 的技能列 → 右側按鈕開彈窗），
+              // 全站沒有那個分頁。實際操作時照著提示去找，找不到。
+              message: `【${cl.className}】的【${sk.name}】名額未滿：目前已配置 ${currentCount} 個，尚有 ${maxQuota - currentCount} 個名額可供選擇。請回到第 2 步「職業與技能」，在【${sk.name}】那一列點右側的「配置…／調整…」按鈕完成構築。`
             });
           } else if (currentCount > maxQuota) {
             warnings.push({
@@ -1326,6 +1339,31 @@ export const validateCharacter = (char, rules = null) => {
       message: c.message
     });
   });
+
+  // ── 步驟 2：秘儀師的「開局自選一個阿爾卡納」
+  //
+  // 【綁定和召喚】的效果文明寫「如果你在角色創建時獲得這個技能，你可以在開始遊戲前
+  // 自選一個阿爾卡納作為已經綁定的阿爾卡納」。但這句話長期**沒有程式對應**：
+  // 創角六步沒有任何綁定入口、驗證不檢查、跑團面板還預設送一個劍之阿爾卡納。
+  // 實際操作一輪的結果是「規則說要選，程式沒地方選，而且已經幫你選好了」。
+  // 判定與費用計算的單一來源在 `utils/arcanist.js`（此處只做職業名比對，避免循環匯入）。
+  const arcanistClassEntry = (char.classes || []).find(
+    (cl) => cl?.className === '秘儀師' || cl?.className === VARIANT_ARCANIST_CLASS_NAME
+  );
+  const bindingSkillSL = Number(
+    ((arcanistClassEntry?.skills) || []).find((s) => s?.name === '綁定和召喚')?.sl
+  ) || 0;
+  const boundArcanaIds = Array.isArray(char.arcanistData?.boundArcana)
+    ? char.arcanistData.boundArcana.filter(Boolean)
+    : [];
+  if (bindingSkillSL > 0 && boundArcanaIds.length === 0) {
+    warnings.push({
+      step: 2,
+      field: 'arcanistData',
+      type: 'warning',
+      message: '【綁定和召喚】尚未選擇開局的阿爾卡納：開始遊戲前可自選 1 個（Core p.133）'
+    });
+  }
 
   // 步驟 6: 命名與背景（原書第 8 步，p.154／p.170）
   //

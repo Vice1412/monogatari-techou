@@ -1,4 +1,4 @@
-# AGENTS.md — DeepSeek Harness 執行準則（《物語手帳》）
+﻿# AGENTS.md — DeepSeek Harness 執行準則（《物語手帳》）
 
 > **本檔不取代、不修改 `GEMINI.md`。**
 > `GEMINI.md` 仍是本專案最高持久規範文件；本檔只補足 **DSH（DeepSeek Harness）執行環境**的落差、
@@ -33,10 +33,10 @@
 - **可用工具**：`pwsh`、`read`、`write`、`edit`、`glob`、`grep`
 - **建置指令**：`npm run build`（Vite 6，實測約 4.2 秒，exit 0）
 - **建置產物**：`dist/`，JS 2,247 kB（gzip 649 kB）。chunk-size 警告為**已知既有現象**，非本次改動造成。
-- **測試指令**：`npm test`（實測 **21 道關卡全過**，exit 0）。
+- **測試指令**：`npm test`（實測 **22 道關卡全過**，exit 0）。
   ※ 各關卡的斷言數**刻意不列在這裡**——這行原本寫著「17 道時期」的數字，後來補了 4 道也沒人發現。
     這種數字自己就會腐化；要精確數字請看該關卡自己的輸出。
-  二十一道測試關卡（其中兩道是自動化的規則關卡）：
+  二十二道測試關卡（其中兩道是自動化的規則關卡）：
   - `npm run test:emoji` —— **規則五.1 已自動化**（見 §3.2）；掃描範圍**已含 `shared/`**
   - `npm run test:affinity` —— 九相屬性標記（誤標表、正標表、資料層掃描、渲染器同步；見 §4 F）
   - `npm run test:equipment` —— 裝備配置（原書裝備表逐筆核對、裝備圖示對照表、熟練度與載入衝突、雙重盾牌、SSR 煙霧；見 `docs/decisions.md` §U）
@@ -58,6 +58,7 @@
   - `npm run test:aliases` —— 職業別稱（官方原書職業頁的「ALSO:」行）：`SOURCEBOOKS ↔ CLASS_ALIASES` **雙向覆蓋率**、28 職英文別稱與出處頁碼**逐條釘死**、顯示（`zh`）／檢索（`en` ＋ `zhExtra`）分流、搜尋純函式逐例、SSR 渲染煙霧與 `zhExtra` 不外洩（見 `docs/decisions.md` §AZ）
   - `npm run test:npcworkshop` —— NPC 工坊純函式（見 `docs/decisions.md` §AX／§AY）
   - `npm run test:npcworkshopui` —— NPC 工坊元件層 SSR（8 道建角步驟的內容錨點；見 §AX）
+  - `npm run test:arcanist` —— 秘儀師阿爾卡納（職業家族判定、**面板何時出現**、召喚費與兩種折扣、兩種治療、新角色不得預綁、開局自選名額、屬性預設純函式、SSR；見 §BH）
   測試源碼位於受版控的 `tests/`；bundle 產物輸出至 `.test-build/`（已列入 `.gitignore`）。
   ⚠️ **新增測試檔時，同步改 `package.json` 的 `test` 串鏈是改動的一部分，不是後續工作**——
   `coreBookVariants.test.mjs` 曾被建立後隔了一天都沒被執行（見 §AV1 缺陷 3）。一道不跑的護欄等於不存在。
@@ -447,7 +448,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 - `npm run build` 通過（exit 0，2026-10-06 實測 9.77 秒）。
 - JS bundle 2,252 kB / gzip 651 kB，觸發 Vite chunk-size 警告（>500 kB）。
   建議未來以 `manualChunks` 或 `import()` 拆分，但**非當前規範要求**。
-- `npm test` 通過（**21 道關卡全過**，exit 0）。
+- `npm test` 通過（**22 道關卡全過**，exit 0）。
   已補上測試的模組：造物專案成本與每日推進（`test:projects`）、職業資源池（`test:resources`）、
   美食家食材／食譜書（`test:gourmet`）、專有名詞對照（`test:propernouns`）、
   哨兵遷移（`test:sentinel`）、零 Emoji（`test:emoji`）、卡牌大師牌組（`test:cards`）、
@@ -458,7 +459,7 @@ Get-ChildItem -Path "src" -Recurse -File |
   **開卡規則（`test:creation`，2026-10-05 補上，見 `docs/decisions.md` §V、§X）**、
   **成長履歷（`test:log`，2026-10-05 補上，見 `docs/decisions.md` §W）**、
   **角色卡介面契約（`test:ui`，2026-10-05 補上，見 `docs/decisions.md` §Y、§Z）**、
-  **創角步驟次序與開卡規則稽核（`test:creation` O 區段 ＋ `test:ui` M 區段，2026-10-06 補上，見 `docs/decisions.md` §AE）**。
+  **創角步驟次序與開卡規則稽核（`test:creation` O 區段 ＋ `test:ui` M 區段，2026-10-06 補上，見 `docs/decisions.md` §AE）**、**秘儀師阿爾卡納（`test:arcanist`，2026-10-20 補上，見 §BH）**。
   **剩餘覆蓋缺口**：戰鬥輪次狀態機、Fultimator 匯入匯出。
   > ✅ **角色卡數值引擎的缺口已於 2026-10-04 補上**（`test:engine`；2026-10-05 擴充至 **322 項**
   > ＝ 243 項基礎向量 ＋ 79 項數值構成公式與免費增益二選一，見 `docs/decisions.md` §N）。
@@ -630,6 +631,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 | BE | 公測修訂＝開卡規則 tickbox（不是手冊）＋ 刪 6 職 | `creationRules.allowPlaytest`（預設 false）單一控制；`allowedSourcebooks`／`defaultSourcebooks` 依開關進出 playtest；面板新增【開放公測修訂內容】、手冊清單不再列公測；**刪除 6 個無官方對應的【Playtest】職業**（35→29），保留秘儀師【Playtest】待裁定 | 2026-10-19 |
 | BF | 秘儀師【變體】：對齊 ARCANIST (variant) ＋ 阿爾卡納改版 | ① 改名 `秘儀師【Playtest】`→`秘儀師【變體】`（`VARIANT_ARCANIST_CLASS_NAME` 單一來源）② 技能文本對齊 p.24，修 3 處實質錯誤（快速召喚偷加「在衝突中」、選項②把「若已連結」寫成「召喚即連結」、綁定和召喚謊稱「必須從清單選」）③ 阿爾卡納規則連動：召喚 30MP、等級 +5／+10、新增【脈衝】層；`RULE_CODEX.arcanaVariant` 與核心 9 個**並列不覆寫**，速查分頁 16→17 ④ 新增 11 個範例阿爾卡納（各含 domains／merge／pulse／dismiss）⑤ 召喚面板依「角色實際職業」切換數值與脈衝欄 ⑥ 舊存檔職業名唯讀正名（`normalizeRosterClassNames`）⑦ `stripClassSuffix` 收斂後綴剝除，禁止再手寫 `replace('【Playtest】')` | 2026-10-19 |
 | BG | 變體英雄技能獨立成條（p.32）＋ 兩項裁決結案 | `秘術再生` **保留原名**、核心 9 個阿爾卡納**不補脈衝**（兩者皆不動程式）。變體英雄技能新增 `data/variantArcanistHeroicSkills.js` **9 筆**（原文 7 條＋同文件 2 條公測技能），全帶【變體】後綴、需求只寫 `秘儀師【變體】`，**與核心版零重疊**；新增 `requiredClassesOf()` 取**最長職業名**（`秘儀師` ⊂ `秘儀師【變體】`，舊的 `includes` 會讓核心角色選到變體技能）；開局封鎖清單改成「原字串或剝後綴」都比 | 2026-10-19 |
+| BH | 秘儀師實機車卡：七個缺陷 | 以玩家身分實跑抓出：變體沒面板／創角無開局綁定／預設偷送 `sword` 契約／召喚不扣 MP 也不算折扣與再生／屬性預設卡不寫回四維／提示指向不存在的「特技分頁」／護欄測錯對象。修法＝`utils/arcanist.js` 純函式 ＋ 第 2 步綁定區塊 ＋ MP 經濟 ＋ `test:arcanist`（92 條） | 2026-10-20 |
 
 ## 7. 本檔維護
 

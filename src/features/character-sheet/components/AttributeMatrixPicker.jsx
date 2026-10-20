@@ -10,6 +10,11 @@ import { Info, X, RotateCcw, Check } from 'lucide-react';
 // 三大屬性陣列與四個屬性名都是**資料**，放在 data/ 讓測試可以直接匯入（不必把 React 拉進 node 測試）
 import { ATTRIBUTE_PRESET_ARRAYS, ATTRIBUTE_NAMES, ATTRIBUTE_KEYS } from '../data/sourcebookConfig';
 import { ATTRIBUTE_DICE_TIERS } from '../utils/characterEngine';
+import {
+  buildTrayPool,
+  assignPoolInOrder,
+  applyPreset as applyPresetToPool
+} from '../utils/attributePresets';
 
 /**
  * 骰階色彩漸層配置（視覺直覺區分，無文字贅述）：
@@ -226,31 +231,26 @@ export default function AttributeMatrixPicker({
     }
   };
 
-  // 1. 選擇預設起始陣列：將四顆骰子放進左側黑色托盤，右側四宮格清空！
+  // 1. 選擇預設起始陣列：骰子直接入座並寫回屬性。
+  //
+  // 舊版只把骰子丟進左側托盤、**不通知父層**，所以點「萬事通」之後四維仍是 0——
+  // 玩家會以為卡片壞了（實測確實如此）。預設卡本身就把四個數值寫在卡面上，
+  // 按下去卻沒有任何一格被填，這個落差沒有任何人能從畫面上推出來。
+  // 現在改成一步到位（依 DEX／INS／MIG／WLP 的固定順序入座），
+  // 想自己排的人按「全部清空回托盤」再拖曳即可。
   const handleApplyPreset = (preset) => {
-    const list = [...preset.diceList];
-    const newPool = [
-      { id: `d_${Date.now()}_0`, val: list[0] || 10, assignedTo: null },
-      { id: `d_${Date.now()}_1`, val: list[1] || 8, assignedTo: null },
-      { id: `d_${Date.now()}_2`, val: list[2] || 8, assignedTo: null },
-      { id: `d_${Date.now()}_3`, val: list[3] || 6, assignedTo: null }
-    ];
-    setDicePool(newPool);
+    const { pool, attributes: nextAttrs } = applyPresetToPool(preset, `d_${Date.now()}`);
+    setDicePool(pool);
     setFloatingDieId(null);
+    if (nextAttrs) onChange(nextAttrs);
   };
 
   // 2. 一鍵填滿（按順序快速入座）
   const handleAutoFill = () => {
-    const keys = ATTRIBUTE_KEYS;
-    // 托盤是空的時候（還沒選起始陣列）先用第一組（標準）把骰子放進來，
-    // 否則「一鍵填入」在空托盤上會什麼都不做。
     const source = dicePool.length > 0
       ? dicePool
-      : ATTRIBUTE_PRESET_ARRAYS[0].diceList.map((v, i) => ({ id: `d_auto_${i}`, val: v, assignedTo: null }));
-    const newPool = source.map((die, idx) => ({
-      ...die,
-      assignedTo: keys[idx] || null
-    }));
+      : buildTrayPool(ATTRIBUTE_PRESET_ARRAYS[0], 'd_auto');
+    const newPool = assignPoolInOrder(source);
     setDicePool(newPool);
     setFloatingDieId(null);
     notifyParent(newPool);

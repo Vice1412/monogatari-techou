@@ -5476,3 +5476,88 @@ roster 用原始碼護欄（`CharacterSheet` 沒有 SSR 注入點，空 roster �
 4. **文件裡的章節編號要能指得到**。本節原本只存在於 `BF8` 的三行引用（「見 §BG1」「§BG2~BG4」），
    正文從沒寫過——引用**看起來**像已結案，實際上讀者點不到任何東西。
    **寫「見 §XX」之前先確認 §XX 存在**；這也是 `docs/handoff.md` 會腐爛的同型病因。
+
+---
+
+### BH. 秘儀師實機車卡：七個缺陷與修正 —— ✅ 2026-10-20
+
+**觸發方式**：使用者要求「你身為玩家，實際用角色卡助手車一張秘儀師，遇到什麼問題就提出解法」。
+於是**真的走一次流程**（不是讀程式碼猜），以 CDP 驅動 headless Chrome 建了兩個角色
+（核心秘儀師／變體秘儀師），一路點到跑團面板，逐項記錄「點不到、看不到、算了不對」的地方。
+
+#### BH1. 缺陷清單（全部有實機證據）
+
+| # | 現象 | 實機證據 | 根因 |
+|---|---|---|---|
+| D1 | **變體秘儀師在跑團面板完全沒有阿爾卡納區塊** | `panelTitle:false`、`catalog:(無)`、`summonBtns:0` | `CharacterPlayHUD` 把顯示條件寫死成 `cl.className === '秘儀師'` |
+| D2 | **創角六步沒有任何一處能完成「開局自選一個阿爾卡納」** | 走完 1→6 步，`boundArcana` 始終是 `[]` | 規則要求「開局自選 1 個」，但介面只存在於跑團面板（那是**開團後**的地方） |
+| D3 | **新角色被偷偷送一個沒選過的契約** | 面板顯示「已契約: 1 種」，劍之阿爾卡納預先打勾 | `ArcanistManager` 的 `arcanistData` 預設值是 `boundArcana: ['sword']` |
+| D4 | **召喚費只是文字，不扣 MP、不擋付不起、折扣與再生全缺** | 召喚後 MP 不變；MP 10 也能按下去 | 面板只「顯示」規則，`handleSummon` 沒有經濟結算 |
+| D5 | **屬性預設卡按下去只把骰子丟進托盤，不寫回四維** | 點【萬事通】後 `attributes` 仍是全 0 | `handleApplyPreset` 只做 `setPool`，沒呼叫 `onChange` |
+| D6 | **名額未滿的提示指向不存在的「特技分頁」** | 全站沒有這個分頁；真正的位置是第 2 步技能卡右側的「配置…／調整…」 | 文案與介面脫節 |
+| D7 | **D1 為什麼能活這麼久：護欄測錯東西** | `test:ui` 的 §BF 段把 `ArcanistManager` **單獨 SSR** 起來測（它本來就會畫），而「面板會不會出現」只用**原始碼字串**斷言 → 兩者全綠 | 與 §AW「測試與生產分歧」、§AX 同型 |
+
+> D3 的嚴重性最高：它不是「少一個功能」，是**多一個沒人選過的規則效果**（+5 傷害、免費無屬性），
+> 而且玩家不會發現——面板上看起來一切正常。
+
+#### BH2. 修法（原則：判定抽成純函式，元件只當呼叫者）
+
+1. **新增 `utils/arcanist.js`** —— 職業判定／面板顯示／召喚費／治療／開局名額全部變成純函式：
+   `isArcanistClassName`、`getArcanistClass`、`usesVariantArcanist`、`shouldRenderArcanistPanel`、
+   `getArcanistSummonCost`（回傳 `{variant, base, discount, emergencyDiscount, quickDiscount, cost, crisis, affordable}`）、
+   `getArcanistSummonHeal`（核心【阿爾卡納再生】）、`getArcanistDismissHeal`（變體【秘術再生】，僅危機）、
+   `getStartingArcanaQuota`。
+   `shouldRenderArcanistPanel` 以**職業名家族**判定，不碰 `allowPlaytest`——那個開關決定「這個職業能不能選」，
+   不是「選了之後怎麼算」。
+2. **`CharacterPlayHUD`** 的閘門改呼叫 `shouldRenderArcanistPanel(character, cl.className)`。
+3. **`ArcanistManager` 接上經濟**：召喚扣 MP、付不起就停用並說明原因、危機時套【緊急秘儀】、
+   變體可勾【快速召喚】、召喚結算【阿爾卡納再生】、解除結算【秘術再生】、
+   費用明細（基礎／折扣／目前 MP）常駐可見。**預設綁定移除**。
+4. **新增 `components/ArcanistStarterBinding.jsx`**（第 2 步）：「開局自選阿爾卡納」，
+   核心 9 個／變體再加 11 個，`已選 n / 1` 徽章，未選時明說「這一格空著不算完成創角」；
+   沒有【綁定和召喚】的角色**不渲染**（不干擾其他職業）。
+5. **`characterEngine`**：`createNewCharacter` 補 `arcanistData` 空欄位；
+   `validateCharacter` 新增第 2 步提醒（只提醒、不升級成錯誤——玩家仍可存檔試算）。
+6. **`AttributeMatrixPicker`**：預設卡改為「一鍵套用」（托盤 4 顆依 DEX→INS→MIG→WLP 入座並寫回），
+   純函式抽到 `utils/attributePresets.js`；套用後卡片顯示「目前」，`全部清空回托盤` 仍可回復。
+7. **D6 文案**：改指「第 2 步『職業與技能』，在該技能那一列點右側的『配置…／調整…』按鈕」——
+   與 `ClassSkillCard` 的實際按鈕字樣一致。
+
+#### BH3. 新護欄 `test:arcanist`（92 條）
+
+`tests/arcanist.test.mjs`，已登記進 `package.json` 的 `test` 串鏈。九個區段：
+A 職業判定／B **面板顯示判定**（含「變體必須為 true」這條 D1 回歸）／C 召喚費與兩種折扣／
+D 兩種治療與開局名額／E 新角色不得預綁／F 規則自檢提醒／G 屬性預設純函式／
+H SSR（面板與創角區塊）／I 名額未滿文案。
+
+刻意破壞驗證（兩次，皆 FAIL 後還原）：
+- 把 `shouldRenderArcanistPanel` 改回 `className === ARCANIST_CLASS_NAME` → B 段 1 條 FAIL。
+- 把 HUD 的閘門改回寫死職業名 → 原始碼護欄 2 條 FAIL。
+
+#### BH4. 實機複驗（修正後）
+
+| 檢查 | 結果 |
+|---|---|
+| 變體角色跑團面板 | `panelTitle:true`、`本次召喚消耗 30 點 MP`、`已契約: 0 種` |
+| 核心角色跑團面板 | `panelTitle:true`、`本次召喚消耗 40 點 MP` |
+| 勾選契約 → 召喚 | MP **56 → 26**（實扣 30）、`activeSummonId: 'sword'`、toast「消耗 30 點 MP（剩餘 26）」 |
+| 創角第 2 步 | 出現「開局自選阿爾卡納」、20 個選項（9＋11）、`已選 0 / 1`；勾選後 `boundArcana:['forge']` |
+| 創角第 3 步 | 點【萬事通】→ `attributes: {dex:8,ins:8,mig:8,wlp:8}`、卡片顯示「目前」、`已分配 4/4` |
+| 規則自檢 | 未綁定時第 2 步列出提醒；綁定後提醒消失（6 → 5 項） |
+
+截圖：`scratch/s17-variant-panel.png`、`s18-after-summon.png`、`s19-step2-binding.png`、`s20-preset-applied.png`。
+
+#### BH5. 教訓
+
+1. **「使用者說某個東西不能用」時，先照他的路徑走一遍**。這批缺陷裡 D1／D2 都不是「寫錯」，
+   而是「沒有一條路徑會走到」——讀程式碼很難發現「這個分支永遠不成立」，
+   但當玩家走到那一步、畫面空白，就一眼看得出來。
+2. **預設值就是規則裁決**。`boundArcana: ['sword']` 當初大概是為了讓面板「看起來有東西」，
+   代價是每個新角色都免費獲得一個沒選過的契約。**面板空的時候應該教玩家怎麼填，不是替玩家填。**
+3. **「顯示規則」與「執行規則」是兩件事**。面板上寫著「消耗 40 MP」不算實作，
+   玩家按下去 MP 沒動，那條規則就只是裝飾。數值經濟必須在 `onClick` 裡真的結算，
+   而且判定要抽成純函式才測得到（SSR 不執行事件）。
+4. **同一種病第三次出現**：§AW（測試與生產分歧）、§AX（同名函式兩份實作）、
+   本節 D7（測了會畫的那個元件，沒測「它會不會被畫出來」）。
+   判準可以寫成一句話：**測「元件長什麼樣」之外，還要測「它什麼時候出現」**——
+   而後者若寫在父層的條件式裡，就必須把那個條件式抽成純函式。

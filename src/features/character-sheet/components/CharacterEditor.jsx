@@ -41,6 +41,7 @@ import IdentityTablesModal from './IdentityTablesModal';
 import AttributeMatrixPicker from './AttributeMatrixPicker';
 import ClassSkillCard from './ClassSkillCard';
 import ClassPickerModal from './ClassPickerModal';
+import ArcanistStarterBinding from './ArcanistStarterBinding';
 import EquipmentPickerModal from './EquipmentPickerModal';
 import CustomWeaponForgeModal from './CustomWeaponForgeModal';
 import {
@@ -1478,6 +1479,9 @@ export default function CharacterEditor({
                   ))
                 )}
               </div>
+
+              {/* 開局自選阿爾卡納：只在角色真的持有【綁定和召喚】時出現（見 ArcanistStarterBinding） */}
+              <ArcanistStarterBinding character={character} onChange={onChange} locked={locked} />
 
               {/* 職業選擇器彈窗 */}
               <ClassPickerModal
