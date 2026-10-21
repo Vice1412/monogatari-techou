@@ -282,6 +282,58 @@ export const describeZeroPower = (state) => {
 };
 
 /**
+ * 完整卡片用的觸發敘述。
+ *
+ * 【愛】在建角時就要綁定一個玩家角色，綁好之後卡片上應該直接寫出**那個人的名字**，
+ * 而不是再唸一次「選擇這個觸發時，將它綁定到…」——那句話是給還沒綁的人看的。
+ * 使用者原話：「愛觸發改成自己寫名字」。
+ *
+ * 沒綁定（或名冊裡找不到那個人）就回原文，呼叫端會先擋掉卡片不畫。
+ */
+export const describeZeroTrigger = (state, { roster = [] } = {}) => {
+  const s = normalizeZeroPower(state);
+  const trigger = zeroTriggerById(s.triggerId);
+  if (!trigger) return '';
+  if (!trigger.boundDesc) return trigger.desc;
+  const target = roster.find((c) => c && c.id === s.loveTargetId);
+  const who = target ? target.name || target.id : '';
+  if (!who) return trigger.desc;
+  return trigger.boundDesc.split('{who}').join(who);
+};
+
+/**
+ * 完整卡片用的效果敘述。
+ *
+ * 需要「選取時就固定下來」的兩種效果（元素、天災）在選好之後改寫：
+ * 原本的「選擇這個效果時，從八種傷害類型中選擇兩種」是建角動作的說明，
+ * 已經選完還留在卡片上，讀起來像「還沒選」。選完就寫選了什麼。
+ *
+ * 【零之機運】的奇偶、【零之目標】的填充或清空**刻意不改寫**：那是施展當下才決定的，
+ * 卡片本來就該保留那句話——它在那裡是施展腳本，不是待辦事項。
+ *
+ * `effectId` 給合體之力用（效果掛在配對上，不在 `state.effectId`）。
+ */
+export const describeZeroEffect = (state, effectId = '') => {
+  const s = normalizeZeroPower(state);
+  const effect = zeroEffectById(effectId || s.effectId);
+  if (!effect) return '';
+  if (!effect.resolvedDesc) return effect.desc;
+  if (effect.id === 'elements') {
+    if (s.choices.damagePair.length !== 2) return effect.desc;
+    const pair = s.choices.damagePair.map((t) => `【${t}】`).join('或');
+    return effect.resolvedDesc.split('{pair}').join(pair);
+  }
+  if (effect.id === 'scourge') {
+    if (!s.choices.damageType || s.choices.statuses.length !== 2) return effect.desc;
+    const statuses = s.choices.statuses.map((x) => `【${x}】`).join('與');
+    return effect.resolvedDesc
+      .split('{type}').join(`【${s.choices.damageType}】`)
+      .split('{statuses}').join(statuses);
+  }
+  return effect.resolvedDesc;
+};
+
+/**
  * 底力技的設定是否完整（給 `validateCharacter` 用）。
  *
  * 只回傳「這個角色還缺什麼」。**團隊層面的取捨（同團是否重複）不在這裡**——

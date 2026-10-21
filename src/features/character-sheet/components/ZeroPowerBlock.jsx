@@ -58,7 +58,10 @@ import {
   canUnleashZeroPower,
   unleashZeroPower,
   awakenZeroPower,
-  zeroActiveEffectId
+  zeroActiveEffectId,
+  describeZeroTrigger,
+  describeZeroEffect,
+  isZeroChoiceComplete
 } from '../utils/zeroPower';
 
 /** 小圓角標籤按鈕（觸發與效果共用）。 */
@@ -102,7 +105,7 @@ function ChoiceChip({ active, title, subtitle, onClick, theme }) {
  * 效果名與觸發名一行（那是規則），效果全文（那是判給桌上聽的），
  * 施展條件最小（那是提醒，不是重點）。
  */
-function ShowcaseCard({ theme, name, trigger, effect, label = '', max, combined = false }) {
+function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectText = '', label = '', max, combined = false }) {
   /**
    * 呼叫端已經先判斷過 `showcaseReady`，這裡仍然擋一次：
    * 卡片讀 `effect.name`／`trigger.name`，少一個就是整頁白畫面。
@@ -121,6 +124,7 @@ function ShowcaseCard({ theme, name, trigger, effect, label = '', max, combined 
   return (
     <div
       className="relative rounded-2xl animate-fade-in"
+      data-testid="zero-power-showcase"
       style={{
         padding: '3px',
         background: `linear-gradient(135deg, ${accentDark} 0%, ${accent} 26%, ${border} 50%, ${accent} 74%, ${accentDark} 100%)`,
@@ -181,9 +185,28 @@ function ShowcaseCard({ theme, name, trigger, effect, label = '', max, combined 
           <span className="flex-1 h-px" style={{ backgroundColor: border }} />
         </div>
 
-        <p className="text-sm leading-7 text-center" style={{ color: textDark }}>
-          {renderTextWithAffinities(effect.desc)}
-        </p>
+        {/*
+          觸發與效果都寫全文——只寫名字等於沒寫：桌上要唸的是「什麼時候開」和「開了會怎樣」。
+          觸發用淡底框起來（它是條件，不是內容），效果是卡片主體、字大一級。
+          `triggerText`／`effectText` 由呼叫端算好傳進來（純函式在 utils/zeroPower.js）：
+          【愛】要換成綁定對象的名字、【零之元素】／【零之天災】要把已選的類型寫進去。
+        */}
+        <div
+          className="rounded-lg px-3 py-2 text-center space-y-0.5"
+          style={{ backgroundColor: accentLight, border: `1px solid ${border}` }}
+        >
+          <span className="block text-[10px] font-bold" style={{ color: accent, letterSpacing: '0.2em' }}>觸發</span>
+          <p className="text-xs leading-6" style={{ color: textMuted }}>
+            {renderTextWithAffinities(triggerText || trigger.desc)}
+          </p>
+        </div>
+
+        <div className="space-y-0.5">
+          <span className="block text-center text-[10px] font-bold" style={{ color: accent, letterSpacing: '0.2em' }}>效果</span>
+          <p className="text-sm leading-7 text-center" style={{ color: textDark }}>
+            {renderTextWithAffinities(effectText || effect.desc)}
+          </p>
+        </div>
 
         <div
           className="flex items-center justify-center gap-1.5 flex-wrap text-[10px] font-bold rounded-lg px-2 py-1.5"
@@ -493,11 +516,27 @@ export default function ZeroPowerBlock({
         }))
         .filter((row) => row.effect)
     : [];
+  /**
+   * 【愛】綁定了嗎：`loveTargetId` 指向名冊裡的某個角色才算。
+   *
+   * 沒綁定就不畫完整卡片——卡片上會出現「當【】失去 HP」這種半句話，
+   * 而「選擇這個觸發時，將它綁定到…」那句說明是給還在選的人看的，不該出現在成品上。
+   */
+  const loveBound =
+    state.triggerId !== 'love' || roster.some((c) => c && c.id === state.loveTargetId);
+  /** 元素／天災的傷害類型還沒選完 → 卡片上的效果會讀成「還沒選」，所以先不畫。 */
+  const choiceReady = combined || isZeroChoiceComplete(state);
   const showcaseReady =
-    Boolean(trigger) && (combined ? showcasePairs.length > 0 : Boolean(effect));
+    Boolean(trigger) &&
+    loveBound &&
+    choiceReady &&
+    (combined ? showcasePairs.length > 0 : Boolean(effect));
+  const showcaseTriggerText = describeZeroTrigger(state, { roster });
   const showcaseMissing = [
     trigger ? null : '觸發',
-    combined ? (showcasePairs.length > 0 ? null : '配對效果') : effect ? null : '效果'
+    state.triggerId === 'love' && !loveBound ? '愛的對象' : null,
+    combined ? (showcasePairs.length > 0 ? null : '配對效果') : effect ? null : '效果',
+    combined || choiceReady ? null : '效果的必要選擇'
   ].filter(Boolean);
 
   return (
@@ -873,6 +912,8 @@ export default function ZeroPowerBlock({
                 name={row.pair.nickname || state.name}
                 trigger={trigger}
                 effect={row.effect}
+                triggerText={showcaseTriggerText}
+                effectText={describeZeroEffect(state, row.effect.id)}
                 label={`與 ${row.partner ? row.partner.name || row.partner.id : row.pair.partnerId || '未指定伙伴'} 共用`}
                 max={max}
                 combined
@@ -880,7 +921,15 @@ export default function ZeroPowerBlock({
             ))}
           </div>
         ) : (
-          <ShowcaseCard theme={theme} name={state.name} trigger={trigger} effect={effect} max={max} />
+          <ShowcaseCard
+            theme={theme}
+            name={state.name}
+            trigger={trigger}
+            effect={effect}
+            triggerText={showcaseTriggerText}
+            effectText={describeZeroEffect(state)}
+            max={max}
+          />
         )
       ) : (
         <ShowcasePlaceholder theme={theme} missing={showcaseMissing.join('、')} />

@@ -58,6 +58,8 @@ import {
   zeroActiveEffectId,
   zeroPairFor,
   describeZeroPower,
+  describeZeroTrigger,
+  describeZeroEffect,
   zeroPowerIssues,
   ZERO_CHANCE_TIERS,
   zeroChanceTier,
@@ -1048,6 +1050,151 @@ check('敘述按鈕不再寫「七個觸發的敘述」', blockSrc.includes('七
 check('敘述按鈕不再寫「十一個效果的敘述」', blockSrc.includes('十一個效果的敘述'), false);
 check('選取按鈕用「選擇」而不是「選這個」', READ('src/features/character-sheet/components/ZeroPowerGlossaryModal.jsx').includes('選這個'), false);
 check('已選標記只有「已選」，不帶「再點一次取消」', editHtml.includes('再點一次取消'), false);
+
+section('U. 完整卡片要寫全文（觸發與效果都寫，選過的就寫選了什麼）');
+
+/**
+ * 使用者裁定（2026-10-21）：「大招格子那邊的效果寫完整，觸發要寫效果也要寫，
+ * 寫成完整的效果敘述。如果像是零之元素這樣的要選擇的選好後也要顯示在大招那邊
+ * 正常讀得懂，而不是什麼前置的『選擇這個技能時…』都寫進去。然後愛觸發改成自己寫名字。」
+ *
+ * 三條規則，逐一釘住：
+ * ① 卡片上有觸發全文與效果全文——只寫名字等於沒寫，桌上要唸的是「什麼時候開」和「開了會怎樣」。
+ * ② 建角時就固定下來的選擇（元素、天災）選好之後改寫成「選了什麼」，
+ *    不能還留著「選擇這個效果時…」那種建角動作的說明。
+ * ③ 【愛】綁定後寫出那個角色的名字，不再唸綁定指令。
+ */
+const showcaseRawOf = (character, roster = []) =>
+  renderToStaticMarkup(React.createElement(ZeroPowerBlock, {
+    character, theme, mode: 'edit', roster
+  }));
+/**
+ * 只取**卡片本身**的文字。
+ *
+ * 整頁還含選取區的說明與各 chip 的 `title` 屬性，比對「從八種傷害類型中選擇兩種」
+ * 這種字串會命中說明文字而不是卡片（AGENTS.md §AW6(c) 的老坑）。
+ * 卡片是整塊最後一段（彈窗未開時不渲染），所以從 `data-testid="zero-power-showcase` 切到結尾即可——
+ * **刻意不寫結尾的引號**：佔位的 testid 是 `…-showcase-placeholder`，帶引號就只認得卡片那一種。
+ */
+const cardOf = (character, roster = []) => {
+  const html = showcaseRawOf(character, roster);
+  const at = html.indexOf('data-testid="zero-power-showcase');
+  return at < 0 ? '' : plain(html.slice(at));
+};
+const showcaseRaw = showcaseRawOf({
+  ...fresh,
+  zeroPower: { ...createZeroPowerState(), name: '王家之盾', triggerId: 'revenge', effectId: 'shield' }
+});
+const showcaseCard = cardOf({
+  ...fresh,
+  zeroPower: { ...createZeroPowerState(), name: '王家之盾', triggerId: 'revenge', effectId: 'shield' }
+});
+
+check('卡片帶觸發全文', showcaseCard.includes('當你在一個場景中第一次進入危機狀態時發動'), true);
+check('卡片同時帶效果全文', showcaseCard.includes('受到的所有傷害減半'), true);
+/**
+ * 兩段各有段標。斷言原始 markup 而不是純文字——「觸發」「效果」兩詞在整頁到處都是
+ * （「底力觸發」「選好觸發與效果後」…），比對純文字會恆真（AGENTS.md §AW6(c)）。
+ */
+check('卡片有「觸發」段標', showcaseRaw.includes('>觸發</span>'), true);
+check('卡片有「效果」段標', showcaseRaw.includes('>效果</span>'), true);
+
+// ② 零之元素：選好兩種就寫出那兩種
+const elementsState = {
+  ...createZeroPowerState(),
+  triggerId: 'revenge',
+  effectId: 'elements',
+  choices: { damagePair: ['火', '冰'], damageType: '', statuses: [] }
+};
+const elementsDone = cardOf({ ...fresh, zeroPower: elementsState });
+check(
+  '零之元素選好後寫出已選的兩種類型（純函式）',
+  describeZeroEffect(elementsState).includes('在【火】或【冰】之中選定一種'),
+  true
+);
+/**
+ * 卡片層**不比對「【火】」**——`renderTextWithAffinities` 會把屬性詞換成圖示 span，
+ * 純文字化之後括號裡會多出字型字元（實測是 `【f火】`）。屬性詞的正確性交給上面那條
+ * 純函式斷言，這裡只確認「改寫後的敘述真的畫到卡片上」。
+ */
+check('卡片畫的是改寫後的效果敘述', elementsDone.includes('之中選定一種'), true);
+check('卡片不再出現「從八種傷害類型中選擇兩種」', elementsDone.includes('從八種傷害類型中選擇兩種'), false);
+
+const elementsHalf = cardOf({
+  ...fresh,
+  zeroPower: { ...createZeroPowerState(), triggerId: 'revenge', effectId: 'elements' }
+});
+check('零之元素沒選完時不畫卡片（避免讀成還沒選）', elementsHalf.includes('施展：命刻全滿'), false);
+check('零之元素沒選完時佔位說明缺什麼', elementsHalf.includes('還缺：效果的必要選擇'), true);
+
+// ③ 零之天災：傷害類型與兩個狀態都寫進去
+const scourgeState = {
+  ...createZeroPowerState(),
+  triggerId: 'revenge',
+  effectId: 'scourge',
+  choices: { damagePair: [], damageType: '火', statuses: ['眩暈', '虛弱'] }
+};
+const scourgeDone = cardOf({ ...fresh, zeroPower: scourgeState });
+check(
+  '零之天災選好後寫出已選的傷害類型（純函式）',
+  describeZeroEffect(scourgeState).includes('等級一半的【火】傷害'),
+  true
+);
+check('零之天災選好後寫出已選的兩個狀態', scourgeDone.includes('承受【眩暈】與【虛弱】'), true);
+check('卡片不再出現「從八種傷害類型中選擇一種」', scourgeDone.includes('從八種傷害類型中選擇一種'), false);
+
+// ④ 愛：綁定後寫名字
+const loveRoster = [{ id: 'pc2', name: '阿爾' }];
+const loveBoundCard = cardOf({
+  ...fresh,
+  zeroPower: { ...createZeroPowerState(), triggerId: 'love', loveTargetId: 'pc2', effectId: 'shield' }
+}, loveRoster);
+check('愛觸發寫出綁定對象的名字', loveBoundCard.includes('當【阿爾】失去 HP'), true);
+check('愛觸發不再唸「選擇這個觸發時，將它綁定到」', loveBoundCard.includes('選擇這個觸發時'), false);
+
+const loveUnboundCard = cardOf({
+  ...fresh,
+  zeroPower: { ...createZeroPowerState(), triggerId: 'love', effectId: 'shield' }
+}, loveRoster);
+check('愛還沒綁定時不畫卡片', loveUnboundCard.includes('施展：命刻全滿'), false);
+check('愛還沒綁定時佔位說明缺什麼', loveUnboundCard.includes('還缺：愛的對象'), true);
+
+// ⑤ 施展當下才決定的效果刻意不改寫——那句話在卡片上是腳本，不是待辦
+check(
+  '零之機運保留「選擇奇數或偶數」（施展當下才決定）',
+  describeZeroEffect({ ...createZeroPowerState(), effectId: 'chance' }).includes('選擇奇數或偶數'),
+  true
+);
+check(
+  '零之目標保留「選擇一項」（施展當下才決定）',
+  describeZeroEffect({ ...createZeroPowerState(), effectId: 'objective' }).includes('選擇一項'),
+  true
+);
+check(
+  '非愛觸發回原文（不改寫）',
+  describeZeroTrigger({ ...createZeroPowerState(), triggerId: 'revenge' }) ===
+    zeroTriggerById('revenge').desc,
+  true
+);
+check('沒選觸發時回空字串', describeZeroTrigger(createZeroPowerState()), '');
+check('沒選效果時回空字串', describeZeroEffect(createZeroPowerState()), '');
+
+// ⑥ 合體之力：每張卡各自寫自己那一招的全文
+const combinedCard = cardOf({
+  ...fresh,
+  zeroPower: {
+    ...createZeroPowerState(),
+    triggerId: 'revenge',
+    variant: 'combined',
+    combinedPairs: [{ partnerId: 'pc2', effectId: 'remedy', nickname: '雙子的救濟' }]
+  }
+}, loveRoster);
+check(
+  '合體之力的卡片也帶效果全文',
+  combinedCard.includes('你與任意數量你能看見的盟友從所有狀態效果中恢復'),
+  true
+);
+check('合體之力的卡片也帶觸發全文', combinedCard.includes('當你在一個場景中第一次進入危機狀態時發動'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 lines.push(`\n通過 ${pass} / ${pass + fail}${fail === 0 ? '　（全部通過）' : ''}`);
