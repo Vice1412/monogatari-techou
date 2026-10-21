@@ -1,4 +1,4 @@
-import{c as C}from"./index-C7g9ID6-.js";import{D as p,v as w,x as $,y as k,z as b}from"./properNouns-Bqczxnhl.js";/**
+import{c as C}from"./index-BRR7uGG3.js";import{D as p,v as w,x as $,y as k,z as b}from"./properNouns-rZetR1c9.js";/**
  * @license lucide-react v1.47.0 - ISC
  *
  * This source code is licensed under the ISC license.
