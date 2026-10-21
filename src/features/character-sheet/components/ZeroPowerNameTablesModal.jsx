@@ -40,6 +40,7 @@ import {
   ZERO_NAME_ACTIONS,
   ZERO_NAME_ORIGINS,
   generateZeroPowerName,
+  rollZeroPowerName,
   zeroNameTableGroups
 } from '../data/zeroPowers';
 
@@ -476,10 +477,7 @@ export default function ZeroPowerNameTablesModal({
   const [pickedOrigin, setPickedOrigin] = useState(null);
 
   const handleRoll = () => {
-    const actionRoll = 1 + Math.floor(Math.random() * ZERO_NAME_ACTIONS.rows.length);
-    const originRoll = 1 + Math.floor(Math.random() * ZERO_NAME_ORIGINS.rows.length);
-    const rolled = generateZeroPowerName({ actionRoll, actionColumn, originRoll, originColumn });
-    setRolledResult({ ...rolled, actionRoll, originRoll, actionColumn, originColumn });
+    setRolledResult(rollZeroPowerName({ actionColumn, originColumn }));
   };
 
   const apply = (name) => {

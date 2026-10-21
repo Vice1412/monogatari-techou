@@ -63,8 +63,8 @@ export function ZeroPowerGlossaryBody({
   const onPick = showTriggers ? onPickTrigger : onPickEffect;
 
   const tabs = [
-    { id: GLOSSARY_TAB_TRIGGER, label: `七個觸發（${ZERO_TRIGGERS.length}）` },
-    { id: GLOSSARY_TAB_EFFECT, label: `十一個效果（${ZERO_EFFECTS.length}）` }
+    { id: GLOSSARY_TAB_TRIGGER, label: `觸發（${ZERO_TRIGGERS.length}）` },
+    { id: GLOSSARY_TAB_EFFECT, label: `效果（${ZERO_EFFECTS.length}）` }
   ];
 
   return (
@@ -150,7 +150,7 @@ export function ZeroPowerGlossaryBody({
                     color: isPicked ? '#ffffff' : textDark
                   }}
                 >
-                  {isPicked ? '✓ 目前選擇（再點一次取消）' : '選這個'}
+                  {isPicked ? '✓ 已選' : '選擇'}
                 </button>
               ) : null}
             </div>
@@ -191,14 +191,11 @@ export default function ZeroPowerGlossaryModal({
     <JRPGModal
       isOpen={isOpen}
       onClose={onClose}
-      title="底力技：觸發與效果說明"
+      title="底力技：觸發與效果"
       maxWidth="max-w-3xl"
       theme={theme}
       actionButtons={
-        <div className="flex items-center justify-between w-full">
-          <div className="text-xs text-slate-600 font-medium hidden sm:block">
-            點「選這個」可直接套用，不必回到上一層
-          </div>
+        <div className="flex items-center justify-end w-full">
           <JRPGButton variant="secondary" size="sm" onClick={onClose}>
             關閉
           </JRPGButton>

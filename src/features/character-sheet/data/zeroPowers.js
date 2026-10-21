@@ -328,6 +328,23 @@ export const generateZeroPowerName = ({
   return { action, origin, name };
 };
 
+/**
+ * 直接擲一次名字（1d20 動作 ＋ 1d10 由來）。
+ *
+ * 抽成純函式是為了讓「隨機」按鈕長在**外面**——命名表彈窗裡也用它，
+ * 兩邊才是同一套骰法。使用者裁定 2026-10-21：表和隨機都該擺在外面，
+ * 「要隨機測試還要點進表」是多餘的一層。
+ *
+ * 欄位預設取第一欄；命名表的欄位選擇是「先看全表再挑口味」的輔助，
+ * 外面的隨機按鈕沒有那個上下文，所以用預設欄。
+ */
+export const rollZeroPowerName = ({ actionColumn = 0, originColumn = 0, reversed = false } = {}) => {
+  const actionRoll = 1 + Math.floor(Math.random() * ZERO_NAME_ACTIONS.rows.length);
+  const originRoll = 1 + Math.floor(Math.random() * ZERO_NAME_ORIGINS.rows.length);
+  const rolled = generateZeroPowerName({ actionRoll, actionColumn, originRoll, originColumn, reversed });
+  return { ...rolled, actionRoll, originRoll, actionColumn, originColumn };
+};
+
 /** 依 id 取觸發（找不到回 `null`，呼叫端自己決定怎麼處理）。 */
 export const zeroTriggerById = (id) => ZERO_TRIGGERS.find((t) => t.id === id) || null;
 

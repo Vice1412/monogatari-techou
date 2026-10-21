@@ -36,6 +36,7 @@ import {
   ZERO_POWER_SOURCE,
   ZERO_POWER_NOTES,
   generateZeroPowerName,
+  rollZeroPowerName,
   zeroNameTableGroups,
   isZeroPowersEnabled,
   createZeroPowerState,
@@ -915,15 +916,22 @@ check('合體之力還沒配對時佔位', combinedNoPairs.includes('還缺：�
 // ─────────────────────────────────────────────────────────── S
 section('S. 名詞說明彈窗（七個觸發與十一個效果）');
 
-const glossaryBody = (props = {}) =>
-  plain(renderToStaticMarkup(React.createElement(ZeroPowerGlossaryBody, { theme, ...props })));
+/**
+ * `glossaryRaw` 保留標籤，`glossaryBody` 去標籤。
+ *
+ * 按鈕文字要用 raw 比對：「選擇」這兩個字也出現在【愛】的敘述裡
+ * （「選擇這個觸發時…」），純文字比對會恆真。
+ */
+const glossaryRaw = (props = {}) =>
+  renderToStaticMarkup(React.createElement(ZeroPowerGlossaryBody, { theme, ...props }));
+const glossaryBody = (props = {}) => plain(glossaryRaw(props));
 
 check('分頁常數：觸發', GLOSSARY_TAB_TRIGGER, 'trigger');
 check('分頁常數：效果', GLOSSARY_TAB_EFFECT, 'effect');
 
 const glossaryTriggers = glossaryBody();
-check('預設分頁是觸發', glossaryTriggers.includes('七個觸發（7）'), true);
-check('分頁標籤同時列出效果數', glossaryTriggers.includes('十一個效果（11）'), true);
+check('預設分頁是觸發', glossaryTriggers.includes('觸發（7）'), true);
+check('分頁標籤同時列出效果數', glossaryTriggers.includes('效果（11）'), true);
 check('說明卡解釋兩者的分工', glossaryTriggers.includes('觸發決定命刻什麼時候填'), true);
 check('觸發分頁列出全部七個名字', ZERO_TRIGGERS.every((t) => glossaryTriggers.includes(t.name)), true);
 check(
@@ -937,7 +945,7 @@ check(
   glossaryTriggers.includes('每次 3 格') && glossaryTriggers.includes('變動格數'),
   true
 );
-check('未傳 onPick 時沒有選取按鈕（注入點鐵律）', glossaryTriggers.includes('選這個'), false);
+check('未傳 onPick 時沒有選取按鈕（注入點鐵律）', glossaryRaw().includes('>選擇</button>'), false);
 
 const glossaryEffects = glossaryBody({ activeTab: GLOSSARY_TAB_EFFECT });
 check('效果分頁列出全部十一個名字', ZERO_EFFECTS.every((e) => glossaryEffects.includes(e.name)), true);
@@ -950,9 +958,9 @@ check('效果分頁不列觸發名', glossaryEffects.includes('憐憫'), false);
 check('效果分頁標示「底力效果」', glossaryEffects.includes('底力效果'), true);
 
 const glossaryPicked = glossaryBody({ selectedTriggerId: 'love', onPickTrigger: () => {} });
-check('已選的觸發標記為目前選擇', glossaryPicked.includes('✓ 目前選擇（再點一次取消）'), true);
-check('傳了 onPick 才出現選取按鈕', glossaryPicked.includes('選這個'), true);
-check('只有一項被標成已選', glossaryPicked.split('✓ 目前選擇').length - 1, 1);
+check('已選的觸發標記為已選', glossaryRaw({ selectedTriggerId: 'love', onPickTrigger: () => {} }).includes('>✓ 已選</button>'), true);
+check('傳了 onPick 才出現選取按鈕', glossaryRaw({ selectedTriggerId: 'love', onPickTrigger: () => {} }).includes('>選擇</button>'), true);
+check('只有一項被標成已選', glossaryRaw({ selectedTriggerId: 'love', onPickTrigger: () => {} }).split('>✓ 已選</button>').length - 1, 1);
 
 check(
   '填充標籤：固定格數',
@@ -966,8 +974,8 @@ check(
 );
 check('填充標籤：沒有觸發時回空字串', zeroTriggerFillLabel(null), '');
 
-check('建角模式有觸發說明入口', editHtml.includes('七個觸發的敘述'), true);
-check('建角模式有效果說明入口', editHtml.includes('十一個效果的敘述'), true);
+check('建角模式有觸發說明入口', editHtml.includes('觸發敘述'), true);
+check('建角模式有效果說明入口', editHtml.includes('效果敘述'), true);
 check(
   '未選觸發時敘述不會自動露出（這就是需要說明入口的原因）',
   editHtml.includes('當你恢復一個或多個盟友的 HP'),
@@ -975,6 +983,71 @@ check(
 );
 check('說明入口是真的按鈕，不只是 title 提示', blockSrc.includes('openGlossary(GLOSSARY_TAB_TRIGGER)'), true);
 check('合體模式也有說明入口', blockSrc.split('openGlossary(GLOSSARY_TAB_EFFECT)').length - 1, 2);
+
+// ─────────────────────────────────────────────────────────── T
+section('T. 工具該有工具的樣子：隨機與命名表都擺在外面');
+
+/**
+ * 使用者裁定（2026-10-21）：「表和隨機的按鈕應該都要放在外面才對，
+ * 你現在的操作讓人要隨機測試還要點進表才可以很多餘，請參照身份那邊的處理方式。」
+ *
+ * 身份欄位（`CharacterEditor` 的 identity 區）就是這樣做的：
+ * 標籤列右側兩顆小按鈕——「靈感對照表」（開表）與「隨機」（直接生成）。
+ * 這裡把那條路徑釘住：隨機**不經過彈窗**，直接寫回名稱。
+ */
+const rollSample = Array.from({ length: 40 }, () => rollZeroPowerName());
+check(
+  '擲名純函式每次都有名字',
+  rollSample.every((r) => typeof r.name === 'string' && r.name.length > 1),
+  true
+);
+check(
+  '擲名骰值落在表的範圍內',
+  rollSample.every(
+    (r) =>
+      r.actionRoll >= 1 &&
+      r.actionRoll <= ZERO_NAME_ACTIONS.rows.length &&
+      r.originRoll >= 1 &&
+      r.originRoll <= ZERO_NAME_ORIGINS.rows.length
+  ),
+  true
+);
+check('擲名會真的換結果（不是固定值）', new Set(rollSample.map((r) => r.name)).size > 1, true);
+check(
+  '擲名沿用同一套串接規則（不另寫一份）',
+  rollSample.every(
+    (r) =>
+      r.name ===
+      generateZeroPowerName({
+        actionRoll: r.actionRoll,
+        originRoll: r.originRoll,
+        actionColumn: 0,
+        originColumn: 0
+      }).name
+  ),
+  true
+);
+
+check('隨機按鈕直接套用名字（不經過彈窗）', blockSrc.includes('rollZeroPowerName().name'), true);
+check('命名表按鈕也擺在外面', blockSrc.includes('setNameTablesOpen(true)'), true);
+check('建角畫面看得到「命名表」按鈕', editHtml.includes('命名表'), true);
+check('建角畫面看得到「隨機」按鈕', editHtml.includes('隨機'), true);
+/**
+ * 「同一列」用位置判：命名表按鈕之後 600 字元內就是隨機按鈕。
+ * 不寫成正則——正則要跨 JSX 屬性換行，改一次排版就紅，那不是行為改變。
+ */
+const nameRowAnchor = blockSrc.indexOf('setNameTablesOpen(true)');
+check(
+  '兩顆按鈕在同一列（參照身份欄位的排法）',
+  nameRowAnchor > 0 && blockSrc.slice(nameRowAnchor, nameRowAnchor + 600).includes('rollZeroPowerName().name'),
+  true
+);
+
+/** 按鈕文字要短：使用者原話「這些按鈕太多廢話了」。 */
+check('敘述按鈕不再寫「七個觸發的敘述」', blockSrc.includes('七個觸發的敘述'), false);
+check('敘述按鈕不再寫「十一個效果的敘述」', blockSrc.includes('十一個效果的敘述'), false);
+check('選取按鈕用「選擇」而不是「選這個」', READ('src/features/character-sheet/components/ZeroPowerGlossaryModal.jsx').includes('選這個'), false);
+check('已選標記只有「已選」，不帶「再點一次取消」', editHtml.includes('再點一次取消'), false);
 
 // ─────────────────────────────────────────────────────────── 結果
 lines.push(`\n通過 ${pass} / ${pass + fail}${fail === 0 ? '　（全部通過）' : ''}`);

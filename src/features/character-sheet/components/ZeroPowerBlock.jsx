@@ -32,7 +32,7 @@
  *    讀起來像「又一個填完的欄位」，而不是「衝突中只能開一次的東西」。
  */
 import React, { useState } from 'react';
-import { GiSparkles, GiPocketWatch, GiRollingDices, GiScrollUnfurled } from 'react-icons/gi';
+import { GiSparkles, GiPocketWatch, GiRollingDices, GiScrollUnfurled, GiSpellBook } from 'react-icons/gi';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import { JRPGInput } from '../../../components/ui/JRPGInput';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
@@ -44,7 +44,8 @@ import {
   ZERO_VARIANTS,
   ZERO_POWER_SOURCE,
   zeroEffectById,
-  zeroTriggerById
+  zeroTriggerById,
+  rollZeroPowerName
 } from '../data/zeroPowers';
 import ZeroPowerNameTablesModal from './ZeroPowerNameTablesModal';
 import ZeroPowerGlossaryModal, { GLOSSARY_TAB_TRIGGER, GLOSSARY_TAB_EFFECT } from './ZeroPowerGlossaryModal';
@@ -523,17 +524,23 @@ export default function ZeroPowerBlock({
           placeholder="例：王家之刃"
           theme={theme}
         />
-        <div className="flex items-center justify-between gap-1.5 flex-wrap">
-          <span className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
-            不知道叫什麼？命名表收錄全部動作詞與由來詞，可以先看全表再擲骰或自選。
-          </span>
+        {/* 兩顆按鈕都擺在外面：看表與隨機都不該先點進彈窗（同身份欄位的做法） */}
+        <div className="flex items-center justify-end gap-1.5">
+          <JRPGButton
+            variant={theme.outlineButtonVariant || 'outline'}
+            size="xs"
+            icon={GiSpellBook}
+            onClick={() => setNameTablesOpen(true)}
+          >
+            命名表
+          </JRPGButton>
           <JRPGButton
             variant={theme.outlineButtonVariant || 'outline'}
             size="xs"
             icon={GiRollingDices}
-            onClick={() => setNameTablesOpen(true)}
+            onClick={() => patch({ name: rollZeroPowerName().name })}
           >
-            打開命名表
+            隨機
           </JRPGButton>
         </div>
         <ZeroPowerNameTablesModal
@@ -563,7 +570,7 @@ export default function ZeroPowerBlock({
               icon={GiScrollUnfurled}
               onClick={() => openGlossary(GLOSSARY_TAB_TRIGGER)}
             >
-              七個觸發的敘述
+              觸發敘述
             </JRPGButton>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
@@ -619,7 +626,7 @@ export default function ZeroPowerBlock({
               icon={GiScrollUnfurled}
               onClick={() => openGlossary(GLOSSARY_TAB_EFFECT)}
             >
-              十一個效果的敘述
+              效果敘述
             </JRPGButton>
           </div>
           {state.combinedPairs.map((pair, index) => (
@@ -689,7 +696,7 @@ export default function ZeroPowerBlock({
               icon={GiScrollUnfurled}
               onClick={() => openGlossary(GLOSSARY_TAB_EFFECT)}
             >
-              十一個效果的敘述
+              效果敘述
             </JRPGButton>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
