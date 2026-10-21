@@ -871,7 +871,9 @@ check('卡片用漸層描邊外框', blockSrc.includes('linear-gradient(135deg')
 check('卡片四角各有角標', blockSrc.split('pointer-events-none absolute').length - 1, 4);
 check('角標用的是軌道 3 允許的排版字符', blockSrc.includes('❖'), true);
 check('卡片有進場動畫', blockSrc.includes('animate-fade-in'), true);
-check('卡片名稱用襯線大字', blockSrc.includes('font-serif font-black text-xl'), true);
+check('卡片名稱用襯線大字', blockSrc.includes('font-serif font-black text-2xl'), true);
+check('卡片名稱在窄螢幕再放大一級', blockSrc.includes('sm:text-3xl'), true);
+check('卡片頂端有浮在邊框上的徽章', blockSrc.includes('absolute -top-2.5 left-1/2 -translate-x-1/2'), true);
 check(
   '卡片刻意不是一般淡框（不用 rounded-lg border px-2.5 py-2）',
   blockSrc.includes('rounded-2xl'),

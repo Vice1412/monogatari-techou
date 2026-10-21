@@ -121,34 +121,48 @@ function ShowcaseCard({ theme, name, trigger, effect, label = '', max, combined 
     <div
       className="relative rounded-2xl animate-fade-in"
       style={{
-        padding: '2px',
-        background: `linear-gradient(135deg, ${accent} 0%, ${border} 42%, ${accent} 100%)`,
-        boxShadow: `0 12px 26px -16px ${accent}`
+        padding: '3px',
+        background: `linear-gradient(135deg, ${accentDark} 0%, ${accent} 26%, ${border} 50%, ${accent} 74%, ${accentDark} 100%)`,
+        boxShadow: `0 18px 40px -22px ${accent}, 0 2px 10px -6px ${accentDark}`
       }}
     >
       <div
-        className="relative rounded-[14px] px-4 py-4 space-y-2.5"
+        className="relative rounded-[13px] px-4 py-5 space-y-3"
         style={{
-          background: `radial-gradient(circle at 50% -12%, ${accentLight} 0%, ${cardBg} 62%)`,
+          background: `radial-gradient(ellipse at 50% -32%, ${accent}26 0%, transparent 58%), radial-gradient(circle at 50% -12%, ${accentLight} 0%, ${cardBg} 62%)`,
           border: `1px solid ${border}`
         }}
       >
-        <span className="pointer-events-none absolute top-1 left-2 text-[10px]" style={{ color: accent }}>❖</span>
-        <span className="pointer-events-none absolute top-1 right-2 text-[10px]" style={{ color: accent }}>❖</span>
-        <span className="pointer-events-none absolute bottom-1 left-2 text-[10px]" style={{ color: accent }}>❖</span>
-        <span className="pointer-events-none absolute bottom-1 right-2 text-[10px]" style={{ color: accent }}>❖</span>
+        {/*
+          頂端徽章：它浮在邊框上，所以整塊讀起來像「被蓋章的一張卡」而不是另一個欄位。
+          刻意不帶四角角標那組定位字串——護欄用那組字數「四角各一個」，這裡多一個就多數一個。
+        */}
+        <span
+          className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-[10px] font-bold whitespace-nowrap"
+          style={{
+            backgroundColor: accent,
+            color: '#ffffff',
+            letterSpacing: '0.22em',
+            boxShadow: `0 2px 8px -3px ${accentDark}`
+          }}
+        >
+          底力技
+        </span>
 
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <span className="text-[10px] font-bold" style={{ color: accent, letterSpacing: '0.22em' }}>
-            底力技
-          </span>
+        <span className="pointer-events-none absolute top-1.5 left-2.5 text-sm" style={{ color: accent }}>❖</span>
+        <span className="pointer-events-none absolute top-1.5 right-2.5 text-sm" style={{ color: accent }}>❖</span>
+        <span className="pointer-events-none absolute bottom-1.5 left-2.5 text-sm" style={{ color: accent }}>❖</span>
+        <span className="pointer-events-none absolute bottom-1.5 right-2.5 text-sm" style={{ color: accent }}>❖</span>
+
+        {/* 右邊留給角標——用 inline style 而不是 pr-*，這是避讓契約不是樣式偏好 */}
+        <div className="flex items-center justify-end gap-2" style={{ paddingRight: '2.5rem' }}>
           <span className="text-[10px]" style={{ color: textMuted }}>{ZERO_POWER_SOURCE}</span>
         </div>
 
-        <div className="text-center space-y-1">
+        <div className="text-center space-y-1.5">
           <div
-            className="font-serif font-black text-xl sm:text-2xl leading-tight"
-            style={{ color: accentDark, letterSpacing: '0.06em' }}
+            className="font-serif font-black text-2xl sm:text-3xl leading-tight"
+            style={{ color: accentDark, letterSpacing: '0.08em' }}
           >
             {name || '（尚未命名）'}
           </div>
@@ -162,15 +176,18 @@ function ShowcaseCard({ theme, name, trigger, effect, label = '', max, combined 
 
         <div className="flex items-center gap-2">
           <span className="flex-1 h-px" style={{ backgroundColor: border }} />
-          <span className="text-[10px]" style={{ color: accent }}>✦</span>
+          <span className="text-xs" style={{ color: accent }}>✦</span>
           <span className="flex-1 h-px" style={{ backgroundColor: border }} />
         </div>
 
-        <p className="text-xs leading-relaxed" style={{ color: textDark }}>
+        <p className="text-sm leading-7 text-center" style={{ color: textDark }}>
           {renderTextWithAffinities(effect.desc)}
         </p>
 
-        <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-bold" style={{ color: textMuted }}>
+        <div
+          className="flex items-center justify-center gap-1.5 flex-wrap text-[10px] font-bold rounded-lg px-2 py-1.5"
+          style={{ color: textMuted, backgroundColor: accentLight, border: `1px solid ${border}` }}
+        >
           <GiPocketWatch className="w-3 h-3" style={{ color: accent }} />
           <span>{`施展：命刻全滿（${max}／${max}）`}</span>
           <span style={{ color: border }}>｜</span>

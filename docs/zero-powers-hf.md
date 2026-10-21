@@ -396,7 +396,7 @@ zeroPower: {
 ## 5. 建議的後續動作
 
 1. ~~`docs/decisions.md` §AL7 與 `AGENTS.md` §1.2 的「官方特典」字樣改為「高度奇幻手冊」~~ —— **已於 2026-10-21 就地更正**（§AL7 加上更正註記、§1.2 補上出處與本文件指標）。
-2. ~~若要實裝，先建 `zeroPowers.js` 資料層 ＋ `test:zeropower` 護欄（觸發 7 筆／效果 11 筆／命名表 120 詞／兩個變體的命刻格數），再接 UI。~~ —— **已於 2026-10-21 實裝**：`data/zeroPowers.js`、`utils/zeroPower.js`、`components/ZeroPowerBlock.jsx`、`components/ZeroPowerNameTablesModal.jsx`、`components/ZeroPowerGlossaryModal.jsx`，`test:zeropower` **331 條**（`npm test` 第 24 道）。決策正文見 `docs/decisions.md` §BM、§BM8、§BM9、§BM10。
+2. ~~若要實裝，先建 `zeroPowers.js` 資料層 ＋ `test:zeropower` 護欄（觸發 7 筆／效果 11 筆／命名表 120 詞／兩個變體的命刻格數），再接 UI。~~ —— **已於 2026-10-21 實裝**：`data/zeroPowers.js`、`utils/zeroPower.js`、`components/ZeroPowerBlock.jsx`、`components/ZeroPowerNameTablesModal.jsx`、`components/ZeroPowerGlossaryModal.jsx`，`test:zeropower` **333 條**（`npm test` 第 24 道）。決策正文見 `docs/decisions.md` §BM、§BM8、§BM9、§BM10。
    - **命名表（§1.6）已做成可瀏覽的對照表**：`components/ZeroPowerNameTablesModal.jsx`（與身份表同形狀，`投擲 1d20 ＋ 1d10`、結果卡兩顆骰各自拆解、可自選組合），資料層 `zeroNameTableGroups(kind)` 負責轉置（見 §BM9）。
    - ⚠️ **§1.1 那句「不得有兩名以上擁有相同的觸發／效果」是原文引用，本專案不再由程式把關**：使用者裁定交給 GM 審卡，`findDuplicateZeroPowers` 與 `zeroPowerTakenBy` 已於 §BM9 整個刪除，介面也不再灰掉隊友已選的項目。
 3. CHM 檔案本身**不要就地改寫**——它是漢化原文的存檔；修訂版以本文件為準。
