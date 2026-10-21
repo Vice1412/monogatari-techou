@@ -76,6 +76,8 @@ import CreationRulesPanel from './CreationRulesPanel';
 import HeroicSkillPickerModal from './HeroicSkillPickerModal';
 import QuirkPickerModal from './QuirkPickerModal';
 import ZeroPowerBlock from './ZeroPowerBlock';
+import TechnospherePanel from './TechnospherePanel';
+import { isTechnosphereEnabled, getTechnosphereEquipmentSpend } from '../data/technospheres';
 
 /** 編輯器的分頁數量。夾制 initialTab 時不能讀 TABS（宣告在下面，會踩 TDZ），所以另存常數。 */
 const TAB_COUNT = 6;
@@ -553,10 +555,16 @@ export default function CharacterEditor({
   // 起始裝備花費（原書 p.164）：只計**基本武器／防具／盾牌**。
   // 飾品是稀有物品，不從起始預算出——以前這裡把飾品算進去，而 equipmentRules 的
   // buildLoadoutIssues 不算，同一張卡在兩處得到不同的「已花費」。現在兩邊共用同一支函式。
+  //
+  // 魔晶石開啟時，插槽品級與附魔魔石算進**同一筆**預算（科技奇幻手冊 p.133 的價格表、
+  // p.140 的採購清單）。職業魔石不算——那是創角免費給的獎勵，不是商店貨。
+  const techOn = isTechnosphereEnabled(rules.technospheres);
+  const techSpend = techOn ? getTechnosphereEquipmentSpend(character.technospheres) : 0;
   const totalEquipCost = totalStartingEquipCost(character.equipment, {
     weaponMap: weaponByName,
     shieldMap: shieldByName,
-    armorMap: armorByName
+    armorMap: armorByName,
+    extraSpend: techSpend
   });
   const remainingBudget = rules.startingZenit - totalEquipCost;
 
@@ -625,7 +633,8 @@ export default function CharacterEditor({
     weaponMap: weaponByName,
     armorMap: armorByName,
     shieldMap: shieldByName,
-    accessoryMap: accessoryByName
+    accessoryMap: accessoryByName,
+    extraSpend: techSpend
   });
 
   // 更換某個欄位時，該欄位原本的花費會被釋出，所以可動用預算要把它的成本加回去
@@ -1634,6 +1643,15 @@ export default function CharacterEditor({
                   ))}
                 </div>
               )}
+
+              {/* 魔晶石（科技奇幻手冊 p.132–145）：它換掉整套裝備制度，所以住在第 4 步。
+                  規則沒開時元件自己回傳 null，這裡不必再判斷一次。 */}
+              <TechnospherePanel
+                character={character}
+                theme={theme}
+                disabled={locked}
+                onChange={(next, meta) => updateField('technospheres', next, meta)}
+              />
 
               {/* 四個槽位：每格直接顯示「這一格換算成什麼」，要比較時才開選擇彈窗。
                   主手換成雙手武器時，這張卡會平滑長成滿版、並把副手格吃進來（虛線佔位），

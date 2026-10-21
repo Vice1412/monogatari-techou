@@ -12,6 +12,22 @@ import { stripClassSuffix } from '../data/classAliases';
 import { VARIANT_ARCANIST_HEROIC_SKILLS } from '../data/variantArcanistHeroicSkills';
 import { isInitiativeVariant, getArmorProfile, initiativeVariantTermLabel } from '../data/initiativeVariant';
 import { isZeroPowersEnabled, createZeroPowerState } from '../data/zeroPowers';
+import {
+  createTechnosphereState,
+  getActiveMnemospheres,
+  getInitialMnemosphereCount,
+  getInitialMnemosphereLevel,
+  getSkillLevelCeiling,
+  getTechnosphereEquipmentSpend,
+  INNATE_CLASS_COUNT,
+  isTechnosphereEnabled,
+  modeGrantsInnateBonus,
+  modeGrantsMartialWeaponProficiency,
+  modeHasMnemospheres,
+  normalizeTechnosphereState,
+  validateTechnosphereState,
+  MNEMOSPHERE_MAX_LEVEL
+} from '../data/technospheres';
 import { zeroPowerIssues } from './zeroPower';
 
 // Dice ladder for step reductions
@@ -473,6 +489,13 @@ export const createNewCharacter = (overrides = {}, rules = DEFAULT_CREATION_RULE
       activeSummonId: null
     },
 
+    // 魔晶石（科技奇幻手冊 p.132–145 的選用規則）。
+    // **預設是空的**：不替玩家挑職業魔石，也不預先掛任何附魔魔石——
+    // 與四維屬性、羈絆、金手指、底力技同一個原則。
+    // 舊存檔沒有這個欄位 → `normalizeTechnosphereState` 收斂成空狀態，行為不變。
+    // 規則關閉時這個欄位一樣存在，只是沒有讀取端會去用它。
+    technospheres: createTechnosphereState(),
+
     // 創角定稿狀態（見下方 isCharacterLocked／lockCharacter）
     locked: false,
     lockedAt: null,
@@ -498,6 +521,18 @@ export const getProficiencies = (char) => {
     martialArmor: false,
     martialShields: false
   };
+
+  // 魔晶石（科技奇幻手冊 p.134）：創角時直接獲得**職業近戰與遠程武器**的裝備能力。
+  //
+  // 注意它**不給職業防具**——原書寫得很死：「gains the ability to equip martial melee
+  // weapons and ranged weapons」，沒有 armor。這正是魔晶石制要付的代價之一：
+  // 你的防具選擇被鎖在自訂防具上，而自訂防具沒有職業防具的減傷門檻。
+  // 「僅職業魔石」變體把這條整條拿走（p.138）。
+  const creation = resolveCreationRules(char?.creationRules);
+  if (modeGrantsMartialWeaponProficiency(creation.technospheres)) {
+    profs.martialMelee = true;
+    profs.martialRanged = true;
+  }
 
   (char.classes || []).forEach(cl => {
     const cName = cl.className || '';
@@ -585,6 +620,18 @@ export const calculateCharacterStats = (char) => {
   const addHp = (label, value, kind) => { if (value) { bonusHp += value; hpTerms.push({ label, value, kind }); } };
   const addMp = (label, value, kind) => { if (value) { bonusMp += value; mpTerms.push({ label, value, kind }); } };
   const addIp = (label, value, kind) => { if (value) { bonusIp += value; ipTerms.push({ label, value, kind }); } };
+
+  // (0) 魔晶石的創角永久加給（科技奇幻手冊 p.134）
+  //
+  // 這一筆**不屬於任何職業**，所以不能併進下面的職業免費增益迴圈——職業魔石
+  // 本身明文「不提供職業的免費增益」（p.136），把它們混在一起會讓人以為
+  // 換掉職業魔石就會失去這 5 點。它只在創角時給一次，之後永久跟著角色。
+  // 「僅附魔魔石」變體拿掉這一條（p.138）。
+  const creation = resolveCreationRules(char?.creationRules);
+  if (modeGrantsInnateBonus(creation.technospheres)) {
+    addHp('魔晶石創角加給', 5, 'technosphere');
+    addMp('魔晶石創角加給', 5, 'technosphere');
+  }
 
   // (1) 職業免費增益 (Free Benefits) 與職業常駐被動技能
   (char.classes || []).forEach(cl => {
@@ -930,7 +977,14 @@ export const calculateCharacterStats = (char) => {
     // 消費端（防守掌握／閃避等技能）讀這個旗標，不必自己去翻武器規格。
     countsAsShield,
     mainHandWeapon,
-    isLevelMatched: totalSkillLevels === level
+    // 標準規則下「技能等級總和 ＝ 角色等級」是恆等式（每升一級投一點）。
+    // 魔晶石制打破它：升級可以把那一點投進**職業魔石**而不是固有職業（p.134），
+    // 於是角色等級會跑在固有職業的技能總和前面。所以這裡改成「不得超過」，
+    // 由驗證層另外把「還差幾點沒投」講出來——用等號會讓每一張合法的
+    // 魔晶石角色一升級就被判定成不一致。
+    isLevelMatched: isTechnosphereEnabled(creation.technospheres)
+      ? totalSkillLevels <= level
+      : totalSkillLevels === level
   };
 };
 
@@ -941,8 +995,50 @@ export const canLevelUp = (char) => {
   return (char.exp || 0) >= 10 && getCharacterLevel(char) < 50;
 };
 
-export const applyLevelUp = (char, { className, skillName, isNewClass = false }) => {
+export const applyLevelUp = (char, { className, skillName, isNewClass = false, mnemosphereId = null }) => {
   if (!canLevelUp(char)) return char;
+
+  const creation = resolveCreationRules(char?.creationRules);
+  const techOn = isTechnosphereEnabled(creation.technospheres);
+
+  // ── 魔晶石制：把這一點投進**職業魔石**（科技奇幻手冊 p.134）──────────
+  //
+  // 這條路徑不碰 `char.classes`：那一點沒有進固有職業，而是讓某顆魔石升級。
+  // 角色等級照樣 +1（角色等級是獨立的計數器），所以升級後「職業技能總和」
+  // 會小於角色等級——那是合法的，`isLevelMatched` 已改為「不得超過」。
+  if (techOn && mnemosphereId) {
+    const state = normalizeTechnosphereState(char.technospheres);
+    const target = state.mnemospheres.find((m) => m.id === mnemosphereId);
+    // 找不到、或那顆魔石已經 5 級（p.136 的上限）→ 什麼都不要動，EXP 不能被扣。
+    if (!target || target.level >= MNEMOSPHERE_MAX_LEVEL) return char;
+
+    const mnemospheres = state.mnemospheres.map((m) => {
+      if (m.id !== mnemosphereId) return m;
+      const skills = (m.skills || []).map((s) => ({ ...s }));
+      const hit = skills.find((s) => s.name === skillName);
+      if (hit) hit.sl += 1;
+      else if (skillName) skills.push({ name: skillName, sl: 1 });
+      return { ...m, level: m.level + 1, skills };
+    });
+
+    const oldStats = calculateCharacterStats(char);
+    const curHp = char.currentHp ?? oldStats.maxHp;
+    const curMp = char.currentMp ?? oldStats.maxMp;
+    return {
+      ...char,
+      technospheres: { ...state, mnemospheres },
+      level: getCharacterLevel(char) + 1,
+      exp: (char.exp || 0) - 10,
+      currentHp: curHp + 1,
+      currentMp: curMp + 1,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  // 魔晶石制**不得取得新職業**——原書寫得很硬：「cannot acquire new Classes,
+  // not even after mastering all three Innate Classes」（p.134）。
+  // 所以就算三個固有職業都 5 級了，也只剩「繼續投固有職業」與「投魔石」兩條路。
+  if (techOn && isNewClass) return char;
 
   let updatedClasses = JSON.parse(JSON.stringify(char.classes || []));
 
@@ -1137,6 +1233,20 @@ export const validateCharacter = (char, rules = null) => {
     }
   }
 
+  // 魔晶石制的固有職業（科技奇幻手冊 p.134）：**恰好三個，而且永遠不得新增**。
+  //
+  // 上面那段只在「還在起始等級」時跑，但這條不隨等級鬆綁——原書寫得很硬：
+  // 「cannot acquire new Classes, not even after mastering all three Innate Classes」。
+  // 所以獨立成一段，任何等級都檢查。
+  if (isTechnosphereEnabled(creation.technospheres) && classCount !== INNATE_CLASS_COUNT) {
+    warnings.push({
+      step: 2,
+      field: 'classes',
+      type: 'error',
+      message: `魔晶石制需恰好 ${INNATE_CLASS_COUNT} 個固有職業（目前 ${classCount} 個），且升級不得新增職業`
+    });
+  }
+
   // 職業等級總和應該等於角色等級（升級時兩者一起 +1）。對不上就是**漂移**——
   // 以前沒有任何地方檢查這件事，於是同一張卡在卡片上顯示 Lv 5、在三頁表格上顯示 Lv 8。
   const classLevelSum = (char.classes || []).reduce((sum, cl) => sum + (parseInt(cl.level, 10) || 0), 0);
@@ -1149,7 +1259,19 @@ export const validateCharacter = (char, rules = null) => {
     });
   }
 
-  if (stats.totalSkillLevels !== char.level) {
+  // 魔晶石制下，升級的那一點可能投進**職業魔石**而不是固有職業（p.134），
+  // 於是「技能總和」會落在角色等級之後。所以只擋「超過」——
+  // 用等號會讓每一張剛把點數投進魔石的角色被噴一次警告。
+  if (isTechnosphereEnabled(creation.technospheres)) {
+    if (stats.totalSkillLevels > char.level) {
+      warnings.push({
+        step: 2,
+        field: 'skills',
+        type: 'warning',
+        message: `技能點數總和 (${stats.totalSkillLevels}) 超過角色等級 (${char.level})`
+      });
+    }
+  } else if (stats.totalSkillLevels !== char.level) {
     warnings.push({
       step: 2,
       field: 'skills',
@@ -1213,7 +1335,11 @@ export const validateCharacter = (char, rules = null) => {
     shieldMap: new Map(rulesData.equipment.shields.map((s) => [s.name, s])),
     armorMap: new Map(rulesData.equipment.armors.map((a) => [a.name, a])),
     accessoryMap: new Map(rulesData.equipment.accessories.map((a) => [a.name, a])),
-    budget: creation.startingZenit
+    budget: creation.startingZenit,
+    // 插槽品級與附魔魔石算進**同一筆**裝備預算（p.133 的價格表與 p.140 的採購清單）。
+    extraSpend: isTechnosphereEnabled(creation.technospheres)
+      ? getTechnosphereEquipmentSpend(char.technospheres)
+      : 0
   }).forEach((issue) => {
     warnings.push({
       step: 4,
@@ -1222,6 +1348,64 @@ export const validateCharacter = (char, rules = null) => {
       message: issue.message
     });
   });
+
+  // 魔晶石制的裝備表（科技奇幻手冊 p.133）：官方武器表與盾牌**整份不可用**，
+  // 角色只裝備自訂武器、自訂防具與飾品。
+  //
+  // 這不是「建議」——原書把整個 Equipment 章節換掉了。所以穿官方劍是錯誤，
+  // 不是提醒。徒手打擊與「無盾牌」是空手狀態的預設值，不算違規。
+  if (isTechnosphereEnabled(creation.technospheres)) {
+    const officialNames = new Set([
+      ...rulesData.equipment.weapons.map((w) => w.name),
+      ...rulesData.equipment.shields.map((s) => s.name)
+    ]);
+    const customWeaponNames = new Set(buildCustomWeaponEntries(char).map((w) => w.name));
+    const emptyValues = new Set(['徒手打擊', '無盾牌', '無', '']);
+    const offenders = ['mainHand', 'offHand']
+      .map((slotId) => char.equipment?.[slotId])
+      .filter((name) => name && !emptyValues.has(name)
+        && officialNames.has(name) && !customWeaponNames.has(name));
+    if (offenders.length > 0) {
+      warnings.push({
+        step: 4,
+        field: 'equipment',
+        type: 'error',
+        message: `魔晶石制只能裝備自訂武器（科技奇幻手冊 p.133 換掉了整份裝備表），請換掉：${offenders.join('、')}`
+      });
+    }
+  }
+
+  // 魔晶石（科技奇幻手冊 p.132–145）：職業魔石與附魔魔石的合法性全部由
+  // `data/technospheres.js` 的 `validateTechnosphereState` 判定——插槽容量、
+  // 同一物品不得裝兩顆共享技能的職業魔石、不得裝備自己已經會那些技能的魔石、
+  // δ 品級的武器限定、γ／δ 品級的花費、內嵌裝置的容量……
+  // 這裡只負責把結果轉成創角清單的格式，不重寫任何一條判定。
+  if (isTechnosphereEnabled(creation.technospheres)) {
+    const equippedSlotIds = ['mainHand', 'offHand', 'armor', 'accessory']
+      .filter((slotId) => {
+        const value = char.equipment?.[slotId];
+        return value && value !== '無';
+      });
+    // 「角色已經能用的技能」＝固有職業上投過點的技能。魔石不得重複提供它們，
+    // 否則等於用魔石換到第二份同樣的效果（p.135）。
+    const ownedSkillNames = (char.classes || []).flatMap((cl) => (cl.skills || [])
+      .filter((sk) => (sk.sl || 0) > 0)
+      .map((sk) => sk.name));
+    validateTechnosphereState({
+      state: char.technospheres,
+      mode: creation.technospheres,
+      level: getCharacterLevel(char),
+      equippedSlots: equippedSlotIds,
+      ownedSkillNames
+    }).forEach((issue) => {
+      warnings.push({
+        step: 4,
+        field: 'technospheres',
+        type: issue.level === 'error' ? 'error' : 'warning',
+        message: issue.message
+      });
+    });
+  }
 
   // 起始資金尚未結算（原書 p.165：起始資金 = 剩餘裝備預算 ＋ 2d6 × 10）。
   // `startingFundsRolled` 由三個結算點寫入 true：擲 2d6 × 10、手動填寫初始持有金幣、

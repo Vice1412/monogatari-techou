@@ -399,7 +399,7 @@ export const getDualShieldState = (character, { mainIsShield = false, offIsShiel
  * 這是唯一的計算處：編輯器的預算追蹤條、`validateCharacter` 與 `buildLoadoutIssues`
  * 都讀這裡，同一張卡不會再出現兩個不同的「已花費」。
  */
-export const totalStartingEquipCost = (equipment = {}, { weaponMap, shieldMap, armorMap } = {}) => {
+export const totalStartingEquipCost = (equipment = {}, { weaponMap, shieldMap, armorMap, extraSpend = 0 } = {}) => {
   const costOf = (name, ...maps) => {
     if (!name) return 0;
     for (const map of maps) {
@@ -410,10 +410,23 @@ export const totalStartingEquipCost = (equipment = {}, { weaponMap, shieldMap, a
   };
   return costOf(equipment.mainHand, weaponMap, shieldMap)
     + costOf(equipment.offHand, weaponMap, shieldMap)
-    + costOf(equipment.armor, armorMap);
+    + costOf(equipment.armor, armorMap)
+    // 裝備本體以外的花費：目前只有魔晶石的插槽品級（α 免費／β +600／γ +1500／δ +1800）。
+    // 它算在**同一筆裝備預算**裡——原書 p.133 把插槽品級列在裝備規則的價格表上，
+    // 不是另一本帳。由呼叫端算好傳進來，這裡不必知道魔晶石是什麼。
+    + (Number(extraSpend) || 0);
 };
 
-export const buildLoadoutIssues = ({ character, stats, weaponMap, armorMap, shieldMap, accessoryMap, budget = 500 }) => {
+export const buildLoadoutIssues = ({
+  character,
+  stats,
+  weaponMap,
+  armorMap,
+  shieldMap,
+  accessoryMap,
+  budget = 500,
+  extraSpend = 0
+}) => {
   const issues = [];
   const equipment = character?.equipment || {};
   const profs = stats?.profs || {};
@@ -459,7 +472,7 @@ export const buildLoadoutIssues = ({ character, stats, weaponMap, armorMap, shie
   }
 
   // 3. 起始預算（飾品為稀有物品，不計入）——與編輯器的追蹤條共用同一支函式
-  const spent = totalStartingEquipCost(equipment, { weaponMap, shieldMap, armorMap });
+  const spent = totalStartingEquipCost(equipment, { weaponMap, shieldMap, armorMap, extraSpend });
   if (spent > budget) {
     issues.push({ level: 'error', message: `起始裝備花費 ${spent}z 超出 ${budget}z 預算` });
   }

@@ -20,7 +20,8 @@
  *   vehicle          機師【個人載具】：`{ frameId, modules }`（僅框架與已掌握模組）
  *   customWeapon     自訂武器規格（官方原文中譯）。角色卡裝備欄無此欄位，
  *                    故 `equipment.mainHand` 填最接近的基礎武器，本欄保留官方規格供玩家參照。
- *   mnemosphere      魔晶石（科技奇幻可選規則）。全專案無此子系統，故僅作註記。
+ *   mnemosphere      魔晶石（科技奇幻可選規則）。此處仍是官方原文的中文註記字串，
+ *                    尚未轉成 `technospheres` 結構資料（見 `docs/decisions.md` §BO9 第 5 點）。
  *   quirk            金手指名（僅特典合輯 8 組；名稱須與 `rulesData.quirks` 完全一致）。
  */
 

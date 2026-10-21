@@ -33,6 +33,12 @@
  * 由 `attributeDieUpgradesAllowed` 處理，不是一條 GM 規則。
  */
 import { SOURCEBOOKS } from './sourcebookConfig';
+import {
+  DEFAULT_TECHNOSPHERE_MODE,
+  INNATE_CLASS_COUNT,
+  isTechnosphereEnabled,
+  normalizeTechnosphereMode
+} from './technospheres';
 
 /** 全部合法的開卡規則欄位（測試以此為欄位集護欄） */
 export const CREATION_RULE_FIELDS = Object.freeze([
@@ -49,7 +55,8 @@ export const CREATION_RULE_FIELDS = Object.freeze([
   'startingHeroicSkill',
   'allowPlaytest',
   'initiativeVariant',
-  'zeroPowers'
+  'zeroPowers',
+  'technospheres'
 ]);
 
 /** 全部手冊的鍵（合法值域） */
@@ -205,7 +212,26 @@ export const DEFAULT_CREATION_RULES = Object.freeze({
    * ※ 舊註解曾寫「原書特典的底力技」——**那是錯的**。它只出現在高度奇幻手冊，
    *   自然奇幻與科技奇幻全文掃描 `ZERO POWER` 皆 0 命中（見 `docs/zero-powers-hf.md` §0）。
    */
-  zeroPowers: false
+  zeroPowers: false,
+  /**
+   * 選用規則：魔晶石（TECHNOSPHERES，科技奇幻手冊 p.132–145）。
+   *
+   * 這一格是**字串**不是布林，因為原書除了完整規則之外還給了三個
+   * 「只採用一部分」的變體，而三個變體拿走的东西各不相同：
+   *   - `full`              完整規則（p.134–137）
+   *   - `integrated`        職業魔石改裝在裝置上，不能有 δ、插槽只放附魔魔石（p.138）
+   *   - `mnemospheresOnly`  裝備回到核心規則、沒有附魔魔石、**不給**武器熟練（p.138）
+   *   - `hoplospheresOnly`  沒有職業魔石與 δ、**不給** +5 HP/MP（p.138）
+   * 用一個 `true` 表達不了這三種取捨，所以用五態枚舉（含 `off`）。
+   *
+   * 開啟後會**拿走**東西而不只是加上去：官方武器表與盾牌整份不可用、
+   * 守護者【雙重盾牌】作廢、修補匠的魔導球與魔法加農炮改寫、
+   * 職業數強制為**恰好三個**且此後不得新增職業。
+   * 判定集中在 `data/technospheres.js`。
+   *
+   * 預設 `'off'`：官方核心規則沒有魔晶石。
+   */
+  technospheres: DEFAULT_TECHNOSPHERE_MODE
 });
 
 const toInt = (value, fallback, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}) => {
@@ -242,6 +268,21 @@ export const resolveCreationRules = (overrides = {}) => {
   let classCountMin = toInt(given.classCountMin, d.classCountMin, { min: 1, max: 10 });
   let classCountMax = toInt(given.classCountMax, d.classCountMax, { min: 1, max: 10 });
   if (classCountMin > classCountMax) classCountMax = classCountMin;
+
+  // ── 魔晶石（科技奇幻手冊 p.134）────────────────────────────────
+  //
+  // 「must distribute those levels among **exactly three** Classes」——
+  // 所以開啟後職業數是**派生值**，不是 GM 可調的規則欄位：
+  // 面板上的上下限會一併被鎖成 3，`diffCreationRules` 也不會把它們寫進 diff。
+  // 這樣做是因為 2 個職業的魔晶石角色在原書裡不存在，容許 GM 調成 2 等於
+  // 讓一條規則互相矛盾。
+  const technospheres = normalizeTechnosphereMode(
+    given.technospheres === undefined ? d.technospheres : given.technospheres
+  );
+  if (isTechnosphereEnabled(technospheres)) {
+    classCountMin = INNATE_CLASS_COUNT;
+    classCountMax = INNATE_CLASS_COUNT;
+  }
 
   // 技能點數預設跟著起始等級走（原書：每級 1 點）
   const skillPointBudget = toInt(given.skillPointBudget, startingLevel, { min: 1, max: 50 });
@@ -295,7 +336,8 @@ export const resolveCreationRules = (overrides = {}) => {
     startingHeroicSkill,
     allowPlaytest,
     initiativeVariant,
-    zeroPowers
+    zeroPowers,
+    technospheres
   };
 };
 
@@ -333,8 +375,16 @@ export const isDefaultCreationRules = (rules) => {
 /** 供 GM 端分享用的精簡序列化（只帶與官方預設不同的欄位） */
 export const diffCreationRules = (rules) => {
   const r = resolveCreationRules(rules);
+  // 魔晶石開啟時，職業數是**派生值**（固定 3），不是 GM 設定的東西。
+  // 若把它寫進 diff，分享出去再餵回 `resolveCreationRules` 就會留下一筆
+  // 「玩家以為是自己調的 3」——而且日後關掉魔晶石時它會殘留成 3，
+  // 於是角色變成「官方標準規則但強制三個職業」。所以這裡剔除。
+  const derived = isTechnosphereEnabled(r.technospheres)
+    ? ['classCountMin', 'classCountMax']
+    : [];
   const out = {};
   CREATION_RULE_FIELDS.forEach((key) => {
+    if (derived.includes(key)) return;
     const a = r[key];
     const b = DEFAULT_CREATION_RULES[key];
     const same = Array.isArray(b) ? JSON.stringify(a) === JSON.stringify([...b]) : a === b;

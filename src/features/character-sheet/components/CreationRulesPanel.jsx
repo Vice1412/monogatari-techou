@@ -25,6 +25,11 @@ import React, { useState } from 'react';
 import { GiScrollQuill } from 'react-icons/gi';
 import { SOURCEBOOKS } from '../data/sourcebookConfig';
 import { isDefaultCreationRules, DEFAULT_CREATION_RULES, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
+import {
+  TECHNOSPHERE_MODE_OPTIONS,
+  getIntegratedMnemosphereCap,
+  isTechnosphereEnabled
+} from '../data/technospheres';
 import rulesData from '../data/rulesData.json';
 
 const ALL_CLASS_NAMES = Object.freeze(Object.keys(rulesData.classes));
@@ -64,12 +69,30 @@ const TOGGLE_FIELDS = [
   { key: 'zeroPowers', label: '開放底力技', hint: '高度奇幻手冊 p.124–131；開啟後角色獲得底力命刻與底力效果' }
 ];
 
+/**
+ * 魔晶石（科技奇幻手冊 p.132–145）——這是**五態枚舉**，不是勾選框。
+ *
+ * 原書除了完整規則之外還給了三個「只採用一部分」的變體，而三者拿走的東西不同：
+ * 有的拿走武器熟練、有的拿走 +5 HP/MP、有的拿走 δ 品級。用一個核取方塊表達不了
+ * 「要哪一種取捨」，所以面板上是一份下拉選單。
+ */
+const TECHNOSPHERE_FIELD = {
+  key: 'technospheres',
+  label: '魔晶石',
+  hint: '科技奇幻手冊 p.132–145；開啟後職業固定三個且不得新增'
+};
+
 export default function CreationRulesPanel({ rules, diff = {}, onChange, theme = {}, disabled = false }) {
   // 官方標準時收合（開卡的人不需要一直看到它）；**自訂時自動展開**——
   // 否則你只會看到一張「跟別人不一樣」的卡，卻不知道是哪條規則造成的。
   const [open, setOpen] = useState(() => !isDefaultCreationRules(rules));
   const [classPickerOpen, setClassPickerOpen] = useState(false);
   const isDefault = isDefaultCreationRules(rules);
+
+  // 魔晶石開啟時，職業數是**派生值**（原書 p.134 的「恰好三個」），不是 GM 可調的欄位。
+  // 所以這裡把兩個數字框鎖住——讓它們看起來可以改，等於讓一條規則自己打自己。
+  const techOn = isTechnosphereEnabled(rules.technospheres);
+  const derivedClassCount = (key) => techOn && (key === 'classCountMin' || key === 'classCountMax');
 
   const setField = (key, value) => {
     const next = { ...(diff || {}), [key]: value };
@@ -144,6 +167,40 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
             ))}
           </div>
 
+          {/* 魔晶石：五態下拉（完整規則 ＋ 三個變體） */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold block" style={{ color: theme.textDark }}>
+              {TECHNOSPHERE_FIELD.label}
+              <span className="text-[10px] font-normal ml-1" style={{ color: theme.textMuted }}>
+                {TECHNOSPHERE_FIELD.hint}
+              </span>
+            </label>
+            <select
+              value={rules.technospheres || 'off'}
+              disabled={disabled}
+              onChange={(e) => setField(TECHNOSPHERE_FIELD.key, e.target.value)}
+              className={inputClass}
+              style={inputStyle}
+            >
+              {TECHNOSPHERE_MODE_OPTIONS.map((mode) => (
+                <option key={mode.key} value={mode.key}>
+                  {mode.label}　{mode.short}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+              {(TECHNOSPHERE_MODE_OPTIONS.find((m) => m.key === (rules.technospheres || 'off')) || {}).desc}
+            </p>
+            {techOn && (
+              <p className="text-[10px] leading-relaxed font-bold" style={{ color: theme.accent }}>
+                職業數固定為 3 個固有職業（上方兩個數字框已鎖定）。
+                {rules.technospheres === 'integrated'
+                  ? `內嵌裝置可容納 ${getIntegratedMnemosphereCap(rules.startingLevel)} 顆職業魔石。`
+                  : null}
+              </p>
+            )}
+          </div>
+
           {/* 數字 */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {NUMBER_FIELDS.map((f) => (
@@ -151,14 +208,14 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
                 <label className="text-[11px] font-bold block" style={{ color: theme.textDark }}>
                   {f.label}
                   <span className="text-[10px] font-normal ml-1" style={{ color: theme.textMuted }}>
-                    {f.hint}
+                    {derivedClassCount(f.key) ? '魔晶石制固定 3' : f.hint}
                   </span>
                 </label>
                 <input
                   type="number"
                   min={f.min}
                   max={f.max}
-                  disabled={disabled}
+                  disabled={disabled || derivedClassCount(f.key)}
                   value={rules[f.key]}
                   onChange={(e) => {
                     const n = parseInt(e.target.value, 10);
