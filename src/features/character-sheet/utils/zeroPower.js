@@ -284,8 +284,10 @@ export const describeZeroPower = (state) => {
 /**
  * 底力技的設定是否完整（給 `validateCharacter` 用）。
  *
- * 只回傳「還缺什麼」，不回傳「違規」——違規（團隊重複）由
- * `findDuplicateZeroPowers` 處理，因為那需要整份名冊。
+ * 只回傳「這個角色還缺什麼」。**團隊層面的取捨（同團是否重複）不在這裡**——
+ * 使用者裁定（2026-10-21）：「團隊約束不需要，這個工作交給 GM 來審卡，
+ * 而非開卡時的硬性規定。」所以本模組不提供任何跨角色的重複檢查，
+ * 介面也不再把隊友已選的觸發／效果灰掉。
  *
  * **三種模式的必要條件不同**，這是原文的差異，不是實作方便：
  * - 標準：觸發 ＋ 效果。
@@ -343,80 +345,6 @@ export const zeroPowerIssues = (state) => {
     }
   }
   return issues;
-};
-
-/**
- * 團隊內的重複。
- *
- * 原文對「觸發／效果不得重複」的要求**在合體之力下鬆了一格**（p.131）：
- * 「Remember to refresh the possible combinations each time the group changes –
- * that's why it's alright for there to be more than one version of the same zero
- * effect per group. However, the triggers should all be different, **if possible**.」
- * 所以合體之力下效果重複**不列**，觸發重複只算 `hint`（盡量不同），
- * 而標準規則下兩者都是 `violation`（p.124「no two Player Characters should share」）。
- *
- * 回傳 `[{ kind, id, name, characterIds, severity }]`。
- */
-export const findDuplicateZeroPowers = (roster = [], { variant = '' } = {}) => {
-  const combined =
-    variant === 'combined' || roster.some((c) => normalizeZeroPower(c && c.zeroPower).variant === 'combined');
-  const triggerMap = new Map();
-  const effectMap = new Map();
-  roster.forEach((char) => {
-    const s = normalizeZeroPower(char && char.zeroPower);
-    if (!char || !char.id) return;
-    if (s.triggerId) {
-      if (!triggerMap.has(s.triggerId)) triggerMap.set(s.triggerId, []);
-      triggerMap.get(s.triggerId).push(char.id);
-    }
-    if (combined) return;
-    if (s.effectId) {
-      if (!effectMap.has(s.effectId)) effectMap.set(s.effectId, []);
-      effectMap.get(s.effectId).push(char.id);
-    }
-  });
-  const out = [];
-  triggerMap.forEach((ids, id) => {
-    if (ids.length > 1) {
-      const t = zeroTriggerById(id);
-      out.push({
-        kind: 'trigger',
-        id,
-        name: t ? t.name : id,
-        characterIds: ids,
-        severity: combined ? 'hint' : 'violation'
-      });
-    }
-  });
-  effectMap.forEach((ids, id) => {
-    if (ids.length > 1) {
-      const e = zeroEffectById(id);
-      out.push({ kind: 'effect', id, name: e ? e.name : id, characterIds: ids, severity: 'violation' });
-    }
-  });
-  return out;
-};
-
-/**
- * 可選清單（介面用）：把已被**其他角色**佔用的觸發／效果標記起來。
- *
- * 原文允許同一個角色自選，但整團不得重複——所以介面要能說明「為什麼這格是灰的」。
- * 這正是 §U 的「不能選的原因要在選之前看見」。
- *
- * 【合體之力】下**不標記效果**：原文說效果重複是允許的（p.131），
- * 把配對效果灰掉等於用實作否決原文。
- */
-export const zeroPowerTakenBy = (roster = [], selfId = '') => {
-  const triggers = new Map();
-  const effects = new Map();
-  const combined = roster.some((c) => normalizeZeroPower(c && c.zeroPower).variant === 'combined');
-  roster.forEach((char) => {
-    if (!char || !char.id || char.id === selfId) return;
-    const s = normalizeZeroPower(char.zeroPower);
-    if (s.triggerId) triggers.set(s.triggerId, char.name || char.id);
-    if (!combined && s.effectId) effects.set(s.effectId, char.name || char.id);
-  });
-  return { triggers, effects };
 };
 
 /** 空狀態與正規化的再匯出，讓介面不必同時 import 兩個模組。 */

@@ -11,7 +11,7 @@
  *   ① 開卡規則開關（`creationRules.zeroPowers`，預設 false）
  *   ② 角色資料（`character.zeroPower`，舊存檔沒有 → 收斂成空狀態，行為不變）
  *   ③ 命刻計算（6 格／合體之力 4 格、填充夾制、施展清空）
- *   ④ 團隊約束（不得有兩名以上角色擁有相同觸發／相同效果）
+ *   ④ 團隊約束**已移除**（2026-10-21 使用者裁定：交給 GM 審卡，不是開卡硬規定）
  *   ⑤ 介面入口（規則關閉時**整個區塊不存在**，不是停用）
  *
  * 任何一處漏掉，畫面看起來都正常——這正是要把它們釘死的原因
@@ -35,6 +35,7 @@ import {
   ZERO_POWER_SOURCE,
   ZERO_POWER_NOTES,
   generateZeroPowerName,
+  zeroNameTableGroups,
   isZeroPowersEnabled,
   createZeroPowerState,
   normalizeZeroPower,
@@ -56,13 +57,13 @@ import {
   zeroPairFor,
   describeZeroPower,
   zeroPowerIssues,
-  findDuplicateZeroPowers,
-  zeroPowerTakenBy,
   ZERO_CHANCE_TIERS,
   zeroChanceTier,
   zeroChancePreviousTier,
   zeroChanceOptions
 } from '../src/features/character-sheet/utils/zeroPower.js';
+/** 整個模組的命名空間——用來驗「某些函式**不存在**」（團隊約束已移除，見 §H）。 */
+import * as zeroPowerUtils from '../src/features/character-sheet/utils/zeroPower.js';
 import {
   DEFAULT_CREATION_RULES,
   CREATION_RULE_FIELDS,
@@ -73,6 +74,7 @@ import {
   validateCharacter
 } from '../src/features/character-sheet/utils/characterEngine.js';
 import ZeroPowerBlock from '../src/features/character-sheet/components/ZeroPowerBlock.jsx';
+import { ZeroPowerNameTablesBody } from '../src/features/character-sheet/components/ZeroPowerNameTablesModal.jsx';
 import { getCharacterTheme } from '../src/features/character-sheet/utils/characterThemes.js';
 
 let pass = 0;
@@ -292,28 +294,37 @@ check('name 非字串時歸零', normalizeZeroPower({ name: 42 }).name, '');
 check('未知欄位不外洩', Object.keys(normalizeZeroPower({ evil: 1 })), Object.keys(createZeroPowerState()));
 
 // ─────────────────────────────────────────────────────────── H
-section('H. 團隊約束（不得有兩名以上角色擁有相同的觸發或效果）');
+section('H. 團隊約束已移除（交給 GM 審卡，不是開卡硬規定）');
+
+/*
+ * 使用者裁定（2026-10-21）：「團隊約束不需要，這個工作交給 GM 來審卡，
+ * 而非開卡時的硬性規定。」
+ *
+ * 所以這一節的斷言方向**整個反過來**：不再驗「有沒有抓到重複」，
+ * 而是驗「這一層根本不存在」——模組不匯出跨角色檢查，角色層的驗證也不報團隊問題。
+ * 留著一個沒有消費者的重複檢查函式，就是 §U 說的「幻覺欄位」：
+ * 看起來有把關，其實沒人呼叫。介面層（不灰、不鎖）見 §Q。
+ */
+check('工具層不再提供跨角色重複檢查', typeof zeroPowerUtils.findDuplicateZeroPowers, 'undefined');
+check('工具層不再提供佔用查詢', typeof zeroPowerUtils.zeroPowerTakenBy, 'undefined');
 
 const roster = [
   { id: 'pc1', name: '阿爾', zeroPower: { triggerId: 'revenge', effectId: 'blitz' } },
   { id: 'pc2', name: '貝菈', zeroPower: { triggerId: 'revenge', effectId: 'shield' } },
   { id: 'pc3', name: '席恩', zeroPower: { triggerId: 'love', effectId: 'shield' } }
 ];
-const dups = findDuplicateZeroPowers(roster);
-check('重複項目兩筆（復仇、零之盾）', dups.map((d) => `${d.kind}:${d.id}`).sort(), ['effect:shield', 'trigger:revenge']);
-check('重複的觸發列出兩名角色', dups.find((d) => d.kind === 'trigger').characterIds, ['pc1', 'pc2']);
-check('重複的效果列出兩名角色', dups.find((d) => d.kind === 'effect').characterIds, ['pc2', 'pc3']);
-check('名稱帶進結果', dups.find((d) => d.kind === 'trigger').name, '復仇');
-check('單一角色不算重複', findDuplicateZeroPowers([roster[0]]), []);
-check('空名冊不炸', findDuplicateZeroPowers([]), []);
-check('未設定底力技的角色被忽略', findDuplicateZeroPowers([{ id: 'x' }, { id: 'y', zeroPower: null }]), []);
-
-const taken = zeroPowerTakenBy(roster, 'pc1');
-check('排除自己之後仍看到隊友的觸發', taken.triggers.get('revenge'), '貝菈');
-check('排除自己之後仍看到隊友的效果', taken.effects.has('shield'), true);
-check('佔用的效果指向隊友名字', ['貝菈', '席恩'].includes(taken.effects.get('shield')), true);
-check('自己獨有的不列入佔用', taken.effects.has('blitz'), false);
-check('沒有名冊時為空', zeroPowerTakenBy([], 'pc1').triggers.size, 0);
+check('同一個觸發可以被兩個角色同時選中', normalizeZeroPower(roster[1].zeroPower).triggerId, 'revenge');
+check('同一個效果也可以被兩個角色同時選中', normalizeZeroPower(roster[2].zeroPower).effectId, 'shield');
+check(
+  '撞了觸發的角色自己仍然通過驗證（缺的只有愛的綁定）',
+  zeroPowerIssues(roster[1].zeroPower).map((i) => i.field),
+  []
+);
+check(
+  '角色層驗證不產生任何團隊級訊息',
+  zeroPowerIssues(roster[2].zeroPower).some((i) => i.message.includes('隊友') || i.message.includes('重複')),
+  false
+);
 
 // ─────────────────────────────────────────────────────────── I
 section('I. 開卡規則欄位');
@@ -451,7 +462,8 @@ const editHtml = renderEdit(fresh);
 check('建角模式顯示標題', editHtml.includes('底力技'), true);
 check('建角模式列出全部七個觸發', ZERO_TRIGGERS.every((t) => editHtml.includes(t.name)), true);
 check('建角模式列出全部十一個效果', ZERO_EFFECTS.every((e) => editHtml.includes(e.name)), true);
-check('建角模式說明團隊約束', editHtml.includes('整團不得有兩名以上角色'), true);
+check('建角模式把重複問題交給 GM 審卡', editHtml.includes('那是 GM 審卡時的裁定'), true);
+check('建角模式不再宣稱「整團不得重複」是硬規定', editHtml.includes('整團不得有兩名以上'), false);
 check('建角模式有變體規則', editHtml.includes('變體規則') && editHtml.includes('覺醒之力') && editHtml.includes('合體之力'), true);
 check('未選效果時不顯示效果全文', editHtml.includes('你以每一把已裝備的武器各進行一次自由攻擊'), false);
 
@@ -608,32 +620,23 @@ check(
 );
 check('標準施展不要求清空別人', unleashed.partnerCleared, false);
 
+const sharedEffectPairs = {
+  ...combinedState,
+  combinedPairs: [
+    { partnerId: 'pc2', effectId: 'shield', nickname: '' },
+    { partnerId: 'pc3', effectId: 'shield', nickname: '' }
+  ]
+};
 check(
-  '合體之力的效果可以重複',
-  findDuplicateZeroPowers([
-    { id: 'pc1', zeroPower: { ...combinedState, triggerId: 'revenge', combinedPairs: [{ partnerId: 'pc2', effectId: 'shield' }] } },
-    { id: 'pc2', zeroPower: { ...combinedState, triggerId: 'strategy', combinedPairs: [{ partnerId: 'pc1', effectId: 'shield' }] } }
-  ]),
-  []
+  '合體之力的多組配對可以共用同一個效果（p.131 明文允許）',
+  normalizeZeroPower(sharedEffectPairs).combinedPairs.map((p) => p.effectId),
+  ['shield', 'shield']
 );
+check('共用效果時角色層驗證不報錯', zeroPowerIssues(sharedEffectPairs), []);
 check(
-  '合體之力的觸發重複只算提示',
-  findDuplicateZeroPowers([
-    { id: 'pc1', zeroPower: { ...combinedState, triggerId: 'revenge' } },
-    { id: 'pc2', zeroPower: { ...combinedState, triggerId: 'revenge' } }
-  ]).map((d) => `${d.kind}:${d.severity}`),
-  ['trigger:hint']
-);
-check(
-  '合體之力不把隊友的效果算成佔用',
-  zeroPowerTakenBy(
-    [
-      { id: 'pc1', name: '阿爾', zeroPower: { ...combinedState, triggerId: 'revenge' } },
-      { id: 'pc2', name: '貝菈', zeroPower: { ...combinedState, triggerId: 'strategy', effectId: 'shield' } }
-    ],
-    'pc1'
-  ).effects.size,
-  0
+  '兩個角色的觸發可以相同（團隊層已不檢查）',
+  [combinedState, { ...combinedState, triggerId: 'revenge' }].map((s) => normalizeZeroPower(s).triggerId),
+  ['revenge', 'revenge']
 );
 
 check(
@@ -686,6 +689,117 @@ check('跑團面板接上伙伴命刻清空', hudSrc.includes('onPartnerCleared=
 check('覺醒的 HP 回復用危機值而非硬編碼', hudSrc.includes('stats.crisisThreshold * factor'), true);
 check('覺醒動作存在於純函式層', utilSrc.includes('export const awakenZeroPower'), true);
 check('合體配對的效果由配對決定', utilSrc.includes('s.combinedPairs.find'), true);
+
+// ─────────────────────────────────────────────────────────── P
+section('P. 命名表瀏覽（與身份表同一個入口形狀）');
+
+const actionGroups = zeroNameTableGroups('action');
+const originGroups = zeroNameTableGroups('origin');
+
+check('動作表轉置成三欄', actionGroups.map((g) => g.column), ['攻擊性', '防禦性', '強化']);
+check('動作每一欄都是 20 個詞', actionGroups.map((g) => g.rows.length), [20, 20, 20]);
+check('動作欄的骰面是 d20', actionGroups[0].die, 'd20');
+check('動作欄的 #id 就是骰值', actionGroups[0].rows.slice(0, 3).map((r) => r.id), [1, 2, 3]);
+check('動作欄第 12 個詞是衝擊', actionGroups[0].rows[11].zh, '衝擊');
+check('防禦欄第 16 個詞是盾', actionGroups[1].rows[15].zh, '盾');
+check('起源表轉置成六欄', originGroups.map((g) => g.column).length, 6);
+check('起源每一欄都是 10 個詞', originGroups.map((g) => g.rows.length), [10, 10, 10, 10, 10, 10]);
+check('由來欄的骰面是 d10', originGroups[0].die, 'd10');
+check('自然元素欄第 9 個詞是雷鳴', originGroups[2].rows[8].zh, '雷鳴');
+check('兵法欄第 10 個詞是君主的', originGroups[0].rows[9].zh, '君主的');
+check('未知種類回退成動作表', zeroNameTableGroups('nope').length, 3);
+
+/*
+ * `JRPGModal` 在 SSR 下必定回 `null`（`mounted` 只能由 `useEffect` 設起來），
+ * 所以測內容元件而不是彈窗殼——依 AGENTS.md「優先加注入點、不要放棄覆蓋」。
+ */
+const tablesBody = (props = {}) =>
+  plain(renderToStaticMarkup(React.createElement(ZeroPowerNameTablesBody, { theme, ...props })));
+
+const tablesIdle = tablesBody();
+check(
+  '命名表列出全部動作欄',
+  ['攻擊性', '防禦性', '強化'].every((c) => tablesIdle.includes(c)),
+  true
+);
+check(
+  '命名表列出全部由來欄',
+  ['兵法', '獸與魔物', '自然元素', '內在之力', '神聖與瀆神', '不可解'].every((c) => tablesIdle.includes(c)),
+  true
+);
+check('命名表說明兩顆骰怎麼投', tablesIdle.includes('動作骰 1d20、由來骰 1d10'), true);
+check('命名表說明是靈感不是規則', tablesIdle.includes('這張表是靈感，不是規則'), true);
+check('未擲骰時沒有結算卡', tablesIdle.includes('擲骰結算'), false);
+check('空白狀態提示「尚未選取」', tablesIdle.includes('尚未選取'), true);
+check(
+  '分頁標籤列出詞數',
+  tablesIdle.includes('1. 動作（60 詞）') && tablesIdle.includes('2. 由來（60 詞）'),
+  true
+);
+check('詞表以骰面編號', tablesIdle.includes('#12') && tablesIdle.includes('#9'), true);
+
+const tablesRolled = tablesBody({
+  rolledResult: {
+    actionRoll: 12,
+    originRoll: 9,
+    action: '衝擊',
+    origin: '雷鳴',
+    name: '雷鳴之衝擊',
+    actionColumn: 0,
+    originColumn: 2
+  }
+});
+check('擲骰結果顯示名稱', tablesRolled.includes('雷鳴之衝擊'), true);
+check('擲骰結果拆出由來骰面', tablesRolled.includes('d10 = 9 → 雷鳴'), true);
+check('擲骰結果拆出動作骰面', tablesRolled.includes('d20 = 12 → 衝擊'), true);
+check('擲骰結果標出所屬欄位', tablesRolled.includes('自然元素'), true);
+
+const tablesPicked = tablesBody({
+  pickedAction: { id: 16, column: 1, zh: '盾' },
+  pickedOrigin: { id: 10, column: 0, zh: '君主的' },
+  assembledName: '君主的盾'
+});
+check(
+  '自選組合顯示兩個已選詞',
+  tablesPicked.includes('1. 由來: 君主的') && tablesPicked.includes('2. 動作: 盾'),
+  true
+);
+check('自選組合顯示串好的名稱', tablesPicked.includes('套用此組合: 君主的盾'), true);
+
+const tablesSearch = tablesBody({ searchTerm: '龍' });
+check('搜尋命中時仍看得到該詞', tablesSearch.includes('龍'), true);
+check('搜尋時不相關的詞被濾掉', tablesSearch.includes('獠牙'), false);
+
+// ─────────────────────────────────────────────────────────── Q
+section('Q. 團隊約束已移除（介面層）');
+
+const blockSrc = READ('src/features/character-sheet/components/ZeroPowerBlock.jsx');
+
+check(
+  '工具層原始碼沒有殘留這兩個函式',
+  /export const (findDuplicateZeroPowers|zeroPowerTakenBy)/.test(utilSrc),
+  false
+);
+check('chip 元件不再接受 disabled（團隊約束的唯一來源）', blockSrc.includes('function ChoiceChip({ active, title'), true);
+check('區塊不再呼叫佔用查詢', blockSrc.includes('zeroPowerTakenBy'), false);
+check('區塊不再有 taken 佔用表', blockSrc.includes('taken.'), false);
+check('名冊仍然傳進區塊（合體配對與愛的綁定要用）', blockSrc.includes('roster'), true);
+check('說明文字把重複問題交給 GM', blockSrc.includes('那是 GM 審卡時的裁定'), true);
+
+const dupEditHtml = renderEdit(
+  {
+    ...fresh,
+    id: 'pc9',
+    zeroPower: { ...createZeroPowerState(), triggerId: 'revenge', effectId: 'shield' }
+  },
+  [
+    { id: 'pc1', name: '阿爾', zeroPower: { triggerId: 'revenge', effectId: 'shield' } },
+    { id: 'pc2', name: '貝菈', zeroPower: { triggerId: 'revenge', effectId: 'blitz' } }
+  ]
+);
+check('不再顯示「隊友已選」的副標', dupEditHtml.includes('隊友已選'), false);
+check('隊友撞了觸發，七個觸發仍全部列出', ZERO_TRIGGERS.every((t) => dupEditHtml.includes(t.name)), true);
+check('隊友撞了效果，十一個效果仍全部列出', ZERO_EFFECTS.every((e) => dupEditHtml.includes(e.name)), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 lines.push(`\n通過 ${pass} / ${pass + fail}${fail === 0 ? '　（全部通過）' : ''}`);

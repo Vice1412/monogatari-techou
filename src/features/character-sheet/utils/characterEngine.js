@@ -1389,8 +1389,8 @@ export const validateCharacter = (char, rules = null) => {
   //
   // 規則沒開就完全不管——舊角色身上殘留的 `zeroPower` 資料不該在關閉後變成警告
   // （與 `allowPlaytest` 關閉後不動既有資料同一個原則）。
-  // 開啟時只回報「還缺哪個選擇」；「兩名以上角色撞同一個觸發」是**團隊級**問題，
-  // 需要整份名冊，所以放在 `findDuplicateZeroPowers`，不在這裡。
+  // 開啟時只回報「還缺哪個選擇」。「兩名以上角色撞同一個觸發」**刻意不檢查**：
+  // 使用者裁定（2026-10-21）團隊約束交給 GM 審卡，不是開卡時的硬性規定。
   if (isZeroPowersEnabled(creation)) {
     zeroPowerIssues(char.zeroPower).forEach((issue) => {
       warnings.push({ step: 5, field: issue.field, type: issue.type, message: issue.message });

@@ -272,6 +272,27 @@ const clampIndex = (value, length) => {
 };
 
 /**
+ * 把命名表整理成「一欄一張卡」的清單，給介面與護欄共用。
+ *
+ * 介面需要的是**欄**（一張卡＝一欄），而 `rows` 是列優先的——這個轉置放在資料層，
+ * 護欄才能與畫面共用同一份整形結果，而不是各寫一次（那正是 §AW6 的坑）。
+ *
+ * @param {'action'|'origin'} kind
+ * @returns {Array<{column:string, columnIndex:number, die:string, rows:Array<{id:number, zh:string}>}>}
+ */
+export const zeroNameTableGroups = (kind) => {
+  const isOrigin = kind === 'origin';
+  const table = isOrigin ? ZERO_NAME_ORIGINS : ZERO_NAME_ACTIONS;
+  const die = isOrigin ? 'd10' : 'd20';
+  return table.columns.map((column, columnIndex) => ({
+    column,
+    columnIndex,
+    die,
+    rows: table.rows.map((row, rowIndex) => ({ id: rowIndex + 1, zh: row[columnIndex] }))
+  }));
+};
+
+/**
  * 由兩顆骰的結果組出一個底力技名稱。
  *
  * 串接規則：由來詞本身已是形容詞（「王家的」「終焉」「幸運女神的」）→ 直接接動作；

@@ -13,9 +13,14 @@
  *
  * ## 為什麼選項用按鈕而不是下拉
  *
- * 七個觸發、十一個效果，每個都要看得到**填充數量**與**是否已被隊友佔用**。
- * 原文的團隊限制是「不得有兩名以上角色擁有相同的觸發或效果」，
- * 而一個 `<select>` 只能顯示名字——玩家選完才發現撞了，還得再改一次。
+ * 七個觸發、十一個效果，每個都要看得到**填充數量**。一個 `<select>` 只能顯示名字，
+ * 玩家選完才知道那個觸發填幾格，還得再改一次。
+ *
+ * ## 團隊約束已移除（2026-10-21 使用者裁定）
+ *
+ * 「團隊約束不需要，這個工作交給 GM 來審卡，而非開卡時的硬性規定。」
+ * 所以這裡**不再**把隊友已選的觸發／效果灰掉——那會讓兩個獨立建角的玩家互相卡住，
+ * 而且原文的「不得重複」本來就是桌上約定，不是角色卡驗證能代替的判斷。
  */
 import React, { useState } from 'react';
 import { GiSparkles, GiPocketWatch, GiRollingDices } from 'react-icons/gi';
@@ -28,13 +33,11 @@ import {
   ZERO_DAMAGE_TYPES,
   ZERO_STATUS_EFFECTS,
   ZERO_VARIANTS,
-  ZERO_NAME_ACTIONS,
-  ZERO_NAME_ORIGINS,
   ZERO_POWER_SOURCE,
-  generateZeroPowerName,
   zeroEffectById,
   zeroTriggerById
 } from '../data/zeroPowers';
+import ZeroPowerNameTablesModal from './ZeroPowerNameTablesModal';
 import {
   normalizeZeroPower,
   zeroClockMax,
@@ -44,19 +47,17 @@ import {
   canUnleashZeroPower,
   unleashZeroPower,
   awakenZeroPower,
-  zeroActiveEffectId,
-  zeroPowerTakenBy
+  zeroActiveEffectId
 } from '../utils/zeroPower';
 
 /** 小圓角標籤按鈕（觸發與效果共用）。 */
-function ChoiceChip({ active, disabled, title, subtitle, onClick, theme }) {
+function ChoiceChip({ active, title, subtitle, onClick, theme }) {
   return (
     <button
       type="button"
-      disabled={disabled}
       title={title}
       onClick={onClick}
-      className="text-left rounded-lg border px-2.5 py-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+      className="text-left rounded-lg border px-2.5 py-1.5 transition-all cursor-pointer"
       style={{
         backgroundColor: active ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
         borderColor: active ? theme.accent : theme.border,
@@ -112,9 +113,8 @@ export default function ZeroPowerBlock({
   showToast = null
 }) {
   const state = normalizeZeroPower(character && character.zeroPower);
-  const [nameColumn, setNameColumn] = useState(0);
-  const [originColumn, setOriginColumn] = useState(0);
-  const [lastRoll, setLastRoll] = useState(null);
+  /** 命名表彈窗（`ZeroPowerNameTablesModal`）——與身份表同一個入口形狀：按鈕開表。 */
+  const [nameTablesOpen, setNameTablesOpen] = useState(false);
   /** 【合體之力】跑團時「這一回合要施展哪一組配對」——只存在於畫面狀態，不進存檔。 */
   const [partnerId, setPartnerId] = useState('');
   /** 【覺醒之力】覺醒當下要選的觸發（原文 p.130：覺醒時才選）。 */
@@ -135,7 +135,6 @@ export default function ZeroPowerBlock({
 
   const max = zeroClockMax(state);
   const full = isZeroClockFull(state);
-  const taken = zeroPowerTakenBy(roster, character && character.id);
   const combined = state.variant === 'combined';
   const trigger = zeroTriggerById(state.triggerId);
   const activeEffectId = zeroActiveEffectId(state, partnerId);
@@ -171,26 +170,22 @@ export default function ZeroPowerBlock({
           {mode === 'edit' ? '（HP 回復由跑團面板自動計算；在這裡覺醒只記錄狀態。）' : ''}
         </p>
         <div className="flex flex-wrap gap-1">
-          {ZERO_TRIGGERS.map((t) => {
-            const holder = taken.triggers.get(t.id);
-            return (
-              <button
-                key={t.id}
-                type="button"
-                disabled={Boolean(holder)}
-                title={holder ? `隊友已選：${holder}` : t.desc}
-                onClick={() => setAwakenTriggerId(awakenTriggerId === t.id ? '' : t.id)}
-                className="text-[11px] px-2 py-0.5 rounded border cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
-                style={{
-                  backgroundColor: awakenTriggerId === t.id ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
-                  borderColor: awakenTriggerId === t.id ? theme.accent : theme.border,
-                  color: theme.textDark
-                }}
-              >
-                {t.name}
-              </button>
-            );
-          })}
+          {ZERO_TRIGGERS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              title={t.desc}
+              onClick={() => setAwakenTriggerId(awakenTriggerId === t.id ? '' : t.id)}
+              className="text-[11px] px-2 py-0.5 rounded border cursor-pointer"
+              style={{
+                backgroundColor: awakenTriggerId === t.id ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
+                borderColor: awakenTriggerId === t.id ? theme.accent : theme.border,
+                color: theme.textDark
+              }}
+            >
+              {t.name}
+            </button>
+          ))}
         </div>
         <label className="flex items-center gap-1.5 text-[10px]" style={{ color: theme.textDark }}>
           <input
@@ -329,7 +324,7 @@ export default function ZeroPowerBlock({
       </div>
 
       <p className="text-[11px] leading-relaxed" style={{ color: theme.textMuted }}>
-        從七個觸發與十一個效果中各選一個。整團不得有兩名以上角色擁有相同的觸發，也不得有兩名以上擁有相同的效果。
+        從七個觸發與十一個效果中各選一個。原文建議整團不要重複（p.124），但那是 GM 審卡時的裁定，這裡不阻止你選隊友已經選過的那一項。
       </p>
 
       {/* 名字（p.128–129 命名表） */}
@@ -341,64 +336,26 @@ export default function ZeroPowerBlock({
           placeholder="例：王家之刃"
           theme={theme}
         />
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[10px]" style={{ color: theme.textMuted }}>動作</span>
-          {ZERO_NAME_ACTIONS.columns.map((col, i) => (
-            <button
-              key={col}
-              type="button"
-              onClick={() => setNameColumn(i)}
-              className="text-[10px] px-1.5 py-0.5 rounded border cursor-pointer"
-              style={{
-                backgroundColor: nameColumn === i ? theme.accentSoft || theme.subpanelBg : 'transparent',
-                borderColor: nameColumn === i ? theme.accent : theme.border,
-                color: theme.textDark
-              }}
-            >
-              {col}
-            </button>
-          ))}
-          <span className="text-[10px] ml-1" style={{ color: theme.textMuted }}>由來</span>
-          {ZERO_NAME_ORIGINS.columns.map((col, i) => (
-            <button
-              key={col}
-              type="button"
-              onClick={() => setOriginColumn(i)}
-              className="text-[10px] px-1.5 py-0.5 rounded border cursor-pointer"
-              style={{
-                backgroundColor: originColumn === i ? theme.accentSoft || theme.subpanelBg : 'transparent',
-                borderColor: originColumn === i ? theme.accent : theme.border,
-                color: theme.textDark
-              }}
-            >
-              {col}
-            </button>
-          ))}
+        <div className="flex items-center justify-between gap-1.5 flex-wrap">
+          <span className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+            不知道叫什麼？命名表收錄全部動作詞與由來詞，可以先看全表再擲骰或自選。
+          </span>
           <JRPGButton
             variant={theme.outlineButtonVariant || 'outline'}
             size="xs"
             icon={GiRollingDices}
-            onClick={() => {
-              const actionRoll = 1 + Math.floor(Math.random() * ZERO_NAME_ACTIONS.rows.length);
-              const originRoll = 1 + Math.floor(Math.random() * ZERO_NAME_ORIGINS.rows.length);
-              const rolled = generateZeroPowerName({
-                actionRoll,
-                actionColumn: nameColumn,
-                originRoll,
-                originColumn
-              });
-              setLastRoll(rolled);
-              patch({ name: rolled.name });
-            }}
+            onClick={() => setNameTablesOpen(true)}
           >
-            骰出名字
+            打開命名表
           </JRPGButton>
         </div>
-        {lastRoll ? (
-          <p className="text-[10px] font-mono" style={{ color: theme.textMuted }}>
-            {`動作 ${lastRoll.action}・由來 ${lastRoll.origin}`}
-          </p>
-        ) : null}
+        <ZeroPowerNameTablesModal
+          isOpen={nameTablesOpen}
+          onClose={() => setNameTablesOpen(false)}
+          onSelectName={(name) => patch({ name })}
+          currentName={state.name}
+          theme={theme}
+        />
       </div>
 
       {/* 觸發 */}
@@ -413,20 +370,16 @@ export default function ZeroPowerBlock({
         <div className="space-y-1.5">
           <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>觸發</span>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-            {ZERO_TRIGGERS.map((t) => {
-              const holder = taken.triggers.get(t.id);
-              return (
-                <ChoiceChip
-                  key={t.id}
-                  theme={theme}
-                  active={state.triggerId === t.id}
-                  disabled={Boolean(holder) && state.triggerId !== t.id}
-                  title={t.name}
-                  subtitle={holder ? `隊友已選：${holder}` : (t.fill === 'varies' ? '變動格數' : `每次 ${t.fill} 格`)}
-                  onClick={() => patch({ triggerId: state.triggerId === t.id ? '' : t.id })}
-                />
-              );
-            })}
+            {ZERO_TRIGGERS.map((t) => (
+              <ChoiceChip
+                key={t.id}
+                theme={theme}
+                active={state.triggerId === t.id}
+                title={t.name}
+                subtitle={t.fill === 'varies' ? '變動格數' : `每次 ${t.fill} 格`}
+                onClick={() => patch({ triggerId: state.triggerId === t.id ? '' : t.id })}
+              />
+            ))}
           </div>
           {trigger ? (
             <p className="text-[11px] leading-relaxed rounded-lg border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
@@ -523,20 +476,16 @@ export default function ZeroPowerBlock({
         <div className="space-y-1.5">
           <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>效果</span>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-            {ZERO_EFFECTS.map((e) => {
-              const holder = taken.effects.get(e.id);
-              return (
-                <ChoiceChip
-                  key={e.id}
-                  theme={theme}
-                  active={state.effectId === e.id}
-                  disabled={Boolean(holder) && state.effectId !== e.id}
-                  title={e.name}
-                  subtitle={holder ? `隊友已選：${holder}` : '底力效果'}
-                  onClick={() => patch({ effectId: state.effectId === e.id ? '' : e.id })}
-                />
-              );
-            })}
+            {ZERO_EFFECTS.map((e) => (
+              <ChoiceChip
+                key={e.id}
+                theme={theme}
+                active={state.effectId === e.id}
+                title={e.name}
+                subtitle="底力效果"
+                onClick={() => patch({ effectId: state.effectId === e.id ? '' : e.id })}
+              />
+            ))}
           </div>
         </div>
       )}
