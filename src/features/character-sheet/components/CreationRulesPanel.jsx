@@ -55,7 +55,10 @@ const TOGGLE_FIELDS = [
   { key: 'startingHeroicSkill', label: '開局贈送一個英雄技能', hint: 'Playtest 選用規則' },
   // 使用者裁定（2026-10-19）：公測修訂不是「一本手冊」，是像上面兩條一樣的選用規則開關。
   // 開啟後才會出現核心書技能的【公測】變體，並讓秘儀師【變體】可選。
-  { key: 'allowPlaytest', label: '開放公測修訂內容', hint: '官方公測材料；核心技能變體與秘儀師變體' }
+  { key: 'allowPlaytest', label: '開放公測修訂內容', hint: '官方公測材料；核心技能變體與秘儀師變體' },
+  // 這格與上面幾格不同：上面是「開放某批選項」，這格是**把一條既有規則換掉**。
+  // 官方原文要求變體規則整團共同採用，所以它住這裡（整團一層），不是每個角色各自勾。
+  { key: 'initiativeVariant', label: '先攻變體', hint: '公測 p.34；防具無先攻減值、戰鬥輕甲改物防 +2／魔防 +0、不使用先攻值' }
 ];
 
 export default function CreationRulesPanel({ rules, diff = {}, onChange, theme = {}, disabled = false }) {

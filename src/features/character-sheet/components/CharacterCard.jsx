@@ -23,6 +23,8 @@ import SkillDescription from '../utils/skillFormulaEvaluator';
 import StatFormulaPanel, { STAT_FORMULA_NOTE } from './StatFormulaPanel';
 import rulesData from '../data/rulesData.json';
 import { getCharacterTheme } from '../utils/characterThemes';
+import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
+import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
 import { withEn } from '../../../utils/properNouns';
 
 export default function CharacterCard({
@@ -41,6 +43,8 @@ export default function CharacterCard({
 
   const theme = getCharacterTheme(character.themeColor || themeId);
   const stats = calculateCharacterStats(character);
+  // 先攻變體（公測 p.34）：這張卡所屬的團如果開了，先攻值不存在 → 顯示「不計」。
+  const initiativeVariant = isInitiativeVariant(character);
   const breakdown = stats.breakdown || {};
   const curHp = character.currentHp !== null && character.currentHp !== undefined ? character.currentHp : stats.maxHp;
   const curMp = character.currentMp !== null && character.currentMp !== undefined ? character.currentMp : stats.maxMp;
@@ -347,7 +351,7 @@ export default function CharacterCard({
               className="flex items-center gap-1 hover:underline decoration-dotted underline-offset-2 cursor-pointer"
             >
               <GiPocketWatch className="w-3.5 h-3.5 text-[#7c6a58]" />
-              <span>先攻: <strong className="text-[#3c2415]">+{stats.init}</strong></span>
+              <span>先攻: <strong className="text-[#3c2415]">{formatInitiative(stats.init, initiativeVariant)}</strong></span>
             </button>
           </div>
         </div>
@@ -498,7 +502,7 @@ export default function CharacterCard({
                       ) : null;
                     })()}
                   </div>
-                  <p className="text-[#574c43] leading-relaxed font-sans text-[11px]">{hs.effect}</p>
+                  <p className="text-[#574c43] leading-relaxed font-sans text-[11px]">{resolveHeroicSkillEffect(hs.name, hs.effect, character)}</p>
                 </div>
               ))}
             </div>

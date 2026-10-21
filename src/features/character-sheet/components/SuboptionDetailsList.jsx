@@ -1,7 +1,12 @@
 import React from 'react';
-import { GiSparkles, GiMusicalNotes, GiCheckMark } from 'react-icons/gi';
+import { GiSparkles, GiMusicalNotes, GiCheckMark, GiDna2 } from 'react-icons/gi';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
 import { getSuboptionDetails, CHANTER_DATA } from '../data/skillSuboptionsData';
+import {
+  getTheriomorphosisRules,
+  describeTheriomorphosis,
+  isTheriomorphosisVariant
+} from '../data/theriomorphosisVariant';
 
 /**
  * 技能子項目效果即時速查卡片清單 (SuboptionDetailsList)
@@ -15,7 +20,9 @@ export default function SuboptionDetailsList({
   skillName,
   selectedOptions = [],
   showVolumeBlock = true,
-  classNameCustom = ''
+  classNameCustom = '',
+  variantId = null,
+  hasGreaterTheriomorphosis = false
 }) {
   // 解析已掌握清單
   let rawList = [];
@@ -31,6 +38,13 @@ export default function SuboptionDetailsList({
   }
 
   const isChanter = className === '魔奏者' && skillName === '魔法演奏';
+
+  // 突變體【混合變形】：形態庫與配額不受變體影響，變的是消耗、顯現上限與後續動作。
+  const isTherioform = className === '突變體' && skillName === '混合變形';
+  const therioRules = isTherioform ? getTheriomorphosisRules(variantId) : null;
+  const therioLines = isTherioform
+    ? describeTheriomorphosis(therioRules, { hasGreater: hasGreaterTheriomorphosis })
+    : [];
 
   return (
     <div className={`space-y-2.5 ${classNameCustom}`}>
@@ -68,6 +82,31 @@ export default function SuboptionDetailsList({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* 1.5 突變體【混合變形】：使用方式常駐外顯（原版與公測 p.40 變體差在這裡） */}
+      {isTherioform && (
+        <div
+          data-testid="therioform-usage"
+          className="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200/90 space-y-1"
+        >
+          <div className="flex items-center justify-between text-xs font-bold text-rose-900 border-b border-rose-200/60 pb-1.5 gap-2 flex-wrap">
+            <span className="flex items-center gap-1.5">
+              <GiDna2 className="w-3.5 h-3.5 text-rose-700" />
+              <span>{therioRules.label}：使用方式</span>
+            </span>
+            {isTheriomorphosisVariant(variantId) && (
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-white text-rose-800 border border-rose-300 font-bold">
+                【公測】變體
+              </span>
+            )}
+          </div>
+          {therioLines.map((line) => (
+            <div key={line} className="text-[11px] leading-snug text-slate-700">
+              {line}
+            </div>
+          ))}
         </div>
       )}
 

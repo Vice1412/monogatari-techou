@@ -20,6 +20,8 @@
  * - 起始裝備預算 500z p.164–165（僅限基本武器／防具／盾牌；飾品為稀有物品，不列入）
  */
 
+import { getArmorProfile } from '../data/initiativeVariant';
+
 /** 四維屬性鍵（順序即原書 DEX / INS / MIG / WLP） */
 export const DICE_ATTRS = ['DEX', 'INS', 'MIG', 'WLP'];
 
@@ -295,14 +297,19 @@ export const checkEquippable = (item, slot, profs = {}, { isShield = false } = {
  * 防具對這個角色的實際結果。
  * 回傳 `def` / `mdef` / `initMod`，語意與 `characterEngine` 完全一致
  * （物防／魔防取「當前骰」，不是基礎骰——原書 p.126）。
+ *
+ * `initiativeVariant` 為真時改用先攻變體側寫（公測 p.34）：先攻減值歸零、
+ * 戰鬥輕甲改物防 +2／魔防 +0。判定本身在 `data/initiativeVariant.js` 的
+ * `getArmorProfile`——這裡只負責套公式，不自己再判斷一次規則。
  */
-export const computeArmorOutcome = (armor, dice = {}) => {
+export const computeArmorOutcome = (armor, dice = {}, { initiativeVariant = false } = {}) => {
   const dex = dice.DEX ?? 8;
   const ins = dice.INS ?? 8;
   if (!armor) return { def: dex, mdef: ins, initMod: 0 };
 
-  const defFormula = parseArmorFormula(armor.defFormula);
-  const mdefFormula = parseArmorFormula(armor.mdefFormula);
+  const profile = getArmorProfile(armor, initiativeVariant) || armor;
+  const defFormula = parseArmorFormula(profile.defFormula);
+  const mdefFormula = parseArmorFormula(profile.mdefFormula);
 
   const def = defFormula.kind === 'fixed'
     ? defFormula.value
@@ -311,7 +318,7 @@ export const computeArmorOutcome = (armor, dice = {}) => {
     ? mdefFormula.value
     : (mdefFormula.kind === 'ins' ? ins + (mdefFormula.bonus || 0) : ins);
 
-  return { def, mdef, initMod: armor.initMod || 0 };
+  return { def, mdef, initMod: profile.initMod || 0 };
 };
 
 /** 盾牌對這個角色的實際加值 */

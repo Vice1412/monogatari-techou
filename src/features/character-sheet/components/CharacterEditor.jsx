@@ -61,6 +61,8 @@ import { loggableChange, formatLogTime } from '../utils/characterLog';
 import { splitParagraphs } from '../utils/paragraphs';
 import CharacterAvatarUploader from './CharacterAvatarUploader';
 import { getCharacterTheme, CHARACTER_THEMES } from '../utils/characterThemes';
+import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
+import { isInitiativeVariant } from '../data/initiativeVariant';
 import {
   SOURCEBOOKS,
   CANONICAL_THEMES,
@@ -84,6 +86,7 @@ import {
   lockCharacter,
   unlockCharacter,
   buildCreationChecklist,
+  CREATION_STEPS,
   LOCKED_CREATION_TABS,
   getCharacterLevel,
   checkHeroicSkillRequirement,
@@ -511,17 +514,16 @@ export default function CharacterEditor({
   // **沒有情感羈絆**：羈絆不屬創角，見 CREATION_STEPS 的說明。
   // 分頁標籤描述的是「玩家在這裡做什麼決定」，不是「角色卡的章節」（見 §V1 的診斷）。
   //
+  // 原本這裡是一份手抄的標籤陣列，而 `characterEngine.js` 的 `CREATION_STEPS` 另有一份——
+  // 兩份各自被不同的測試釘住，於是**同時都綠**卻互相矛盾：第 5 步在這邊叫「英雄技能與特質」、
+  // 在那邊叫「特質與命刻」，導航列於是同一格出現兩個名字（2026-10-20 實測，見
+  // `docs/playtest/findings.md` F-003）。改成從 `CREATION_STEPS` 派生後，
+  // 名稱只有一個來源，漂移在結構上就不可能發生。
+  //
   // 原本每列還帶著一個 `icon` 欄位，但**它從來沒有被讀取**——導航列畫的是編號徽章
   // （見下面的 `{t.id}`），而 `test:ui` 卻用它來數分頁，等於用死資料當護欄。
   // 2026-10-06 移除，護欄改成直接比對標籤序列。
-  const TABS = [
-    { id: 1, label: '基礎身世' },
-    { id: 2, label: '職業與技能' },
-    { id: 3, label: '四維屬性' },
-    { id: 4, label: '裝備配置' },
-    { id: 5, label: '英雄技能與特質' },
-    { id: 6, label: '命名與背景' }
-  ];
+  const TABS = CREATION_STEPS.map((step) => ({ id: step.id, label: step.label }));
   // 上面那個 useState 的夾制用 TAB_COUNT（不能讀 TABS，會踩 TDZ）；test:ui 有一條護欄綁住兩者相等。
   if (TABS.length !== TAB_COUNT) {
     throw new Error(`TABS 有 ${TABS.length} 個分頁，但 TAB_COUNT 是 ${TAB_COUNT}——請一起改`);
@@ -593,7 +595,9 @@ export default function CharacterEditor({
 
   const armorName = character.equipment?.armor || '無裝甲 / 冒險服';
   const armor = armorByName.get(armorName) || null;
-  const armorOutcome = computeArmorOutcome(armor, equipDice);
+  // 先攻變體（公測 p.34）：防具側寫與先攻減值都跟著變，挑裝備時的試算必須同一個判定。
+  const initiativeVariant = isInitiativeVariant(character);
+  const armorOutcome = computeArmorOutcome(armor, equipDice, { initiativeVariant });
 
   const accessoryName = character.equipment?.accessory || '';
   const accessory = accessoryByName.get(accessoryName) || null;
@@ -667,7 +671,7 @@ export default function CharacterEditor({
   const armorMetrics = [
     { label: '物防', value: String(armorOutcome.def) },
     { label: '魔防', value: String(armorOutcome.mdef) },
-    { label: '先攻', value: armorOutcome.initMod === 0 ? '±0' : String(armorOutcome.initMod) }
+    { label: '先攻', value: initiativeVariant ? '不計' : (armorOutcome.initMod === 0 ? '±0' : String(armorOutcome.initMod)) }
   ];
 
   const mainHandWarning = twoHandedConflict
@@ -2049,7 +2053,7 @@ export default function CharacterEditor({
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-600 mt-0.5">{renderTextWithAffinities(hs.effect)}</p>
+                        <p className="text-[11px] text-slate-600 mt-0.5">{renderTextWithAffinities(resolveHeroicSkillEffect(hs.name, hs.effect, character))}</p>
                       </div>
                       <button
                         type="button"

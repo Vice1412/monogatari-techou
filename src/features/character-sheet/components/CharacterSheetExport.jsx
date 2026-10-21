@@ -9,6 +9,8 @@ import iconFontUrl from '../../../assets/FabulaUltimaIcons-Regular.otf';
 import { calculateCharacterStats, getProficiencies, getCharacterLevel, HEROIC_SKILLS } from '../utils/characterEngine';
 import { ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
 import { buildCustomWeaponEntries } from '../data/customWeapons';
+import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
+import { isInitiativeVariant } from '../data/initiativeVariant';
 import { buildImagePdf, dataUrlToBytes } from '../utils/pdfWriter';
 
 /**
@@ -332,6 +334,9 @@ export const buildSheetModel = (character, stats = null) => {
     exp: ch.exp || 0,
     zenit: ch.zenit || 0,
     initiative: s.init ?? 0,
+    // 先攻變體（公測 p.34）：三頁表格上的「先攻修正」印「不計」而不是 0——
+    // 0 是「算出來剛好 0」，這兩件事在桌上不一樣。
+    initiativeVariant: isInitiativeVariant(ch),
     defense: s.def ?? 0,
     magicDefense: s.mdef ?? 0,
     crisisThreshold: s.crisisThreshold ?? 0,
@@ -365,7 +370,13 @@ export const buildSheetModel = (character, stats = null) => {
       const name = typeof h === 'string' ? h : h.name;
       const sl = typeof h === 'string' ? null : h.sl;
       const def = HEROIC_SKILLS.find((x) => x.name === name);
-      return { name, sl, requirement: def?.requirement || '', effect: def?.effect || '' };
+      return {
+        name,
+        sl,
+        requirement: def?.requirement || '',
+        // 選了混合變形變體（公測 p.40）時，【進階混合變形】的文本要換成變體版本。
+        effect: resolveHeroicSkillEffect(name, def?.effect || '', ch)
+      };
     }),
     spells: spellRows,
     page2Spells: spellRows.slice(0, 7),
@@ -558,7 +569,7 @@ export const OfficialSheetPage1 = ({ model, vars = null }) => (
           <div style={{ padding: '4px 8px', fontSize: '14px', fontWeight: 700, borderBottom: `1px solid ${C.border}` }}>
             {model.attributesUnset ? (
               <span style={{ fontSize: '14px', fontWeight: 700 }}>—</span>
-            ) : model.initiative}
+            ) : (model.initiativeVariant ? '不計' : model.initiative)}
           </div>
           <div style={S.bar}><span>物防</span></div>
           <div style={{ padding: '4px 8px', fontSize: '14px', fontWeight: 700, borderBottom: `1px solid ${C.border}` }}>

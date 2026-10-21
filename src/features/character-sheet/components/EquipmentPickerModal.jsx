@@ -30,6 +30,7 @@ import {
   getEquipmentIcon,
   getDualShieldState
 } from '../utils/equipmentRules';
+import { isInitiativeVariant, resolveArmorDesc } from '../data/initiativeVariant';
 
 /**
  * 裝備選擇彈窗 (EquipmentPickerModal)
@@ -88,6 +89,8 @@ export function EquipmentPickerBody({
   const dice = useMemo(() => diceFromStats(stats), [stats]);
   const profs = stats?.profs || {};
   const currentValue = character?.equipment?.[slot] || '';
+  // 先攻變體（公測 p.34）：防具表的側寫、先攻欄與說明文字都跟著這個旗標走。
+  const initiativeVariant = isInitiativeVariant(character);
 
   const offIsShield = useMemo(
     () => rulesData.equipment.shields.some((s) => s.name === character?.equipment?.offHand),
@@ -162,7 +165,10 @@ export function EquipmentPickerBody({
     () => rulesData.equipment.armors.find((a) => a.name === character?.equipment?.armor) || null,
     [character]
   );
-  const armorOutcome = useMemo(() => computeArmorOutcome(currentArmor, dice), [currentArmor, dice]);
+  const armorOutcome = useMemo(
+    () => computeArmorOutcome(currentArmor, dice, { initiativeVariant }),
+    [currentArmor, dice, initiativeVariant]
+  );
 
   const shieldRows = useMemo(() => rulesData.equipment.shields.map((shield) => {
     const equipped = checkEquippable(shield, 'offHand', profs, { isShield: true });
@@ -196,16 +202,17 @@ export function EquipmentPickerBody({
 
   // ── 防具列
   const armorRows = useMemo(() => rulesData.equipment.armors.map((armor) => {
-    const outcome = computeArmorOutcome(armor, dice);
+    const outcome = computeArmorOutcome(armor, dice, { initiativeVariant });
     return {
       armor,
       outcome,
+      desc: resolveArmorDesc(armor, initiativeVariant),
       equippable: checkEquippable(armor, 'armor', profs),
       deltaDef: outcome.def - armorOutcome.def,
       deltaMdef: outcome.mdef - armorOutcome.mdef,
       remainingBudget
     };
-  }), [dice, profs, armorOutcome, remainingBudget]);
+  }), [dice, profs, armorOutcome, remainingBudget, initiativeVariant]);
 
   const filteredArmorRows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -509,10 +516,12 @@ export function EquipmentPickerBody({
                   ) : null}
                 </td>
                 <td className={cellText}>
-                  <span className="font-mono text-[11px]">{row.outcome.initMod === 0 ? '±0' : row.outcome.initMod}</span>
+                  <span className="font-mono text-[11px]">
+                    {initiativeVariant ? '不計' : (row.outcome.initMod === 0 ? '±0' : row.outcome.initMod)}
+                  </span>
                 </td>
                 <td className={cellText}>
-                  <span className="text-[11px] text-[#5b4a3a]">{row.armor.desc || '—'}</span>
+                  <span className="text-[11px] text-[#5b4a3a]">{row.desc || '—'}</span>
                 </td>
               </tr>
             );

@@ -33,14 +33,15 @@
 - **可用工具**：`pwsh`、`read`、`write`、`edit`、`glob`、`grep`
 - **建置指令**：`npm run build`（Vite 6，實測約 4.2 秒，exit 0）
 - **建置產物**：`dist/`，JS 2,247 kB（gzip 649 kB）。chunk-size 警告為**已知既有現象**，非本次改動造成。
-- **測試指令**：`npm test`（實測 **22 道關卡全過**，exit 0）。
+- **測試指令**：`npm test`（實測 **23 道關卡全過**，exit 0）。
   ※ 各關卡的斷言數**刻意不列在這裡**——這行原本寫著「17 道時期」的數字，後來補了 4 道也沒人發現。
     這種數字自己就會腐化；要精確數字請看該關卡自己的輸出。
-  二十二道測試關卡（其中兩道是自動化的規則關卡）：
+  二十三道測試關卡（其中兩道是自動化的規則關卡）：
   - `npm run test:emoji` —— **規則五.1 已自動化**（見 §3.2）；掃描範圍**已含 `shared/`**
   - `npm run test:affinity` —— 九相屬性標記（誤標表、正標表、資料層掃描、渲染器同步；見 §4 F）
   - `npm run test:equipment` —— 裝備配置（原書裝備表逐筆核對、裝備圖示對照表、熟練度與載入衝突、雙重盾牌、SSR 煙霧；見 `docs/decisions.md` §U）
   - `npm run test:creation` —— 開卡規則與生命週期（原書逐項對照、欄位集護欄、壞資料校正、`createNewCharacter`／`validateCharacter` 讀規則、定稿與進度清單、硬編碼不得回流的原始碼護欄；見 `docs/decisions.md` §V、§X）
+  - `npm run test:initiative` —— 先攻變體規則（公測 p.34：開關判定只認字面 `true`、九件防具側寫兩態、說明文字同步改寫、引擎／裝備試算／四個顯示點共用一份判定、SSR 兩態；見 `docs/decisions.md` §BL）
   - `npm run test:log` —— 成長履歷（種類詞彙與圖示護欄、append-only 與合併時窗、摘要推導、建卡第一筆、寫入端原始碼護欄、SSR 煙霧；見 `docs/decisions.md` §W）
   - `npm run test:ui` —— 角色卡介面契約（`parseStepperInput` 的輸入語意、六項資源必須可自行填寫、升級流程必須顯示技能效果全文、入口標籤與詞彙護欄、**官方三頁匯出的欄位對應與版面**、**三頁 PDF 產生器與 xref 逐筆驗證**、圖示表重複鍵護欄；見 `docs/decisions.md` §Y、§Z）
   - `npm run test:sentinel` —— 哨兵遷移與回歸護欄
@@ -54,7 +55,7 @@
   - `npm run test:presets` —— 官方經典職業搭配 81 組（五本手冊，含篩選分組純函式與 SSR 渲染煙霧）
   - `npm run test:codex` —— 規則概念速查（16 條覆蓋率、關鍵字唯一性、授權合規、**譯名與定譯表逐字比對**、**技能 `見【…】` 交叉引用逐一可解析**、**9 個子項目技能都有速查頁**；見 `docs/decisions.md` §BA）
   - `npm run test:florist` —— 植物學家花園／生長命刻（43 列標籤**全部**解析得出命刻區間、**「1~3」「1~2」在 T=1 必須生效的回歸**、建角預覽 SSR、階級判斷單一來源的原始碼護欄；見 `docs/decisions.md` §BB）
-  - `npm run test:variants` —— 核心書技能變體（取代目標必須存在於該職業、差異粗體成對、**公測開啟／關閉兩態的渲染契約**、閘門欄位形狀、**選用狀態的資料模型／顯示解析／互斥／規則層整合／回溯相容／儲存路徑**；見 `docs/decisions.md` §AV §AW）
+  - `npm run test:variants` —— 核心書技能變體（取代目標必須存在於該職業、差異粗體成對、**公測開啟／關閉兩態的渲染契約**、閘門欄位形狀、**選用狀態的資料模型／顯示解析／互斥／規則層整合／回溯相容／儲存路徑**、**魔導科技分支三態渲染**、**混合變形變體四規則**；見 `docs/decisions.md` §AV §AW §BJ §BK）
   - `npm run test:aliases` —— 職業別稱（官方原書職業頁的「ALSO:」行）：`SOURCEBOOKS ↔ CLASS_ALIASES` **雙向覆蓋率**、28 職英文別稱與出處頁碼**逐條釘死**、顯示（`zh`）／檢索（`en` ＋ `zhExtra`）分流、搜尋純函式逐例、SSR 渲染煙霧與 `zhExtra` 不外洩（見 `docs/decisions.md` §AZ）
   - `npm run test:npcworkshop` —— NPC 工坊純函式（見 `docs/decisions.md` §AX／§AY）
   - `npm run test:npcworkshopui` —— NPC 工坊元件層 SSR（8 道建角步驟的內容錨點；見 §AX）
@@ -448,7 +449,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 - `npm run build` 通過（exit 0，2026-10-06 實測 9.77 秒）。
 - JS bundle 2,252 kB / gzip 651 kB，觸發 Vite chunk-size 警告（>500 kB）。
   建議未來以 `manualChunks` 或 `import()` 拆分，但**非當前規範要求**。
-- `npm test` 通過（**22 道關卡全過**，exit 0）。
+- `npm test` 通過（**23 道關卡全過**，exit 0）。
   已補上測試的模組：造物專案成本與每日推進（`test:projects`）、職業資源池（`test:resources`）、
   美食家食材／食譜書（`test:gourmet`）、專有名詞對照（`test:propernouns`）、
   哨兵遷移（`test:sentinel`）、零 Emoji（`test:emoji`）、卡牌大師牌組（`test:cards`）、
@@ -557,7 +558,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 | ~~本機路徑搬遷~~ | ✅ **已完成**：`AGENTS.md:25` 已是 `E:\MINGWAN\Projects\monogatari-techou` | ✅ 已結案 |
 | 金手指效果逐筆核對 | §AR7 待辦：三大擴展 HF 15／NF 10／TF 10（＋特典 Halloween）**逐筆效果比對尚未做**（抽取工具 `scratch/extract_en_quirks.py` 已備）。另：特典 Halloween 系列曾被誤標「（科奇）」，實際來自特典合輯 | 待排程 |
 | Bonus Collection 其餘 7 項 | ~~New Heroic Skills~~ ✅ 2026-10-06 已收錄（卡牌大師 4 筆，見 §AK4）；**Halloween 系列／Arcane Whispers／三隻 Additional Bosses** 仍待裁定優先序（Halloween 的**範例角色 8 組**已於 `expansionPresets.js` 收錄，此處指其餘內容） | 待裁定 |
-| 先攻變體是否套用 | 本團玩 Playtest 2026-06-22「先攻」變體（無先攻值、防具無先攻減值、戰鬥束腰外衣改物防 +2／魔防 +0），但應用程式仍以核心規則值為準（見 `docs/decisions.md` §U7）。現況由 `tests/equipmentRules.test.mjs` L 區段釘住 | 待裁定 |
+| ~~先攻變體是否套用~~ | ✅ **2026-10-21 已實裝（§BL）**：改成整團開關 `creationRules.initiativeVariant`（預設 `false`＝與核心逐字相同）。開啟後：防具先攻減值不存在、戰鬥輕甲改物防 +2／魔防 +0、先攻值不存在（顯示「不計」）、影響先攻的效果**忽略而非替換**。判定收斂在 `data/initiativeVariant.js`，`test:initiative` 95 條釘住。**NPC 端刻意未接線**（NPC 工坊沒有開卡規則面板，見 §BL5） | ✅ 已結案 |
 | ~~GitHub repo 改名~~ | **實測 `git remote -v` 已是 `https://github.com/Vice1412/monogatari-techou.git`——改名早已完成。**（2026-10-05 複驗更正） | ✅ 已結案 |
 | 英雄技能「效果文字」逐筆核對 | ✅ **115 筆全部完成**（Core 31 ＋ HF 24 ＋ NF 21 ＋ TF 18 ＋ Bonus 21，共修 20 處；見 §AJ3、§AU）。**待辦**：Playtest changelog 明列約 20 個**修訂既有技能**的項目尚未套用 | 待排程 |
 | Playtest 其餘選用規則 | 同文件還有前後排、Applause Points、Surrender、休息場景、電影式造物計畫等選用規則；本專案目前只實裝「開局英雄技能」與「高階角色起始資金」（實測 `DEFAULT_CREATION_RULES` 無相關欄位） | 待裁定 |

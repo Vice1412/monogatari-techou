@@ -46,6 +46,8 @@ import {
 import rulesData from '../data/rulesData.json';
 import CharacterPreviewModal from './CharacterPreviewModal';
 import { STATUS_AFFLICTIONS, ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
+import { hasGreaterTheriomorphosis } from '../data/theriomorphosisVariant';
+import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
 import { getCharacterTheme } from '../utils/characterThemes';
 import { getDualShieldState } from '../utils/equipmentRules';
 import {
@@ -205,6 +207,8 @@ export default function CharacterPlayHUD({
 
   const theme = getCharacterTheme(character.themeColor || themeId);
   const stats = calculateCharacterStats(character);
+  // 先攻變體（公測 p.34）：先攻值不存在 → 顯示「不計」，副標改寫成變體說明。
+  const initiativeVariant = isInitiativeVariant(character);
   const breakdown = stats.breakdown || {};
   const curHp = character.currentHp !== null && character.currentHp !== undefined ? character.currentHp : stats.maxHp;
   const curMp = character.currentMp !== null && character.currentMp !== undefined ? character.currentMp : stats.maxMp;
@@ -1202,9 +1206,9 @@ export default function CharacterPlayHUD({
                     className="p-2 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
                   >
                     <span className="text-slate-500 block text-[11px] font-sans font-medium">先攻修正</span>
-                    <span className="text-2xl font-black text-slate-800">{stats.init >= 0 ? `+${stats.init}` : stats.init}</span>
+                    <span className="text-2xl font-black text-slate-800">{formatInitiative(stats.init, initiativeVariant)}</span>
                     <span className="text-[10px] text-slate-400 block mt-0.5 truncate">
-                      裝備與防具修正
+                      {initiativeVariant ? '本團採用先攻變體' : '裝備與防具修正'}
                     </span>
                   </button>
                 </div>
@@ -1788,6 +1792,8 @@ export default function CharacterPlayHUD({
                                   skillName={sk.name}
                                   selectedOptions={sk.selectedOptions}
                                   showVolumeBlock={true}
+                                  variantId={sk.variantId || null}
+                                  hasGreaterTheriomorphosis={hasGreaterTheriomorphosis(character)}
                                 />
                               )}
 
@@ -1874,6 +1880,7 @@ export default function CharacterPlayHUD({
                               sl={sk.sl}
                               onOpenCodex={() => openRuleCodex('小工具')}
                               characterLevel={getCharacterLevel(character)}
+                              variantId={sk.variantId || null}
                             />
                           )}
                         </div>

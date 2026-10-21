@@ -44,8 +44,15 @@ export default function SkillStarPips({
                 ? `技能等級：SL ${safeCurrent} / ${safeMax}`
                 : `點擊設定為 SL ${starLevel} / ${safeMax}（再點一次可扣減）`
             }
+            aria-label={`設定為 SL ${starLevel} / ${safeMax}`}
+            aria-pressed={isFilled}
           >
+            {/* `w` 是官方 `.fu-icon` 字型的 glyph 映射碼，視覺上是星芒。
+                它**不是內容**——沒有 aria-hidden 的話，螢幕閱讀器會把
+                「阿爾卡納圓環 SL 0/4」念成「阿爾卡納圓環 w w w w SL 0/4」
+                （2026-10-20 實測，見 `docs/playtest/findings.md` F-009）。 */}
             <span
+              aria-hidden="true"
               className={`fu-icon inline-flex items-center justify-center leading-none transition-all duration-150 ${
                 isFilled
                   ? 'text-amber-500 drop-shadow-[0_1px_3px_rgba(245,158,11,0.45)] scale-110'

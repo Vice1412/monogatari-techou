@@ -79,7 +79,16 @@ export default function ClassPickerModal({
    * **測試注入點**（生產端永不傳入）：跳過彈窗外框直接渲染內容。
    * 見下方 `Panel` 的說明；**不傳時行為逐字不變**。
    */
-  panelOnly = false
+  panelOnly = false,
+  /**
+   * **測試注入點**（生產端永不傳入）：預先塞入技能配點草稿
+   * （`{ 職業名: { 技能名: 級數 } }`），讓 SSR 護欄能渲染到
+   * 「某個技能已達 SL 上限」這種**只有點擊才會出現**的狀態——
+   * SSR 不執行事件，否則滿級提示（`docs/playtest/findings.md` F-006）永遠測不到
+   * （`AGENTS.md` §AW9 同型）。
+   * **不傳時行為逐字不變**（維持 `{}`）。
+   */
+  initialDraft = null
 }) {
   const rules = resolveCreationRules(creationRules);
   // 核心書技能變體是**選用**的：只有【開放公測修訂內容】勾起來才顯示。
@@ -94,7 +103,7 @@ export default function ClassPickerModal({
    * **跨職業累積**——這是流程重構的核心，舊版只存「當前職業」那一份，
    * 所以一次只能確定一個職業。
    */
-  const [draft, setDraft] = useState({});
+  const [draft, setDraft] = useState(initialDraft || {});
   /**
    * 變體選用草稿：`{ 職業名: { 原版技能名: 變體id } }`。
    * **與配點草稿分開**——因為配點是按「確定」才寫入，而變體選用也是。
@@ -683,24 +692,39 @@ export default function ClassPickerModal({
                               disabled={currentSL <= 0}
                               className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs disabled:opacity-20 hover:bg-white active:scale-95 transition-all cursor-pointer"
                               style={{ borderColor: theme.border, color: theme.textDark }}
-                              title="減少 1 級"
+                              title={currentSL <= 0 ? '已經是最低（SL 0）' : '減少 1 級'}
                             >
                               −
                             </button>
                             <span className="w-6 text-center font-black text-sm" style={{ color: theme.textDark }}>
                               {currentSL}
                             </span>
+                            {/* ※ 這顆 `+` 的 `title` 必須隨狀態改變。
+                                2026-10-20 實測（playtest F-006）：到達 SL 上限後按鈕只是
+                                `disabled:opacity-20` 變淡，`title` 卻還寫著「增加 1 級」——
+                                新手看到的是「一顆淡掉的加號 + 一句『增加 1 級』」，
+                                唯一的解釋是「壞了」。專案自己的原則（`docs/decisions.md` §U）
+                                是「不能選的原因要在選之前看見」，所以理由要寫在 `title` 裡。 */}
                             <button
                               type="button"
                               onClick={() => handleSetSkillSL(sk.name, currentSL + 1)}
                               disabled={currentSL >= maxSL}
                               className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs disabled:opacity-20 hover:bg-white active:scale-95 transition-all cursor-pointer"
                               style={{ borderColor: theme.border, color: theme.textDark }}
-                              title="增加 1 級"
+                              title={currentSL >= maxSL
+                                ? `已達此技能的 SL 上限（${maxSL}）——請把剩下的等級分配給其他技能`
+                                : '增加 1 級'}
                             >
                               +
                             </button>
                           </div>
+                          {/* `title` 要 hover 才看得到，新手不會去 hover 一顆灰掉的按鈕。
+                              所以理由**同時**寫在畫面上。只在真的滿級時出現，不佔平時的版面。 */}
+                          {currentSL >= maxSL && (
+                            <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-300 rounded px-1.5 py-0.5 whitespace-nowrap">
+                              已達上限 {maxSL}
+                            </span>
+                          )}
                         </div>
                       </div>
 

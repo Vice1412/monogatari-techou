@@ -39,6 +39,7 @@ import JRPGBadge from '../../components/ui/JRPGBadge';
 import { STORAGE_KEYS } from '../../data/keys';
 import { readJSON, writeJSON } from '../../data/store';
 import { findDuplicateStartingHeroicSkills } from './utils/characterEngine';
+import { formatInitiative, isInitiativeVariant } from './data/initiativeVariant';
 import { normalizeRosterClassNames } from './data/sourcebookConfig';
 
 const STORAGE_KEY = STORAGE_KEYS.characterRoster;
@@ -578,6 +579,8 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 const isCrisis = curHp <= stats.crisisThreshold;
                 // 四維還沒指派完 → 六項數值不成立（見 calculateCharacterStats 的 attributesUnset）
                 const statsUnset = Boolean(stats.attributesUnset);
+                // 先攻變體（公測 p.34）：名冊上的先攻同樣不顯示數字。
+                const initiativeVariant = isInitiativeVariant(char);
 
                 return (
                   <div
@@ -731,7 +734,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         <span className="text-[#d6c7ab]">|</span>
                         <span className="text-blue-900">M.DEF <strong className="text-blue-950">{stats.mdef}</strong></span>
                         <span className="text-[#d6c7ab]">|</span>
-                        <span className="text-[#6b5a4b]">INIT <strong className="text-[#3c2415]">+{stats.init}</strong></span>
+                        <span className="text-[#6b5a4b]">INIT <strong className="text-[#3c2415]">{formatInitiative(stats.init, initiativeVariant)}</strong></span>
                       </div>
                     </div>
 
@@ -857,13 +860,26 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
         />
       )}
 
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-white border-2 border-emerald-600 text-emerald-950 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 font-medium text-xs animate-fade-in">
-          <GiCheckMark className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      {/* Toast Notification
+          `role="status"`（隱含 aria-live="polite"）讓螢幕閱讀器能收到「已存檔／已定稿／
+          已卸下副手」這類回饋——原本這些訊息只有視覺變化，讀屏使用者完全收不到
+          （2026-10-20 實測：全站 `[aria-live],[role="status"],[role="alert"]` 回傳空集合，
+          見 `docs/playtest/findings.md` F-007）。
+          **容器必須常駐**：live region 要先存在於 DOM，內容變化才會被播報；
+          條件渲染整個容器等於每次都插入新節點，播報不會觸發。所以無訊息時
+          用 `sr-only` 收起來，而不是從 DOM 移除。 */}
+      <div
+        role="status"
+        aria-live="polite"
+        className={
+          toastMessage
+            ? 'fixed bottom-6 right-6 z-50 bg-white border-2 border-emerald-600 text-emerald-950 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 font-medium text-xs animate-fade-in'
+            : 'sr-only'
+        }
+      >
+        {toastMessage && <GiCheckMark className="w-4 h-4 text-emerald-600 shrink-0" />}
+        <span>{toastMessage || ''}</span>
+      </div>
     </div>
   );
 }

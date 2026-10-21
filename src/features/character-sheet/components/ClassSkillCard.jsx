@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   GiSparkles,
   GiCheckMark,
@@ -9,7 +9,8 @@ import {
   GiQuillInk,
   GiSteeringWheel,
   GiPawPrint,
-  GiGears
+  GiGears,
+  GiDna2
 } from 'react-icons/gi';
 import GameIcon from '../../../components/ui/GameIcon';
 import JRPGBadge from '../../../components/ui/JRPGBadge';
@@ -22,6 +23,8 @@ import {
   resolveSkillDisplay,
   buildSkillEntry
 } from '../data/coreBookVariants';
+import { getMagitechBranch } from '../data/gadgetBranches';
+import { hasGreaterTheriomorphosis, getTheriomorphosisRules, getManifestCap, isTheriomorphosisVariant } from '../data/theriomorphosisVariant';
 import { isPlaytestAllowed } from '../data/creationRules';
 import SkillDescription from '../utils/skillFormulaEvaluator';
 import SkillSuboptionModal from './SkillSuboptionModal';
@@ -56,7 +59,9 @@ function SkillSuboptionBar({
   skillName,
   sl,
   selectedOptions = [],
-  onOpenModal
+  onOpenModal,
+  variantId = null,
+  hasGreaterTherio = false
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const config = getSkillSuboptionConfig(className, skillName);
@@ -84,6 +89,13 @@ function SkillSuboptionBar({
   const isOver = selectedCount > maxQuota;
   const isUnder = selectedCount < maxQuota;
 
+  // 混合變形（公測 p.40 變體）：技能列上就要看得到代價，不能只有點進彈窗才知道。
+  const isMutantForms = config?.type === 'mutant_forms';
+  const therioRules = isMutantForms ? getTheriomorphosisRules(variantId) : null;
+  const therioCap = isMutantForms
+    ? getManifestCap(therioRules, { hasGreater: hasGreaterTherio })
+    : 0;
+
   return (
     <div className="mt-2 pt-2 border-t border-slate-200/80 space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -107,6 +119,17 @@ function SkillSuboptionBar({
             <span className="text-[11px] px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-bold flex items-center gap-1">
               <GiSparkles className="w-3 h-3 text-amber-600" />
               <span>已掌握 {selectedCount} / {maxQuota}（尚餘 {maxQuota - selectedCount} 個名額）</span>
+            </span>
+          )}
+
+          {/* 選用公測變體時，代價與顯現上限直接寫在技能列（變體不是只有換名字） */}
+          {isMutantForms && isTheriomorphosisVariant(variantId) && (
+            <span
+              data-testid="therioform-variant-chip"
+              className="text-[11px] px-2 py-0.5 rounded-md bg-rose-100 text-rose-900 border border-rose-300 font-bold flex items-center gap-1"
+            >
+              <GiDna2 className="w-3 h-3 text-rose-700" />
+              <span>【公測】變體：消耗 {therioRules.hpCostLabel}・顯現至多 {therioCap} 個</span>
             </span>
           )}
         </div>
@@ -153,6 +176,8 @@ function SkillSuboptionBar({
               skillName={skillName}
               selectedOptions={selectedOptions}
               showVolumeBlock={true}
+              variantId={variantId}
+              hasGreaterTheriomorphosis={hasGreaterTherio}
             />
           </div>
         ) : (
@@ -294,9 +319,11 @@ function WayfarerCompanionSkillBar({
 function TinkererGadgetsSkillBar({
   sl,
   gadgetsData,
+  variantId = null,
   onOpenModal
 }) {
   if (sl <= 0) return null;
+  const branch = getMagitechBranch(variantId);
   const alchemy = gadgetsData?.alchemy || 0;
   const infusion = gadgetsData?.infusion || 0;
   const magitech = gadgetsData?.magitech || 0;
@@ -311,12 +338,12 @@ function TinkererGadgetsSkillBar({
         <div className="flex items-center gap-1.5 flex-wrap">
           {!isConfigured ? (
             <span className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 border border-dashed border-slate-300 font-bold">
-              尚未配置科技樹節點 (可分配 {sl} 點)
+              尚未配置{branch ? `【${branch.name}】` : '科技樹'}節點 (可分配 {sl} 點)
             </span>
           ) : (
             <>
               <span className="text-[11px] px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-bold">
-                煉金 {getTierText(alchemy)} · 灌注 {getTierText(infusion)} · 魔導 {getTierText(magitech)}
+                煉金 {getTierText(alchemy)} · 灌注 {getTierText(infusion)} · {branch ? branch.name : '魔導'} {getTierText(magitech)}
               </span>
               <span className={`text-[11px] px-2 py-0.5 rounded-md font-mono font-bold ${
                 allocated >= sl
@@ -519,11 +546,14 @@ export default function ClassSkillCard({
   };
 
   // 開啟子項目彈窗
-  const handleOpenSuboptionModal = (skillName, currentSL, currentSelected) => {
+  // `variantId` 要一起帶進去：混合變形的變體（公測 p.40）改變的是「怎麼用」——
+  // 消耗 20 點 HP 而非當前 HP 三分之一、之後可自由攻擊一次——挑選形態時就該看到代價。
+  const handleOpenSuboptionModal = (skillName, currentSL, currentSelected, variantId = null) => {
     setSuboptionModalSkill({
       skillName,
       sl: currentSL,
-      selectedOptions: currentSelected
+      selectedOptions: currentSelected,
+      variantId
     });
   };
 
@@ -770,6 +800,7 @@ export default function ClassSkillCard({
                       <TinkererGadgetsSkillBar
                         sl={sk.sl}
                         gadgetsData={character?.tinkererData?.gadgets}
+                        variantId={sk.variantId || null}
                         onOpenModal={() => {
                           setCurrentTinkererSl(sk.sl);
                           setIsGadgetsModalOpen(true);
@@ -782,7 +813,9 @@ export default function ClassSkillCard({
                           skillName={sk.name}
                           sl={sk.sl}
                           selectedOptions={sk.selectedOptions || []}
-                          onOpenModal={() => handleOpenSuboptionModal(sk.name, sk.sl, sk.selectedOptions || [])}
+                          onOpenModal={() => handleOpenSuboptionModal(sk.name, sk.sl, sk.selectedOptions || [], sk.variantId || null)}
+                          variantId={sk.variantId || null}
+                          hasGreaterTherio={hasGreaterTheriomorphosis(character)}
                         />
                         {/* 植物學家【植生術】：建角時的花園與生長命刻預覽。
                             挑選器只教「這顆種子有什麼效果」，這裡補上「花園怎麼運作」——
@@ -1136,6 +1169,7 @@ export default function ClassSkillCard({
                       <TinkererGadgetsSkillBar
                         sl={currentSL}
                         gadgetsData={character?.tinkererData?.gadgets}
+                        variantId={sk.variantId || null}
                         onOpenModal={() => {
                           setCurrentTinkererSl(currentSL);
                           setIsGadgetsModalOpen(true);
@@ -1148,7 +1182,9 @@ export default function ClassSkillCard({
                           skillName={sk.name}
                           sl={currentSL}
                           selectedOptions={currentSuboptions}
-                          onOpenModal={() => handleOpenSuboptionModal(sk.name, currentSL, currentSuboptions)}
+                          onOpenModal={() => handleOpenSuboptionModal(sk.name, currentSL, currentSuboptions, sk.variantId || null)}
+                          variantId={sk.variantId || null}
+                          hasGreaterTherio={hasGreaterTheriomorphosis(character)}
                         />
                         {/* 同檢視模式：編輯中也要看得到花園機制（見上方說明）。 */}
                         {className === '植物學家' && sk.name === '植生術' && (
@@ -1204,6 +1240,8 @@ export default function ClassSkillCard({
           skillName={suboptionModalSkill.skillName}
           sl={suboptionModalSkill.sl}
           selectedOptions={suboptionModalSkill.selectedOptions}
+          variantId={suboptionModalSkill.variantId || null}
+          hasGreaterTheriomorphosis={hasGreaterTheriomorphosis(character)}
           onSave={handleSaveSuboptions}
           theme={theme}
         />
@@ -1252,6 +1290,7 @@ export default function ClassSkillCard({
         gadgetsData={character?.tinkererData?.gadgets}
         tinkererSL={currentTinkererSl}
         characterLevel={getCharacterLevel(character)}
+        variantId={adoptedVariantId('小工具')}
         onSave={(newGadgetsData) => {
           if (onUpdateCharacter) {
             onUpdateCharacter({

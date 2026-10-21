@@ -46,7 +46,8 @@ export const CREATION_RULE_FIELDS = Object.freeze([
   'allowQuirk',
   'allowCustomWeapon',
   'startingHeroicSkill',
-  'allowPlaytest'
+  'allowPlaytest',
+  'initiativeVariant'
 ]);
 
 /** 全部手冊的鍵（合法值域） */
@@ -177,7 +178,20 @@ export const DEFAULT_CREATION_RULES = Object.freeze({
    *
    * 預設 false：官方核心規則沒有公測內容。
    */
-  allowPlaytest: false
+  allowPlaytest: false,
+  /**
+   * 變體規則：先攻變體（公測材料 2026-10-01 p.34）。
+   *
+   * 這一格與上面幾格**不是同一種東西**：`allowQuirk`／`allowCustomWeapon` 是「開放某批
+   * 選項」，`allowPlaytest` 是「開放某批修訂」，而 `initiativeVariant` 是**把一條既有規則
+   * 換掉**——開啟後防具沒有先攻減值、戰鬥束腰外衣換側寫、先攻值整個不存在。
+   *
+   * 官方原文明言變體規則「必須整團共同採用」，所以它住在 `creationRules`（整團一層），
+   * 不是每個角色各自的技能變體。判定與逐條後果見 `data/initiativeVariant.js`。
+   *
+   * 預設 false：核心規則的先攻值照算（`tests/equipmentRules.test.mjs` L 區段釘住的現況）。
+   */
+  initiativeVariant: false
 });
 
 const toInt = (value, fallback, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}) => {
@@ -248,6 +262,9 @@ export const resolveCreationRules = (overrides = {}) => {
   const startingHeroicSkill = typeof given.startingHeroicSkill === 'boolean'
     ? given.startingHeroicSkill
     : d.startingHeroicSkill;
+  const initiativeVariant = typeof given.initiativeVariant === 'boolean'
+    ? given.initiativeVariant
+    : d.initiativeVariant;
 
   return {
     startingLevel,
@@ -261,7 +278,8 @@ export const resolveCreationRules = (overrides = {}) => {
     allowQuirk,
     allowCustomWeapon,
     startingHeroicSkill,
-    allowPlaytest
+    allowPlaytest,
+    initiativeVariant
   };
 };
 

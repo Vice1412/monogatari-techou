@@ -9,17 +9,23 @@ import {
 } from 'react-icons/gi';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
+import { getMagitechBranch } from '../../data/gadgetBranches';
 
 /**
  * 跑團卡【小工具】技能即時戰鬥效果速查組件 (TinkererGadgetsQuickRef)
  * 供玩家在跑團過程中直接查閱當前解鎖的灌注術、魔科技與煉金術規格，並支援一鍵呼叫官方規則典籍。
+ *
+ * `variantId` 是【小工具】選用的公測變體：官方 p.38 把魔導科技拆成
+ * 【魔導武裝】與【魔法球】兩條互斥分支，兩者的第三軌節點與核心完全不同——
+ * 選了分支卻還顯示核心的【魔科技篡奪／魔加農／魔法球原型】就是顯示錯誤資訊。
  */
 export default function TinkererGadgetsQuickRef({
   gadgetsData = {},
   sl = 1,
   onOpenCodex = () => {},
   onOpenWorkshop = null,
-  characterLevel = 5
+  characterLevel = 5,
+  variantId = null
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -27,6 +33,12 @@ export default function TinkererGadgetsQuickRef({
   const infusion = gadgetsData?.infusion || 0;
   const magitech = gadgetsData?.magitech || 0;
   const totalAllocated = alchemy + infusion + magitech;
+
+  const branch = getMagitechBranch(variantId);
+  /** 第三軌的名字：核心叫「魔科技」，分支就叫分支名。 */
+  const magitechLabel = branch?.name || '魔科技';
+  /** 分支的已解鎖節點（給展開視圖與收合標籤共用）。 */
+  const branchNodes = branch ? branch.nodes.filter((n) => n.tier <= magitech) : [];
 
   const dmg = characterLevel >= 40 ? 40 : characterLevel >= 20 ? 30 : 20;
 
@@ -101,7 +113,7 @@ export default function TinkererGadgetsQuickRef({
       <div className="flex items-center gap-1.5 flex-wrap">
         {getTierBadge('煉金術', alchemy)}
         {getTierBadge('灌注術', infusion)}
-        {getTierBadge('魔科技', magitech)}
+        {getTierBadge(magitechLabel, magitech)}
       </div>
 
       {/* 未配置節點之提示 */}
@@ -156,20 +168,33 @@ export default function TinkererGadgetsQuickRef({
               </span>
             </>
           )}
-          {magitech >= 1 && (
-            <span className="px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-800 text-purple-900 dark:text-purple-200 font-medium">
-              魔科技篡奪 (10 MP)
-            </span>
-          )}
-          {magitech >= 2 && (
-            <span className="px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/40 border border-teal-300 dark:border-teal-800 text-teal-900 dark:text-teal-200 font-medium">
-              魔加農【HR + 10】
-            </span>
-          )}
-          {magitech >= 3 && (
-            <span className="px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-300 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 font-medium">
-              魔法球原型 (2 IP)
-            </span>
+          {branch ? (
+            branchNodes.map((n) => (
+              <span
+                key={n.tier}
+                className="px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-800 text-purple-900 dark:text-purple-200 font-medium"
+              >
+                {n.name} ({n.cost})
+              </span>
+            ))
+          ) : (
+            <>
+              {magitech >= 1 && (
+                <span className="px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-800 text-purple-900 dark:text-purple-200 font-medium">
+                  魔科技篡奪 (10 MP)
+                </span>
+              )}
+              {magitech >= 2 && (
+                <span className="px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/40 border border-teal-300 dark:border-teal-800 text-teal-900 dark:text-teal-200 font-medium">
+                  魔加農【HR + 10】
+                </span>
+              )}
+              {magitech >= 3 && (
+                <span className="px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-300 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 font-medium">
+                  魔法球原型 (2 IP)
+                </span>
+              )}
+            </>
           )}
           {alchemy >= 1 && (
             <span className="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 font-medium">
@@ -307,7 +332,7 @@ export default function TinkererGadgetsQuickRef({
               <div className="flex items-center justify-between border-b border-purple-100 dark:border-slate-700 pb-1.5 flex-wrap gap-1">
                 <div className="flex items-center gap-1.5 text-purple-950 dark:text-purple-200 font-bold text-xs">
                   <GiGears className="text-purple-600 dark:text-purple-400" />
-                  <span>魔導科技工藝</span>
+                  <span>{branch ? `${branch.name}工藝` : '魔導科技工藝'}</span>
                   <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300">
                     Tier {magitech}
                   </span>
@@ -315,6 +340,25 @@ export default function TinkererGadgetsQuickRef({
               </div>
 
               <div className="space-y-1.5 text-xs">
+                {/* 公測分支（p.38）：第三軌的節點與核心完全不同，選了分支就不再顯示核心三節點 */}
+                {branch && branchNodes.map((n) => (
+                  <div key={n.tier} className="p-2 rounded-lg bg-white/90 dark:bg-slate-900/80 border border-purple-200/70 dark:border-slate-700 space-y-0.5">
+                    <div className="flex justify-between items-center font-bold">
+                      <span className="text-purple-950 dark:text-purple-200">
+                        {n.tierName.replace('益處', '')}【{n.name}】
+                      </span>
+                      <span className="font-mono text-purple-700 dark:text-purple-400 font-bold text-[10px]">
+                        {n.cost}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-stone-600 dark:text-stone-400 leading-relaxed">
+                      {renderTextWithAffinities(n.summary)}
+                    </p>
+                  </div>
+                ))}
+
+                {!branch && (
+                  <>
                 {/* 基礎：魔科技篡奪 */}
                 <div className="p-2 rounded-lg bg-white/90 dark:bg-slate-900/80 border border-purple-200/70 dark:border-slate-700 space-y-0.5">
                   <div className="flex justify-between items-center font-bold">
@@ -350,6 +394,8 @@ export default function TinkererGadgetsQuickRef({
                       花費 2 點 IP 免費執行咒語動作，施展已開發出原型的元素、熵系或靈魂學派咒語（遵循正常 MP 與檢定，使用後摧毀）。
                     </p>
                   </div>
+                )}
+                  </>
                 )}
               </div>
             </div>

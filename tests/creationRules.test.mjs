@@ -475,11 +475,28 @@ section('O. 2026-10-06 稽核修正：步驟次序、主題、姓名、屬性陣
 // O1 步驟次序：原書是「先選職業（第 4 步）再分配屬性（第 5 步）」（p.154／p.162）
 check('CREATION_STEPS 的順序是職業(2) 先於四維(3)，姓名在最後(6)',
   CREATION_STEPS.map((s) => s.label),
-  ['基礎身世', '職業與技能', '四維屬性', '裝備配置', '特質與命刻', '命名與背景']);
+  ['基礎身世', '職業與技能', '四維屬性', '裝備配置', '英雄技能與特質', '命名與背景']);
+
+// O1b 第 5 步的完成提示不得宣稱「已確認」。
+// 這一步在官方標準開卡規則下**沒有任何欄位**（英雄技能要精通職業才解鎖、金手指是選用規則），
+// `buildCreationChecklist` 因此永遠把它判成 done 並顯示 doneHint——寫「已確認」等於
+// 對玩家宣稱一件從未發生的事（2026-10-20 實測，見 `docs/playtest/findings.md` F-002）。
+check('第 5 步的 doneHint 不得宣稱「已確認」（該步在官方標準下無欄位）',
+  CREATION_STEPS.find((s) => s.id === 5).doneHint.includes('已確認'), false);
+check('第 5 步在兩份清單裡同名（導航列與進度清單不得各叫各的）',
+  CREATION_STEPS.find((s) => s.id === 5).label, '英雄技能與特質');
+
+// O1c 導航列的步驟名稱必須由 CREATION_STEPS 派生，不得再手抄一份。
+// 2026-10-20 之前是兩份硬編碼，而兩邊各有自己的測試釘住——於是**兩邊都綠、名稱卻不同**，
+// 導航列同一格出現「英雄技能與特質」與「特質與命刻」兩個名字（見 F-003）。
+const editorSrcForTabs = fs.readFileSync(
+  new URL('../src/features/character-sheet/components/CharacterEditor.jsx', import.meta.url), 'utf8');
+check('CharacterEditor 的 TABS 由 CREATION_STEPS 派生（不得硬編碼步驟標籤）',
+  /const TABS = CREATION_STEPS\.map\(/.test(editorSrcForTabs), true);
+
 check('姓名不再落在第 1 步（原書第 8 步，p.154／p.170）',
   validateCharacter(createNewCharacter()).warnings
-    .filter((w) => w.field === 'name').map((w) => w.step), [6]);
-check('第 1 步只剩身分／主題／故鄉（姓名已移出）',
+    .filter((w) => w.field === 'name').map((w) => w.step), [6]);check('第 1 步只剩身分／主題／故鄉（姓名已移出）',
   validateCharacter(createNewCharacter()).warnings
     .filter((w) => w.step === 1).map((w) => w.field), ['identity', 'theme', 'origin']);
 check('新角色有性別與角色背景兩個欄位（都預設空字串）',
@@ -585,8 +602,12 @@ check('規則 diff 餵回 resolve 會得到同一份規則（分享不會愈套�
 // O7 原始碼護欄
 const editorSrc = read('../src/features/character-sheet/components/CharacterEditor.jsx');
 const engineSrc = read('../src/features/character-sheet/utils/characterEngine.js');
-check('編輯器的分頁標籤是職業在四維之前',
-  editorSrc.indexOf("label: '職業與技能'") < editorSrc.indexOf("label: '四維屬性'"), true);
+// 原本這裡還有一條「編輯器的分頁標籤是職業在四維之前」——掃源碼裡
+// `label: '職業與技能'` 與 `label: '四維屬性'` 的出現位置。
+// 2026-10-20 起 `TABS` 由 `CREATION_STEPS` 派生（見 O1c），源碼裡已無那些字面量，
+// 掃字面量只會得到 -1 < -1 = false 的假失敗。順序的唯一來源因此是引擎的
+// `CREATION_STEPS`，而 **O1 已經釘住它**（職業(2) 先於四維(3)、姓名在最後(6)）；
+// 渲染層由 `test:ui` 的「導航列的順序也是職業在四維之前」釘住。這條因此退場，不是被放棄。
 check('編輯器不再寫死初始持有金幣 500',
   editorSrc.includes('character.zenit !== undefined ? character.zenit : 500'), false);
 check('編輯器不再自己算裝備花費（改呼叫 totalStartingEquipCost）',

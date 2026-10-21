@@ -7,6 +7,7 @@ import {
   GiMagnifyingGlass,
   GiMusicalNotes,
   GiBookCover,
+  GiDna2,
   GiShield
 } from 'react-icons/gi';
 import JRPGModal from '../../../components/ui/JRPGModal';
@@ -19,6 +20,11 @@ import {
   CHANTER_DATA
 } from '../data/skillSuboptionsData';
 import { findCodexRule } from '../data/ruleCodexData';
+import {
+  getTheriomorphosisRules,
+  describeTheriomorphosis,
+  isTheriomorphosisVariant
+} from '../data/theriomorphosisVariant';
 import { openRuleCodex } from '../utils/skillFormulaEvaluator';
 import rulesData from '../data/rulesData.json';
 
@@ -38,10 +44,21 @@ export default function SkillSuboptionModal({
   sl = 1,
   selectedOptions = [],
   onSave,
-  theme
+  theme,
+  variantId = null,
+  hasGreaterTheriomorphosis = false
 }) {
   const config = getSkillSuboptionConfig(className, skillName);
   const maxQuota = calculateSkillSuboptionMax(className, skillName, sl);
+
+  // 混合變形（公測 p.40 變體）：形態庫與配額不變，變的是「怎麼用」——
+  // 消耗 20 點 HP（原版是當前 HP 三分之一）、顯現至多兩個、之後可自由攻擊一次。
+  // 這些差異原本只寫在變體卡裡，挑選形態時看不到；寫在這裡，玩家在配額旁邊就看得到代價。
+  const isMutantForms = config?.type === 'mutant_forms';
+  const therioRules = isMutantForms ? getTheriomorphosisRules(variantId) : null;
+  const therioLines = isMutantForms
+    ? describeTheriomorphosis(therioRules, { hasGreater: hasGreaterTheriomorphosis })
+    : [];
 
   // 本技能有沒有對應的規則速查頁（用技能名當關鍵字查，例：植生術 → 花園與魔法種子）。
   // 有才顯示「規則速查」按鈕——沒有的技能不該多一顆按不出東西的按鈕。
@@ -326,6 +343,32 @@ export default function SkillSuboptionModal({
                   <div className="text-slate-600 mt-0.5">{vol.target}</div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* 混合變形：原版與公測變體的使用規則（形態庫與配額不變，變的是代價與後續動作） */}
+        {isMutantForms && (
+          <div
+            data-testid="therioform-rules"
+            className="p-3 rounded-xl bg-rose-50/60 border border-rose-200 text-xs space-y-1"
+          >
+            <div className="font-bold flex items-center gap-1.5 flex-wrap text-rose-900">
+              <GiDna2 className="w-4 h-4" />
+              <span>{therioRules.label}：使用方式</span>
+              {isTheriomorphosisVariant(variantId) && (
+                <span className="text-[9px] px-1.5 py-0.5 rounded border border-rose-300 bg-white font-bold">
+                  【公測】變體
+                </span>
+              )}
+            </div>
+            {therioLines.map((line) => (
+              <div key={line} className="text-[11px] leading-relaxed text-slate-700">
+                {line}
+              </div>
+            ))}
+            <div className="text-[11px] leading-relaxed text-slate-500">
+              形態庫與配額不受變體影響：每取得一級學一個形態（目前 SL {sl} → 上限 {maxQuota} 個）。
             </div>
           </div>
         )}

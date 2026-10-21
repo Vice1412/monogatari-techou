@@ -10,6 +10,7 @@ import { appendLog, createLogEntry } from './characterLog';
 import { findVariantHeroicSkillConflicts } from '../data/coreBookVariants';
 import { stripClassSuffix } from '../data/classAliases';
 import { VARIANT_ARCANIST_HEROIC_SKILLS } from '../data/variantArcanistHeroicSkills';
+import { isInitiativeVariant, getArmorProfile, initiativeVariantTermLabel } from '../data/initiativeVariant';
 
 // Dice ladder for step reductions
 const DICE_STEPS = [6, 8, 10, 12];
@@ -702,38 +703,44 @@ export const calculateCharacterStats = (char) => {
   const armorLabel = char.equipment?.armor || armorDef?.name || '';
   const shieldLabel = char.equipment?.offHand || shieldDef?.name || '';
 
+  // 先攻變體（公測材料 2026-10-01 p.34）：判定與側寫只在 `data/initiativeVariant.js` 一處，
+  // 這裡只負責「拿側寫來套公式」——與 `equipmentRules.computeArmorOutcome` 共用同一份判定，
+  // 才不會出現角色卡與裝備挑選視窗各算一份的分歧。
+  const initiativeVariant = isInitiativeVariant(char);
+  const armorProfile = getArmorProfile(armorDef, initiativeVariant);
+
   // 防具防禦公式 (輕甲使用當前靈巧，重甲使用固定數值)
-  if (armorDef) {
-    if (armorDef.defFormula === 'dex') {
+  if (armorDef && armorProfile) {
+    if (armorProfile.defFormula === 'dex') {
       def = currentDex;
       defTerms.push({ label: `當前${ATTRIBUTE_NAMES.dex} d${currentDex}`, value: currentDex, kind: 'base' });
-    } else if (armorDef.defFormula === 'dex+1') {
+    } else if (armorProfile.defFormula === 'dex+1') {
       def = currentDex + 1;
       defTerms.push({ label: `當前${ATTRIBUTE_NAMES.dex} d${currentDex}`, value: currentDex, kind: 'base' });
       defTerms.push({ label: `${armorLabel} ${ATTRIBUTE_NAMES.dex} + 1`, value: 1, kind: 'equip' });
-    } else if (armorDef.defFormula === 'dex+2') {
+    } else if (armorProfile.defFormula === 'dex+2') {
       def = currentDex + 2;
       defTerms.push({ label: `當前${ATTRIBUTE_NAMES.dex} d${currentDex}`, value: currentDex, kind: 'base' });
       defTerms.push({ label: `${armorLabel} ${ATTRIBUTE_NAMES.dex} + 2`, value: 2, kind: 'equip' });
-    } else if (!isNaN(parseInt(armorDef.defFormula, 10))) {
-      const fixedDef = parseInt(armorDef.defFormula, 10);
+    } else if (!isNaN(parseInt(armorProfile.defFormula, 10))) {
+      const fixedDef = parseInt(armorProfile.defFormula, 10);
       def = fixedDef;
       defTerms.push({ label: `${armorLabel} 固定值 ${fixedDef}`, value: fixedDef, kind: 'equip' });
     }
 
-    if (armorDef.mdefFormula === 'ins') {
+    if (armorProfile.mdefFormula === 'ins') {
       mdef = currentIns;
       mdefTerms.push({ label: `當前洞察 d${currentIns}`, value: currentIns, kind: 'base' });
-    } else if (armorDef.mdefFormula === 'ins+1') {
+    } else if (armorProfile.mdefFormula === 'ins+1') {
       mdef = currentIns + 1;
       mdefTerms.push({ label: `當前洞察 d${currentIns}`, value: currentIns, kind: 'base' });
       mdefTerms.push({ label: `${armorLabel} 洞察 + 1`, value: 1, kind: 'equip' });
-    } else if (armorDef.mdefFormula === 'ins+2') {
+    } else if (armorProfile.mdefFormula === 'ins+2') {
       mdef = currentIns + 2;
       mdefTerms.push({ label: `當前洞察 d${currentIns}`, value: currentIns, kind: 'base' });
       mdefTerms.push({ label: `${armorLabel} 洞察 + 2`, value: 2, kind: 'equip' });
-    } else if (!isNaN(parseInt(armorDef.mdefFormula, 10))) {
-      const fixedMdef = parseInt(armorDef.mdefFormula, 10);
+    } else if (!isNaN(parseInt(armorProfile.mdefFormula, 10))) {
+      const fixedMdef = parseInt(armorProfile.mdefFormula, 10);
       mdef = fixedMdef;
       mdefTerms.push({ label: `${armorLabel} 固定值 ${fixedMdef}`, value: fixedMdef, kind: 'equip' });
     }
@@ -800,17 +807,23 @@ export const calculateCharacterStats = (char) => {
 
   // 先攻修正
   let init = 0;
-  if (armorDef?.initMod) {
-    init += armorDef.initMod;
-    initTerms.push({ label: `${armorLabel} 先攻 ${armorDef.initMod > 0 ? '+' : ''}${armorDef.initMod}`, value: armorDef.initMod, kind: 'equip' });
-  }
-  if (shieldDef?.initMod) {
-    init += shieldDef.initMod;
-    initTerms.push({ label: `${shieldLabel} 先攻 ${shieldDef.initMod > 0 ? '+' : ''}${shieldDef.initMod}`, value: shieldDef.initMod, kind: 'equip' });
-  }
-  if (char.equipment?.accessory === '風行長靴') {
-    init += 2;
-    initTerms.push({ label: '飾品 風行長靴 先攻 +2', value: 2, kind: 'equip' });
+  if (initiativeVariant) {
+    // 先攻變體：先攻值**不存在**。原文說「影響先攻的規則與效果一律忽略，不要換成別的加值」，
+    // 所以防具減值、盾牌、飾品加值全部不算，明細也不留——只留一列說明這格為什麼是 0。
+    initTerms.push({ label: initiativeVariantTermLabel(), value: '—', kind: 'base' });
+  } else {
+    if (armorProfile?.initMod) {
+      init += armorProfile.initMod;
+      initTerms.push({ label: `${armorLabel} 先攻 ${armorProfile.initMod > 0 ? '+' : ''}${armorProfile.initMod}`, value: armorProfile.initMod, kind: 'equip' });
+    }
+    if (shieldDef?.initMod) {
+      init += shieldDef.initMod;
+      initTerms.push({ label: `${shieldLabel} 先攻 ${shieldDef.initMod > 0 ? '+' : ''}${shieldDef.initMod}`, value: shieldDef.initMod, kind: 'equip' });
+    }
+    if (char.equipment?.accessory === '風行長靴') {
+      init += 2;
+      initTerms.push({ label: '飾品 風行長靴 先攻 +2', value: 2, kind: 'equip' });
+    }
   }
 
   // 4. 熟練度比對
@@ -1441,13 +1454,22 @@ export const unlockCharacter = (char, { at, note = '' } = {}) => {
  * 為什麼姓名在**最後**（第 6 步）而不是第 1 步：原書第 8 步是「描述你的角色並選擇
  * 名字和稱呼」（p.154），p.170 給了理由——「先掌握了角色的外貌與能力，取名就容易多了」。
  * 舊版把它併進「基礎身世」，等於要玩家在還不知道自己是誰之前先取名字。
+ *
+ * 為什麼第 5 步的 `doneHint` 是「沒有需要設定的項目」而不是「已確認」：
+ * 這一步在官方標準開卡規則下**沒有任何欄位**——英雄技能要精通職業（10 級）才解鎖，
+ * 金手指是選用規則；所以 `buildCreationChecklist` 永遠把它判成 `done`。
+ * 原本的「特質與命刻已確認」是命刻還留在創角裡時的寫法，而命刻早已移出創角
+ * （見 `CharacterEditor.jsx` 第 5 步上方的說明）——留著等於對玩家宣稱一件沒發生的事。
+ *
+ * 為什麼 label 是「英雄技能與特質」：`CharacterEditor.jsx` 的 `TABS` **直接由這裡派生**
+ * （不再各自硬編碼），所以兩份清單的步驟名稱在結構上不可能再漂移。
  */
 export const CREATION_STEPS = Object.freeze([
   { id: 1, label: '基礎身世', doneHint: '身分、主題、故鄉都已填寫' },
   { id: 2, label: '職業與技能', doneHint: '職業組合與技能點數已配置' },
   { id: 3, label: '四維屬性', doneHint: '骰階點數已分配完成' },
   { id: 4, label: '裝備配置', doneHint: '武裝與防具已就緒' },
-  { id: 5, label: '特質與命刻', doneHint: '特質與命刻已確認' },
+  { id: 5, label: '英雄技能與特質', doneHint: '沒有需要設定的項目' },
   { id: 6, label: '命名與背景', doneHint: '姓名、性別與角色背景都已填寫' }
 ]);
 

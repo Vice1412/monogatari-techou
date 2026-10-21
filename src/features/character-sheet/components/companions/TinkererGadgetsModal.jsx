@@ -15,6 +15,14 @@ import {
 import JRPGButton from '../../../../components/ui/JRPGButton';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 import rulesData from '../../data/rulesData.json';
+import { SPELLS_DATA as NPC_SPELLS_DATA } from '../../../npc-workshop/data/spells';
+import {
+  getMagitechBranch,
+  getMagispherePool,
+  getMagisphereSlotCount,
+  getMagisphereOffensiveBonus,
+  MAGISPHERE_MAGIC_CHECK
+} from '../../data/gadgetBranches';
 
 /**
  * 修補匠【小工具】三大派系規則與節點元數據
@@ -142,9 +150,18 @@ export default function TinkererGadgetsModal({
   gadgetsData = {},
   tinkererSL = 1,
   characterLevel = 5,
+  /**
+   * 【小工具】選用的變體 id：`magitechArmament`／`magispheres`／null（核心）。
+   * 官方 p.38 把魔導科技拆成兩條互斥分支，**只換第三軌**——
+   * 煉金術與灌注術照舊，所以這裡只替換 `magitech` 那條軌道。
+   */
+  variantId = null,
   onSave
 }) {
   if (!isOpen) return null;
+
+  const branch = getMagitechBranch(variantId);
+  const isMagispheres = branch?.id === 'magispheres';
 
   // 當前分配狀態 (alchemy: 0~3, infusion: 0~3, magitech: 0~3)
   const [alchemyTier, setAlchemyTier] = useState(gadgetsData?.alchemy || 0);
@@ -153,21 +170,62 @@ export default function TinkererGadgetsModal({
   const [selectedSpells, setSelectedSpells] = useState(gadgetsData?.magitechSpells || []);
   const [spellSchoolFilter, setSpellSchoolFilter] = useState('全部');
 
-  const maxSpells = calculateMaxMagitechSpells(characterLevel);
-
   // 總分配點數
   const allocatedPoints = alchemyTier + infusionTier + magitechTier;
   const remainingPoints = tinkererSL - allocatedPoints;
 
+  /**
+   * 魔法球的咒語是「每個節點各挑 2 顆」（基礎 2／進階 4／上級 6）；
+   * 核心【魔法球原型】才是「最高益處一次挑 3～7 顆」。
+   */
+  const spellPickerUnlocked = isMagispheres ? magitechTier >= 1 : magitechTier >= 3;
+  const maxSpells = isMagispheres
+    ? getMagisphereSlotCount(magitechTier)
+    : calculateMaxMagitechSpells(characterLevel);
+  const offensiveBonus = isMagispheres ? getMagisphereOffensiveBonus(magitechTier) : 0;
+
   // 38 門核心法術（自元素、熵系、靈魂三大學派）
-  const allAvailableSpells = useMemo(() => {
+  const coreSpellPool = useMemo(() => {
     return (rulesData.spells || []).filter(s => ['元素', '熵系', '靈魂'].includes(s.school));
   }, []);
 
+  // 魔法球分支：依當前節點數組出可挑的咒語池（基礎＝至多三個生物、進階＝NPC 咒語、上級＝全部）
+  const magispherePool = useMemo(() => (
+    isMagispheres
+      ? getMagispherePool(magitechTier, { coreSpells: rulesData.spells, npcSpells: NPC_SPELLS_DATA })
+      : []
+  ), [isMagispheres, magitechTier]);
+
+  const spellPool = isMagispheres ? magispherePool : coreSpellPool;
+
+  const schoolFilterOptions = useMemo(() => {
+    if (!isMagispheres) return ['全部', '元素', '熵系', '靈魂'];
+    const seen = [];
+    for (const sp of magispherePool) {
+      if (!seen.includes(sp.school)) seen.push(sp.school);
+    }
+    return ['全部', ...seen];
+  }, [isMagispheres, magispherePool]);
+
   const filteredSpells = useMemo(() => {
-    if (spellSchoolFilter === '全部') return allAvailableSpells;
-    return allAvailableSpells.filter(s => s.school === spellSchoolFilter);
-  }, [allAvailableSpells, spellSchoolFilter]);
+    if (spellSchoolFilter === '全部') return spellPool;
+    const hit = spellPool.filter(s => s.school === spellSchoolFilter);
+    // 降階後篩選值可能已不存在（例如進階時選了「元素」）→ 退回全部，不要顯示空清單
+    return hit.length > 0 ? hit : spellPool;
+  }, [spellPool, spellSchoolFilter]);
+
+  /** 第三軌：核心三節點，或變體分支的三節點。 */
+  const tracks = useMemo(() => GADGET_TRACKS.map((track) => (
+    track.id === 'magitech' && branch
+      ? {
+        ...track,
+        name: branch.name,
+        subtitle: branch.subtitle,
+        icon: branch.id === 'magispheres' ? GiCrystalBall : track.icon,
+        nodes: branch.nodes
+      }
+      : track
+  )), [branch]);
 
   // 點擊節點處理函式
   const handleNodeClick = (trackId, clickedTier) => {
@@ -207,11 +265,16 @@ export default function TinkererGadgetsModal({
   };
 
   const handleSave = () => {
+    // 咒語只在「這條分支真的有咒語欄位」時寫入；降階後掉出咒語池的選擇一併丟棄
+    // （與核心版「降階即清空」的既有語意一致）。
+    const keptSpells = spellPickerUnlocked
+      ? selectedSpells.filter(name => spellPool.some(sp => sp.name === name))
+      : [];
     onSave({
       alchemy: alchemyTier,
       infusion: infusionTier,
       magitech: magitechTier,
-      magitechSpells: magitechTier >= 3 ? selectedSpells : []
+      magitechSpells: keptSpells
     });
     onClose();
   };
@@ -226,13 +289,20 @@ export default function TinkererGadgetsModal({
             <GiCog className="w-6 h-6 animate-spin-slow text-amber-100" />
             <div>
               <h2 className="text-base sm:text-lg font-black tracking-wide flex items-center gap-2">
-                <span>修補匠【小工具】科技樹配置</span>
+                <span>{branch ? `修補匠【${branch.name}】科技樹配置` : '修補匠【小工具】科技樹配置'}</span>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-white/20 font-mono font-normal">
                   技能等級 SL {tinkererSL}
                 </span>
+                {branch && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-white/25 font-bold">
+                    【公測】分支
+                  </span>
+                )}
               </h2>
               <p className="text-[11px] text-amber-100 opacity-90">
-                三橫線進度節點樹 · 總解鎖節點數不可超過當前特技等級 (上限 5 點)
+                {branch
+                  ? `魔導科技已拆為兩條互斥分支（p.38）：煉金術與灌注術照舊，第三軌改用【${branch.name}】的三個節點`
+                  : '三橫線進度節點樹 · 總解鎖節點數不可超過當前特技等級 (上限 5 點)'}
               </p>
             </div>
           </div>
@@ -276,7 +346,7 @@ export default function TinkererGadgetsModal({
           
           {/* 三大派系科技橫線 */}
           <div className="space-y-5">
-            {GADGET_TRACKS.map((track) => {
+            {tracks.map((track) => {
               const TrackIcon = track.icon;
               let currentTier = 0;
               if (track.id === 'alchemy') currentTier = alchemyTier;
@@ -410,28 +480,32 @@ export default function TinkererGadgetsModal({
             })}
           </div>
 
-          {/* 若魔導科技解鎖最高益處（魔法球原型）：顯示原型咒語自選區 */}
-          {magitechTier >= 3 && (
+          {/* 咒語自選區：核心是最高益處的「魔法球原型」，變體魔法球則是每個節點各 2 顆 */}
+          {spellPickerUnlocked && (
             <div className="p-4 rounded-xl border border-purple-300 dark:border-purple-700/80 bg-purple-50/40 dark:bg-purple-950/20 space-y-3.5 animate-fade-in">
               <div className="flex items-center justify-between gap-2 flex-wrap border-b border-purple-200 dark:border-purple-800 pb-2.5">
                 <div className="flex items-center gap-2">
                   <GiCrystalBall className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   <div>
                     <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
-                      <span>魔法球原型咒語研發</span>
+                      <span>{isMagispheres ? '魔法球研發' : '魔法球原型咒語研發'}</span>
                       <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-purple-200 dark:bg-purple-900 text-purple-900 dark:text-purple-200 font-bold">
-                        已配置 {selectedSpells.length} / {maxSpells} 門
+                        已配置 {selectedSpells.length} / {maxSpells} {isMagispheres ? '顆' : '門'}
                       </span>
                     </h3>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      自元素、靈魂、熵系學派中任意挑選（5級 3門 · 20級 5門 · 40級 7門），日後戰鬥中可花費 2 IP 快捷施放
+                      {isMagispheres
+                        ? `每個節點各 2 顆 · 施法檢定一律 ${MAGISPHERE_MAGIC_CHECK}`
+                          + `${offensiveBonus ? ` · 攻擊性咒語 +${offensiveBonus}` : ''}`
+                          + ' · 不可選【毀盪】'
+                        : '自元素、靈魂、熵系學派中任意挑選（5級 3門 · 20級 5門 · 40級 7門），日後戰鬥中可花費 2 IP 快捷施放'}
                     </p>
                   </div>
                 </div>
 
                 {/* 學派篩選器 */}
                 <div className="flex items-center gap-1 bg-white dark:bg-slate-800 p-1 rounded-lg border border-purple-200 dark:border-purple-800">
-                  {['全部', '元素', '熵系', '靈魂'].map((sc) => (
+                  {schoolFilterOptions.map((sc) => (
                     <button
                       key={sc}
                       type="button"
@@ -470,7 +544,10 @@ export default function TinkererGadgetsModal({
                         <div className="flex items-center justify-between gap-1 mb-1">
                           <span className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                             <span className={`w-2 h-2 rounded-full ${
-                              sp.school === '元素' ? 'bg-red-500' : sp.school === '靈魂' ? 'bg-cyan-500' : 'bg-purple-500'
+                              sp.school === '元素' ? 'bg-red-500'
+                                : sp.school === '靈魂' ? 'bg-cyan-500'
+                                  : sp.school === 'NPC' ? 'bg-stone-500'
+                                    : 'bg-purple-500'
                             }`} />
                             {sp.name}
                           </span>
@@ -484,9 +561,13 @@ export default function TinkererGadgetsModal({
                       </div>
 
                       <div className="pt-2 mt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                        <span>{sp.school}魔法 · {sp.duration || '瞬發'}</span>
+                        <span>
+                          {sp.source === 'npc'
+                            ? `NPC 咒語 · 需自訂化${sp.isOffensive && offensiveBonus ? ` · 攻擊性 +${offensiveBonus}` : ''}`
+                            : `${sp.school}魔法 · ${sp.duration || '瞬發'}`}
+                        </span>
                         <span className={`font-bold ${isChecked ? 'text-purple-700 dark:text-purple-300' : 'text-slate-400'}`}>
-                          {isChecked ? '已收錄原型' : '點擊選取'}
+                          {isChecked ? (isMagispheres ? '已開發魔法球' : '已收錄原型') : '點擊選取'}
                         </span>
                       </div>
                     </div>

@@ -37,6 +37,7 @@ import {
   heroicSkillMaxAcquisitions,
   heroicSkillsForClass
 } from '../utils/characterEngine';
+import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
 
 /** 表格本體（可獨立 SSR 測試） */
 export function HeroicSkillPickerBody({
@@ -201,7 +202,7 @@ export function HeroicSkillPickerBody({
                   className="px-3 py-2 leading-relaxed whitespace-pre-line"
                   style={{ color: theme.textDark || '#3c2415' }}
                 >
-                  {h.effect}
+                  {resolveHeroicSkillEffect(h.name, h.effect, character)}
                 </td>
                 <td className="px-3 py-2 text-center">
                   <button

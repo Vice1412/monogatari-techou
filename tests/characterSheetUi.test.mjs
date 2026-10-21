@@ -524,10 +524,27 @@ check('編輯器對 initialTab 做夾制（最後一道防線）',
   [true, true]);
 check('TAB_COUNT 與實際分頁數綁在一起（改了一邊就會在執行時拋錯）',
   editorCode.includes('TABS.length !== TAB_COUNT'), true);
-check('分頁標籤序列就是創角步驟（順序即流程）',
-  (editorCode.match(/id: \d+, label: '([^']+)' \}/g) || [])
-    .map((row) => /label: '([^']+)'/.exec(row)[1]),
-  ['基礎身世', '職業與技能', '四維屬性', '裝備配置', '英雄技能與特質', '命名與背景']);
+// 這條原本是掃源碼裡的 `{ id: N, label: '...' }` 硬編碼行。
+// 2026-10-20 起 `TABS` 由 `CREATION_STEPS` 派生（單一來源，見 playtest F-003），
+// 源碼裡不再有那些行——所以改成**從實際渲染結果**驗證。
+// 這比掃源碼更接近玩家看到的東西：掃源碼只證明「字串寫在某處」，
+// 渲染結果才證明「它真的出現在導航列上、而且順序對」。
+const NAV_LABELS = ['基礎身世', '職業與技能', '四維屬性', '裝備配置', '英雄技能與特質', '命名與背景'];
+const editorNavHtml = renderToStaticMarkup(React.createElement(CharacterEditor, {
+  character: createNewCharacter({ name: '標籤測試' }),
+  themeId: 'emerald',
+  onChange: () => {},
+  showToast: () => {}
+}));
+check('導航列把六個創角步驟全部畫出來（順序即流程）',
+  NAV_LABELS.filter((label) => editorNavHtml.includes(label)).length, 6);
+// 這裡**不**重複斷言順序。順序已由同檔兩條既有護欄釘住：
+// 「導航列的順序也是職業在四維之前」與「第 6 步排在英雄技能與特質之後（導航列的最後一格）」。
+// 硬要用 indexOf 驗證整串順序會假失敗——這些步驟名在整份 HTML 裡出現 2~4 次
+// （第 1 步內容區、進度提示、導航列），實測 `indexOf` 給出
+// [508, 9052, 9814, 2949, 11328, 12353]，其中「裝備配置」@2949 是內容區而非導航列；
+// `lastIndexOf` 同樣被 DOM 末尾的重複打亂。要驗整串就得先切出導航列容器，
+// 而那個容器的 class 不是穩定契約——為了一條重複的斷言去釘死 class，不值得。
 // 這條以前是數 `icon: 'xxx' }` 的個數——但那個欄位**從來沒有被讀取**（導航列畫的是編號徽章），
 // 等於用死資料當護欄：只要有人照著補一個 icon，數字就對了，標籤寫什麼都不會被抓到。
 check('TABS 不再帶著沒有人讀取的 icon 欄位',
@@ -1251,6 +1268,72 @@ const heroicBlockCore = renderToStaticMarkup(React.createElement(ClassHeroicSkil
 // 空清單時整個元件回 null——所以「有內容」就等於「這個職業真的解鎖得到英雄技能」。
 check('變體職業卡有英雄技能入口（不是空的）', heroicBlockVariant.length > 0, true);
 check('核心職業卡也有英雄技能入口', heroicBlockCore.length > 0, true);
+
+// ─────────────────────────────────────────────────────────── BH
+section('BH. 無障礙契約：狀態訊息要播報得到（2026-10-20 playtest S1）');
+
+// BH1 toast 必須是**常駐**的 live region。
+// 條件渲染整個容器（`{msg && <div/>}`）不會觸發播報——live region 要先存在於 DOM，
+// 內容變化才會被念出來。原本的寫法正是條件渲染，所以只加 role 也不會動。
+const sheetSrc = fs.readFileSync(
+  new URL('../src/features/character-sheet/CharacterSheet.jsx', import.meta.url), 'utf8');
+// ⚠️ 這裡刻意用 `<div\s+role=` 而不是 `includes('role="status"')`——
+// 後者會被 `data-role="status"` 這個**子字串**滿足（2026-10-20 刻意破壞驗證時實測：
+// 把 role 改成 data-role，斷言仍然 PASS）。這正是 AGENTS.md §1 警告的
+// 「斷言子字串前先問：這個字串在別處是不是也有」。
+check('toast 容器帶 role="status"', /<div\s+role="status"/.test(sheetSrc), true);
+check('toast 無訊息時以 sr-only 收起來（容器常駐，不是條件渲染）',
+  sheetSrc.includes("'sr-only'"), true);
+// 上一條只證明「有 sr-only」。這一條直接釘住**意圖**：
+// 容器不得被 `{toastMessage && (<div …>)}` 這種條件渲染包住——那樣子節點每次都是新的，
+// live region 不會播報。原本的寫法正是如此，所以補 role 也不會動。
+check('toast 容器不是條件渲染的（條件渲染會讓 live region 失效）',
+  /\{toastMessage && \(\s*<div/.test(sheetSrc), false);
+
+// BH2 星級指示器的 glyph 必須 aria-hidden。
+// `.fu-icon` 的 `w` 是字型映射碼，視覺上是星芒；沒有 aria-hidden 的話
+// 螢幕閱讀器會把「阿爾卡納圓環 SL 0/4」念成「阿爾卡納圓環 w w w w SL 0/4」。
+const pipsSrc = fs.readFileSync(
+  new URL('../src/features/character-sheet/components/SkillStarPips.jsx', import.meta.url), 'utf8');
+check('SkillStarPips 的 glyph span 帶 aria-hidden',
+  /aria-hidden="true"[\s\S]{0,200}fu-icon/.test(pipsSrc), true);
+
+// ─────────────────────────────────────────────────────────── BI
+section('BI. 技能配點到上限時要說明原因（2026-10-20 playtest S1 的 F-006）');
+
+// F-006：到達 SL 上限後，`+` 只是 `disabled:opacity-20` 變淡，`title` 卻還寫著
+// 「增加 1 級」——新手唯一的解釋是「壞了」。修法有兩層：`title` 隨狀態改，
+// 且理由**同時寫在畫面上**（`title` 要 hover 才看得到，而新手不會去 hover 一顆灰按鈕）。
+// 這裡靠 `initialDraft` 注入點把草稿直接塞到滿級——那是只有點擊才會出現的狀態。
+const pickerAtSL = (className, skillName, sl) => renderToStaticMarkup(React.createElement(ClassPickerModal, {
+  isOpen: true, onClose: () => {},
+  theme: {},
+  enabledBooks: ['core'],
+  onToggleSourcebook: () => {},
+  onSetSourcebooks: () => {},
+  existingClassNames: [],
+  onSelectClasses: () => {},
+  budgetUsed: 0,
+  initialClassName: className,
+  panelOnly: true,
+  initialDraft: { [className]: { [skillName]: sl } }
+}));
+
+const cappedHtml = pickerAtSL('秘儀師', '阿爾卡納圓環', 4);
+const belowCapHtml = pickerAtSL('秘儀師', '阿爾卡納圓環', 2);
+check('滿級時畫面上出現「已達上限」（不只在 title 裡）',
+  cappedHtml.includes('已達上限'), true);
+// ⚠️ 不能對整份 HTML 做「不得包含『增加 1 級』」的否定——秘儀師有多個技能，
+// 只有一個被塞到滿級，其餘技能的 `+` 當然還是「增加 1 級」。
+// 要比**次數**：滿級態剛好比未滿級態少一次（2026-10-20 首次寫成全局否定，假失敗）。
+check('滿級時 title 說的是上限',
+  cappedHtml.includes('已達此技能的 SL 上限'), true);
+check('滿級那一個技能的 title 不再說「增加 1 級」（少一次，其餘技能不受影響）',
+  countOf(belowCapHtml, '增加 1 級') - countOf(cappedHtml, '增加 1 級'), 1);
+check('未滿級時不出現「已達上限」（條件渲染，不佔平時版面）',
+  belowCapHtml.includes('已達上限'), false);
+check('未滿級時 title 仍是「增加 1 級」（修復沒有把正常態一起改掉）',
+  belowCapHtml.includes('增加 1 級'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

@@ -1,4 +1,4 @@
-# AGENTS.md 變更紀錄
+﻿# AGENTS.md 變更紀錄
 
 > 本檔原為 `AGENTS.md` 的尾端附錄。2026-10-04 拆分出來，原因：
 > `AGENTS.md` 已達 68,142 bytes，**超過 harness 的 workspace instruction 注入預算（65,536 bytes）**，
@@ -689,3 +689,57 @@
 *教訓：**「先壓縮」是症狀，「東西放錯檔案」才是病。** 判斷標準不是「這段夠不夠短」，而是「**這段之後會一直變長嗎**」——會無限變長的東西不能住在上限檔案裡，**短也不例外**。這也是 §7.1 判準的第二次驗證：`AGENTS.md` 只該住「規則本體」，紀錄一律去 `docs/decisions.md`。*
 
 *※ 純文件改動，未動 `src/` 與 `tests/`；`npm test`／`npm run build` 不受影響（沒有任何測試讀 `AGENTS.md`）。*
+
+*2026-10-20（第三則）：修補匠魔導科技分支（公測 p.38）——【魔法球】整條分支從零實裝。使用者指令「開始」，接的是上一輪缺口稽核的 G1 項：公測 p.38 `BRANCHING MAGITECH` 把【小工具】第三軌拆成【魔導武裝】與【魔法球】兩條互斥分支，而專案只有前者有變體條目、**兩者都不看 `variantId`**——選了魔導武裝，畫面上仍是核心的【魔科技篡奪／魔加農／魔法球原型】。*
+
+*新增 `src/features/character-sheet/data/gadgetBranches.js`：分支表 `MAGITECH_BRANCHES`（兩條 × 三節點，形狀刻意與核心 `GADGET_TRACKS` 相同）、`getMagitechBranch()`、`getMagispherePool()`、`getMagisphereSlotCount()`（0/2/4/6）、`getMagisphereOffensiveBonus()`（進階起 +2）、`isUpToThreeCreaturesTarget()`、`resolveSpellPlaceholders()`、`MAGISPHERE_MAGIC_CHECK = '【INS＋WLP】'`、`MAGISPHERE_EXCLUDED_SPELLS = ['毀盪']`。分支 id **等於**變體 id，所以不需要新的持久化欄位——`skills[].variantId` 就是唯一真相。*
+
+*變體 7 → 8 筆（新增 `magispheres`，取代【小工具】、上限 5、**不帶** `excludesHeroicSkills`——「不可取得量子魔加農」只屬於魔導武裝）。`TinkererGadgetsModal` 的 `tracks` 依分支換掉第三軌、咒語挑選器改由分支決定何時解鎖（魔法球**基礎就解鎖**，核心要上級）、顆數上限與 +2 說明跟著分支走；`TinkererGadgetsQuickRef` 的標籤／收合標籤／展開卡片全部改讀分支節點（核心文字逐字保留）；`ClassSkillCard` 的技能列標籤由 `魔導 進階` 變成 `魔法球 進階`，兩處呼叫端與彈窗、`CharacterPlayHUD` 的速查全部帶上 `variantId`。*
+
+*咒語池的數字不是猜的：核心 38 筆裡目標為「至多三個生物」的共 **16 筆**，但資料層**兩種寫法並存**（`至多3個生物` 7 筆、`至多三個生物` 9 筆），判定正則必須吃 `[3三]`；NPC 咒語 39 筆扣掉【毀盪】＝38，其中 25 筆與核心同名。故基礎 **16**、進階 **16＋24＝40**（累積）、上級 **38＋13＝51**。*
+
+*測試：`test:variants` 新增 §R **60 條**（分支表對齊、咒語池三階、顆數與 +2 與 `INS＋WLP`、彈窗／速查在 `null`／`magitechArmament`／`magispheres` 三態的 SSR 內容、角色卡技能列標籤）；總數 165 → **225 條**。刻意破壞驗證 2 輪（皆還原）：正則 `[3三]`→`[3]` → **5 條 FAIL**；第三軌的分支替換加 `&& false`（回到分支盲）→ **5 條 FAIL**。`npm test` **22 道全過 exit 0**；`npm run build` exit 0（chunk-size 警告為既有現象）；`test:emoji` 0 命中。決策紀錄見 `docs/decisions.md` §BJ（BJ1–BJ7）。*
+
+*兩個教訓：① **顯示分支時最容易犯的錯不是「新內容沒印」，而是「舊內容沒收起來」**——分支盲的那個 bug 在畫面上完全正常（就是三張卡），只有斷言**不該出現的字串**抓得到。② **React SSR 會在相鄰文字節點之間插入 `<!-- -->`**，`{branch.name} {tier}` 渲染成 `魔法球<!-- --> <!-- -->進階`，直接 `includes('魔法球 進階')` 恆假——§R 因此在檔內加 `plain()` 先剝註解。*
+
+*遺留（刻意不動）：`TinkererGadgetsModal.jsx:115`／`:117` 的【魔科技篡奪】對抗檢定寫成【INS + INS】，與 `ruleCodexData.js:243` 及核心 p.215 的【INS＋WLP】不一致；那是核心文字，與分支無關，要改需先回原書 p.215 逐字核對。*
+
+*※ `AGENTS.md` 僅在 §1 的 `test:variants` 一行補上「魔導科技分支三態渲染」與 §BJ，未新增索引列（依 §BI 新規則，索引只寫進 `docs/decisions.md`）。*
+
+*2026-10-21：混合變形**變體**（公測 p.40）——四件不在形態庫裡的事。使用者指令「接著做」，接的是缺口稽核的 G2 項。這一項的性質與 G1 相反：G1 是「整條分支零支援」，G2 是**「資料早就對了，所以看不出來少東西」**——`MUTANT_THERIOFORMS`（12 個形態）、配額公式（每級一個）、彈窗、跑團卡全部正常運作，選了 `theriomorphosisVariant` 之後**遊戲層面完全沒有任何差別**，只有變體描述文字換了。畫面全綠、沒有 console、沒有 `undefined`，這是比缺功能更難發現的缺口。*
+
+*官方 p.40 的四件事：① HP 消耗由「當前 HP 三分之一」改為**固定 20 點**；② 之後獲得**一次自由攻擊**（用已裝備武器、**高擲視為 0**、**透過【基因分析】執行時沒有這次攻擊**）；③ 【進階混合變形】由「三個形態 ＋ 追加一個動作」改為**三個形態、沒有追加動作**；④ 形態庫與配額**完全不變**。※ 官方在變體段落裡是「**沒再提**」追加動作，而不是寫「取消」——但它同時把數字由兩個改成三個，證明作者是有意識地重寫那條英雄技能，所以「沒提」＝「沒有」。*
+
+*新增 `src/features/character-sheet/data/theriomorphosisVariant.js`：`THERIOMORPHOSIS_RULES`（`Object.freeze`，只存介面要用的欄位）、`getTheriomorphosisRules()`（**任何不等於變體 id 的值一律退回原版**，含 `undefined`／`''`／`'magispheres'`）、`getTheriomorphosisHpCost()`、`getManifestCap()`、`findTheriomorphosisSkill()`、`isTheriomorphosisVariantAdopted()`、`hasGreaterTheriomorphosis()`、`GREATER_THERIOMORPHOSIS_VARIANT_EFFECT`、`resolveHeroicSkillEffect()`、`describeTheriomorphosis()`。`coreBookVariants.js` 的 `theriomorphosisVariant` 描述補上「（原版是消耗當前 HP 的三分之一）」與【進階混合變形】的改寫全文。*
+
+*英雄技能的文本改寫走**顯示層覆蓋**，**永不回寫** `character.heroicSkills[].effect`：`effect` 是「取得當下是什麼」的快照（與 §W 履歷同一原則），回寫等於竄改履歷、也讓「取消變體」回不去原版。四個顯示點全部接上——`CharacterCard`、`CharacterEditor`、`CharacterSheetExport`，以及**最容易漏的 `HeroicSkillPickerModal`**（那裡顯示的是「還不是你的技能」）。*
+
+*介面三個落點共用同一個 `describeTheriomorphosis()`，不各自拼字串：`ClassSkillCard` 的技能列晶片（`【公測】變體：消耗 20 點 HP・顯現至多 N 個`，N 依有沒有【進階混合變形】為 2 或 3——代價必須在**沒點開任何東西**時就看得到）、`SkillSuboptionModal` 的規則區塊（`data-testid="therioform-rules"`）、`SuboptionDetailsList` 的常駐使用方式（`data-testid="therioform-usage"`，跑團卡看的是這個）。`variantId` 由 `ClassSkillCard` 的兩處呼叫端一路傳到 `SkillSuboptionBar` 與 `CharacterPlayHUD`。*
+
+*測試：`test:variants` 新增 §S **53 條**（規則表與凍結／HP 消耗計算含「HP 未知 → 0」／顯現上限 2 與 3／角色層偵測含英雄技能兩種形狀／文本改寫含「其他技能不受影響」／SSR 三角落），總數 225 → **278 條**。刻意破壞驗證 3 輪（皆還原）：變體盲（規則函式對變體 id 也回原版）→ **11 條 FAIL**；`resolveHeroicSkillEffect` 直接回傳原文 → **3 條 FAIL**（含角色卡 SSR）；`ClassSkillCard` 的 `variantId` 一律傳 `null` → **5 條 FAIL**（含既有 §R6 的魔法球標籤）。`npm test` **22 道全過 exit 0**；`npm run build` exit 0；`test:emoji` 0 命中。決策紀錄見 `docs/decisions.md` §BK（BK1–BK7）。*
+
+*三個教訓：① **「功能已經存在」是最強的錯誤掩護**——稽核要問的不是「這功能有沒有」，而是「官方這一段裡，有哪一句是程式沒有對應的」。② **斷言「不該出現的字串」時，該字串可能在別處**：「20 點 HP」同時在變體描述與技能列晶片裡，對整份 HTML 斷言會恆真；§S 把晶片區段切出來比，而**切片必須先剝掉 `<svg>`**（`GiDna2` 的路徑資料本身數千字元，把窗口開大只是換成「比對到自己的圖示」）——這是 §AW6(c)／§BJ6② 之後**第三次**踩到同型問題。③ **英雄技能的文字有四個顯示點，改一個不算改**。*
+
+*遺留（刻意不動）：① 若玩家先買【進階混合變形】再勾變體，取得當下的文本是原版——這是**正確**的快照語意，但介面沒有「之後會變」的預告，要補需先裁定文案。② 【基因分析】的「不走自由攻擊」目前只在說明文字裡，跑團卡沒有「這次是不是走基因分析」的開關，所以自由攻擊**沒有自動化結算**。*
+
+*※ `AGENTS.md` 僅在 §1 的 `test:variants` 一行補上「混合變形變體四規則」與 §BK，未新增索引列（依 §BI 新規則，索引只寫進 `docs/decisions.md`）。本輪後 `AGENTS.md` 51,184 bytes（餘裕 **14,352**）——已略低於 §7 的約 15,000 門檻。**本輪不壓縮**：依 §7 的判準，門檻觸發時要檢查的是「有沒有東西放錯檔案」，而本輪新增的 81 bytes 全在 §1 的測試關卡描述（規則本體），沒有紀錄混進來；真要再降，該動的是 §1／§4 的既有冗述，不是再刪一次「為什麼」。*
+
+*2026-10-21：先攻**變體規則**（公測 p.34）——一條規則、三個落點、四個顯示點。使用者指令「繼續」，接的是缺口稽核的 R1 項。這一項與 G1／G2 不同：它不缺資料、也不缺功能，而是**專案裡唯一一筆「已知有落差」**——`AGENTS.md` §6.1 那列寫著「本團玩先攻變體，但應用程式仍以核心規則值為準」，狀態是「待裁定」。規則早就讀過，只是沒地方住。*
+
+*官方 p.34 三條後果：① 影響先攻的規則與效果**不再存在**（若某選項給先攻好處，**不要換成別的好處，直接忽略**）；② 防具**不再提供先攻減值**，這讓旅行皮甲與戰鬥輕甲完全相同，所以**戰鬥輕甲的側寫改為物防 +2／魔防 +0**（以它為基礎的稀有物品同理）；③ **NPC 不再有先攻值**，精英與冠位不提高它，NPC 技能【強化先攻】不可用。另有兩條排序規則：沒有反派 → 英雄方先攻；有反派 → 敵方先攻。*
+
+*住哪裡是這一輪的主要判斷。專案已有的變體分兩類：變體**技能**住 `skills[].variantId`／`heroicSkills`（**每個玩家各自選**），變體**規則**（稀有武器命中、暴擊傷害、經驗來自 Fabula 點數）是**整團採用**。先攻兩邊都不屬於——它像規則一樣整團一份，卻像技能一樣**逐角色改變算出來的數字**。因此新增第三種住法：`creationRules.initiativeVariant`（與 `startingLevel`／`allowPlaytest` 同層，跟著角色的規則 diff 存），預設 **`false`**。預設值在這裡比其他欄位重要得多：`resolveCreationRules` 是舊存檔的唯一入口，預設若不是 false，既有角色的防禦與先攻會在載入時**無聲改變**。*
+
+*新增 `src/features/character-sheet/data/initiativeVariant.js`（純資料＋純函式，零 React）：`isInitiativeVariant()`（**唯一判定入口**，只認字面上的 `true`；`'true'`、`1` 一律不算）、`getArmorProfile()`（回 `{defFormula, mdefFormula, initMod}`，**不改原物件**）、`resolveArmorDesc()`（**顯示字串**也跟著變）、`formatInitiative()`（`'不計'` 或帶號字串）、`describeInitiativeOrder()`、`armorDescChangesUnderVariant()`、`INITIATIVE_VARIANT_RULES`（`Object.freeze`）。*
+
+*消費端七個，全部走同一份判定：`characterEngine`（先攻區塊與防具公式改讀 `armorProfile`）、`equipmentRules.computeArmorOutcome`（新增第三個參數）、`CharacterCard`／`CharacterPlayHUD`／`CharacterSheet`／`CharacterSheetExport`（顯示）、`EquipmentPickerModal`（裝備表的先攻欄與說明）、`CharacterEditor`（防具欄）、`CreationRulesPanel`（開關本身）。*
+
+*「忽略」的實作方式值得記下來：**不是把 +2 改成別的加值，也不是保留 +2 再整體歸零**。前者違反原文「不要換成別的好處」，後者會讓明細列出「風行長靴 先攻 +2」卻算出 0——**說明與數字相反，比沒實作更糟**。所以變體開啟時整個先攻區塊不算，明細只留一列 `本團採用先攻變體：不使用先攻值`。*
+
+*測試：新增 `tests/initiativeVariant.test.mjs` 並註冊 `test:initiative`（`npm test` 串鏈 **22 → 23 道**），**95 條**：A 規則資料與純中文（白名單外零拉丁字母）、B 判定（六種壞值）、C 開卡規則欄位、D 防具側寫九件 × 兩態（只有戰鬥輕甲換公式、其餘公式逐字不變）、E 說明文字（關閉時九件逐字不變／開啟時零「先攻」／會變的共八件）、F 裝備試算兩態、G 引擎整合（含 `風行長靴` 被忽略、明細只剩一列）、H 顯示字串（含 `+-4` 不再可能出現）、I 原始碼護欄（引擎不得再讀 `armorDef.initMod`／`armorDef.defFormula`，四個顯示點必須走 `formatInitiative`）、J SSR 兩態（角色卡與裝備表）。刻意破壞驗證 4 輪（皆還原）：判定永遠 false → **12 條 FAIL**；引擎先攻守衛改 `if (false)` → **只有 2 條 FAIL**；`resolveArmorDesc` 不跟著變 → **8 條 FAIL**；角色卡改回寫死 → **3 條 FAIL**。`npm test` **23 道全過 exit 0**；`npm run build` exit 0（chunk-size 警告為既有現象）；`test:emoji` 0 命中。決策紀錄見 `docs/decisions.md` §BL（BL1–BL6）。*
+
+*三個教訓：① **顯示字串也是規則的一部分，而且它會比數值更晚被想起來**——第一版只改數字，裝備表的說明仍寫「…先攻 -1」，數字欄印 `±0`、隔壁印「先攻 -1」，兩個都對、合起來是錯的。只要資料裡有一份人類可讀的說明，改規則就得改它。② **`+-4` 這個既有 bug 是變體把它變成常態的**：核心規則下防具減值很少被注意，先攻變體一開，那一格變成主角。③ **刻意破壞驗證這次分出了「兩層」的差別**——只做「判定永遠 false」會得到「95 條都很靈敏」的錯覺；引擎守衛那輪只掉 2 條才是真相的正確形狀（防具那半已走側寫，側寫本身就是 0），證明兩層各自被不同斷言釘住，而不是同一條 assertion 罩兩次。*
+
+*遺留（刻意不動）：① **NPC 端沒有接線**——`INITIATIVE_VARIANT_RULES` 的 `npcInitiative`／`eliteChampionInitiative`／`npcImprovedInitiative` 三個欄位只有資料、沒有消費端：NPC 工坊沒有開卡規則面板，而這是整團規則，硬接等於替 NPC 另造一個開關。**寧可留白，不要假裝覆蓋。** ② 三頁匯出的資料模型裡先攻仍是 `number`（外部工具要讀），變體開啟時只有**顯示**印「不計」。 ③ 「沒有反派 → 英雄方先攻」目前只有 `describeInitiativeOrder()` 這個純函式，`combat-tracker` 尚未呼叫（該模組的輪次狀態機本來就是已知缺口）。*
+
+*※ `AGENTS.md` 改了三處：§1 的測試關卡清單（22 → **23 道**，新增 `test:initiative` 一行）、§4 E 的同一數字、§6.1 的「先攻變體是否套用」一列（待裁定 → **已結案**，指向 §BL）。依 §BI 新規則，索引只寫進 `docs/decisions.md`。本輪後 `AGENTS.md` **51,654 bytes（餘裕 13,882）**——首次低於 §7 的約 15,000 門檻。**本輪不壓縮**：新增的 470 bytes 全在規則本體（測試關卡描述與未決清單狀態），沒有一筆紀錄混進來；依 §7 的判準，門檻觸發時要檢查的是「有沒有東西放錯檔案」，而答案是否。*

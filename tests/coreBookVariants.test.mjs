@@ -47,7 +47,34 @@ import {
 import { createNewCharacter, validateCharacter } from '../src/features/character-sheet/utils/characterEngine.js';
 import { getCharacterTheme } from '../src/features/character-sheet/utils/characterThemes.js';
 import ClassSkillCard from '../src/features/character-sheet/components/ClassSkillCard.jsx';
+import TinkererGadgetsModal from '../src/features/character-sheet/components/companions/TinkererGadgetsModal.jsx';
+import TinkererGadgetsQuickRef from '../src/features/character-sheet/components/companions/TinkererGadgetsQuickRef.jsx';
+import {
+  MAGITECH_BRANCHES,
+  getMagitechBranch,
+  getMagisphereSlotCount,
+  getMagispherePool,
+  getMagisphereOffensiveBonus,
+  isUpToThreeCreaturesTarget,
+  resolveSpellPlaceholders,
+  MAGISPHERE_MAGIC_CHECK,
+  MAGISPHERE_EXCLUDED_SPELLS
+} from '../src/features/character-sheet/data/gadgetBranches.js';
+import { SPELLS_DATA as NPC_SPELLS_DATA } from '../src/features/npc-workshop/data/spells.js';
 import { resolveCreationRules } from '../src/features/character-sheet/data/creationRules.js';
+import {
+  THERIOMORPHOSIS_VARIANT_ID,
+  THERIOMORPHOSIS_RULES,
+  getTheriomorphosisRules,
+  getTheriomorphosisHpCost,
+  getManifestCap,
+  isTheriomorphosisVariantAdopted,
+  hasGreaterTheriomorphosis,
+  resolveHeroicSkillEffect
+} from '../src/features/character-sheet/data/theriomorphosisVariant.js';
+import { calculateSkillSuboptionMax } from '../src/features/character-sheet/data/skillSuboptionsData.js';
+import SuboptionDetailsList from '../src/features/character-sheet/components/SuboptionDetailsList.jsx';
+import CharacterCard from '../src/features/character-sheet/components/CharacterCard.jsx';
 
 let pass = 0;
 let fail = 0;
@@ -81,11 +108,11 @@ const mkClassItem = (className, skills = []) => ({ className, skills, level: ski
 
 // ─────────────────────────────────────────────────────────── A
 section('A. 資料完整性（每一筆都要有取代目標與官方出處）');
-check('變體共 7 筆', CORE_BOOK_VARIANTS.length, 7);
+check('變體共 8 筆', CORE_BOOK_VARIANTS.length, 8);
 check('每筆都有 id／className／replaces／name／en／maxSL／origin／desc',
   CORE_BOOK_VARIANTS.every((v) => v.id && v.className && v.replaces && v.name && v.en
     && Number.isFinite(v.maxSL) && v.origin && v.desc), true);
-check('id 不重複', new Set(CORE_BOOK_VARIANTS.map((v) => v.id)).size, 7);
+check('id 不重複', new Set(CORE_BOOK_VARIANTS.map((v) => v.id)).size, 8);
 check('出處都指向新版公測文件',
   CORE_BOOK_VARIANTS.every((v) => v.origin.includes('2026-10-01')), true);
 
@@ -594,6 +621,307 @@ check('舊角色（無 allowPlaytest、有 playtest）→ 公測鈕仍出現（�
 const legacyOffChar = mkChar(['core']);
 check('舊角色（無 allowPlaytest、無 playtest）→ 公測鈕不出現',
   renderEditRow(legacyOffChar).indexOf('variant-toggle-') < 0, true);
+
+// ─────────────────────────────────────────────────────────── R
+/**
+ * §R：公測 p.38 `BRANCHING MAGITECH`——修補匠的魔導科技拆成兩條互斥分支。
+ *
+ * 這一段存在的理由：**分支不是「多一個變體」而已，它換掉的是第三軌的三個節點**。
+ * 選了分支卻還顯示核心的【魔科技篡奪／魔加農／魔法球原型】，是把錯的規則端上桌。
+ * 而這種錯誤在畫面上看起來完全正常（就是三張卡），只有斷言「不該出現的字串」抓得到。
+ *
+ * ⚠️ React SSR 會在相鄰的文字節點之間插入 `<!-- -->`，所以「A 空格 B」這種斷言
+ *    必須先剝掉註解，否則字串永遠對不上（見 §AW6(c) 的同型教訓）。
+ */
+section('R. 公測 p.38：魔導科技分支（魔導武裝／魔法球）');
+const plain = (html) => String(html).replace(/<!--.*?-->/g, '');
+
+// ── R1 變體與分支表對齊
+const armamentVariant = getVariantById('magitechArmament');
+const magisphereVariant = getVariantById('magispheres');
+check('【小工具】有兩條分支變體',
+  getVariantsForSkill('小工具').map((v) => v.id).sort(), ['magispheres', 'magitechArmament']);
+check('魔法球變體存在、maxSL 5', magisphereVariant?.maxSL, 5);
+check('魔法球變體不帶英雄技能互斥（互斥只屬於魔導武裝）',
+  !magisphereVariant?.excludesHeroicSkills, true);
+check('魔導武裝仍帶【量子魔加農】互斥',
+  armamentVariant?.excludesHeroicSkills, ['量子魔加農']);
+check('分支表的鍵與變體 id 完全一致',
+  Object.keys(MAGITECH_BRANCHES).sort(), ['magispheres', 'magitechArmament']);
+for (const id of Object.keys(MAGITECH_BRANCHES)) {
+  const b = MAGITECH_BRANCHES[id];
+  check(`${id}：分支 id 與鍵一致`, b.id, id);
+  check(`${id}：三個節點`, b.nodes.map((n) => n.tier), [1, 2, 3]);
+  check(`${id}：節點欄位齊備（形狀與核心 GADGET_TRACKS 相同）`,
+    b.nodes.every((n) => n.tierName && n.name && n.cost && n.dice && n.summary && n.desc), true);
+}
+check('沒選變體 → 沒有分支', getMagitechBranch(null), null);
+check('核心技能名不是分支 id', getMagitechBranch('小工具'), null);
+check('同一個技能只能有一條分支（換分支＝覆蓋同一個 variantId）',
+  withSkillVariant({ name: '小工具', sl: 3, variantId: 'magitechArmament' }, 'magispheres').variantId,
+  'magispheres');
+
+// ── R2 魔法球的咒語池
+const POOL_SRC = { coreSpells: rulesData.spells, npcSpells: NPC_SPELLS_DATA };
+const pool0 = getMagispherePool(0, POOL_SRC);
+const pool1 = getMagispherePool(1, POOL_SRC);
+const pool2 = getMagispherePool(2, POOL_SRC);
+const pool3 = getMagispherePool(3, POOL_SRC);
+check('未解鎖 → 空池', pool0.length, 0);
+check('基礎池 = 16 筆（三學派中目標為至多三個生物者）', pool1.length, 16);
+// 兩種寫法都要吃到：資料層同時存在「至多3個生物」與「至多三個生物」
+check('基礎池吃到阿拉伯數字寫法【電流術】', pool1.some((s) => s.name === '電流術'), true);
+check('基礎池吃到中文數字寫法【治癒】', pool1.some((s) => s.name === '治癒'), true);
+check('基礎池不含目標非「至多三個生物」的【照明烈焰】',
+  pool1.some((s) => s.name === '照明烈焰'), false);
+check('基礎池只有三學派',
+  [...new Set(pool1.map((s) => s.school))].sort(), ['元素', '熵系', '靈魂']);
+check('進階池 = 基礎 16 ＋ NPC 新增 24 ＝ 40（累積，不是取代）', pool2.length, 40);
+check('進階池含 NPC 咒語', pool2.some((s) => s.source === 'npc'), true);
+check('進階池的 NPC 咒語都標記需自訂化',
+  pool2.filter((s) => s.source === 'npc').every((s) => s.needsCustomization === true), true);
+check('進階池含官方舉例的【詛咒之息】', pool2.some((s) => s.name === '詛咒之息'), true);
+check('進階池排除【毀盪】', pool2.some((s) => s.name === '毀盪'), false);
+check('上級池 = 核心 38 ＋ NPC 37 − 同名 24 ＝ 51', pool3.length, 51);
+check('上級池名稱不重複（同名以核心優先）',
+  new Set(pool3.map((s) => s.name)).size, pool3.length);
+check('上級池的【照明烈焰】來自核心', 
+  pool3.find((s) => s.name === '照明烈焰')?.source, 'core');
+check('上級池仍排除【毀盪】', pool3.some((s) => s.name === '毀盪'), false);
+check('官方排除清單就是【毀盪】', [...MAGISPHERE_EXCLUDED_SPELLS], ['毀盪']);
+check('NPC 咒語的 {spell_xxx} 佔位符換成選項標籤',
+  resolveSpellPlaceholders('造成 {spell_x} 傷害', [{ key: 'spell_x', label: '屬性' }]),
+  '造成 〔屬性〕 傷害');
+check('未知佔位符 → 〔自訂〕', resolveSpellPlaceholders('{spell_unknown}'), '〔自訂〕');
+
+// ── R3 顆數、檢定與加值
+check('魔法球顆數 0／2／4／6', [0, 1, 2, 3].map((t) => getMagisphereSlotCount(t)), [0, 2, 4, 6]);
+check('魔導武裝沒有咒語欄位', getMagisphereSlotCount(3, 'magitechArmament'), 0);
+check('攻擊性咒語加值：基礎 0、進階 2、上級 2',
+  [0, 1, 2, 3].map((t) => getMagisphereOffensiveBonus(t)), [0, 0, 2, 2]);
+check('魔法球檢定固定為【INS＋WLP】', MAGISPHERE_MAGIC_CHECK, '【INS＋WLP】');
+check('「至多三個生物」判定（兩種寫法都算）',
+  ['至多3個生物', '至多三個生物', '1個生物'].map((t) => isUpToThreeCreaturesTarget(t)),
+  [true, true, false]);
+
+// ── R4 科技樹彈窗：分支要換掉第三軌，且核心三節點不得殘留
+const renderGadgets = (variantId, gadgets = { alchemy: 0, infusion: 0, magitech: 1, magitechSpells: [] }) =>
+  plain(renderToStaticMarkup(React.createElement(TinkererGadgetsModal, {
+    isOpen: true, onClose: () => {}, gadgetsData: gadgets,
+    tinkererSL: 3, characterLevel: 5, variantId, onSave: () => {}
+  })));
+const CORE_NODES = ['魔科技篡奪', '魔加農火器', '魔法球原型'];
+const coreModal = renderGadgets(null);
+const armModal = renderGadgets('magitechArmament');
+const sphModal = renderGadgets('magispheres');
+check('核心：標題仍是【小工具】科技樹', coreModal.includes('修補匠【小工具】科技樹配置'), true);
+check('核心：顯示魔科技篡奪', coreModal.includes('魔科技篡奪'), true);
+check('核心：不出現任何分支節點',
+  coreModal.includes('基礎武裝') || coreModal.includes('基礎魔法球'), false);
+check('魔導武裝：標題換成【魔導武裝】', armModal.includes('修補匠【魔導武裝】科技樹配置'), true);
+check('魔導武裝：顯示【基礎武裝】', armModal.includes('基礎武裝'), true);
+check('魔導武裝：核心三節點全數消失', CORE_NODES.some((n) => armModal.includes(n)), false);
+check('魔導武裝：沒有咒語挑選器', armModal.includes('已配置'), false);
+check('魔法球：標題換成【魔法球】', sphModal.includes('修補匠【魔法球】科技樹配置'), true);
+check('魔法球：顯示【基礎魔法球】', sphModal.includes('基礎魔法球'), true);
+check('魔法球：核心三節點全數消失', CORE_NODES.some((n) => sphModal.includes(n)), false);
+check('魔法球：基礎就解鎖咒語挑選器（0 / 2 顆）', sphModal.includes('已配置 0 / 2 顆'), true);
+const sphTier3 = renderGadgets('magispheres', { alchemy: 0, infusion: 0, magitech: 3, magitechSpells: [] });
+check('魔法球：上級是 6 顆', sphTier3.includes('已配置 0 / 6 顆'), true);
+check('魔法球：上級才顯示攻擊性 +2', sphTier3.includes('攻擊性咒語 +2'), true);
+check('魔法球：上級節點全部出現',
+  ['基礎魔法球', '進階魔法球', '上級魔法球'].every((n) => sphTier3.includes(n)), true);
+
+// ── R5 跑團速查：第三軌的名稱與節點也要跟著分支走
+const renderQuickRef = (variantId, gadgets) => plain(renderToStaticMarkup(
+  React.createElement(TinkererGadgetsQuickRef, {
+    gadgetsData: gadgets, sl: 3, characterLevel: 5, variantId
+  })
+));
+const qrGadgets = { alchemy: 0, infusion: 0, magitech: 2, magitechSpells: [] };
+const qrCore = renderQuickRef(null, qrGadgets);
+const qrSph = renderQuickRef('magispheres', qrGadgets);
+const qrArm = renderQuickRef('magitechArmament', qrGadgets);
+check('速查核心：顯示魔科技篡奪', qrCore.includes('魔科技篡奪'), true);
+check('速查核心：第三軌標籤為「魔科技」', qrCore.includes('魔科技'), true);
+check('速查魔法球：顯示基礎與進階魔法球節點',
+  qrSph.includes('基礎【基礎魔法球】') && qrSph.includes('進階【進階魔法球】'), true);
+check('速查魔法球：核心節點消失',
+  qrSph.includes('魔科技篡奪') || qrSph.includes('魔加農'), false);
+check('速查魔導武裝：顯示基礎與進階武裝',
+  qrArm.includes('基礎【基礎武裝】') && qrArm.includes('進階【進階武裝】'), true);
+check('速查魔導武裝：核心節點消失',
+  qrArm.includes('魔科技篡奪') || qrArm.includes('魔加農'), false);
+
+// ── R6 角色卡技能列：第三軌的顯示名要跟著分支走
+const gadgetChar = mkChar(['core', 'playtest']);
+gadgetChar.creationRules = { allowPlaytest: true };
+gadgetChar.tinkererData = { gadgets: { alchemy: 1, infusion: 0, magitech: 2, magitechSpells: [] } };
+const renderTinkererRow = (variantId) => plain(renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('修補匠', [{ name: '小工具', sl: 3, variantId, selectedOptions: [] }]),
+  classIndex: 0, character: gadgetChar, theme
+})));
+const rowCore = renderTinkererRow(null);
+const rowSph = renderTinkererRow('magispheres');
+check('技能列核心：顯示「魔導 進階」', rowCore.includes('魔導 進階'), true);
+check('技能列魔法球：顯示「魔法球 進階」', rowSph.includes('魔法球 進階'), true);
+check('技能列魔法球：不再顯示「魔導 進階」', rowSph.includes('魔導 進階'), false);
+
+// ─────────────────────────────────────────────────────────── S
+/**
+ * §S：公測 p.40 `THERIOMORPHOSIS (variant)`——混合變形的變體。
+ *
+ * 這一段存在的理由：**形態庫與配額本來就實裝了，所以「有沒有變體」在畫面上看起來一樣。**
+ * 變體改的是四件不在形態庫裡的事：
+ *   ① HP 消耗：當前 HP 三分之一 → **固定 20 點**
+ *   ② 之後：原版沒有 → **自由攻擊一次（高擲視為 0；透過【基因分析】執行時沒有）**
+ *   ③ 【進階混合變形】：三個 ＋ 追加動作 → 三個，**沒有追加動作**
+ *   ④ 形態庫與配額（＝SL）：**不變**
+ * ③ 是最容易漏的——它不在【混合變形】自己的文字裡，而在**另一個技能**的文本裡。
+ * 這種「A 的變體改寫 B 的文本」在畫面完全正常時也會漏，只有斷言字串抓得到。
+ */
+section('S. 公測 p.40：混合變形變體（消耗／顯現上限／自由攻擊／進階混合變形改寫）');
+
+const GREATER_BASE_EFFECT = (rulesData.heroicSkills || []).find((h) => h.name === '進階混合變形')?.effect || '';
+check('前提：【進階混合變形】原版文本含「追加一個動作」（否則下面的差異斷言恆真）',
+  GREATER_BASE_EFFECT.includes('追加一個動作'), true);
+
+// ── S1 兩套規則的形狀
+const therioBase = getTheriomorphosisRules(null);
+const therioVariant = getTheriomorphosisRules(THERIOMORPHOSIS_VARIANT_ID);
+check('沒選變體 → 原版規則', therioBase.id, 'base');
+check('原版：消耗當前 HP 三分之一（向下取整）', therioBase.hpCostLabel, '當前 HP 的三分之一（向下取整）');
+check('原版：顯現至多 2 個', therioBase.manifestCap, 2);
+check('原版：沒有自由攻擊', therioBase.freeAttack, false);
+check('原版：進階混合變形有追加動作', therioBase.greaterExtraAction, true);
+check('變體：消耗固定 20 點 HP', therioVariant.hpCostLabel, '20 點 HP');
+check('變體：固定消耗值是 20', therioVariant.hpCostValue, 20);
+check('變體：顯現上限仍是 2（變體不改上限）', therioVariant.manifestCap, 2);
+check('變體：有自由攻擊', therioVariant.freeAttack, true);
+check('變體：自由攻擊的高擲視為 0，且【基因分析】不給',
+  therioVariant.freeAttackNote.includes('高擲視為 0') && therioVariant.freeAttackNote.includes('基因分析'), true);
+check('變體：進階混合變形沒有追加動作', therioVariant.greaterExtraAction, false);
+check('任何其他 id 都退回原版（舊存檔／壞資料不炸）',
+  [getTheriomorphosisRules(undefined).id, getTheriomorphosisRules('magispheres').id, getTheriomorphosisRules('').id],
+  ['base', 'base', 'base']);
+check('變體 id 與 coreBookVariants 的變體一致',
+  getVariantById(THERIOMORPHOSIS_VARIANT_ID)?.className, '突變體');
+
+// 規則常數必須凍結：被就地改寫時介面與測試會一起說謊，而且不會有任何錯誤
+let frozenThrew = false;
+try { THERIOMORPHOSIS_RULES.variant.manifestCap = 9; } catch { frozenThrew = true; }
+check('規則常數是凍結的（不得就地改寫）', frozenThrew, true);
+check('凍結後數值沒有被改掉', THERIOMORPHOSIS_RULES.variant.manifestCap, 2);
+
+// ── S2 HP 消耗的計算
+check('原版消耗：HP 30 → 10', getTheriomorphosisHpCost(therioBase, 30), 10);
+check('原版消耗：向下取整（HP 8 → 2）', getTheriomorphosisHpCost(therioBase, 8), 2);
+check('原版消耗：HP 未知 → 0（不顯示假數字）',
+  [getTheriomorphosisHpCost(therioBase, null), getTheriomorphosisHpCost(therioBase, undefined)], [0, 0]);
+check('變體消耗：不看當前 HP（HP 5 → 仍是 20）', getTheriomorphosisHpCost(therioVariant, 5), 20);
+check('變體消耗：HP 未知也是 20', getTheriomorphosisHpCost(therioVariant, null), 20);
+
+// ── S3 顯現上限：只有【進階混合變形】會把它推到 3
+check('上限：兩套規則的一般情況都是 2',
+  [getManifestCap(therioBase), getManifestCap(therioVariant)], [2, 2]);
+check('上限：有【進階混合變形】→ 3（兩套都是）',
+  [getManifestCap(therioBase, { hasGreater: true }), getManifestCap(therioVariant, { hasGreater: true })], [3, 3]);
+
+// ── S4 角色層偵測（變體狀態住在技能上，不在角色上）
+const therioCharBase = mkChar(['core', 'playtest']);
+therioCharBase.creationRules = { allowPlaytest: true };
+therioCharBase.classes = [mkClassItem('突變體', [{ name: '混合變形', sl: 3, selectedOptions: ['飛翼形態'] }])];
+check('沒選變體 → 未採用', isTheriomorphosisVariantAdopted(therioCharBase), false);
+const therioCharVariant = JSON.parse(JSON.stringify(therioCharBase));
+therioCharVariant.classes[0].skills[0].variantId = THERIOMORPHOSIS_VARIANT_ID;
+check('選了變體 → 已採用', isTheriomorphosisVariantAdopted(therioCharVariant), true);
+check('技能名不變（仍是【混合變形】）', therioCharVariant.classes[0].skills[0].name, '混合變形');
+check('沒有【進階混合變形】→ false', hasGreaterTheriomorphosis(therioCharVariant), false);
+therioCharVariant.heroicSkills = [{ name: '進階混合變形', sl: 1, effect: GREATER_BASE_EFFECT }];
+check('有【進階混合變形】（物件形式）→ true', hasGreaterTheriomorphosis(therioCharVariant), true);
+check('有【進階混合變形】（純字串形式）→ true',
+  hasGreaterTheriomorphosis({ heroicSkills: ['進階混合變形'] }), true);
+check('沒有角色 → 不炸', isTheriomorphosisVariantAdopted(null), false);
+
+// ── S5 【進階混合變形】的文本改寫
+const greaterBaseText = resolveHeroicSkillEffect('進階混合變形', GREATER_BASE_EFFECT, therioCharBase);
+const greaterVariantText = resolveHeroicSkillEffect('進階混合變形', GREATER_BASE_EFFECT, therioCharVariant);
+check('沒選變體 → 文本逐字不變', greaterBaseText, GREATER_BASE_EFFECT);
+check('選了變體 → 文本換成變體版本（三個形態）', greaterVariantText.includes('三個'), true);
+check('★ 選了變體 → 不再有「追加一個動作」', greaterVariantText.includes('追加一個動作'), false);
+check('變體版本要明講「不提供追加動作」（否則玩家會沿用原版）',
+  greaterVariantText.includes('不提供追加動作'), true);
+check('其他英雄技能的文本不受影響',
+  resolveHeroicSkillEffect('穩固突變', '原始文本', therioCharVariant), '原始文本');
+check('沒有角色時不做改寫', resolveHeroicSkillEffect('進階混合變形', GREATER_BASE_EFFECT, null), GREATER_BASE_EFFECT);
+
+// ── S6 角色卡（SSR）：選了變體，卡片上的【進階混合變形】就要是變體版本
+const renderCard = (character) => plain(renderToStaticMarkup(
+  React.createElement(CharacterCard, { character, themeId: 'emerald' })
+));
+// 兩張卡都要有【進階混合變形】才比得出來（否則「原版仍有追加動作」會因為技能根本不存在而假過）
+therioCharBase.heroicSkills = [{ name: '進階混合變形', sl: 1, effect: GREATER_BASE_EFFECT }];
+const cardVariant = renderCard(therioCharVariant);
+const cardBase = renderCard(therioCharBase);
+check('角色卡（變體）：顯示「三個」', cardVariant.includes('三個'), true);
+check('角色卡（變體）：不顯示「追加一個動作」', cardVariant.includes('追加一個動作'), false);
+check('角色卡（原版）：仍顯示「追加一個動作」', cardBase.includes('追加一個動作'), true);
+
+// ── S7 技能列（SSR）：變體晶片要把代價寫出來；原版不得出現
+const renderTherioRow = (character, variantId) => plain(renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('突變體', [{
+    name: '混合變形',
+    sl: 3,
+    variantId,
+    selectedOptions: ['飛翼形態', '放電形態']
+  }]),
+  classIndex: 0, character, theme
+})));
+const rowTherioVariant = renderTherioRow(therioCharVariant, THERIOMORPHOSIS_VARIANT_ID);
+const rowTherioBase = renderTherioRow(therioCharBase, null);
+// ⚠️ 「20 點 HP」在變體卡的**技能描述**裡也有（coreBookVariants 的變體文本），
+//    所以不能對整份 HTML 斷言——那會恆真。切出晶片那一段再比（§AW6(c) 的同型教訓）。
+//    ⚠️ 切片前必須先剝掉 `<svg>`：GiDna2 的路徑資料就有數千字元，
+//    直接把窗口開大只是把「比對到隔壁卡片」的風險換成「比對到自己的 SVG」。
+const chipSegment = (html) => {
+  const clean = String(html).replace(/<svg[\s\S]*?<\/svg>/g, '');
+  const i = clean.indexOf('therioform-variant-chip');
+  return i < 0 ? '' : clean.slice(i, i + 400);
+};
+check('技能列（變體）：出現變體晶片', rowTherioVariant.includes('therioform-variant-chip'), true);
+check('技能列（變體）：晶片寫出「20 點 HP」', chipSegment(rowTherioVariant).includes('20 點 HP'), true);
+check('技能列（變體）：晶片寫出顯現上限 3（因為有進階混合變形）',
+  chipSegment(rowTherioVariant).includes('顯現至多 3 個'), true);
+check('技能列（原版）：沒有變體晶片', rowTherioBase.includes('therioform-variant-chip'), false);
+check('技能列（原版）：不得出現 20 點 HP', rowTherioBase.includes('20 點 HP'), false);
+check('技能列：形態庫與配額不受變體影響（SL 3 → 上限 3）',
+  [calculateSkillSuboptionMax('突變體', '混合變形', 3), calculateSkillSuboptionMax('突變體', '混合變形', 1)],
+  [3, 1]);
+
+// ── S8 效果清單（SSR）：使用方式常駐，兩套規則各自正確
+const renderTherioDetails = (variantId, hasGreater) => plain(renderToStaticMarkup(
+  React.createElement(SuboptionDetailsList, {
+    className: '突變體',
+    skillName: '混合變形',
+    selectedOptions: ['飛翼形態', '放電形態'],
+    variantId,
+    hasGreaterTheriomorphosis: hasGreater
+  })
+));
+const detailsVariant = renderTherioDetails(THERIOMORPHOSIS_VARIANT_ID, false);
+const detailsBase = renderTherioDetails(null, false);
+check('效果清單（變體）：消耗 20 點 HP', detailsVariant.includes('消耗：20 點 HP'), true);
+check('效果清單（變體）：自由攻擊的說明', detailsVariant.includes('自由攻擊'), true);
+check('效果清單（變體）：顯現至多 2 個', detailsVariant.includes('顯現：至多 2 個'), true);
+check('效果清單（原版）：消耗三分之一', detailsBase.includes('當前 HP 的三分之一'), true);
+check('效果清單（原版）：不得出現 20 點 HP', detailsBase.includes('20 點 HP'), false);
+check('效果清單（原版）：不提自由攻擊', detailsBase.includes('自由攻擊'), false);
+check('效果清單（變體＋進階混合變形）：上限 3 且明講沒有追加動作',
+  renderTherioDetails(THERIOMORPHOSIS_VARIANT_ID, true).includes('沒有追加動作'), true);
+check('效果清單：不是突變體就不渲染這段（其他子項目技能不受影響）',
+  plain(renderToStaticMarkup(React.createElement(SuboptionDetailsList, {
+    className: '植物學家', skillName: '植生術', selectedOptions: []
+  }))).includes('therioform-usage'), false);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
