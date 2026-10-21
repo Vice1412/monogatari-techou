@@ -21,9 +21,18 @@
  * 「團隊約束不需要，這個工作交給 GM 來審卡，而非開卡時的硬性規定。」
  * 所以這裡**不再**把隊友已選的觸發／效果灰掉——那會讓兩個獨立建角的玩家互相卡住，
  * 而且原文的「不得重複」本來就是桌上約定，不是角色卡驗證能代替的判斷。
+ *
+ * ## 兩個「看不懂規則」的補救（2026-10-21 續）
+ *
+ * ① 觸發的名字幾乎不帶資訊（【連續】【戰略】【協同】聽起來都像「打得順」），
+ *    所以觸發與效果的標題列各有一顆「看敘述」按鈕 → `ZeroPowerGlossaryModal`。
+ *    **不是**在 chip 上放 tooltip：手機沒有 hover，而且一次只能看一個。
+ * ② 選齊之後，最下面出現 `ShowcaseCard`——把名稱、觸發、效果全文、施展條件
+ *    收成一張「一看就知道是大招」的卡。在那之前這裡只有幾個長得一樣的淡框，
+ *    讀起來像「又一個填完的欄位」，而不是「衝突中只能開一次的東西」。
  */
 import React, { useState } from 'react';
-import { GiSparkles, GiPocketWatch, GiRollingDices } from 'react-icons/gi';
+import { GiSparkles, GiPocketWatch, GiRollingDices, GiScrollUnfurled } from 'react-icons/gi';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import { JRPGInput } from '../../../components/ui/JRPGInput';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
@@ -38,6 +47,7 @@ import {
   zeroTriggerById
 } from '../data/zeroPowers';
 import ZeroPowerNameTablesModal from './ZeroPowerNameTablesModal';
+import ZeroPowerGlossaryModal, { GLOSSARY_TAB_TRIGGER, GLOSSARY_TAB_EFFECT } from './ZeroPowerGlossaryModal';
 import {
   normalizeZeroPower,
   zeroClockMax,
@@ -71,6 +81,131 @@ function ChoiceChip({ active, title, subtitle, onClick, theme }) {
         </span>
       ) : null}
     </button>
+  );
+}
+
+/**
+ * 底力技「完整卡片」—— 選齊觸發與效果之後，這一招長什麼樣。
+ *
+ * ## 為什麼要有這張卡
+ *
+ * 使用者原話：「選擇完觸發和效果之後，最下面要有一個完整的底力技效果，
+ * 框起來要比較特別點的觀感讓人一看就知道『哇這個是大招』。」
+ *
+ * 在那之前，選完之後畫面上只有兩塊跟其他欄位長得一模一樣的淡框文字，
+ * 讀起來像「又一個填完的欄位」。但底力技是**整場衝突只能開一次的技能動作**，
+ * 它值得在視覺上跟一般欄位分開——所以這裡刻意做重：漸層描邊外框、四角 `❖`、
+ * 徑向淡光底、襯線大字的名稱。**這是全站唯一這樣畫的區塊**，刻意的。
+ *
+ * 資訊層級也照「大招」排：名稱最大（那是玩家自己取的名字），
+ * 效果名與觸發名一行（那是規則），效果全文（那是判給桌上聽的），
+ * 施展條件最小（那是提醒，不是重點）。
+ */
+function ShowcaseCard({ theme, name, trigger, effect, label = '', max, combined = false }) {
+  /**
+   * 呼叫端已經先判斷過 `showcaseReady`，這裡仍然擋一次：
+   * 卡片讀 `effect.name`／`trigger.name`，少一個就是整頁白畫面。
+   * 寧可少畫一張卡，也不要讓角色卡在渲染期丟例外。
+   */
+  if (!effect || !trigger) return null;
+
+  const accent = theme.accent || '#9c4d16';
+  const accentDark = theme.accentDark || '#693108';
+  const accentLight = theme.accentLight || '#faeedd';
+  const border = theme.border || '#d6c7ab';
+  const cardBg = theme.cardBg || '#fffdf9';
+  const textDark = theme.textDark || '#382012';
+  const textMuted = theme.textMuted || '#7b4720';
+
+  return (
+    <div
+      className="relative rounded-2xl animate-fade-in"
+      style={{
+        padding: '2px',
+        background: `linear-gradient(135deg, ${accent} 0%, ${border} 42%, ${accent} 100%)`,
+        boxShadow: `0 12px 26px -16px ${accent}`
+      }}
+    >
+      <div
+        className="relative rounded-[14px] px-4 py-4 space-y-2.5"
+        style={{
+          background: `radial-gradient(circle at 50% -12%, ${accentLight} 0%, ${cardBg} 62%)`,
+          border: `1px solid ${border}`
+        }}
+      >
+        <span className="pointer-events-none absolute top-1 left-2 text-[10px]" style={{ color: accent }}>❖</span>
+        <span className="pointer-events-none absolute top-1 right-2 text-[10px]" style={{ color: accent }}>❖</span>
+        <span className="pointer-events-none absolute bottom-1 left-2 text-[10px]" style={{ color: accent }}>❖</span>
+        <span className="pointer-events-none absolute bottom-1 right-2 text-[10px]" style={{ color: accent }}>❖</span>
+
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <span className="text-[10px] font-bold" style={{ color: accent, letterSpacing: '0.22em' }}>
+            底力技
+          </span>
+          <span className="text-[10px]" style={{ color: textMuted }}>{ZERO_POWER_SOURCE}</span>
+        </div>
+
+        <div className="text-center space-y-1">
+          <div
+            className="font-serif font-black text-xl sm:text-2xl leading-tight"
+            style={{ color: accentDark, letterSpacing: '0.06em' }}
+          >
+            {name || '（尚未命名）'}
+          </div>
+          <div className="text-[11px] font-bold" style={{ color: textMuted }}>
+            【{effect.name}】· 觸發【{trigger.name}】
+          </div>
+          {label ? (
+            <div className="text-[10px]" style={{ color: textMuted }}>{label}</div>
+          ) : null}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="flex-1 h-px" style={{ backgroundColor: border }} />
+          <span className="text-[10px]" style={{ color: accent }}>✦</span>
+          <span className="flex-1 h-px" style={{ backgroundColor: border }} />
+        </div>
+
+        <p className="text-xs leading-relaxed" style={{ color: textDark }}>
+          {renderTextWithAffinities(effect.desc)}
+        </p>
+
+        <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-bold" style={{ color: textMuted }}>
+          <GiPocketWatch className="w-3 h-3" style={{ color: accent }} />
+          <span>{`施展：命刻全滿（${max}／${max}）`}</span>
+          <span style={{ color: border }}>｜</span>
+          <span>每回合一次</span>
+          <span style={{ color: border }}>｜</span>
+          <span>衝突場景中</span>
+          {combined ? (
+            <>
+              <span style={{ color: border }}>｜</span>
+              <span>雙方命刻皆滿</span>
+            </>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** 還沒選齊時的佔位——位置固定在最下面，避免選齊那一刻版面突然長出一塊。 */
+function ShowcasePlaceholder({ theme, missing }) {
+  const border = theme.border || '#d6c7ab';
+  const panelBg = theme.panelBg || '#f3ebe0';
+  const textMuted = theme.textMuted || '#7b4720';
+
+  return (
+    <div
+      className="rounded-2xl border-2 border-dashed px-4 py-4 text-center space-y-1"
+      style={{ borderColor: border, backgroundColor: panelBg }}
+      data-testid="zero-power-showcase-placeholder"
+    >
+      <span className="block text-[11px] font-bold" style={{ color: textMuted }}>
+        選好觸發與效果後，這裡會出現這一招的完整卡片
+      </span>
+      <p className="text-[10px]" style={{ color: textMuted }}>{`還缺：${missing}`}</p>
+    </div>
   );
 }
 
@@ -115,6 +250,16 @@ export default function ZeroPowerBlock({
   const state = normalizeZeroPower(character && character.zeroPower);
   /** 命名表彈窗（`ZeroPowerNameTablesModal`）——與身份表同一個入口形狀：按鈕開表。 */
   const [nameTablesOpen, setNameTablesOpen] = useState(false);
+  /**
+   * 名詞說明彈窗（`ZeroPowerGlossaryModal`）。
+   * `glossaryTab` 由**開啟的那顆按鈕**決定，不讓彈窗自己記住上一次看哪一頁。
+   */
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [glossaryTab, setGlossaryTab] = useState(GLOSSARY_TAB_TRIGGER);
+  const openGlossary = (tab) => {
+    setGlossaryTab(tab);
+    setGlossaryOpen(true);
+  };
   /** 【合體之力】跑團時「這一回合要施展哪一組配對」——只存在於畫面狀態，不進存檔。 */
   const [partnerId, setPartnerId] = useState('');
   /** 【覺醒之力】覺醒當下要選的觸發（原文 p.130：覺醒時才選）。 */
@@ -312,6 +457,31 @@ export default function ZeroPowerBlock({
   }
 
   // ───────────────────────────────────────────── 建角模式
+
+  /**
+   * 完整卡片要顯示哪幾招。
+   *
+   * 標準模式只有一招（`effect`）；合體之力的效果掛在**配對**上，
+   * 所以一個角色可能同時有三組（四人團），每組各一張卡。
+   * 這裡刻意用 `zeroEffectById(pair.effectId)` 重算，不依賴 `effect`
+   * ——建角時 `partnerId` 恆為空，`zeroActiveEffectId` 取不到東西。
+   */
+  const showcasePairs = combined
+    ? state.combinedPairs
+        .map((pair) => ({
+          pair,
+          effect: zeroEffectById(pair.effectId),
+          partner: roster.find((c) => c && c.id === pair.partnerId) || null
+        }))
+        .filter((row) => row.effect)
+    : [];
+  const showcaseReady =
+    Boolean(trigger) && (combined ? showcasePairs.length > 0 : Boolean(effect));
+  const showcaseMissing = [
+    trigger ? null : '觸發',
+    combined ? (showcasePairs.length > 0 ? null : '配對效果') : effect ? null : '效果'
+  ].filter(Boolean);
+
   return (
     <div className="space-y-3" data-testid="zero-power-block">
       <div className="flex items-center justify-between flex-wrap gap-1">
@@ -368,7 +538,17 @@ export default function ZeroPowerBlock({
         </div>
       ) : (
         <div className="space-y-1.5">
-          <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>觸發</span>
+          <div className="flex items-center justify-between gap-1.5 flex-wrap">
+            <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>觸發</span>
+            <JRPGButton
+              variant={theme.outlineButtonVariant || 'outline'}
+              size="xs"
+              icon={GiScrollUnfurled}
+              onClick={() => openGlossary(GLOSSARY_TAB_TRIGGER)}
+            >
+              七個觸發的敘述
+            </JRPGButton>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
             {ZERO_TRIGGERS.map((t) => (
               <ChoiceChip
@@ -412,9 +592,19 @@ export default function ZeroPowerBlock({
       {/* 效果（合體之力：效果在配對上，不在角色上） */}
       {combined ? (
         <div className="space-y-1.5">
-          <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
-            合體配對（每個其他玩家角色各一組）
-          </span>
+          <div className="flex items-center justify-between gap-1.5 flex-wrap">
+            <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
+              合體配對（每個其他玩家角色各一組）
+            </span>
+            <JRPGButton
+              variant={theme.outlineButtonVariant || 'outline'}
+              size="xs"
+              icon={GiScrollUnfurled}
+              onClick={() => openGlossary(GLOSSARY_TAB_EFFECT)}
+            >
+              十一個效果的敘述
+            </JRPGButton>
+          </div>
           {state.combinedPairs.map((pair, index) => (
             <div key={`pair-${index}`} className="flex items-center gap-1.5 flex-wrap">
               <select
@@ -474,7 +664,17 @@ export default function ZeroPowerBlock({
         </div>
       ) : (
         <div className="space-y-1.5">
-          <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>效果</span>
+          <div className="flex items-center justify-between gap-1.5 flex-wrap">
+            <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>效果</span>
+            <JRPGButton
+              variant={theme.outlineButtonVariant || 'outline'}
+              size="xs"
+              icon={GiScrollUnfurled}
+              onClick={() => openGlossary(GLOSSARY_TAB_EFFECT)}
+            >
+              十一個效果的敘述
+            </JRPGButton>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
             {ZERO_EFFECTS.map((e) => (
               <ChoiceChip
@@ -637,6 +837,43 @@ export default function ZeroPowerBlock({
           </div>
         ) : null}
       </div>
+
+      {/* 完整卡片 —— 刻意放在最下面：選完之後往下看，看到的就是「這一招」 */}
+      {showcaseReady ? (
+        combined ? (
+          <div className="space-y-2">
+            {showcasePairs.map((row, index) => (
+              <ShowcaseCard
+                key={`showcase-${index}`}
+                theme={theme}
+                name={row.pair.nickname || state.name}
+                trigger={trigger}
+                effect={row.effect}
+                label={`與 ${row.partner ? row.partner.name || row.partner.id : row.pair.partnerId || '未指定伙伴'} 共用`}
+                max={max}
+                combined
+              />
+            ))}
+          </div>
+        ) : (
+          <ShowcaseCard theme={theme} name={state.name} trigger={trigger} effect={effect} max={max} />
+        )
+      ) : (
+        <ShowcasePlaceholder theme={theme} missing={showcaseMissing.join('、')} />
+      )}
+
+      <ZeroPowerGlossaryModal
+        isOpen={glossaryOpen}
+        onClose={() => setGlossaryOpen(false)}
+        theme={theme}
+        initialTab={glossaryTab}
+        selectedTriggerId={state.triggerId}
+        selectedEffectId={state.effectId}
+        onPickTrigger={(id) => patch({ triggerId: state.triggerId === id ? '' : id })}
+        onPickEffect={
+          combined ? null : (id) => patch({ effectId: state.effectId === id ? '' : id })
+        }
+      />
     </div>
   );
 }

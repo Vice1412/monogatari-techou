@@ -13,6 +13,7 @@
  *   ③ 命刻計算（6 格／合體之力 4 格、填充夾制、施展清空）
  *   ④ 團隊約束**已移除**（2026-10-21 使用者裁定：交給 GM 審卡，不是開卡硬規定）
  *   ⑤ 介面入口（規則關閉時**整個區塊不存在**，不是停用）
+ *   ⑥ 看得懂（七個觸發／十一個效果可點開看全文；選齊後最下面有完整卡片）
  *
  * 任何一處漏掉，畫面看起來都正常——這正是要把它們釘死的原因
  * （同 `tests/initiativeVariant.test.mjs` 檔頭的理由）。
@@ -75,6 +76,12 @@ import {
 } from '../src/features/character-sheet/utils/characterEngine.js';
 import ZeroPowerBlock from '../src/features/character-sheet/components/ZeroPowerBlock.jsx';
 import { ZeroPowerNameTablesBody } from '../src/features/character-sheet/components/ZeroPowerNameTablesModal.jsx';
+import {
+  ZeroPowerGlossaryBody,
+  zeroTriggerFillLabel,
+  GLOSSARY_TAB_TRIGGER,
+  GLOSSARY_TAB_EFFECT
+} from '../src/features/character-sheet/components/ZeroPowerGlossaryModal.jsx';
 import { getCharacterTheme } from '../src/features/character-sheet/utils/characterThemes.js';
 
 let pass = 0;
@@ -800,6 +807,172 @@ const dupEditHtml = renderEdit(
 check('不再顯示「隊友已選」的副標', dupEditHtml.includes('隊友已選'), false);
 check('隊友撞了觸發，七個觸發仍全部列出', ZERO_TRIGGERS.every((t) => dupEditHtml.includes(t.name)), true);
 check('隊友撞了效果，十一個效果仍全部列出', ZERO_EFFECTS.every((e) => dupEditHtml.includes(e.name)), true);
+
+// ─────────────────────────────────────────────────────────── R
+section('R. 完整卡片（選齊觸發與效果後擺在最下面）');
+
+const showcaseOf = (character, roster = []) =>
+  plain(renderToStaticMarkup(React.createElement(ZeroPowerBlock, {
+    character, theme, mode: 'edit', roster
+  })));
+
+const showcaseEmpty = showcaseOf(fresh);
+check(
+  '未選齊時位置仍然在（避免版面突然長出一塊）',
+  showcaseEmpty.includes('選好觸發與效果後，這裡會出現這一招的完整卡片'),
+  true
+);
+check('空白狀態的佔位列出還缺兩項', showcaseEmpty.includes('還缺：觸發、效果'), true);
+check('空白狀態沒有施展條件行', showcaseEmpty.includes('施展：命刻全滿'), false);
+
+const onlyTrigger = showcaseOf({
+  ...fresh,
+  zeroPower: { ...createZeroPowerState(), triggerId: 'revenge' }
+});
+check('只選觸發時還缺效果', onlyTrigger.includes('還缺：效果'), true);
+check('只選觸發時不把觸發列為缺項', onlyTrigger.includes('還缺：觸發'), false);
+
+const onlyEffect = showcaseOf({
+  ...fresh,
+  zeroPower: { ...createZeroPowerState(), effectId: 'shield' }
+});
+check('只選效果時還缺觸發', onlyEffect.includes('還缺：觸發'), true);
+
+const showcase = showcaseOf({
+  ...fresh,
+  zeroPower: { ...createZeroPowerState(), name: '王家之盾', triggerId: 'revenge', effectId: 'shield' }
+});
+check('完整卡片顯示自取名稱', showcase.includes('王家之盾'), true);
+check('完整卡片把效果與觸發並列', showcase.includes('【零之盾】· 觸發【復仇】'), true);
+check(
+  '完整卡片帶效果全文',
+  showcase.includes('你與場景中在場的每一位盟友受到的所有傷害減半'),
+  true
+);
+check('完整卡片標出施展條件', showcase.includes('施展：命刻全滿（6／6）'), true);
+check('完整卡片提醒每回合一次', showcase.includes('每回合一次'), true);
+check('完整卡片提醒要在衝突場景中', showcase.includes('衝突場景中'), true);
+check('完整卡片標明出處', showcase.includes(ZERO_POWER_SOURCE), true);
+check('選齊之後佔位提示消失', showcase.includes('選好觸發與效果後'), false);
+check(
+  '完整卡片位於變體規則之後（真的在最下面）',
+  showcase.indexOf('變體規則') < showcase.indexOf('施展：命刻全滿'),
+  true
+);
+
+const unnamedShowcase = showcaseOf({
+  ...fresh,
+  zeroPower: { ...createZeroPowerState(), triggerId: 'revenge', effectId: 'shield' }
+});
+check('還沒取名時卡片給佔位名', unnamedShowcase.includes('（尚未命名）'), true);
+
+/** 外觀是「特別的框」——漸層描邊、四角符號、進場動畫，三者都在原始碼裡。 */
+check('卡片用漸層描邊外框', blockSrc.includes('linear-gradient(135deg'), true);
+check('卡片四角各有角標', blockSrc.split('pointer-events-none absolute').length - 1, 4);
+check('角標用的是軌道 3 允許的排版字符', blockSrc.includes('❖'), true);
+check('卡片有進場動畫', blockSrc.includes('animate-fade-in'), true);
+check('卡片名稱用襯線大字', blockSrc.includes('font-serif font-black text-xl'), true);
+check(
+  '卡片刻意不是一般淡框（不用 rounded-lg border px-2.5 py-2）',
+  blockSrc.includes('rounded-2xl'),
+  true
+);
+
+const combinedShowcase = showcaseOf(
+  {
+    ...fresh,
+    zeroPower: {
+      ...createZeroPowerState(),
+      variant: 'combined',
+      triggerId: 'revenge',
+      name: '彈斬',
+      combinedPairs: [
+        { partnerId: 'pc1', effectId: 'scourge', nickname: '' },
+        { partnerId: 'pc2', effectId: 'shield', nickname: '鐵壁' }
+      ]
+    }
+  },
+  [{ id: 'pc1', name: '阿爾' }, { id: 'pc2', name: '貝菈' }]
+);
+check(
+  '合體之力每組配對各一張卡',
+  combinedShowcase.includes('與 阿爾 共用') && combinedShowcase.includes('與 貝菈 共用'),
+  true
+);
+check('合體之力卡片用配對別稱', combinedShowcase.includes('鐵壁'), true);
+check('合體之力沒別稱時退回角色名稱', blockSrc.includes('row.pair.nickname || state.name'), true);
+check('合體之力卡片提醒雙方命刻皆滿', combinedShowcase.includes('雙方命刻皆滿'), true);
+check('合體之力卡片用 4 格命刻', combinedShowcase.includes('施展：命刻全滿（4／4）'), true);
+
+const combinedNoPairs = showcaseOf({
+  ...fresh,
+  zeroPower: { ...createZeroPowerState(), variant: 'combined', triggerId: 'revenge' }
+});
+check('合體之力還沒配對時佔位', combinedNoPairs.includes('還缺：配對效果'), true);
+
+// ─────────────────────────────────────────────────────────── S
+section('S. 名詞說明彈窗（七個觸發與十一個效果）');
+
+const glossaryBody = (props = {}) =>
+  plain(renderToStaticMarkup(React.createElement(ZeroPowerGlossaryBody, { theme, ...props })));
+
+check('分頁常數：觸發', GLOSSARY_TAB_TRIGGER, 'trigger');
+check('分頁常數：效果', GLOSSARY_TAB_EFFECT, 'effect');
+
+const glossaryTriggers = glossaryBody();
+check('預設分頁是觸發', glossaryTriggers.includes('七個觸發（7）'), true);
+check('分頁標籤同時列出效果數', glossaryTriggers.includes('十一個效果（11）'), true);
+check('說明卡解釋兩者的分工', glossaryTriggers.includes('觸發決定命刻什麼時候填'), true);
+check('觸發分頁列出全部七個名字', ZERO_TRIGGERS.every((t) => glossaryTriggers.includes(t.name)), true);
+check(
+  '觸發分頁列出全部七段敘述',
+  ZERO_TRIGGERS.every((t) => glossaryTriggers.includes(t.desc.slice(0, 10))),
+  true
+);
+check('觸發分頁不列效果名', glossaryTriggers.includes('零之疾襲'), false);
+check(
+  '觸發分頁標出填充格數',
+  glossaryTriggers.includes('每次 3 格') && glossaryTriggers.includes('變動格數'),
+  true
+);
+check('未傳 onPick 時沒有選取按鈕（注入點鐵律）', glossaryTriggers.includes('選這個'), false);
+
+const glossaryEffects = glossaryBody({ activeTab: GLOSSARY_TAB_EFFECT });
+check('效果分頁列出全部十一個名字', ZERO_EFFECTS.every((e) => glossaryEffects.includes(e.name)), true);
+check(
+  '效果分頁列出全部十一段敘述',
+  ZERO_EFFECTS.every((e) => glossaryEffects.includes(e.desc.slice(0, 10))),
+  true
+);
+check('效果分頁不列觸發名', glossaryEffects.includes('憐憫'), false);
+check('效果分頁標示「底力效果」', glossaryEffects.includes('底力效果'), true);
+
+const glossaryPicked = glossaryBody({ selectedTriggerId: 'love', onPickTrigger: () => {} });
+check('已選的觸發標記為目前選擇', glossaryPicked.includes('✓ 目前選擇（再點一次取消）'), true);
+check('傳了 onPick 才出現選取按鈕', glossaryPicked.includes('選這個'), true);
+check('只有一項被標成已選', glossaryPicked.split('✓ 目前選擇').length - 1, 1);
+
+check(
+  '填充標籤：固定格數',
+  zeroTriggerFillLabel(ZERO_TRIGGERS.find((t) => t.id === 'revenge')),
+  '每次 3 格'
+);
+check(
+  '填充標籤：變動格數',
+  zeroTriggerFillLabel(ZERO_TRIGGERS.find((t) => t.id === 'synergy')),
+  '變動格數'
+);
+check('填充標籤：沒有觸發時回空字串', zeroTriggerFillLabel(null), '');
+
+check('建角模式有觸發說明入口', editHtml.includes('七個觸發的敘述'), true);
+check('建角模式有效果說明入口', editHtml.includes('十一個效果的敘述'), true);
+check(
+  '未選觸發時敘述不會自動露出（這就是需要說明入口的原因）',
+  editHtml.includes('當你恢復一個或多個盟友的 HP'),
+  false
+);
+check('說明入口是真的按鈕，不只是 title 提示', blockSrc.includes('openGlossary(GLOSSARY_TAB_TRIGGER)'), true);
+check('合體模式也有說明入口', blockSrc.split('openGlossary(GLOSSARY_TAB_EFFECT)').length - 1, 2);
 
 // ─────────────────────────────────────────────────────────── 結果
 lines.push(`\n通過 ${pass} / ${pass + fail}${fail === 0 ? '　（全部通過）' : ''}`);
