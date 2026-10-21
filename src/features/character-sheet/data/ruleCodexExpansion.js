@@ -4,7 +4,7 @@
  * ## 授權合規原則（Fabula Ultima Third-Party Tabletop License 1.0）
  *
  * 依 §1，官方原書的**美術、文字、素材、商業外觀**均為保留材料；§3 僅開放「引用規則、文字與機制」。
- * 本檔的 10 個子系統**不在 §3 的 7 類開放清單內**（該清單為基礎武器／防具／庫存物品／
+ * 本檔的 11 個子系統**不在 §3 的 7 類開放清單內**（該清單為基礎武器／防具／庫存物品／
  * 各職業規則與機制／英雄技能／稀有物品特性／NPC 咒語），故採最保守作法：
  *
  * **只收錄機制（數值、公式、費用、效果、表格），不收錄任何畫風／敘述文字。**
@@ -15,7 +15,7 @@
  *
  * ## 資料結構
  *
- * 為了讓 10 個形狀各異的子系統共用同一套渲染，本檔一律使用通用的 `sections` 陣列：
+ * 為了讓 11 個形狀各異的子系統共用同一套渲染，本檔一律使用通用的 `sections` 陣列：
  * - `{ kind: 'rules', title, items: string[] }` —— 條列規則
  * - `{ kind: 'table', title, columns: string[], rows: string[][] }` —— 表格
  * - `{ kind: 'cards', title, items: [{ name, meta, body }] }` —— 卡片（名稱／副標／內文）
@@ -24,6 +24,21 @@
  */
 
 import { DELICACY_EFFECTS, TASTES, TASTE_ROLL, INGREDIENT_PRICE } from './gourmetData';
+import {
+  TECHNOSPHERE_MODE_OPTIONS,
+  SLOT_QUALITIES,
+  SLOT_QUALITY_KEYS,
+  MNEMOSPHERE_CLASSES,
+  MNEMOSPHERE_MAX_LEVEL,
+  INNATE_CLASS_COUNT,
+  INNATE_MIN_LEVELS,
+  HOPLOSPHERES,
+  HOPLOSPHERE_PRICE,
+  mnemospherePrice,
+  getIntegratedMnemosphereCap,
+  modeHasMnemospheres,
+  modeHasHoplospheres
+} from './technospheres';
 
 // ═══════════════════════════════════════════════════════════
 // 高度奇幻手冊
@@ -628,6 +643,180 @@ const PILOT = {
 };
 
 // ═══════════════════════════════════════════════════════════
+// 科技奇幻手冊 —— 魔晶石（選用規則，p.132~145）
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * 魔晶石不是職業子系統，而是**換掉整份裝備表與職業成長**的選用規則，
+ * 所以它不在 `tests/ruleCodex.test.mjs` 的 `CLASS_CODEX` 覆蓋率清單裡
+ * （沒有任何職業技能會引用它）——但它仍然需要一頁速查：玩家在開卡面板
+ * 勾了「魔晶石」之後，第一個問題就是「這到底是什麼」。
+ *
+ * ※ 表格一律由 `technospheres.js` 派生，不手抄第二份譯名。
+ *   理由：2026-10-05 的教訓是速查自己從英文重譯，約 140 處名稱與定譯表不同，
+ *   而當時每一道關卡都是綠的（見 `docs/decisions.md` §BA）。
+ *   數字也一樣：等級、顆數、價格全部呼叫函式，不寫死。
+ */
+
+/** 五種使用方式各自「拿掉或加上什麼」 */
+const MODE_DELTA = {
+  off: '照核心規則，兩種魔石都沒有',
+  full: '全額改動：三個固有職業、最大 HP／MP 各 +5、職業近戰與遠程武器',
+  integrated: `不能裝備 δ 品級；職業魔石改裝在裝置上（5 級 ${getIntegratedMnemosphereCap(5)} 顆、30 級 ${getIntegratedMnemosphereCap(30)} 顆）`,
+  mnemospheresOnly: '裝備全開放；保留最大 HP／MP +5，拿掉職業近戰與遠程武器',
+  hoplospheresOnly: '沒有 δ 品級；拿掉最大 HP／MP +5，保留職業近戰與遠程武器'
+};
+
+const MODE_ROWS = TECHNOSPHERE_MODE_OPTIONS.map((m) => [
+  m.label,
+  modeHasMnemospheres(m.key) ? '有' : '無',
+  modeHasHoplospheres(m.key) ? '有' : '無',
+  MODE_DELTA[m.key] || ''
+]);
+
+const SLOT_ROWS = SLOT_QUALITY_KEYS.map((key) => {
+  const q = SLOT_QUALITIES[key];
+  return [
+    q.symbol,
+    q.cost === 0 ? '免費' : `+${q.cost}z`,
+    String(q.slots),
+    String(q.maxMnemospheres),
+    q.weaponOnly ? '只有武器' : '武器與防具'
+  ];
+});
+
+const HOPLO_ROWS = HOPLOSPHERES.map((h) => [
+  h.d66,
+  h.weaponOnly ? `${h.name}（僅武器）` : h.name,
+  String(h.slots),
+  h.effect,
+  h.coag2 || '無',
+  h.coag3 || '無'
+]);
+
+const TECHNOSPHERES = {
+  id: 'technospheres',
+  title: '魔晶石',
+  page: '科技奇幻手冊 132~145 頁',
+  keywords: [
+    '魔晶石', '職業魔石', '附魔魔石', '插槽品級', '凝聚',
+    '內嵌魔晶石', '僅職業魔石', '僅附魔魔石', '固有職業'
+  ],
+  summary:
+    '附著在物品上的結晶，分兩種：職業魔石提供一個職業的技能，附魔魔石提供固定效果。'
+    + '用了它，整份裝備表與職業成長都會被換掉——它替換複雜度，不是增加複雜度。',
+  sections: [
+    {
+      kind: 'rules',
+      title: '這是什麼',
+      items: [
+        '魔晶石是附著在物品上的結晶。職業魔石提供一個職業的技能，附魔魔石提供固定效果。',
+        '用不用是整團的決定：只要有一名角色使用魔晶石，全團都必須照這套規則，沒有例外。',
+        '它替換的是複雜度，不是增加複雜度——裝備表被換成定制武器、定制防具與飾品，職業成長被換成職業魔石。',
+        '同一件物品可以同時有職業魔石與附魔魔石。職業魔石一顆佔 1 個插槽；附魔魔石依條目佔 1 或 2 個。'
+      ]
+    },
+    {
+      kind: 'table',
+      title: '五種使用方式',
+      columns: ['使用方式', '職業魔石', '附魔魔石', '拿掉或加上什麼'],
+      rows: MODE_ROWS
+    },
+    {
+      kind: 'rules',
+      title: '開卡時的五項改動',
+      items: [
+        `三個固有職業各 ${INNATE_MIN_LEVELS} 級，而且恰好 ${INNATE_CLASS_COUNT} 個——不能多、不能少。`,
+        '最大 HP 與最大 MP 各 +5。',
+        '獲得職業近戰武器與職業遠程武器的裝備能力；職業防具不在其中。',
+        `免費獲得一顆 1 級職業魔石，這一級不佔前述的 ${INNATE_MIN_LEVELS} 級。`,
+        '裝備只剩定制武器、定制防具、飾品，以及機師的武器與防具模組。'
+      ]
+    },
+    {
+      kind: 'rules',
+      title: '升級時',
+      items: [
+        '每升一級，把一級投進一個固有職業，或投進團隊共用的職業魔石。',
+        '不能藉升級取得新職業。',
+        '所有「依等級縮放」的效果一律看角色等級，不是職業等級。',
+        '50 級以後照樣繼續投，規則不變。',
+        '高階角色：起始 zenit 照核心手冊 p.229 的等級表，可買定制武器、定制防具、飾品與附魔魔石。每超過 5 級 10 級，多獲得一顆 0 級職業魔石；等級可自由分配，但三個固有職業合計至少 5 級。'
+      ]
+    },
+    {
+      kind: 'table',
+      title: '插槽品級',
+      columns: ['品級', '額外成本', '插槽', '職業魔石上限', '可用物品'],
+      rows: SLOT_ROWS
+    },
+    {
+      kind: 'rules',
+      title: '插槽品級怎麼用',
+      items: [
+        'α 是「什麼都沒加」的基準：沒有其他品級的武器與防具自動具備，不額外收費。',
+        'β、γ、δ 要用買的，成本計入起始裝備預算。',
+        'δ 只存在於武器；「內嵌魔晶石」與「僅附魔魔石」兩種變體把 δ 整級移除。',
+        '魔石可以自由配置在插槽裡，但衝突中不能重新配置。'
+      ]
+    },
+    {
+      kind: 'rules',
+      title: '職業魔石的規則',
+      items: [
+        `一顆最多 ${MNEMOSPHERE_MAX_LEVEL} 級。滿級視為精通，可選一個該職業或通用的英雄技能——但該英雄技能的前提必須由這一顆魔石本身完全滿足。`,
+        '不提供任何免費好處：沒有 HP／MP，沒有防具或盾牌熟練，也不能進行儀式。',
+        '不能發起造物專案或儀式。',
+        '技能本身給的 HP／MP 加值照常生效。',
+        '卸下物品就失去它提供的一切。',
+        '同一件物品不能有兩顆共用技能（含英雄技能）的職業魔石。',
+        '角色永遠不能裝備「提供的技能自己已經有」的物品。',
+        `建議的 ${MNEMOSPHERE_CLASSES.length} 個職業（原書寫的是建議，不是硬性）：${MNEMOSPHERE_CLASSES.join('、')}。原書刻意把秘儀師排除在外——它應該在敘事上永遠非凡。`
+      ]
+    },
+    {
+      kind: 'table',
+      title: '附魔魔石一覽',
+      columns: ['d66', '名稱', '插槽', '效果', '凝聚 2', '凝聚 3'],
+      rows: HOPLO_ROWS
+    },
+    {
+      kind: 'rules',
+      title: '附魔魔石的規則',
+      items: [
+        '附魔魔石取代物品原本的品質系統——核心手冊的品質條目在魔晶石制下不存在。',
+        '只要裝備著就持續生效。',
+        '同名附魔魔石可以疊在同一件物品上：第 2 顆觸發凝聚 2，第 3 顆觸發凝聚 3。',
+        '每條效果各自結算，可以疊加。',
+        '一把武器不能同時混用兩種附魔魔石的傷害類型；防具不受此限。',
+        `每顆 ${HOPLOSPHERE_PRICE}z。職業魔石 ${mnemospherePrice(0)}z 起，每多一級再加 ${mnemospherePrice(1) - mnemospherePrice(0)}z。`
+      ]
+    },
+    {
+      kind: 'rules',
+      title: '和其他規則的衝突',
+      items: [
+        '只有定制武器與定制防具能擁有 α／β／γ／δ 品級；飾品與機師的稀有模組不能。',
+        '忽略守護者的「雙重盾牌」。',
+        '修補匠的魔導球改成一項高階魔導科技好處，並移除魔加農。',
+        'NPC 不能擁有「使用裝備」技能，也不能使用魔晶石；人形 NPC 改為多一個技能。',
+        '魔晶石與它的載體不能被摧毀、遺失或偷走——除非擁有者同意。'
+      ]
+    },
+    {
+      kind: 'rules',
+      title: '在這本手帳裡怎麼用',
+      items: [
+        '開卡規則面板的「魔晶石」欄位選一種使用方式；選了之後職業數會固定為 3，不能改。',
+        '裝備步驟會多出魔晶石面板：上面是職業魔石清單，下面是每件裝備的插槽品級與附魔魔石。',
+        '起始裝備預算只算附魔魔石與插槽品級——職業魔石不佔預算，原書把它算在角色本身。',
+        '驗證器會擋下：職業魔石超過 5 級、同一件物品兩顆共用技能的魔石、同一把武器混用傷害類型，以及裝備了官方裝備表的物品。'
+      ]
+    }
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════
 // 官方特典合輯
 // ═══════════════════════════════════════════════════════════
 
@@ -695,5 +884,6 @@ export const EXPANSION_CODEX = {
   esper: ESPER,
   mutant: MUTANT,
   pilot: PILOT,
+  technospheres: TECHNOSPHERES,
   aceOfCards: ACE_OF_CARDS,
 };

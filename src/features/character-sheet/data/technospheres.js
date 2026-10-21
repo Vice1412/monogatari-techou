@@ -82,7 +82,7 @@ export const TECHNOSPHERE_MODES = Object.freeze({
     short: '保留原本的裝備規則',
     desc: '科技奇幻手冊 p.138。所有裝備類型恢復可用、遊戲中沒有附魔魔石；'
       + '角色維持 +5 最大 HP／MP 與一顆初始 1 級職業魔石，'
-      + '但**不再**獲得職業近戰／遠程武器熟練。'
+      + '但不再獲得職業近戰／遠程武器熟練。'
   }),
   hoplospheresOnly: Object.freeze({
     key: 'hoplospheresOnly',
@@ -90,7 +90,7 @@ export const TECHNOSPHERE_MODES = Object.freeze({
     en: 'Hoplospheres only',
     short: '裝備可以改，職業不綁魔石',
     desc: '科技奇幻手冊 p.138。裝備規則照魔晶石制走，但沒有 δ 品級、沒有職業魔石；'
-      + '角色**不**獲得 +5 最大 HP／MP，但仍獲得職業近戰／遠程武器熟練。'
+      + '角色不獲得 +5 最大 HP／MP，但仍獲得職業近戰／遠程武器熟練。'
   })
 });
 

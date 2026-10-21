@@ -147,6 +147,10 @@ check('預設是關閉', DEFAULT_TECHNOSPHERE_MODE, 'off');
 check('每個模式都有中文標籤與說明', TECHNOSPHERE_MODE_KEYS.every(
   (k) => TECHNOSPHERE_MODES[k].label && TECHNOSPHERE_MODES[k].desc.length > 10
 ), true);
+// 面板（`TechnospherePanel`／`CreationRulesPanel`）是把 `desc` **當純文字輸出**的，
+// 寫進 markdown 星號就會字面顯示成 `**不再**`。2026-10-21 實際發生過兩處。
+check('模式說明不含 markdown 星號',
+  TECHNOSPHERE_MODE_KEYS.filter((k) => TECHNOSPHERE_MODES[k].desc.includes('**')), []);
 check('選項順序（off 在最前）', TECHNOSPHERE_MODE_OPTIONS.map((o) => o.key), TECHNOSPHERE_MODE_KEYS);
 check('壞值收斂成 off', normalizeTechnosphereMode('nope'), 'off');
 check('undefined 收斂成 off', normalizeTechnosphereMode(undefined), 'off');
@@ -202,6 +206,8 @@ check('δ：+1800z／4 格／2 顆', [slotQualityCost('delta'), slotQualityCapac
 check('只有 δ 是武器限定', SLOT_QUALITY_KEYS.filter((k) => slotQualityIsWeaponOnly(k)), ['delta']);
 check('未知品級退回 α', getSlotQuality('nope').key, 'alpha');
 check('每個品級都有中文說明', SLOT_QUALITY_KEYS.every((k) => SLOT_QUALITIES[k].label && SLOT_QUALITIES[k].desc.length > 10), true);
+check('品級說明不含 markdown 星號',
+  SLOT_QUALITY_KEYS.filter((k) => SLOT_QUALITIES[k].desc.includes('**')), []);
 check('α 的說明沒有簡體字殘留', SLOT_QUALITIES.alpha.desc.includes('額外'), true);
 check('full 可選四個品級', getAvailableSlotQualities('full').map((q) => q.key), SLOT_QUALITY_KEYS);
 check('hoplospheresOnly 沒有 δ', getAvailableSlotQualities('hoplospheresOnly').map((q) => q.key), ['alpha', 'beta', 'gamma']);

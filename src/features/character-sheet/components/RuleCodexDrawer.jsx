@@ -22,6 +22,7 @@ import {
   GiBrain,
   GiWolfHead,
   GiSteeringWheel,
+  GiCrystalShine,
   GiCardPlay
 } from 'react-icons/gi';
 import { RULE_CODEX, findCodexRule } from '../data/ruleCodexData';
@@ -151,6 +152,7 @@ export default function RuleCodexDrawer({
     { id: 'esper', label: '天賦', icon: GiBrain },
     { id: 'mutant', label: '混合形態', icon: GiWolfHead },
     { id: 'pilot', label: '個人載具', icon: GiSteeringWheel },
+    { id: 'technospheres', label: '魔晶石', icon: GiCrystalShine },
     { id: 'aceOfCards', label: '牌組與組合', icon: GiCardPlay },
     // 公測修訂（§BF）：變體秘儀師的阿爾卡納規則與核心版並存，不互相覆寫。
     { id: 'arcanaVariant', label: '阿爾卡納（變體）', icon: GiSparkles }
@@ -196,7 +198,7 @@ export default function RuleCodexDrawer({
         </div>
 
         {/* 類別切換標籤頁 (Tabs)
-            17 個分頁在 max-w-3xl 的面板裡排不進一列。sm 以上改成自動換行（全部可見、零橫向捲動，
+            18 個分頁在 max-w-3xl 的面板裡排不進一列。sm 以上改成自動換行（全部可見、零橫向捲動，
             並以細分隔線標出原書分界）；手機維持單列橫向滑動，另讓滑鼠滾輪也能左右滑。 */}
         <div
           className="flex flex-nowrap sm:flex-wrap items-center gap-1 p-2 bg-[#f4ece1] dark:bg-slate-950 border-b border-[#e2d5c3] dark:border-slate-800 overflow-x-auto sm:overflow-x-visible shrink-0"
@@ -265,7 +267,7 @@ export default function RuleCodexDrawer({
             </div>
           )}
 
-          {/* 通用區塊渲染（擴充手冊的 10 個子系統） */}
+          {/* 通用區塊渲染（擴充手冊的 11 個子系統） */}
           {currentRule.sections && (
             <div className="space-y-5">
               {currentRule.sections.map((sec, si) => (

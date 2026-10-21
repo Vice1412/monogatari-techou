@@ -22,6 +22,11 @@ import {
   PILOT_FRAMES, PILOT_ARMOR_MODULES, PILOT_WEAPON_MODULES, PILOT_SUPPORT_MODULES
 } from '../src/features/character-sheet/data/pilotVehicleData.js';
 import { SET_EFFECTS } from '../src/features/character-sheet/data/aceOfCardsData.js';
+import {
+  HOPLOSPHERES, MNEMOSPHERE_CLASSES, SLOT_QUALITIES, SLOT_QUALITY_KEYS
+} from '../src/features/character-sheet/data/technospheres.js';
+import fs from 'node:fs';
+import path from 'node:path';
 
 let pass = 0;
 let fail = 0;
@@ -45,7 +50,7 @@ const CLASSES = rulesData.classes || {};
 // ─────────────────────────────────────────────────────────── A
 section('A. 條目完整性');
 const ids = Object.keys(RULE_CODEX);
-check('共 17 條（核心 6 + 擴充 10 + 公測 1）', ids.length, 17);
+check('共 18 條（核心 6 + 擴充 10 + 科技選用 1 + 公測 1）', ids.length, 18);
 
 const CORE_IDS = ['arcana', 'rituals', 'gadgets', 'projects', 'companion', 'spellbooks'];
 const EXPANSION_IDS = [
@@ -54,10 +59,27 @@ const EXPANSION_IDS = [
   'esper', 'mutant', 'pilot',
   'aceOfCards'
 ];
+// 魔晶石是**選用規則**，不是職業子系統：沒有任何職業技能會引用它，
+// 所以它不進 `EXPANSION_IDS`（那會讓 C2 的「至少被一個技能引用」失敗），
+// 但它的 `sections` 結構要跟擴充條目一樣被 E 段驗到。
+const TECHNO_IDS = ['technospheres'];
 const PLAYTEST_IDS = ['arcanaVariant'];
 check('核心 6 條齊全', CORE_IDS.every((x) => ids.includes(x)), true);
 check('擴充 10 條齊全', EXPANSION_IDS.every((x) => ids.includes(x)), true);
+check('科技奇幻選用規則 1 條齊全', TECHNO_IDS.every((x) => ids.includes(x)), true);
 check('公測 1 條齊全', PLAYTEST_IDS.every((x) => ids.includes(x)), true);
+
+// 分頁與條目必須一一對應。
+// 加了資料卻沒加 `navItems` 分頁，玩家在抽屜裡永遠看不到那一頁——
+// 而 `findCodexRule` 照樣查得到，不會有任何錯誤訊息（2026-10-21 加魔晶石時靠這條抓漏）。
+const DRAWER_SRC = fs.readFileSync(
+  path.resolve(process.cwd(), 'src/features/character-sheet/components/RuleCodexDrawer.jsx'), 'utf8'
+);
+const NAV_BLOCK = DRAWER_SRC.split('const navItems = [')[1].split('];')[0];
+const navIds = [...NAV_BLOCK.matchAll(/\{ id: '([A-Za-z]+)'/g)].map((m) => m[1]);
+check('抽屜分頁數與條目數相同', navIds.length, ids.length);
+check('每個條目都有分頁（有值＝有資料沒入口）', ids.filter((id) => !navIds.includes(id)), []);
+check('每個分頁都有條目（有值＝有入口沒資料）', navIds.filter((id) => !ids.includes(id)), []);
 
 for (const id of ids) {
   const e = RULE_CODEX[id];
@@ -99,6 +121,9 @@ const CLASS_CODEX = {
   卡牌大師: 'aceOfCards'
 };
 check('對應表 10 個職業', Object.keys(CLASS_CODEX).length, 10);
+// 魔晶石是整團的選用規則，不是「某個職業的額外子系統」。
+// 若有人把它塞進這張表，C2 會用「沒有技能引用它」逼出一條假的覆蓋率需求。
+checkTrue('魔晶石不在職業對應表裡', !Object.values(CLASS_CODEX).includes('technospheres'));
 
 for (const [cls, codexId] of Object.entries(CLASS_CODEX)) {
   const c = CLASSES[cls];
@@ -178,7 +203,7 @@ for (const cls of NO_EXTRA) {
 
 // ─────────────────────────────────────────────────────────── E
 section('E. 擴充條目的資料結構');
-for (const id of EXPANSION_IDS) {
+for (const id of [...EXPANSION_IDS, ...TECHNO_IDS]) {
   const e = RULE_CODEX[id];
   checkTrue(`${id}：使用 sections 陣列`, Array.isArray(e.sections) && e.sections.length > 0);
   const kinds = new Set(e.sections.map((s) => s.kind));
@@ -233,6 +258,46 @@ check('機師：防具模組 4 種', findSection('pilot', '防具模組', 'table
 check('機師：武裝模組 17 種', findSection('pilot', '武裝模組', 'table').rows.length, 17);
 check('機師：支援模組 14 種', findSection('pilot', '支援模組', 'table').rows.length, 14);
 check('卡牌大師：效果 8 種', findSection('aceOfCards', '組合效果', 'table').rows.length, 8);
+
+// ── 魔晶石（科技奇幻手冊 p.132~145）
+check('魔晶石：五種使用方式', findSection('technospheres', '五種使用方式', 'table').rows.map((r) => r[0]),
+  ['不使用', '完整規則', '內嵌魔晶石', '僅職業魔石', '僅附魔魔石']);
+check('魔晶石：附魔魔石 36 筆', findSection('technospheres', '附魔魔石一覽', 'table').rows.length, 36);
+check('魔晶石：插槽品級四級', findSection('technospheres', '插槽品級', 'table').rows.map((r) => r[0]),
+  ['α', 'β', 'γ', 'δ']);
+// 原書 p.133 的表格逐字（成本／插槽／職業魔石上限）。
+check('魔晶石：插槽成本（原書 p.133）',
+  findSection('technospheres', '插槽品級', 'table').rows.map((r) => r[1]),
+  ['免費', '+600z', '+1500z', '+1800z']);
+check('魔晶石：插槽容量（原書 p.133）',
+  findSection('technospheres', '插槽品級', 'table').rows.map((r) => r[2]), ['1', '2', '3', '4']);
+check('魔晶石：職業魔石上限（原書 p.133）',
+  findSection('technospheres', '插槽品級', 'table').rows.map((r) => r[3]), ['1', '1', '2', '2']);
+// 上面三條釘死原書；這一條釘死「速查表與資料層不得分岔」。
+check('魔晶石：插槽表與資料層同步',
+  findSection('technospheres', '插槽品級', 'table').rows.map((r) => r[1]),
+  SLOT_QUALITY_KEYS.map((k) => (SLOT_QUALITIES[k].cost === 0 ? '免費' : `+${SLOT_QUALITIES[k].cost}z`)));
+
+// 兩個變體在「+5 HP／MP」與「職業武器熟練」上拿掉的是相反的那一半（p.138）。
+// 這是全篇最容易寫反的一處：漢化在此處把兩個變體寫成同一個方向（見 §BO8）。
+const modeDelta = (label) => findSection('technospheres', '五種使用方式', 'table').rows
+  .find((r) => r[0] === label)[3];
+checkTrue('魔晶石：僅職業魔石＝保留 +5、拿掉職業武器',
+  modeDelta('僅職業魔石').includes('保留最大 HP／MP +5')
+  && modeDelta('僅職業魔石').includes('拿掉職業近戰與遠程武器'));
+checkTrue('魔晶石：僅附魔魔石＝拿掉 +5、保留職業武器',
+  modeDelta('僅附魔魔石').includes('拿掉最大 HP／MP +5')
+  && modeDelta('僅附魔魔石').includes('保留職業近戰與遠程武器'));
+
+// 開卡五項改動的數字必須與資料層常數一致（§BO2：恰好 3 個職業、各 5 級）。
+const OPENING = RULE_CODEX.technospheres.sections.find((s) => s.title === '開卡時的五項改動').items;
+checkTrue('魔晶石：開卡寫明恰好三個固有職業', OPENING.some((i) => i.includes('恰好 3 個')));
+checkTrue('魔晶石：開卡寫明各 5 級', OPENING.some((i) => i.includes('各 5 級')));
+checkTrue('魔晶石：開卡寫明免費一顆 1 級職業魔石', OPENING.some((i) => i.includes('1 級職業魔石')));
+checkTrue('魔晶石：開卡寫明職業防具不在其中', OPENING.some((i) => i.includes('職業防具不在其中')));
+check('魔晶石：15 個職業魔石全部列名',
+  MNEMOSPHERE_CLASSES.filter((n) => !RULE_CODEX.technospheres.sections
+    .find((s) => s.title === '職業魔石的規則').items.some((i) => i.includes(n))), []);
 
 // 譯名同步護欄：同一組 8 個效果在「資料層」與「速查手冊」必須逐字相同。
 // 2026-10-05 之前兩邊各有一套譯名（鬼牌／滿貫／魔法同花／炫目同花／滿貫狀態 vs
@@ -309,6 +374,28 @@ matchNames('機師武裝模組',
 matchNames('機師支援模組',
   PILOT_SUPPORT_MODULES.map((m) => m.name),
   col0(findSection('pilot', '支援模組', 'table').rows));
+
+// 魔晶石的 36 筆附魔魔石：名稱在**第 2 欄**（第 1 欄是 d66 碼位）。
+const HOPLO_ROWS = findSection('technospheres', '附魔魔石一覽', 'table').rows;
+matchNames('魔晶石附魔魔石',
+  HOPLOSPHERES.map((h) => h.name),
+  HOPLO_ROWS.map((r) => normName(r[1])));
+check('魔晶石：d66 碼位與資料層逐筆相同（含順序）',
+  HOPLO_ROWS.map((r) => r[0]), HOPLOSPHERES.map((h) => h.d66));
+check('魔晶石：插槽佔用與資料層逐筆相同',
+  HOPLO_ROWS.map((r) => r[2]), HOPLOSPHERES.map((h) => String(h.slots)));
+check('魔晶石：凝聚 2 與資料層逐筆相同',
+  HOPLO_ROWS.map((r) => r[4]), HOPLOSPHERES.map((h) => h.coag2 || '無'));
+check('魔晶石：凝聚 3 與資料層逐筆相同',
+  HOPLO_ROWS.map((r) => r[5]), HOPLOSPHERES.map((h) => h.coag3 || '無'));
+// 武器限定標記只能出現在 `weaponOnly` 的那 19 筆上（多一個就是抄錯行）。
+check('魔晶石：武器限定標記與資料層一致',
+  HOPLO_ROWS.filter((r) => String(r[1]).includes('僅武器')).length,
+  HOPLOSPHERES.filter((h) => h.weaponOnly).length);
+// 表格每格都必須是非空字串：`renderTextWithAffinities(undefined)` 會安靜地渲染成空白，
+// 而 E 段只驗「欄數對」，驗不到「格子裡有沒有東西」。
+check('魔晶石：附魔魔石表每格都是非空字串',
+  HOPLO_ROWS.flat().filter((c) => typeof c !== 'string' || !c.trim()), []);
 
 // 徽記同時維持上限＝SL + 1（已對照原書；`skillSuboptionsData` 的 quotaHint 同值）
 checkTrue('徽記師：同時維持上限為 SL+1',
