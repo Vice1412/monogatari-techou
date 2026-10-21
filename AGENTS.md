@@ -33,10 +33,10 @@
 - **可用工具**：`pwsh`、`read`、`write`、`edit`、`glob`、`grep`
 - **建置指令**：`npm run build`（Vite 6，實測約 4.2 秒，exit 0）
 - **建置產物**：`dist/`，JS 2,247 kB（gzip 649 kB）。chunk-size 警告為**已知既有現象**，非本次改動造成。
-- **測試指令**：`npm test`（實測 **23 道關卡全過**，exit 0）。
+- **測試指令**：`npm test`（實測 **24 道關卡全過**，exit 0）。
   ※ 各關卡的斷言數**刻意不列在這裡**——這行原本寫著「17 道時期」的數字，後來補了 4 道也沒人發現。
     這種數字自己就會腐化；要精確數字請看該關卡自己的輸出。
-  二十三道測試關卡（其中兩道是自動化的規則關卡）：
+  二十四道測試關卡（其中兩道是自動化的規則關卡）：
   - `npm run test:emoji` —— **規則五.1 已自動化**（見 §3.2）；掃描範圍**已含 `shared/`**
   - `npm run test:affinity` —— 九相屬性標記（誤標表、正標表、資料層掃描、渲染器同步；見 §4 F）
   - `npm run test:equipment` —— 裝備配置（原書裝備表逐筆核對、裝備圖示對照表、熟練度與載入衝突、雙重盾牌、SSR 煙霧；見 `docs/decisions.md` §U）
@@ -60,6 +60,7 @@
   - `npm run test:npcworkshop` —— NPC 工坊純函式（見 `docs/decisions.md` §AX／§AY）
   - `npm run test:npcworkshopui` —— NPC 工坊元件層 SSR（8 道建角步驟的內容錨點；見 §AX）
   - `npm run test:arcanist` —— 秘儀師阿爾卡納（職業家族判定、**面板何時出現**、召喚費與兩種折扣、兩種治療、新角色不得預綁、開局自選名額、屬性預設純函式、**開局選單的效果段落**、SSR；見 §BH）
+  - `npm run test:zeropower` —— 底力技（高度奇幻手冊 p.124–131：七觸發／11 效果／兩張命名表、命刻 6 與 4 格、施展前置、資料正規化、**團隊互斥**、開卡規則兩態、引擎驗證、SSR 兩態、**覺醒之力與合體之力的規則本身**（覺醒動作、雙方命刻皆滿、每對各一效果、效果重複合法）；見 §BM、§BM8）
   測試源碼位於受版控的 `tests/`；bundle 產物輸出至 `.test-build/`（已列入 `.gitignore`）。
   ⚠️ **新增測試檔時，同步改 `package.json` 的 `test` 串鏈是改動的一部分，不是後續工作**——
   `coreBookVariants.test.mjs` 曾被建立後隔了一天都沒被執行（見 §AV1 缺陷 3）。一道不跑的護欄等於不存在。
@@ -211,7 +212,7 @@ CHM 旁的 `.html` 只是 301 bytes 的空殼 frameset，**無用**；真正的�
 | Natural Fantasy | 自然奇幻 | 自然奇幻 | ✅ |
 | Techno Fantasy | 科技奇幻 | 科技奇幻 | ✅ |
 | Custom Weapon | 自定義武器 | **定制武器** | ✅ 2026-10-06 使用者裁定（見 §AS） |
-| Zero Power | 底力技 | （未收錄） | — |
+| Zero Power | 底力技 | （未收錄） | 出處＝**高度奇幻手冊** p.124–131，非官方特典；定譯與 CHM 比對見 `docs/zero-powers-hf.md` |
 | Technospheres | 魔晶石 | （未收錄） | — |
 | Camp Activities | 營地活動 | 營地活動 | ✅ |
 | Heroic Skills | 英雄技能 | 英雄技能 | ✅ |
@@ -449,7 +450,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 - `npm run build` 通過（exit 0，2026-10-06 實測 9.77 秒）。
 - JS bundle 2,252 kB / gzip 651 kB，觸發 Vite chunk-size 警告（>500 kB）。
   建議未來以 `manualChunks` 或 `import()` 拆分，但**非當前規範要求**。
-- `npm test` 通過（**23 道關卡全過**，exit 0）。
+- `npm test` 通過（**24 道關卡全過**，exit 0）。
   已補上測試的模組：造物專案成本與每日推進（`test:projects`）、職業資源池（`test:resources`）、
   美食家食材／食譜書（`test:gourmet`）、專有名詞對照（`test:propernouns`）、
   哨兵遷移（`test:sentinel`）、零 Emoji（`test:emoji`）、卡牌大師牌組（`test:cards`）、
@@ -561,7 +562,7 @@ Get-ChildItem -Path "src" -Recurse -File |
 | ~~先攻變體是否套用~~ | ✅ **2026-10-21 已實裝（§BL）**：改成整團開關 `creationRules.initiativeVariant`（預設 `false`＝與核心逐字相同）。開啟後：防具先攻減值不存在、戰鬥輕甲改物防 +2／魔防 +0、先攻值不存在（顯示「不計」）、影響先攻的效果**忽略而非替換**。判定收斂在 `data/initiativeVariant.js`，`test:initiative` 95 條釘住。**NPC 端刻意未接線**（NPC 工坊沒有開卡規則面板，見 §BL5） | ✅ 已結案 |
 | ~~GitHub repo 改名~~ | **實測 `git remote -v` 已是 `https://github.com/Vice1412/monogatari-techou.git`——改名早已完成。**（2026-10-05 複驗更正） | ✅ 已結案 |
 | 英雄技能「效果文字」逐筆核對 | ✅ **115 筆全部完成**（Core 31 ＋ HF 24 ＋ NF 21 ＋ TF 18 ＋ Bonus 21，共修 20 處；見 §AJ3、§AU）。**待辦**：Playtest changelog 明列約 20 個**修訂既有技能**的項目尚未套用 | 待排程 |
-| Playtest 其餘選用規則 | 同文件還有前後排、Applause Points、Surrender、休息場景、電影式造物計畫等選用規則；本專案目前只實裝「開局英雄技能」與「高階角色起始資金」（實測 `DEFAULT_CREATION_RULES` 無相關欄位） | 待裁定 |
+| Playtest 其餘選用規則 | 同文件還有前後排、Applause Points、Surrender、休息場景、電影式造物計畫等選用規則；本專案目前只實裝「開局英雄技能」與「高階角色起始資金」（實測 `DEFAULT_CREATION_RULES` 無相關欄位）。**另**：高度奇幻手冊的底力技（p.124–131）已於 2026-10-21 實裝，見 §BM——它**不屬** Playtest | 待裁定 |
 | D5 金手指選項 | 金手指「倖存者」的第三個選項「**IP 永久 +2**」未實作；「墮落天使」選項③「**最大 MP +10**」未實作（自然 p.129／科技 p.129／特典 p.18）。**結構性原因**：金手指目前只有「名稱比對」（`characterEngine.js` 的 `quirkName.includes(...)`），**無法承載「選項」** | 待裁定 |
 | D6 官方飾品「洋蔥戒指」 | Core p.289：每個**不同職業**使最大 HP 與 MP 各 +2。**實測不在** `rulesData.equipment.accessories`（現僅 6 筆）→ 玩家無法選用 | 待裁定 |
 | ~~D7 暗黑之刃【Playtest】遠程~~ | ✅ **已隨 BC1 結案**：該職業已於 2026-10-19 刪除（無官方對應），此缺陷不再存在。核心職業「暗黑之刃」的免費增益是「HP +5，職業近戰/防具」，沒有二選一歧義 | ✅ 已結案 |

@@ -11,6 +11,8 @@ import { findVariantHeroicSkillConflicts } from '../data/coreBookVariants';
 import { stripClassSuffix } from '../data/classAliases';
 import { VARIANT_ARCANIST_HEROIC_SKILLS } from '../data/variantArcanistHeroicSkills';
 import { isInitiativeVariant, getArmorProfile, initiativeVariantTermLabel } from '../data/initiativeVariant';
+import { isZeroPowersEnabled, createZeroPowerState } from '../data/zeroPowers';
+import { zeroPowerIssues } from './zeroPower';
 
 // Dice ladder for step reductions
 const DICE_STEPS = [6, 8, 10, 12];
@@ -444,6 +446,11 @@ export const createNewCharacter = (overrides = {}, rules = DEFAULT_CREATION_RULE
     spells: [],    heroicSkills: [],
     quirk: "無",
     backpackNotes: "",
+
+    // 底力技（高度奇幻手冊 p.124–131 的選用規則）。
+    // **預設是空的**：建角時不替玩家選觸發或效果（與四維屬性、羈絆、金手指同一原則）。
+    // 舊存檔沒有這個欄位 → 由 `normalizeZeroPower` 收斂成空狀態，行為與以前完全相同。
+    zeroPower: createZeroPowerState(),
 
     // 個人命刻 (Personal Clocks)。
     // 原書的創角八步驟（p.154）與同章都沒有命刻，所以**不預先種一條**——
@@ -1375,6 +1382,18 @@ export const validateCharacter = (char, rules = null) => {
       field: 'arcanistData',
       type: 'warning',
       message: '【綁定和召喚】尚未選擇開局的阿爾卡納：開始遊戲前可自選 1 個（Core p.133）'
+    });
+  }
+
+  // ── 步驟 5：底力技（高度奇幻手冊 p.124–131 的選用規則）
+  //
+  // 規則沒開就完全不管——舊角色身上殘留的 `zeroPower` 資料不該在關閉後變成警告
+  // （與 `allowPlaytest` 關閉後不動既有資料同一個原則）。
+  // 開啟時只回報「還缺哪個選擇」；「兩名以上角色撞同一個觸發」是**團隊級**問題，
+  // 需要整份名冊，所以放在 `findDuplicateZeroPowers`，不在這裡。
+  if (isZeroPowersEnabled(creation)) {
+    zeroPowerIssues(char.zeroPower).forEach((issue) => {
+      warnings.push({ step: 5, field: issue.field, type: issue.type, message: issue.message });
     });
   }
 

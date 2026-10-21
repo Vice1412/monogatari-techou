@@ -48,6 +48,8 @@ import CharacterPreviewModal from './CharacterPreviewModal';
 import { STATUS_AFFLICTIONS, ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
 import { hasGreaterTheriomorphosis } from '../data/theriomorphosisVariant';
 import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
+import { isZeroPowersEnabled } from '../data/zeroPowers';
+import ZeroPowerBlock from './ZeroPowerBlock';
 import { getCharacterTheme } from '../utils/characterThemes';
 import { getDualShieldState } from '../utils/equipmentRules';
 import {
@@ -160,6 +162,8 @@ export default function CharacterPlayHUD({
   onOpenEditor,
   onOpenLog = null,
   onOpenDice = null,
+  roster = [],
+  onPartnerCleared = null,
   showToast = () => {}
 }) {
   // Tabs: attacks (武器與防衛) | spells (咒語與魔法) | skills (職業特技) | bonds (情感羈絆) | clocks (命刻) | notes (行囊日誌)
@@ -2048,6 +2052,31 @@ export default function CharacterPlayHUD({
           {/* TAB 5: 個人命刻 (Clocks) */}
           {activeTab === 'clocks' && (
             <div className="space-y-4 animate-fade-in">
+              {/* 底力命刻（高度奇幻手冊 p.124–131）：規則沒開就完全不出現。
+                  它與下面的「個人命刻」是兩種東西——個人命刻是玩家自建的進度鐘，
+                  底力命刻是規則給的那一條，只有 6 格（合體之力 4 格）且填充方式受限。 */}
+              {isZeroPowersEnabled(character) && (
+                <ZeroPowerBlock
+                  character={character}
+                  theme={getCharacterTheme(character.themeColor)}
+                  mode="play"
+                  roster={roster}
+                  onChange={(zeroPower) => updateField('zeroPower', zeroPower)}
+                  onPartnerCleared={onPartnerCleared}
+                  onRecoverHp={(factor) => {
+                    /* 【覺醒之力】：回復等同危機值的 HP（原文 p.130）。 */
+                    const gain = Math.max(0, Math.trunc(stats.crisisThreshold * factor));
+                    const next = Math.min(stats.maxHp, curHp + gain);
+                    if (gain === 0 || next === curHp) return;
+                    updateField('currentHp', next, {
+                      kind: 'hp',
+                      title: '覺醒：回復 HP',
+                      changes: [{ field: 'currentHp', from: curHp, to: next }]
+                    });
+                  }}
+                  showToast={showToast}
+                />
+              )}
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="font-bold text-slate-700 text-xs flex items-center gap-1.5">
                   <GiPocketWatch className="w-4 h-4 text-amber-700" />

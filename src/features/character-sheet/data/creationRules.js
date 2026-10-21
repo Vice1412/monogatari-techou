@@ -21,9 +21,10 @@
  * - 高階角色的起始預算每級 +50z → p.229（Creating High Level Characters）
  *   `2000 = 500 + 50 × 30`，由 `ZENIT_PER_LEVEL` 套用在起始等級高於 5 的預設值上
  *
- * ※ 這份物件**只放真的有東西在讀的欄位**。原書特典的底力技（Zero Power）、
- * 自訂武器（Custom Weapon）等子系統本專案尚未收錄，因此不預先開旗標——
- * 沒有讀取端的設定欄位就是幻覺欄位（見 `docs/decisions.md` §U15 的教訓）。
+ * ※ 這份物件**只放真的有東西在讀的欄位**——沒有讀取端的設定欄位就是幻覺欄位
+ * （見 `docs/decisions.md` §U15 的教訓）。所以每一個欄位在加進來的那一輪就必須
+ * 有讀取端：`allowCustomWeapon` 讀在裝備與定制武器鍛造、`initiativeVariant` 讀在
+ * `data/initiativeVariant.js`、`zeroPowers` 讀在 `utils/zeroPower.js` 與第 5 步區塊。
  *
  * ※ **`attributeTotal` 已於 2026-10-06 移除**（見 `docs/decisions.md` §AM）。
  * 使用者指出「骰子大小就那幾個」，而原書 p.162 確實是**三組固定陣列**（d8×4／
@@ -47,7 +48,8 @@ export const CREATION_RULE_FIELDS = Object.freeze([
   'allowCustomWeapon',
   'startingHeroicSkill',
   'allowPlaytest',
-  'initiativeVariant'
+  'initiativeVariant',
+  'zeroPowers'
 ]);
 
 /** 全部手冊的鍵（合法值域） */
@@ -191,7 +193,19 @@ export const DEFAULT_CREATION_RULES = Object.freeze({
    *
    * 預設 false：核心規則的先攻值照算（`tests/equipmentRules.test.mjs` L 區段釘住的現況）。
    */
-  initiativeVariant: false
+  initiativeVariant: false,
+  /**
+   * 選用規則：底力技（ZERO POWERS，高度奇幻手冊 p.124–131）。
+   *
+   * 原書明言「這條規則會讓故事的主角們強得過分，請先與整團討論過再決定是否使用」，
+   * 所以它是**整團一層**的開關（與 `initiativeVariant` 同一個位置），不是每個角色
+   * 各自勾的選項。開啟後：建角第 5 步出現底力技區塊、角色身上多一個 `zeroPower`
+   * 欄位、跑團面板的命刻分頁出現底力命刻。
+   *
+   * ※ 舊註解曾寫「原書特典的底力技」——**那是錯的**。它只出現在高度奇幻手冊，
+   *   自然奇幻與科技奇幻全文掃描 `ZERO POWER` 皆 0 命中（見 `docs/zero-powers-hf.md` §0）。
+   */
+  zeroPowers: false
 });
 
 const toInt = (value, fallback, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}) => {
@@ -265,6 +279,7 @@ export const resolveCreationRules = (overrides = {}) => {
   const initiativeVariant = typeof given.initiativeVariant === 'boolean'
     ? given.initiativeVariant
     : d.initiativeVariant;
+  const zeroPowers = typeof given.zeroPowers === 'boolean' ? given.zeroPowers : d.zeroPowers;
 
   return {
     startingLevel,
@@ -279,7 +294,8 @@ export const resolveCreationRules = (overrides = {}) => {
     allowCustomWeapon,
     startingHeroicSkill,
     allowPlaytest,
-    initiativeVariant
+    initiativeVariant,
+    zeroPowers
   };
 };
 

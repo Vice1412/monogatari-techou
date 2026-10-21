@@ -58,7 +58,10 @@ const TOGGLE_FIELDS = [
   { key: 'allowPlaytest', label: '開放公測修訂內容', hint: '官方公測材料；核心技能變體與秘儀師變體' },
   // 這格與上面幾格不同：上面是「開放某批選項」，這格是**把一條既有規則換掉**。
   // 官方原文要求變體規則整團共同採用，所以它住這裡（整團一層），不是每個角色各自勾。
-  { key: 'initiativeVariant', label: '先攻變體', hint: '公測 p.34；防具無先攻減值、戰鬥輕甲改物防 +2／魔防 +0、不使用先攻值' }
+  { key: 'initiativeVariant', label: '先攻變體', hint: '公測 p.34；防具無先攻減值、戰鬥輕甲改物防 +2／魔防 +0、不使用先攻值' },
+  // 底力技同樣是整團一層：原書要求整團先討論過再決定是否使用（「會讓主角們強得過分」），
+  // 而且「同一團隊不得有兩名以上角色擁有相同的觸發或效果」——那是團隊級的約束。
+  { key: 'zeroPowers', label: '開放底力技', hint: '高度奇幻手冊 p.124–131；開啟後角色獲得底力命刻與底力效果' }
 ];
 
 export default function CreationRulesPanel({ rules, diff = {}, onChange, theme = {}, disabled = false }) {

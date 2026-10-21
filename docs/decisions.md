@@ -88,6 +88,7 @@
 | BJ | 修補匠魔導科技**分支**（公測 p.38） | 分支不是「多一個變體」而是**換掉第三軌的三個節點**：新增 `data/gadgetBranches.js`（分支表／魔法球咒語池／顆數／`INS＋WLP`／攻擊性 +2），變體補到 8 筆，彈窗與速查改成**看分支說話**。核心三節點在分支模式下**必須消失**（原本魔導武裝也顯示核心三節點＝顯示錯誤規則）；`test:variants` 新增 §R 60 條 | 2026-10-20 |
 | BK | 混合變形**變體**（公測 p.40） | 形態庫與配額本來就實裝了，所以「有沒有變體」在畫面上看起來一樣——變體改的是**不在形態庫裡的四件事**：HP 消耗（1/3 → **固定 20**）、**自由攻擊一次（HR 視為 0，【基因分析】觸發時沒有）**、【進階混合變形】**取消追加動作**、形態庫與配額**不變**。新增 `data/theriomorphosisVariant.js`；英雄技能文本在**顯示時**改寫，**不回寫** `character.heroicSkills[].effect`；`test:variants` 新增 §S 53 條 | 2026-10-21 |
 | BL | 先攻**變體規則**（公測 p.34） | 這是**整團一層**的規則，不是角色技能 → 住 `creationRules.initiativeVariant`（預設 false＝與核心逐字相同）。三條後果各有落點：防具先攻減值**不存在**、戰鬥輕甲改**物防 +2／魔防 +0**、先攻值**不存在**（顯示「不計」不是 0）。判定收斂在 `data/initiativeVariant.js` 一處，引擎／裝備試算／四個顯示點共用；`test:initiative` 新增 95 條 | 2026-10-21 |
+| BM | 底力技（高度奇幻手冊 p.124–131） | 出處**只有** HF 手冊（NF／TF／Playtest 掃描零命中，不是官方特典）。整團開關 `creationRules.zeroPowers`（預設 false）＋角色資料 `character.zeroPower`；命刻 6 格（合體之力 4 格）的計算收斂在 `utils/zeroPower.js`，團隊互斥在 `findDuplicateZeroPowers`。兩處原文矛盾已裁定：【零之機運】「上一行」＝**較弱的一檔**、【零之天災】選**兩個**狀態且都生效。名稱表（1d20×3 ＋ 1d10×6）CHM 完全未收錄，本專案自行定譯；`test:zeropower` 新增 187 條。**兩個變體第一版只做了欄位**（覺醒之力／合體之力），規則於 §BM8 補完：覺醒動作、雙方命刻皆滿、每對各一個效果（`combinedPairs`）、效果重複合法化；246 條 | 2026-10-21 |
 
 ---
 
@@ -3329,6 +3330,12 @@ Versatile Tactics、Piercing Sorcery、Thaumaturge、Spell Buffet…），
 
 #### AL7. 底力技不在這次範圍
 
+> **2026-10-21 更正（出處寫錯）**：本節原稱「官方特典的 Zero Power 子系統」——**錯**。
+> 實測英文原書：底力技在 **《高度奇幻手冊》第三章 p.124–131**（PDF p.126–133），
+> 與金手指、自訂武器並列為該書的三條可選規則；**自然奇幻與科技奇幻兩本手冊都沒有這條規則**
+> （全文掃描 `ZERO POWER`：NF 0 命中、TF 0 命中）。定譯與 CHM 比對見 `docs/zero-powers-hf.md`。
+> 本節「不在這次範圍」的結論**仍然成立**（子系統至今未收錄）。
+
 使用者把「底力技」也列在常開放的規則裡，但它**不是一個開關**——它是官方特典的
 Zero Power 子系統（另一套技能與資源），本專案完全沒收錄（`creationRules.js` 的註解
 自己就寫著「尚未收錄，因此不預先開旗標」）。要能開它，得先把那個子系統建起來，
@@ -6035,3 +6042,185 @@ SSR（角色卡、技能列晶片、效果清單；每一態都同時驗「該�
 - 破壞 D（角色卡改回寫死 `{stats.init}`）→ **3 處 FAIL**（原始碼護欄 ＋ 兩態 SSR）。
 
 若只做破壞 A，會得到「95 條都很靈敏」的錯覺；B 只掉 2 條才是真相的正確形狀。
+
+---
+
+### BM. 底力技（ZERO POWERS）：一條選用規則，五個落點 —— ✅ 2026-10-21
+
+> 使用者原話：「high fantasy 裡面有 zero power 的可選規則，你研究一下，然後翻譯比對 chm 的翻譯，
+> 內容依照規則書為準，我打算把它是裝進角色卡助手」。
+>
+> 兩階段：**先研究／翻譯／比對**（成果是 `docs/zero-powers-hf.md`，396 行），
+> 使用者看過後說「可以，照著你的方向去做」→ **再實裝**。
+
+#### BM1. 出處：只有高度奇幻手冊，而且不是「官方特典」
+
+`AGENTS.md` §6.1 與 `docs/agents-changelog.md` 過去都把 Zero Power 記成「官方特典的底力技」。
+**這是錯的**，而且錯得會影響判斷（特典＝可選的補充包，手冊＝一級規則）。
+
+實測（同一輪跑，不是憑印象）：
+
+| 檔案 | 頁數 | `"ZERO POWER"` 命中 |
+|---|---|---|
+| `..._High_Fantasy_Atlas.pdf` | 202 | **有**（印刷 p.124–131） |
+| `..._Natural_Fantasy_Atlas.pdf` | 210 | 0 |
+| `..._Techno_Fantasy_Atlas.pdf` | 218 | 0 |
+| Playtest Materials（2026-10-01，45 頁） | 45 | 0 |
+
+所以它不是「散落在各處的特典」，是**高度奇幻手冊的一個專章**。來源標記已更正為
+`高度奇幻手冊 p.124–131`（`ZERO_POWER_SOURCE`），並寫進 `test:zeropower` 的斷言。
+
+#### BM2. 定譯：CHM 有的照 CHM，CHM 沒有的自己定
+
+CHM 只翻了概觀／創造／使用／觸發／效果五節，**名稱表、覺醒之力、合體之力整段缺席**。
+逐條比對與八處 CHM 缺陷（A1–A8）在 `docs/zero-powers-hf.md` §2，此處只記結論：
+
+- **照 CHM**：底力技／底力命刻／底力觸發／底力效果；七個觸發名（憐憫／挑戰／愛／復仇／連續／戰略／協同）。
+- **不照 CHM**：11 個效果名一律加「零之」前綴（零之疾襲…零之三角），因為 CHM 的裸名
+  「目標」「元素」「咒語」在介面裡會跟泛用詞撞在一起。CHM 舊名保留在 `ZERO_EFFECTS[].alias` 供檢索。
+- **CHM 未收錄**：兩張命名表（動作 1d20 × 三欄、由來 1d10 × 六欄，共 120 個詞）、
+  覺醒之力、合體之力。這三塊是本專案自行定譯，**沒有漢化依據可對照**。
+
+#### BM3. 兩處原文矛盾，先裁定再寫程式
+
+原文本身有兩個地方說不圓，實作前必須先決定，否則程式只能二選一而說不出理由：
+
+1. **【零之機運】**：「…or the effect immediately above it, your choice」。
+   「上面那一行」在表格裡是**較強**還是**較弱**？裁定為**較弱的一檔**（三顆→兩顆→一顆→零顆；
+   零顆沒有上一行，因此沒有選項）。理由：效果的價值隨骰數遞增，若「上一行」是更強的一檔，
+   這句話就變成純升級條款，「your choice」毫無意義。程式寫成 `zeroChanceOptions(matches)`
+   回傳 `[對應檔, 較弱檔]`，**永不默默升級**。
+2. **【零之天災】**：句子用單數提到 status effect，但清單式描述給兩個。
+   裁定**選兩個、兩個都生效**（原文的複數意圖比單數措辭可信）。
+   因此 `isZeroChoiceComplete` 要求 `statuses.length === 2` 且 `damageType` 非空。
+
+另兩處歧義（【零之成本】減半向下取整、下限 0；【零之元素】的屬性在**施展時**選定並鎖定）
+記在 `docs/zero-powers-hf.md` §3。
+
+#### BM4. 住哪裡：整團開關 ＋ 角色資料，不是「技能」
+
+底力技**不是技能**：它不進 `skills[]`，不佔技能格，不隨等級成長，而且有「同團不得重複」的硬約束。
+所以拆成兩層：
+
+| 層 | 位置 | 預設 | 為什麼 |
+|---|---|---|---|
+| 開關 | `creationRules.zeroPowers` | **`false`** | 與 `initiativeVariant` 同層——它是整團採不採用的規則 |
+| 資料 | `character.zeroPower` | 空狀態 | 每個人一份：名稱／觸發／效果／選擇／命刻／變體 |
+
+預設必須是 `false`，理由與 §BL 相同且更強：`resolveCreationRules` 是舊存檔的唯一入口，
+若預設開啟，**所有既有角色會在載入時突然多出一個沒填過的子系統**，而且 `validateCharacter`
+會開始對他們噴「尚未選擇底力觸發」。判定入口只有 `isZeroPowersEnabled()` 一個，
+且**只認字面上的 `true`**（存檔裡的 `'true'` 不算——壞資料不該默默打開一整套規則）。
+
+舊存檔沒有 `zeroPower` 欄位 → `normalizeZeroPower(undefined)` 回空狀態，
+所以「沒開這條規則的角色」與「開了但還沒填」在資料層長得一樣，行為與改動前逐字相同。
+
+#### BM5. 五個落點（漏一個，畫面都還是正常）
+
+1. **開卡規則**：`CREATION_RULE_FIELDS` 加 `zeroPowers`；`CreationRulesPanel` 多一個「開放底力技」勾選。
+2. **角色建立**：`createNewCharacter` 寫入 `zeroPower: createZeroPowerState()`。
+3. **驗證**：`validateCharacter` 第 5 步在規則開啟時跑 `zeroPowerIssues()`——未選觸發／未選效果／
+   【愛】未綁定角色／【零之元素】未選兩種屬性／【零之天災】屬性與狀態不齊／合體之力未指定配對。
+4. **建角介面**：`CharacterEditor` 第 5 步，`rules.zeroPowers &&` 才渲染 `<ZeroPowerBlock mode="edit">`。
+   **條件渲染，不是停用**——沒開這條規則的團不該看到一個灰掉的區塊。
+5. **跑團介面**：`CharacterPlayHUD` 的「個人命刻」分頁頂端，`isZeroPowersEnabled(character)` 才渲染
+   `<ZeroPowerBlock mode="play">`（命刻格 ＋ 填充 1 格／清空／施展，施展鈕自己說明為什麼不能按）。
+
+#### BM6. 測試：187 條，三輪刻意破壞驗證
+
+`tests/zeroPowers.test.mjs`（`npm run test:zeropower`，`npm test` 串鏈 **23 → 24 道**）：
+
+| 段 | 內容 | 條數 |
+|---|---|---|
+| A | 七個觸發、填充量（含協同依弱點目標數） | 16 |
+| B | 11 個效果、四種需要額外選擇的效果、傷害類型八種不含物理 | 14 |
+| C | 兩張命名表（欄數／列數／每欄無重複／無空格）＋ 取名逐例與夾制 | 17 |
+| D | 命刻 6／4、填充夾制、負數不動、不改原物件 | 13 |
+| E | 零之機運四檔與「上一行＝較弱」 | 10 |
+| F | 施展前置（七種拒絕理由）＋ 選擇完整性 ＋ 施展清空 | 19 |
+| G | 正規化（undefined／null／陣列／字串／未知 id／超界／壞型別／未知欄位不外洩） | 22 |
+| H | 團隊互斥（重複偵測、佔用查詢、排除自己） | 12 |
+| I | 開卡規則欄位與判定（六種壞值） | 13 |
+| J | 引擎整合（新角色空狀態、規則開／關兩態的驗證） | 15 |
+| K | 摘要文字（含名稱前綴、天災選擇、覺醒狀態） | 6 |
+| L | SSR 兩態（建角模式 15 條、跑團模式 5 條） | 20 |
+| M | 原始碼護欄（條件渲染、數字不硬編碼、出處已更正） | 8 |
+
+刻意破壞驗證三輪（皆已還原）：
+
+- **A**：`zeroClockMax` 改成固定 `6` → **5 條 FAIL**（合體之力的上限、夾制、滿格判定、SSR 兩處）。
+- **B**：`CharacterEditor` 的條件改成 `{true && (` → **1 條 FAIL**（原始碼護欄）。
+- **C**：`validateCharacter` 的守衛改成 `if (false && …)` → **3 條 FAIL**（規則開啟時的三條驗證斷言）。
+
+三輪各打在不同層（純函式／原始碼／引擎整合），沒有出現「改壞了卻全綠」的情形。
+`npm test` **24 道全過 exit 0**；`npm run build` exit 0（chunk-size 警告為既有現象）；`test:emoji` 0 命中。
+
+#### BM7. 刻意沒做的三件事
+
+1. **名冊卡片（`CharacterCard`）不顯示底力技摘要**。底力命刻是**跑團時**的資源，跑團時看的是
+   `CharacterPlayHUD`；名冊卡片已經有六個區塊，再塞一個只會讓「一眼掃過」變難。
+2. **沒有接 `combat-tracker`**。「每回合只能施展一次」目前靠 `canUnleashZeroPower` 的
+   `alreadyUnleashedThisTurn` 參數，由呼叫端決定；戰鬥輪次狀態機本來就是本專案已知缺口
+   （見 `AGENTS.md` §4 E），不趁這輪順手造一個半成品。
+3. **【零之機運】的奇偶判定不自動化**。骰面由 GM 與玩家在桌上判定，程式只負責「對應檔」與
+   「較弱的一檔」兩個選項；把 d6 的奇偶寫成程式判定等於替桌上多造一條規則。
+
+#### BM8. 兩個變體的第一版只是「欄位」，不是「規則」（2026-10-21 補完）
+
+§BM 實裝當天，`variant: 'awakened' | 'combined'` 就存在了，命刻格數也會跟著變 4 格——
+**但規則本身沒有進來**。使用者隔一輪問「底力技還差什麼沒做好」，逐條比對原文 p.130–131
+之後，共找到**六個缺口**，其中兩個是「欄位有、行為沒有」的空殼：
+
+| # | 缺口 | 原文依據 | 為什麼算缺口（不是「還沒做」） |
+|---|---|---|---|
+| 1 | `awakened: true` 沒有任何消費者 | p.130 | 這個欄位只被寫入、從不被讀取；更糟的是 `zeroPowerIssues` 在覺醒模式下**仍要求選觸發**，等於把原文「建角時只選效果、不選觸發」寫反了——玩家會被系統逼著違反規則 |
+| 2 | 沒有「覺醒」這個動作 | p.130 | 原文說覺醒時要回復危機值的 HP、當場選觸發、衝突中覺醒則命刻立即填滿。這三件事一件都沒發生 |
+| 3 | 合體之力只看自己的命刻 | p.131 | 原文「雙方命刻皆滿才能施展，施展後**兩邊一起清空**」。第一版只清自己的，等於讓合體之力變成免費的單人加速 |
+| 4 | 一個角色只能有一個配對 | p.131 | 原文「**每個其他玩家角色各給一個效果**」——四人團是 4 個觸發 ＋ **6 個效果**（C(4,2)）。單一 `combinedWith` 欄位在數學上就裝不下 |
+| 5 | 效果重複被當成違規 | p.131 | 原文**明確允許**同一個效果在一團裡出現多次（因為配對不同）。第一版的 `findDuplicateZeroPowers` 會把它標成 violation，`zeroPowerTakenBy` 還會把隊友的效果灰掉 |
+| 6 | 匯出／Fultimator 不帶 `zeroPower` | — | 見下方「仍然不做的」第 1 條 |
+
+**改法（三層一起動，否則會出現「UI 能點但引擎不認」）**
+
+1. **資料層**：`createZeroPowerState()` 的 `combinedWith` 換成 `combinedPairs: [{ partnerId, effectId, nickname }]`；
+   `normalizeZeroPower` 新增 `normalizeCombinedPairs`，**舊的 `combinedWith` 自動升格成一組配對**
+   （`{ partnerId, effectId: 該角色自己的 effectId, nickname: '' }`）——舊存檔不會靜默歸零。
+2. **規則層**：`zeroActiveEffectId(state, partnerId)` 讓「作用中的效果」在合體模式下由配對決定；
+   `canUnleashZeroPower` 的 `partnerClockFull` **刻意是三態**（`true`／`false`／`undefined`）：
+   `undefined` 代表「呼叫端拿不到名冊」（SSR、獨立 HUD），此時**不阻擋**——不然跑團面板一進場就紅字。
+   只有 `false` 才擋。`unleashZeroPower` 回報 `partnerCleared`，由呼叫端去清伙伴的命刻。
+   新增 `awakenZeroPower`：非覺醒變體／已覺醒／沒選觸發三種拒絕各有自己的訊息，成功時回 `hpRecoveryFactor: 1`
+   （回復量＝危機值，由呼叫端乘）。
+3. **介面層**：`ZeroPowerBlock` 在合體模式下把「效果 chips」整塊換成**配對列編輯器**
+   （伙伴下拉／效果下拉／這一招的別稱／移除），覺醒模式則顯示**覺醒區**（七個觸發 chips ＋
+   「在衝突中覺醒」勾選 ＋ 覺醒鈕）。`CharacterPlayHUD` 接上 `roster` 與 `onPartnerCleared`／`onRecoverHp`，
+   HP 回復用 `stats.crisisThreshold * factor` 而非寫死數字。
+
+**為什麼「效果重複」要分 severity 而不是直接放行**：原文的「觸發應盡量不同」是軟要求
+（"if possible"），「效果可重複」是明確允許。兩者混在同一個 violation 清單裡，玩家會分不出
+「這條我必須改」和「這條只是提醒」。所以 `findDuplicateZeroPowers` 的輸出加了 `severity`：
+合體模式下觸發重複＝`hint`、效果重複＝**不收集**。
+
+**測試**：187 → **246 條**（新增 §N 覺醒之力 18 條、§O 合體之力 24 條，其餘為既有斷言改寫）。
+刻意破壞三輪，各打在不同層：
+
+- `awakenZeroPower` 的 `if (s.awakened)` → `if (s.awakened && false)` → **3 FAIL**
+- `canUnleashZeroPower` 的 `if (partnerClockFull === false)` → 加 `&& false` → **1 FAIL**
+- `zeroPowerTakenBy` 的 `if (!combined && s.effectId)` → 拿掉 `!combined` → **1 FAIL**
+
+三輪都精準命中、也都還原。`npm test` **24 道全過 exit 0**；`build` exit 0；`test:emoji` 0 命中。
+
+**仍然不做的（這輪明確決定，不是漏掉）**
+
+1. **三頁 PDF 匯出與 Fultimator 不帶底力技**。三頁 PDF 是**官方版面**（`test:ui` 逐筆釘住），
+   官方角色卡上沒有底力技欄位——為了自訂規則改官方版面，等於讓「官方三頁」變成「我們的四頁」。
+   而 `convertMonogatariToFultimator` 的輸出格式由外部工具決定，硬塞私有鍵會讓匯入端拒收。
+   **兩者都不影響存檔**：`zeroPower` 一直在 `character` 上，Fultimator 往返後會被 `normalizeZeroPower`
+   收斂成空狀態（不會壞，只會歸零），這是可接受的已知限制。
+2. **【零之元素】／【零之天災】在合體模式下不做選擇驗證**。`choices` 是**角色層級**的欄位，
+   而合體模式下一個角色可能同時掛著三組配對、三組效果——一組 `choices` 裝不下三組選擇。
+   目前的處理是：合體模式**跳過**這兩個效果的選擇檢查，介面也**不顯示**那兩個選擇器，
+   留給桌上裁定。這是資料模型的真實限制，寫在這裡而不是藏起來。
+3. **`findDuplicateZeroPowers` 沒有接進 UI**。團隊約束在**選擇當下**就生效了（`zeroPowerTakenBy`
+   會把隊友已選的觸發／效果灰掉），事後再掃一遍只是重複。函式留著是因為它是純函式、
+   未來要接名冊層檢查時不必重寫。

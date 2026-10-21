@@ -75,6 +75,7 @@ import CharacterPreviewModal from './CharacterPreviewModal';
 import CreationRulesPanel from './CreationRulesPanel';
 import HeroicSkillPickerModal from './HeroicSkillPickerModal';
 import QuirkPickerModal from './QuirkPickerModal';
+import ZeroPowerBlock from './ZeroPowerBlock';
 
 /** 編輯器的分頁數量。夾制 initialTab 時不能讀 TABS（宣告在下面，會踩 TDZ），所以另存常數。 */
 const TAB_COUNT = 6;
@@ -126,7 +127,10 @@ export default function CharacterEditor({
   // （見 data/creationRules.js——起始等級、起始資金、必修職業、開放拓展都由此決定）
   creationRules = null,
   // 開啟時要停在哪一個分頁（例如從跑團卡的升級流程連過來看「職業與技能」）
-  initialTab = 1
+  initialTab = 1,
+  // 同團的其他角色（底力技的「不得有兩名以上角色擁有相同觸發／效果」需要看得到隊友）。
+  // 不傳就是空陣列：此時底力技區塊完全正常，只是沒有「隊友已選」的提示。
+  roster = []
 }) {
   // 分頁編號一定要是合法數字。這裡是最後一道防線：
   // 曾經有一次呼叫端寫成 `onClick={onOpenEditor}`，React 就把**點擊事件物件**當成分頁編號傳進來，
@@ -1966,6 +1970,20 @@ export default function CharacterEditor({
                     </p>
                   )}
                 </div>
+              )}
+
+              {/* 底力技（高度奇幻手冊 p.124–131）：開卡規則沒開就整塊收掉，
+                  理由與上面的金手指完全相同——整條規則關閉時，這個入口本身就不該存在。
+                  與金手指不同的是，底力技有「整團不得重複」的約束，所以要把隊友傳進來。 */}
+              {rules.zeroPowers && (
+                <ZeroPowerBlock
+                  character={character}
+                  theme={theme}
+                  mode="edit"
+                  roster={roster}
+                  onChange={(zeroPower) => updateField('zeroPower', zeroPower)}
+                  showToast={showToast}
+                />
               )}
 
               {/* 英雄技能：開卡規則沒開「開局英雄技能」、又還沒精通任何職業時，這裡

@@ -1,4 +1,4 @@
-﻿# AGENTS.md 變更紀錄
+# AGENTS.md 變更紀錄
 
 > 本檔原為 `AGENTS.md` 的尾端附錄。2026-10-04 拆分出來，原因：
 > `AGENTS.md` 已達 68,142 bytes，**超過 harness 的 workspace instruction 注入預算（65,536 bytes）**，
@@ -743,3 +743,41 @@
 *遺留（刻意不動）：① **NPC 端沒有接線**——`INITIATIVE_VARIANT_RULES` 的 `npcInitiative`／`eliteChampionInitiative`／`npcImprovedInitiative` 三個欄位只有資料、沒有消費端：NPC 工坊沒有開卡規則面板，而這是整團規則，硬接等於替 NPC 另造一個開關。**寧可留白，不要假裝覆蓋。** ② 三頁匯出的資料模型裡先攻仍是 `number`（外部工具要讀），變體開啟時只有**顯示**印「不計」。 ③ 「沒有反派 → 英雄方先攻」目前只有 `describeInitiativeOrder()` 這個純函式，`combat-tracker` 尚未呼叫（該模組的輪次狀態機本來就是已知缺口）。*
 
 *※ `AGENTS.md` 改了三處：§1 的測試關卡清單（22 → **23 道**，新增 `test:initiative` 一行）、§4 E 的同一數字、§6.1 的「先攻變體是否套用」一列（待裁定 → **已結案**，指向 §BL）。依 §BI 新規則，索引只寫進 `docs/decisions.md`。本輪後 `AGENTS.md` **51,654 bytes（餘裕 13,882）**——首次低於 §7 的約 15,000 門檻。**本輪不壓縮**：新增的 470 bytes 全在規則本體（測試關卡描述與未決清單狀態），沒有一筆紀錄混進來；依 §7 的判準，門檻觸發時要檢查的是「有沒有東西放錯檔案」，而答案是否。*
+
+*2026-10-21（續）：實裝**底力技**（ZERO POWERS，高度奇幻手冊 p.124–131）。使用者原話：「high fantasy 裡面有 zero power 的可選規則，你研究一下，然後翻譯比對 chm 的翻譯，內容依照規則書為準，我打算把它是裝進角色卡助手」——先交研究／翻譯／CHM 比對（`docs/zero-powers-hf.md`，396 行），使用者看過後說「可以，照著你的方向去做」才動手實裝。*
+
+*研究階段推翻了一個**長期寫在本檔裡的假事實**：Zero Power 過去被記成「官方特典的底力技」，實際只出現在**高度奇幻手冊**——同一輪實測 `"ZERO POWER"`：HF 手冊（202 頁）有、自然手冊（210 頁）**0**、科技手冊（218 頁）**0**、Playtest Materials（45 頁）**0**。`AGENTS.md` §1.2 的譯名表已改為「出處＝高度奇幻手冊 p.124–131，非官方特典」，`ZERO_POWER_SOURCE` 也寫死這個字串並被測試釘住。*
+
+*CHM 那份漢化只翻了五節（概觀／創造／使用／觸發／效果），**名稱表、覺醒之力、合體之力整段缺席**——所以這三塊的定譯沒有漢化依據可對照，是自行定的。CHM 另有 8 處缺陷（A1–A8，最嚴重的是【零之機運】整句「or the effect immediately above it, your choice」被漏譯、【零之盾】標題誤植成「屏障Zero Remedy」），逐條列在 `docs/zero-powers-hf.md` §2。*
+
+*原文自己有兩處說不圓，**先裁定再寫程式**：①【零之機運】的「上面那一行」＝**較弱**的一檔（三→二→一→零，零顆沒有上一行）——若判成較強，那句「your choice」就毫無意義；②【零之天災】用單數提到狀態、卻給兩個清單項 → 選**兩個**且都生效（複數意圖比單數措辭可信）。兩條都寫成 `isZeroChoiceComplete` 的硬條件，不是靠 UI 提示。*
+
+*住哪裡：**不是技能**（不進 `skills[]`、不佔技能格、不隨等級成長，而且有「同團不得重複」的硬約束）→ 拆成整團開關 `creationRules.zeroPowers`（預設 **`false`**）＋角色資料 `character.zeroPower`。預設必須 false 的理由比先攻變體更強：`resolveCreationRules` 是舊存檔唯一入口，預設開啟會讓所有既有角色在載入時**突然多出一個沒填過的子系統**，並開始噴「尚未選擇底力觸發」。*
+
+*新增 4 個檔案／改動 6 個既有檔案：`data/zeroPowers.js`（416 行：7 觸發／11 效果／兩張命名表 120 詞／`generateZeroPowerName`／`normalizeZeroPower`）、`utils/zeroPower.js`（命刻與施展前置的純函式，含 `findDuplicateZeroPowers`）、`components/ZeroPowerBlock.jsx`（470 行，`mode="edit"`／`"play"` 兩態）、`tests/zeroPowers.test.mjs`；`creationRules.js`／`CreationRulesPanel.jsx`（開關）、`characterEngine.js`（新角色帶空狀態 ＋ 第 5 步驗證）、`CharacterEditor.jsx`（`rules.zeroPowers &&` 才渲染）、`CharacterPlayHUD.jsx`（`isZeroPowersEnabled(character)` 才渲染命刻與施展）、`CharacterSheet.jsx`（傳 `roster`）。*
+
+*五個落點一個都不能漏，漏了畫面還是正常——所以測試分 A–M 十三段 **187 條**，把「條件渲染」「數字不硬編碼」「出處字串」全部當原始碼護欄釘住。刻意破壞驗證三輪（皆還原）：`zeroClockMax` 固定 6 → **5 條 FAIL**；`CharacterEditor` 條件改 `{true && (` → **1 條**；`validateCharacter` 守衛改 `if (false && …)` → **3 條**。三輪各打在不同層（純函式／原始碼／引擎整合），沒有出現「改壞了卻全綠」。`npm test` **24 道全過 exit 0**、`npm run build` exit 0、`test:emoji` 0 命中。*
+
+*兩個自抓的缺陷值得記：① 第一次跑測試 `validateCharacter(...).filter is not a function`——它回的是 `{ isValid, hasWarnings, errors, warnings, totalIssues }` 物件，不是陣列；斷言前先確認回傳形狀，不要憑「應該是陣列」寫。② `data/zeroPowers.js` 有一次 `edit` 把 `ADJECTIVAL_ORIGINS` 宣告整段吃掉，留下 16 個孤兒字串——**長字串的 edit 會吃掉錨點附近的宣告**，改完要 `read` 回看，不要只看 build 過不過（那次 build 照樣過，因為孤兒字串是合法的陣列元素）。*
+
+*刻意沒做三件：名冊卡片不顯示底力技摘要（底力命刻是跑團資源，跑團時看 `CharacterPlayHUD`）、不接 `combat-tracker` 的「每回合一次」（輪次狀態機本來就是已知缺口，不趁這輪造半成品）、【零之機運】的奇偶不自動化（骰面由桌上判定，程式只給兩個選項）。決策正文見 `docs/decisions.md` §BM（BM1–BM7）。*
+
+*※ `AGENTS.md` 改了三處：§1 測試關卡清單（23 → **24 道**，新增 `test:zeropower` 一行）、§4 E 的同一數字、§6.1 的「Playtest 其餘選用規則」一列（補註底力技已實裝、且**不屬** Playtest）。本輪後 `AGENTS.md` **52,143 bytes（餘裕 13,393）**——再次低於 §7 的約 15,000 門檻。**本輪不壓縮**：新增的 489 bytes 全在規則本體（一道關卡的描述 ＋ 一列狀態），沒有一筆紀錄混進來；門檻觸發時要檢查的是「有沒有東西放錯檔案」，答案仍然是否。*
+
+*2026-10-21（續二）：補完底力技的**兩個變體**。使用者問「關於底力技還差什麼沒有做好的？如果都完成了就 push」——這句話逼出一輪真正的稽核，而答案是「差很多」。*
+
+*上一輪把 `variant: 'awakened' | 'combined'` 兩個**欄位**做進去了，命刻格數也會跟著變 4 格，看起來很完整。**但規則本身沒有進來**：`awakened: true` 只被寫入、從不被讀取；`zeroPowerIssues` 在覺醒模式下**仍然要求選觸發**（把原文「建角只選效果」寫反，玩家會被系統逼著違規）；沒有「覺醒」這個動作（危機值 HP 回復、當場選觸發、衝突中命刻立即填滿，三件都沒發生）；合體之力只看自己的命刻，施展後也只清自己的（原文是「雙方皆滿、兩邊一起清空」）；一個角色只能有一個配對，而原文是「每個其他玩家角色各給一個效果」——四人團 4 個觸發 ＋ **6 個效果**，單一欄位在數學上就裝不下；效果重複被當成違規，而原文**明確允許**。*
+
+*教訓寫成一句：**「欄位存在」不等於「規則生效」，而兩者在畫面上長得一模一樣**。這和 §AW6 的「測試與生產分歧」是同一種病——都是「有一邊沒接上」，而且都不會讓 build 失敗。*
+
+*改法三層一起動：資料層 `combinedWith` → `combinedPairs: [{ partnerId, effectId, nickname }]`（舊存檔自動升格成一組配對，不靜默歸零）；規則層新增 `awakenZeroPower`、`zeroActiveEffectId`、`zeroPairFor`，`canUnleashZeroPower` 加 `partnerClockFull` 三態（`undefined`＝拿不到名冊，**不阻擋**，否則 SSR 與獨立 HUD 一進場就紅字；只有 `false` 才擋），`unleashZeroPower` 回報 `partnerCleared` 由呼叫端清伙伴命刻；介面層合體模式把「效果 chips」整塊換成**配對列編輯器**，覺醒模式顯示**覺醒區**（七個觸發 ＋ 「在衝突中覺醒」＋ 覺醒鈕），`CharacterPlayHUD` 接上 `roster` 與 `onPartnerCleared`／`onRecoverHp`（HP 回復用 `stats.crisisThreshold * factor`，不寫死數字）。*
+
+*`findDuplicateZeroPowers` 的輸出加了 `severity`：原文的「觸發應盡量不同」是軟要求（"if possible"）、「效果可重複」是明確允許，兩者混在同一個 violation 清單裡玩家分不出「必須改」和「只是提醒」。合體模式下觸發重複＝`hint`、效果重複＝**不收集**。*
+
+*測試 187 → **246 條**（新增 §N 覺醒之力、§O 合體之力）。刻意破壞三輪，各打在不同層：`awakenZeroPower` 的 `if (s.awakened)` 加 `&& false` → **3 FAIL**；`canUnleashZeroPower` 的 `partnerClockFull === false` 加 `&& false` → **1 FAIL**；`zeroPowerTakenBy` 拿掉 `!combined` → **1 FAIL**。三輪都精準命中、都還原。`npm test` **24 道全過 exit 0**、`build` exit 0、`test:emoji` 0 命中。*
+
+*這輪自抓的兩個測試寫作錯誤：① `plain()` 之後斷言「合體之力不顯示效果 chips」用 `includes('零之疾襲')`——但配對列的效果下拉裡**有全部 11 個效果名**，改成斷言 chips 專屬的副標「底力效果」。② 預置一組「空白配對」想讓隊友名字出現在下拉裡，卻忘了 `normalizeZeroPower` 會把 `partnerId: ''` 的配對**濾掉**，於是整列不渲染、斷言恆假——改成預置一組真的配對。兩次都是「斷言的字串在別處也有」與「資料先被正規化掉」，同 §AW6(c) 的老毛病。*
+
+*仍然不做的三件（明確決定，不是漏掉）：① 三頁 PDF 匯出與 Fultimator **不帶**底力技——三頁是官方版面（`test:ui` 逐筆釘住），塞進去就變成「我們的四頁」；Fultimator 的格式由外部工具決定，硬加私有鍵會讓匯入端拒收。兩者都不影響存檔，Fultimator 往返後會被 `normalizeZeroPower` 收斂成空狀態（歸零，不會壞）。② 合體模式下【零之元素】／【零之天災】跳過選擇驗證——`choices` 是**角色層級**欄位，一個角色可能同時掛三組配對三組效果，一組 `choices` 裝不下；介面也不顯示那兩個選擇器，留給桌上裁定。③ `findDuplicateZeroPowers` 沒接進 UI——團隊約束在**選擇當下**就生效了（`zeroPowerTakenBy` 會把隊友已選的灰掉），事後再掃只是重複。*
+
+*決策正文見 `docs/decisions.md` §BM8；`docs/zero-powers-hf.md` §4 的「實裝沒有做兩邊命刻皆滿」註記與 §5 的差異說明已同步改寫（原本寫「留給桌上判定」的那段現在是錯的）。*

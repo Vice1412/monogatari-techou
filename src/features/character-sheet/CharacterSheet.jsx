@@ -833,6 +833,19 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
           }}
           onOpenLog={() => handleOpenLog(activeChar)}
           onOpenDice={onOpenDice}
+          roster={roster}
+          onPartnerCleared={(partnerId) => {
+            /* 【合體之力】施展後雙方命刻一起清空（原文 p.131）——
+               自己那份由 ZeroPowerBlock 寫回，伙伴那份在這裡寫。 */
+            if (!partnerId) return;
+            setRoster((prev) =>
+              prev.map((c) =>
+                c.id === partnerId
+                  ? { ...c, zeroPower: { ...(c.zeroPower || {}), clock: 0 } }
+                  : c
+              )
+            );
+          }}
           showToast={showToast}
         />
       )}
@@ -857,6 +870,8 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
           onEnterPlayMode={() => setViewMode('play')}
           initialTab={editorTab}
           showToast={showToast}
+          // 底力技的「整團不得重複」需要看得到隊友（見 data/zeroPowers.js 的團隊約束）
+          roster={roster}
         />
       )}
 
