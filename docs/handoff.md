@@ -55,7 +55,7 @@
 （`GEMINI.md` 規則二.4）——**嚴禁憑記憶編造檢定、數值、等級階級**。
 
 ⚠️ **頁碼偏移因書而異**：Core 與三本 Atlas 是 **PDF = 印刷 + 2**，特典合輯是 **+0**。
-**引用頁碼前先確認該書的偏移，不要沿用上一本的。**（抽取方式見 `AGENTS.md` §1.1。）
+**引用頁碼前先確認該書的偏移，不要沿用上一本的。**（抽取方式見 `docs/rulebooks.md`。）
 
 ### 1.4 同一個事實寫在多個檔案 = 必然分岔（本檔自己的教訓）
 
@@ -64,6 +64,24 @@
 
 **判準**：寫下一段資訊前先問「**這段話之後會變嗎？**」會變的 → 寫進有守門人的檔案（`AGENTS.md`／`decisions.md`）；
 不會變的（歷史教訓、除錯方法）→ 才可以寫進本檔。
+
+### 1.5 `git push` 在 WorkBuddy 的 bash 環境永遠掛住
+
+harness 的 PortableGit 把自己的 `etc/gitconfig` 設成 `credential.helper = helper-selector`——
+那是**會彈 GUI 視窗的互動式選擇器**，它不讀 `GIT_TERMINAL_PROMPT=0`，
+所以在無 GUI 環境下就卡在那裡等認證（沒有輸出，最後被 SIGTERM）。
+
+**解法：改用系統 Git。**
+
+```bash
+GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never \
+  "/c/Program Files/Git/bin/git.exe" push origin main
+```
+
+系統 Git 的 helper 是 `manager`（GCM 2.7.3），且 Windows 憑證管理員裡已有 GitHub 憑證。
+
+**診斷方式**：`git config --show-origin --get-all credential.helper`——
+來源若是 `WorkBuddyAI/resources/vendor/PortableGit/etc/gitconfig`，就是撞上這個坑。
 
 ---
 
