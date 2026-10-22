@@ -181,6 +181,26 @@ export const modeRestrictsEquipment = (mode) => {
 /** 職業魔石改裝在裝置上、不佔裝備插槽 */
 export const modeUsesIntegratedCarrier = (mode) => normalizeTechnosphereMode(mode) === 'integrated';
 
+/**
+ * 魔晶石制下被原書明文作廢的技能（p.133）。
+ *
+ * 原文在列出裝備白名單之後補了一句：「ignore the Guardian's Dual Shield skill」——
+ * 盾牌整類不存在，這個技能也就沒有作用對象。它照樣留在守護者的技能表上，
+ * 所以**必須在選單層擋掉**，否則玩家會花 1 點 SL 買一個永遠不會生效的技能。
+ *
+ * ※ 這裡刻意只放原書點名的項目。其餘「看起來也該作廢」的技能（例如依賴盾牌的
+ * 被動）原書沒說，就不自行推論。
+ */
+export const TECHNOSPHERE_SUPPRESSED_SKILLS = ['雙重盾牌'];
+
+/**
+ * 這個技能在當前魔晶石模式下是否被作廢。
+ * `mode` 傳 `off` 或未開魔晶石時一律回 `false`。
+ */
+export const isSkillSuppressedByTechnospheres = (skillName, mode) => (
+  modeRestrictsEquipment(mode) && TECHNOSPHERE_SUPPRESSED_SKILLS.includes(skillName)
+);
+
 /** 這個模式要不要顯示「魔晶石插槽」編輯介面（有任何一種魔石就需要） */
 export const modeNeedsSlotEditor = (mode) => modeHasHoplospheres(mode);
 
@@ -280,6 +300,103 @@ export const getAvailableSlotQualities = (mode) => SLOT_QUALITY_KEYS
   .filter((key) => (key === 'delta' ? modeAllowsDeltaSlot(mode) : true))
   .map((key) => SLOT_QUALITIES[key]);
 
+/**
+ * 哪些裝備位**可以**掛插槽品級（p.133）。
+ *
+ * 原書把這件事夾在 Equipment 段落裡：「Only **custom weapons and custom armor**
+ * may have technosphere slots.」飾品（accessories）與機師的稀有模組不在其中——
+ * 它們照舊存在，但永遠只有「沒有插槽」這一個選項。
+ *
+ * ※ 這條以前沒有實作：面板讓飾品也能選 β／γ，驗證層也只擋「δ 非武器」。
+ *   兩邊一起漏，所以「飾品掛 γ 插槽」可以一路存進存檔而全綠。
+ */
+export const SLOT_QUALITY_ELIGIBLE_SLOTS = Object.freeze(['mainHand', 'offHand', 'armor']);
+
+/** 這個裝備位能不能掛插槽品級（飾品不行） */
+export const slotSupportsQuality = (slotId) => SLOT_QUALITY_ELIGIBLE_SLOTS.includes(slotId);
+
+// ════════════════════════════════════════════════════════════════════
+// 二之二、珠子外觀（純資料，供 UI 畫「鑲嵌」）
+// ════════════════════════════════════════════════════════════════════
+
+/**
+ * 職業魔石的珠色（15 個職業各一色）。
+ *
+ * 為什麼要 15 個顏色：插槽裡可能同時躺著 3 顆不同職業的魔石，
+ * 光靠 18px 的 gi 剪影分不出來（守護者的盾與武器大師的雙劍在縮小後幾乎同形）。
+ * 顏色是**輔助**，不是替代——圖示仍是主要識別，顏色只讓「一眼掃過去」可行。
+ */
+export const MNEMOSPHERE_BEAD_TINTS = Object.freeze({
+  魔奏者: '#8b5cf6',
+  嵌合師: '#65a30d',
+  指揮官: '#b45309',
+  舞者: '#db2777',
+  元素師: '#ea580c',
+  熵師: '#6d28d9',
+  靈能者: '#0891b2',
+  狂怒鬥士: '#dc2626',
+  守護者: '#2563eb',
+  博學士: '#0f766e',
+  吟唱者: '#c2410c',
+  遊蕩者: '#475569',
+  神射手: '#15803d',
+  靈師: '#eab308',
+  武器大師: '#7f1d1d'
+});
+
+/** 職業魔石的珠色；清單外的職業（GM 自行放寬）回中性色 */
+export const getMnemosphereBeadTint = (className) => (
+  MNEMOSPHERE_BEAD_TINTS[className] || '#8a7a63'
+);
+
+/**
+ * 九相屬性色（給「會轉換傷害屬性」的附魔魔石上色）。
+ * 與 `src/components/ui/affinityText.js` 的 `AFFINITY_BASES` 同一組字面值，
+ * 但這裡刻意只放 8 個——附魔魔石裡沒有「物理」轉換。
+ */
+export const DAMAGE_TYPE_TINTS = Object.freeze({
+  冰: '#38bdf8',
+  風: '#22c55e',
+  暗: '#7c3aed',
+  毒: '#84cc16',
+  光: '#facc15',
+  土: '#a16207',
+  火: '#ef4444',
+  電: '#eab308'
+});
+
+/** 附魔魔石沒有傷害屬性時的珠色（泛指：金屬灰） */
+export const HOPLOSPHERE_BEAD_TINT = '#8a7a63';
+
+/** 附魔魔石的珠色：有傷害屬性就用屬性色，否則用泛指色 */
+export const getHoplosphereBeadTint = (hoplosphere) => (
+  DAMAGE_TYPE_TINTS[hoplosphere?.damageType] || HOPLOSPHERE_BEAD_TINT
+);
+
+/**
+ * 珠子的等級環：把 `level / maxLevel` 切成等分弧段。
+ *
+ * 回傳純數值（起訖角度，0° 在 12 點鐘、順時針），由 UI 自己轉成 SVG path——
+ * 這樣「畫幾段亮」這件事可以被測試釘住，而不必靠截圖比對。
+ *
+ * @param {number} level    已達等級（0–maxLevel）
+ * @param {number} [maxLevel] 上限，預設 5
+ * @param {number} [gapDeg] 段與段之間的縫隙角度
+ * @returns {Array<{index:number, active:boolean, startDeg:number, endDeg:number}>}
+ */
+export const beadRingSegments = (level, maxLevel = MNEMOSPHERE_MAX_LEVEL, gapDeg = 10) => {
+  const total = Math.max(1, Math.floor(Number(maxLevel) || 0));
+  const lit = Math.min(total, Math.max(0, Math.floor(Number(level) || 0)));
+  const sweep = 360 / total;
+  const gap = Math.min(sweep * 0.6, Math.max(0, Number(gapDeg) || 0));
+  return Array.from({ length: total }, (_, index) => ({
+    index,
+    active: index < lit,
+    startDeg: index * sweep + gap / 2,
+    endDeg: (index + 1) * sweep - gap / 2
+  }));
+};
+
 // ════════════════════════════════════════════════════════════════════
 // 三、職業魔石（Mnemospheres）
 // ════════════════════════════════════════════════════════════════════
@@ -348,6 +465,24 @@ export const getInitialMnemosphereCount = (level) => {
  * 兩者不同，所以「第幾顆」要一起看。
  */
 export const getInitialMnemosphereLevel = (index = 0) => (index === 0 ? 1 : 0);
+
+/**
+ * 開卡時「免費」的那幾顆職業魔石，逐顆的等級。
+ *
+ * 回傳陣列的**長度就是顆數**，所以「要畫幾個空珠座」與「每一顆幾級」是同一個來源——
+ * 分成兩個函式就一定會有一天對不上（畫了 2 個座，卻只有 1 個知道自己是 0 級）。
+ *
+ * p.134 給第 1 顆（1 級）；p.140 對「起始等級高於 5」的角色每超過 5 級 10 級再給一顆
+ * （0 級）。原書自己的例子：23 級 → 共 2 顆。
+ *
+ * ※ 參數是**起始等級**（`creationRules.startingLevel`），不是角色當前等級。
+ * 用 `char.level` 會讓一個從 5 級練到 15 級的角色憑空多出一顆免費魔石——p.140 講的是
+ * `When you create a character with a level higher than 5`，只管開卡那一刻。
+ */
+export const getInitialMnemosphereLevels = (level) => Array.from(
+  { length: getInitialMnemosphereCount(level) },
+  (_, index) => getInitialMnemosphereLevel(index)
+);
 
 // ════════════════════════════════════════════════════════════════════
 // 四、附魔魔石（Hoplospheres）— p.141–144 的 36 筆 d66 表
@@ -681,8 +816,26 @@ export const createMnemosphere = (overrides = {}) => {
   };
 };
 
-/** 單一裝備槽的正規化 */
-const normalizeSlotState = (raw) => {
+/**
+ * 建一顆**開卡免費額度**裡的職業魔石：第 `index` 顆，等級由 p.134／p.140 決定。
+ *
+ * 為什麼要有這個函式，而不是讓 UI 自己寫 `createMnemosphere({ className, level })`：
+ * 「第幾顆是幾級」是規則，不是排版。寫在 `onChange` 裡就永遠測不到——2026-10-22 的
+ * 實際 bug 就是這樣發生的：呼叫端漏傳 `level`，`createMnemosphere` 的預設值 0 生效，
+ * 於是「開局免費的 1 級魔石」建出來是 0 級（文案寫 1 級、珠子顯示 0 級、技能分不了半點），
+ * 而所有 SSR 斷言照樣全綠。抽成純函式之後，`buildInitialMnemosphere(x, 0).level === 1`
+ * 是一條會失敗的斷言。
+ *
+ * @param {string} className 職業名（不在清單上會被 `createMnemosphere` 收斂成第一個）
+ * @param {number} index 第幾顆（0 起算）
+ * @returns {object} 職業魔石
+ */
+export const buildInitialMnemosphere = (className, index = 0) => createMnemosphere({
+  className,
+  level: getInitialMnemosphereLevel(index)
+});
+
+/** 單一裝備槽的正規化 */const normalizeSlotState = (raw) => {
   if (!raw || typeof raw !== 'object') return null;
   const quality = SLOT_QUALITY_KEYS.includes(raw.quality) ? raw.quality : DEFAULT_SLOT_QUALITY;
   const contents = Array.isArray(raw.contents)
@@ -842,6 +995,43 @@ export const listHoplosphereEffects = (contents = []) => {
 // ════════════════════════════════════════════════════════════════════
 
 /**
+ * 角色**持有**的職業魔石——不論有沒有裝進插槽。
+ *
+ * 與 `getActiveMnemospheres` 的分工是這一節最重要的一件事：
+ *
+ * | 概念 | 選擇器 | 用在哪 |
+ * |---|---|---|
+ * | 持有 | `getHeldMnemospheres` | 建角第 2 步「職業與技能」：投等級、分配技能 |
+ * | 生效 | `getActiveMnemospheres` | 引擎與跑團卡：真的提供技能的只有已裝備的 |
+ *
+ * 為什麼要分：p.134 說升級點可以投進「固有職業**或**職業魔石」，那是**成長**；
+ * p.136 說「只要裝備著…一旦卸下就全部失去」，那是**生效**。兩件事分開之後，
+ * 第 2 步才能在魔石還沒裝上時就回答「若裝上，你的技能水準相當於幾級」——
+ * 而引擎仍然只認已裝備的，不會變成「沒裝的魔石也給技能」。
+ *
+ * @param {object} state `char.technospheres`
+ * @returns {Array<object>} 持有的魔石（正規化後）
+ */
+export const getHeldMnemospheres = (state) => normalizeTechnosphereState(state).mnemospheres;
+
+/**
+ * 升級時**可以投點**的職業魔石。
+ *
+ * p.134 說升級的那一點可以「invest into an Innate Class **or** into a mnemosphere」，
+ * 所以升級面板必須列出魔石；但 p.136 的上限是 5 級——滿級的魔石不再吃點數，
+ * 列出來只會讓玩家點了一個什麼都不會發生的選項。
+ *
+ * 這條判定刻意放在資料層而不是元件裡：元件裡的 `filter` 在 SSR 測不到
+ * （`AGENTS.md` §1「`onClick` 內的邏輯 SSR 測不到」的同一條理由），
+ * 而「滿級魔石不該出現在候選」是規則，不是排版。
+ *
+ * @param {object} state `char.technospheres`
+ * @returns {Array<object>} 未滿 5 級的持有魔石
+ */
+export const getLevelUpMnemosphereCandidates = (state) => getHeldMnemospheres(state)
+  .filter((m) => (Number(m?.level) || 0) < MNEMOSPHERE_MAX_LEVEL);
+
+/**
  * 目前**生效中**的職業魔石。
  *
  * 原書 p.136：只要裝備著含有職業魔石的武器或防具，就取得其中所有技能；
@@ -979,6 +1169,14 @@ export const validateTechnosphereState = ({
       push('warning', 'technospheres',
         `【${m.className}】職業魔石已達 ${m.level} 級（精通），尚未選擇英雄技能`);
     }
+    // 魔石的等級就是它的技能點數（p.136：每一級給該職業的一個技能等級）。
+    // 這條不需要職業技能表就能判定，所以留在資料層。
+    const spent = (m.skills || [])
+      .reduce((sum, sk) => sum + Math.max(0, Number(sk.sl) || 0), 0);
+    if (spent > m.level) {
+      push('error', 'technospheres',
+        `【${m.className}】職業魔石只有 ${m.level} 點技能可分配，目前已分配 ${spent} 點`);
+    }
   });
 
   // ── 同一件物品不能有兩顆共享技能的職業魔石（p.135）────────────
@@ -1046,6 +1244,10 @@ export const validateTechnosphereState = ({
     const isWeapon = weaponSlots.includes(slotId);
     const usage = computeSlotUsage(slot);
 
+    if (!slotSupportsQuality(slotId) && (slot.quality !== DEFAULT_SLOT_QUALITY || slot.contents.length > 0)) {
+      push('error', 'technospheres',
+        `只有自訂武器與自訂防具可以有魔石插槽（${slotId} 這個裝備位不行，科技奇幻手冊 p.133）`);
+    }
     if (slot.quality === 'delta' && !isWeapon) {
       push('error', 'technospheres', `槽位 δ 只能用在武器上（${slotId} 不是武器）`);
     }

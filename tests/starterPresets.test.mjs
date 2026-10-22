@@ -229,8 +229,23 @@ ALL_STARTER_PRESETS.forEach((p) => {
 check('不得含身分／主題／出身／格言／羈絆欄位（使用者 2026-10-05 裁定）', flavorLeaks, []);
 check('自訂武器僅作註記字串',
   ALL_STARTER_PRESETS.every((p) => p.customWeapon === undefined || (typeof p.customWeapon === 'string' && p.customWeapon.length > 0)), true);
-check('魔晶石僅作註記字串',
-  ALL_STARTER_PRESETS.every((p) => p.mnemosphere === undefined || (typeof p.mnemosphere === 'string' && p.mnemosphere.length > 0)), true);
+check('魔晶石是結構化資料，不是說明字串（§CF）',
+  ALL_STARTER_PRESETS.every((p) => p.mnemosphere === undefined
+    || (typeof p.mnemosphere === 'object'
+      && typeof p.mnemosphere.className === 'string'
+      && typeof p.mnemosphere.label === 'string'
+      && Number.isInteger(p.mnemosphere.level))),
+  true);
+
+// 套用之後**真的**拿到那顆魔石。以前 `preset.mnemosphere` 只是一句說明字串
+// （`'極性魔晶石（視同元素師 1 級）'`），只被拿來顯示——畫面上寫著他有，角色身上沒有。
+const mysticPreset = ALL_STARTER_PRESETS.find((p) => p.id === 'tf_courageous_mystic');
+const mysticChar = applyPreset({}, mysticPreset);
+check('套用預設後真的多一顆元素師 1 級魔晶石',
+  mysticChar.technospheres?.mnemospheres.map((m) => [m.className, m.level]),
+  [['元素師', 1]]);
+check('再套用一次不會長出第二顆（id 由 preset id 派生，先濾同 id 再 append）',
+  applyPreset(mysticChar, mysticPreset).technospheres?.mnemospheres.length, 1);
 
 // ─────────────────────────────────────────────────────────── K
 section('K. 篩選與分組（純函式，Modal 與測試共用）');

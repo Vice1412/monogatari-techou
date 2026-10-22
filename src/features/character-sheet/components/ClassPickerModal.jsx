@@ -17,6 +17,7 @@ import { getVariantsForClass, getVariantById, buildSkillEntry } from '../data/co
 import { SOURCEBOOKS, getClassInfo } from '../data/sourcebookConfig';
 import { matchesClassQuery, formatClassAliases, classAliasSource } from '../data/classAliases';
 import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
+import { isSkillSuppressedByTechnospheres } from '../data/technospheres';
 import rulesData from '../data/rulesData.json';
 import { withEn } from '../../../utils/properNouns';
 import ClassHeroicSkillsBlock from './ClassHeroicSkillsBlock';
@@ -51,6 +52,20 @@ const BOOK_KEYS = Object.freeze(
  * 2. 手機端：'list'（挑職業）與 'detail'（配點）兩步，用 `mobileStep` 切換。
  * 3. 全面呈現免費增益：完整對齊官方規則與繁中 Excel 角色卡名詞。
  */
+/**
+ * 魔晶石制下被原書作廢的技能（p.133 的守護者【雙重盾牌】）不該出現在創角流程——
+ * 盾牌整類不存在，這個技能買了也不會生效。這裡把 `def.skills` 濾掉再往下傳，
+ * 於是草稿初始化、卡片渲染、按下確定時的寫入全部共用同一份清單，不會漏掉某一條路徑。
+ *
+ * 沒有東西要濾時回傳**原物件**：這個 helper 掛在 `useMemo` 的依賴鏈上，
+ * 每次都產生新物件會讓下游白白重算。
+ */
+const withSuppressedSkillsFiltered = (def, mode) => {
+  const skills = def.skills || [];
+  if (!skills.some((sk) => isSkillSuppressedByTechnospheres(sk.name, mode))) return def;
+  return { ...def, skills: skills.filter((sk) => !isSkillSuppressedByTechnospheres(sk.name, mode)) };
+};
+
 export default function ClassPickerModal({
   isOpen,
   onClose,
@@ -129,7 +144,7 @@ export default function ClassPickerModal({
           bookName: book.shortName || book.name,
           badgeColor: book.badgeColor || 'amber',
           info: getClassInfo(cName),
-          def: rulesData.classes[cName] || {}
+          def: withSuppressedSkillsFiltered(rulesData.classes[cName] || {}, rules.technospheres)
         }));
       })
       .filter(item => item.def && (item.def.skills || item.def.source));
@@ -140,7 +155,7 @@ export default function ClassPickerModal({
       seen.add(item.className);
       return true;
     });
-  }, [enabledBooks, rules.allowPlaytest]);
+  }, [enabledBooks, rules.allowPlaytest, rules.technospheres]);
 
   // 搜尋過濾
   //

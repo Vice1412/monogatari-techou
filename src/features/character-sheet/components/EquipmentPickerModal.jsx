@@ -13,7 +13,8 @@ import JRPGButton from '../../../components/ui/JRPGButton';
 import JRPGBadge from '../../../components/ui/JRPGBadge';
 import GameIcon from '../../../components/ui/GameIcon';
 import rulesData from '../data/rulesData.json';
-import { DEFAULT_CREATION_RULES } from '../data/creationRules';
+import { DEFAULT_CREATION_RULES, resolveCreationRules } from '../data/creationRules';
+import { modeRestrictsEquipment } from '../data/technospheres';
 import {
   WEAPON_CATEGORIES,
   CATEGORY_ICON,
@@ -92,6 +93,13 @@ export function EquipmentPickerBody({
   // 先攻變體（公測 p.34）：防具表的側寫、先攻欄與說明文字都跟著這個旗標走。
   const initiativeVariant = isInitiativeVariant(character);
 
+  // 魔晶石（科技奇幻手冊 p.133）：官方武器表與盾牌整份**不存在**，
+  // 「Any other equipment simply cannot exist」——所以不是「比較不推薦」，是根本不能選。
+  // 防具與飾品仍然可用（同句的白名單裡有 armor 與 accessories），所以只有這兩張表要空掉。
+  const technoRestrictsEquipment = modeRestrictsEquipment(
+    resolveCreationRules(character?.creationRules).technospheres
+  );
+
   const offIsShield = useMemo(
     () => rulesData.equipment.shields.some((s) => s.name === character?.equipment?.offHand),
     [character]
@@ -101,12 +109,19 @@ export function EquipmentPickerBody({
     [character]
   );
   const dualShield = useMemo(
-    () => getDualShieldState(character, { mainIsShield, offIsShield }),
+    () => getDualShieldState(character, {
+      mainIsShield,
+      offIsShield,
+      // 魔晶石制下【雙重盾牌】失效（p.133）→ 主手清單不該再出現盾牌。
+      technosphereMode: resolveCreationRules(character?.creationRules).technospheres
+    }),
     [character, mainIsShield, offIsShield]
   );
 
   // ── 武器列（主手：全部武器，學會雙重盾牌時再加上盾牌；副手：僅單手武器）
   const weaponRows = useMemo(() => {
+    // 魔晶石制：官方武器表不存在，主手／副手只剩「定制武器」那一條路。
+    if (technoRestrictsEquipment) return [];
     const source = slot === 'mainHand'
       ? rulesData.equipment.weapons
       : rulesData.equipment.weapons.filter((w) => Number(w.hands) === 1);
@@ -141,7 +156,7 @@ export function EquipmentPickerBody({
       });
     }
     return rows;
-  }, [slot, profs, dice, remainingBudget, dualShield]);
+  }, [slot, profs, dice, remainingBudget, dualShield, technoRestrictsEquipment]);
 
   const filteredWeaponRows = useMemo(() => {
     const filtered = filterWeapons(weaponRows, {
@@ -170,18 +185,22 @@ export function EquipmentPickerBody({
     [currentArmor, dice, initiativeVariant]
   );
 
-  const shieldRows = useMemo(() => rulesData.equipment.shields.map((shield) => {
-    const equipped = checkEquippable(shield, 'offHand', profs, { isShield: true });
-    const outcome = computeShieldOutcome(shield);
-    return {
-      shield,
-      outcome,
-      equippable: equipped,
-      totalDef: armorOutcome.def + outcome.defBonus,
-      totalMdef: armorOutcome.mdef + outcome.mdefBonus,
-      remainingBudget
-    };
-  }), [profs, armorOutcome, remainingBudget]);
+  const shieldRows = useMemo(() => {
+    // 魔晶石制：盾牌同樣不存在（原書另外還要求忽略守護者的【雙重盾牌】）。
+    if (technoRestrictsEquipment) return [];
+    return rulesData.equipment.shields.map((shield) => {
+      const equipped = checkEquippable(shield, 'offHand', profs, { isShield: true });
+      const outcome = computeShieldOutcome(shield);
+      return {
+        shield,
+        outcome,
+        equippable: equipped,
+        totalDef: armorOutcome.def + outcome.defBonus,
+        totalMdef: armorOutcome.mdef + outcome.mdefBonus,
+        remainingBudget
+      };
+    });
+  }, [profs, armorOutcome, remainingBudget, technoRestrictsEquipment]);
 
   const filteredShieldRows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -279,7 +298,9 @@ export function EquipmentPickerBody({
           {filteredWeaponRows.length === 0 && (
             <tr>
               <td colSpan={6} className="px-2 py-6 text-center text-[#8c7b6c]">
-                沒有符合條件的武器，請放寬篩選。
+                {technoRestrictsEquipment
+                  ? '魔晶石制沒有官方武器表——主手與副手一律到「定制武器」分頁鍛造（科技奇幻手冊 p.133）。'
+                  : '沒有符合條件的武器，請放寬篩選。'}
               </td>
             </tr>
           )}
@@ -378,7 +399,9 @@ export function EquipmentPickerBody({
           {filteredShieldRows.length === 0 && (
             <tr>
               <td colSpan={6} className="px-2 py-6 text-center text-[#8c7b6c]">
-                沒有符合條件的盾牌，請放寬篩選。
+                {technoRestrictsEquipment
+                  ? '魔晶石制沒有盾牌——原書要求直接忽略守護者的【雙重盾牌】，副手改裝定制武器（p.133）。'
+                  : '沒有符合條件的盾牌，請放寬篩選。'}
               </td>
             </tr>
           )}

@@ -255,7 +255,10 @@ export function StarterPresetsPanel({
                       className="text-[11px] text-slate-600 bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed shadow-2xs"
                       style={{ borderColor: theme.border }}
                     >
-                      <span className="font-bold text-slate-700">魔晶石:</span> {preset.mnemosphere}
+                      {/* 結構化欄位（§CF）：`{ className, level, label }`。
+                          以前這裡直接印字串，現在要自己組回「魔晶石名（視同某職業 N 級）」。 */}
+                      <span className="font-bold text-slate-700">魔晶石:</span>{' '}
+                      {preset.mnemosphere.label}（視同{preset.mnemosphere.className} {preset.mnemosphere.level} 級）
                     </div>
                   )}
                   {preset.quirk && (

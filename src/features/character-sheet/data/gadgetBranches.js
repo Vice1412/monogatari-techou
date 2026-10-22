@@ -14,8 +14,11 @@
  *
  * ## 與核心書的關係
  *
- * 本檔**只描述分支節點**（給科技樹彈窗與跑團速查用），
- * 核心書的三軌節點仍原封不動在 `TinkererGadgetsModal.jsx` 的 `GADGET_TRACKS`。
+ * 本檔**只描述分支節點**（給科技樹彈窗與跑團速查用）。
+ * 核心書的三軌節點原本寫在 `TinkererGadgetsModal.jsx` 的 `GADGET_TRACKS`，
+ * 2026-10-22 搬到本檔的 `MAGITECH_CORE_NODES`——因為魔晶石制要**改寫這三軌**
+ * （見下方 `resolveMagitechNodes`），而改寫規則必須與節點資料放在一起，
+ * 否則「彈窗顯示兩檔、速查顯示三檔」這種分岔遲早會發生。
  * 變體的效果全文在 `coreBookVariants.js`——兩者是同一條規則的兩種呈現，
  * 數值必須一致（`tests/coreBookVariants.test.mjs` R 區段有對釘）。
  *
@@ -24,6 +27,7 @@
  * - 分支宣告：p.38 `BRANCHING MAGITECH`（含「用魔導武裝就不能取【量子魔加農】」）
  * - 魔導武裝：p.39 基礎／進階／上級
  * - 魔法球：p.38 基礎／進階／上級
+ * - 魔晶石制的改寫：科技奇幻手冊 p.133 `EQUIPMENT RULES CHANGES`
  */
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -274,3 +278,84 @@ export const getMagispherePool = (tier, { coreSpells = [], npcSpells = {} } = {}
     return true;
   });
 };
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * 核心書的魔導科技三檔（`GADGET_TRACKS.magitech` 的唯一來源）
+ *
+ * 節點形狀與分支節點相同，多一個 `id` 讓「魔晶石制要刪哪一檔」不必靠名稱比對。
+ * ────────────────────────────────────────────────────────────────────────── */
+
+export const MAGITECH_CORE_NODES = Object.freeze([
+  Object.freeze({
+    id: 'magitechOverride',
+    tier: 1,
+    tierName: '基礎益處',
+    name: '魔科技篡奪',
+    cost: '10 MP',
+    dice: '【INS + INS】',
+    summary: '花費 10 MP 檢定奪取附近無心智士兵階構裝體的控制權至場景結束。',
+    desc: '使用一個動作並花費 10 點 MP，對可見無心智的構裝體士兵執行對抗檢定【INS + INS】。成功則奪取其控制權至場景結束或遭受傷害為止。'
+  }),
+  Object.freeze({
+    id: 'magicannon',
+    tier: 2,
+    tierName: '進階益處',
+    name: '魔加農火器',
+    cost: '2 IP',
+    dice: '【DEX + INS】+1',
+    summary: '消耗 2 IP 製造雙手遠程火器，傷害【HR + 10】自選屬性。',
+    desc: '花費 2 點 IP 製造一把魔加農火器（摧毀舊有魔加農）。雙手遠程，命中【DEX + INS】+1，傷害【HR + 10】，可自選風/電/土/火/冰/物理屬性。'
+  }),
+  Object.freeze({
+    id: 'magispheres',
+    tier: 3,
+    tierName: '最高益處',
+    name: '魔法球原型',
+    cost: '2 IP',
+    dice: '咒語檢定',
+    summary: '開發 3 個原型咒語（20級 5 個、40級 7 個），花費 2 IP 快捷施放。',
+    desc: '自元素、熵系、靈魂學派目錄中自由研發魔法球原型。花費 2 點 IP 執行使用庫存動作並立即免費執行咒語動作施展已開發的原型咒語。'
+  })
+]);
+
+/**
+ * 魔晶石制下的魔導科技（科技奇幻手冊 p.133，逐字）：
+ *
+ *   > Any other equipment simply cannot exist. For this reason, you should ignore the
+ *   > Dual Shieldbearer Skill from the Guardian Class … and **turn the magispheres from
+ *   > the Tinkerer Class into an advanced magitech benefit, removing the magicannon
+ *   > completely**.
+ *
+ * 兩個動作，理由不同：
+ *
+ * 1. **魔加農整檔刪除。** 它在核心書 p.215 是一把**武器**（`Firearm • Two-handed •
+ *    Ranged • Cannot have Qualities`）。魔晶石制的裝備白名單只剩定制武器／防具／
+ *    飾品／機師模組，它不在裡面；而且 `Cannot have Qualities` 意味著它**一顆魔石都
+ *    鑲不了**（插槽來自 Slot α/β/γ/δ 品質）。留著只會讓玩家選一個不能用的東西。
+ * 2. **魔法球原型往下兼容成「進階益處」**——原書說的是 `turn into an advanced
+ *    magitech benefit`，不是刪除。它本來是最高檔（tier 3），魔晶石制下補上魔加農
+ *    空出來的位置（tier 2），所以這一態的魔導科技**只有兩個益處**。
+ *
+ * ※ 原書**沒有給出**「advanced magitech benefit」的替代文本。這裡刻意**不改寫效果
+ * 內容**，只改它在技能樹上的位置——因為「改成什麼」原書沒說，憑空補一段等於發明規則。
+ * 裁定與理由見 `docs/decisions.md` §BX。
+ *
+ * @param {boolean} technoRestrictsEquipment 是否為「裝備受限」的魔晶石模式
+ * @returns {ReadonlyArray} 兩檔或三檔節點
+ */
+export const resolveMagitechNodes = (technoRestrictsEquipment = false) => {
+  if (!technoRestrictsEquipment) return MAGITECH_CORE_NODES;
+  return MAGITECH_CORE_NODES
+    .filter((node) => node.id !== 'magicannon')
+    .map((node) => (node.id === 'magispheres'
+      ? Object.freeze({ ...node, tier: 2, tierName: '進階益處' })
+      : node));
+};
+
+/** 魔導科技這一軌在當前規則下的最高檔（核心 3、魔晶石制 2）。 */
+export const magitechMaxTier = (technoRestrictsEquipment = false) =>
+  (technoRestrictsEquipment ? 2 : 3);
+
+/** 魔導科技第 `tier` 檔的節點（超出範圍回 null）。 */
+export const magitechNodeAt = (tier, technoRestrictsEquipment = false) =>
+  resolveMagitechNodes(technoRestrictsEquipment).find((n) => n.tier === Number(tier)) || null;

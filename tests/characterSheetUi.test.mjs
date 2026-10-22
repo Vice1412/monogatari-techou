@@ -30,6 +30,7 @@ import {
 import { createNewCharacter, getProficiencies, calculateCharacterStats } from '../src/features/character-sheet/utils/characterEngine.js';
 import { resolveCreationRules, DEFAULT_CREATION_RULES } from '../src/features/character-sheet/data/creationRules.js';
 import { HeroicSkillPickerBody } from '../src/features/character-sheet/components/HeroicSkillPickerModal.jsx';
+import { QuirkPickerBody } from '../src/features/character-sheet/components/QuirkPickerModal.jsx';
 import ClassHeroicSkillsBlock from '../src/features/character-sheet/components/ClassHeroicSkillsBlock.jsx';
 import { LOG_KINDS } from '../src/features/character-sheet/utils/characterLog.js';
 import { EQUIPMENT_ICONS } from '../src/features/character-sheet/utils/equipmentRules.js';
@@ -1334,6 +1335,66 @@ check('未滿級時不出現「已達上限」（條件渲染，不佔平時版�
   belowCapHtml.includes('已達上限'), false);
 check('未滿級時 title 仍是「增加 1 級」（修復沒有把正常態一起改掉）',
   belowCapHtml.includes('增加 1 級'), true);
+
+// ─────────────────────────────────────────── 金手指「選項」的介面（§CF）
+//
+// 原書有 11 個金手指寫著「選擇一個選項」，但只有倖存者③（IP +2）與
+// 墮落天使③（最大 MP +10）會改數值。以前金手指只是一個名稱字串，
+// 玩家根本沒有地方可以選——現在資料層有 `options`，選取器就必須把它畫出來。
+//
+// SSR 測不到點擊，但 `openName` 的初值就是 `selectedName`，
+// 所以傳 `selectedName` 就能讓右側詳情直接展開。
+const quirkBody = (selectedName, selectedChoice) => renderToStaticMarkup(
+  React.createElement(QuirkPickerBody, {
+    theme: { accent: '#000', accentDark: '#000', cardBg: '#fff', subpanelBg: '#eee', border: '#ccc', textDark: '#111', textMuted: '#666' },
+    selectedName,
+    selectedChoice,
+    onPick: () => {},
+    onClear: () => {},
+    onClose: () => {}
+  })
+);
+
+const quirkNoChoice = quirkBody('倖存者', '');
+const quirkWithChoice = quirkBody('倖存者', 'ip');
+const quirkNarrative = quirkBody('會說話的野獸', '');
+
+check('帶選項的金手指會畫出選項區', quirkNoChoice.includes('data-testid="quirk-options"'), true);
+check('三個選項都在', ['獲得裝備職業近戰武器', '從元素師或靈師的咒語表', '永久 +2 IP']
+  .every((s) => quirkNoChoice.includes(s)), true);
+check('沒選選項時確定鈕是停用的（原書：選擇一個選項，不是可以選）',
+  quirkNoChoice.includes('disabled=""'), true);
+check('選好之後確定鈕可以按',
+  quirkWithChoice.includes('disabled=""'), false);
+check('選好的那一項是 checked',
+  /checked=""[^>]*value="on"|checked/.test(quirkWithChoice), true);
+check('沒有選項的金手指不會長出空的選項區',
+  quirkNarrative.includes('data-testid="quirk-options"'), false);
+
+// ── 多組選項（§CG）：草木成精要選「免疫狀態」＋「易傷屬性」兩件事
+const plantHalf = quirkBody('草木成精', { immune: '眩暈' });
+const plantFull = quirkBody('草木成精', { immune: '眩暈', vuln: '火' });
+
+check('多組金手指會畫出兩組選項',
+  [plantFull.includes('data-testid="quirk-group-immune"'),
+    plantFull.includes('data-testid="quirk-group-vuln"')], [true, true]);
+check('多組金手指的標題寫出要選幾件事', plantFull.includes('要選 2 件事'), true);
+check('免疫組列出三個狀態', ['眩暈', '憤怒', '動搖'].every((s) => plantFull.includes(s)), true);
+check('易傷組列出五種屬性', ['風', '電', '土', '火', '冰'].every((s) => plantFull.includes(s)), true);
+check('只選一組時確定鈕仍是停用的', plantHalf.includes('disabled=""'), true);
+check('兩組都選了確定鈕才可以按', plantFull.includes('disabled=""'), false);
+check('多組的 checked 標在已選的那兩項',
+  (plantFull.match(/checked=""/g) || []).length >= 2, true);
+
+// ── 金手指相性（§CG）：引擎算了，介面要說出來
+const zombieHtml = renderEditorAt(4, { quirk: '亡者歸來' });
+const plainHtml = renderEditorAt(4);
+check('有相性時會畫出金手指相性區塊',
+  zombieHtml.includes('data-testid="quirk-affinities"'), true);
+check('沒有相性時整塊不渲染',
+  plainHtml.includes('data-testid="quirk-affinities"'), false);
+check('亡者歸來的免疫／易傷／狀態免疫都寫出來',
+  ['傷害免疫', '易傷', '狀態免疫'].every((s) => zombieHtml.includes(s)), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

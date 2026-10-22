@@ -21,7 +21,10 @@ import {
   getMagispherePool,
   getMagisphereSlotCount,
   getMagisphereOffensiveBonus,
-  MAGISPHERE_MAGIC_CHECK
+  MAGISPHERE_MAGIC_CHECK,
+  MAGITECH_CORE_NODES,
+  magitechMaxTier,
+  resolveMagitechNodes
 } from '../../data/gadgetBranches';
 
 /**
@@ -106,35 +109,12 @@ export const GADGET_TRACKS = [
     subtitle: '篡奪構裝體、製造魔加農與開發魔法球原型',
     icon: GiGears,
     themeColor: 'purple',
-    nodes: [
-      {
-        tier: 1,
-        tierName: '基礎益處',
-        name: '魔科技篡奪',
-        cost: '10 MP',
-        dice: '【INS + INS】',
-        summary: '花費 10 MP 檢定奪取附近無心智士兵階構裝體的控制權至場景結束。',
-        desc: '使用一個動作並花費 10 點 MP，對可見無心智的構裝體士兵執行對抗檢定【INS + INS】。成功則奪取其控制權至場景結束或遭受傷害為止。'
-      },
-      {
-        tier: 2,
-        tierName: '進階益處',
-        name: '魔加農火器',
-        cost: '2 IP',
-        dice: '【DEX + INS】+1',
-        summary: '消耗 2 IP 製造雙手遠程火器，傷害【HR + 10】自選屬性。',
-        desc: '花費 2 點 IP 製造一把魔加農火器（摧毀舊有魔加農）。雙手遠程，命中【DEX + INS】+1，傷害【HR + 10】，可自選風/電/土/火/冰/物理屬性。'
-      },
-      {
-        tier: 3,
-        tierName: '最高益處',
-        name: '魔法球原型',
-        cost: '2 IP',
-        dice: '咒語檢定',
-        summary: '開發 3 個原型咒語（20級 5 個、40級 7 個），花費 2 IP 快捷施放。',
-        desc: '自元素、熵系、靈魂學派目錄中自由研發魔法球原型。花費 2 點 IP 執行使用庫存動作並立即免費執行咒語動作施展已開發的原型咒語。'
-      }
-    ]
+    /**
+     * 節點本體在 `data/gadgetBranches.js` 的 `MAGITECH_CORE_NODES`——
+     * 魔晶石制要改寫這一軌（刪魔加農、魔法球降檔），改寫規則必須與節點資料同住。
+     * 這裡只留引用，不要就地展開成字面量。
+     */
+    nodes: MAGITECH_CORE_NODES
   }
 ];
 
@@ -156,17 +136,29 @@ export default function TinkererGadgetsModal({
    * 煉金術與灌注術照舊，所以這裡只替換 `magitech` 那條軌道。
    */
   variantId = null,
+  /**
+   * 魔晶石是否處於「裝備受限」的模式（`modeRestrictsEquipment`）。
+   * 為 true 時魔導科技**只剩兩個益處**：魔加農整檔刪除，魔法球原型降為進階
+   * （科技奇幻手冊 p.133；規則與理由見 `data/gadgetBranches.js` 的 `resolveMagitechNodes`）。
+   * 不傳＝false＝逐字照核心書三檔，行為與過去完全相同。
+   */
+  technoRestrictsEquipment = false,
   onSave
 }) {
   if (!isOpen) return null;
 
   const branch = getMagitechBranch(variantId);
   const isMagispheres = branch?.id === 'magispheres';
+  const maxMagitechTier = branch ? 3 : magitechMaxTier(technoRestrictsEquipment);
 
-  // 當前分配狀態 (alchemy: 0~3, infusion: 0~3, magitech: 0~3)
+  // 當前分配狀態 (alchemy: 0~3, infusion: 0~3, magitech: 0~3／魔晶石制 0~2)
   const [alchemyTier, setAlchemyTier] = useState(gadgetsData?.alchemy || 0);
   const [infusionTier, setInfusionTier] = useState(gadgetsData?.infusion || 0);
-  const [magitechTier, setMagitechTier] = useState(gadgetsData?.magitech || 0);
+  // 魔晶石制只有兩檔：存檔裡若有 3 點（開魔晶石之前投的），進場就夾回 2，
+  // 否則畫面上會出現一個「已解鎖但不存在」的節點。夾值在按下儲存時才落盤。
+  const [magitechTier, setMagitechTier] = useState(
+    Math.min(gadgetsData?.magitech || 0, maxMagitechTier)
+  );
   const [selectedSpells, setSelectedSpells] = useState(gadgetsData?.magitechSpells || []);
   const [spellSchoolFilter, setSpellSchoolFilter] = useState('全部');
 
@@ -176,9 +168,10 @@ export default function TinkererGadgetsModal({
 
   /**
    * 魔法球的咒語是「每個節點各挑 2 顆」（基礎 2／進階 4／上級 6）；
-   * 核心【魔法球原型】才是「最高益處一次挑 3～7 顆」。
+   * 核心【魔法球原型】才是「最高益處一次挑 3～7 顆」——魔晶石制下它降到進階，
+   * 所以解鎖門檻跟著該軌的最高檔走，不寫死 3。
    */
-  const spellPickerUnlocked = isMagispheres ? magitechTier >= 1 : magitechTier >= 3;
+  const spellPickerUnlocked = isMagispheres ? magitechTier >= 1 : magitechTier >= maxMagitechTier;
   const maxSpells = isMagispheres
     ? getMagisphereSlotCount(magitechTier)
     : calculateMaxMagitechSpells(characterLevel);
@@ -214,18 +207,24 @@ export default function TinkererGadgetsModal({
     return hit.length > 0 ? hit : spellPool;
   }, [spellPool, spellSchoolFilter]);
 
-  /** 第三軌：核心三節點，或變體分支的三節點。 */
-  const tracks = useMemo(() => GADGET_TRACKS.map((track) => (
-    track.id === 'magitech' && branch
-      ? {
+  /** 第三軌：核心（魔晶石制只有兩檔），或變體分支的三節點。 */
+  const tracks = useMemo(() => GADGET_TRACKS.map((track) => {
+    if (track.id !== 'magitech') return track;
+    if (branch) {
+      return {
         ...track,
         name: branch.name,
         subtitle: branch.subtitle,
         icon: branch.id === 'magispheres' ? GiCrystalBall : track.icon,
         nodes: branch.nodes
-      }
-      : track
-  )), [branch]);
+      };
+    }
+    return {
+      ...track,
+      subtitle: technoRestrictsEquipment ? '篡奪構裝體與開發魔法球原型' : track.subtitle,
+      nodes: resolveMagitechNodes(technoRestrictsEquipment)
+    };
+  }), [branch, technoRestrictsEquipment]);
 
   // 點擊節點處理函式
   const handleNodeClick = (trackId, clickedTier) => {
@@ -273,7 +272,7 @@ export default function TinkererGadgetsModal({
     onSave({
       alchemy: alchemyTier,
       infusion: infusionTier,
-      magitech: magitechTier,
+      magitech: Math.min(magitechTier, maxMagitechTier),
       magitechSpells: keptSpells
     });
     onClose();
@@ -302,7 +301,9 @@ export default function TinkererGadgetsModal({
               <p className="text-[11px] text-amber-100 opacity-90">
                 {branch
                   ? `魔導科技已拆為兩條互斥分支（p.38）：煉金術與灌注術照舊，第三軌改用【${branch.name}】的三個節點`
-                  : '三橫線進度節點樹 · 總解鎖節點數不可超過當前特技等級 (上限 5 點)'}
+                  : technoRestrictsEquipment
+                    ? '魔晶石制（p.133）：魔導科技只有兩個益處——魔加農整檔不存在，魔法球原型降為進階'
+                    : '三橫線進度節點樹 · 總解鎖節點數不可超過當前特技等級 (上限 5 點)'}
               </p>
             </div>
           </div>

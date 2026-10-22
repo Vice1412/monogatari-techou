@@ -37,6 +37,7 @@ import {
   DEFAULT_TECHNOSPHERE_MODE,
   INNATE_CLASS_COUNT,
   isTechnosphereEnabled,
+  modeRestrictsEquipment,
   normalizeTechnosphereMode
 } from './technospheres';
 
@@ -152,6 +153,11 @@ export const DEFAULT_CREATION_RULES = Object.freeze({
    *
    * 官方預設**沒有**——那是手冊的選用規則。原書說它「簡單、沒有深遠的遊戲影響，
    * 可以永遠開給任何有興趣的人」，所以它**不綁高度奇幻手冊**：任何團都能單獨打開。
+   *
+   * ※ **魔晶石開啟時這一格是派生值**：`resolveCreationRules` 會強制回 `true`
+   *   （p.133 的裝備白名單只剩定制武器／防具／飾品／機師模組，官方武器表整份不存在）。
+   *   那是規則後果，不是 GM 的選擇——面板上會鎖住並註明。詳見 `docs/decisions.md` §BW。
+   *   ※ 同一條規則還改寫了修補匠的魔導科技（魔加農刪除、魔法球降為進階），見 §BX。
    */
   allowCustomWeapon: false,
   /**
@@ -311,9 +317,27 @@ export const resolveCreationRules = (overrides = {}) => {
     : [...d.requiredClasses];
 
   const allowQuirk = typeof given.allowQuirk === 'boolean' ? given.allowQuirk : d.allowQuirk;
-  const allowCustomWeapon = typeof given.allowCustomWeapon === 'boolean'
-    ? given.allowCustomWeapon
-    : d.allowCustomWeapon;
+
+  // ── 定制武器是魔晶石的**規則後果**，不是可選項（p.133）──────────────
+  //
+  // 原書：「The only types of equipment available in the game are the following:
+  // custom weapons (page 112), armor, and accessories, plus weapon and armor
+  // modules for the Pilot Class」——下一句接著說「Any other equipment simply
+  // cannot exist」。所以開了魔晶石就**沒有官方武器表**：不定制武器等於沒有武器。
+  //
+  // 這裡用**派生**，而不是「開啟魔晶石時把使用者那一格寫成 true」：
+  // 寫進去的話，之後關掉魔晶石它還是 true——玩家當初沒選過的東西會留在他身上。
+  // 派生沒有這個問題，關掉就自動回到他原本的選擇。
+  // （與上面 `classCountMin/Max` 被鎖成 3 是同一個做法。）
+  //
+  // 例外是「僅職業魔石」變體：p.138 明寫「equipment simply follows the standard
+  // rules in the Core Rulebook… all types of equipment are once again available」，
+  // 官方裝備整份回來，所以那一態**不**強制。判定集中在 `modeRestrictsEquipment`。
+  const allowCustomWeapon = modeRestrictsEquipment(technospheres)
+    ? true
+    : (typeof given.allowCustomWeapon === 'boolean'
+      ? given.allowCustomWeapon
+      : d.allowCustomWeapon);
   const startingHeroicSkill = typeof given.startingHeroicSkill === 'boolean'
     ? given.startingHeroicSkill
     : d.startingHeroicSkill;
@@ -382,6 +406,11 @@ export const diffCreationRules = (rules) => {
   const derived = isTechnosphereEnabled(r.technospheres)
     ? ['classCountMin', 'classCountMax']
     : [];
+  // 定制武器同理，但只有「因為魔晶石而被強制」時才算派生。
+  // 若把它寫進 diff，分享出去再餵回 `resolveCreationRules`，對方就變成
+  // 「沒開魔晶石卻莫名開了定制武器」——正是 §U15 講的幻覺欄位。
+  // ※ 只剔除 `modeRestrictsEquipment` 那三態；「僅職業魔石」不強制，GM 自己勾的照留。
+  if (modeRestrictsEquipment(r.technospheres)) derived.push('allowCustomWeapon');
   const out = {};
   CREATION_RULE_FIELDS.forEach((key) => {
     if (derived.includes(key)) return;

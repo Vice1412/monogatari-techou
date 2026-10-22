@@ -330,12 +330,9 @@ Get-ChildItem -Path "src" -Recurse -File |
 
 | 項目 | 一句話狀態 |
 |---|---|
-| 金手指效果逐筆核對 | 三大擴展 HF 15／NF 10／TF 10（＋特典 Halloween）逐筆效果比對尚未做（工具 `scratch/extract_en_quirks.py` 已備） |
 | Bonus Collection 其餘 7 項 | Halloween 系列／Arcane Whispers／三隻 Additional Bosses 待裁定優先序 |
 | 英雄技能修訂項目 | Playtest changelog 明列約 20 個**修訂既有技能**的項目尚未套用 |
 | Playtest 其餘選用規則 | 前後排、Applause Points、Surrender、休息場景、電影式造物計畫等；目前只實裝「開局英雄技能」與「高階角色起始資金」 |
-| D5 金手指選項 | 「倖存者」③ IP 永久 +2、「墮落天使」③ 最大 MP +10 未實作；**結構性原因**：金手指只有名稱比對，無法承載「選項」 |
-| D6 洋蔥戒指 | Core p.289；實測不在 `rulesData.equipment.accessories`（僅 6 筆）→ 玩家無法選用 |
 
 ### 6.2 已結案（索引）—— 2026-10-20 整表搬出本檔
 

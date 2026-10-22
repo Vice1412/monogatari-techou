@@ -63,6 +63,8 @@ import {
 import { totalStartingEquipCost } from '../src/features/character-sheet/utils/equipmentRules.js';
 import rulesData from '../src/features/character-sheet/data/rulesData.json';
 
+import { modeRestrictsEquipment } from '../src/features/character-sheet/data/technospheres.js';
+
 let pass = 0;
 let fail = 0;
 const lines = [];
@@ -1112,6 +1114,72 @@ check('核心角色選變體技能 → 提示寫出「秘儀師【變體】」',
 check('變體角色選核心技能 → 提示寫出「秘儀師」',
   reqOf('阿爾卡納迴響', { masteredClasses: [VARIANT_ARCANIST_CLASS_NAME], level: 10 }).reason,
   '需精通【秘儀師】其中之一');
+
+// ─────────────────────────────────────────────────────────── T
+section('T. 魔晶石把【定制武器】變成派生值（p.133 裝備白名單）');
+
+// 原書：「The only types of equipment available in the game are the following:
+// custom weapons (page 112), armor, and accessories, plus weapon and armor
+// modules for the Pilot Class」——下一句是「Any other equipment simply cannot
+// exist」。所以開了魔晶石就**沒有官方武器表**，不定制武器等於沒有武器可拿。
+//
+// 實作方式刻意選「派生」而不是「開啟時把那一格寫成 true」：寫進去的話，
+// 之後關掉魔晶石它還是 true，玩家當初沒選過的東西會留在他身上。
+
+const TECHNO_MODES = ['off', 'full', 'integrated', 'mnemospheresOnly', 'hoplospheresOnly'];
+
+// (1) 三態強制、兩態不強制——「僅職業魔石」是關鍵反例，證明不是一刀切
+check('完整規則 → 強制定制武器',
+  resolveCreationRules({ technospheres: 'full' }).allowCustomWeapon, true);
+check('內嵌裝置 → 強制定制武器',
+  resolveCreationRules({ technospheres: 'integrated' }).allowCustomWeapon, true);
+check('僅附魔魔石 → 強制定制武器',
+  resolveCreationRules({ technospheres: 'hoplospheresOnly' }).allowCustomWeapon, true);
+check('僅職業魔石 → **不**強制（p.138 官方裝備整份放回）',
+  resolveCreationRules({ technospheres: 'mnemospheresOnly' }).allowCustomWeapon, false);
+check('魔晶石關閉 → 維持官方預設（不開）',
+  resolveCreationRules({}).allowCustomWeapon, false);
+
+// (2) 與 `modeRestrictsEquipment` 逐態一致——同一條規則不許在兩個地方判定
+check('五態的強制與否與 modeRestrictsEquipment 完全一致',
+  TECHNO_MODES.map((m) => resolveCreationRules({ technospheres: m }).allowCustomWeapon),
+  TECHNO_MODES.map((m) => modeRestrictsEquipment(m)));
+
+// (3) 派生蓋過「使用者自己勾的 false」——這是規則後果，不是偏好
+check('使用者關掉但魔晶石開著 → 仍是 true',
+  resolveCreationRules({ technospheres: 'full', allowCustomWeapon: false }).allowCustomWeapon, true);
+
+// (4) 派生值不得被寫回「使用者的偏好」——否則關掉魔晶石之後它會殘留
+//     （面板存的是原始偏好，不是 `resolveCreationRules` 的輸出；
+//      `diffCreationRules` 是分享出去的那一份，它也不准夾帶派生欄位。）
+const shared = diffCreationRules({ technospheres: 'full' });
+check('分享出去的規則不含派生的 allowCustomWeapon', 'allowCustomWeapon' in shared, false);
+check('分享的規則回餵 → 魔晶石還在，所以仍是 true', resolveCreationRules(shared).allowCustomWeapon, true);
+check('回餵後再關掉魔晶石 → false（沒有殘留）',
+  resolveCreationRules({ ...shared, technospheres: 'off' }).allowCustomWeapon, false);
+
+// (5) diff 不帶派生欄位——否則分享出去會讓對方「沒開魔晶石卻莫名開了定制武器」
+check('diffCreationRules 不把魔晶石派生的 allowCustomWeapon 寫進 diff',
+  'allowCustomWeapon' in diffCreationRules({ technospheres: 'full' }), false);
+check('GM 自己開的定制武器（無魔晶石）仍然寫進 diff',
+  'allowCustomWeapon' in diffCreationRules({ allowCustomWeapon: true }), true);
+check('「僅職業魔石」下 GM 自己開的定制武器也照留',
+  'allowCustomWeapon' in diffCreationRules({ technospheres: 'mnemospheresOnly', allowCustomWeapon: true }), true);
+
+// (6) 官方標準判定不受影響
+check('空規則仍是官方標準', isDefaultCreationRules({}), true);
+check('魔晶石一開就不再是官方標準', isDefaultCreationRules({ technospheres: 'full' }), false);
+
+// (7) UI：勾選框鎖住並說明理由（否則 GM 只看到「打勾但不能改」）
+const rulesPanel = read('../src/features/character-sheet/components/CreationRulesPanel.jsx');
+check('面板有 derivedToggle 判定',
+  rulesPanel.includes("const derivedToggle = (key) => forcedCustomWeapon && key === 'allowCustomWeapon'"), true);
+check('勾選框的 checked 吃派生值',
+  rulesPanel.includes('checked={derivedToggle(f.key) || Boolean(rules[f.key])}'), true);
+check('勾選框在派生時 disabled',
+  rulesPanel.includes('disabled={disabled || derivedToggle(f.key)}'), true);
+check('鎖住時寫出理由「官方武器表整份不存在」',
+  rulesPanel.includes('官方武器表整份不存在'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

@@ -8,6 +8,11 @@
  */
 
 import { createDefaultVehicleData } from '../data/pilotVehicleData';
+import {
+  createMnemosphere,
+  makeMnemosphereId,
+  normalizeTechnosphereState
+} from '../data/technospheres';
 
 /**
  * 把一個經典職業搭配套用到角色上，回傳新的角色物件（不修改輸入）。
@@ -75,6 +80,30 @@ export const applyPreset = (character, preset) => {
   }
 
   if (preset.quirk) next.quirk = preset.quirk;
+
+  // 職業魔石（科技奇幻手冊 p.134）：官方配搭配的初始魔石。
+  //
+  // 以前 `preset.mnemosphere` 只是一句說明字串（`'極性魔晶石（視同元素師 1 級）'`），
+  // 只被拿來顯示——套用之後玩家其實**沒有**那顆魔石，畫面上卻寫著他有。
+  // 2026-10-22（§CF）把資料改成結構化之後，這裡真的把它寫進 `technospheres`。
+  //
+  // ※ 不碰 `creationRules.technospheres`：那是團規，不是配搭配的內容。
+  //   魔晶石關閉時 `getActiveMnemospheres` 自然不會回傳它，行為與以前相同。
+  //
+  // id 由 preset id 派生而不是亂數：同一個預設套用兩次不會長出兩顆同職業的魔石
+  // （先濾掉同 id 再 append），測試也才有東西可以斷言。
+  if (preset.mnemosphere) {
+    const state = normalizeTechnosphereState(base.technospheres);
+    const created = createMnemosphere({
+      id: makeMnemosphereId(preset.mnemosphere.className, `preset-${preset.id}`),
+      className: preset.mnemosphere.className,
+      level: preset.mnemosphere.level
+    });
+    next.technospheres = {
+      ...state,
+      mnemospheres: [...state.mnemospheres.filter((m) => m.id !== created.id), created]
+    };
+  }
 
   return next;
 };

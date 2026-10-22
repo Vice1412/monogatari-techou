@@ -66,7 +66,8 @@ export default function JRPGModal({
     };
   }, [isOpen]);
 
-  if (!isOpen || !mounted || typeof document === 'undefined') return null;
+  // `mounted` 與 `document` 的檢查搬到下面——SSR 時要走「內聯回傳」那條分支。
+  if (!isOpen) return null;
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto min-w-0">
@@ -130,5 +131,11 @@ export default function JRPGModal({
     </div>
   );
 
+  // SSR 專用分支：`createPortal` 需要真實的 `document.body`，伺服器端沒有。
+  // 直接內聯回傳內容，讓彈窗裡的文字能被 SSR 斷言看到（否則整個彈窗在 SSR 下
+  // 是一片空白，「這裡到底有沒有這段文案」只能靠原始碼字串猜）。
+  // ※ 瀏覽器裡 `document` 永遠存在，這條分支**永不觸發**，生產行為逐字不變。
+  if (typeof document === 'undefined') return modalContent;
+  if (!mounted) return null;
   return ReactDOM.createPortal(modalContent, document.body);
 }

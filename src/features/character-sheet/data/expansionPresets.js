@@ -20,8 +20,9 @@
  *   vehicle          機師【個人載具】：`{ frameId, modules }`（僅框架與已掌握模組）
  *   customWeapon     自訂武器規格（官方原文中譯）。角色卡裝備欄無此欄位，
  *                    故 `equipment.mainHand` 填最接近的基礎武器，本欄保留官方規格供玩家參照。
- *   mnemosphere      魔晶石（科技奇幻可選規則）。此處仍是官方原文的中文註記字串，
- *                    尚未轉成 `technospheres` 結構資料（見 `docs/decisions.md` §BO9 第 5 點）。
+ *   mnemosphere      魔晶石（科技奇幻可選規則）：`{ className, level, label }`。
+ *                    套用時由 `presetApply.js` 轉成真正的 `technospheres.mnemospheres`
+ *                    條目（`createMnemosphere`），不是純註記字串（§BO9 第 5 點已於 §CF 補完）。
  *   quirk            金手指名（僅特典合輯 8 組；名稱須與 `rulesData.quirks` 完全一致）。
  */
 
@@ -787,7 +788,9 @@ export const EXPANSION_PRESETS = [
         id: 'cw_折疊權杖'
       }
     ],
-    mnemosphere: '極性魔晶石（視同元素師 1 級）',
+    // 官方配搭配的初始職業魔石（科技奇幻手冊 p.134）。**結構化**，不是說明字串——
+    // 以前這裡只是一個字串，只拿來顯示，套用之後玩家其實沒有那顆魔石（見 §CF）。
+    mnemosphere: { className: '元素師', level: 1, label: '極性魔晶石' },
     zenit: 70
   },
   {
@@ -823,7 +826,7 @@ export const EXPANSION_PRESETS = [
         id: 'cw_柔性纏手布_b'
       }
     ],
-    mnemosphere: '動能魔晶石（視同靈能者 1 級）',
+    mnemosphere: { className: '靈能者', level: 1, label: '動能魔晶石' },
     zenit: 70
   },
   {
@@ -848,7 +851,7 @@ export const EXPANSION_PRESETS = [
         id: 'cw_魔警巨劍'
       }
     ],
-    mnemosphere: '灼熱魔晶石（視同元素師 1 級）',
+    mnemosphere: { className: '元素師', level: 1, label: '灼熱魔晶石' },
     zenit: 70
   },
   {

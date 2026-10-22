@@ -77,6 +77,7 @@ import HeroicSkillPickerModal from './HeroicSkillPickerModal';
 import QuirkPickerModal from './QuirkPickerModal';
 import ZeroPowerBlock from './ZeroPowerBlock';
 import TechnospherePanel from './TechnospherePanel';
+import MnemosphereSection from './MnemosphereSection';
 import { isTechnosphereEnabled, getTechnosphereEquipmentSpend } from '../data/technospheres';
 
 /** 編輯器的分頁數量。夾制 initialTab 時不能讀 TABS（宣告在下面，會踩 TDZ），所以另存常數。 */
@@ -598,9 +599,12 @@ export default function CharacterEditor({
 
   // 守護者【雙重盾牌】：兩手皆盾時合併視為格鬥類別雙手近戰武器「雙盾」，
   // 攻擊改用該技能的命中與傷害公式——盾牌本身沒有攻擊資料。
+  // 魔晶石制下【雙重盾牌】失效（科技奇幻手冊 p.133）——`dualShield.learned` 為假，
+  // 主手就不能拿盾牌，攻擊也不會切成「雙盾」的公式。
   const dualShield = getDualShieldState(character, {
     mainIsShield: Boolean(mainShield),
-    offIsShield: Boolean(offShield)
+    offIsShield: Boolean(offShield),
+    technosphereMode: rules.technospheres
   });
   const mainAttack = dualShield.active ? dualShield.weapon : mainWeapon;
   const mainWeaponEval = mainAttack ? evaluateWeapon(mainAttack, equipDice) : null;
@@ -1497,6 +1501,18 @@ export default function CharacterEditor({
                 )}
               </div>
 
+              {/* 職業魔石（科技奇幻手冊 p.134）：升級點「投進固有職業**或**職業魔石」，
+                  兩者是同一個池子、成長方式逐字相同（p.135 `just as with standard Class
+                  advancement`），所以它住在第 2 步。裝進插槽才是第 4 步的事
+                  （`TechnospherePanel`）——p.135 的條件是「裝備著才生效」。
+                  規則沒開時元件自己回傳 null，這裡不必再判斷一次。 */}
+              <MnemosphereSection
+                character={character}
+                theme={theme}
+                disabled={locked}
+                onChange={(next, meta) => updateField('technospheres', next, meta)}
+              />
+
               {/* 開局自選阿爾卡納：只在角色真的持有【綁定和召喚】時出現（見 ArcanistStarterBinding） */}
               <ArcanistStarterBinding character={character} onChange={onChange} locked={locked} />
 
@@ -1563,6 +1579,39 @@ export default function CharacterEditor({
                   );
                 })}
               </div>
+
+              {/* 金手指相性（§CG）：免疫／抗性／易傷／吸收只存在於 stats.quirkEffects 裡。
+                  不畫出來，玩家選了「亡者歸來」也不會知道自己免疫暗毒、弱光——
+                  那等於引擎算了、介面沒說。沒有任何相性時整塊不渲染。 */}
+              {(() => {
+                const fx = stats.quirkEffects || {};
+                const rows = [
+                  { label: '傷害免疫', values: fx.immuneDamage, tone: '#15803d' },
+                  { label: '抗性', values: fx.resistances, tone: '#166534' },
+                  { label: '易傷', values: fx.vulnerabilities, tone: '#b91c1c' },
+                  { label: '吸收', values: fx.absorption, tone: '#6d28d9' },
+                  { label: '狀態免疫', values: fx.immuneStatuses, tone: '#0e7490' }
+                ].filter((row) => Array.isArray(row.values) && row.values.length > 0);
+                if (rows.length === 0) return null;
+                return (
+                  <div
+                    data-testid="quirk-affinities"
+                    className="p-3 rounded-xl border space-y-1.5"
+                    style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
+                  >
+                    <div className="text-xs font-bold" style={{ color: theme.textDark }}>
+                      金手指相性
+                      {fx.unarmedDamageBonus ? `　徒手傷害 +${fx.unarmedDamageBonus}` : ''}
+                    </div>
+                    {rows.map((row) => (
+                      <div key={row.label} className="flex items-baseline gap-2 text-[11px]">
+                        <span className="font-bold shrink-0" style={{ color: theme.textMuted }}>{row.label}</span>
+                        <span style={{ color: row.tone }}>{renderTextWithAffinities(row.values.join('、'))}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* Proficiencies Indicator */}
               <div
@@ -2187,8 +2236,9 @@ export default function CharacterEditor({
             onClose={() => setIsQuirkPickerOpen(false)}
             theme={theme}
             selectedName={character.quirk === '無' ? '' : (character.quirk || '')}
-            onPick={(q) => updateField('quirk', q.name)}
-            onClear={() => updateField('quirk', '無')}
+            selectedChoice={character.quirkChoice || ''}
+            onPick={(q, choiceId) => updateField({ quirk: q.name, quirkChoice: choiceId || '' })}
+            onClear={() => updateField({ quirk: '無', quirkChoice: '' })}
           />
 
           {/* Wizard Footer Navigation Bar */}

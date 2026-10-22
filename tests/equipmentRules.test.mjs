@@ -487,8 +487,20 @@ check('目前防具仍保留先攻欄（核心規則值，未套用變體）',
 // ─────────────────────────────────────────────────────────── N
 section('N. 飾品：一律稀有物品（Core p.126／p.284）');
 check('飾品資料存在', rulesData.equipment.accessories.length > 0, true);
-check('飾品不帶 500z 起始預算用的價格欄位（避免被誤計入預算）',
-  rulesData.equipment.accessories.every((a) => a.cost === undefined), true);
+// 原本這裡斷言「飾品不帶 cost，避免被誤計入 500z 起始預算」。
+// 2026-10-22（§CF）把官方表補齊之後這條不成立了：Core p.285–287 的飾品本來就有價
+// （500z 到 3000z）。要防的風險（被算進起始預算）並不存在——`startingZenit` 是規則常數
+// （p.164 的 500z），預算計算不會去翻 `accessories` 的 cost。
+// 所以改成驗「價格資料完整」＋「官方與自訂示例可分辨」。
+check('官方飾品都帶價格（Core p.285–287）',
+  rulesData.equipment.accessories.filter((a) => !a.custom).every((a) => typeof a.cost === 'number' && a.cost > 0), true);
+check('自訂示例飾品仍標記 custom，與官方表可分辨',
+  rulesData.equipment.accessories.filter((a) => a.custom).every((a) => typeof a.cost === 'number'), true);
+check('洋蔥戒指在表內（Core p.289；§CF 之前的 D6 缺口）',
+  rulesData.equipment.accessories.some((a) => a.name === '洋蔥戒指'), true);
+check('洋蔥戒指的效果是「每個不同職業 +2 HP／+2 MP」',
+  rulesData.equipment.accessories.find((a) => a.name === '洋蔥戒指')?.effects,
+  { hpPerClass: 2, mpPerClass: 2 });
 
 // ─────────────────────────────────────────────────────────── O
 section('O. 開卡預設裝備：兩手徒手打擊、不穿防具、500z 全額留給玩家選購');

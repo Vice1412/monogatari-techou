@@ -39,12 +39,17 @@ import rulesData from '../data/rulesData.json';
 export function QuirkPickerBody({
   theme,
   selectedName = '',
+  selectedChoice = '',
   onPick,
   onClear,
   onClose
 }) {
   const [search, setSearch] = useState('');
   const [openName, setOpenName] = useState(selectedName || null);
+  // 金手指「選項」（§CF）。11 個金手指寫著「選擇一個選項」——
+  // 其中只有兩個會改數值（倖存者③ IP +2、墮落天使③ 最大 MP +10），
+  // 但**每一個都要選**：原書寫的是「選擇一個選項」，不是「可以選」。
+  const [choice, setChoice] = useState(selectedChoice || '');
 
   const quirks = useMemo(() => rulesData.quirks || [], []);
 
@@ -58,6 +63,28 @@ export function QuirkPickerBody({
     () => quirks.find((x) => x.name === openName) || null,
     [quirks, openName]
   );
+
+  // 選項一律包成「組」再渲染（§CG）：
+  // ・單組的金手指在資料層是 `options`（倖存者、墮落天使……）
+  // ・要選**兩件事**的在資料層是 `optionGroups`（草木成精：一個免疫狀態＋一個易傷屬性）
+  // 包成同一種形狀之後，介面只有一套邏輯，不必為多組另開分支。
+  const quirkOptionGroups = Array.isArray(opened?.optionGroups) && opened.optionGroups.length > 0
+    ? opened.optionGroups
+    : (Array.isArray(opened?.options) && opened.options.length > 0
+      ? [{ id: 'default', label: '', options: opened.options }]
+      : []);
+  const isMultiGroup = quirkOptionGroups.length > 1;
+  const choiceFor = (groupId) => {
+    if (isMultiGroup) return choice && typeof choice === 'object' ? choice[groupId] : undefined;
+    return typeof choice === 'string' ? choice : undefined;
+  };
+  const pickOption = (groupId, optId) => {
+    if (!isMultiGroup) { setChoice(optId); return; }
+    setChoice((prev) => ({ ...(prev && typeof prev === 'object' ? prev : {}), [groupId]: optId }));
+  };
+  // 每一組都選了才准確定——只選一半的存檔在引擎裡只會生效一半，不如擋在門口。
+  const groupsComplete = quirkOptionGroups.length > 0
+    && quirkOptionGroups.every((group) => Boolean(choiceFor(group.id)));
 
   return (
     <div className="flex flex-col h-[80vh] md:h-[72vh] max-h-[700px] overflow-hidden -m-1">
@@ -96,7 +123,12 @@ export function QuirkPickerBody({
                   <button
                     key={q.name}
                     type="button"
-                    onClick={() => setOpenName(q.name)}
+                    onClick={() => {
+                      setOpenName(q.name);
+                      // 換一個金手指就把選項清掉——否則會把上一個的 `id` 帶到新的上面。
+                      // 點回**目前已經選定**的那一個時，還原已存的選擇。
+                      setChoice(q.name === selectedName ? (selectedChoice || '') : '');
+                    }}
                     className="w-full text-left px-2.5 py-2 rounded-lg border text-xs font-bold transition-all cursor-pointer active:scale-98 flex items-center justify-between gap-1.5"
                     style={
                       isOpen
@@ -151,6 +183,56 @@ export function QuirkPickerBody({
                     </div>
                   ))}
                 </div>
+
+                {/* 選項（§CF／§CG）：原書寫「選擇一個選項」的金手指，把選項列成單選。
+                    多組的金手指（草木成精要選免疫狀態＋易傷屬性）每一組各一組單選。
+                    只有帶 `effects` 的那幾項會改數值，其餘是敘事選項——但都要選，
+                    所以這裡不區分「重要／不重要」，一律同一個介面。 */}
+                {quirkOptionGroups.length > 0 && (
+                  <div
+                    className="rounded-lg border p-2.5 space-y-2"
+                    style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}
+                    data-testid="quirk-options"
+                  >
+                    <span className="text-[11px] font-bold" style={{ color: theme.textMuted }}>
+                      {isMultiGroup
+                        ? `這個金手指要選 ${quirkOptionGroups.length} 件事（原書：選擇選項）`
+                        : '這個金手指要選一個選項（原書：選擇一個選項）'}
+                    </span>
+                    {quirkOptionGroups.map((group) => (
+                      <div key={group.id} className="space-y-1.5" data-testid={`quirk-group-${group.id}`}>
+                        {isMultiGroup && group.label && (
+                          <span className="block text-[10px] font-semibold" style={{ color: theme.textMuted }}>
+                            {group.label}
+                          </span>
+                        )}
+                        {group.options.map((opt) => (
+                          <label
+                            key={opt.id}
+                            className="flex items-start gap-2 text-xs cursor-pointer"
+                            style={{ color: theme.textDark }}
+                          >
+                            <input
+                              type="radio"
+                              name={`quirk-option-${opened.name}-${group.id}`}
+                              checked={choiceFor(group.id) === opt.id}
+                              onChange={() => pickOption(group.id, opt.id)}
+                              className="mt-0.5 shrink-0"
+                            />
+                            <span>
+                              {opt.label}
+                              {opt.effects && (
+                                <span className="text-[10px] ml-1" style={{ color: theme.textMuted }}>
+                                  （會寫進角色數值）
+                                </span>
+                              )}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* 底部：確定選擇 */}
@@ -175,7 +257,8 @@ export function QuirkPickerBody({
                     variant={theme.buttonVariant || 'primary'}
                     size="sm"
                     icon={GiCheckMark}
-                    onClick={() => { onPick && onPick(opened); onClose && onClose(); }}
+                    disabled={quirkOptionGroups.length > 0 && !groupsComplete}
+                    onClick={() => { onPick && onPick(opened, choice || ''); onClose && onClose(); }}
                   >
                     {selectedName === opened.name ? '維持這個' : '選擇這個金手指'}
                   </JRPGButton>
@@ -202,6 +285,7 @@ export default function QuirkPickerModal({
   onClose,
   theme,
   selectedName = '',
+  selectedChoice = '',
   onPick,
   onClear
 }) {
@@ -210,6 +294,7 @@ export default function QuirkPickerModal({
       <QuirkPickerBody
         theme={theme}
         selectedName={selectedName}
+        selectedChoice={selectedChoice}
         onPick={onPick}
         onClear={onClear}
         onClose={onClose}

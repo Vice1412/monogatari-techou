@@ -33,6 +33,8 @@ import {
   helperHireCost,
   DEFAULT_DAILY_INPUT
 } from '../../data/tinkererProjects';
+import { resolveCreationRules } from '../../data/creationRules';
+import { modeRestrictsEquipment } from '../../data/technospheres';
 
 // 官方修補匠煉金術【目標表】(Core Rulebook p. 212)
 export const ALCHEMY_TARGET_TABLE = [
@@ -246,6 +248,17 @@ export default function TinkererWorkshop({
   const extraProgressPerDay = visionarySL;
 
   const characterLevel = getCharacterLevel(character);
+
+  /**
+   * 魔晶石是否處於「裝備受限」模式（科技奇幻手冊 p.133）。
+   * 為 true 時魔導科技只剩兩個益處：魔加農整檔不存在，魔法球原型降為進階。
+   * 與 `EquipmentPickerModal`／`characterEngine` 共用 `modeRestrictsEquipment` 這一個判定。
+   */
+  const technoRestrictsEquipment = modeRestrictsEquipment(
+    resolveCreationRules(character?.creationRules).technospheres
+  );
+  /** 魔法球原型的檔位：核心在最高檔（3），魔晶石制降到進階（2）——這一軌只剩兩檔。 */
+  const magisphereTier = technoRestrictsEquipment ? 2 : 3;
 
   // 修補匠資料
   const tinkererData = character.tinkererData || {};
@@ -1511,11 +1524,17 @@ export default function TinkererWorkshop({
                     <GiGears className="w-5 h-5 text-purple-600" />
                     <span>魔導科技工坊</span>
                     <span className="font-mono text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-200 font-bold">
-                      {gadgets.magitech === 0 ? '尚未研發' : gadgets.magitech === 1 ? '基礎篡奪' : gadgets.magitech === 2 ? '魔加農火器' : '魔法球原型'}
+                      {gadgets.magitech === 0
+                        ? '尚未研發'
+                        : technoRestrictsEquipment
+                          ? (gadgets.magitech >= 2 ? '魔法球原型' : '基礎篡奪')
+                          : (gadgets.magitech === 1 ? '基礎篡奪' : gadgets.magitech === 2 ? '魔加農火器' : '魔法球原型')}
                     </span>
                   </h4>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    奪取士兵構裝體控制權、製造尖端魔加農火器、快捷施放魔法球原型咒語
+                    {technoRestrictsEquipment
+                      ? '奪取士兵構裝體控制權、快捷施放魔法球原型咒語（魔晶石制：魔加農不存在，p.133）'
+                      : '奪取士兵構裝體控制權、製造尖端魔加農火器、快捷施放魔法球原型咒語'}
                   </p>
                 </div>
 
@@ -1563,8 +1582,8 @@ export default function TinkererWorkshop({
                     </div>
                   </div>
 
-                  {/* 進階：魔加農火器 */}
-                  {gadgets.magitech >= 2 && (
+                  {/* 進階：魔加農火器 —— 魔晶石制下整檔不存在（p.133 removing the magicannon completely） */}
+                  {gadgets.magitech >= 2 && !technoRestrictsEquipment && (
                     <div className="p-3.5 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50/40 dark:bg-purple-950/20 space-y-2.5">
                       <div className="flex items-center justify-between font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100">
                         <span className="flex items-center gap-1.5">
@@ -1620,13 +1639,13 @@ export default function TinkererWorkshop({
                     </div>
                   )}
 
-                  {/* 最高：魔法球原型 */}
-                  {gadgets.magitech >= 3 && (
+                  {/* 魔法球原型：核心在最高檔；魔晶石制下往下兼容成進階檔（p.133） */}
+                  {gadgets.magitech >= magisphereTier && (
                     <div className="p-3.5 rounded-xl border border-purple-300 dark:border-purple-700 bg-purple-50/50 dark:bg-purple-950/30 space-y-3">
                       <div className="flex items-center justify-between font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100">
                         <span className="flex items-center gap-1.5">
                           <GiCrystalBall className="w-4 h-4 text-purple-600" />
-                          魔法球原型施放（最高）
+                          {technoRestrictsEquipment ? '魔法球原型施放（高級）' : '魔法球原型施放（最高）'}
                         </span>
                         <span className="font-mono text-xs text-purple-700 dark:text-purple-300 font-bold">
                           2 IP · 瞬發咒語

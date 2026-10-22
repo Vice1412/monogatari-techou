@@ -1,52 +1,75 @@
 /**
- * 魔晶石面板（Technosphere Panel）
+ * 魔晶石面板（Technosphere Panel）—— 建角第 4 步「裝備配置」的**裝載**那一半
  *
  * 科技奇幻手冊 p.132–145 的選用規則。它與金手指、定制武器那種「多一批選項」不同：
  * 它**換掉整套裝備制度**（官方武器表與盾牌整份不可用），所以它住在建角第 4 步
  * 「裝備配置」裡，而不是第 5 步的特質區。
  *
+ * ## 2026-10-22 拆一半：成長搬去第 2 步
+ *
+ * 原書把職業魔石切成兩個獨立的決定，它們分屬兩個步驟：
+ *
+ * | 決定 | 原文 | 現在在哪 |
+ * |---|---|---|
+ * | 投等級、分配技能 | p.134「invest 1 level into **an Innate Class or into a mnemosphere**」；p.135「**just as with standard Class advancement**」 | `MnemosphereSection`（第 2 步） |
+ * | 塞進哪個插槽 | p.135「**As long as** … **equipped** … **As soon as the item is unequipped, they lose all of its benefits**」 | **本檔**（第 4 步） |
+ *
+ * 拆之前整塊都在第 4 步，後果是 `skillLevelCeiling` 跨步驟斷裂——玩家在第 2 步
+ * 分配起始等級時看到的技能上限不含魔石，跳到第 4 步裝上才變，**同一個數字兩個答案**。
+ *
  * ## 這個面板只做三件事
  *
- * ① **職業魔石**：角色持有的魔石清單。每顆有職業、等級（上限 5）與它提供的技能；
- *    5 級＝精通，要挑一個英雄技能。這裡**不**替玩家選技能——建角時一顆都沒有，
- *    與四維屬性、羈絆、金手指、底力技同一個原則。
+ * ① **職業魔石（唯讀摘要）**：只顯示「有哪些魔石可以裝」。等級、技能、精通英雄技能
+ *    全部在第 2 步設定——這裡**不提供任何修改入口**。兩邊都能改等級，遲早出現
+ *    「卡片寫 3 級、引擎算 2 級」這種沒人查得出來的漂移。
  * ② **插槽品級**：每個裝備位一件物品可以掛 α／β／γ／δ 四種插槽（δ 只限武器），
  *    價格與容量見 `data/technospheres.js` 的 `SLOT_QUALITIES`。
  * ③ **插槽內容**：職業魔石與附魔魔石都塞進插槽。職業魔石要「裝備著」才會提供技能
  *    （p.136），所以「沒裝上去的魔石」是看得到、但沒有效果的東西——面板會把它標出來。
+ *    **「未裝載」的警告屬於這一格**：第 2 步管成長，在那裡亮警告等於把正常狀態說成錯誤。
+ *
+ * ## 視覺：珠子嵌進珠座
+ *
+ * 這套規則的動詞是**鑲嵌**，所以插槽畫成一排**珠座**（`TechnosphereBead`／
+ * `EmptyBeadSocket`）：珠子是圓的、有等級環與高光，空位是虛線凹槽。
+ * 職業魔石用該職業自己的 gi 圖示（`GameIcon` 查 `CLASS_METADATA`）；
+ * 附魔魔石 36 顆不可能各給一個圖示，統一用一顆泛指晶石，靠傷害屬性上色區分。
  *
  * ## 為什麼不自己算任何數值
  *
  * 容量、花費、合法性全部呼叫 `data/technospheres.js`——`computeSlotUsage`、
- * `getTechnosphereEquipmentSpend`、`validateTechnosphereState`。
+ * `listHoplosphereEffects`、`getTechnosphereEquipmentSpend`、`validateTechnosphereState`。
  * 面板只負責把狀態改一改然後交出去。這樣創角清單（`validateCharacter`）、
  * 預算條（`CharacterEditor`）與面板看到的是同一份判定。
  */
 import React, { useMemo, useState } from 'react';
 import { GiCrystalShine, GiCutDiamond, GiOrbWand } from 'react-icons/gi';
-import { heroicSkillsForClass, getCharacterLevel } from '../utils/characterEngine';
+import { getCharacterLevel } from '../utils/characterEngine';
 import { resolveCreationRules } from '../data/creationRules';
+import TechnosphereBead, { EmptyBeadSocket } from './TechnosphereBead';
 import {
   HOPLOSPHERES,
   HOPLOSPHERE_PRICE,
-  MNEMOSPHERE_CLASSES,
   MNEMOSPHERE_MAX_LEVEL,
-  MNEMOSPHERE_MASTERY_LEVEL,
   SLOT_QUALITIES,
   TECHNOSPHERE_MODES,
   computeSlotUsage,
-  createMnemosphere,
   getAvailableSlotQualities,
+  getHoplosphere,
+  getHoplosphereBeadTint,
   getIntegratedMnemosphereCap,
+  getMnemosphereBeadTint,
   getTechnosphereEquipmentSpend,
   isTechnosphereEnabled,
+  listHoplosphereEffects,
   modeAllowsDeltaSlot,
   modeHasHoplospheres,
   modeHasMnemospheres,
   modeRestrictsEquipment,
   modeUsesIntegratedCarrier,
   normalizeTechnosphereState,
-  slotQualityMnemosphereCap
+  slotQualityMnemosphereCap,
+  slotSupportsQuality
 } from '../data/technospheres';
 
 /** 四個裝備位（與 `equipmentRules.js` 的 `EQUIPMENT_SLOTS` 同一組鍵） */
@@ -62,11 +85,15 @@ const WEAPON_SLOT_KEYS = ['mainHand', 'offHand'];
 
 const emptySlot = () => ({ quality: 'alpha', contents: [] });
 
+/** 凝聚等級 → 珠座徽記用的菱形記號（dingbat，非 emoji） */
+const TIER_MARK = { base: '◆', coag2: '◆◆', coag3: '◆◆◆' };
+const TIER_LABEL = { base: '', coag2: '凝聚 2：', coag3: '凝聚 3：' };
+
 export default function TechnospherePanel({ character, theme = {}, disabled = false, onChange }) {
   const rules = resolveCreationRules(character?.creationRules);
   const mode = rules.technospheres;
-  const [pendingClass, setPendingClass] = useState('');
   const [pendingHoplosphere, setPendingHoplosphere] = useState({});
+  const [pendingIntegrated, setPendingIntegrated] = useState('');
 
   const level = getCharacterLevel(character);
   const state = useMemo(
@@ -82,68 +109,11 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
   const withHoplospheres = modeHasHoplospheres(mode);
   const integrated = modeUsesIntegratedCarrier(mode);
   const spend = getTechnosphereEquipmentSpend(state);
+  const integratedCap = getIntegratedMnemosphereCap(level);
 
   /** 把新的魔晶石狀態寫回角色。`meta` 讓成長履歷留下「動了什麼」。 */
   const commit = (patch, meta = null) => {
     onChange({ ...state, ...patch }, meta);
-  };
-
-  const addMnemosphere = () => {
-    if (!pendingClass) return;
-    const next = [...state.mnemospheres, createMnemosphere({ className: pendingClass })];
-    setPendingClass('');
-    commit({ mnemospheres: next }, {
-      kind: 'technosphere',
-      title: `取得職業魔石：${pendingClass}`
-    });
-  };
-
-  const removeMnemosphere = (id) => {
-    const target = state.mnemospheres.find((m) => m.id === id);
-    const mnemospheres = state.mnemospheres.filter((m) => m.id !== id);
-    // 同時把它從所有插槽裡拔掉，否則插槽會指向一顆已經不存在的魔石。
-    const slots = {};
-    Object.keys(state.slots).forEach((slotId) => {
-      slots[slotId] = {
-        ...state.slots[slotId],
-        contents: state.slots[slotId].contents
-          .filter((c) => !(c.kind === 'mnemosphere' && c.ref === id))
-      };
-    });
-    commit({ mnemospheres, slots }, {
-      kind: 'technosphere',
-      title: `失去職業魔石：${target?.className || id}`
-    });
-  };
-
-  const raiseMnemosphere = (id) => {
-    const target = state.mnemospheres.find((m) => m.id === id);
-    if (!target || target.level >= MNEMOSPHERE_MAX_LEVEL) return;
-    const mnemospheres = state.mnemospheres.map((m) => (
-      m.id === id ? { ...m, level: m.level + 1 } : m
-    ));
-    commit({ mnemospheres }, {
-      kind: 'technosphere',
-      title: `職業魔石升級：${target.className} → ${target.level + 1} 級`
-    });
-  };
-
-  const lowerMnemosphere = (id) => {
-    const target = state.mnemospheres.find((m) => m.id === id);
-    if (!target || target.level <= 1) return;
-    const mnemospheres = state.mnemospheres.map((m) => (
-      m.id === id ? { ...m, level: m.level - 1 } : m
-    ));
-    commit({ mnemospheres });
-  };
-
-  const setHeroicSkill = (id, heroicSkill) => {
-    const mnemospheres = state.mnemospheres.map((m) => (
-      m.id === id ? { ...m, heroicSkill } : m
-    ));
-    commit({ mnemospheres }, heroicSkill
-      ? { kind: 'technosphere', title: `職業魔石精通：${heroicSkill}` }
-      : null);
   };
 
   const updateSlot = (slotId, patch, meta = null) => {
@@ -154,7 +124,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
   const addHoplosphere = (slotId, key) => {
     if (!key) return;
     const current = state.slots[slotId] || emptySlot();
-    const sphere = HOPLOSPHERES.find((h) => h.key === key);
+    const sphere = getHoplosphere(key);
     updateSlot(slotId, {
       contents: [...current.contents, { kind: 'hoplosphere', ref: key }]
     }, {
@@ -180,16 +150,33 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
     });
   };
 
-  const equippedMnemosphereIds = new Set(
-    Object.keys(state.slots).flatMap((slotId) => state.slots[slotId].contents
+  const embedIntegrated = (id) => {
+    if (!id) return;
+    if (state.integrated.includes(id)) return;
+    if (state.integrated.length >= integratedCap) return;
+    setPendingIntegrated('');
+    commit({ integrated: [...state.integrated, id] }, {
+      kind: 'technosphere',
+      title: `內嵌職業魔石：${state.mnemospheres.find((m) => m.id === id)?.className || id}`
+    });
+  };
+
+  const unembedIntegrated = (id) => {
+    commit({ integrated: state.integrated.filter((x) => x !== id) });
+  };
+
+  const equippedMnemosphereIds = new Set([
+    ...Object.keys(state.slots).flatMap((slotId) => state.slots[slotId].contents
       .filter((c) => c.kind === 'mnemosphere')
-      .map((c) => c.ref))
-  );
+      .map((c) => c.ref)),
+    ...state.integrated
+  ]);
   const idleMnemospheres = state.mnemospheres.filter((m) => !equippedMnemosphereIds.has(m.id));
 
   const inputClass = 'w-full rounded-lg px-2.5 py-1.5 text-xs outline-none border font-bold';
   const inputStyle = { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark };
   const smallBtn = 'px-2 py-0.5 rounded border text-[11px] font-bold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
+  const miniSelect = 'rounded-lg px-1.5 py-0.5 text-[10px] outline-none border font-bold max-w-[13rem]';
 
   return (
     <div
@@ -221,160 +208,133 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
             : null}
         </p>
 
-        {/* ── 職業魔石 ─────────────────────────────────────── */}
-        {withMnemospheres && (
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <span className="flex items-center gap-1.5 text-[11px] font-bold" style={{ color: theme.textDark }}>
-                <GiOrbWand className="w-3.5 h-3.5" style={{ color: theme.accent }} />
-                職業魔石
-                <span className="font-normal" style={{ color: theme.textMuted }}>
-                  {state.mnemospheres.length} 顆，上限 {MNEMOSPHERE_MAX_LEVEL} 級
+        {/* ── 職業魔石（唯讀摘要）─────────────────────────────
+            等級、技能、精通英雄技能全部在創角第 2 步「職業與技能」設定。
+            p.134 說升級點是「投進固有職業**或**職業魔石」，那是成長，不是裝備；
+            p.135 才說「裝備著才生效」，那才是這一格的事。
+            這裡刻意**不提供任何修改入口**——兩邊都能改等級，遲早出現
+            「卡片寫 3 級、引擎算 2 級」這種沒人查得出來的漂移。 */}
+        {withMnemospheres && state.mnemospheres.length > 0 && (
+          <div
+            className="rounded-lg border px-2 py-1.5 space-y-1"
+            style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+            data-testid="mnemosphere-summary"
+          >
+            <span className="flex items-center gap-1.5 text-[11px] font-bold flex-wrap" style={{ color: theme.textDark }}>
+              <GiOrbWand className="w-3.5 h-3.5" style={{ color: theme.accent }} />
+              職業魔石
+              <span className="font-normal" style={{ color: theme.textMuted }}>
+                {state.mnemospheres.length} 顆——等級與技能在第 2 步「職業與技能」設定
+              </span>
+            </span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {state.mnemospheres.map((m) => (
+                <span key={`summary_${m.id}`} className="inline-flex items-center gap-1">
+                  <TechnosphereBead
+                    iconName={m.className}
+                    tint={getMnemosphereBeadTint(m.className)}
+                    level={m.level}
+                    dim={!equippedMnemosphereIds.has(m.id)}
+                    size={26}
+                    title={`${m.className}　${m.level} / ${MNEMOSPHERE_MAX_LEVEL} 級`}
+                    testId={`bead-summary-${m.id}`}
+                  />
+                  <span className="text-[10px] font-bold" style={{ color: theme.textDark }}>
+                    {m.className} {m.level} 級
+                  </span>
                 </span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <select
-                  value={pendingClass}
-                  disabled={disabled}
-                  onChange={(e) => setPendingClass(e.target.value)}
-                  className="rounded-lg px-2 py-1 text-[11px] outline-none border font-bold"
-                  style={inputStyle}
-                >
-                  <option value="">選擇職業</option>
-                  {MNEMOSPHERE_CLASSES.map((name) => (
-                    <option key={name} value={name}>{name}</option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  disabled={disabled || !pendingClass}
-                  onClick={addMnemosphere}
-                  className={smallBtn}
-                  style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
-                >
-                  取得
-                </button>
-              </span>
+              ))}
             </div>
-
-            {state.mnemospheres.length === 0 ? (
-              <p className="text-[10px] italic" style={{ color: theme.textMuted }}>
-                尚未取得任何職業魔石。開局會免費獲得一顆 1 級魔石（p.134），請在這裡選定。
-              </p>
-            ) : (
-              <div className="space-y-1.5">
-                {state.mnemospheres.map((m) => {
-                  const mastered = m.level >= MNEMOSPHERE_MASTERY_LEVEL;
-                  const candidates = mastered ? heroicSkillsForClass(m.className) : [];
-                  return (
-                    <div
-                      key={m.id}
-                      className="rounded-lg border px-2 py-1.5 space-y-1"
-                      style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
-                    >
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
-                          {m.className}
-                          <span className="font-mono ml-1.5" style={{ color: theme.accent }}>
-                            {m.level} / {MNEMOSPHERE_MAX_LEVEL}
-                          </span>
-                          {mastered && (
-                            <span className="ml-1.5 text-[10px] font-bold" style={{ color: theme.accent }}>
-                              精通
-                            </span>
-                          )}
-                          {!equippedMnemosphereIds.has(m.id) && (
-                            <span className="ml-1.5 text-[10px] font-bold text-amber-700">未裝備（不提供技能）</span>
-                          )}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            disabled={disabled || m.level <= 1}
-                            onClick={() => lowerMnemosphere(m.id)}
-                            className={smallBtn}
-                            style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
-                          >
-                            −1
-                          </button>
-                          <button
-                            type="button"
-                            disabled={disabled || m.level >= MNEMOSPHERE_MAX_LEVEL}
-                            onClick={() => raiseMnemosphere(m.id)}
-                            className={smallBtn}
-                            style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
-                          >
-                            +1
-                          </button>
-                          <button
-                            type="button"
-                            disabled={disabled}
-                            onClick={() => removeMnemosphere(m.id)}
-                            className={smallBtn}
-                            style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: '#b91c1c' }}
-                          >
-                            移除
-                          </button>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px]" style={{ color: theme.textMuted }}>技能</span>
-                        {(m.skills || []).length === 0 ? (
-                          <span className="text-[10px] italic" style={{ color: theme.textMuted }}>尚未選技能</span>
-                        ) : (
-                          (m.skills || []).map((sk, i) => (
-                            <span
-                              key={`${m.id}_${sk.name}_${i}`}
-                              className="text-[10px] px-1.5 py-0.5 rounded border font-bold"
-                              style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark }}
-                            >
-                              {sk.name} SL{sk.sl}
-                            </span>
-                          ))
-                        )}
-                      </div>
-                      {mastered && (
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] shrink-0" style={{ color: theme.textMuted }}>英雄技能</span>
-                          <select
-                            value={m.heroicSkill || ''}
-                            disabled={disabled}
-                            onChange={(e) => setHeroicSkill(m.id, e.target.value)}
-                            className="flex-1 min-w-0 rounded-lg px-2 py-0.5 text-[10px] outline-none border font-bold"
-                            style={inputStyle}
-                          >
-                            <option value="">尚未選擇</option>
-                            {candidates.map((h) => (
-                              <option key={h.name} value={h.name}>{h.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            {idleMnemospheres.length > 0 && (
-              <p className="text-[10px] leading-relaxed text-amber-700">
-                有 {idleMnemospheres.length} 顆職業魔石沒有裝在任何插槽上——未裝備的魔石不提供任何技能（p.136）。
-              </p>
-            )}
           </div>
         )}
 
-        {/* ── 內嵌裝置 ─────────────────────────────────────── */}
+        {withMnemospheres && state.mnemospheres.length === 0 && (
+          <p className="text-[10px] italic" style={{ color: theme.textMuted }} data-testid="mnemosphere-empty">
+            尚未取得職業魔石。開局免費一顆 1 級魔石在創角第 2 步「職業與技能」選定（p.134）。
+          </p>
+        )}
+
+        {/* 「未裝載」的警告留在這一格，不留在第 2 步——因為 p.136 的條件是
+            「裝備著才生效」，而第 2 步管的是成長。玩家在投點時魔石本來就多半沒裝上，
+            在那裡亮警告等於把正常狀態說成錯誤。 */}
+        {withMnemospheres && idleMnemospheres.length > 0 && (
+          <p className="text-[10px] leading-relaxed text-amber-700" data-testid="idle-mnemosphere-warning">
+            有 {idleMnemospheres.length} 顆職業魔石沒有裝在任何插槽上——未裝備的魔石不提供任何技能（p.136）。
+          </p>
+        )}
+
+        {/* ── 內嵌裝置（integrated 變體）────────────────────── */}
         {integrated && (
-          <div className="rounded-lg border px-2 py-1.5" style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}>
+          <div
+            className="rounded-lg border px-2 py-1.5 space-y-1.5"
+            style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+            data-testid="integrated-carrier"
+          >
             <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
               內嵌裝置
               <span className="font-normal ml-1.5" style={{ color: theme.textMuted }}>
-                可容納 {getIntegratedMnemosphereCap(level)} 顆職業魔石（1 ＋ 每 15 級 1 顆）
+                可容納 {integratedCap} 顆職業魔石（1 ＋ 每 15 級 1 顆；目前 {state.integrated.length} 顆）
               </span>
             </span>
-            <p className="text-[10px] leading-relaxed mt-1" style={{ color: theme.textMuted }}>
+            <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
               這一變體把職業魔石改掛在裝置或護腕上，裝備插槽只放附魔魔石，且不能使用 δ 品級。
             </p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {state.integrated.map((id) => {
+                const m = state.mnemospheres.find((x) => x.id === id);
+                return (
+                  <span key={`integrated_${id}`} className="inline-flex items-center gap-0.5">
+                    <TechnosphereBead
+                      iconName={m?.className}
+                      tint={getMnemosphereBeadTint(m?.className)}
+                      level={m?.level || 0}
+                      size={30}
+                      title={m ? `${m.className}　${m.level} 級（內嵌）` : id}
+                      testId={`bead-integrated-${id}`}
+                    />
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => unembedIntegrated(id)}
+                      className="cursor-pointer text-[10px] disabled:opacity-40"
+                      style={{ color: '#b91c1c' }}
+                      title="從內嵌裝置取下"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                );
+              })}
+              {Array.from({ length: Math.max(0, integratedCap - state.integrated.length) }).map((_, i) => (
+                <EmptyBeadSocket key={`integrated_empty_${i}`} size={30} />
+              ))}
+            </div>
+            <div className="flex items-center gap-1 flex-wrap">
+              <select
+                value={pendingIntegrated}
+                disabled={disabled || state.integrated.length >= integratedCap}
+                onChange={(e) => setPendingIntegrated(e.target.value)}
+                className={miniSelect}
+                style={inputStyle}
+                data-testid="integrated-picker"
+              >
+                <option value="">選擇要內嵌的魔石</option>
+                {state.mnemospheres
+                  .filter((m) => !state.integrated.includes(m.id))
+                  .map((m) => (
+                    <option key={m.id} value={m.id}>{m.className} {m.level} 級</option>
+                  ))}
+              </select>
+              <button
+                type="button"
+                disabled={disabled || !pendingIntegrated}
+                onClick={() => embedIntegrated(pendingIntegrated)}
+                className={smallBtn}
+                style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
+              >
+                嵌入
+              </button>
+            </div>
           </div>
         )}
 
@@ -391,16 +351,20 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
             {EQUIP_SLOTS.map(({ key: slotId, label }) => {
               const itemName = character?.equipment?.[slotId];
               const hasItem = Boolean(itemName) && itemName !== '無';
+              const canSocket = slotSupportsQuality(slotId);
               const slot = state.slots[slotId] || emptySlot();
               const qualityOptions = getAvailableSlotQualities(mode)
                 .filter((q) => !q.weaponOnly || WEAPON_SLOT_KEYS.includes(slotId));
               const usage = computeSlotUsage(slot, state.mnemospheres);
               const pending = pendingHoplosphere[slotId] || '';
+              const { entries: effectEntries, damageTypeConflicts } = listHoplosphereEffects(slot.contents);
+              const emptySockets = canSocket ? Math.max(0, usage.remaining) : 0;
               return (
                 <div
                   key={slotId}
                   className="rounded-lg border px-2 py-1.5 space-y-1"
                   style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+                  data-testid={`slot-${slotId}`}
                 >
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
@@ -412,13 +376,14 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                     <span className="flex items-center gap-1.5">
                       <select
                         value={slot.quality}
-                        disabled={disabled || !hasItem}
+                        disabled={disabled || !hasItem || !canSocket}
                         onChange={(e) => updateSlot(slotId, { quality: e.target.value }, {
                           kind: 'technosphere',
                           title: `插槽品級：${label} → ${e.target.value}`
                         })}
                         className="rounded-lg px-1.5 py-0.5 text-[10px] outline-none border font-bold"
                         style={inputStyle}
+                        data-testid={`quality-${slotId}`}
                       >
                         {qualityOptions.map((q) => (
                           <option key={q.key} value={q.key}>
@@ -432,39 +397,95 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                     </span>
                   </div>
 
-                  {hasItem && (
+                  {!canSocket && (
+                    <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+                      只有自訂武器與自訂防具可以有魔石插槽；飾品與機師模組沒有（p.133）。
+                    </p>
+                  )}
+
+                  {hasItem && canSocket && (
                     <>
-                      <div className="flex items-center gap-1 flex-wrap">
-                        {slot.contents.length === 0 ? (
+                      {/* 珠座：一排凹槽，已鑲的珠子躺在裡面，沒鑲的是虛線空位 */}
+                      <div className="flex items-center gap-1.5 flex-wrap" data-testid={`sockets-${slotId}`}>
+                        {slot.contents.length === 0 && emptySockets === 0 ? (
                           <span className="text-[10px] italic" style={{ color: theme.textMuted }}>插槽是空的</span>
-                        ) : (
-                          slot.contents.map((entry, index) => {
-                            const label2 = entry.kind === 'mnemosphere'
-                              ? `職業魔石 ${state.mnemospheres.find((m) => m.id === entry.ref)?.className || entry.ref}`
-                              : (HOPLOSPHERES.find((h) => h.key === entry.ref)?.name || entry.ref);
-                            const cost = entry.kind === 'mnemosphere' ? 0 : HOPLOSPHERE_PRICE;
-                            return (
-                              <span
-                                key={`${slotId}_${entry.kind}_${entry.ref}_${index}`}
-                                className="text-[10px] px-1.5 py-0.5 rounded border font-bold flex items-center gap-1"
-                                style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark }}
+                        ) : null}
+                        {slot.contents.map((entry, index) => {
+                          const mnemosphere = entry.kind === 'mnemosphere'
+                            ? state.mnemospheres.find((m) => m.id === entry.ref)
+                            : null;
+                          const hop = entry.kind === 'hoplosphere' ? getHoplosphere(entry.ref) : null;
+                          const beadLabel = entry.kind === 'mnemosphere'
+                            ? (mnemosphere?.className || entry.ref)
+                            : (hop?.name || entry.ref);
+                          const cost = entry.kind === 'mnemosphere' ? 0 : HOPLOSPHERE_PRICE;
+                          const tint = entry.kind === 'mnemosphere'
+                            ? getMnemosphereBeadTint(mnemosphere?.className)
+                            : getHoplosphereBeadTint(hop);
+                          return (
+                            <span key={`${slotId}_${entry.kind}_${entry.ref}_${index}`} className="relative inline-flex items-start">
+                              <TechnosphereBead
+                                iconName={entry.kind === 'mnemosphere' ? mnemosphere?.className : null}
+                                iconComponent={entry.kind === 'hoplosphere' ? GiCrystalShine : null}
+                                tint={tint}
+                                level={entry.kind === 'mnemosphere' ? (mnemosphere?.level || 0) : 0}
+                                maxLevel={entry.kind === 'mnemosphere' ? MNEMOSPHERE_MAX_LEVEL : 1}
+                                size={30}
+                                badge={hop ? String(hop.slots) : null}
+                                title={[
+                                  beadLabel,
+                                  cost > 0 ? `${cost}z` : null,
+                                  hop ? `${hop.slots} 格` : null,
+                                  hop?.damageType ? `${hop.damageType}屬性` : null,
+                                  hop?.effect || null
+                                ].filter(Boolean).join('｜')}
+                                testId={`bead-socket-${slotId}-${index}`}
+                              />
+                              <button
+                                type="button"
+                                disabled={disabled}
+                                onClick={() => removeContent(slotId, index)}
+                                className="absolute -bottom-0.5 -right-0.5 cursor-pointer text-[9px] leading-none disabled:opacity-40"
+                                style={{ color: '#b91c1c' }}
+                                title="從插槽取下"
                               >
-                                {entry.kind === 'mnemosphere' ? '◇' : '◆'} {label2}
-                                {cost > 0 ? <span style={{ color: theme.textMuted }}>{cost}z</span> : null}
-                                <button
-                                  type="button"
-                                  disabled={disabled}
-                                  onClick={() => removeContent(slotId, index)}
-                                  className="cursor-pointer disabled:opacity-40"
-                                  style={{ color: '#b91c1c' }}
-                                >
-                                  ✕
-                                </button>
-                              </span>
-                            );
-                          })
-                        )}
+                                ✕
+                              </button>
+                            </span>
+                          );
+                        })}
+                        {Array.from({ length: emptySockets }).map((_, i) => (
+                          <EmptyBeadSocket key={`${slotId}_empty_${i}`} size={30} label={String(slot.contents.length + i + 1)} />
+                        ))}
                       </div>
+
+                      {/* 逐筆效果：原書 p.139 的寫法就是逐顆、逐凝聚各算一筆 */}
+                      {effectEntries.length > 0 && (
+                        <ul
+                          className="text-[10px] leading-relaxed space-y-0.5 pl-1"
+                          style={{ color: theme.textMuted }}
+                          data-testid={`hoplosphere-effects-${slotId}`}
+                        >
+                          {effectEntries.map((eff, i) => (
+                            <li key={`${slotId}_eff_${i}`} className="flex items-start gap-1">
+                              <span className="shrink-0 font-bold" style={{ color: eff.tier === 'base' ? theme.textMuted : theme.accent }}>
+                                {TIER_MARK[eff.tier]}
+                              </span>
+                              <span>
+                                <span className="font-bold" style={{ color: theme.textDark }}>【{eff.name}】</span>
+                                {TIER_LABEL[eff.tier]}
+                                {eff.text}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {damageTypeConflicts.length > 1 && (
+                        <p className="text-[10px] text-amber-700">
+                          同一把武器不能混用不同傷害屬性的附魔魔石（目前混了：{damageTypeConflicts.join('、')}，p.141）。
+                        </p>
+                      )}
 
                       <div className="flex items-center gap-1 flex-wrap">
                         {withHoplospheres && (
@@ -473,8 +494,9 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                               value={pending}
                               disabled={disabled}
                               onChange={(e) => setPendingHoplosphere((prev) => ({ ...prev, [slotId]: e.target.value }))}
-                              className="rounded-lg px-1.5 py-0.5 text-[10px] outline-none border font-bold max-w-[13rem]"
+                              className={miniSelect}
                               style={inputStyle}
+                              data-testid={`hoplosphere-picker-${slotId}`}
                             >
                               <option value="">附魔魔石</option>
                               {HOPLOSPHERES.map((h) => (
@@ -499,8 +521,9 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                             value=""
                             disabled={disabled}
                             onChange={(e) => attachMnemosphere(slotId, e.target.value)}
-                            className="rounded-lg px-1.5 py-0.5 text-[10px] outline-none border font-bold max-w-[13rem]"
+                            className={miniSelect}
                             style={inputStyle}
+                            data-testid={`mnemosphere-picker-${slotId}`}
                           >
                             <option value="">裝入職業魔石</option>
                             {state.mnemospheres.map((m) => (

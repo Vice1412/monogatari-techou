@@ -21,6 +21,10 @@
  */
 
 import { getArmorProfile } from '../data/initiativeVariant';
+// 魔晶石制下【雙重盾牌】失效（科技奇幻手冊 p.133）——判定在 `technospheres.js`，
+// 該檔零 import，這裡加一條單向邊不會成環。
+import { isSkillSuppressedByTechnospheres } from '../data/technospheres';
+import { resolveCreationRules } from '../data/creationRules';
 
 /** 四維屬性鍵（順序即原書 DEX / INS / MIG / WLP） */
 export const DICE_ATTRS = ['DEX', 'INS', 'MIG', 'WLP'];
@@ -368,8 +372,16 @@ export const DUAL_SHIELD = {
  * `active` 為真時，主手的攻擊應改用 `weapon`（＝雙盾）的命中與傷害公式，
  * 而不是任何一件盾牌本身的數值——盾牌本身沒有攻擊資料。
  */
-export const getDualShieldState = (character, { mainIsShield = false, offIsShield = false } = {}) => {
-  const learned = hasSkill(character, '雙重盾牌');
+export const getDualShieldState = (character, { mainIsShield = false, offIsShield = false, technosphereMode = null } = {}) => {
+  // 魔晶石制下守護者的【雙重盾牌】失效（科技奇幻手冊 p.133：
+  // 「ignore the Guardian's Dual Shield skill」）。
+  //
+  // 技能本身仍寫在角色卡上——已投入的技能點不會退還（`validateCharacter` 會給
+  // 「已作廢」的提醒），但**不能拿它把盾牌裝到主手**，也不能合併成雙盾。
+  // 這裡是唯一判定點：`learned` 一假，`active` 與所有下游（主手盾牌合法性、
+  // 雙盾的命中／傷害公式）全部跟著失效。
+  const learned = hasSkill(character, '雙重盾牌')
+    && !isSkillSuppressedByTechnospheres('雙重盾牌', technosphereMode);
   const defenseMasterySL = getSkillLevel(character, '防守掌握');
   return {
     learned,
@@ -438,7 +450,12 @@ export const buildLoadoutIssues = ({
   const armor = armorMap?.get(equipment.armor) || null;
 
   // 1. 持握衝突（雙重盾牌狀態下，兩手皆盾是合法的）
-  const dual = getDualShieldState(character, { mainIsShield: Boolean(mainShield), offIsShield: Boolean(offShield) });
+  //    魔晶石制下【雙重盾牌】失效 → `dual.learned` 為假 → 主手盾牌立刻變成 error。
+  const dual = getDualShieldState(character, {
+    mainIsShield: Boolean(mainShield),
+    offIsShield: Boolean(offShield),
+    technosphereMode: resolveCreationRules(character?.creationRules).technospheres
+  });
   if (isTwoHanded(mainWeapon) && equipment.offHand && equipment.offHand !== '無盾牌') {
     issues.push({
       level: 'error',

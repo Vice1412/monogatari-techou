@@ -15,15 +15,18 @@ import { isZeroPowersEnabled, createZeroPowerState } from '../data/zeroPowers';
 import {
   createTechnosphereState,
   getActiveMnemospheres,
-  getInitialMnemosphereCount,
-  getInitialMnemosphereLevel,
+  getHeldMnemospheres,
+  getMnemosphereSkills,
   getSkillLevelCeiling,
   getTechnosphereEquipmentSpend,
   INNATE_CLASS_COUNT,
+  INNATE_MIN_LEVELS,
   isTechnosphereEnabled,
+  isSkillSuppressedByTechnospheres,
   modeGrantsInnateBonus,
   modeGrantsMartialWeaponProficiency,
   modeHasMnemospheres,
+  modeRestrictsEquipment,
   normalizeTechnosphereState,
   validateTechnosphereState,
   MNEMOSPHERE_MAX_LEVEL
@@ -225,6 +228,37 @@ export const heroicSkillsForClass = (className) => {
   if (!match) return [];
   return HEROIC_SKILLS.filter((h) => h.requirement !== '通用'
     && requiredClassesOf(h.requirement).includes(match));
+};
+
+/**
+ * 某個職業的技能表（給職業魔石分配點數用）。
+ *
+ * 職業魔石（科技奇幻手冊 p.136）給的是「該職業的技能」，每一級一點。
+ * 那張表就是 `rulesData.classes[職業].skills`——與職業本身用的是同一份資料，
+ * 所以魔石的技能上限（`maxSL`）與職業技能完全一致，不會出現兩套數字。
+ *
+ * `technosphereMode` 是選填的（§CF）：魔晶石制下原書明文作廢的技能（p.133 的
+ * 守護者【雙重盾牌】）不會出現在回傳清單裡。**不傳時行為逐字不變**——
+ * 這條路徑同時被「查技能上限」與「列可選技能」兩種呼叫端使用，
+ * 前者不該因為模式而查不到技能。
+ *
+ * 為什麼放在引擎而不是資料層：`rulesData` 只被引擎持有（資料層零依賴原則）。
+ */
+export const classSkillsForClass = (className, technosphereMode = null) => {
+  if (!className) return [];
+  const key = normalizeClassName(className);
+  if (!key) return [];
+  const match = Object.prototype.hasOwnProperty.call(rulesData.classes, key)
+    ? key
+    : stripClassSuffix(key);
+  if (!match) return [];
+  return (rulesData.classes[match]?.skills || [])
+    .filter((sk) => !isSkillSuppressedByTechnospheres(sk.name, technosphereMode))
+    .map((sk) => ({
+      name: sk.name,
+      maxSL: Math.max(1, Number(sk.maxSL) || 1),
+      desc: sk.desc || ''
+    }));
 };
 
 /**
@@ -461,6 +495,11 @@ export const createNewCharacter = (overrides = {}, rules = DEFAULT_CREATION_RULE
     // 已學會法術、英雄技能、金手指與個人筆記
     spells: [],    heroicSkills: [],
     quirk: "無",
+    // 金手指「選項」（§CF）：11 個金手指寫著「選擇一個選項」，其中只有兩個會改數值
+    // （倖存者③ IP +2、墮落天使③ 最大 MP +10）。這裡存選中的 `options[].id`。
+    // 預設空字串——建角不替玩家選（與金手指本身同一原則）；舊存檔沒有這個欄位
+    // → `getQuirkOptionEffects` 回空物件，行為與以前完全相同。
+    quirkChoice: "",
     backpackNotes: "",
 
     // 底力技（高度奇幻手冊 p.124–131 的選用規則）。
@@ -562,6 +601,168 @@ export const getProficiencies = (char) => {
 export const getCharacterLevel = (char) => (
   parseInt(char?.level, 10) || DEFAULT_CREATION_RULES.startingLevel
 );
+
+/**
+ * 目前**真的裝著東西**的裝備槽位 id。
+ *
+ * 這個判定原本只寫在 `calculateCharacterStats` 裡面（算「生效中的職業魔石」用），
+ * 2026-10-22 抽出成匯出函式——因為建角第 2 步的「職業魔石」區也要用它來算
+ * 「已裝載幾顆」。抽出來的動機不是為了重複使用，是為了**不要有第二份判定**：
+ * 一處認為「這格是空的」、另一處認為「這格有東西」，就會出現「卡片上寫已裝備、
+ * 引擎卻說未生效」這種沒人查得出來的漂移。
+ *
+ * `'無'` 與 `'無盾牌'` 是裝備選擇器清空後留下的佔位字串，不是裝備。
+ *
+ * @param {object} char
+ * @returns {string[]} 例如 `['mainHand', 'armor']`
+ */
+export const getEquippedTechnosphereSlotIds = (char) => (
+  ['mainHand', 'offHand', 'armor', 'accessory'].filter((slotId) => {
+    const equipped = char?.equipment?.[slotId];
+    return Boolean(equipped) && equipped !== '無' && equipped !== '無盾牌';
+  })
+);
+
+/**
+ * 金手指「選項」的機械效果（§CF）。
+ *
+ * 原書有 11 個金手指寫著「選擇一個選項」，但絕大多數是敘事選項（寫下預言、
+ * 指定羈絆對象、挑一個聯繫人……）。真正會改數值的只有兩個：
+ * 倖存者③「永久 +2 IP」、墮落天使③「最大 MP +10」——那兩筆寫在資料層的
+ * `quirks[].options[].effects`，其餘選項根本沒有 `effects` 欄位。
+ *
+ * 沒選、選了敘事項、或舊存檔沒有 `quirkChoice` → 回空物件（行為與以前相同）。
+ * 選了資料裡不存在的 id 也回空物件——不猜、不近似。
+ */
+const findQuirkDef = (name) => {
+  if (!name || name === '無') return null;
+  const quirks = rulesData.quirks || [];
+  // 精確優先，其次包含——舊存檔有 `'倖存者（自奇）'` 這種自己加註記的寫法，
+  // 而金手指本身的數值效果一直是 `includes` 比對（見下面 (4) 那一段），
+  // 選項的查找必須用同一個寬容度，否則加了註記的角色選項會靜默失效。
+  return quirks.find((q) => q.name === name) || quirks.find((q) => name.includes(q.name)) || null;
+};
+
+/** 金手指 effects 裡「會累加成陣列」的鍵（其餘數字鍵一律相加） */
+const QUIRK_FX_ARRAY_KEYS = ['resistances', 'vulnerabilities', 'absorption', 'immuneDamage', 'immuneStatuses'];
+
+/** 把一筆 effects 併進累加器：數字相加、陣列去重後串接 */
+const mergeQuirkEffects = (acc, fx) => {
+  if (!fx || typeof fx !== 'object') return acc;
+  Object.entries(fx).forEach(([key, value]) => {
+    if (QUIRK_FX_ARRAY_KEYS.includes(key)) {
+      if (Array.isArray(value)) acc[key] = Array.from(new Set([...(acc[key] || []), ...value]));
+    } else if (typeof value === 'number' && Number.isFinite(value)) {
+      acc[key] = (acc[key] || 0) + value;
+    }
+  });
+  return acc;
+};
+
+/**
+ * 收集玩家在這個金手指上實際選到的 option 物件。
+ *
+ * `quirkChoice` 有兩種形態：
+ * - **字串**：單組選項（倖存者、墮落天使……），`options[].id`
+ * - **物件**：多組選項（草木成精要選「免疫狀態」＋「易傷屬性」兩件事），
+ *   鍵是組 id、值是該組選到的 option id——即 `{ immune: '眩暈', vuln: '火' }`
+ *
+ * 舊存檔只有字串；`optionGroups` 的金手指若拿到字串，只認第一組
+ * （玩家手動改壞資料時不至於讓整個金手指失效）。
+ */
+const collectChosenQuirkOptions = (quirk, choice) => {
+  if (!quirk || !choice) return [];
+  const picked = [];
+  const take = (list, id) => {
+    const hit = (list || []).find((opt) => opt && opt.id === id);
+    if (hit) picked.push(hit);
+  };
+
+  if (typeof choice === 'string') {
+    take(quirk.options, choice);
+    if (Array.isArray(quirk.optionGroups) && quirk.optionGroups[0]) {
+      take(quirk.optionGroups[0].options, choice);
+    }
+    return picked;
+  }
+
+  if (typeof choice === 'object') {
+    if (Array.isArray(quirk.optionGroups)) {
+      quirk.optionGroups.forEach((group) => take(group?.options, choice[group?.id]));
+    } else {
+      take(quirk.options, choice.default);
+    }
+  }
+  return picked;
+};
+
+/**
+ * 金手指「選項」的機械效果（§CF）。
+ *
+ * 原書有 11 個金手指寫著「選擇一個選項」，但絕大多數是敘事選項（寫下預言、
+ * 指定羈絆對象、挑一個聯繫人……）。真正會改數值的只有兩個：
+ * 倖存者③「永久 +2 IP」、墮落天使③「最大 MP +10」——那兩筆寫在資料層的
+ * `quirks[].options[].effects`，其餘選項根本沒有 `effects` 欄位。
+ *
+ * 沒選、選了敘事項、或舊存檔沒有 `quirkChoice` → 回空物件（行為與以前相同）。
+ * 選了資料裡不存在的 id 也回空物件——不猜、不近似。
+ */
+export const getQuirkOptionEffects = (char) => {
+  const quirk = findQuirkDef(char?.quirk);
+  if (!quirk) return {};
+  return collectChosenQuirkOptions(quirk, char?.quirkChoice)
+    .reduce((acc, opt) => mergeQuirkEffects(acc, opt.effects), {});
+};
+
+/**
+ * 金手指的**全部**機械效果（§CG）：本體 `effects` ＋ 玩家已選選項的效果。
+ *
+ * 為什麼要拆 `body` 與 `option`：breakdown 的來源標籤不同
+ * （「金手指 倖存者」 vs 「金手指 倖存者 選項」），混在一起玩家就分不出
+ * 哪 5 點是金手指本身、哪 2 點是自己選的。
+ *
+ * 回傳形狀固定（陣列一律給空陣列、數字一律給 0），呼叫端不必逐鍵判斷。
+ */
+export const getQuirkEffects = (char) => {
+  const quirk = findQuirkDef(char?.quirk);
+  const empty = {
+    body: {},
+    option: {},
+    resistances: [],
+    vulnerabilities: [],
+    absorption: [],
+    immuneDamage: [],
+    immuneStatuses: [],
+    defIfNoWeapon: 0,
+    mdefIfNoWeapon: 0,
+    defIfNoArmor: 0,
+    mdefIfNoArmor: 0,
+    unarmedDamageBonus: 0,
+    unarmedDamageBonusHigh: 0
+  };
+  if (!quirk) return empty;
+
+  const body = mergeQuirkEffects({}, quirk.effects);
+  const option = collectChosenQuirkOptions(quirk, char?.quirkChoice)
+    .reduce((acc, opt) => mergeQuirkEffects(acc, opt.effects), {});
+  const merged = mergeQuirkEffects(mergeQuirkEffects({}, quirk.effects), option);
+
+  return {
+    body,
+    option,
+    resistances: merged.resistances || [],
+    vulnerabilities: merged.vulnerabilities || [],
+    absorption: merged.absorption || [],
+    immuneDamage: merged.immuneDamage || [],
+    immuneStatuses: merged.immuneStatuses || [],
+    defIfNoWeapon: merged.defIfNoWeapon || 0,
+    mdefIfNoWeapon: merged.mdefIfNoWeapon || 0,
+    defIfNoArmor: merged.defIfNoArmor || 0,
+    mdefIfNoArmor: merged.mdefIfNoArmor || 0,
+    unarmedDamageBonus: merged.unarmedDamageBonus || 0,
+    unarmedDamageBonusHigh: merged.unarmedDamageBonusHigh || 0
+  };
+};
 
 /**
  * 完整計算角色各項衍生數值、狀態減值與裝備聯動
@@ -667,11 +868,39 @@ export const calculateCharacterStats = (char) => {
     });
   });
 
-  // (2) 飾品特殊加成 (支援自訂或括號名稱鬆散匹配)
+  // (2) 飾品加成：一律讀資料層的 `effects`。
+  //
+  // 2026-10-22（§CF）之前這裡是「名字 includes 就加固定值」的鬆散匹配，只認得三件自造飾品；
+  // 官方 Core p.285–287 的 29 件一件都不認得——連洋蔥戒指（每個不同職業 +2 HP／+2 MP）
+  // 根本不在 `accessories` 表裡，玩家連選都選不到。
+  // 現在改成資料驅動：`effects` 有什麼就加什麼，新增飾品只要填資料就會動。
+  //
+  // 精確匹配優先，找不到才退回 `includes`——後者是給「守護護符（自訂）」這種
+  // 帶括號後綴的舊存檔用的，不是主要路徑。
   const accName = char.equipment?.accessory || '';
-  if (accName.includes('守護護符')) addHp(`飾品 ${accName}`, 5, 'equip');
-  if (accName.includes('魔力寶戒')) addMp(`飾品 ${accName}`, 5, 'equip');
-  if (accName.includes('工匠工具帶')) addIp(`飾品 ${accName}`, 2, 'equip');
+  const accItem = accName
+    ? (rulesData.equipment.accessories.find((a) => a.name === accName)
+      || rulesData.equipment.accessories.find((a) => accName.includes(a.name)))
+    : null;
+  const accFx = accItem?.effects || {};
+  if (accFx.hp) addHp(`飾品 ${accName}`, accFx.hp, 'equip');
+  if (accFx.mp) addMp(`飾品 ${accName}`, accFx.mp, 'equip');
+  if (accFx.ip) addIp(`飾品 ${accName}`, accFx.ip, 'equip');
+  // 洋蔥戒指：每個**不同**職業 +2 HP／+2 MP。職業清單就在 `char.classes` 裡，
+  // 所以這條算得出來，不需要 GM 手動加。
+  // 去重前先剝掉公測後綴——`武器大師` 與 `武器大師【變體】` 是同一個職業，不能算兩個。
+  if (accFx.hpPerClass || accFx.mpPerClass) {
+    const distinctClassCount = new Set(
+      (char.classes || [])
+        .map((c) => stripClassSuffix(normalizeClassName(c.className)))
+        .filter(Boolean)
+    ).size;
+    if (distinctClassCount > 0) {
+      const perClassLabel = `飾品 ${accName} × ${distinctClassCount} 職業`;
+      if (accFx.hpPerClass) addHp(perClassLabel, accFx.hpPerClass * distinctClassCount, 'equip');
+      if (accFx.mpPerClass) addMp(perClassLabel, accFx.mpPerClass * distinctClassCount, 'equip');
+    }
+  }
 
   // (3) 英雄技能常駐加成 (額外HP, 額外MP, 額外IP, 預言守護者的基礎洞察骰面)
   (char.heroicSkills || []).forEach(hs => {
@@ -692,16 +921,22 @@ export const calculateCharacterStats = (char) => {
     }
   });
 
-  // (4) 金手指特定加成 (倖存者, 束縛你的約定)
+  // (4) 金手指的機械效果（§CG）
+  //
+  // 一律從資料層讀：本體 `quirks[].effects`，選項 `options`／`optionGroups`。
+  // 以前這裡是兩段 `if (quirkName.includes(...))` 的硬編碼，只認得倖存者與
+  // 束縛你的約定——46 個金手指裡另外還有 5 個帶明確數值（空手道、亡者歸來、
+  // 機器人、墮落天使、會說話的野獸），那些加值全部落空。
   const quirkName = char.quirk || '';
-  if (quirkName.includes('倖存者')) {
-    addHp(`金手指 ${quirkName}`, 5, 'quirk');
-    addMp(`金手指 ${quirkName}`, 5, 'quirk');
-  }
-  if (quirkName.includes('束縛你的約定')) {
-    addHp(`金手指 ${quirkName}`, 5, 'quirk');
-    addMp(`金手指 ${quirkName}`, 5, 'quirk');
-  }
+  const quirkFx = getQuirkEffects(char);
+  if (quirkFx.body.hp) addHp(`金手指 ${quirkName}`, quirkFx.body.hp, 'quirk');
+  if (quirkFx.body.mp) addMp(`金手指 ${quirkName}`, quirkFx.body.mp, 'quirk');
+  if (quirkFx.body.ip) addIp(`金手指 ${quirkName}`, quirkFx.body.ip, 'quirk');
+
+  // 玩家選的選項（§CF）：標籤與本體分開，玩家才看得出哪幾點是自己選的。
+  if (quirkFx.option.hp) addHp(`金手指 ${quirkName} 選項`, quirkFx.option.hp, 'quirk');
+  if (quirkFx.option.mp) addMp(`金手指 ${quirkName} 選項`, quirkFx.option.mp, 'quirk');
+  if (quirkFx.option.ip) addIp(`金手指 ${quirkName} 選項`, quirkFx.option.ip, 'quirk');
 
   // (5) 死靈術士【殘酷的誕生】的僕從代價
   //     官方原文：「減少你自己相當於該 NPC 等級的 HP 和 MP 上限」，
@@ -828,6 +1063,49 @@ export const calculateCharacterStats = (char) => {
     mdefTerms.push({ label: `${mainHandWeapon.name} 魔防提升 +${mainHandWeapon.mdefBoost}`, value: mainHandWeapon.mdefBoost, kind: 'equip' });
   }
 
+  // 飾品的固定物防／魔防加值（Core p.286 的魔導戒指）。
+  // 排在這一行是因為下面那段「機師載具搭乘防禦覆蓋」會把 `defTerms`／`mdefTerms`
+  // 整份清掉——坐在載具上時飾品不生效，與防具、盾牌一致。
+  if (accFx.def) {
+    def += accFx.def;
+    defTerms.push({ label: `飾品 ${accName} 物防 +${accFx.def}`, value: accFx.def, kind: 'equip' });
+  }
+  if (accFx.mdef) {
+    mdef += accFx.mdef;
+    mdefTerms.push({ label: `飾品 ${accName} 魔防 +${accFx.mdef}`, value: accFx.mdef, kind: 'equip' });
+  }
+
+  // 金手指的條件式防禦加值（§CG）：
+  // ・空手道：沒有裝備武器和盾牌時，物防 +1／魔防 +1
+  // ・會說話的野獸：防具欄為空時，物防 +2／魔防 +2
+  // 兩者都算在「搭載具」之前——坐在載具上時一律改用載具的數值（與飾品一致）。
+  //
+  // 「空手」的判定有兩個坑：
+  // ① 主手要先查是不是盾牌——`mainHandDef` 查的是**武器表**，主手放盾牌時它也是
+  //    null，只看它會把雙盾誤判成空手。
+  // ② **`徒手打擊` 是武器表裡的一筆**（`category: 鬥毆`、`cost: 0`、`hands: 1`），
+  //    而開卡預設的 `mainHand` 正是它（見 `createNewCharacter`）。所以
+  //    `!mainHandDef` 對「真的空手」是 false——空手道在**每個**新角身上都不生效。
+  //    這裡改成「查不到 或 查到的是徒手打擊」才算空手。
+  const UNARMED_ENTRY = '徒手打擊';
+  const mainIsShieldNow = rulesData.equipment.shields
+    .some((s) => s.name === char.equipment?.mainHand || s.name === normName(char.equipment?.mainHand));
+  const mainIsUnarmed = !mainHandDef || mainHandDef.name === UNARMED_ENTRY;
+  const offIsUnarmed = !shieldDef || shieldDef.name === NEUTRAL_SHIELD
+    || shieldDef.name === UNARMED_ENTRY;
+  const handsEmpty = mainIsUnarmed && offIsUnarmed && !mainIsShieldNow;
+  const armorEmpty = armorDef?.name === NEUTRAL_ARMOR;
+  const quirkDefBonus = (handsEmpty ? quirkFx.defIfNoWeapon : 0) + (armorEmpty ? quirkFx.defIfNoArmor : 0);
+  const quirkMdefBonus = (handsEmpty ? quirkFx.mdefIfNoWeapon : 0) + (armorEmpty ? quirkFx.mdefIfNoArmor : 0);
+  if (quirkDefBonus) {
+    def += quirkDefBonus;
+    defTerms.push({ label: `金手指 ${quirkName} 物防 +${quirkDefBonus}`, value: quirkDefBonus, kind: 'quirk' });
+  }
+  if (quirkMdefBonus) {
+    mdef += quirkMdefBonus;
+    mdefTerms.push({ label: `金手指 ${quirkName} 魔防 +${quirkMdefBonus}`, value: quirkMdefBonus, kind: 'quirk' });
+  }
+
   // 機師載具搭乘防禦覆蓋 (Techno Fantasy Atlas p. 161)
   if (char.pilotVehicle?.isMounted) {
     const activeMods = char.pilotVehicle?.activeModules || [];
@@ -874,9 +1152,11 @@ export const calculateCharacterStats = (char) => {
       init += shieldDef.initMod;
       initTerms.push({ label: `${shieldLabel} 先攻 ${shieldDef.initMod > 0 ? '+' : ''}${shieldDef.initMod}`, value: shieldDef.initMod, kind: 'equip' });
     }
-    if (char.equipment?.accessory === '風行長靴') {
-      init += 2;
-      initTerms.push({ label: '飾品 風行長靴 先攻 +2', value: 2, kind: 'equip' });
+    // 飾品先攻加值同樣讀 `effects.init`（Core p.285 的探險家腰帶 +4、自訂示例的風行長靴 +2）。
+    // 先攻變體下整格不存在，所以這段留在 else 分支裡——原文要求「不要換成別的加值」。
+    if (accFx.init) {
+      init += accFx.init;
+      initTerms.push({ label: `飾品 ${accName} 先攻 ${accFx.init > 0 ? '+' : ''}${accFx.init}`, value: accFx.init, kind: 'equip' });
     }
   }
 
@@ -888,6 +1168,37 @@ export const calculateCharacterStats = (char) => {
   // 5. 職業精通狀況 (Mastery: 單一職業達到 10 級)
   const masteredClasses = (char.classes || []).filter(cl => cl.level >= 10).map(cl => cl.className);
   const totalSkillLevels = (char.classes || []).reduce((sum, cl) => sum + (cl.skills || []).reduce((sSum, sk) => sSum + sk.sl, 0), 0);
+
+  // 5-b. 職業魔石提供的技能（科技奇幻手冊 p.136）
+  //
+  // 魔石技能**不屬於任何職業**，所以它們不在 `char.classes[].skills` 裡，
+  // 以前也就完全不會出現在角色卡的技能清單上——玩家裝了三顆魔石，
+  // 卡面上一點效果都看不到。這裡把「生效中的魔石技能」攤平，
+  // 由顯示層自己決定怎麼併進技能池（角色卡、跑團卡、匯出共用這一份）。
+  //
+  // 「生效」＝ 魔石裝在**實際裝備著**的物品槽裡（`getActiveMnemospheres`）。
+  // 沒裝備的魔石不提供任何技能，所以這裡的 `equippedSlots` 是必要條件。
+  const technoEnabled = isTechnosphereEnabled(creation.technospheres);
+  const equippedSlotIds = getEquippedTechnosphereSlotIds(char);
+  const activeMnemospheres = technoEnabled
+    ? getActiveMnemospheres(char.technospheres, { equippedSlots: equippedSlotIds })
+    : [];
+  const mnemosphereSkills = getMnemosphereSkills(activeMnemospheres);
+  const mnemosphereSkillLevels = mnemosphereSkills.reduce((sum, sk) => sum + sk.sl, 0);
+  // 「技能水準相當於幾級角色」——原書 p.134 的例子就是這個數字（角色等級 ＋ 魔石等級）。
+  const skillLevelCeiling = technoEnabled
+    ? getSkillLevelCeiling(level, activeMnemospheres)
+    : level;
+  // 同一條公式，但用**持有的**魔石算——給建角第 2 步的預覽用。
+  //
+  // 為什麼要有兩個數字：p.134 的升級點是投給「固有職業或魔石」（成長），
+  // p.136 的生效條件是「裝備著」（生效）。第 2 步玩家在投點，那時魔石通常還沒裝，
+  // 所以它需要「若裝上，技能水準相當於幾級」；而引擎算實際技能時仍然只認已裝備的。
+  // 兩個數字都輸出，讓呼叫端自己挑——**不要讓預覽去覆蓋實際值**。
+  const heldMnemospheres = technoEnabled ? getHeldMnemospheres(char.technospheres) : [];
+  const heldSkillLevelCeiling = technoEnabled
+    ? getSkillLevelCeiling(level, heldMnemospheres)
+    : level;
 
   // 6. 數值構成公式（逐項分解，供角色卡／跑團卡點擊展開顯示）
   // 每一項為 { label, value, kind }；kind 供面板分色：
@@ -949,6 +1260,19 @@ export const calculateCharacterStats = (char) => {
     maxMp,
     maxIp,
     crisisThreshold,
+    // 金手指的相性與免疫（§CG）。這些不是加減值，而是戰鬥時的判定依據，
+    // 所以放在 stats 最外層而不是 breakdown：`immuneDamage` 是「傷害免疫」，
+    // 與飾品的 `resistance`（抗性，傷害減半）是不同機制，不可混用。
+    quirkEffects: {
+      resistances: quirkFx.resistances,
+      vulnerabilities: quirkFx.vulnerabilities,
+      absorption: quirkFx.absorption,
+      immuneDamage: quirkFx.immuneDamage,
+      immuneStatuses: quirkFx.immuneStatuses,
+      unarmedDamageBonus: (getCharacterLevel(char) >= 30 && quirkFx.unarmedDamageBonusHigh)
+        ? quirkFx.unarmedDamageBonusHigh
+        : quirkFx.unarmedDamageBonus
+    },
     def,
     mdef,
     init,
@@ -972,6 +1296,17 @@ export const calculateCharacterStats = (char) => {
     profs,
     masteredClasses,
     totalSkillLevels,
+    // 職業魔石（科技奇幻手冊 p.136）：生效中的魔石、它們提供的技能，
+    // 以及「技能水準相當於幾級角色」。未啟用魔晶石制時三者都是中性值。
+    activeMnemospheres,
+    mnemosphereSkills,
+    mnemosphereSkillLevels,
+    skillLevelCeiling,
+    // 持有（不論裝沒裝）——建角第 2 步「職業與技能」的預覽用。
+    // `heldSkillLevelCeiling` 是「若把持有的魔石全裝上，技能水準相當於幾級」，
+    // 與上面的 `skillLevelCeiling`（實際生效值）**不可互換**。
+    heldMnemospheres,
+    heldSkillLevelCeiling,
     breakdown,
     // 定制武器的【物防提升】＝「在技能判定上視為裝備著一面盾牌」（HF p.107）。
     // 消費端（防守掌握／閃避等技能）讀這個旗標，不必自己去翻武器規格。
@@ -991,6 +1326,69 @@ export const calculateCharacterStats = (char) => {
 /**
  * 經驗值成長與升級邏輯 (10 EXP = 1 Level)
  */
+/**
+ * 單一職業的等級上限（Core p.228）：
+ * 「You can never have more than ten levels in a Class. Once you put the tenth level
+ * in a Class, that Class has been mastered ... and you can no longer invest levels into it.」
+ */
+export const CLASS_MAX_LEVEL = 10;
+
+/**
+ * 同時擁有的**未精通**職業上限（Core p.228）：
+ * 「You can never have more than three non-mastered Classes. If you want to further
+ * diversify your character, you must first master some of the Classes you acquired.」
+ *
+ * 注意這與建角規則的 `classCountMax` **不是同一件事**——那是「開局選幾個職業」（2–3），
+ * 這是「升級時最多幾個還沒精通」。精通一個（10 級）之後，就能再開一個新的。
+ */
+export const MAX_NON_MASTERED_CLASSES = 3;
+
+/**
+ * 升級下拉裡「新職業」選項的值前綴（Core p.228：「you gain your first level in a
+ * Class you didn't already have」——這是升級的第二條路，和「投給既有職業」共用
+ * 同一個下拉，靠前綴區分）。
+ */
+export const LEVEL_UP_NEW_CLASS_PREFIX = '__new__:';
+
+/**
+ * 把升級下拉的值拆成「是不是新職業 + 職業名」。
+ *
+ * **為什麼抽成純函式而不是寫在元件裡**：`HUD_SRC.includes('...')` 這種原始碼字串
+ * 斷言只能證明「接上去了」，證明不了「拆對了」。2026-10-22 的刻意破壞驗證裡，把
+ * `slice(PREFIX.length)` 改成 `slice(0)` 之後，字串斷言**照樣全綠**——前綴原封不動
+ * 留在職業名裡，技能表會是空的，而測試一聲不吭。抽出來之後才有真值可以斷言。
+ */
+export const parseLevelUpClassValue = (value = '') => {
+  const raw = typeof value === 'string' ? value : '';
+  const isNew = raw.startsWith(LEVEL_UP_NEW_CLASS_PREFIX);
+  return {
+    isNew,
+    className: isNew ? raw.slice(LEVEL_UP_NEW_CLASS_PREFIX.length) : raw
+  };
+};
+
+/**
+ * 升級時投的那一點，`skillName` 是不是那個職業的技能。
+ *
+ * **為什麼要問**：`applyLevelUp` 以前是「找不到就 push」——傳什麼都收。實測（2026-10-22）
+ * 連測試自己都在傳不存在的技能名（`博學士` 的技能表裡沒有「萬能知識」、`舞者` 沒有「舞步」），
+ * 而引擎一聲不吭地把它們寫進技能表。那筆技能會計入 `totalSkillLevels`，讓技能點預算莫名
+ * 超支，卡片上還會出現一個職業表查無此技能的條目。
+ *
+ * 回傳 `{ ok, maxSL, reason }`。抽成純函式是為了能斷言**為什麼**被擋——
+ * `applyLevelUp` 只回傳角色，「擋掉」與「本來就沒升級」從外面看長得一模一樣。
+ *
+ * `technosphereMode`（§CF）：魔晶石制下被原書作廢的技能（p.133 的【雙重盾牌】）
+ * 一律回 `not-in-class`——它不在「可投」的技能表裡。不傳時行為不變。
+ */
+export const resolveLevelUpSkill = (className, skillName, technosphereMode = null) => {
+  const wanted = typeof skillName === 'string' ? skillName.trim() : '';
+  if (!wanted) return { ok: false, reason: 'empty', maxSL: 0 };
+  const hit = classSkillsForClass(className, technosphereMode).find((sk) => sk.name === wanted);
+  if (!hit) return { ok: false, reason: 'not-in-class', maxSL: 0 };
+  return { ok: true, reason: null, maxSL: hit.maxSL, name: hit.name };
+};
+
 export const canLevelUp = (char) => {
   return (char.exp || 0) >= 10 && getCharacterLevel(char) < 50;
 };
@@ -1012,12 +1410,21 @@ export const applyLevelUp = (char, { className, skillName, isNewClass = false, m
     // 找不到、或那顆魔石已經 5 級（p.136 的上限）→ 什麼都不要動，EXP 不能被扣。
     if (!target || target.level >= MNEMOSPHERE_MAX_LEVEL) return char;
 
+    // 魔石給的是**它自己那個職業**的技能（p.136「that mnemosphere develops a new Skill of
+    // the corresponding Class」），所以驗證要用 `target.className`，不是呼叫端傳進來的
+    // `className`——HUD 的魔石分支只傳 `mnemosphereId`，`className` 根本是 undefined。
+    const verdict = resolveLevelUpSkill(target.className, skillName, creation.technospheres);
+    if (!verdict.ok) return char;
+    const existing = (target.skills || []).find((s) => s.name === verdict.name);
+    // 技能 SL 已達該技能的 `maxSL`（原書每個技能的 SL 上限不同）→ 這一點無處可投。
+    if (existing && existing.sl >= verdict.maxSL) return char;
+
     const mnemospheres = state.mnemospheres.map((m) => {
       if (m.id !== mnemosphereId) return m;
       const skills = (m.skills || []).map((s) => ({ ...s }));
-      const hit = skills.find((s) => s.name === skillName);
+      const hit = skills.find((s) => s.name === verdict.name);
       if (hit) hit.sl += 1;
-      else if (skillName) skills.push({ name: skillName, sl: 1 });
+      else skills.push({ name: verdict.name, sl: 1 });
       return { ...m, level: m.level + 1, skills };
     });
 
@@ -1040,6 +1447,22 @@ export const applyLevelUp = (char, { className, skillName, isNewClass = false, m
   // 所以就算三個固有職業都 5 級了，也只剩「繼續投固有職業」與「投魔石」兩條路。
   if (techOn && isNewClass) return char;
 
+  // ── 新增職業的兩個前提（Core p.228）──────────────────────────────
+  //
+  // ① 「未精通的職業不得超過三個」。這是**升級時**的限制，與建角規則的
+  //    `classCountMax`（開局選 2–3 個）不是同一件事：精通一個 10 級職業之後，
+  //    就能再開一個新的。
+  // ② 已經有的職業不能當「新職業」——那會 push 出兩筆同名條目，
+  //    `getCharacterLevel` 的總和與 `masteredClasses` 都會跟著壞。
+  if (isNewClass) {
+    const owned = (char.classes || []).some((c) => c.className === className);
+    const nonMastered = (char.classes || []).filter((c) => (c.level || 0) < CLASS_MAX_LEVEL).length;
+    if (owned || nonMastered >= MAX_NON_MASTERED_CLASSES) return char;
+    // 新職業的第一個技能也要屬於那個職業——否則會造出一個技能表整張對不上的職業，
+    // 而且它照樣佔掉一個「未精通職業」的名額。
+    if (!resolveLevelUpSkill(className, skillName, creation.technospheres).ok) return char;
+  }
+
   let updatedClasses = JSON.parse(JSON.stringify(char.classes || []));
 
   if (isNewClass) {
@@ -1054,12 +1477,19 @@ export const applyLevelUp = (char, { className, skillName, isNewClass = false, m
     // 原本的寫法是「扣 EXP、角色等級 +1」照樣執行，但職業與技能都沒動——
     // 結果是玩家少了 10 點經驗值、等級數字 +1，卻沒有學到任何東西（實測確認）。
     if (!targetClass) return char;
+    // 精通（10 級）之後不能再投——原書：「you can no longer invest levels into it」。
+    if (targetClass.level >= CLASS_MAX_LEVEL) return char;
+    // 技能必須屬於這個職業，且不得超過它自己的 SL 上限。以前這裡是「找不到就 push」，
+    // 所以任何字串都會被寫進技能表（§CE 的實測：連測試都在傳不存在的技能名）。
+    const verdict = resolveLevelUpSkill(className, skillName, creation.technospheres);
+    if (!verdict.ok) return char;
+    const targetSkill = targetClass.skills.find(s => s.name === verdict.name);
+    if (targetSkill && targetSkill.sl >= verdict.maxSL) return char;
     targetClass.level += 1;
-    const targetSkill = targetClass.skills.find(s => s.name === skillName);
     if (targetSkill) {
       targetSkill.sl += 1;
     } else {
-      targetClass.skills.push({ name: skillName, sl: 1 });
+      targetClass.skills.push({ name: verdict.name, sl: 1 });
     }
   }
 
@@ -1247,10 +1677,64 @@ export const validateCharacter = (char, rules = null) => {
     });
   }
 
+  // Core p.228「You can never have more than three non-mastered Classes」。
+  //
+  // 這條在**升級路徑**上從 2026-10-22（§CB）起就擋住了，但升級不是唯一入口：
+  // 匯入存檔、手改 localStorage、以及舊版本留下的卡都不經過 `applyLevelUp`。
+  // 在此之前驗證器對此一聲不吭——一張四個未精通職業的卡照樣能定稿。
+  //
+  // 用 error 不用 warning：這不是「還沒填完」，是規則明文禁止的狀態。
+  //
+  // **只在「已經離開起始等級」時報**：起始等級的職業數由上面那段 `classCountMax` 管，
+  // 兩邊都報等於同一件事說兩遍；而且起始等級時職業數 ≤ 3 就保證未精通 ≤ 3，
+  // 這條在那裡永遠只是重複。
+  const nonMasteredCount = (char.classes || [])
+    .filter((c) => (parseInt(c.level, 10) || 0) < CLASS_MAX_LEVEL).length;
+  if (char.level !== creation.startingLevel && nonMasteredCount > MAX_NON_MASTERED_CLASSES) {
+    warnings.push({
+      step: 2,
+      field: 'classes',
+      type: 'error',
+      message: `未精通的職業有 ${nonMasteredCount} 個，超過上限 ${MAX_NON_MASTERED_CLASSES} 個（p.228）`
+    });
+  }
+
   // 職業等級總和應該等於角色等級（升級時兩者一起 +1）。對不上就是**漂移**——
   // 以前沒有任何地方檢查這件事，於是同一張卡在卡片上顯示 Lv 5、在三頁表格上顯示 Lv 8。
+  //
+  // 魔晶石制是**例外，而且是規則上的例外**（p.134）：升級那一點可以投進魔石，
+  // 投進魔石時職業等級不會 +1，所以「職業等級總和」本來就會落在角色等級之後。
+  // 用等號去比，等於每一張合法卡片都被噴一次警告——2026-10-22 實測：
+  // 15 級角色（三個固有職業 2/2/1 ＝ 5 級）＋ 兩顆 5 級魔石，正是 p.134 自己舉的例子，
+  // 卻被報成「職業等級總和為 5，與角色等級 15 不一致」。
   const classLevelSum = (char.classes || []).reduce((sum, cl) => sum + (parseInt(cl.level, 10) || 0), 0);
-  if (classCount > 0 && classLevelSum !== getCharacterLevel(char)) {
+  const technoCreation = isTechnosphereEnabled(creation.technospheres);
+  if (technoCreation) {
+    if (classLevelSum > getCharacterLevel(char)) {
+      warnings.push({
+        step: 2,
+        field: 'classes',
+        type: 'warning',
+        message: `職業等級總和為 ${classLevelSum}，超過角色等級 ${getCharacterLevel(char)}`
+      });
+    }
+    // p.140「The character may distribute their levels as they wish between their Innate
+    // Classes and initial mnemospheres, but must invest at least 5 levels among three
+    // Innate Classes.」——分配自由，但下限是硬的。
+    //
+    // 下限不超過角色等級本身：起始等級 < 5 是 GM 自訂（`startingLevel` 的 min 是 1），
+    // 那時「至少 5 級」不可能達成，硬套會讓每一張這種卡都無法通過定稿。
+    const innateFloor = Math.min(INNATE_MIN_LEVELS, getCharacterLevel(char));
+    if (classCount > 0 && classLevelSum < innateFloor) {
+      warnings.push({
+        step: 2,
+        field: 'classes',
+        type: 'error',
+        message: `魔晶石制要求至少 ${innateFloor} 級投在三個固有職業（p.140），`
+          + `目前只有 ${classLevelSum} 級——其餘可以投進職業魔石`
+      });
+    }
+  } else if (classCount > 0 && classLevelSum !== getCharacterLevel(char)) {
     warnings.push({
       step: 2,
       field: 'classes',
@@ -1354,7 +1838,11 @@ export const validateCharacter = (char, rules = null) => {
   //
   // 這不是「建議」——原書把整個 Equipment 章節換掉了。所以穿官方劍是錯誤，
   // 不是提醒。徒手打擊與「無盾牌」是空手狀態的預設值，不算違規。
-  if (isTechnosphereEnabled(creation.technospheres)) {
+  //
+  // ※ 判定用 `modeRestrictsEquipment` 而不是 `isTechnosphereEnabled`：
+  //   「僅職業魔石」變體（p.138）明寫「all types of equipment are once again
+  //   available for PCs and NPCs」，那一態穿官方武器是**合法**的。
+  if (modeRestrictsEquipment(creation.technospheres)) {
     const officialNames = new Set([
       ...rulesData.equipment.weapons.map((w) => w.name),
       ...rulesData.equipment.shields.map((s) => s.name)
@@ -1371,6 +1859,24 @@ export const validateCharacter = (char, rules = null) => {
         field: 'equipment',
         type: 'error',
         message: `魔晶石制只能裝備自訂武器（科技奇幻手冊 p.133 換掉了整份裝備表），請換掉：${offenders.join('、')}`
+      });
+    }
+
+    // 已學會、但被這個模式作廢的技能（p.133 的守護者【雙重盾牌】）。
+    //
+    // 選單層已經擋掉了（創角、升級、魔石三條路都不再列出它），這裡是給**舊存檔**用的：
+    // 玩家先開守護者買了雙重盾牌、後來把整團切成魔晶石制，那一點 SL 就白花了。
+    // 用 warning 不用 error——舊存檔不該一開頁就紅成一片；但玩家要看得見
+    // 「這一點已經沒用」，否則他只會覺得卡片壞了。
+    const deadSkills = [...new Set((char.classes || []).flatMap((cl) => (cl.skills || [])
+      .filter((sk) => (sk.sl || 0) > 0 && isSkillSuppressedByTechnospheres(sk.name, creation.technospheres))
+      .map((sk) => sk.name)))];
+    if (deadSkills.length > 0) {
+      warnings.push({
+        step: 2,
+        field: 'classes',
+        type: 'warning',
+        message: `魔晶石制下這些技能已作廢（科技奇幻手冊 p.133）：${deadSkills.join('、')}——已投入的技能點不會退還`
       });
     }
   }
@@ -1430,6 +1936,37 @@ export const validateCharacter = (char, rules = null) => {
       field: 'quirk',
       type: 'error',
       message: `此團未開放金手指，請移除「${char.quirk}」`
+    });
+  }
+
+  // 金手指「選項」（§CF）：選了帶選項的金手指卻還沒挑 → 提醒。
+  //
+  // 只有兩個選項會改數值（倖存者③ IP +2、墮落天使③ 最大 MP +10），
+  // 其餘 11 個是敘事選項——但**每一個都要選**，原書寫的是「選擇一個選項」，
+  // 不是「可以選」。沒選時卡片上只會少那 2 點 IP／10 點 MP，
+  // 玩家不會知道是自己的角色還沒填完。
+  const quirkDef = findQuirkDef(char.quirk);
+  // 選項有兩種形狀（§CG）：單組 `options`、多組 `optionGroups`（草木成精要選
+  // 「免疫狀態」＋「易傷屬性」兩件事）。一律包成「組」再檢查，才不會漏掉多組的。
+  const isGrouped = Array.isArray(quirkDef?.optionGroups) && quirkDef.optionGroups.length > 0;
+  const quirkGroups = isGrouped
+    ? quirkDef.optionGroups
+    : (Array.isArray(quirkDef?.options) && quirkDef.options.length > 0
+      ? [{ id: 'default', options: quirkDef.options }]
+      : []);
+  const choiceOf = (groupId) => (isGrouped
+    ? (char.quirkChoice && typeof char.quirkChoice === 'object' ? char.quirkChoice[groupId] : undefined)
+    : char.quirkChoice);
+  const missingQuirkGroups = quirkGroups.filter((group) => !(group.options || [])
+    .some((opt) => opt.id === choiceOf(group.id)));
+  if (missingQuirkGroups.length > 0) {
+    warnings.push({
+      step: 5,
+      field: 'quirkChoice',
+      type: 'warning',
+      message: quirkGroups.length > 1
+        ? `金手指「${char.quirk}」要選 ${quirkGroups.length} 件事（原書：選擇選項）`
+        : `金手指「${char.quirk}」要選一個選項（原書：選擇一個選項）`
     });
   }
 

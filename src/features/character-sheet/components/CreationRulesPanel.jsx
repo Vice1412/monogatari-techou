@@ -28,7 +28,8 @@ import { isDefaultCreationRules, DEFAULT_CREATION_RULES, PLAYTEST_SOURCEBOOK_KEY
 import {
   TECHNOSPHERE_MODE_OPTIONS,
   getIntegratedMnemosphereCap,
-  isTechnosphereEnabled
+  isTechnosphereEnabled,
+  modeRestrictsEquipment
 } from '../data/technospheres';
 import rulesData from '../data/rulesData.json';
 
@@ -94,6 +95,15 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
   const techOn = isTechnosphereEnabled(rules.technospheres);
   const derivedClassCount = (key) => techOn && (key === 'classCountMin' || key === 'classCountMax');
 
+  // 定制武器同理，但理由不同：不是「數量被規則固定」，是**裝備白名單裡只剩它**。
+  // p.133 的原文是「the only types of equipment available in the game are…
+  // custom weapons, armor, and accessories, plus… modules for the Pilot Class」，
+  // 下一句是「Any other equipment simply cannot exist」——官方武器表整份不存在。
+  // 所以這一格在魔晶石開啟時鎖成勾選，不讓 GM 關掉（關掉等於讓玩家沒有武器可選）。
+  // 「僅職業魔石」變體把官方裝備放回來（p.138），那一態不鎖。
+  const forcedCustomWeapon = modeRestrictsEquipment(rules.technospheres);
+  const derivedToggle = (key) => forcedCustomWeapon && key === 'allowCustomWeapon';
+
   const setField = (key, value) => {
     const next = { ...(diff || {}), [key]: value };
     onChange(next);
@@ -152,15 +162,17 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
               <label key={f.key} className="flex items-start gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={Boolean(rules[f.key])}
-                  disabled={disabled}
+                  checked={derivedToggle(f.key) || Boolean(rules[f.key])}
+                  disabled={disabled || derivedToggle(f.key)}
                   onChange={(e) => setField(f.key, e.target.checked)}
                   className="mt-0.5 cursor-pointer"
                 />
                 <span className="text-xs" style={{ color: theme.textDark }}>
                   {f.label}
                   <span className="text-[10px] ml-1.5" style={{ color: theme.textMuted }}>
-                    {f.hint}
+                    {derivedToggle(f.key)
+                      ? '魔晶石制強制開啟——官方武器表整份不存在（p.133）'
+                      : f.hint}
                   </span>
                 </span>
               </label>
@@ -197,6 +209,9 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
                 {rules.technospheres === 'integrated'
                   ? `內嵌裝置可容納 ${getIntegratedMnemosphereCap(rules.startingLevel)} 顆職業魔石。`
                   : null}
+                {forcedCustomWeapon
+                  ? '裝備只剩定制武器／防具／飾品／機師模組，所以【定制武器】已一併鎖為開啟。'
+                  : '此變體把官方裝備整份放回來，所以【定制武器】不受影響。'}
               </p>
             )}
           </div>

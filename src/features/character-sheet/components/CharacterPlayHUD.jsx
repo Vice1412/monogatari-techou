@@ -41,7 +41,12 @@ import {
   calculateCharacterStats,
   canLevelUp,
   applyLevelUp,
-  getCharacterLevel
+  classSkillsForClass,
+  getCharacterLevel,
+  CLASS_MAX_LEVEL,
+  MAX_NON_MASTERED_CLASSES,
+  LEVEL_UP_NEW_CLASS_PREFIX,
+  parseLevelUpClassValue
 } from '../utils/characterEngine';
 import rulesData from '../data/rulesData.json';
 import CharacterPreviewModal from './CharacterPreviewModal';
@@ -49,6 +54,8 @@ import { STATUS_AFFLICTIONS, ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
 import { hasGreaterTheriomorphosis } from '../data/theriomorphosisVariant';
 import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
 import { isZeroPowersEnabled } from '../data/zeroPowers';
+import { resolveCreationRules } from '../data/creationRules';
+import { modeRestrictsEquipment, isTechnosphereEnabled, isSkillSuppressedByTechnospheres, getLevelUpMnemosphereCandidates, MNEMOSPHERE_MAX_LEVEL } from '../data/technospheres';
 import ZeroPowerBlock from './ZeroPowerBlock';
 import { getCharacterTheme } from '../utils/characterThemes';
 import { getDualShieldState } from '../utils/equipmentRules';
@@ -164,18 +171,79 @@ export default function CharacterPlayHUD({
   onOpenDice = null,
   roster = [],
   onPartnerCleared = null,
-  showToast = () => {}
+  showToast = () => {},
+  // 測試注入點（`AGENTS.md` §1「SSR 測不到的區塊，優先加測試注入點」）。
+  // 生產端**永不傳入**；不傳時行為逐字不變（`false`／`'class'`／`''` 就是原本的初始值）。
+  // 沒有這三個，升級彈窗只能靠點擊打開，SSR 永遠看不到它。
+  initialLevelUpOpen = false,
+  initialLevelUpTarget = 'class',
+  initialLevelUpMnemosphereId = '',
+  initialLevelUpSkillName = '',
+  initialLevelUpClass = ''
 }) {
   // Tabs: attacks (武器與防衛) | spells (咒語與魔法) | skills (職業特技) | bonds (情感羈絆) | clocks (命刻) | notes (行囊日誌)
   const [activeTab, setActiveTab] = useState('attacks');
 
   // Level up modal
-  const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(false);
+  const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(initialLevelUpOpen);
   // 角色卡預覽（含三頁表格的匯出）
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [selectedClassForLevelUp, setSelectedClassForLevelUp] = useState('');
-  const [selectedSkillForLevelUp, setSelectedSkillForLevelUp] = useState('');
-  const [isNewClassLevelUp, setIsNewClassLevelUp] = useState(false);
+  const [selectedClassForLevelUp, setSelectedClassForLevelUp] = useState(initialLevelUpClass);
+  const [selectedSkillForLevelUp, setSelectedSkillForLevelUp] = useState(initialLevelUpSkillName);
+  // 升級的那一點要投進**固有職業**還是**職業魔石**——p.134 的原文是
+  // 「invest 1 level into an Innate Class **or** into a mnemosphere」，是同一個池子
+  // 的兩個出口。缺了這一半，開了魔晶石制的角色升級時只能投固有職業，
+  // 魔石永遠長不大（§BY7 缺口 D）。
+  const [levelUpTarget, setLevelUpTarget] = useState(initialLevelUpTarget);
+  const [selectedMnemosphereForLevelUp, setSelectedMnemosphereForLevelUp] = useState(initialLevelUpMnemosphereId);
+
+  // 升級時投給「還沒有的職業」（Core p.228：「you gain your first level in a Class you
+  // didn't already have」）。原本 `isNewClassLevelUp` 是一個**有 setter 卻沒有控件**的
+  // 死 state——引擎的 `isNewClass` 分支從 §BO 起就寫好也測好了，玩家卻永遠碰不到。
+  // 改成從下拉的值派生：新職業用前綴標記，拆解邏輯在資料層
+  // （`parseLevelUpClassValue`），不另存一份布林值——兩個來源總有一天會對不上。
+  const levelUpSelected = parseLevelUpClassValue(selectedClassForLevelUp);
+  const levelUpSelectedIsNew = levelUpSelected.isNew;
+  const levelUpSelectedClassName = levelUpSelected.className;
+  // 魔石出口是否存在：只有開了魔晶石制才有「投魔石」這條路（p.134）。
+  const levelUpTechOn = isTechnosphereEnabled(resolveCreationRules(character?.creationRules).technospheres);
+  // 可以「開新職業」的兩個條件（Core p.228）：
+  // ① 未精通的職業不到三個（精通一個 10 級職業就能再開一個）；
+  // ② 魔晶石制下不得取得新職業（p.134「cannot acquire new Classes」）。
+  const levelUpNonMasteredCount = (character?.classes || [])
+    .filter((c) => (c.level || 0) < CLASS_MAX_LEVEL).length;
+  const levelUpCanAddClass = !levelUpTechOn && levelUpNonMasteredCount < MAX_NON_MASTERED_CLASSES;
+  const levelUpNewClassOptions = levelUpCanAddClass
+    ? Object.keys(rulesData.classes || {}).filter(
+        (name) => !(character?.classes || []).some((c) => c.className === name)
+      )
+    : [];
+
+  // 升級彈窗的兩個出口。魔石那條只有在「開了魔晶石制」且「手上有未滿 5 級的魔石」時
+  // 才存在——p.136 的上限是 5 級，滿級的魔石不再吃點數。
+  const levelUpMnemospheres = levelUpTechOn
+    ? getLevelUpMnemosphereCandidates(character?.technospheres)
+    : [];
+  const levelUpMnemosphere = levelUpMnemospheres.find((m) => m.id === selectedMnemosphereForLevelUp) || null;
+  const levelUpIsMnemosphere = levelUpTarget === 'mnemosphere' && Boolean(levelUpMnemosphere);
+  // 技能清單的資料源：魔石走**它自己那個職業**的技能表（p.135「just as with standard
+  // Class advancement」），職業（含新開的）走 rulesData。三邊的卡片長得一樣，
+  // 只有 SL 的來源不同——新職業在 `character.classes` 裡還不存在，SL 自然是 0。
+  //
+  // 魔晶石制下兩條路都要濾掉原書明文作廢的技能（p.133 的守護者【雙重盾牌】）：
+  // 盾牌整類不存在，這個技能買了也不會生效。兩條分支的資料源不同，所以各濾一次。
+  const levelUpTechnosphereMode = resolveCreationRules(character?.creationRules).technospheres;
+  const levelUpSkills = levelUpIsMnemosphere
+    ? classSkillsForClass(levelUpMnemosphere.className, levelUpTechnosphereMode)
+    : (rulesData.classes[levelUpSelectedClassName]?.skills || [])
+      .filter((sk) => !isSkillSuppressedByTechnospheres(sk.name, levelUpTechnosphereMode));
+  const levelUpCurrentSL = (name) => {
+    if (levelUpIsMnemosphere) {
+      return (levelUpMnemosphere.skills || []).find((s) => s.name === name)?.sl || 0;
+    }
+    const cl = (character.classes || []).find((c) => c.className === levelUpSelectedClassName);
+    return cl?.skills?.find((s) => s.name === name)?.sl || 0;
+  };
 
   // Spell picker modal
   const [isSpellModalOpen, setIsSpellModalOpen] = useState(false);
@@ -433,27 +501,55 @@ export default function CharacterPlayHUD({
 
   // Level Up logic
   const handleExecuteLevelUp = () => {
-    if (!selectedClassForLevelUp || !selectedSkillForLevelUp) {
+    if (!selectedSkillForLevelUp) {
+      showToast('請選擇要升級的職業與特技');
+      return;
+    }
+
+    // ── 出口 A：這一點投進職業魔石（p.134）────────────────────────────
+    // 不碰 `char.classes`：那一點沒有進固有職業，而是讓某顆魔石升級。
+    // 角色等級照樣 +1（那是獨立的計數器），所以升級後「職業技能總和」會小於
+    // 角色等級——合法，`isLevelMatched` 在魔晶石制下已放寬成「不得超過」。
+    if (levelUpIsMnemosphere) {
+      const updatedM = applyLevelUp(character, {
+        className: levelUpMnemosphere.className,
+        skillName: selectedSkillForLevelUp,
+        mnemosphereId: levelUpMnemosphere.id
+      });
+      onChange(loggableChange(character, updatedM, {
+        kind: 'levelup',
+        title: `升級：職業魔石【${withEn(levelUpMnemosphere.className)}】${selectedSkillForLevelUp}`,
+        fields: ['level', 'exp']
+      }));
+      setIsLevelUpModalOpen(false);
+      setLevelUpTarget('class');
+      setSelectedMnemosphereForLevelUp('');
+      setSelectedSkillForLevelUp('');
+      showToast(`恭喜！等級提升至 Level ${updatedM.level}，魔石也長了一級！`);
+      return;
+    }
+
+    // ── 出口 B：投進職業（既有職業，或 p.228 的「第一次拿到某個職業」）──────────
+    if (!levelUpSelectedClassName) {
       showToast('請選擇要升級的職業與特技');
       return;
     }
 
     const updated = applyLevelUp(character, {
-      className: selectedClassForLevelUp,
+      className: levelUpSelectedClassName,
       skillName: selectedSkillForLevelUp,
-      isNewClass: isNewClassLevelUp
+      isNewClass: levelUpSelectedIsNew
     });
 
     // 成長履歷：升級是最重要的一筆——等級、EXP，以及點在哪個職業的哪個技能
     onChange(loggableChange(character, updated, {
       kind: 'levelup',
-      title: `升級：${withEn(selectedClassForLevelUp)}【${selectedSkillForLevelUp}】${isNewClassLevelUp ? '（新職業）' : ''}`,
+      title: `升級：${withEn(levelUpSelectedClassName)}【${selectedSkillForLevelUp}】${levelUpSelectedIsNew ? '（新職業）' : ''}`,
       fields: ['level', 'exp']
     }));
     setIsLevelUpModalOpen(false);
     setSelectedClassForLevelUp('');
     setSelectedSkillForLevelUp('');
-    setIsNewClassLevelUp(false);
     showToast(`恭喜！等級提升至 Level ${updated.level}！`);
   };
 
@@ -463,9 +559,11 @@ export default function CharacterPlayHUD({
 
   // 守護者【雙重盾牌】：兩手皆盾時合併視為「雙盾」，
   // 攻擊改用該技能的命中【MIG + MIG】與傷害【HR + 5】——盾牌本身沒有攻擊資料。
+  // 魔晶石制下這條技能失效（科技奇幻手冊 p.133），所以要把團規帶進來。
   const dualShield = getDualShieldState(character, {
     mainIsShield: Boolean(mainShieldEquipped),
-    offIsShield: Boolean(offShield)
+    offIsShield: Boolean(offShield),
+    technosphereMode: resolveCreationRules(character?.creationRules).technospheres
   });
 
   // 定制武器（HF p.106）也是武器：官方武器表找不到時，改找**這個角色自己鍛造的那些**。
@@ -1885,6 +1983,9 @@ export default function CharacterPlayHUD({
                               onOpenCodex={() => openRuleCodex('小工具')}
                               characterLevel={getCharacterLevel(character)}
                               variantId={sk.variantId || null}
+                              technoRestrictsEquipment={
+                                modeRestrictsEquipment(resolveCreationRules(character?.creationRules).technospheres)
+                              }
                             />
                           )}
                         </div>
@@ -2347,7 +2448,7 @@ export default function CharacterPlayHUD({
               variant="primary"
               size="sm"
               onClick={handleExecuteLevelUp}
-              disabled={!selectedClassForLevelUp || !selectedSkillForLevelUp}
+              disabled={!selectedSkillForLevelUp || (!levelUpIsMnemosphere && !levelUpSelectedClassName)}
             >
               確認升級 (-10 EXP)
             </JRPGButton>
@@ -2360,40 +2461,129 @@ export default function CharacterPlayHUD({
           </p>
 
           <div className="space-y-3 pt-1">
-            <div>
-              <label className="text-xs font-bold text-[#3c2415] block mb-1">
-                選擇欲升級的職業:
-              </label>
-              <select
-                value={selectedClassForLevelUp}
-                onChange={e => {
-                  setSelectedClassForLevelUp(e.target.value);
-                  setSelectedSkillForLevelUp('');
-                }}
-                className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3 py-2 text-xs text-[#3c2415] outline-none focus:border-amber-600 shadow-sm"
-              >
-                <option value="" disabled>-- 選擇職業 --</option>
-                {(character.classes || []).map(cl => (
-                  <option key={cl.className} value={cl.className}>
-                    {withEn(cl.className)} (目前 Lv {cl.level})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {selectedClassForLevelUp && (
+            {/* 升級的那一點有兩個出口（p.134：invest 1 level into an Innate Class
+                **or** into a mnemosphere）。只有開了魔晶石制才畫這一塊——
+                標準規則下「投魔石」這條路根本不存在，畫出來只會多一個永遠點不動的按鈕。 */}
+            {levelUpTechOn && (
               <div>
                 <label className="text-xs font-bold text-[#3c2415] block mb-1">
-                  選擇欲升級或習得的技能:
+                  這一點要投在哪裡？
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLevelUpTarget('class');
+                      setSelectedSkillForLevelUp('');
+                    }}
+                    className="text-left rounded-lg border p-2 transition-all cursor-pointer hover:border-amber-400"
+                    style={{
+                      backgroundColor: levelUpTarget === 'class' ? '#fffbeb' : '#fffdf9',
+                      borderColor: levelUpTarget === 'class' ? '#f59e0b' : '#d6c7ab'
+                    }}
+                  >
+                    <span className="block text-xs font-bold text-[#3c2415]">固有職業</span>
+                    <span className="block text-[10px] text-slate-500 leading-snug mt-0.5">
+                      讓既有職業的技能升級
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={levelUpMnemospheres.length === 0}
+                    onClick={() => {
+                      setLevelUpTarget('mnemosphere');
+                      setSelectedSkillForLevelUp('');
+                    }}
+                    className={`text-left rounded-lg border p-2 transition-all ${
+                      levelUpMnemospheres.length === 0
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'cursor-pointer hover:border-amber-400'
+                    }`}
+                    style={{
+                      backgroundColor: levelUpTarget === 'mnemosphere' ? '#fffbeb' : '#fffdf9',
+                      borderColor: levelUpTarget === 'mnemosphere' ? '#f59e0b' : '#d6c7ab'
+                    }}
+                  >
+                    <span className="block text-xs font-bold text-[#3c2415]">職業魔石</span>
+                    <span className="block text-[10px] text-slate-500 leading-snug mt-0.5">
+                      {levelUpMnemospheres.length === 0
+                        ? '沒有可成長的魔石（5 級為止）'
+                        : `${levelUpMnemospheres.length} 顆可成長（上限 5 級）`}
+                    </span>
+                  </button>
+                </div>
+
+                {levelUpTarget === 'mnemosphere' && levelUpMnemospheres.length > 0 && (
+                  <select
+                    value={selectedMnemosphereForLevelUp}
+                    onChange={e => {
+                      setSelectedMnemosphereForLevelUp(e.target.value);
+                      setSelectedSkillForLevelUp('');
+                    }}
+                    className="w-full mt-2 bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3 py-2 text-xs text-[#3c2415] outline-none focus:border-amber-600 shadow-sm"
+                  >
+                    <option value="" disabled>-- 選擇魔石 --</option>
+                    {levelUpMnemospheres.map(m => (
+                      <option key={m.id} value={m.id}>
+                        {withEn(m.className)}　Lv {m.level} / {MNEMOSPHERE_MAX_LEVEL}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            )}
+
+            {levelUpTarget !== 'mnemosphere' && (
+              <div>
+                <label className="text-xs font-bold text-[#3c2415] block mb-1">
+                  選擇欲升級的職業:
+                </label>
+                <select
+                  value={selectedClassForLevelUp}
+                  onChange={e => {
+                    setSelectedClassForLevelUp(e.target.value);
+                    setSelectedSkillForLevelUp('');
+                  }}
+                  className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3 py-2 text-xs text-[#3c2415] outline-none focus:border-amber-600 shadow-sm"
+                >
+                  <option value="" disabled>-- 選擇職業 --</option>
+                  <optgroup label="既有職業">
+                    {(character.classes || []).map(cl => (
+                      <option key={cl.className} value={cl.className}>
+                        {withEn(cl.className)} (目前 Lv {cl.level})
+                      </option>
+                    ))}
+                  </optgroup>
+                  {/* Core p.228：「you gain your first level in a Class you didn't already have」。
+                      只在「未精通的職業不到三個」且「不是魔晶石制」時才列——那兩條限制
+                      寫在資料層（`levelUpCanAddClass`），不是靠這裡少畫幾行。 */}
+                  {levelUpNewClassOptions.length > 0 && (
+                    <optgroup label={`新職業（未精通 ${levelUpNonMasteredCount} / ${MAX_NON_MASTERED_CLASSES}）`}>
+                      {levelUpNewClassOptions.map(name => (
+                        <option key={name} value={`${LEVEL_UP_NEW_CLASS_PREFIX}${name}`}>
+                          ＋ {withEn(name)}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              </div>
+            )}
+
+            {(levelUpIsMnemosphere || levelUpSelectedClassName) && (
+              <div>
+                <label className="text-xs font-bold text-[#3c2415] block mb-1">
+                  {levelUpIsMnemosphere
+                    ? `選擇要成長的技能（${withEn(levelUpMnemosphere.className)}魔石）:`
+                    : '選擇欲升級或習得的技能:'}
                 </label>
                 {/* 舊版是一個下拉選單，一行「技能名 (SL 0/5)」根本看不出這技能在做什麼。
                     這裡改成直接列出效果全文，並把選取中的那一項以**升級後**的 SL 顯示——
-                    讓你看到的是「買到之後數字長什麼樣」，而不是現在的數字。 */}
+                    讓你看到的是「買到之後數字長什麼樣」，而不是現在的數字。
+                    魔石那條走同一份渲染，差別只在資料源（它自己那個職業的技能表）。 */}
                 <div className="space-y-1.5 max-h-64 overflow-y-auto pr-0.5">
-                  {(rulesData.classes[selectedClassForLevelUp]?.skills || []).map(sk => {
-                    const curClass = (character.classes || []).find(c => c.className === selectedClassForLevelUp);
-                    const curSk = curClass?.skills?.find(s => s.name === sk.name);
-                    const curSL = curSk?.sl || 0;
+                  {levelUpSkills.map(sk => {
+                    const curSL = levelUpCurrentSL(sk.name);
                     const maxed = curSL >= sk.maxSL;
                     const isSel = selectedSkillForLevelUp === sk.name;
                     return (

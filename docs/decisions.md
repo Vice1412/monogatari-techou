@@ -98,6 +98,19 @@
 | BS | 建角草稿自動暫存（`npcDraft`） | 真正的洞不是「重新整理」而是**站內換章節**：`App.jsx` 依 `activeChapter` 條件渲染，離開即卸載、`beforeunload` 不會觸發。改為 600ms 防抖寫入 `STORAGE_KEYS.npcDraft`（8 個權威鍵裡**唯一沒有舊鍵**的，故刻意不進 `MIGRATION_PLAN`）。接回規則：`mainTab === 'build'` 直接回建角頁；從檔案庫離開則顯示提示條「繼續編輯／丟棄」；草稿與檔案庫內容相同時不顯示提示條 | 2026-10-22 |
 | BT | 第 4 步的介面深度（子頁三頁→兩頁、預設展開） | 使用者原話「沒有必要把他們藏得這麼深」。三層折疊收成一層：① 子頁由三頁併成「基礎數值與相性」／「技能・咒語・能力」；② 預設子頁由 `stats` 改為 `skills`；③ 「基礎攻擊與核心能力」「咒語書配置」改 `defaultExpanded`。舊標籤降為 `<h3>` 區塊標題（稽核斷言得以改指向而非刪除）。SSR 側新增 5 條「不點就看得到」斷言 | 2026-10-22 |
 | BU | 凍結值清理進 `migrateNpcState`（保守版） | §BR 只修了「存檔前 unfreeze」，**已經被寫死的舊卡**仍停在舊值。遷移新增第 5 步：只對「`selections` 有填」的欄位 unfreeze——沒填的不動，避免把「近戰」改成「待配置」的視覺退化。常態稽核同時補上 §BR5 那條手動 E2E（選單選值→草稿裡的 `attack.type` 仍是 `{type}`），83 → 90 條 | 2026-10-22 |
+| BV | 魔晶石的開卡規則補完 ＋ 珠子化視覺 | 稽核出 13 個缺口，本輪修 A（飾品不得掛插槽，p.133）／B（魔石技能可分配，`classSkillsForClass` 與職業共用 `rulesData`）／C（`skillLevelCeiling` 接線，p.134 的「相當於 13 級」）；插槽內容由文字 chips 改成**一排珠座**（`TechnosphereBead`：職業各自 gi 剪影圈在珠子裡、36 顆附魔魔石共用泛指晶石、等級環角度在資料層算）。`test:technospheres` 214 → 278 條，兩輪刻意破壞驗證 | 2026-10-22 |
+| BW | 魔晶石強制【定制武器】（派生而非寫入） | p.133 的裝備白名單只剩定制武器／防具／飾品／機師模組，且「Any other equipment simply cannot exist」——所以開魔晶石就**沒有官方武器表**。`resolveCreationRules` 對三態派生 `allowCustomWeapon: true`、面板鎖住勾選框並寫出理由、`diffCreationRules` 剔除派生值；「僅職業魔石」變體（p.138）官方裝備整份放回故不強制。順帶修掉缺口 J：`EquipmentPickerModal` 清空武器表與盾牌表、引擎 gate 從 `isTechnosphereEnabled` 收斂到 `modeRestrictsEquipment`。278 → 294 條 ＋ creation 新增 19 條，三輪刻意破壞驗證 | 2026-10-22 |
+| BX | 魔晶石制改寫修補匠【小工具】魔導科技（兩檔） | p.133「turn the magispheres from the Tinkerer Class into an advanced magitech benefit, removing the magicannon completely」——魔加農在 p.215 是 Cannot have Qualities 的武器，魔晶石制下連一顆魔石都鑲不了且不在白名單，整檔刪除；魔法球原型由最高檔降到進階檔補位，該軌只剩兩檔。核心三檔搬到 data/gadgetBranches.js 的 MAGITECH_CORE_NODES，esolveMagitechNodes() 是唯一推導，彈窗／速查／工坊三面共用。**刻意不改寫效果文本**——原書沒給替代文本。294 → 344 條（含 18 條 SSR 真渲染），六輪刻意破壞驗證 | 2026-10-22 |
+
+| BY | 職業魔石拆兩步：成長在第 2 步、裝載在第 4 步 | 使用者問「拿職業晶石是不是該改到職業界面選」。原書把職業魔石切成**兩個決定**：p.134 的升級點是「投進固有職業**或**魔石」（成長，與職業同一個池子；p.135 說 `just as with standard Class advancement`），p.135 的「裝備著才取得技能、一卸下全失去」（生效）。拆之前兩者都在第 4 步，`skillLevelCeiling` 於是跨步驟斷裂——第 2 步看到的技能上限不含魔石。新增 `MnemosphereSection`（取得／等級 ±1／技能分配／精通英雄技能）掛在 `activeTab === 2`；`TechnospherePanel` 只留插槽品級、插槽內容、附魔魔石、內嵌裝置與唯讀摘要。引擎新增 `heldSkillLevelCeiling`（持有）與 `skillLevelCeiling`（生效）**兩個數字**，預覽不得覆蓋實際值；`getEquippedTechnosphereSlotIds` 抽成 export 以免出現第二份「哪些槽位算裝備著」的判定。344 → 372 條，三輪刻意破壞驗證 | 2026-10-22 |
+| BZ | 開局自動配發魔石 ＋ 技能表改成職業樣式 | 使用者裁定「自動塞，讓玩家選擇職業就行」「界面應該和其他一般職業是一樣的，要看到所有技能的說明才可以選」。p.134 的免費魔石是 `upon creation`（成立即得，不是購買）→ 空狀態畫**空珠座＋職業下拉**，選完即得；第 2 顆起才走「＋ 再取得一顆」（p.138 GM 獎勵）。技能分配由只有名字的 `<select>` 改成 `ClassSkillPickerList`：整張技能表逐列列出、帶 `SkillDescription`、星星可點，上限夾 `min(sk.maxSL, 5)`。沒有複用 `ClassSkillCard` 模式 B——它綁著變體、子選項彈窗與三種專屬 bar。順帶修掉：存檔裡技能表查不到的技能名原本被靜默濾掉（標題「已分配 2 點」與底部「已用 0 點」自相矛盾），現在列出來標紅。結案 §BY7 的缺口 M。372 → 387 條，三輪刻意破壞驗證 | 2026-10-22 |
+| CA | 升級的兩個出口：固有職業 or 職業魔石（缺口 D 結案） | p.134「invest 1 level into an Innate Class **or** into a mnemosphere」——升級只給一點、兩個出口，所以 UI 不能兩邊都填。彈窗新增「這一點要投在哪裡？」切換（只在魔晶石制下畫），選魔石後固有職業下拉收起、技能清單換成那顆魔石所屬職業的技能表（`classSkillsForClass`，與職業側同一份渲染）。候選清單抽成 `getLevelUpMnemosphereCandidates`（滿 5 級不列）——寫在元件裡就測不到。順帶修掉結構問題：`JRPGModal` 在 SSR 下因為 `createPortal` 整塊空白，現在 `typeof document === 'undefined'` 時直接內聯回傳（瀏覽器永不觸發），升級彈窗因此可 SSR 渲染與截圖。387 → 399 條，三輪刻意破壞驗證 | 2026-10-22 |
+| CB | 升級的第二條路：第一次拿到某個職業（Core p.228） | `isNewClassLevelUp` 是**有 setter 卻沒有控件**的死 state——引擎的 `isNewClass` 分支從 §BO 起就寫好也測好了，玩家卻永遠碰不到。原書 p.228 給升級兩個選項（投既有職業／第一次拿到新職業），並限制「單一職業 10 級」「未精通職業最多 3 個」。三件事一起補：① 引擎新增 `CLASS_MAX_LEVEL`／`MAX_NON_MASTERED_CLASSES` 兩條守衛（以前會把職業推到 11 級、也會無條件 push 第 4、5 個職業）；② 下拉改用 `<optgroup>` 分出「新職業」，值帶 `__new__:` 前綴，拆解抽成 `parseLevelUpClassValue`（原始碼字串斷言證明不了「拆對了」——把 `slice` 改壞照樣全綠，這是本輪刻意破壞驗證抓到的）；③ 魔晶石制下不畫這個分組（p.134 禁新職業）。417 條，六輪刻意破壞驗證 | 2026-10-22 |
+| CC | 高階角色的額外起始魔石（缺口 I 結案，p.140） | p.140「The character receives an additional level 0 mnemosphere for every 10 levels beyond 5 (for instance, a level 23 character will receive one additional mnemosphere, for a total of two initial mnemospheres)」——紀錄說「沒有 UI」，實測是三件事：① 兩個 helper 早就寫好也測好了（所以「已實作」與「待做」兩份紀錄同時存在）；② `characterEngine.js` import 了卻一次都沒用（死 import 讓 grep 得到「引擎有這個函式」的假象）；③ 開局那顆**實際建在 0 級**——`addMnemosphere` 沒傳 `level`，`createMnemosphere` 的預設 0 生效，於是文案寫「1 級」、珠子顯示「0 / 5 級」、技能一點都分不了，而 411 條斷言全綠。第 ③ 項的原因不是測試不夠多，是那個決定寫在 `onChange` 裡（SSR 不執行事件）。**修法不是「記得傳」**：新增 `getInitialMnemosphereLevels(level)`（回傳陣列，長度即顆數——顆數與等級分兩個函式遲早對不上）與 `buildInitialMnemosphere(className, index)`，把「第幾顆是幾級」移進資料層，讓它有會失敗的斷言。顆數看 `rules.startingLevel` 而非 `char.level`（p.140 只管開卡那一刻，否則 5 級開卡練到 15 級會憑空多一顆）。UI 畫 `pendingFree` 個空珠座；免費額度沒填滿時不畫「＋ 再取得一顆」（那是 p.137 的 GM 獎勵，兩件事同時出現會讓玩家以為第二顆要先按按鈕）。順帶修正：`TECHNOSPHERES AS REWARDS` 是 p.137 不是 p.138（印刷 p.138 是三種變體頁）；§CB8 的「補償規則原書沒寫」與 §BO6 自相矛盾。`test:technospheres` 417 → 445（V 區段 28 條），七輪刻意破壞全部抓到。 | 2026-10-22 |
+| CD | 魔晶石制的等級分配：職業等級總和不是角色等級（p.134／p.140） | 魔晶石制是**規則明訂的例外**（p.134「invest 1 level into an Innate Class or into a mnemosphere of their choice」）：投進魔石時職業等級不會 +1，所以職業等級總和本來就該落在角色等級之後。既有那條「職業等級總和 ≠ 角色等級」的等號檢查於是會把 **p.134 自己舉的例子**（20 級角色只有 5 級在固有職業、其餘投魔石）報成漂移——一張照原書範例建的卡被自己的驗證器判成不一致。修法：魔晶石制下等號改成「只擋超過」（點數守恆，超過仍是不可能狀態），並補上 p.140 的下限「至少 5 級投在三個固有職業」——低於下限是 **error**（不是「還沒填完」，是「填成原書不允許的分配」）。下限用 `Math.min(INNATE_MIN_LEVELS, 角色等級)`，因為 `startingLevel` 的 min 是 1，硬套 5 會讓低等團的卡永遠無法定稿。**這條管不到上限**：引擎分不出「玩家投點升上去的魔石」與「GM 用 p.137 發放的魔石」（後者不吃點數），所以總量守恆不做硬檢查。`test:engine` 378 → 385（K10–K16），五輪刻意破壞全部抓到。 | 2026-10-22 |
+| CE | 投點投在哪個技能上：`applyLevelUp` 的兩條路徑都收過不存在的技能 | 缺口寫的是「不驗證技能名屬於該魔石職業」，看起來只是防禦性問題——UI 的下拉是從職業表生成的，玩家選不到錯的東西。實際量下去才發現：**測試自己就在傳不存在的技能名**（`博學士` 沒有「萬能知識」、`舞者` 沒有「舞步」），而引擎兩條路徑都是「找不到就 push」，傳什麼字串都收，一路全綠地寫進技能表。代價不是顯示怪——那筆技能會計入 `totalSkillLevels`，讓技能點預算莫名超支。修法：抽 `resolveLevelUpSkill` 純函式（回 `{ ok, maxSL, name, reason }`），三處呼叫端全接（標準／新職業／魔石，魔石用 `target.className` 而非呼叫端的 `className`），並補 `maxSL` 上限與技能名正規化。同類缺陷的另一半一併補：`validateCharacter` 加「未精通職業超過三個」的 **error**（p.228；升級路徑 §CB 已擋，但匯入與手改存檔不經過那裡），且只在離開起始等級時報，避免與 `classCountMax` 重複。`test:engine` 385 → 400、`test:technospheres` 445 → 451，六輪刻意破壞全部抓到。順帶修掉測試裡 7 處假技能名。 | 2026-10-22 |
+| CF | 魔晶石制的介面缺口：預設範本、雙重盾牌、飾品清單、依賴方向 | 引擎那半在 §CB～§CE 收掉了，介面與資料那半有四項缺口，三項同一病因：**資料層已有結構化欄位，消費端還在做字串比對**。① 預設範本的 `mnemosphere` 只寫進 `notes` 一行字——改走 `createMnemosphere`／`makeMnemosphereId`／`normalizeTechnosphereState`，用範本名稱推導穩定 id（重複套用冪等），並改掉檔頭那句已經說謊的註解。② p.133「ignore the Guardian's Dual Shield skill」：`TECHNOSPHERE_SUPPRESSED_SKILLS` 早就有，**裝備層沒接**——`getDualShieldState` 的 `learned` 是唯一節流閥（同時控制 `active`、主手盾牌合法性、選擇器列、兩處雙盾公式），改一行全部收斂；陷阱是 `modeRestrictsEquipment ≠ isTechnosphereEnabled`，`mnemospheresOnly`（p.138）把官方裝備全放回，那裡**必須**仍有效。③ `equipmentRules` 因此開始依賴 `technospheres`，原本那條「不 import」護欄必然為假——改寫成更強的不變式：`technospheres.js` **零 import** ＋ 只有單向依賴。④ 飾品實測 35 筆＝官方 29 ＋ 早期自造 6，那 6 筆保留並標 `custom: true`（刪掉會讓舊卡出現「查無此項」）。`test:technospheres` 451 → 477。 | 2026-10-22 |
+| CG | 金手指逐筆核對：46 條裡只有 11 條會改數字 | 缺口寫的是「逐筆效果比對尚未做」，實際量下去是**三層斷裂**：資料層有、引擎層沒有、測試層沒問。引擎只有兩段 `quirkName.includes(...)` 的硬編碼，只認得倖存者與束縛你的約定——另外 5 條帶明確數值（空手道、亡者歸來、機器人、墮落天使、會說話的野獸）選了一個字都不生效，而 400 多條斷言全綠。修法：`quirks[].effects` 走**封閉詞彙**（數字鍵相加、陣列鍵去重；屬性詞彙取自 `AFFINITY_BASES`），引擎新增 `getQuirkEffects`（回**固定形狀**，`body`／`option` 分開以便 breakdown 標籤不同）與 `stats.quirkEffects`；`immuneDamage` 與 `resistances` **不可合併**（亡者歸來是「免疫」、墮落天使是「抗性」，寫錯弱一半）。條件式防禦的判定點：主手要另查是不是盾牌（`mainHandDef` 查的是武器表，主手放盾時也是 `null`），否則雙盾會被誤判成空手；兩者都算在「載具防禦覆蓋」之前。多組選項（草木成精要選免疫狀態＋易傷屬性、通智幽魂三組）把 `quirkChoice` 擴成 `string | { [groupId]: optionId }`，字串形態向後相容，UI 一律包成「組」再渲染，每組都選了才准確定。其餘 35 條**不實作**並在 §CG7 分類寫明理由（敘事／章節結算／裝備載具／戰鬥內一次性）——判準是「有欄位放它，而且有東西讀那個欄位」。`test:engine` 400 → 440、`test:ui` 352 → 362。 | 2026-10-22 |
 
 ---
 
@@ -7214,3 +7227,1439 @@ React 的受控 `<select>` 吃這個（`onChange` 掛在 root，監聽原生 `ch
 
 稽核總數 83 → **90 條**（+4 預設可見性、+1 手風琴已展開、+2 草稿寫入與佔位符、
 +1 子頁切回、−1 舊的「咒語與自訂能力可展開」改指向）。
+
+---
+
+## §BV 魔晶石的開卡規則補完，以及「珠子嵌進插槽」的視覺重做（2026-10-22）
+
+### BV1. 使用者問的三件事
+
+> 「目前魔晶石的開卡規則還有什麼遺漏的嗎？」
+> 「另外我希望它的UI能更像把珠子鑲嵌進武器的感覺，做得到嗎？」
+> 「我覺得職業魔石可以是用它們的職業各自的game-icons標誌，然後用一個圓圈起來，不過66個附魔魔石全部都要不同的標誌有點不太實際，我覺得找個適合的泛指就行。」
+
+第三句裡的「66 個」是 d66 表的意思——**實際是 36 筆**（6×6 的每一格一列，`HOPLOSPHERES.length === 36`）。
+照「36 顆共用一個泛指圖示」實作，這與使用者的判斷（不必逐顆配圖）一致。
+
+### BV2. 稽核：開卡階段還漏了什麼
+
+逐條比對 p.132–140，發現 13 個缺口。本輪修掉 A、B、C（機制缺口）與 E、F、G、H（顯示缺口），
+其餘見 BV7：
+
+| # | 缺口 | 原書依據 | 本輪 |
+|---|---|---|---|
+| A | 飾品可以掛插槽品級 | p.133「Only custom weapons and custom armor may have technosphere slots」 | ✅ 修 |
+| B | 職業魔石的技能無法分配（只顯示、不能編輯） | p.136 每一級給該職業的一個技能等級 | ✅ 修 |
+| C | 技能水準上限沒用 `getSkillLevelCeiling`（引擎算了卻沒接線） | p.134 的例子（角色 5 級＋魔石 5＋3 級＝技能水準 13 級） | ✅ 修 |
+| D | 升級 UI 沒把 `mnemosphereId` 傳給 `applyLevelUp` | p.134 每級可投魔石 | 待做 |
+| E | 內嵌變體沒有編輯 UI（`state.integrated` 從未渲染） | p.138 | ✅ 本輪補上（見 BV3-4） |
+| F | 附魔魔石的效果文字不顯示（只有名稱與價格） | p.139 逐筆效果 | ✅ 修 |
+| G | 凝聚（coag2／coag3）不顯示 | p.139 | ✅ 修 |
+| H | 傷害屬性衝突只驗證、不提示 | p.141 同一把武器不得混屬性 | ✅ 修 |
+| I | 高階角色的額外起始魔石（每超過 10 級一顆 0 級）沒有 UI | p.140 | 修（§CC） |
+| J | `EquipmentPickerModal` 沒過濾官方武器／盾牌 | p.133 | 待做 |
+| K | 互斥項未處理（守護者雙盾、修補匠魔導球轉高階魔導科技、魔法砲移除） | p.133 | 待做 |
+| L | NPC 端未接線（NPC 不能有魔晶石） | p.133 | 刻意不做（同 §BL5） |
+| M | 開局免費 1 級魔石只是文字提示，沒有自動配發 | p.134 | 待做（與「不替玩家做選擇」原則衝突，見 BV7） |
+
+**「不替玩家做選擇」是刻意的不對稱**：四維屬性、羈絆、金手指、底力技在 `createNewCharacter` 裡
+一律留空，魔晶石也一樣——面板把「你還差幾點沒分配」講清楚，但不代填。
+
+### BV3. 本輪實作
+
+#### BV3-1. 飾品不得掛插槽（A）
+
+資料層新增 `SLOT_QUALITY_ELIGIBLE_SLOTS = ['mainHand','offHand','armor']` 與 `slotSupportsQuality(slotId)`，
+三個消費端同時接上：
+
+- `validateTechnosphereState`：非合格裝備位只要品級 ≠ α **或** 有內容 → error
+- `TechnospherePanel`：品級 `<select>` 對飾品 `disabled`，並寫明「飾品與機師模組沒有」
+- 測試：合格清單、三種狀態（掛 β／空著／有內容）
+
+**「空著不算違規」是刻意的**：`createTechnosphereState()` 給每個裝備位一個 α 空插槽，
+若把「飾品有插槽物件」本身判成違規，每一張卡一開場就紅。
+
+#### BV3-2. 職業魔石的技能分配（B）
+
+引擎新增 `classSkillsForClass(className)`，直接讀 `rulesData.classes[職業].skills`——
+**與職業本身共用同一份資料**，所以魔石技能的上限（`maxSL`）不會與職業技能分岔。
+面板每顆魔石下方多一個技能下拉與可收回的 chips，並顯示 `已分配 / 等級`。
+
+驗證層加一條**不需要職業技能表**就能判定的結構檢查：`Σ(skills[].sl) > level` → error。
+（把「技能名是否屬於該職業」留給 UI——那需要 `rulesData`，而資料層零依賴。）
+
+降級（−1）時自動收回超額的技能點數，否則存檔會停在「3 級魔石吃掉 5 點技能」的狀態，
+而畫面上沒有任何東西會紅。
+
+#### BV3-3. 引擎把魔石技能併進角色數值（C）
+
+`calculateCharacterStats` 新增四個回傳欄位：
+
+| 欄位 | 內容 |
+|---|---|
+| `activeMnemospheres` | 裝在**實際裝備著**的插槽裡的魔石（`getActiveMnemospheres`） |
+| `mnemosphereSkills` | 攤平的魔石技能 `[{name, sl, source, className}]` |
+| `mnemosphereSkillLevels` | 上述技能的等級總和 |
+| `skillLevelCeiling` | 角色等級 ＋ 魔石等級（原書 p.134 的「相當於 13 級」就是這個數） |
+
+**「生效」的判定是「裝備位真的有東西」**：`getActiveMnemospheres` 吃 `equippedSlots`，
+而 `equippedSlots` 由 `char.equipment` 推導。所以「魔石裝在插槽裡、但那一手是空的」
+＝ 不生效（p.136：卸下即失去全部技能）。這也讓 `getActiveMnemospheres`／
+`getSkillLevelCeiling` 從死 import 變成真的在用。
+
+**沒有把 `isLevelMatched` 改成 `totalSkillLevels + mnemosphereLevels === level`。**
+理由：原書 p.134 的例子是「角色 5 級 ＋ 魔石 5 級 ＋ 3 級 ＝ 技能水準 13 級」，
+也就是**魔石等級不從角色等級的點數裡扣**。若照「升級那一點投進魔石」去寫等式，
+那個例子會直接變成非法。兩條線索衝突時，採用「不新增會誤報的斷言」——
+`isLevelMatched` 維持 `totalSkillLevels <= level`（§BO 已定的放寬），
+另外用 `skillLevelCeiling` 把「技能水準相當於幾級」講出來。
+
+#### BV3-4. 珠子化（見 BV4）
+
+### BV4. 視覺：珠子嵌進插槽
+
+新增 `components/TechnosphereBead.jsx`（珠子 ＋ `EmptyBeadSocket` 空珠座），
+`TechnospherePanel` 的插槽內容從「`◇`／`◆` ＋ 名稱 ＋ 價格 ＋ ✕」的文字 chips
+改成**一排珠座**：已鑲的是帶等級環的球體，未鑲的是虛線凹槽。
+
+**為什麼是珠子**：這套規則的動詞是**鑲嵌**（socket／embed／slot in）。用方形標籤排版
+會讓它讀起來像「標籤清單」，看不出「這件武器現在裝了什麼」。
+
+**圖示的三個決定**（使用者指定的前兩項）：
+
+| 對象 | 圖示 | 理由 |
+|---|---|---|
+| 職業魔石（15 種） | 該職業自己的 gi 剪影，圈在珠子裡 | `GameIcon` 的 `GAME_ICONS_MAP` 本來就以中文職業名為鍵，15 個全部命中，**不需要新增任何映射** |
+| 附魔魔石（36 種） | 全部共用 `GiCrystalShine` | 36 個圖示既不實際、也認不出來（18px 的剪影） |
+| 珠色 | 職業 15 色／傷害屬性 8 色，其餘中性色 | 輔助識別，**不是主要識別方式** |
+
+**等級環的角度在資料層算**（`beadRingSegments`）：回傳 `[{index, active, startDeg, endDeg}]`，
+0° 在 12 點鐘、順時針、每段留 10° 縫隙。UI 只負責把角度轉成 SVG `A` 指令（`beadArcPath`）。
+這樣「亮幾段」可以被測試釘住，不必靠截圖比對。
+
+**凝聚記號仍是菱形**：`◆`／`◆◆`／`◆◆◆` 只用在效果清單的層級前綴（`TIER_MARK`），
+不再用來冒充珠子——護欄明確禁止面板出現空心菱形 `◇`。
+
+### BV5. 護欄：`test:technospheres` 214 → 278 條（+64）
+
+新增 O 區段五小節：
+
+| 小節 | 內容 | 條數 |
+|---|---|---|
+| O | 等級環（5 段、亮幾段、夾到上限、負數、不重疊）＋珠色覆蓋率＋弧線是 `A` 指令 | 15 |
+| O2 | 插槽資格：飾品三種狀態（掛 β／空著／有內容） | 7 |
+| O3 | 魔石技能點數：超配／剛好／技能表與 `rulesData` 一致 | 7 |
+| O4 | 引擎：生效判定、技能攤平、技能水準上限、未裝備、規則關閉 | 8 |
+| O5 | SSR 真渲染：珠子錨點、等級環、技能選擇器、飾品鎖、凝聚文字、內嵌珠座 | 24 |
+
+兩個容易寫成恆真的斷言，這次特別處理：
+
+- **「5 段環」不能數 `<path`**——`GameIcon` 的 gi 剪影本身也是 SVG，數出來是 6。
+  改成數等級環特有的 `A 15.5 15.5`（半徑固定，剪影不會有）。
+- **「面板不再用 ◆ 假裝珠子」不能連凝聚記號一起禁**——`◆` 在效果清單裡是合法的層級前綴。
+  拆成兩條：禁 `◇`、並正面釘住 `TIER_MARK` 的內容。
+
+### BV6. 刻意破壞驗證（兩輪）
+
+| 破壞 | 預期紅 | 實際 |
+|---|---|---|
+| `beadRingSegments` 的 `index < lit` → `<=` | O 區段的等級環斷言 | ✅ 3 條紅 |
+| `slotSupportsQuality` 一律回 `true` | O2 ＋ O5 的飾品斷言 | ✅ 5 條紅 |
+| 珠子的 `segments.map` → `[].map`（環不見了） | O5 的等級環斷言 | ✅ 2 條紅 |
+
+兩輪合計 8 ＋ 2 條紅，還原後回到 278/278。
+
+### BV7. 還沒做的（刻意留下的）
+
+- **D／I／J／K 是「另一個工作流的入口」**：升級流程在 `CharacterPlayHUD`、
+  高階起始資源在 `createNewCharacter`、裝備挑選在 `EquipmentPickerModal`、
+  互斥項在職業規則層。硬塞進這個面板會讓「面板＝編輯器」變成「面板＝半個引擎」。
+- **M（自動配發 1 級魔石）與「不替玩家做選擇」直接衝突**。目前的折衷是空狀態文案
+  明講「開局會免費獲得一顆 1 級魔石，請在這裡選定」——把規則講出來，但不代選。
+
+---
+
+## §BW 魔晶石強制【定制武器】：派生，而不是替使用者打勾（2026-10-22）
+
+### BW1. 使用者問的是「是不是必須」
+
+原文：「如果要用魔晶石，是不是必須綁定定制武器？如果是，在開卡規則那裡開出魔晶石規則的時候
+自動也 check 定制武器」。
+
+**答案是「是」**，但理由要說清楚——不是「原書建議這樣搭配」，是**裝備白名單裡沒有別的選項**。
+科技奇幻手冊 p.133（dump 頁 135／印刷 p.133）的 EQUIPMENT RULES CHANGES 第一條：
+
+> The only types of equipment available in the game are the following: **custom weapons
+> (page 112), armor, and accessories**, plus weapon and armor modules for the Pilot Class.
+
+緊接著第二句：
+
+> **Any other equipment simply cannot exist.**
+
+所以「必須綁定定制武器」的準確說法是：**開了魔晶石，官方武器表整份不存在**。
+不定制武器不是「比較弱」，是**沒有武器可拿**。這也解釋了為什麼 §BV 的稽核缺口 J
+（`EquipmentPickerModal` 不過濾官方武器）不是美觀問題，而是規則不成立。
+
+### BW2. 但「必須」不等於「把使用者那一格寫成 true」
+
+第一版想的是「開魔晶石時把 `allowCustomWeapon` 寫成 `true`」，關掉時再寫回 `false`。
+**這樣會壞**：使用者原本沒勾，開了魔晶石又關掉之後，他手上多了一個從沒選過的
+`allowCustomWeapon: true`。這正是 §U15 講的幻覺欄位——資料裡有一個欄位，
+但它的值不是任何人做的決定。
+
+所以改成**派生**：`resolveCreationRules` 在算輸出時才把 `allowCustomWeapon` 變成 `true`，
+**儲存值一個字都不動**。面板存的是 GM 的原始偏好（`CreationRulesPanel` 的 `diff` 狀態），
+關掉魔晶石就自動回到他原本的選擇。
+
+這與 `classCountMin/Max` 被鎖成 3（§BV）是同一個做法——那兩個欄位也已經是派生值，
+理由寫在 `resolveCreationRules` 的註解裡。
+
+### BW3. 不是五態一刀切：「僅職業魔石」是例外
+
+p.138 的三個變體裡，只有一個把官方裝備放回來：
+
+> **Mnemospheres only.** … and equipment simply follows the standard rules in the Core
+> Rulebook. In this case, hoplospheres do not exist, **all types of equipment are once
+> again available for PCs and NPCs** …
+
+另外兩個變體仍然吃全套裝備規則：
+
+- **Integrated**：「the character cannot equip items with δ Slot, and can only use their
+  equipped items' technospheres slots for hoplospheres」——裝備規則照舊，只是 δ 不見了。
+- **Hoplospheres only**：「you may apply **all technosphere rules for equipment**」。
+
+所以判定是 `modeRestrictsEquipment`：`full`／`integrated`／`hoplospheresOnly` → 強制，
+`mnemospheresOnly`／`off` → 不強制。這個函式本來就有（§BV 時為了面板而寫），
+本輪把它變成**唯一判定入口**，四個消費端全部走它：
+
+| 消費端 | 用途 |
+|---|---|
+| `data/creationRules.js`（`resolveCreationRules`） | 派生 `allowCustomWeapon` |
+| `data/creationRules.js`（`diffCreationRules`） | 剔除派生值，不讓它傳染給別的團 |
+| `components/CreationRulesPanel.jsx` | 鎖住勾選框並寫出理由 |
+| `components/EquipmentPickerModal.jsx` | 清空官方武器表與盾牌表 |
+| `utils/characterEngine.js` | 官方武器一律報 error（不是 warning） |
+
+### BW4. 連帶修掉缺口 J，以及一個 §BV 沒抓到的誤判
+
+**J（選擇器）**：`EquipmentPickerModal` 原本完全不知道魔晶石存在，官方武器照樣列出來、
+照樣選得到，然後在驗證時被報錯——等於「先讓你做錯，再告訴你錯」。現在 `weaponRows`
+與 `shieldRows` 在 `technoRestrictsEquipment` 時直接回空陣列，空狀態文案改成
+「魔晶石制沒有官方武器表——主手與副手一律到『定制武器』分頁鍛造（p.133）」。
+**防具與飾品刻意不動**：p.133 的白名單裡有 armor 與 accessories。
+
+**引擎的誤判**：`validateCharacter` 那段官方武器檢查原本用 `isTechnosphereEnabled`，
+於是「僅職業魔石」變體也被擋——但 p.138 明寫那一態所有裝備都合法。改成
+`modeRestrictsEquipment` 之後，`mnemospheresOnly` 穿官方劍不再報錯。
+
+### BW5. 護欄：`test:technospheres` 278 → 294，`test:creation` +19
+
+`test:creation` 新增 T 區段（19 條）：
+
+| 組 | 內容 |
+|---|---|
+| (1) 五態逐一 | 三態強制、僅職業魔石不強制、關閉維持預設 |
+| (2) 交叉比對 | 五態的 `allowCustomWeapon` 必須逐項等於 `modeRestrictsEquipment`——兩處判定不許分岔 |
+| (3) 派生優先 | 使用者自己勾 `false`、但魔晶石開著 → 仍是 `true` |
+| (4) 無殘留 | `diffCreationRules` 不含派生欄位；回餵後再關魔晶石 → 回到 `false` |
+| (5) diff 邊界 | GM 自己開的定制武器（無魔晶石／僅職業魔石）**仍然**寫進 diff |
+| (6) 官方標準 | 空規則仍是預設；魔晶石一開就不是 |
+| (7) UI 原始碼 | `derivedToggle` 存在、`checked` 吃派生值、`disabled` 綁定、理由文案在 |
+
+`test:technospheres` 新增 P 區段（16 條）：四態的官方武器 error 有無、五態的派生值、
+diff 剔除、以及選擇器原始碼（兩處 `return []` 的**次數**必須是 2——用次數而不是
+`includes`，否則刪掉一處仍然綠）。
+
+### BW6. 刻意破壞驗證（三輪，每輪都 FAIL 得精準）
+
+| 破壞 | 結果 |
+|---|---|
+| `allowCustomWeapon = false && modeRestrictsEquipment(...)` | `test:creation` 301/307，6 條 FAIL（五態三條 ＋ 交叉比對 ＋ 派生優先 ＋ 無殘留） |
+| 刪掉盾牌那一處 `if (technoRestrictsEquipment) return []` | `test:technospheres` 293/294，「兩處」那條 FAIL |
+| 引擎 gate 改回 `isTechnosphereEnabled` | `test:technospheres` 293/294，「僅職業魔石：官方武器合法」FAIL |
+
+三輪都還原後全綠（307/307、294/294）。第二輪順帶證明了一件事：**`includes` 會恆真**，
+`(match || []).length === 2` 才是有效的。
+
+### BW7. 這輪刻意沒做的
+
+- **D（升級流程）／I（高階額外魔石）／K（守護者雙盾、修補匠魔導球改寫）／M（自動配發 1 級魔石）**
+  仍在 §BV7 的清單上，本輪一條都沒動。
+- **`allowCustomArmor` 不存在**。p.133 的下一段說「**Custom weapons and armor** cannot have
+  Qualities outside those detailed in the chart below」，聽起來防具也有定製版；但本專案的
+  `customWeapons.js` 從頭就只管武器，防具一直是官方表 ＋ 插槽品級。要不要補一個
+  「定製防具」是**另一個功能**（需要防具鍛造介面、防具模組、價格公式），不是一條勾選框。
+  這一輪只回答「定制武器」那半。
+- **`isLevelMatched` 仍不動**：p.134 的例子（5 級角色 ＋ 5 級守護者 ＋ 3 級元素術士
+  ＝ 13 級份量的技能等級）證明魔石等級不從等級預算裡扣，所以 `skillLevelCeiling`
+  只做顯示，不參與驗證。
+---
+
+## §BX 魔晶石制改寫修補匠【小工具】的魔導科技（兩檔）
+
+> 2026-10-22。使用者裁定：「魔晶石開啟時，把魔法球往下兼容，變成魔科技的高級選項。
+> 魔加農就直接被替代刪掉。而魔科技的領域就只會有兩個益處而已。」
+
+### BX1. 原文與裁定
+
+科技奇幻手冊 p.133 `EQUIPMENT RULES CHANGES`，第二條（逐字）：
+
+> - **Any other equipment simply cannot exist. For this reason**, you should ignore the
+>   Dual Shieldbearer Skill from the Guardian Class (Core Rulebook, page 197) and **turn
+>   the magispheres from the Tinkerer Class into an advanced magitech benefit, removing
+>   the magicannon completely** (Core Rulebook, page 215).
+
+兩個關鍵：
+
+1. `For this reason` 指回**前一句**——「其他裝備根本不能存在」。所以魔導科技的改寫不是
+   因為魔晶石與修補匠技能互相影響，而是**同一個原因（裝備白名單縮小）的兩個後果**。
+2. 原書對兩樣東西給了**不同處理**：魔加農 `removing … completely`（刪），魔法球
+   `turn … into an advanced magitech benefit`（改寫／升格）。
+
+裁定落地為：核心書的三檔（魔科技篡奪／魔加農火器／魔法球原型）在魔晶石制下變成**兩檔**
+——魔科技篡奪留著、魔加農整檔消失、魔法球原型由最高檔降到進階檔補位。
+
+### BX2. 為什麼魔加農是「刪」而不是「留著但限制」
+
+核心書 p.215 的條目：
+
+| WEAPON | ACCURACY | DAMAGE |
+|---|---|---|
+| Magicannon | (DEX + INS) +1 | (HR + 10) |
+
+> Firearm • Two-handed • Ranged • **Cannot have Qualities.**
+
+三層理由，一層比一層硬：
+
+1. 它是**武器**。p.133 的白名單只剩定制武器／防具／飾品／機師模組，它不在裡面。
+2. 它寫著 `Cannot have Qualities`。魔晶石制下武器靠 Slot α/β/γ/δ 才有插槽，**一顆魔石
+   都鑲不了**。所以它在這個系統裡不是「弱武器」，是**廢鐵**——留著等於給玩家一個必定
+   選錯的選項。
+3. 它是**用 IP 憑空造出來的臨時武器**。魔晶石制的武器必須是花 zenit 鍛出來、帶品質、
+   能鑲石的定制武器（p.112），臨時武器架空「裝備是投資」這個前提。
+
+第 2 點是決定性的：**就算不管白名單，它也接不上魔晶石系統。**
+
+### BX3. 為什麼魔法球是「降檔」而不是「刪」
+
+它不是裝備，裝備規則原則上碰不到它。原書**沒有解釋**為什麼要動它，只能從重疊推：
+
+- **命名撞車**：`magisphere` ＝ magic ＋ sphere，而魔晶石系統的整個詞彙是
+  **mnemo**sphere／**hoplo**sphere。「球體承載能力」在科技奇幻世界是核心意象。
+- **機制撞車**：魔法球是「把別人的**法術**封進球裡，付 IP 施展」；職業魔石是「把別人的
+  **職業技能等級**封進球裡，付 zenit ＋ 裝備插槽換出來」。兩者做的是同一件事——繞過
+  成長曲線拿到別人的能力。並存的話，修補匠一個人就能繞開整個魔晶石系統的價值。
+
+原書的解法是保留修補匠「魔導技術專家」的定位，但**不讓他在「球」這個空間裡與魔晶石競爭**。
+
+### BX4. 原書留了一個洞，本專案不替它補
+
+`turn … into an advanced magitech benefit` **沒有給出替代文本**。原書只說「改寫」，沒說
+改成什麼。這是 GM 要自己填的空。
+
+本專案的處理：**只改它在技能樹上的位置（tier 3 → tier 2），不改寫效果內容**。
+憑空補一段能力等於發明規則；使用者裁定也只講了位置（「往下兼容，變成高級選項」）。
+
+### BX5. 資料層：一個推導，三個顯示面
+
+核心三檔原本寫死在 `TinkererGadgetsModal.jsx` 的 `GADGET_TRACKS` 裡，而「魔晶石制要刪哪
+一檔」是規則，不是 UI。2026-10-22 把三檔搬到 `data/gadgetBranches.js`：
+
+| 匯出 | 職責 |
+|---|---|
+| `MAGITECH_CORE_NODES` | 核心三檔，凍結常數，**唯一來源** |
+| `resolveMagitechNodes(technoRestrictsEquipment)` | 核心三檔／魔晶石兩檔 |
+| `magitechMaxTier(technoRestrictsEquipment)` | 該軌最高檔（3／2） |
+| `magitechNodeAt(tier, technoRestrictsEquipment)` | 取某一檔（超範圍回 `null`） |
+
+節點多了 `id`（`magitechOverride`／`magicannon`／`magispheres`），刪哪一檔靠 `id` 而不是
+名稱比對——名稱是文案，會改；`id` 不會。
+
+**三個顯示面共用同一個推導**（這是本節存在的理由）：
+
+1. `TinkererGadgetsModal.jsx`（科技樹配置彈窗）
+2. `TinkererGadgetsQuickRef.jsx`（跑團卡即時速查）
+3. `TinkererWorkshop.jsx`（魔導科技工坊）
+
+判定入口一律是 `modeRestrictsEquipment(resolveCreationRules(character?.creationRules).technospheres)`
+——與 §BW 的 `allowCustomWeapon` 派生、`EquipmentPickerModal`、`characterEngine` 同一個
+判定函式（`data/technospheres.js` L176，現在共 **7** 個消費點）。
+
+### BX6. 超額點數：進場夾、寫回也夾
+
+存檔裡可能有 `gadgets.magitech === 3`（開魔晶石**之前**投的）。魔晶石制只剩兩檔，那個
+「第 3 點」指向一個不存在的節點。
+
+處理：`useState` 初始值與 `onSave` 寫回**兩處都** `Math.min(…, magitechMaxTier)`。
+不寫遷移——因為規則模式是可切換的（關掉魔晶石又回到三檔），夾值是**讀取時的行為**，
+不是存檔的狀態。這與 §BW「派生而非寫入」是同一個思路。
+
+⚠️ 這一條踩過一次坑：第一版只斷言了 `useState` 的初始值，把 `onSave` 的 `Math.min`
+拿掉時**測試仍然全綠**。刻意破壞驗證抓到後才補上錨在寫入式上的斷言（見 BX7）。
+
+### BX7. 護欄與刻意破壞
+
+`test:technospheres` 新增 **Q 區段 50 條**（294 → 344），分三類：
+
+- **推導**（17 條）：三檔／兩檔、檔位無空洞、魔加農不存在、魔法球補進階檔、檔位名、
+  `magitechMaxTier`、`magitechNodeAt(3)` 回 `null`、核心常數沒被污染。
+- **原始碼守衛**（15 條）：彈窗節點來自 `MAGITECH_CORE_NODES`、彈窗的夾值與解鎖門檻、
+  速查的魔加農守衛**恰好兩處**（收合標籤 ＋ 展開區塊）、工坊恰好一處、兩個呼叫點有傳 prop。
+- **SSR 真渲染**（18 條）：兩態 × 展開／收合共四個組合。收合摘要標籤那一面預設看不到
+  （`isCollapsed` 初值 `false`），所以速查元件加了 `initialCollapsed` **測試注入點**
+  ——生產端永不傳入，不傳時行為逐字不變（`AGENTS.md` §1 的注入點鐵律）。
+
+六輪刻意破壞（全部確認 FAIL 後還原）：
+
+| 破壞 | 結果 |
+|---|---|
+| `resolveMagitechNodes` 拿掉 `.filter(id !== 'magicannon')` | 5 FAIL（320/325） |
+| 速查展開區的 `!technoRestrictsEquipment` 拿掉 | 1 FAIL（324/325） |
+| `onSave` 的 `Math.min` 拿掉（**第一版斷言**） | **0 FAIL——測試自己壞掉** |
+| 補上錨在寫入式的斷言後重做 | 1 FAIL（325/326） |
+| 速查**收合區**的 `!technoRestrictsEquipment` 拿掉 | 2 FAIL（342/344） |
+| 彈窗 `useState` 的 `Math.min` 拿掉 | 2 FAIL（342/344） |
+
+第三列就是 `AGENTS.md` §1 那句「測試自己壞掉，表現與程式全對一模一樣」的活例。
+第五列是它第二次出現：原始碼守衛只數到「展開區那一處」時，收合標籤整個漏掉；
+SSR 那 18 條把兩個視圖分開驗，才逼出「收合區還有一份硬編碼」。
+### BX8. 這輪刻意沒做的
+
+- **不改寫「advanced magitech benefit」的效果文本**（見 BX4）。
+- **不動 Playtest 分支變體**：`magitechArmament`／`magispheres` 是 p.38 的另一條規則線
+  （把魔導科技拆成兩條互斥分支），它們本身就是三節點結構，與 p.133 的兩檔改寫無關。
+  魔晶石 ＋ 變體分支並存時，顯示的是變體分支的三節點——這一組合原書沒有交代，留待裁定。
+- **§BW7 清單上的 D／I／K 其餘項／M 仍未動**。本輪只結掉 K 的修補匠那一半；
+  **守護者【雙重盾牌】**在裝備選擇器已擋（盾牌表整份空掉、空狀態引用 p.133），但技能
+  本身仍可選——技能層的作廢還沒做。
+---
+
+## §BY 職業魔石拆兩步：成長在第 2 步、裝載在第 4 步（2026-10-22）
+
+> 使用者問：「參照魔晶石的開卡規則，你認為拿職業晶石那邊是不是該改過去職業的界面那裡選才對？」
+> 回答是**要改，但不是整體搬過去，是拆**。使用者裁定：「好，拆」。
+
+### BY1. 問題：一個概念，兩個來源
+
+§BV 把職業魔石整塊放進第 4 步「裝備配置」的 `TechnospherePanel`。當時的理由是「它與插槽
+綁在一起」——但那個理由只對**一半**。
+
+實際症狀是 `skillLevelCeiling` 跨步驟斷裂：
+
+- 第 2 步「職業與技能」玩家在分配 5 個起始等級，需要知道「技能水準上限是幾級」。
+- 引擎算的是 `level + 已裝備魔石等級總和`。
+- 但魔石要到第 4 步才裝得上，所以第 2 步算出來的數字**不含魔石**。
+- 玩家跳到第 4 步、把魔石塞進插槽、再回到第 2 步——**同一個上限變了**。
+
+這與 §BR 是同一類缺陷：**同一個概念有兩個來源**。差別只在 §BR 是「存檔前 vs 存檔後」，
+這裡是「第 2 步 vs 第 4 步」。
+
+### BY2. 原文依據：它本來就是兩個決定
+
+科技奇幻手冊 p.134（逐字）：
+
+> When a Player Character gains a level, they increase their character level by 1 and
+> invest 1 level into **an Innate Class or into a mnemosphere** of their choice.
+
+p.135（逐字）：
+
+> When a character invests a level into a mnemosphere, that mnemosphere develops a new
+> Skill of the corresponding Class or increases the Skill Level of a preexisting Skill,
+> **just as with standard Class advancement**.
+
+p.135（逐字）：
+
+> **As long as** a Player Character has a weapon or armor containing mnemospheres
+> **equipped**, they gain access to all Skills inside it. **As soon as the item is
+> unequipped, they lose all of its benefits.**
+
+三句合起來是兩個獨立的決定：
+
+| 決定 | 原文關鍵詞 | 性質 | 步驟 |
+|---|---|---|---|
+| 投等級、分配技能、5 級挑英雄技能 | `invest 1 level into an Innate Class **or** into a mnemosphere`／`just as with standard Class advancement` | **成長**，與職業共用同一個池子、同一套機制 | 第 2 步 |
+| 塞進哪個插槽、哪件裝備 | `As long as … equipped`／`As soon as … unequipped, they lose all` | **生效**，條件式、可逆 | 第 4 步 |
+
+第一列的 `or` 是決定性的：升級點是「**投這裡或那裡**」的單一選擇。把魔石的等級放在
+「裝備配置」，等於把「升級」歸類成「換裝」。
+
+### BY3. 切法
+
+| | 第 2 步（`MnemosphereSection.jsx`，新檔） | 第 4 步（`TechnospherePanel.jsx`） |
+|---|---|---|
+| 取得魔石 | ✅ 選職業 → 取得 | ❌ |
+| 等級 ±1（上限 5） | ✅ | ❌（唯讀顯示 `N 級`） |
+| 技能分配（每級一個技能等級） | ✅ | ❌ |
+| 5 級精通挑英雄技能 | ✅ | ❌ |
+| 裝進插槽 / 換插槽 | ❌ | ✅ |
+| 插槽品級 α/β/γ/δ | ❌ | ✅ |
+| 附魔魔石（hoplosphere） | ❌ | ✅ |
+| 內嵌裝置（integrated 變體） | ❌ | ✅ |
+| 未裝備警告 | ❌（未裝是常態） | ✅（p.136 的條件就在這裡） |
+
+**「等級 ±1 只准存在一個地方」是硬規則**，兩邊都能改就會出現「卡片寫 3 級、引擎算 2 級」
+這種沒人查得出來的漂移。測試 R3 區段用原始碼字串釘住這件事。
+
+第 4 步保留的是一張**唯讀摘要**（`data-testid="mnemosphere-summary"`）：列出持有的每顆
+魔石與等級、珠子、以及「等級與技能在第 2 步設定」的指引。它存在的理由是插槽下拉需要
+玩家看得見「我有哪幾顆可以裝」。
+
+### BY4. 兩個數字：`held` 與 `active` 不可互換
+
+`calculateCharacterStats` 現在同時輸出兩個：
+
+| 欄位 | 算法 | 誰用 |
+|---|---|---|
+| `skillLevelCeiling` | `level + 已裝備（且裝備著）魔石等級總和` | 引擎驗證、跑團卡、角色卡 |
+| `heldSkillLevelCeiling` | `level + **持有**魔石等級總和` | 第 2 步的預覽 |
+| `heldMnemospheres` | 持有的全部魔石（`getHeldMnemospheres`） | 第 2 步清單 |
+| `activeMnemospheres` | 真正生效的魔石（`getActiveMnemospheres(state, { equippedSlots })`） | 引擎、跑團卡 |
+
+**預覽不得覆蓋實際值。** 第 2 步的數字只是「若全部裝上會到幾級」，它**不是**角色的技能
+上限；一顆沒裝上的魔石在任何判定裡都不提供技能。規則關閉時兩者都退回 `level`。
+
+第 2 步底部顯示的算式直接對應 p.134 的例子（5 級角色 ＋ 5 級守護者 ＋ 3 級元素術士
+＝ 技能水準相當於 13 級）：`角色等級 {level} ＋ 持有魔石 {heldLevelTotal} 級 → 技能水準
+相當於 {previewCeiling} 級`。
+
+### BY5. `getEquippedTechnosphereSlotIds` 為什麼抽出來
+
+它原本是 `calculateCharacterStats` 裡的一段內聯 filter：
+
+```js
+['mainHand', 'offHand', 'armor', 'accessory'].filter((slotId) => { … })
+```
+
+抽成具名 export 的理由**不是**「多了一個消費者」——消費者仍然只有一個——而是
+**測試只能間接驗證它**。原本要確認「`無`／`無盾牌`／空字串／`null` 不算裝備著」，
+唯一的辦法是構造四種角色再比 `skillLevelCeiling`，而那條路徑還會被技能上限的其他
+因素干擾。抽出來之後 R2 三條直接釘住邊界。
+
+它留在 `characterEngine.js` 而不是 `data/technospheres.js`，是因為 `technospheres.js`
+**零 import**（硬約束，見 §BO）——它不認識 `char.equipment` 的形狀，而 `characterEngine`
+每天都在處理它。
+
+### BY6. 護欄與刻意破壞
+
+`test:technospheres` 新增 **R 區段 28 條**（344 → 372）：
+
+- **R1 兩個數字**（7 條）：未裝載時 `held > active`、裝上後兩者相等、等於
+  `level + 魔石等級`、`heldMnemospheres` 看持有、`activeMnemospheres` 未裝載時為空、
+  規則關閉時兩者都退回 `level`。
+- **R2 裝備判定邊界**（3 條）：四個槽位、`無`／`無盾牌`／`''`／`null`、沒有 `equipment`。
+- **R3 單一來源**（7 條）：等級 ±1／技能分配／精通英雄技能**只**出現在
+  `MnemosphereSection`；`bead-mnemosphere-` 不再出現在面板；裝載下拉與插槽品級**只**
+  出現在面板；第 2 步呼叫 `getSkillLevelCeiling(` 而不自己算。
+- **R4 掛載點**（4 條）：`CharacterEditor.jsx` 裡 `<MnemosphereSection>` 的位置落在
+  `activeTab === 2 &&` 與 `activeTab === 4 &&` 之間，`<TechnospherePanel>` 在其後。
+- **R5 預覽文字**（3 條）：第 2 步印得出「技能水準相當於 N 級」、數字是
+  `level + 持有等級`、並說得出「裝進插槽是第 4 步的事」。
+
+三輪刻意破壞（全部確認 FAIL 後還原）：
+
+| 破壞 | 結果 |
+|---|---|
+| 面板裡重新出現 `raiseMnemosphere` 字串 | 1 FAIL——`R3 等級 ±1 只出現在第 2 步` |
+| `heldSkillLevelCeiling` 退回 `? level`（忽略魔石） | 3 FAIL——R1 三條 |
+| `activeTab === 2 &&` 改成 `=== 22 &&`（模擬放錯步驟） | 1 FAIL——`R4 兩個步驟的區塊邊界都找得到` |
+
+第一輪特別重要：它證明的不是「程式對」，而是**「R3 這條斷言不是恆真」**。原始碼字串
+斷言最容易寫成永遠通過——只要被斷言的字串在別的區塊也出現，或整條路徑不存在。
+
+### BY7. 這輪刻意沒做的
+
+- **附魔魔石（hoplosphere）不動**。它是純裝備（強化武器／防具），沒有「成長」那一半，
+  所以沒有拆的理由。留在第 4 步。
+- **內嵌裝置（integrated 變體）不動**。它是「魔石掛在裝置上而不是裝備插槽上」的替代
+  容器，本質仍是**裝載**。
+- **§BW7／§BX8 清單上的 D／I／M 仍未動**：升級流程不傳 `mnemosphereId`（D）、高階角色
+  的額外起始魔石（I）、開局自動配發那顆免費 1 級魔石（M）。**M 現在更明顯**——第 2 步
+  的空狀態寫著「開局會免費獲得一顆 1 級魔石」，但那顆石頭仍要玩家自己按「取得」。
+  這一條從「沒做」變成「文案與行為不一致」，優先度上升。
+- **守護者【雙重盾牌】的技能層作廢**仍未做（§BX8 已記）。
+---
+
+### BZ. 開局自動配發 ＋ 技能表改成職業樣式
+
+#### BZ1. 使用者要什麼
+
+兩句原文：
+
+> 「自動塞，讓玩家選擇職業就行。然後我期望職業晶石選擇技能的界面應該和其他一般職業是一樣的，要看到所有技能的說明才可以選。只是上面的標識改成職業晶石，然後max sl是5級這樣」
+
+拆成兩件事：(a) 開局那顆魔石**不要按鈕**——選職業就成立；(b) 技能分配要長得像職業界面，**每個技能都看得到說明**才選得下去。
+
+#### BZ2. 原書依據
+
+| 頁 | 原文 | 推論 |
+|---|---|---|
+| p.134 | 「Each Player Character also receives a level 1 mnemosphere of a Class of their choice **upon creation**.」 | 免費那顆是**成立即得**，不是購買或按下確認。所以玩家唯一的決定是「哪個職業」 |
+| p.135 | 「When a character invests a level into a mnemosphere, that mnemosphere develops a new Skill of the corresponding Class or increases the Skill Level of a preexisting Skill, **just as with standard Class advancement**.」 | 技能分配的界面**應該**和職業加點一樣。這句就是 (b) 的依據 |
+| p.135 | 「Mnemospheres do not grant access to the free benefits of their Classes, nor do they allow characters to start Projects or perform Rituals.」 | 所以只抄「技能表」，**不抄**職業的免費益處區塊 |
+| p.138 | `TECHNOSPHERES AS REWARDS`／「each technosphere is worth approximately 500 zenit」 | 第 2 顆起是 GM 獎勵，仍要一個明確動作（不能每開一張卡就自動長出第二顆） |
+
+#### BZ3. 「自動配發」的實作：空珠座，不是按鈕
+
+`held.length === 0` 時畫的是一顆**虛線空珠座**（`EmptyBeadSocket`）加一個職業下拉，
+不是「選職業 → 按取得」。理由：
+
+- 空珠座在**視覺上就是那個位置**——玩家一眼看到「這裡會有一顆」，而不是讀一段提示字
+  再去找按鈕。§BY 的空狀態原本只有一行斜體字，看起來像「這個功能還沒啟用」。
+- 選完職業，那顆空珠座**原地變成**真魔石（`createMnemosphere({ className })` 預設
+  `level: 1`），不需要第二個動作。
+
+第 2 顆起才出現「＋ 再取得一顆」，按下去才展開下拉。這條界線是規則的界線，不是 UI 的
+偏好：p.134 只送一顆，其餘來自 GM。
+
+※ 這裡沒有動 `createNewCharacter`。把免費魔石塞進建角預設值會在**所有舊卡**上憑空
+長出一顆石頭（`normalizeTechnosphereState` 每次讀檔都會跑），而玩家當初可能根本沒開
+魔晶石規則。空珠座是「沒有資料」的呈現，不是「有資料但隱藏」。
+
+#### BZ4. 技能表：抽 `ClassSkillPickerList`，不改 `ClassSkillCard`
+
+`ClassSkillCard` 的「模式 B（展開點選）」做的是同一件事——但它是 1,312 行的元件，
+同時綁著公測變體（`getVariantsForSkill`／`previewVariantBySkill`／`handleToggleVariant`）、
+技能子選項彈窗、機師載具／旅人夥伴／修補匠小工具三種專屬 bar、植物學家花園預覽。
+職業魔石一樣都不需要。
+
+所以抽一個 190 行的 `components/ClassSkillPickerList.jsx`：
+
+- 輸入：`skills`（`classSkillsForClass()` 的 `{name, maxSL, desc}`）、`value`（`[{name, sl}]`）、
+  `budget`（＝魔石等級）、`theme`、`onChange`
+- 每一列：`✦ 技能名` ＋ `SkillStarPips`（可點）＋ `SkillDescription desc={sk.desc} sl={currentSL}`
+- 點星星加點、點已亮的星星降級——與 `ClassSkillCard` 模式 B 同一套語彙
+
+`maxSL` 一律夾在 `min(sk.maxSL, 5)`：p.135 的「just as with standard Class advancement」
+意味著技能的 SL 上限照技能自己的 `maxSL`（多數是 5，少數是 1），而魔石本身最高 5 級，
+所以單一技能在魔石裡投不到 5 級以上。
+
+#### BZ5. 預算模型與兩次截圖迭代
+
+點數是**一個共用池子**，不是每個技能各自一份。某個技能此刻的天花板：
+
+```
+min(技能自己的 maxSL, 這個技能的 SL ＋ 還沒花掉的點數)
+```
+
+第一版把**星星本身**畫到那個天花板，於是 `SL 0/1` 看起來像「這個技能只到 1 級」——
+假的，上限是 5 級，只是這顆魔石只剩 1 點。第二版改成畫**技能自己的上限**（`SL 0/5`），
+點超過的那一下由 `setSL` 夾回天花板（「我只剩 1 點，就投 1 點」），剩下的資訊放
+`title`。這條是截圖看出來的，不是測試看出來的——兩版都「全綠」。
+
+#### BZ6. 技能表查不到的技能名不准靜默丟掉
+
+第一版把存檔裡不在技能表的名字直接濾掉。截圖立刻露餡：卡片標題寫「技能 2 / 3」，
+列表底部寫「已用 0 / 3」——同一個魔石兩個數字。
+
+真實成因不是測試資料造假，而是**職業表會改版**（§BF 就改過職業名），玩家的存檔留著
+舊名字。濾掉等於那 2 點憑空消失，玩家也看不出來。現在照樣列出來、標紅「技能表查無此
+技能」、星星仍可點（可收回點數）。
+
+#### BZ7. 護欄（+15）與刻意破壞
+
+`tests/technospheres.test.mjs` 新增 §S 共 15 條：
+
+- **S1**（3）：空狀態畫的是空珠座、珠座裡就能選職業、開局沒有「取得」按鈕
+- **S2**（2）：已有魔石才出現「再取得一顆」、且不再畫空珠座
+- **S3**（4）：未學習的技能也列出來（保鏢／防守掌握）、說明真的畫出來、`onChange` 有接上
+- **S4**（6）：第 2 步不再自己加減技能點、走共用元件、單一技能上限夾 5 級、
+  天花板取小、星星畫技能自己的上限
+
+三輪刻意破壞（全部確認 FAIL 後還原）：
+
+| 破壞 | 結果 |
+|---|---|
+| `data-testid="free-mnemosphere-slot"` 改名 | 1 FAIL——`S1 開局畫的是空珠座` |
+| `Math.min(cap, current + remaining)` → `cap` | 1 FAIL——`S4 此刻天花板` |
+| `skills={skillDefs}` 只傳已學的 | 4 FAIL——S3 三條 ＋ `O5 魔石技能選擇器存在` |
+
+第三輪的附帶 FAIL 值得記：它證明「未學習的技能也要列出」不是一條孤立的斷言，
+`O5` 的容器斷言會跟著倒——兩個區段對同一件事有獨立觀測點。
+
+#### BZ8. 這輪刻意沒做的
+
+- **§BY7 的缺口 D（升級流程不傳 `mnemosphereId`）仍未動**。它現在更刺眼：第 2 步
+  的技能表已經長得跟職業一樣，但**升級時**玩家還是沒有入口選「這一點投給哪顆魔石」。
+  那是 `CharacterPlayHUD.jsx` 的升級面板，不在本次範圍。
+- ~~**缺口 I（高階角色的額外起始魔石）**仍未動。p.134 只送一顆，高階角色的補償規則~~
+  ~~原書沒寫，屬於 GM 裁量。~~ **已於 §CC 結案**（2026-10-22）：規則就寫在 p.140，不是 GM 裁量。
+- **`ClassSkillCard` 沒有被重構去用新元件**。它的模式 B 有變體與子選項分支，
+  硬接會把 190 行的東西變成第三種模式；等哪天變體系統改版再談。
+---
+
+## CA. 升級的兩個出口：固有職業 or 職業魔石（缺口 D 結案）
+
+§BY7 記下的缺口 D 是：「升級流程不傳 `mnemosphereId`，所以魔晶石制的角色**沒有辦法**
+把升級的那一點投給魔石。」§BZ 補完第 2 步之後這個缺口反而更刺眼——技能表已經長得
+跟職業一樣，但升級時沒有入口。
+
+### CA1. 規則依據
+
+p.134 逐字：
+
+> When a Player Character gains a level, they increase their character level by 1 and
+> invest 1 level into **an Innate Class or into a mnemosphere** of their choice.
+
+這句話有兩個必須同時成立的部分：
+
+1. **升級只給一點**。不是「職業一點、魔石一點」，是一個點、兩個出口。所以 UI 不能
+   讓玩家兩邊都填（那會變成一點當兩點用）。
+2. **兩個出口是對等的**。p.135 接著說投進魔石時「develops a new Skill of the corresponding
+   Class or increases the Skill Level of a preexisting Skill, **just as with standard Class
+   advancement**」——所以魔石那一側的技能挑選介面必須與職業那一側同構，不能是簡化版。
+
+p.136 的上限是 5 級，所以滿級魔石不該出現在候選裡（點下去什麼都不會發生）。
+
+### CA2. 引擎層其實早就支援
+
+`applyLevelUp(char, { className, skillName, isNewClass, mnemosphereId })` 的簽名裡
+`mnemosphereId` 從 §BO 就存在，`tests/technospheres.test.mjs` 的 K 區段也早就逐條測過
+（等級 +1／魔石 +1／技能 SL +1／職業數不變／扣 10 EXP／HP・MP 各 +1／滿級退回原角色／
+不存在的 id 退回原角色）。
+
+**缺的從頭到尾只是「按鈕沒有把 id 傳進去」。** 這是「測試全綠但功能不存在」的典型：
+引擎的每一條規則都對，玩家還是點不到。所以這輪的護欄刻意分成兩層——
+資料層（候選清單）與接線層（原始碼字串），見 CA5。
+
+### CA3. UI 的形狀
+
+`CharacterPlayHUD.jsx` 的升級彈窗新增「這一點要投在哪裡？」兩個並排按鈕
+（固有職業／職業魔石），只有 `levelUpTechOn` 為真時才畫——標準規則下「投魔石」
+這條路根本不存在，畫出來只會多一個永遠點不動的按鈕。
+
+選了「職業魔石」之後：
+
+- 出現魔石下拉（`守護者·GUARDIAN　Lv 3 / 5`），候選只含未滿 5 級的
+- 固有職業的下拉**收起來**（`levelUpTarget !== 'mnemosphere' &&`）——
+  兩個出口是互斥的，同時擺著等於在暗示可以各填一個
+- 技能清單換成**那顆魔石所屬職業**的技能表（`classSkillsForClass`），
+  與職業側共用同一份渲染，含完整說明與「以上數值以升級後的 SL N 顯示」
+
+確認鈕的 `disabled` 從 `!selectedClassForLevelUp || !selectedSkillForLevelUp`
+改成 `!selectedSkillForLevelUp || (!levelUpIsMnemosphere && !selectedClassForLevelUp)`
+——魔石模式下 `selectedClassForLevelUp` 是空字串，照舊式會被永久鎖住。
+
+### CA4. 候選清單抽成資料層函式
+
+```js
+export const getLevelUpMnemosphereCandidates = (state) => getHeldMnemospheres(state)
+  .filter((m) => (Number(m?.level) || 0) < MNEMOSPHERE_MAX_LEVEL);
+```
+
+放在 `data/technospheres.js`（該檔零 import 的硬約束不受影響——它只用自己的
+`getHeldMnemospheres` 與 `MNEMOSPHERE_MAX_LEVEL`）。
+
+**為什麼不寫在元件裡**：元件的 `filter` 要 SSR 才看得到，而 SSR 不執行事件；
+「滿級魔石不出現在候選」是**規則**不是排版，寫在 JSX 裡就等於測不到
+（`AGENTS.md` §1 的同一條理由，§AW6(b) 的 `buildSkillEntry` 是前例）。
+
+### CA5. `JRPGModal` 的 SSR 分支（順帶解決的結構問題）
+
+原本：
+
+```js
+if (!isOpen || !mounted || typeof document === 'undefined') return null;
+...
+return ReactDOM.createPortal(modalContent, document.body);
+```
+
+`createPortal` 需要真實的 `document.body`，伺服器端沒有 → **SSR 下任何彈窗都是空白**。
+這意味著「彈窗裡到底有沒有這段文案」只能用原始碼字串猜，而字串斷言是最弱的一種斷言
+（`AGENTS.md` §1：「斷言 `html.includes(...)` 之前先問這個字串在別的區塊是不是也有」）。
+
+改成：
+
+```js
+if (!isOpen) return null;
+// ...modalContent 定義...
+if (typeof document === 'undefined') return modalContent;  // SSR 專用
+if (!mounted) return null;
+return ReactDOM.createPortal(modalContent, document.body);
+```
+
+**瀏覽器裡 `document` 永遠存在，這條分支永不觸發**，生產行為逐字不變。
+代價是 27 個關卡要全部重跑一次，確認沒有既有斷言靠「彈窗是空的」在過——實測零回歸。
+
+順帶給 `CharacterPlayHUD` 加了四個注入點（`initialLevelUpOpen` / `initialLevelUpTarget` /
+`initialLevelUpMnemosphereId` / `initialLevelUpSkillName`），生產端永不傳入，
+不傳時初始值與原值逐字相同。有了它們，升級彈窗才能被 SSR 渲染、也才能截圖。
+
+### CA6. 護欄（§T，12 條）
+
+- **T1–T5**（5）：候選只列未滿 5 級／滿級不進候選／保持持有順序（不是按等級排）／
+  空狀態回空陣列／全部滿級時沒有候選
+- **T6–T12**（7）：`mnemosphereId` 真的傳進去／有「職業魔石」出口／
+  未開魔晶石制不畫切換／魔石那條走 `classSkillsForClass`／
+  魔石模式不畫固有職業下拉／候選來自資料層（元件裡不自己 filter）／
+  呼叫端沒先改職業
+
+T6–T12 是原始碼字串斷言，它們證明「接上去了」，**不證明「按下去對」**——
+後者由 K 區段的 `applyLevelUp` 直接測。兩層合起來才完整。
+
+### CA7. 三輪刻意破壞
+
+| 破壞 | 結果 |
+|---|---|
+| `getLevelUpMnemosphereCandidates` 拿掉 `.filter(...)` | 4 FAIL（T1／T2／T3／T5），395 / 399 |
+| 升級面板不傳 `mnemosphereId` | 1 FAIL（T6），398 / 399 |
+| `levelUpTarget !== 'mnemosphere'` 改成 `true` | 1 FAIL（T10），398 / 399 |
+
+三輪都是 `exit 1`，還原後 399 / 399。
+
+**附帶教訓**：這輪在 `JRPGModal` 的註解裡寫了 `※` 以外的警告符號，`npm run test:emoji`
+立刻 `通過 0 / 1　失敗 1` 並指出 `src/components/ui/JRPGModal.jsx:137  U+26A0`。
+`AGENTS.md` §3.2 說「同一種失誤發生三次」——這是第四次，改用 `※`。
+
+### CA8. 這輪刻意沒做的
+
+- ~~**缺口 I（高階角色的額外起始魔石）**仍未動。p.134 只送一顆，補償規則原書沒寫。~~ **已於 §CC 結案**（2026-10-22）。
+- **`isNewClassLevelUp` 有 state setter 但沒有 UI 控件**——這是既有的死功能，
+  本輪沒有動它（魔晶石制下 `isNewClass` 本來就會被引擎擋掉）。
+- ~~**魔石升級時不驗證「技能名屬於該魔石職業」**。`applyLevelUp` 會把任意 `skillName` 推進去，安全帶是「UI 只列該職業的技能表」。~~ **已於 §CE 補上白名單**（2026-10-22）。
+
+---
+
+### CB. 升級的第二條路：第一次拿到某個職業（Core p.228）
+
+#### CB1 問題：一個有 setter、沒有控件的 state
+
+`CharacterPlayHUD.jsx` 裡的 `isNewClassLevelUp` 從 §BO 起就存在：宣告、被讀（傳進
+`applyLevelUp`、拼進成長履歷標題）、被重設（升級完成後歸零），**但全檔沒有任何一處
+把它設成 `true`**。也就是說引擎那條「新增職業」的分支寫好了、測好了（`test:engine`
+的 G 區段有 5 條），玩家卻永遠碰不到。
+
+`§CA8` 把它列為「既有的死功能，本輪沒有動它」——本輪就是處理它。
+
+#### CB2 原書怎麼寫（Core p.228「Putting Levels in Character Classes」）
+
+> You increase the level of one of your character's Classes by one, **or you gain your
+> first level in a Class you didn't already have**.
+
+升級是**兩個選項**，不是一個。同一頁還給了兩條限制：
+
+> You can never have more than **ten levels** in a Class. Once you put the tenth level
+> in a Class, that Class has been mastered ... and you can no longer invest levels into it.
+
+> You can never have more than **three non-mastered Classes**. If you want to further
+> diversify your character, you must first master some of the Classes you acquired.
+
+注意第二條不是「最多三個職業」，是「最多三個**未精通**職業」——精通一個 10 級職業之後
+就讓出一個位置。這與建角規則的 `classCountMax`（開局選 2–3 個，p.36）是**兩件事**，
+不可互相取代。
+
+#### CB3 引擎：兩條以前完全沒有實作的限制
+
+`applyLevelUp` 原本會把職業一路推到 11 級，也會無條件 `push` 第 4、第 5 個職業。
+本輪補上：
+
+- `CLASS_MAX_LEVEL = 10`——投既有職業時 `if (targetClass.level >= CLASS_MAX_LEVEL) return char;`
+- `MAX_NON_MASTERED_CLASSES = 3`——`isNewClass` 時數一遍
+  `(char.classes || []).filter((c) => (c.level || 0) < CLASS_MAX_LEVEL)`，滿了就 `return char`
+- 另外擋掉「把已經有的職業當新職業」：那會 push 出兩筆同名條目，
+  `getCharacterLevel` 的職業總和與 `masteredClasses` 都會跟著壞
+
+三條都走 `return char`（**原物件原樣回傳**）而不是拋錯——與 §BO 那條「找不到職業就什麼
+都不要動，EXP 不能被扣掉」同一個約定。
+
+#### CB4 UI：下拉的第二個分組，而不是第二個控件
+
+升級彈窗已經有「這一點要投在哪裡？」的兩顆按鈕（固有職業／職業魔石，§CA）。
+「新職業」不是第三個出口——它是「職業」這一側的第二個選項（p.228 的 `or` 就在這一層），
+所以做成下拉裡的第二個 `<optgroup>`：
+
+```
+-- 選擇職業 --
+[既有職業]
+  守護者·GUARDIAN (目前 Lv 3)
+  元素師·ELEMENTALIST (目前 Lv 2)
+[新職業（未精通 2 / 3）]
+  ＋ 舞者·DANCER
+  ＋ 吟唱者·CHANTER
+```
+
+值帶 `__new__:` 前綴區分，選中之後：職業名剝掉前綴、技能表換成該職業的完整技能表
+（`character.classes` 裡還沒有它，所以 SL 全部是 0）、確認鈕在選了技能之後才亮。
+
+分組**只在 `!levelUpTechOn && levelUpNonMasteredCount < MAX_NON_MASTERED_CLASSES` 時才列**——
+魔晶石制下不得取得新職業（p.134「cannot acquire new Classes」），這條在 §BO 就已寫進引擎。
+
+#### CB5 `parseLevelUpClassValue`：字串斷言證明不了「拆對了」
+
+拆解前綴的邏輯一開始寫在元件裡：
+
+```js
+const levelUpSelectedClassName = levelUpSelectedIsNew
+  ? selectedClassForLevelUp.slice(LEVEL_UP_NEW_PREFIX.length)
+  : selectedClassForLevelUp;
+```
+
+護欄用的是 `HUD_SRC.includes('className: levelUpSelectedClassName,')`。刻意破壞驗證時
+把 `slice(PREFIX.length)` 改成 `slice(0)`——**測試照樣 411/411 全綠**：前綴原封不動留在
+職業名裡，技能表會是空的，而字串斷言只證明「這個識別字被用到了」。
+
+修法是把拆解抽成資料層純函式（`AGENTS.md` §1「`onClick` 內的邏輯 SSR 測不到 → 抽成
+純函式」的同一條原則），用真值斷言：
+
+```js
+parseLevelUpClassValue('__new__:舞者') // { isNew: true,  className: '舞者' }
+parseLevelUpClassValue('舞者')          // { isNew: false, className: '舞者' }
+parseLevelUpClassValue('__new__:')      // { isNew: true,  className: '' }  → 確認鈕保持禁用
+```
+
+**教訓**：`includes` 型斷言對「有人改了行為」敏感，對「定義體被改壞」不敏感。
+凡是「拆／組／算」的邏輯，抽出來才有東西可以斷言。
+
+#### CB6 護欄
+
+- `test:engine` G 區段新增 16 條：兩個常數、已精通不能再投（4）、三個未精通不能再開（3）、
+  精通一個之後可以再開（5）、已擁有的職業不能當新職業（2）
+- `test:technospheres` 新增 §U 17 條：U1 死 state 已移除（沒有 setter、沒有被當旗標傳出去）、
+  U2 系列 8 條 `parseLevelUpClassValue` 真值、U3–U11 接線（資料層條件、未精通判定、
+  分組標籤、只列還沒有的職業、`isNewClass` 傳值、剝前綴的職業名、履歷標題、技能表、確認鈕）
+- `test:technospheres` 原本那條「規則關閉時新增職業照常可用」斷言 `classes.length === 4`，
+  用的是三個職業的 `BASE_CHAR`——新守衛下**必須失敗**。改成只有兩個職業的角色
+  （建角預設 `classCountMin: 2`），新增後剛好三個，並補一條「新職業等級 1、首個技能 SL 1」
+
+#### CB7 六輪刻意破壞（全部抓到，還原後全綠）
+
+| 破壞 | 抓到它的斷言 |
+|---|---|
+| `>= CLASS_MAX_LEVEL` → `> CLASS_MAX_LEVEL` | 「已精通：EXP 不會被扣」等 4 條 |
+| `>= MAX_NON_MASTERED_CLASSES` → `>` | 「三個未精通職業時不能再開第四個」等 3 條 |
+| 拿掉 `owned ||` | 「已擁有的職業不能走這條路」等 2 條 |
+| `parseLevelUpClassValue` 不剥前綴 | U2b／U2e／U2g |
+| `isNewClass: levelUpSelectedIsNew` → `false` | U7 |
+| 新職業選項不濾掉已擁有的 | U6 |
+
+第 4 輪是**第一次沒抓到**的那個（見 CB5）——破壞之後 411/411 全綠。這正是這一段存在的理由。
+
+#### CB8 這輪刻意沒做的
+
+- ~~**缺口 I（高階角色的額外起始魔石）**仍未動。p.134 只送一顆，補償規則原書沒寫。~~ **已於 §CC 結案**（2026-10-22）。
+- ~~**`applyLevelUp` 投魔石時不驗證「技能名屬於該魔石職業」**仍未動（§CA8 已記）。~~ **已於 §CE 結案**（2026-10-22）。
+  ~~新職業這條有 UI 側的安全帶（技能表只列該職業的），引擎側同樣沒有白名單。~~
+- ~~**`validateCharacter` 沒有加「未精通職業超過三個」的警告**。升級路徑已經擋住了，但匯入或手改存檔仍可能造出這種卡；要做的話是 `errors` 而不是 `warnings`。~~ **已於 §CE 結案**（2026-10-22）。
+
+---
+
+## CC. 高階角色的額外起始魔石（缺口 I 結案，p.140）
+
+**缺口原文**（§BV 缺口表 I）：「高階角色的額外起始魔石（每超過 10 級一顆 0 級）沒有 UI」。
+
+**核對**：Techno Fantasy Atlas（PDF p.140 ＝ 印刷 p.138）「HIGH LEVEL CHARACTERS」逐字：
+
+> When you create a character with a level higher than 5 in a campaign that uses
+> technospheres, the following special rules apply:
+> - **Starting budget.** … initial zenit as per page 229 of the Core Rulebook …
+> - **Mnemospheres.** The character receives an additional level 0 mnemosphere for
+>   every 10 levels beyond 5 (for instance, a level 23 character will receive one
+>   additional mnemosphere, for a total of two initial mnemospheres).
+> - **Levels.** The character may distribute their levels as they wish between their
+>   Innate Classes and initial mnemospheres, but must invest at least 5 levels among
+>   three Innate Classes.
+
+三件事同時成立：① 只看**起始等級**；② 每 **10** 級一顆（不是每 5 級）；③ 追加的是 **0 級**。
+
+### CC1 這個缺口的真實狀態比紀錄寫的糟
+
+紀錄只說「沒有 UI」。實測是三件事：
+
+| 現象 | 位置 | 後果 |
+|---|---|---|
+| 兩個 helper 早就寫好也測好了 | `technospheres.js` 的 `getInitialMnemosphereCount`／`getInitialMnemosphereLevel`；`tests/technospheres.test.mjs` 已有 5 條斷言 | 「已實作」與「待做」兩份紀錄同時存在，兩邊都不算說謊 |
+| 引擎 import 了卻一次都沒用 | `characterEngine.js` L19–20 | **死 import**。它讓 grep 得到「引擎有這個函式」的假象 |
+| 開局那顆實際建在 0 級 | `MnemosphereSection.addMnemosphere` 沒傳 `level` | 文案寫「1 級」、珠子顯示「0 / 5 級」、技能一點都分不了 |
+
+第三項是這輪真正的收穫：**一個寫著「1 級」的畫面，底下的資料是 0 級，而 411 條斷言全綠**。
+原因不是測試不夠多，是那個決定寫在 `onChange` 裡——SSR 不執行事件（`AGENTS.md` §1）。
+
+### CC2 決定
+
+1. **資料層新增 `getInitialMnemosphereLevels(level)`**：回傳逐顆等級的陣列，**長度就是顆數**。
+   顆數與等級分兩個函式遲早對不上（畫了 2 個座、只有 1 個知道自己是 0 級）。
+2. **資料層新增 `buildInitialMnemosphere(className, index)`**：把「第幾顆是幾級」從 UI 移進資料層。
+   `buildInitialMnemosphere(x, 0).level === 1` 是一條**會失敗**的斷言；
+   原本寫在 `onChange` 裡的版本，壞掉也只會全綠。
+3. **UI 畫 `pendingFree` 個空珠座**，不是固定一個；每顆的 `data-slot-level` 就是它會建出來的等級。
+4. **免費額度沒填滿時不畫「＋ 再取得一顆」**：那顆按鈕是 p.137 的 GM 獎勵
+   （`TECHNOSPHERES AS REWARDS`：每顆約 500z、已有等級每級 +300z），與開卡額度是兩件事。
+   兩個一起出現，玩家會以為第二顆要先按按鈕才有。
+5. **顆數看 `rules.startingLevel`，不看 `char.level`**。p.140 的前提是
+   `When you create a character with a level higher than 5`——只管開卡那一刻。
+   用 `char.level` 的話，一個 5 級開卡、練到 15 級的角色會憑空多一顆免費魔石。
+6. **刪掉 `characterEngine.js` 的死 import**。免費額度是開卡 UI 的事，引擎不需要它。
+
+### CC3 順帶修正的錯誤紀錄
+
+- §CB8 寫「缺口 I 仍未動。p.134 只送一顆，**補償規則原書沒寫**」——**原書寫了**，
+  就在 p.140，而且 §BO6 自己記過「CHM 漏掉三條規則，其中一條是高階角色的額外魔石」。
+  同一個檔案的兩處對同一件事給了相反的答案。
+- 多處把 `TECHNOSPHERES AS REWARDS` 記成 p.138。實際在 PDF p.139 ＝ 印刷 p.137；
+  印刷 p.138 是「TROUBLESHOOTING AND ALTERNATIVE RULES」（三種變體）。本輪起改寫 p.137。
+
+### CC4 護欄（`test:technospheres` 新增 V 區段 28 條，417 → 445）
+
+真值斷言（不是原始碼字串）：5／14／15／23／25／35 級的顆數與逐顆等級、原書 23 級的例子、
+`buildInitialMnemosphere` 建出來的等級、SSR 空珠座數量與 `data-slot-level`、
+「起始 5 級、現在 15 級 → 仍然只有 1 個空珠座」。
+
+七輪刻意破壞，全部抓到：
+
+| 破壞 | 抓到它的斷言 |
+|---|---|
+| 每 10 級 → 每 5 級 | 13 條（含 V2／V3／V5） |
+| 追加魔石一律 1 級 | 10 條（含 V3／V4／V5） |
+| `buildInitialMnemosphere` 不傳 `level`（復原舊 bug） | V10 |
+| 免費額度改看 `char.level` | 8 條（含 V12／V14b） |
+| 額度沒領完也畫「再取得一顆」 | V14c |
+| UI 自己算等級（跳過資料層） | V10e |
+| 標題不印「還差幾顆」 | V13b |
+
+### CC5 這輪刻意沒做的
+
+- ~~**`INNATE_MIN_LEVELS`（p.140「must invest at least 5 levels among three Innate Classes」）
+  仍未強制**。目前只出現在 codex 文案，`validateCharacter` 不檢查。~~
+  **已於 §CD 補上**（2026-10-22）：魔晶石制下的等號檢查改成「只擋超過」，並加了下限 error。
+  總量守恆仍不做硬檢查——引擎分不出「玩家投點升上來的魔石」與「GM 發放的魔石」，見 §CD3。
+- ~~**`applyLevelUp` 投魔石時不驗證技能名屬於該魔石職業**（§CA8、§CB8 已記，仍未動）。~~ **已於 §CE 結案**。
+- ~~**`validateCharacter` 沒有「未精通職業超過三個」的錯誤**（§CB8 已記，仍未動）。~~ **已於 §CE 結案**（error，只在離開起始等級時報）。
+
+---
+
+## CD. 魔晶石制的等級分配：職業等級總和不是角色等級（p.134／p.140）
+
+**起點**：§CC5 記著「`INNATE_MIN_LEVELS`（p.140「must invest at least 5 levels among three
+Innate Classes」）仍未強制，目前只出現在 codex 文案」。動它之前先量了一次現況，
+結果發現真正壞掉的不是「少一條檢查」，而是**既有那條檢查在魔晶石制下是錯的**。
+
+### CD1 既有的等號檢查，在魔晶石制下把合法卡片報成漂移
+
+`validateCharacter` 原本有一條：
+
+```js
+if (classCount > 0 && classLevelSum !== getCharacterLevel(char)) { …warning… }
+```
+
+標準規則下這是對的（升級時職業等級與角色等級一起 +1）。但魔晶石制是**規則明訂的例外**
+（p.134）：
+
+> When a Player Character gains a level, they increase their character level by 1 and
+> **invest 1 level into an Innate Class or into a mnemosphere of their choice**.
+
+投進魔石時職業等級不會 +1，所以「職業等級總和」**本來就該**落在角色等級之後。
+實測（2026-10-22，15 級角色、三個固有職業 2/2/1 ＝ 5 級、兩顆 5 級魔石）：
+
+```
+[warning] 職業等級總和為 5，與角色等級 15 不一致
+```
+
+而這正是 p.134 自己舉的例子：
+
+> Example: a Player Character might reach level 20 and still have only 5 total levels in
+> Innate Classes, but with 15 levels invested in a variety of mnemospheres …
+
+**一張照著原書範例建的卡，被自己的驗證器判成不一致。**
+
+### CD2 決定
+
+1. **魔晶石制下，等號改成「只擋超過」**。點數是守恆的（每升一級投一點），所以
+   `classLevelSum > 角色等級` 仍然是不可能狀態，要報；低於則是常態，不報。
+2. **補上 p.140 的下限**：
+
+   > The character may distribute their levels as they wish between their Innate Classes
+   > and initial mnemospheres, but must invest **at least 5 levels among three Innate Classes**.
+
+   低於下限 → **error**（擋定稿），不是 warning。理由：這不是「還沒填完」，
+   是「填成了一個原書不允許的分配」。
+3. **下限不超過角色等級本身**：`Math.min(INNATE_MIN_LEVELS, getCharacterLevel(char))`。
+   `startingLevel` 的 min 是 1（GM 自訂低等團），那時「至少 5 級」不可能達成，
+   硬套會讓每一張這種卡都無法通過定稿。起始 3 級的角色，下限就是 3。
+4. **`classCount > 0` 的保護留著**：三個職業都還沒選時，`classCount !== INNATE_CLASS_COUNT`
+   那條 error 已經在說話，不需要第二條講同一件事。
+
+### CD3 這條規則管不到的地方（刻意）
+
+p.140 只管**下限**，管不到**上限**。理想情況是「職業等級總和 ＋ 魔石等級總和 ＝ 角色等級」，
+但引擎**分不出**「玩家投點升上去的魔石」與「GM 用 p.137 發放的魔石」——
+後者不吃點數（`TECHNOSPHERES AS REWARDS`：每顆約 500z，已有等級每級 +300z）。
+p.134 那個「5 級角色 + 8 級魔石 = 13 級技能水準」的例子就是後者。
+所以總量守恆不做硬檢查，留給 GM。
+
+同理，`stats.totalSkillLevels`（技能 SL 總和）在魔晶石制下只擋「超過」——
+這條 §BO 就已經這樣寫了，本輪沒有動它。
+
+### CD4 護欄（`test:engine` K 區段 +7 條，378 → 385）
+
+| 斷言 | 內容 |
+|---|---|
+| K10 | 15 級、職業 2/2/1 → **不**報「職業等級總和」（p.134 的例子） |
+| K11 | 職業總和 4 級 → 報「至少 5 級」 |
+| K12 | 那一條在 `errors` 裡，不在只有 `warnings` |
+| K13 | 職業總和剛好 5 級 → 不報（下限是閉區間的下界，不是「要大於」） |
+| K14 | 職業總和 30 級、角色 15 級 → 仍報「超過角色等級」 |
+| K15 | 起始 3 級（GM 自訂）→ 下限跟著降到 3，不是硬套 5 |
+| K16 | `INNATE_MIN_LEVELS === 5` |
+
+五輪刻意破壞，全部抓到：
+
+| 破壞 | 紅 |
+|---|---|
+| 下限硬套 5（不隨起始等級降） | K15 |
+| 下限比較用 `<=`（剛好 5 級也報） | K13、K15 |
+| 整段魔晶石制分支關掉（回到等號） | K10、K11、K12、K14 |
+| 刪掉 p.140 那條檢查 | K11、K12 |
+| 「超過」改回「不等於」 | K10 |
+
+### CD5 順帶
+
+- `MnemosphereSection` 的說明段補一句「起始等級同樣在這個池子裡分配，但三個固有職業合計
+  至少要 5 級（p.140）」——玩家在第 2 步調職業等級時看得到，不必等到驗證器講。
+- 探針 `scratch/probeInnate.mjs`（不進版控）：`createNewCharacter` **不會**把開卡規則寫回
+  角色身上（那是編輯器的事），而 `validateCharacter` 預設讀 `char.creationRules`。
+  寫這種探針時要自己補 `char.creationRules = rules`，否則量到的是「標準規則下的行為」。
+
+---
+
+## CE. 投點投在哪個技能上：`applyLevelUp` 的兩條路徑都收過不存在的技能
+
+**起點**：§CA8／§CB8 一直記著一條「`applyLevelUp` 投魔石時不驗證技能名屬於該魔石職業」。
+它看起來只是個防禦性缺口——UI 的下拉是從職業表生成的，玩家選不到錯的東西。
+實際量下去才發現不是這樣：**測試自己就在傳不存在的技能名，而且傳了很久。**
+
+### CE1 實測：兩個 fixture 的技能名，職業表裡根本沒有
+
+```
+博學士 / 萬能知識  -> NOT FOUND      （實際技能：靈光一閃／集中／知識就是力量／快速評估／博聞強記）
+舞者   / 舞步      -> NOT FOUND      （實際技能：起舞／隨我引導／狂熱步伐／快速換裝／戰舞者）
+```
+
+這兩組名字分別出現在 `tests/technospheres.test.mjs`（魔石升級）與
+`tests/characterEngine.test.mjs`（新職業取得）。引擎一聲不吭地把它們寫進技能表——
+因為兩條路徑的寫法都是：
+
+```js
+const hit = skills.find((s) => s.name === skillName);
+if (hit) hit.sl += 1;
+else skills.push({ name: skillName, sl: 1 });   // 找不到就 push，傳什麼都收
+```
+
+代價不是「顯示怪怪的」：那筆技能會計入 `totalSkillLevels`（技能 SL 總和），
+讓技能點預算莫名超支；卡片上也會出現一個職業表查無此技能的條目。
+**而測試用假名字測了三個月，一路全綠。**
+
+### CE2 決定
+
+抽出 `resolveLevelUpSkill(className, skillName)`（引擎層純函式），回傳
+`{ ok, maxSL, name, reason }`：
+
+| `reason` | 條件 |
+|---|---|
+| `empty` | 空字串／非字串 |
+| `not-in-class` | 職業表裡沒有這個技能 |
+| `null` | 合法，`maxSL` 與正規化後的 `name` 一併帶回 |
+
+**為什麼抽成純函式**：`applyLevelUp` 只回傳角色，「擋掉」與「本來就沒升級」從外面
+看長得一模一樣（都是同一個物件參考）。不抽出來就只能斷言「沒升」，斷言不了**為什麼**沒升。
+（同一個教訓見 §CB：`HUD_SRC.includes(...)` 證明不了 `slice` 的長度對不對。）
+
+三處呼叫端全部接上：
+
+1. **標準路徑**（投固有職業／既有職業）：技能必須屬於該職業，且 SL 未達 `maxSL`。
+2. **新職業路徑**：第一個技能也必須屬於那個職業——否則會造出一個技能表整張對不上的職業，
+   而它照樣佔掉一個「未精通職業」的名額。
+3. **魔石路徑**：驗證用的是 **`target.className`**（魔石自己的職業），不是呼叫端傳進來的
+   `className`——HUD 的魔石分支只傳 `mnemosphereId`，`className` 是 `undefined`。
+
+`maxSL` 的來源是 `classSkillsForClass()`，也就是 `rulesData.classes[職業].skills` 那一份——
+**與職業技能共用同一個數字**，不另外維護一套（§CA 已建立的資料源）。
+
+### CE3 順帶：技能名一律正規化
+
+`resolveLevelUpSkill` 回傳的是 `hit.name`（職業表裡的那個字串），呼叫端 push 的是它，
+不是呼叫端自己傳進來的字串。所以「`  碎骨擊  `」這種前後帶空白的輸入會被吃掉，
+不會在技能表裡留下一筆看起來一樣、比對卻對不上的條目。
+
+### CE4 `validateCharacter` 補「未精通職業超過三個」
+
+同一類缺陷的另一半：Core p.228「You can never have more than three non-mastered Classes」
+從 §CB 起在**升級路徑**上擋住了，但升級不是唯一入口——匯入存檔、手改 localStorage、
+舊版本留下的卡都不經過 `applyLevelUp`。之前驗證器對此一聲不吭，一張四個未精通職業的卡
+照樣能定稿。
+
+用 **error** 不用 warning：這不是「還沒填完」，是規則明文禁止的狀態。
+
+**只在「已經離開起始等級」時報**：起始等級的職業數由既有的 `classCountMax` 檢查管，
+兩邊都報等於同一件事說兩遍；而且起始等級時職業數 ≤ 3 就保證未精通 ≤ 3，
+這條在那裡永遠只是重複。（第一版沒加這個條件，`4 個職業 -> 1 筆 error` 那條測試
+立刻變成 2 筆——**測試先抓到的**。）
+
+### CE5 護欄（`test:engine` 385 → 400，`test:technospheres` 445 → 451）
+
+| 斷言 | 內容 |
+|---|---|
+| G2a–G2f | `resolveLevelUpSkill` 真值表：真技能／`maxSL`／別人的技能／不存在的技能／空字串／前後空白 |
+| G2g–G2i | 投了別的職業的技能 → 原物件回傳、技能表沒長、EXP 沒扣 |
+| G2j | 新職業的第一個技能也必須屬於它 |
+| G2k–G2l | 技能已達 `maxSL` → 回傳原物件，職業等級也沒偷偷 +1 |
+| G2m–G2o | 四個未精通職業報 error／三個不報／起始等級不重複報 |
+| 魔石 4 條 | 非該魔石職業的技能 → 原物件回傳、魔石技能表沒長、魔石等級沒動、EXP 沒扣 |
+| 魔石 2 條 | 技能已達 `maxSL` → 原物件回傳，魔石等級不動 |
+
+六輪刻意破壞，全部抓到：
+
+| 破壞 | 紅 |
+|---|---|
+| `resolveLevelUpSkill` 永遠回 ok | G2c、G2d、G2g、G2h、G2i、G2j ＋ 魔石 4 條 |
+| 標準路徑不驗技能 | G2g、G2h、G2i |
+| 魔石路徑不驗技能 | 魔石 4 條 |
+| `maxSL` 比較用 `>` 而非 `>=` | G2k、G2l |
+| 未精通 >3 不報 | G2m |
+| 不 trim | G2f |
+
+### CE6 順帶修掉的測試資料錯誤
+
+`萬能知識` → `集中`（博學士，`maxSL` 5）、`舞步` → `起舞`（舞者，`maxSL` 10），
+共 7 處。這不是「配合新檢查改測試」——是**測試原本就在用不存在的資料**，
+新檢查只是把它照出來了。改完之後那些斷言才有意義。
+
+### CE7 環境陷阱：`characterEngine.js` 是 CRLF
+
+做多行字串替換時，`"...;\n    const ..."` 一律對不上——這個檔（以及 `tests/` 的兩個檔）
+在工作區是 **CRLF**，不是 `src/` 常說的 LF。`-replace` 與 `.Replace()` 都要用 `` `r`n ``。
+`[System.IO.File]::ReadAllText($p).Contains([char]13)` 是最快的一次性判斷。
+---
+
+## §CF 魔晶石制的四個介面缺口，與一條被放寬的依賴（2026-10-22）
+
+§CB／§CC／§CD／§CE 收掉的是**引擎**那半；這一節收的是**介面與資料**那半。
+四項缺口裡有三項的共同病因相同：**資料層已經有結構化欄位，但消費端還在做字串比對**。
+
+### CF1 預設範本的魔晶石：從註記字串改成真正的條目
+
+`expansionPresets.js` 有三組範本帶著 `mnemosphere: { className, level, label }`，
+但 `presetApply.js` 只把它寫成 `notes` 的一行字——玩家套用範本後，
+「極性魔晶石」在角色卡上只是備註，槽位、等級、技能一概沒有。
+
+修法：`presetApply.js` 改走 `createMnemosphere`／`makeMnemosphereId`／
+`normalizeTechnosphereState` 三個既有出口，用範本名稱推導出**穩定的 id**
+（`mn-<preset>-<className>`），重複套用時冪等——第二次套用不會多出一顆。
+
+`expansionPresets.js` 的檔頭註解同步改掉（它原本寫「尚未轉成結構資料」，
+而 §CF 之後那句話就是錯的；**註解說謊比沒有註解更糟**）。
+
+### CF2 【雙重盾牌】在魔晶石制下失效（TF p.133）
+
+原書 p.133 明文：「ignore the Guardian's Dual Shield skill」。
+資料層早就有 `TECHNOSPHERE_SUPPRESSED_SKILLS = ['雙重盾牌']` 與
+`isSkillSuppressedByTechnospheres()`，但**裝備層沒接**——學會的技能照樣讓玩家
+主手拿盾、兩手皆盾照樣合併成「雙盾」攻擊公式。
+
+修法：`getDualShieldState` 的 `learned` 加上抑制判定，
+`learned` 是**唯一的節流閥**（它同時控制 `active`、`buildLoadoutIssues` 的主手盾牌合法性、
+`EquipmentPickerModal` 的主手盾牌列、以及兩處雙盾攻擊公式），所以只改這一行就全部收斂。
+
+**這裡有一個容易做錯的地方**：`modeRestrictsEquipment` ≠ `isTechnosphereEnabled`。
+`mnemospheresOnly`（p.138）把官方裝備**全數放回**，所以那個變體下雙重盾牌**必須**仍然有效。
+測試 X4 就是釘這件事——把抑制條件寫成「有開魔晶石就失效」會讓 X4 紅。
+
+技能本身留在角色卡上（點數不退），`validateCharacter` 顯示「已作廢」的 warning。
+
+### CF3 `equipmentRules.js` 開始依賴 `technospheres.js`（放寬一條既有護欄）
+
+`tests/technospheres.test.mjs` 原本有一條護欄：「`equipmentRules` 不 import `technospheres`（保持純裝備規則）」。
+CF2 之後這句話**必然為假**，而「為了讓測試變綠就刪掉護欄」是把護欄當裝飾。
+
+改法是**把護欄改寫成真正的不變式**：
+
+1. `technospheres.js` **零 import**（實測成立，也是它敢被任何模組依賴的前提）；
+2. `equipmentRules` 對 `technospheres` **只有單向依賴**（反向不存在）。
+
+這比原本那條更強：原本只擋了一個方向，現在擋的是「為什麼那個方向安全」。
+同一輪也確認 `equipmentRules → creationRules` 沒有環（`creationRules` 只 import `sourcebookConfig`）。
+
+### CF4 六筆自訂飾品保留為 `custom: true`
+
+`rulesData.equipment.accessories` 實測 **35 筆** = Core p.285–287 的 **29 筆官方** ＋
+**6 筆本專案早期自造的示例**。那 6 筆每一筆都有 `custom: true` 與
+`cost: 500` ＋ 說明尾巴「（本專案自訂示例，非官方表）」。
+
+處置：**保留，不刪**。理由不是「刪了很可惜」，而是那 6 筆是既有存檔的可能選項——
+刪掉會讓舊卡出現「飾品查無此項」。標記 `custom: true` 讓它們在 UI 上可被區分，
+而 `test:equipment` 的資料斷言釘住「官方 29 筆全在、自訂 6 筆都帶標記」。
+---
+
+## §CG 金手指逐筆核對：46 條裡只有 11 條會改角色卡上的數字（2026-10-22）
+
+### CG1 為什麼要核對
+
+§6.1 那列寫的是「三大擴展 HF 15／NF 10／TF 10（＋特典 Halloween）逐筆效果比對尚未做」。
+實際量下去，問題比「比對沒做」嚴重：**引擎只認得兩條**——
+`characterEngine.js` 裡是兩段 `if (quirkName.includes('倖存者'))`、`if (quirkName.includes('束縛你的約定'))`。
+
+也就是說 46 條金手指裡，另外還有 5 條帶著明確數值（空手道、亡者歸來、機器人、
+墮落天使、會說話的野獸），玩家選了之後**一個字都沒生效**，而 400 多條斷言全綠——
+因為沒有任何一條斷言在問「這個金手指的加值有沒有進 stats」。
+
+這不是「少做一個功能」，是**資料層有、引擎層沒有、測試層沒問**的三層斷裂。
+
+### CG2 核對結果
+
+46 條逐條讀過（含 `desc` 全文，不是只看標題）。結論：**11 條會改角色卡上的數字**，
+其餘 35 條屬於「敘事」「章節結算」「裝備／載具」「戰鬥場景內的一次性效果」四類，
+角色卡的數值引擎**不該**也**不能**承載它們（見 CG6）。
+
+那 11 條：
+
+| 金手指 | 機械效果 | 承載方式 |
+|---|---|---|
+| 亡者歸來 | 暗／毒傷害免疫、光易傷、免疫中毒 | `effects` |
+| 機器人 | 毒傷害免疫、土抗性、免疫中毒 | `effects` |
+| 墮落天使 | 暗／光抗性；選項③ 最大 MP +10 | `effects` ＋ `options` |
+| 空手道 | 空手空盾時物防 +1／魔防 +1；徒手 +6（30 級 +10） | `effects` |
+| 會說話的野獸 | 防具欄空時物防 +2／魔防 +2 | `effects` |
+| 倖存者 | +5 HP／+5 MP；選項③ +2 IP | `effects` ＋ `options` |
+| 束縛你的約定 | +5 HP／+5 MP | `effects` |
+| 草木成精 | 免疫 1 狀態＋易傷 1 屬性（**兩件事**） | `optionGroups` |
+| 元素之魂 | 抗性 1 屬性＋易傷 1 屬性 | `optionGroups` |
+| 通智幽魂 | 抗性 2 屬性＋易傷 1 屬性（**三組**） | `optionGroups` |
+| 巫術後裔 | 吸收 1 屬性 | `optionGroups` |
+
+### CG3 資料層：`effects` 的封閉詞彙
+
+`quirks[].effects` 只認這些鍵（其餘一律忽略，避免打字錯誤靜默生效）：
+
+- **數字**：`hp`／`mp`／`ip`／`defIfNoWeapon`／`mdefIfNoWeapon`／`defIfNoArmor`／`mdefIfNoArmor`／`unarmedDamageBonus`／`unarmedDamageBonusHigh`
+- **陣列**：`resistances`／`vulnerabilities`／`absorption`／`immuneDamage`／`immuneStatuses`
+
+屬性詞彙一律取自 `src/components/ui/affinityText.js` 的 `AFFINITY_BASES`
+（物理／風／電／暗／土／火／冰／光／毒）；狀態詞彙取自引擎的六種異常狀態
+（暈眩／虛弱／動搖／緩慢／憤怒／中毒）。
+
+**`immuneDamage` 與 `resistances` 是兩種機制，不可合併**：原書對亡者歸來寫的是
+「獲得暗屬性和毒屬性傷害**免疫**」，對墮落天使寫的是「有**抗性**」。
+把前者寫成抗性會讓那個金手指直接弱一半。
+
+`unarmedDamageBonusHigh` 是「30 級起改成 10 點」的門檻值——門檻判斷留在引擎
+（`getCharacterLevel(char) >= 30`），資料層只存兩個數字。理由：門檻是規則，
+數字是資料；把 `{ level: 30, value: 10 }` 塞進資料層等於在資料裡寫程式。
+
+### CG4 引擎：`getQuirkEffects` 回固定形狀
+
+新增 `getQuirkEffects(char)`，回傳：
+
+```
+{ body, option, resistances, vulnerabilities, absorption,
+  immuneDamage, immuneStatuses, defIfNoWeapon, mdefIfNoWeapon,
+  defIfNoArmor, mdefIfNoArmor, unarmedDamageBonus, unarmedDamageBonusHigh }
+```
+
+- 陣列一律給 `[]`、數字一律給 `0`——呼叫端不必逐鍵判斷（回 `null` 會逼出十幾個 `?.`）
+- `body` 與 `option` **分開回報**：breakdown 的來源標籤不同
+  （「金手指 倖存者」 vs 「金手指 倖存者 選項」），混在一起玩家分不出哪 5 點是金手指本身
+- `getQuirkOptionEffects` 保留（既有呼叫端與斷言不動），內部改走同一個收集器
+
+`calculateCharacterStats` 新增 `stats.quirkEffects`（**最外層，不是 breakdown**）：
+這些不是加減值，而是戰鬥時的判定依據。`def`／`mdef` 的條件式加值則照舊進 breakdown，
+`kind: 'quirk'`。
+
+### CG5 條件式防禦的判定點
+
+「沒有裝備武器和盾牌」與「防具欄為空」是**兩個獨立條件**，各自對應不同金手指：
+
+- 空手道：`!mainHandDef && !mainIsShieldNow && shieldDef.name === '無盾牌'`
+- 會說話的野獸：`armorDef.name === '無裝甲 / 冒險服'`
+
+主手要另外查是不是盾牌——`mainHandDef` 是**武器表**的查詢結果，
+主手放盾牌時它也是 `null`，只看它會把「雙盾」誤判成空手。
+
+兩者都算在「機師載具搭乘防禦覆蓋」**之前**：坐在載具上一律改用載具數值（與飾品一致）。
+
+### CG6 多組選項：`quirkChoice` 的第二種形態
+
+原本 `quirkChoice` 是字串（單組）。草木成精要選「一個免疫狀態」＋「一個易傷屬性」，
+通智幽魂要選「兩個抗性」＋「一個易傷」——單值裝不下。
+
+修法：`quirkChoice` 允許 `string | { [groupId]: optionId }`。
+
+- **字串**：單組（`options`），向後相容，舊存檔一行都不用改
+- **物件**：多組（`optionGroups`），鍵是組 id
+
+`optionGroups` 的金手指若拿到字串，只認第一組——玩家手動改壞資料時不至於整個失效。
+UI（`QuirkPickerBody`）一律把 `options` 包成 `[{ id: 'default', … }]` 再渲染，
+所以介面只有一套邏輯；「每一組都選了」才准按確定（只選一半的存檔在引擎裡只會生效一半，
+不如擋在門口）。`validateCharacter` 的 warning 同步改成逐組檢查，訊息寫出「要選 N 件事」。
+
+### CG7 不實作的 35 條，以及為什麼
+
+**這 35 條不是「還沒做」，是「不該做在這裡」**——分四類：
+
+1. **敘事型**（18 條）：被詛咒之人、光榮的命運、應劫之人、交織的靈魂、天才的宿敵、
+   煽動家、信魔使徒、棄暗投明之人、武器縛靈、(不太)忠誠的僕人、被束縛的心、
+   固執的懷疑論者、百臉千面、新人類、世界的神諭、地獄差生、怪物幫派、超級頭目。
+   它們的效果是「寫一段話」「指定一個對象」「章節結束時骰一次」——
+   角色卡沒有地方放，硬做的話會變成一個存了但沒人看的欄位。
+2. **章節結算型**（3 條）：大夢一場（章節結束骰 2d20）、失憶古賢（每休息一次限用）、
+   實驗逃亡體（累積／降低不穩定值）。這些需要**跨場景的計數器**，屬於跑團記錄，不是角色數值。
+3. **裝備／載具／資產型**（8 條）：傳家寶、老載具、偷來的載具、行動工作站、
+   遺物使用者、古代武器、富家子弟（+1000z）、神秘魔法書。前四條已經由既有的
+   載具／自訂武器子系統承載（不是金手指引擎的職責）；`富家子弟` 的 +1000z 屬於
+   建角起始資金，與 `startingZenit` 同層。
+4. **戰鬥場景內的一次性效果**（6 條）：來自遙遠的世界（衝突開始 +1 物語點）、
+   飛行（近戰瞄準規則）、被推翻的王（對小兵 +5 傷害）、天才發明家（IP 成本歸零）、
+   離鄉的妖精／老大哥（能力授予）。這些要等戰鬥追蹤器接上 `stats.quirkEffects`
+   才有意義——先做會變成死資料。
+
+**判斷準則**：一個效果只有在「角色卡上有一個欄位放它，而且有東西會讀那個欄位」
+時才值得實作。否則就是 §BV7「不替玩家做選擇」的相反病：替玩家做了一個沒人用的欄位。
+
+### CG8 教訓：三層斷裂比單層缺陷更難發現
+
+`getQuirkOptionEffects` 在 §CF 加進來時，只處理了「有 `options` 的金手指」——
+而 46 條裡只有 2 條有 `options`。當時的斷言（J7）問的是「這 2 條的選項對不對」，
+於是**測試與實作問的是同一個窄問題**，全部通過。
+
+抓到它的是「逐筆核對」這個**人工動作**，不是任何一條斷言。
+
+所以這一輪補的斷言（J8）刻意問**引擎**而不是問資料：
+「亡者歸來的 stats.quirkEffects.immuneDamage 是不是 `['暗','毒']`」。
+資料層寫了但引擎沒讀，這種斷言會紅；只問資料層有沒有那個鍵，永遠不會紅。
+### CG9 兩個「算出來了但沒人看」的後續修正
+
+§CG 剛寫完「判準是有欄位放它，而且有東西讀那個欄位」，回頭檢查自己的成果，
+就抓到兩個違反那條判準的地方。
+
+**① `徒手打擊` 是武器表裡的一筆——空手道在每個新角身上都不生效。**
+
+原判定寫的是 `!mainHandDef`（查不到武器）。但 `rulesData.equipment.weapons` 裡
+有一筆 `{ name: '徒手打擊', category: '鬥毆', cost: 0, hands: 1 }`，
+而 `createNewCharacter` 的預設裝備正是 `mainHand: '徒手打擊'`、`offHand: '徒手打擊'`。
+於是 `mainHandDef` 非 null、`handsEmpty` 恆為 false——**空手道對所有真實角色都是死的**。
+
+測試沒抓到，因為測試用的是 `NEUTRAL_EQUIP = { mainHand: '' }`：
+一個**玩家永遠不會有的**狀態。這比「沒寫測試」更糟——它給了覆蓋率的錯覺。
+
+修法：`mainIsUnarmed = !mainHandDef || mainHandDef.name === '徒手打擊'`，
+副手同理（`NEUTRAL_SHIELD` 或 `徒手打擊`）。新增兩條斷言釘住**真實預設值**：
+`UNARMED_EQUIP = { mainHand: '徒手打擊', offHand: '徒手打擊', … }` → +1；
+主手放盾牌 → 0（`mainHandDef` 查的是武器表，主手放盾時它也是 null，
+只看它會把雙盾誤判成空手）。
+
+**教訓**：測試的輸入要從**生產端的預設值**來，不是從「最方便斷言的形狀」來。
+`NEUTRAL_EQUIP` 用空字串是因為它好寫，不是因為玩家會這樣填。
+
+**② `stats.quirkEffects` 沒有任何消費端。**
+
+引擎算出了傷害免疫／抗性／易傷／吸收／狀態免疫，角色卡卻一個字都不顯示——
+玩家選了「亡者歸來」不會知道自己免疫暗毒、弱光。這正是 §CG7 那條判準要擋的東西。
+
+修法：`CharacterEditor` 的裝備頁在三個數字磚之後加一塊「金手指相性」
+（`data-testid="quirk-affinities"`），只在有任何相性時渲染；徒手傷害加值並排顯示。
+屬性詞彙走 `renderTextWithAffinities`（規則七），不是手寫字串。
+
+`test:ui` 加三條：有相性時畫出區塊、沒有相性時整塊不渲染、亡者歸來的三個標籤都在。
+刻意破壞驗證：把 `if (rows.length === 0) return null;` 改成 `if (false)` → 紅 1 條。
+
+**③ 仍未接的**：`unarmedDamageBonus` 只有顯示、沒有算進任何傷害公式——
+引擎目前沒有徒手傷害計算（`parseDamage` 只解析武器字串）。等戰鬥輪次狀態機
+（`docs/state.md` 的剩餘覆蓋缺口）接上時才有地方消費它。這是**已知的預留**，
+不是漏掉。

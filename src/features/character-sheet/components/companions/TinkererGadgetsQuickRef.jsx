@@ -9,7 +9,7 @@ import {
 } from 'react-icons/gi';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
-import { getMagitechBranch } from '../../data/gadgetBranches';
+import { getMagitechBranch, magitechMaxTier } from '../../data/gadgetBranches';
 
 /**
  * 跑團卡【小工具】技能即時戰鬥效果速查組件 (TinkererGadgetsQuickRef)
@@ -18,6 +18,9 @@ import { getMagitechBranch } from '../../data/gadgetBranches';
  * `variantId` 是【小工具】選用的公測變體：官方 p.38 把魔導科技拆成
  * 【魔導武裝】與【魔法球】兩條互斥分支，兩者的第三軌節點與核心完全不同——
  * 選了分支卻還顯示核心的【魔科技篡奪／魔加農／魔法球原型】就是顯示錯誤資訊。
+ *
+ * `technoRestrictsEquipment` 是魔晶石制的裝備受限模式（科技奇幻手冊 p.133）：
+ * 魔導科技只剩兩個益處，魔加農整檔不存在、魔法球原型降為進階。
  */
 export default function TinkererGadgetsQuickRef({
   gadgetsData = {},
@@ -25,20 +28,38 @@ export default function TinkererGadgetsQuickRef({
   onOpenCodex = () => {},
   onOpenWorkshop = null,
   characterLevel = 5,
-  variantId = null
+  variantId = null,
+  technoRestrictsEquipment = false,
+  /**
+   * 收合狀態的初值。**生產端永不傳入**——存在的唯一理由是讓 SSR 能覆蓋「收合摘要標籤」
+   * 那個分支（它預設 `false`，而收合視圖才是跑團桌上最常看到的那一面）。
+   * 不傳時行為與過去逐字相同。
+   */
+  initialCollapsed = false
 }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(initialCollapsed);
+
+  const branch = getMagitechBranch(variantId);
+  /**
+   * 魔導科技這一軌的最高檔。
+   * Playtest 分支變體（p.38）本身就是三節點結構，不受 p.133 的兩檔改寫影響；
+   * 只有「核心三檔 ＋ 魔晶石制」才降到 2。
+   */
+  const magitechCeiling = branch ? 3 : magitechMaxTier(technoRestrictsEquipment);
 
   const alchemy = gadgetsData?.alchemy || 0;
   const infusion = gadgetsData?.infusion || 0;
-  const magitech = gadgetsData?.magitech || 0;
+  // 魔晶石制只剩兩檔：存檔裡若有 3 點（開魔晶石之前投的），顯示時就夾回 2，
+  // 否則收合標籤會出現一個不存在的節點。與彈窗的夾值同一個理由（§BX6）。
+  const magitech = Math.min(gadgetsData?.magitech || 0, magitechCeiling);
   const totalAllocated = alchemy + infusion + magitech;
 
-  const branch = getMagitechBranch(variantId);
   /** 第三軌的名字：核心叫「魔科技」，分支就叫分支名。 */
   const magitechLabel = branch?.name || '魔科技';
   /** 分支的已解鎖節點（給展開視圖與收合標籤共用）。 */
   const branchNodes = branch ? branch.nodes.filter((n) => n.tier <= magitech) : [];
+  /** 【魔法球原型】的檔位：核心在最高檔，魔晶石制降到進階。 */
+  const magisphereTier = technoRestrictsEquipment ? 2 : 3;
 
   const dmg = characterLevel >= 40 ? 40 : characterLevel >= 20 ? 30 : 20;
 
@@ -184,12 +205,12 @@ export default function TinkererGadgetsQuickRef({
                   魔科技篡奪 (10 MP)
                 </span>
               )}
-              {magitech >= 2 && (
+              {magitech >= 2 && !technoRestrictsEquipment && (
                 <span className="px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/40 border border-teal-300 dark:border-teal-800 text-teal-900 dark:text-teal-200 font-medium">
                   魔加農【HR + 10】
                 </span>
               )}
-              {magitech >= 3 && (
+              {magitech >= magisphereTier && (
                 <span className="px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-300 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200 font-medium">
                   魔法球原型 (2 IP)
                 </span>
@@ -334,7 +355,7 @@ export default function TinkererGadgetsQuickRef({
                   <GiGears className="text-purple-600 dark:text-purple-400" />
                   <span>{branch ? `${branch.name}工藝` : '魔導科技工藝'}</span>
                   <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300">
-                    Tier {magitech}
+                    {technoRestrictsEquipment ? `Tier ${magitech}/${magitechCeiling}` : `Tier ${magitech}`}
                   </span>
                 </div>
               </div>
@@ -370,8 +391,8 @@ export default function TinkererGadgetsQuickRef({
                   </p>
                 </div>
 
-                {/* 高級：魔加農 */}
-                {magitech >= 2 && (
+                {/* 高級：魔加農 —— 魔晶石制下整檔不存在（p.133 removing the magicannon completely） */}
+                {magitech >= 2 && !technoRestrictsEquipment && (
                   <div className="p-2 rounded-lg bg-white/90 dark:bg-slate-900/80 border border-teal-200/70 dark:border-slate-700 space-y-1">
                     <div className="flex justify-between items-center font-bold">
                       <span className="text-teal-950 dark:text-teal-200">高級【魔加農】</span>
@@ -383,16 +404,23 @@ export default function TinkererGadgetsQuickRef({
                   </div>
                 )}
 
-                {/* 最高：魔法球 */}
-                {magitech >= 3 && (
+                {/* 魔法球原型：核心在最高檔；魔晶石制下往下兼容成進階檔（p.133） */}
+                {magitech >= magisphereTier && (
                   <div className="p-2 rounded-lg bg-white/90 dark:bg-slate-900/80 border border-indigo-200/70 dark:border-slate-700 space-y-0.5">
                     <div className="flex justify-between items-center font-bold">
-                      <span className="text-indigo-950 dark:text-indigo-200">最高【魔法球原型】</span>
+                      <span className="text-indigo-950 dark:text-indigo-200">
+                        {technoRestrictsEquipment ? '高級【魔法球原型】' : '最高【魔法球原型】'}
+                      </span>
                       <span className="font-mono text-indigo-700 dark:text-indigo-400 font-bold text-[10px]">2 IP</span>
                     </div>
                     <p className="text-[11px] text-stone-600 dark:text-stone-400 leading-relaxed">
                       花費 2 點 IP 免費執行咒語動作，施展已開發出原型的元素、熵系或靈魂學派咒語（遵循正常 MP 與檢定，使用後摧毀）。
                     </p>
+                    {technoRestrictsEquipment && (
+                      <p className="text-[10px] text-indigo-700/80 dark:text-indigo-300/80 leading-relaxed">
+                        魔晶石制：本檔已上移填補魔加農的位置，魔導科技只有兩檔（p.133）。
+                      </p>
+                    )}
                   </div>
                 )}
                   </>

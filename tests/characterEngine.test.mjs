@@ -44,9 +44,15 @@ import {
   validateCharacter,
   exportCharacterToCombatant,
   isHpMpChoiceBenefit,
-  getCharacterLevel
+  getCharacterLevel,
+  CLASS_MAX_LEVEL,
+  MAX_NON_MASTERED_CLASSES,
+  resolveLevelUpSkill,
+  getQuirkOptionEffects,
+  getQuirkEffects
 } from '../src/features/character-sheet/utils/characterEngine.js';
 import { DEFAULT_CREATION_RULES } from '../src/features/character-sheet/data/creationRules.js';
+import { INNATE_MIN_LEVELS } from '../src/features/character-sheet/data/technospheres.js';
 import { createCustomWeaponSpec } from '../src/features/character-sheet/data/customWeapons.js';
 // 屬性名只有一份定義（使用者裁定：照繁中版角色卡 Excel V2.17）
 import { ATTRIBUTE_NAMES } from '../src/features/character-sheet/data/sourcebookConfig.js';
@@ -481,6 +487,128 @@ check('未知職業升級：角色等級維持 5', lostExp.level, 5);
 check('未知職業升級：EXP 維持 10', lostExp.exp, 10);
 check('未知職業升級：職業清單完全沒有變動', lostExp.classes.length, 1);
 
+// ── Core p.228 的兩條升級限制（2026-10-22 補）────────────────────────
+//
+// 「You can never have more than ten levels in a Class. Once you put the tenth level
+//  in a Class, that Class has been mastered ... and you can no longer invest levels into it.」
+// 「You can never have more than three non-mastered Classes. If you want to further
+//  diversify your character, you must first master some of the Classes you acquired.」
+//
+// 這兩條以前完全沒有實作：`applyLevelUp` 會把職業一路推到 11 級，
+// 也會無條件 push 第 4、第 5 個職業。
+check('常數：單一職業上限 10 級', CLASS_MAX_LEVEL, 10);
+check('常數：未精通職業上限 3 個', MAX_NON_MASTERED_CLASSES, 3);
+
+const masteredChar = mk({
+  level: 11,
+  exp: 10,
+  classes: [{ className: '武器大師', level: 10, skills: [{ name: '碎骨擊', sl: 5 }] }]
+});
+const masteredUp = applyLevelUp(masteredChar, { className: '武器大師', skillName: '劍刃風暴' });
+check('已精通（10 級）的職業不能再投：原物件原樣回傳', masteredUp === masteredChar, true);
+check('已精通：EXP 不會被扣', masteredUp.exp, 10);
+check('已精通：職業等級停在 10', masteredUp.classes[0].level, 10);
+check('已精通：沒有多出技能', masteredUp.classes[0].skills.length, 1);
+
+const threeFresh = mk({
+  level: 6,
+  exp: 10,
+  classes: [
+    { className: '武器大師', level: 2, skills: [] },
+    { className: '吟唱者', level: 2, skills: [] },
+    { className: '元素師', level: 2, skills: [] }
+  ]
+});
+const fourthBlocked = applyLevelUp(threeFresh, { className: '舞者', skillName: '起舞', isNewClass: true });
+check('三個未精通職業時不能再開第四個：原物件原樣回傳', fourthBlocked === threeFresh, true);
+check('三個未精通職業時：職業清單原封不動', fourthBlocked.classes.length, 3);
+check('三個未精通職業時：角色等級沒有動', fourthBlocked.level, 6);
+
+// 精通一個之後就讓出位置——這正是原書那句「you must first master some of them」的意思。
+// 注意這裡**不是**「最多三個職業」，是「最多三個**未精通**職業」：10 級那個不算。
+const oneMastered = mk({
+  level: 12,
+  exp: 10,
+  classes: [
+    { className: '武器大師', level: 10, skills: [] },
+    { className: '吟唱者', level: 1, skills: [] },
+    { className: '元素師', level: 1, skills: [] }
+  ]
+});
+const fourthOk = applyLevelUp(oneMastered, { className: '舞者', skillName: '起舞', isNewClass: true });
+check('精通一個之後可以再開新職業', fourthOk.classes.length, 4);
+check('新開的職業：等級 1、首個技能 SL 1',
+  [fourthOk.classes[3].level, fourthOk.classes[3].skills[0].sl], [1, 1]);
+check('新開的職業：名稱正確', fourthOk.classes[3].className, '舞者');
+check('新開職業不影響已精通的職業', fourthOk.classes[0].level, 10);
+check('新開職業：角色等級 +1', fourthOk.level, 13);
+
+// 已經有的職業不能當「新職業」——那會 push 出兩筆同名條目，
+// `getCharacterLevel` 的職業總和與 `masteredClasses` 都會跟著壞。
+const dup = applyLevelUp(oneMastered, { className: '吟唱者', skillName: '譴責', isNewClass: true });
+check('已擁有的職業不能走「新職業」這條路', dup === oneMastered, true);
+check('已擁有的職業：清單沒有重複條目', dup.classes.filter((c) => c.className === '吟唱者').length, 1);
+// ─────────────────────────────────────────────────────────── G2
+// 「投的那一點要投在**那個職業的技能**上」——以前 `applyLevelUp` 是「找不到就 push」，
+// 傳什麼字串都收。實測（2026-10-22，§CE）：連測試自己都在傳不存在的技能名
+// （`博學士` 的技能表裡沒有「萬能知識」、`舞者` 沒有「舞步」），引擎一聲不吭地
+// 把它們寫進技能表。那筆技能會計入 `totalSkillLevels`，讓技能點預算莫名超支。
+const skillVerdict = (cls, sk) => resolveLevelUpSkill(cls, sk);
+check('G2a 真技能 -> ok', skillVerdict('武器大師', '碎骨擊').ok, true);
+check('G2b 真技能 -> 帶回它自己的 maxSL', skillVerdict('武器大師', '碎骨擊').maxSL, 4);
+check('G2c 別人的技能 -> 不 ok', skillVerdict('武器大師', '譴責').ok, false);
+check('G2d 不存在的技能 -> 不 ok，且說得出理由',
+  [skillVerdict('武器大師', '不存在的技能').ok, skillVerdict('武器大師', '不存在的技能').reason],
+  [false, 'not-in-class']);
+check('G2e 空字串 -> 不 ok，理由是 empty', skillVerdict('武器大師', '').reason, 'empty');
+check('G2f 前後空白會被吃掉，帶回正規化後的名字',
+  [skillVerdict('武器大師', '  碎骨擊  ').ok, skillVerdict('武器大師', '  碎骨擊  ').name],
+  [true, '碎骨擊']);
+
+const wrongSkillChar = mk({
+  level: 6,
+  exp: 10,
+  classes: [{ className: '武器大師', level: 2, skills: [] }]
+});
+const wrongSkillUp = applyLevelUp(wrongSkillChar, { className: '武器大師', skillName: '譴責' });
+check('G2g 投了別的職業的技能 -> 原物件原樣回傳', wrongSkillUp === wrongSkillChar, true);
+check('G2h 那筆技能沒有被寫進技能表', wrongSkillUp.classes[0].skills.length, 0);
+check('G2i EXP 沒有被扣', wrongSkillUp.exp, 10);
+
+const newClassWrongSkill = applyLevelUp(oneMastered, { className: '舞者', skillName: '碎骨擊', isNewClass: true });
+check('G2j 新職業的第一個技能也必須屬於它', newClassWrongSkill === oneMastered, true);
+
+// 技能 SL 上限：`maxSL` 是每個技能自己的數字（碎骨擊 4、劍刃風暴 1）。
+const fullSL = mk({
+  level: 8,
+  exp: 10,
+  classes: [{ className: '武器大師', level: 3, skills: [{ name: '碎骨擊', sl: 4 }] }]
+});
+const fullSLUp = applyLevelUp(fullSL, { className: '武器大師', skillName: '碎骨擊' });
+check('G2k 技能已達 maxSL -> 原物件原樣回傳', fullSLUp === fullSL, true);
+check('G2l 已達 maxSL：職業等級也沒有偷偷 +1', fullSLUp.classes[0].level, 3);
+
+// 未精通職業超過三個：升級路徑擋住了，但匯入與手改存檔不經過那裡。
+const fourClasses = mk({
+  level: 9,
+  classes: [
+    { className: '武器大師', level: 2, skills: [] },
+    { className: '吟唱者', level: 2, skills: [] },
+    { className: '元素師', level: 2, skills: [] },
+    { className: '舞者', level: 2, skills: [] }
+  ]
+});
+check('G2m 四個未精通職業 -> 一筆 error（p.228）',
+  validateCharacter(fourClasses).errors.some((w) => w.message.includes('未精通的職業有 4 個')), true);
+check('G2n 三個未精通職業 -> 不報',
+  validateCharacter(oneMastered).warnings.some((w) => w.message.includes('未精通')), false);
+check('G2o 起始等級時不重複報（那時 classCountMax 已經說了）',
+  validateCharacter(mk({ level: 5, classes: [
+    { className: '武器大師', level: 2, skills: [] },
+    { className: '吟唱者', level: 2, skills: [] },
+    { className: '元素師', level: 1, skills: [] }
+  ] })).warnings.some((w) => w.message.includes('未精通')), false);
+
 // ─────────────────────────────────────────────────────────── H
 section('H. exportCharacterToCombatant：導出至戰鬥輪次追蹤器');
 
@@ -715,6 +843,155 @@ check('J5 金手指倖存者 HP +5 / MP +5', [quirkStats.bonusHp, quirkStats.bon
 check('J5 金手指標籤帶金手指名稱',
   quirkStats.breakdown.mp.terms.some((t) => t.label === '金手指 倖存者（自奇）'), true);
 
+// ── J7 金手指「選項」（§CF）
+//
+// 原書有 11 個金手指寫著「選擇一個選項」，但其中只有兩個的選項會改數值：
+// 倖存者③「永久 +2 IP」、墮落天使③「最大 MP +10」。其餘 9 個是純敘事選項
+// （寫下預言、指定羈絆對象、挑一個聯繫人……），效果寫在 desc 文字裡，不需要單選 UI。
+// 以前金手指只有名稱比對，根本無法承載「選項」——那兩筆等於不存在。
+const QUIRK_OPTION_QUIRKS = rulesData.quirks.filter((q) => Array.isArray(q.options));
+check('J7 原書寫「選擇一個選項」的共 11 個',
+  rulesData.quirks.filter((q) => q.desc && q.desc.includes('選擇一個選項')).length, 11);
+check('J7 其中只有 2 個的選項會改數值，所以只有它們有結構化選項',
+  QUIRK_OPTION_QUIRKS.map((q) => q.name).sort(), ['倖存者', '墮落天使'].sort());
+
+const EFFECT_OPTIONS = QUIRK_OPTION_QUIRKS
+  .flatMap((q) => q.options.filter((o) => o.effects).map((o) => `${q.name}/${o.id}`))
+  .sort();
+check('J7 只有倖存者③與墮落天使③帶機械效果',
+  EFFECT_OPTIONS, ['倖存者/ip', '墮落天使/mp'].sort());
+
+const survivorBase = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '倖存者' }));
+const survivorIp = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '倖存者', quirkChoice: 'ip' }));
+check('J7 倖存者沒選選項 → 最大 IP 仍是 6（行為與以前相同）', survivorBase.maxIp, 6);
+check('J7 倖存者③ → 最大 IP 6 + 2 = 8', survivorIp.maxIp, 8);
+check('J7 倖存者③ 的標籤寫進 breakdown',
+  survivorIp.breakdown.ip.terms.some((t) => t.label === '金手指 倖存者 選項'), true);
+check('J7 倖存者①（裝備熟練）是敘事選項 → 不改 IP',
+  calculateCharacterStats(mk({ attributes: ALL_8, quirk: '倖存者', quirkChoice: 'proficiency' })).maxIp, 6);
+
+const angelBase = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '墮落天使' }));
+const angelMp = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '墮落天使', quirkChoice: 'mp' }));
+check('J7 墮落天使③ → 最大 MP 多 10', angelMp.maxMp - angelBase.maxMp, 10);
+
+check('J7 選了資料裡沒有的 id → 沒有加值',
+  calculateCharacterStats(mk({ attributes: ALL_8, quirk: '倖存者', quirkChoice: 'no-such-id' })).maxIp, 6);
+check('J7 沒選金手指時 quirkChoice 無效',
+  calculateCharacterStats(mk({ attributes: ALL_8, quirk: '無', quirkChoice: 'ip' })).maxIp, 6);
+check('J7 名稱自己加了註記也認得（舊存檔相容）',
+  calculateCharacterStats(mk({ attributes: ALL_8, quirk: '倖存者（自奇）', quirkChoice: 'ip' })).maxIp, 8);
+check('J7 getQuirkOptionEffects 對敘事選項回空物件',
+  getQuirkOptionEffects({ quirk: '倖存者', quirkChoice: 'proficiency' }), {});
+check('J7 getQuirkOptionEffects 精確回 effects',
+  getQuirkOptionEffects({ quirk: '墮落天使', quirkChoice: 'mp' }), { mp: 10 });
+check('J7 新建角色 quirkChoice 預設空字串（不替玩家選）',
+  createNewCharacter().quirkChoice, '');
+check('J7 帶選項的金手指沒選 → 一筆 warning',
+  validateCharacter(mk({ attributes: ALL_8, quirk: '倖存者' })).warnings
+    .some((w) => w.field === 'quirkChoice'), true);
+check('J7 選好了就不再警告',
+  validateCharacter(mk({ attributes: ALL_8, quirk: '倖存者', quirkChoice: 'ip' })).warnings
+    .some((w) => w.field === 'quirkChoice'), false);
+
+// ── J8 金手指的相性、免疫與條件式防禦（§CG）
+//
+// 46 個金手指裡只有 11 個帶明確數值。這一段守的是「資料層寫了，引擎就真的算」——
+// 以前引擎只有兩段 `quirkName.includes(...)` 的硬編碼，其餘全部落空。
+const fxOf = (over) => calculateCharacterStats(mk({ attributes: ALL_8, ...over })).quirkEffects;
+
+const undeadFx = fxOf({ quirk: '亡者歸來' });
+check('J8 亡者歸來：暗／毒傷害免疫',
+  undeadFx.immuneDamage, ['暗', '毒']);
+check('J8 亡者歸來：光易傷', undeadFx.vulnerabilities, ['光']);
+check('J8 亡者歸來：免疫中毒', undeadFx.immuneStatuses, ['中毒']);
+
+const robotFx = fxOf({ quirk: '機器人' });
+check('J8 機器人：毒免疫、土抗性、免疫中毒',
+  [robotFx.immuneDamage, robotFx.resistances, robotFx.immuneStatuses],
+  [['毒'], ['土'], ['中毒']]);
+
+check('J8 墮落天使：暗／光抗性', fxOf({ quirk: '墮落天使' }).resistances, ['暗', '光']);
+
+const noneFx = fxOf({ quirk: '無' });
+check('J8 沒選金手指時全部為空（不影響任何人）',
+  [noneFx.resistances, noneFx.vulnerabilities, noneFx.immuneDamage, noneFx.immuneStatuses],
+  [[], [], [], []]);
+
+// 條件式防禦：NEUTRAL_EQUIP 是空手、無盾、無甲
+const bareNoQuirk = calculateCharacterStats(mk({ attributes: ALL_8 }));
+const unarmed = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '空手道' }));
+check('J8 空手道：空手空盾 → 物防 +1',
+  unarmed.breakdown.def.total - bareNoQuirk.breakdown.def.total, 1);
+check('J8 空手道：空手空盾 → 魔防 +1',
+  unarmed.breakdown.mdef.total - bareNoQuirk.breakdown.mdef.total, 1);
+check('J8 空手道的物防標籤寫進 breakdown',
+  unarmed.breakdown.def.terms.some((t) => t.label === '金手指 空手道 物防 +1'), true);
+check('J8 空手道的徒手傷害 +6', unarmed.quirkEffects.unarmedDamageBonus, 6);
+
+const armedWith = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '空手道', equipment: LIGHT_EQUIP }));
+const armedWithout = calculateCharacterStats(mk({ attributes: ALL_8, equipment: LIGHT_EQUIP }));
+check('J8 空手道：拿了盾牌就不給加值',
+  armedWith.breakdown.def.total - armedWithout.breakdown.def.total, 0);
+
+// ⚠️ `徒手打擊` 是武器表裡的一筆（category 鬥毆、cost 0、hands 1），而開卡預設的
+// mainHand 正是它——所以「空手」不能寫成 `!mainHandDef`，否則每個新角都拿不到空手道。
+const UNARMED_EQUIP = { mainHand: '徒手打擊', offHand: '徒手打擊', armor: '無裝甲 / 冒險服', accessory: '' };
+const unarmedReal = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '空手道', equipment: UNARMED_EQUIP }));
+const unarmedRealBare = calculateCharacterStats(mk({ attributes: ALL_8, equipment: UNARMED_EQUIP }));
+check('J8 空手道：開卡預設的「徒手打擊」也算空手',
+  unarmedReal.breakdown.def.total - unarmedRealBare.breakdown.def.total, 1);
+
+// 主手放盾牌時 `mainHandDef`（武器表查詢）也是 null，只看它會把雙盾誤判成空手。
+const shieldInMain = { mainHand: '青銅圓盾', offHand: '無盾牌', armor: '無裝甲 / 冒險服', accessory: '' };
+const shieldMainWith = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '空手道', equipment: shieldInMain }));
+const shieldMainBare = calculateCharacterStats(mk({ attributes: ALL_8, equipment: shieldInMain }));
+check('J8 空手道：主手拿盾不算空手（不能誤判）',
+  shieldMainWith.breakdown.def.total - shieldMainBare.breakdown.def.total, 0);
+
+const beastBare = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '會說話的野獸' }));
+check('J8 會說話的野獸：防具欄空 → 物防 +2',
+  beastBare.breakdown.def.total - bareNoQuirk.breakdown.def.total, 2);
+const beastArmored = calculateCharacterStats(mk({
+  attributes: ALL_8, quirk: '會說話的野獸', equipment: { ...NEUTRAL_EQUIP, armor: '旅行皮甲' }
+}));
+const beastArmoredBare = calculateCharacterStats(mk({
+  attributes: ALL_8, equipment: { ...NEUTRAL_EQUIP, armor: '旅行皮甲' }
+}));
+check('J8 會說話的野獸：穿了防具就不給加值',
+  beastArmored.breakdown.def.total - beastArmoredBare.breakdown.def.total, 0);
+
+// 多組選項（`optionGroups`）：草木成精要選「免疫狀態」＋「易傷屬性」兩件事
+const plantFx = fxOf({ quirk: '草木成精', quirkChoice: { immune: '眩暈', vuln: '火' } });
+check('J8 草木成精：兩組都選了 → 兩個效果都生效',
+  [plantFx.immuneStatuses, plantFx.vulnerabilities], [['眩暈'], ['火']]);
+
+const plantHalf = fxOf({ quirk: '草木成精', quirkChoice: { immune: '憤怒' } });
+check('J8 草木成精：只選一半 → 只有那一半生效',
+  [plantHalf.immuneStatuses, plantHalf.vulnerabilities], [['憤怒'], []]);
+
+const ghostFx = fxOf({ quirk: '通智幽魂', quirkChoice: { resist1: '火', resist2: '冰', vuln: '暗' } });
+check('J8 通智幽魂：兩組抗性＋一組易傷',
+  [ghostFx.resistances, ghostFx.vulnerabilities], [['火', '冰'], ['暗']]);
+
+check('J8 巫術後裔：吸收', fxOf({ quirk: '巫術後裔', quirkChoice: { absorb: '毒' } }).absorption, ['毒']);
+
+check('J8 getQuirkEffects 把本體與選項分開回報',
+  (() => {
+    const q = getQuirkEffects({ quirk: '倖存者', quirkChoice: 'ip' });
+    return [q.body.hp, q.body.mp, q.option.ip];
+  })(), [5, 5, 2]);
+check('J8 getQuirkEffects 對沒選金手指回固定形狀（不是 null）',
+  getQuirkEffects({ quirk: '無' }).resistances, []);
+
+const plantWarn = (choice) => validateCharacter(mk({ attributes: ALL_8, quirk: '草木成精', quirkChoice: choice }))
+  .warnings.find((w) => w.field === 'quirkChoice');
+check('J8 多組金手指沒選時警告寫出「要選 2 件事」',
+  plantWarn('')?.message, '金手指「草木成精」要選 2 件事（原書：選擇選項）');
+check('J8 多組金手指只選一半時仍然警告',
+  Boolean(plantWarn({ immune: '眩暈' })), true);
+check('J8 多組金手指兩組都選了就不再警告',
+  plantWarn({ immune: '眩暈', vuln: '火' }), undefined);
+
 // ── J6 二選一判定：必須只看「最大 HP 或 最大 MP」
 const fbOf = (cn) => {
   const c = rulesData.classes[cn] || {};
@@ -800,6 +1077,41 @@ check('兩者一致時不提醒',
   validateCharacter(mk({ level: 5, classes: [{ className: '武器大師', level: 3, skills: [] }, { className: '吟唱者', level: 2, skills: [] }] }))
     .warnings.some((w) => w.message.includes('職業等級總和')),
   false);
+
+// 魔晶石制是**規則明訂的例外**（p.134）：「invest 1 level into an Innate Class or into a
+// mnemosphere of their choice」——投進魔石時職業等級不會 +1，所以「職業等級總和」本來就會
+// 落在角色等級之後。2026-10-22 之前這裡用等號比，於是 p.134 **自己舉的例子**
+// （20 級角色只有 5 級在固有職業、其餘 15 級投在魔石）會被報成漂移。
+// p.140 補上真正的下限：「must invest at least 5 levels among three Innate Classes」。
+const TECHNOMANCY_RULES = { ...DEFAULT_CREATION_RULES, technospheres: 'full', startingLevel: 15 };
+const techno = (levels, rules = TECHNOMANCY_RULES) => mk({
+  level: rules.startingLevel,
+  classes: levels.map((lv, i) => ({
+    className: ['元素師', '靈能者', '靈師'][i], level: lv, skills: []
+  })),
+  creationRules: rules
+});
+
+check('K10 魔晶石制：職業等級總和低於角色等級不是漂移（p.134 的例子）',
+  validateCharacter(techno([2, 2, 1])).warnings.some((w) => w.message.includes('職業等級總和')),
+  false);
+check('K11 魔晶石制：職業總和 4 級 < 5 級下限 -> 報 p.140',
+  validateCharacter(techno([2, 1, 1])).warnings.some((w) => w.message.includes('至少 5 級')),
+  true);
+check('K12 那一條是 error（擋定稿），不是 warning',
+  validateCharacter(techno([2, 1, 1])).errors.some((w) => w.message.includes('至少 5 級')),
+  true);
+check('K13 職業總和剛好 5 級 -> 不報',
+  validateCharacter(techno([2, 2, 1])).warnings.some((w) => w.message.includes('至少')),
+  false);
+check('K14 職業總和超過角色等級 -> 仍要報（點數守恆）',
+  validateCharacter(techno([10, 10, 10])).warnings.some((w) => w.message.includes('超過角色等級')),
+  true);
+check('K15 起始等級 3 級（GM 自訂）-> 下限跟著降到 3，不是硬套 5',
+  validateCharacter(techno([1, 1, 1], { ...DEFAULT_CREATION_RULES, technospheres: 'full', startingLevel: 3 }))
+    .warnings.some((w) => w.message.includes('至少')),
+  false);
+check('K16 下限常數就是 p.140 的 5 級', INNATE_MIN_LEVELS, 5);
 
 // 裝備回退：一律回**具名的中性條目**，不是「資料表第一筆」
 // （第一筆剛好是中性值只是運氣；哪天有人把新裝備插到最前面就會靜默多給加值）

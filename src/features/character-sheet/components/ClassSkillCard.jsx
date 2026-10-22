@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   GiSparkles,
   GiCheckMark,
@@ -25,7 +25,8 @@ import {
 } from '../data/coreBookVariants';
 import { getMagitechBranch } from '../data/gadgetBranches';
 import { hasGreaterTheriomorphosis, getTheriomorphosisRules, getManifestCap, isTheriomorphosisVariant } from '../data/theriomorphosisVariant';
-import { isPlaytestAllowed } from '../data/creationRules';
+import { isPlaytestAllowed, resolveCreationRules } from '../data/creationRules';
+import { modeRestrictsEquipment } from '../data/technospheres';
 import SkillDescription from '../utils/skillFormulaEvaluator';
 import SkillSuboptionModal from './SkillSuboptionModal';
 import SuboptionDetailsList from './SuboptionDetailsList';
@@ -1291,6 +1292,9 @@ export default function ClassSkillCard({
         tinkererSL={currentTinkererSl}
         characterLevel={getCharacterLevel(character)}
         variantId={adoptedVariantId('小工具')}
+        technoRestrictsEquipment={
+          modeRestrictsEquipment(resolveCreationRules(character?.creationRules).technospheres)
+        }
         onSave={(newGadgetsData) => {
           if (onUpdateCharacter) {
             onUpdateCharacter({
