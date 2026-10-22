@@ -75,7 +75,8 @@ import {
 // 兩份並存時「測試綠燈」只保證 npcEngine 那份正確，**生產端用的是沒被測到的那份**。
 // 現在本檔已不再需要它（唯一的使用點隨顯示用文字工具搬到 `utils/displayText.jsx`），
 // 故不再匯入。護欄見 `tests/npcWorkshop.test.mjs` J 段。
-import { exportNpcToCombatant, migrateSpellSentinel } from './utils/npcEngine';
+import { exportNpcToCombatant, migrateNpcState, getSpeciesAffinities, getInitialAffinities } from './utils/npcEngine';
+import { resolveDragDirection } from './utils/dragDirection';
 // 顯示用文字工具（2026-10-16 抽出）：純函式，原本埋在下面，抽出去才測得到。
 import { getPlainText, renderFormattedText } from './utils/displayText';
 import { SPECIES_THEMES } from './data/speciesThemes';
@@ -98,122 +99,11 @@ import { THEMES } from './data/workshopThemes';
 // --- COMPONENTS ---
 
 
-const getInitialAffinities = () => { const init = {}; DAMAGE_TYPES.forEach(type => init[type] = 'normal'); return init; };
-
-const migrateNpcState = (npc) => {
-  if (!npc) return npc;
-  const migrated = migrateSpellSentinel({ ...npc });
-  if (!migrated.affinities) migrated.affinities = getInitialAffinities();
-  else if (typeof migrated.affinities.vulnerabilities === 'string') migrated.affinities = getInitialAffinities();
-
-  if (!migrated.villainTier) migrated.villainTier = "none";
-  if (migrated.avatarScale === undefined) migrated.avatarScale = 1;
-  if (!migrated.avatarFit) migrated.avatarFit = 'cover';
-  if (migrated.avatarOffsetX === undefined) migrated.avatarOffsetX = 0;
-  if (migrated.avatarOffsetY === undefined) migrated.avatarOffsetY = 0;
-  if (!migrated.customDice) migrated.customDice = {};
-
-  if (migrated.role && migrated.skills && ROLES_DATA[migrated.role]) {
-    // 1. Repair: Ensure skills that look like defaults (legacy) have libId and isDefault
-    migrated.skills = migrated.skills.map(s => {
-      // Legacy skills might have id 'b1', 'b2' but no libId or isDefault flag
-      if (!s.libId && s.id && /^[bhmu][1-9]$/.test(s.id)) {
-        return { ...s, libId: s.id, isDefault: true };
-      }
-      return s;
-    });
-
-    // 2. Sync level passives
-    migrated.skills = syncLevelPassives(migrated.role, migrated.level || 5, migrated.skills);
-
-    // 3. Ensure all default skills for current role exist
-    ROLES_DATA[migrated.role].defaultSkills.forEach(ds => {
-      if (!migrated.skills.some(s => s.libId === ds.id)) {
-        migrated.skills.push({ ...ds, id: `${ds.id}_${Date.now()}`, libId: ds.id, isDefault: true });
-      }
-    });
-
-    // 4. Final safety: Deduplicate default skills by libId (keep the first one found)
-    const seenLibIds = new Set();
-    migrated.skills = migrated.skills.filter(s => {
-      if (s.libId && /^[bhmu][1-9]$/.test(s.libId)) {
-        if (seenLibIds.has(s.libId)) return false;
-        seenLibIds.add(s.libId);
-      }
-      return true;
-    });
-  }
-
-  return migrated;
-};
-
-// --- Species & Affinity Integration Engine ---
-const getSpeciesAffinities = (sid, sCfg) => {
-  const affs = {};
-  if (!sid || !sCfg) return affs;
-  const sBenefits = sCfg.selectedBenefits || [];
-
-  if (sid === 'sp_construct') {
-    affs['土'] = 'res';
-    affs['毒'] = 'imm';
-    if (sCfg.sp_construct_extra_vul && sCfg.sp_construct_extra_vul !== '無') affs[sCfg.sp_construct_extra_vul] = 'vul';
-  }
-
-  if (sid === 'sp_demon') {
-    const res = Array.isArray(sCfg.sp_demon_resists) ? sCfg.sp_demon_resists : (sCfg.sp_demon_resists ? [sCfg.sp_demon_resists] : []);
-    res.forEach(t => affs[t] = 'res');
-    // b1: Replace a resist with absorption.
-    if (sBenefits.includes('b1') && sCfg.sp_demon_abs_choice) {
-      affs[sCfg.sp_demon_abs_choice] = 'abs';
-    }
-  }
-
-  if (sid === 'sp_element') {
-    affs['毒'] = 'imm';
-    if (sCfg.sp_element_immune) affs[sCfg.sp_element_immune] = 'imm';
-    if (sCfg.sp_element_extra_vul && sCfg.sp_element_extra_vul !== '無') affs[sCfg.sp_element_extra_vul] = 'vul';
-    if (sBenefits.includes('b1') && sCfg.sp_element_abs_choice) {
-      if (sCfg.sp_element_abs_choice === '連結於免疫') {
-        if (sCfg.sp_element_immune) affs[sCfg.sp_element_immune] = 'abs';
-      } else {
-        affs[sCfg.sp_element_abs_choice] = 'abs';
-      }
-    }
-  }
-
-  if (sid === 'sp_humanoid') {
-    if (sCfg.sp_humanoid_weakness) affs[sCfg.sp_humanoid_weakness] = 'vul';
-    if (sBenefits.includes('b1')) {
-      const res = sCfg.sp_humanoid_resists || [];
-      res.forEach(t => affs[t] = 'res');
-    }
-  }
-
-  if (sid === 'sp_monster') {
-    if (sBenefits.includes('b1')) {
-      const res = sCfg.sp_monster_resists || [];
-      res.forEach(t => affs[t] = 'res');
-    }
-  }
-
-  if (sid === 'sp_plant') {
-    if (sCfg.sp_plant_weakness) affs[sCfg.sp_plant_weakness] = 'vul';
-    if (sBenefits.includes('b2')) {
-      const res = sCfg.sp_plant_resists || [];
-      res.forEach(t => affs[t] = 'res');
-    }
-  }
-
-  if (sid === 'sp_undead') {
-    affs['光'] = 'vul';
-    affs['暗'] = 'imm';
-    affs['毒'] = 'imm';
-    if (sCfg.sp_undead_extra_vul && sCfg.sp_undead_extra_vul !== '無') affs[sCfg.sp_undead_extra_vul] = 'vul';
-    if (sBenefits.includes('b1')) affs['暗'] = 'abs';
-  }
-
-  return affs;
-};
+// `getInitialAffinities`／`migrateNpcState`／`getSpeciesAffinities` 的三份本地重複實作
+// 已於 2026-10-21 階段 11 刪除，改為匯入 `utils/npcEngine.js` 的單一實作。
+// 與 `getDynamicValues` 那次收斂（見上方註解）同一個病：兩份並存時，同一張卡會依
+// 「誰先載入」而得到不同結果，而測試只保證被測到的那一份正確。
+// 裁定理由與當時量到的行為差異，寫在 `utils/npcEngine.js` 那三個函式的檔頭。
 
 /**
  * ※ 測試注入點（2026-10-16 拆檔第三階段前置）：
@@ -235,7 +125,9 @@ export default function App({
     // 舊鍵 `fu_companion_npc_library` 與更早的 `fabula-npc-library-v2` 的內容，
     // 已由 store.migrateLegacyStorage() 在首次渲染前搬移（見 main.jsx）。
     const parsed = readJSON(STORAGE_KEYS.npcLibrary, []);
-    return Array.isArray(parsed) ? parsed.map(migrateNpcState) : [];
+    // 陣列裡可能混進 null／字串（手改備份檔、被截斷的寫入）。留著它們等於讓
+    // 檔案庫列表和後續的 `.map` 在第一次渲染就炸掉，故只收物件。
+    return Array.isArray(parsed) ? parsed.filter((n) => n && typeof n === 'object' && !Array.isArray(n)).map(migrateNpcState) : [];
   });
 
   useEffect(() => { writeJSON(STORAGE_KEYS.npcLibrary, library); }, [library]);
@@ -249,11 +141,48 @@ export default function App({
 
   const [activeMainTab, setActiveMainTab] = useState(initialMainTab);
   const [state, setState] = useState(initialDraft);
+  // 「最新草稿」ref（latest-ref）：ChapterHeader 的「儲存」按鈕與「返回檔案庫」都是
+  // 由 useEffect 推上去的，而那些 effect 的依賴陣列刻意只列 `state?.name`（列整個 `state`
+  // 等於每敲一個字就重建一次 header）。代價是：只要改的不是名字，按鈕上持有的
+  // `handleSaveToLibrary` 就還停在「上一次改名字」那次 render 的閉包裡，存下去的是舊草稿。
+  // 實測（2026-10-21，階段 10）：只改背景故事 → 按「儲存」→ 故事整段消失，
+  // 而且還彈「已成功儲存」；同一份內容改用 Ctrl+S（那條 effect 的依賴陣列含 `state`）
+  // 就存得進去。改成名字與故事交替編輯時，又會「有時候成功」。
+  // 修法：存檔讀 ref 而不是閉包，按鈕與 Ctrl+S 兩條路徑就都拿到最新草稿。
+  const stateRef = useRef(initialDraft);
+  useEffect(() => { stateRef.current = state; });
+  // 未存草稿的離場警告（2026-10-21，階段 10）。
+  // 八步建角是十幾分鐘的工序，重新載入或關掉分頁就全部消失，而畫面上沒有任何提示。
+  // 只在「畫面上的草稿 ≠ 檔案庫裡那張卡」時才攔，已存過的卡不會被這個對話框騷擾。
+  // 比對刻意放在事件裡做（而不是每次 render 算簽章）：`beforeunload` 一次只跑一次，
+  // 帶 6,000 字背景故事或 base64 頭像的草稿也付得起。
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (activeMainTab === 'library') return;
+      const cur = stateRef.current;
+      if (!cur) return;
+      const strip = (o) => {
+        if (!o) return '';
+        const { updatedAt, ...rest } = o;
+        return JSON.stringify(rest);
+      };
+      const saved = library.find((n) => n.id === cur.id);
+      if (strip(cur) === strip(saved)) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [library, activeMainTab]);
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStartX, setDragStartX] = useState(0); 
+  // 這裡原本還有一個 `dragStartX` state，但拖曳事件讀的是 `.current`（ref 寫法）。
+  // 對一個 number 賦 `.current` 會拋 TypeError，整個拖曳因此失效——只留 ref。
   const dragStartXRef = useRef(0);
+  // 步驟一的換頁函式（latest-ref）：拖曳放手要延到下一輪事件迴圈才呼叫，
+  // 用 ref 取「當下最新」的閉包，避免讀到舊的 visualIndex。
+  const stepMoveRef = useRef(null);
   const [visualIndex, setVisualIndex] = useState(0);
   const [activeAffinityTab, setActiveAffinityTab] = useState('vul');
   const [linkSearchQuery, setLinkSearchQuery] = useState('');
@@ -305,7 +234,10 @@ export default function App({
         const storyMatch = (npc.story || '').toLowerCase().includes(q);
         const factionMatch = (npc.faction || '').toLowerCase().includes(q);
         const speciesLabel = npc.selectedSpeciesId ? (SPECIES_THEMES[npc.selectedSpeciesId]?.label || '') : '';
-        const speciesMatch = speciesLabel.toLowerCase().includes(q);
+        // 搜尋框的 placeholder 寫的是「種族」，玩家會輸入中文物種名（如「野獸」）。
+        // 只比對英文 label 等於照著提示操作反而搜不到，所以中文名與英文標籤兩者都比。
+        const speciesName = npc.selectedSpeciesId ? (SPECIES_DATA.find(s => s.id === npc.selectedSpeciesId)?.name || '') : '';
+        const speciesMatch = speciesLabel.toLowerCase().includes(q) || speciesName.toLowerCase().includes(q);
         const skillsMatch = (npc.skills || []).some(s => (s.name || '').toLowerCase().includes(q));
         return nameMatch || roleMatch || rankMatch || traitsMatch || tacticsMatch || storyMatch || factionMatch || speciesMatch || skillsMatch;
       });
@@ -351,9 +283,24 @@ export default function App({
       setIsFreeModeConfirmOpen(true);
     } else {
       setState(prev => ({ ...prev, isFreeModeEnabled: false }));
-      showToast('已恢復嚴謹模式：重新計算技能額度與規則限制。', 'success');
     }
   };
+
+  // 切回嚴謹模式時，自訂骰子會停止套用（資料仍在），但畫面上只會看到數字變回去。
+  // 這段提示改在 effect 裡讀「切換後」的 state：在 onClick 裡讀 state.customDice 拿到的是切換前的值，
+  // 實測會誤判成「沒有自訂骰子」，於是新手只看到數字悄悄變回標準值。
+  const wasFreeModeRef = useRef(false);
+  useEffect(() => {
+    if (!state) return;
+    const was = wasFreeModeRef.current;
+    wasFreeModeRef.current = !!state.isFreeModeEnabled;
+    if (was && !state.isFreeModeEnabled) {
+      const hadCustomDice = !!state.customDice && Object.keys(state.customDice).some(k => state.customDice[k]);
+      showToast(hadCustomDice
+        ? '已恢復嚴謹模式：自訂骰子已還原為標準值（設定仍保留，再開自由模式即恢復），技能額度與規則限制重新計算。'
+        : '已恢復嚴謹模式：重新計算技能額度與規則限制。', 'success');
+    }
+  }, [state && state.isFreeModeEnabled]);
 
   const handleConfirmFreeMode = () => {
     setIsFreeModeConfirmOpen(false);
@@ -595,7 +542,7 @@ export default function App({
             const migrated = migrateNpcState(parsed);
             setState(migrated);
             setActiveMainTab('build');
-            showToast(`成功讀取「${migrated.name || 'NPC'}」的檔案！`, "success");
+            showToast(`已讀取「${migrated.name || 'NPC'}」——按右上「儲存」才會進檔案庫`, "success");
           }
         } catch (err) {
           showToast("JSON 格式解析失敗，請確認檔案內容是否正確！", "error");
@@ -729,6 +676,17 @@ export default function App({
 
   const speciesAffinities = useMemo(() => getSpeciesAffinities(state?.selectedSpeciesId, state?.speciesConfig), [state?.selectedSpeciesId, state?.speciesConfig]);
 
+  // 徽章只統計「手動分配」的額度（`currentAffinities` 讀的是 `state.affinities`），
+  // 物種自帶的抗性走 `speciesAffinities`／`mergedAffinities`，不佔額度。
+  // 兩套資料在畫面上只出現一套數字，新手會誤判「物種抗性沒生效」——這裡把物種那段摘要出來。
+  const speciesAffinitySummary = useMemo(() => {
+    const marks = { vul: '弱', res: '抗', imm: '免', abs: '吸' };
+    return Object.entries(speciesAffinities)
+      .map(([type, value]) => (marks[value] ? `${type}${marks[value]}` : null))
+      .filter(Boolean)
+      .join('、');
+  }, [speciesAffinities]);
+
   const mergedAffinities = useMemo(() => {
     if (!state) return getInitialAffinities();
     const affs = { ...state.affinities };
@@ -761,9 +719,16 @@ export default function App({
     }
   }, []);
 
+  // 前一個提示的定時器必須先清掉。否則「匯入 → 儲存」這種連續操作裡，
+  // 前一個提示的 3 秒到點時會把**新**提示一起清掉（實測新提示只活 1.6 秒）。
+  const toastTimerRef = useRef(null);
   const showToast = (message, type = 'success') => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    toastTimerRef.current = setTimeout(() => {
+      setToast(null);
+      toastTimerRef.current = null;
+    }, 3000);
   };
 
   const createNewNPC = () => {
@@ -821,10 +786,17 @@ export default function App({
   };
 
   const handleSaveToLibrary = () => {
-    if (!state) return;
+    // 一律讀 stateRef（見 stateRef 宣告處的註解）：header 的「儲存」與「返回檔案庫」
+    // 拿到的是舊閉包，讀閉包會把剛編輯的欄位整批蓋回舊值，而且照樣彈成功提示。
+    const latest = stateRef.current;
+    if (!latest) return;
+    // 檔案庫的「最近更新」排序讀的是 updatedAt，但過去全檔只讀不寫——
+    // 於是排序實際上 fallback 到 id 裡的數字（匯入的卡 id 不是純數字，恆排最後）。
+    // 存檔時蓋章，排序標籤才對得上它承諾的行為。
+    const stamped = { ...latest, updatedAt: new Date().toISOString() };
     setRoleDrafts({});
-    setLibrary(prevLib => getReconciledLibrary(state, prevLib));
-    showToast(`已成功儲存「${state.name || "未知實體"}」！`, 'success');
+    setLibrary(prevLib => getReconciledLibrary(stamped, prevLib));
+    showToast(`已成功儲存「${latest.name || "未知實體"}」！`, 'success');
   };
 
   const handleToggleNPCLink = (targetId) => {
@@ -1030,6 +1002,24 @@ export default function App({
   };
 
   const handleSpeciesChange = (speciesId) => {
+    if (!state || speciesId === state.selectedSpeciesId) return;
+    const cfg = state.speciesConfig || {};
+    const hasSpeciesConfig = (cfg.selectedBenefits || []).length > 0
+      || Object.entries(cfg).some(([k, v]) => (
+        k !== 'selectedBenefits'
+        && v !== undefined && v !== null && v !== ''
+        && !(Array.isArray(v) && v.length === 0)
+      ));
+    const hasManualAffinity = Object.values(state.affinities || {}).some(v => v && v !== 'normal');
+    if (hasSpeciesConfig || hasManualAffinity) {
+      const what = [hasSpeciesConfig ? '物種設定' : null, hasManualAffinity ? '手動分配的抗性' : null]
+        .filter(Boolean).join('與');
+      // SSR 沒有 window.confirm：那裡本來就不會執行 onClick，回 true 讓行為維持不變。
+      const ok = typeof window !== 'undefined' && typeof window.confirm === 'function'
+        ? window.confirm(`切換物種會清空目前的${what}，而且切換回來不會恢復。要繼續嗎？`)
+        : true;
+      if (!ok) return;
+    }
     setState(prev => ({
       ...prev,
       selectedSpeciesId: speciesId,
@@ -1127,7 +1117,11 @@ export default function App({
 
   const calculateStats = () => {
     if (!state) return {};
-    const roleData = ROLES_DATA[state.role];
+    // 未知定位（舊卡、改名過的職業、手改備份檔）沒有 levels／base，直接讀就是白頁。
+    // 2026-10-21 階段 11：這裡只影響數值計算，卡片自己的 role 字串不動——
+    // migrateNpcState 依 tests/npcWorkshop.test.mjs G 段「未知定位仍可遷移」只補缺、不改寫既有值。
+    // 代價是這種卡會用暴徒的基準值算 HP／MP／防禦，這是刻意的取捨：有數值可看 > 白頁。
+    const roleData = ROLES_DATA[state.role] || ROLES_DATA['暴徒'];
     const lvlData = roleData.levels[state.level];
 
     const defaultDEX = lvlData.dex || roleData.base.DEX;
@@ -1803,27 +1797,72 @@ export default function App({
     }
   };
 
-  const handleExportJSON = () => {
+  // GM-09-04：這個 handler 原本是**死碼**——全檔沒有任何按鈕接上它，
+  // 所以「匯出單張 NPC 的 JSON」在介面上根本不存在，GM 只能靠「備份全庫」。
+  // 現在由檔案庫每張卡的「匯出」按鈕呼叫，並接受傳入的 npc（預設仍為目前草稿）。
+  const handleExportJSON = (npc = state) => {
+    if (!npc) return;
     setRoleDrafts({});
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(npc, null, 2));
     const a = document.createElement('a');
     a.href = dataStr;
-    a.download = `${state.name || 'npc'}_fabula_ultima.json`;
+    a.download = `${npc.name || 'npc'}_fabula_ultima.json`;
     a.click();
-    showToast(`成功匯出「${state.name || 'NPC'}」的存檔資料！`, 'success');
+    showToast(`成功匯出「${npc.name || 'NPC'}」的存檔資料！`, 'success');
   };
 
   const handleImportJSON = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    // 同一個檔案連續匯入兩次不會再觸發 change，清空才能重試。
+    e.target.value = '';
     const reader = new FileReader();
     reader.onload = (event) => {
+      let parsed;
       try {
-        let loadedState = JSON.parse(event.target.result);
-        loadedState = migrateNpcState(loadedState);
+        parsed = JSON.parse(event.target.result);
+      } catch (err) {
+        showToast("無效的 JSON 檔案！請確認格式是否正確。", 'error');
+        return;
+      }
+
+      // GM-01-01：「備份全庫」產出的是**陣列**，「匯出 JSON」產出的是**物件**。
+      // 過去不判型別，陣列被直接塞進 setState，下一個渲染週期就在某個 `.map`
+      // 上炸成 ErrorBoundary——而 GM 手上唯一的保險正是那個備份檔。
+      if (Array.isArray(parsed)) {
+        const incoming = parsed.filter((item) => item && typeof item === 'object' && !Array.isArray(item));
+        if (incoming.length === 0) {
+          showToast("這個備份檔裡沒有可用的 NPC 資料。", 'error');
+          return;
+        }
+        const normalized = incoming.map(migrateNpcState);
+        const existingIds = new Set(library.map((n) => n.id));
+        const addedCount = normalized.filter((n) => !existingIds.has(n.id)).length;
+        const updatedCount = normalized.length - addedCount;
+        setLibrary((prevLib) => {
+          const next = [...prevLib];
+          normalized.forEach((npc) => {
+            const idx = next.findIndex((n) => n.id === npc.id);
+            if (idx >= 0) next[idx] = { ...next[idx], ...npc };
+            else next.push(npc);
+          });
+          return next;
+        });
+        setActiveMainTab('library');
+        showToast(`已從備份檔匯入 ${normalized.length} 個 NPC（新增 ${addedCount}、覆蓋 ${updatedCount}）`, 'success');
+        return;
+      }
+
+      if (!parsed || typeof parsed !== 'object') {
+        showToast("無效的 JSON 檔案！請確認格式是否正確。", 'error');
+        return;
+      }
+
+      try {
+        const loadedState = migrateNpcState(parsed);
         setState(loadedState);
         setActiveMainTab('build');
-        showToast(`成功讀取「${loadedState.name || 'NPC'}」的檔案！`);
+        showToast(`已讀取「${loadedState.name || 'NPC'}」——按右上「儲存」才會進檔案庫`);
       } catch (err) {
         showToast("無效的 JSON 檔案！請確認格式是否正確。", 'error');
       }
@@ -1831,7 +1870,15 @@ export default function App({
     reader.readAsText(file);
   };
 
-  const nextStep = () => setCurrentStep(p => Math.min(p + 1, 8));
+  const nextStep = () => {
+    // 步驟 3（物種）是核心欄位，但系統允許留空（`selectedSpeciesId` 初值就是 null，
+    // 自由模式與「不明生物」都靠它）。不阻擋，只提醒一次——否則新手會一路做到匯出
+    // 才發現角色卡上沒有物種那一段。
+    if (currentStep === 3 && state && !state.selectedSpeciesId) {
+      showToast('還沒選物種：角色卡上不會有物種與物種抗性。要保留無物種可以忽略這個提示。', 'warning');
+    }
+    setCurrentStep(p => Math.min(p + 1, 8));
+  };
   const prevStep = () => setCurrentStep(p => Math.max(p - 1, 1));
 
   const steps = [
@@ -2219,11 +2266,14 @@ export default function App({
     if (trimmedText === undefined) return; // 尚未建立 NPC 時不動作（與原本的 `if (!state) return` 等價）
 
     const handleSuccessToast = () => {
+      // GM-09-03：非「完整」視角時輸出會剔除背景故事與戰術，但提示語照樣說
+      // 「全文本」——GM 會以為玩家拿到的是完整資料。
+      const revealNote = revealLevel === 'full' ? '' : `（${revealLevel}+ 視角：不含背景故事與戰術）`;
       if (format === 'ccfolia') {
-        showToast('已複製 ccfolia 棋子！請至 ccfolia 房間按 Ctrl+V 貼上', 'success');
+        showToast(`已複製 ccfolia 棋子！請至 ccfolia 房間按 Ctrl+V 貼上${revealNote}`, 'success');
       } else {
         const formatName = format === 'discord' ? 'Discord' : format === 'plain' ? '純文字筆記' : 'Markdown';
-        showToast(`已複製全文本角色卡 (${formatName})`, 'success');
+        showToast(`已複製${revealLevel === 'full' ? '全文本' : ''}角色卡 (${formatName})${revealNote}`, 'success');
       }
     };
 
@@ -2253,55 +2303,76 @@ export default function App({
 
         const handleMove = (dir) => {
           const newIdx = visualIndex + dir;
-          setVisualIndex(newIdx);
           const newRoleName = roles[((newIdx % roles.length) + roles.length) % roles.length];
+          setVisualIndex(newIdx);
           handleRoleChange(newRoleName);
         };
+        stepMoveRef.current = handleMove;
 
         const onMouseDown = (e) => {
           setIsDragging(true);
-          dragStartX.current = e.clientX;
+          dragStartXRef.current = e.clientX;
         };
 
         const onMouseMove = (e) => {
           if (!isDragging) return;
-          setDragOffset(e.clientX - dragStartX.current);
+          setDragOffset(e.clientX - dragStartXRef.current);
         };
 
-        const onMouseUp = () => {
-          if (!isDragging) return;
+        // 松手時用「事件座標 − 按下座標」現算位移，而不是讀 dragOffset state。
+        // state 要等一次重繪才更新，快速甩動後立刻松手會讀到舊值（甚至還是 0）——
+        // 拖了半個螢幕卻沒反應，新手只會以為「這東西不能拖」。
+        // 換頁還要延到下一輪事件迴圈：在 mouseup 的同步棧裡呼叫 handleMove，
+        // 會和 setIsDragging 觸發的重繪撞在一起，setVisualIndex 直接落空（實測）。
+        const finishDrag = (endX, threshold) => {
+          const dx = endX - dragStartXRef.current;
           setIsDragging(false);
-          if (dragOffset > 80) handleMove(-1);
-          else if (dragOffset < -80) handleMove(1);
           setDragOffset(0);
+          const dir = resolveDragDirection(dx, threshold);
+          if (dir !== 0) setTimeout(() => stepMoveRef.current?.(dir), 0);
+        };
+
+        const onMouseUp = (e) => {
+          if (!isDragging) return;
+          finishDrag(e.clientX, 80);
         };
 
         const onTouchStart = (e) => {
           setIsDragging(true);
-          dragStartX.current = e.touches[0].clientX;
+          dragStartXRef.current = e.touches[0].clientX;
         };
 
         const onTouchMove = (e) => {
           if (!isDragging) return;
-          setDragOffset(e.touches[0].clientX - dragStartX.current);
+          setDragOffset(e.touches[0].clientX - dragStartXRef.current);
         };
 
-        const onTouchEnd = () => {
+        const onTouchEnd = (e) => {
           if (!isDragging) return;
-          setIsDragging(false);
-          if (dragOffset > 50) handleMove(-1);
-          else if (dragOffset < -50) handleMove(1);
-          setDragOffset(0);
+          const t = e.changedTouches?.[0];
+          finishDrag(t ? t.clientX : dragStartXRef.current, 50);
         };
 
-        // 渲染範圍：visualIndex 前後各 3 個
-        const renderRange = [];
-        for (let i = visualIndex - 3; i <= visualIndex + 3; i++) {
-          renderRange.push(i);
-        }
+        // （原「渲染範圍：visualIndex 前後各 3 個」的 renderRange 已於 2026-10-21 階段 11 刪除：
+        //   它算完之後沒有任何地方讀取，實際渲染的是下面 Array.from({ length: 201 }) 全量輸出。）
+
+        // 2026-10-21 階段 11：定位字串有值但本版不認得（舊卡、改名、手改備份檔）時，
+        // 上面的轉盤只畫得出六個已知定位，於是畫面會停在「某個」定位上，而卡片裡其實是別的字。
+        // 不把值改掉（存檔原樣保留），但一定要說出來，否則 GM 會以為卡片就是畫面上那個定位。
+        const unknownRole = !!state.role && !ROLES_DATA[state.role];
 
         return (
           <div className="flex flex-col h-full space-y-8 animate-in fade-in zoom-in-95 duration-500 max-w-5xl mx-auto relative pb-10 select-none">
+            {unknownRole && (
+              <div className="bg-amber-50 border-l-4 border-amber-700 p-4 rounded text-[#3c2415] border border-amber-300 shadow-sm">
+                <p className="font-bold mb-1 flex items-center gap-2">
+                  <GiSparkles size={18} className="text-amber-700" /> 這張卡的定位「{state.role}」不在本版資料裡
+                </p>
+                <p className="text-[13px] leading-relaxed">
+                  存檔會原樣保留這個字，但畫面上的數值與技能是以暴徒的基準算的。選任一個定位就會覆蓋掉原本的值。
+                </p>
+              </div>
+            )}
             <div className="bg-[#f5efdf] border-l-4 border-amber-700 p-4 rounded text-[#2c221e] border border-[#d6c7ab] shadow-sm">
               <h3 className="font-bold mb-1 text-[#3c2415] flex items-center gap-2"><GiSparkles size={18} className="text-amber-700" /> 步驟 1：選擇NPC的定位</h3>
               <p className="text-sm text-[#574c43]">每個定位都擁有獨特的成長屬性。環狀捲軸已開啟，您可以無限滑動來挑選。</p>
@@ -2538,6 +2609,12 @@ export default function App({
                     <select className="w-full bg-[#fffdf9] border-2 border-[#d6c7ab] rounded-lg p-3 text-[#2c221e] outline-none focus:border-amber-600 transition-colors cursor-pointer appearance-none font-bold" value={state.level} onChange={handleLevelChange}>{LEVELS.map(l => <option key={l} value={l}>Lv. {l}</option>)}</select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-700 w-5 h-5 pointer-events-none" />
                   </div>
+                  {/* 2026-10-21 階段 11（GM-10-04 裁定）：這七個檔位是原書的等級階級，不是任意整數。
+                      新手會想「先做一個 Lv.7 的雜兵」，卻只看到 5/10/20/30/40/50/60 而不知道為什麼不能打數字，
+                      所以把理由寫在控制項旁邊，而不是等他去翻規則書。 */}
+                  <p className="mt-2 text-[11px] leading-relaxed text-[#6b5a4b]">
+                    原書的等級是階級制，只能選這七個檔位（不是任意整數）。
+                  </p>
                 </div>
                 <div className="flex-1">
                   <label className="block text-sm text-[#3c2415] mb-2 font-bold tracking-widest flex items-center gap-2">階級</label>
@@ -2756,6 +2833,11 @@ export default function App({
                                   {selectedCount} / {maxPicks}
                                 </span>
                               </div>
+                              {selectedCount >= maxPicks && (
+                                <p className="text-[11px] font-bold text-amber-800">
+                                  已選滿 {maxPicks} 項，要改選請先取消其中一項。
+                                </p>
+                              )}
                               <div className="grid grid-cols-1 gap-4">
                                 {sp.benefitsConfig.options.map(opt => {
                                   const count = (state.speciesConfig.selectedBenefits || []).filter(b => b === opt.id).length;
@@ -2766,8 +2848,19 @@ export default function App({
                                   return (
                                     <div key={opt.id} className="space-y-3">
                                       <div
-                                        className={`p-4 rounded-xl border-2 transition-all flex flex-col gap-3 relative overflow-hidden ${isChecked ? 'bg-amber-50/80 border-amber-600 shadow-md' : isDisabled ? 'bg-stone-100/50 border-stone-300 opacity-50 cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-amber-600 hover:bg-[#fbf7ee] cursor-pointer'}`}
+                                        role="button"
+                                        aria-pressed={isChecked}
+                                        aria-disabled={isDisabled}
+                                        tabIndex={isDisabled ? -1 : 0}
+                                        className={`p-4 rounded-xl border-2 transition-all flex flex-col gap-3 relative overflow-hidden focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-500/60 ${isChecked ? 'bg-amber-50/80 border-amber-600 shadow-md' : isDisabled ? 'bg-stone-100/50 border-stone-300 opacity-50 cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-amber-600 hover:bg-[#fbf7ee] cursor-pointer'}`}
                                         onClick={() => !isDisabled && handleBenefitToggle(opt.id, maxPicks, opt.canPickTwice)}
+                                        onKeyDown={(e) => {
+                                          // 這張卡是 div 不是 button，鍵盤原本完全按不到（Tab 直接跳過整區）。
+                                          // 補 role／tabIndex 之後，Enter 與空白鍵要跟滑鼠點擊同一條路徑。
+                                          if (e.key !== 'Enter' && e.key !== ' ') return;
+                                          e.preventDefault();
+                                          if (!isDisabled) handleBenefitToggle(opt.id, maxPicks, opt.canPickTwice);
+                                        }}
                                       >
                                         <div className="flex items-center gap-4">
                                           {opt.canPickTwice ? (
@@ -2974,7 +3067,7 @@ export default function App({
                     const currentDie = finalStats[attr.key];
                     const isCustomized = state.customDice?.[attr.key] && state.customDice[attr.key] !== attr.defaultDie;
                     const parseDice = d => parseInt(String(d).replace('d', ''), 10) || 8;
-                    const roleData = ROLES_DATA[state.role];
+                    const roleData = ROLES_DATA[state.role] || ROLES_DATA['暴徒'];
 
                     let impactText = "";
                     if (attr.key === 'MIG') {
@@ -3108,6 +3201,13 @@ export default function App({
                 })}
               </div>
 
+              {/* 為什麼有分頁是灰的：額度為 0 時按鈕會 disabled，若不說明，新手會以為壞了 */}
+              {!state.isFreeModeEnabled && ['vul', 'res', 'imm', 'abs'].some(st => affinityBudgets[st] === 0 && currentAffinities[st] === 0) && (
+                <p className="text-[11px] text-[#6b5a4b] mb-3 -mt-1 leading-relaxed">
+                  灰色的分頁額度為 0（由職業與等級決定）。升到對應等級會自動解鎖，屆時分頁會亮起來。
+                </p>
+              )}
+
               <div className={`grid grid-cols-3 md:grid-cols-5 gap-3 p-4 rounded-b-lg rounded-tr-lg border-2 bg-[#f9f5eb] transition-colors duration-300 ${activeAffinityTab === 'vul' ? 'border-red-300' : activeAffinityTab === 'res' ? 'border-amber-300' : activeAffinityTab === 'imm' ? 'border-sky-300' : activeAffinityTab === 'abs' ? 'border-emerald-300' : 'border-[#d6c7ab]'}`}>
                 {DAMAGE_TYPES.map(type => {
                   const playerState = state.affinities[type] || 'normal';
@@ -3127,8 +3227,9 @@ export default function App({
                       className={`flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg border-2 transition-all transform shadow-sm relative ${isSpeciesLocked ? 'opacity-100 border-dashed cursor-default saturate-[1.2] ring-1 ring-amber-600' : isDisabled ? 'opacity-40 cursor-not-allowed saturate-50' : 'hover:scale-105 cursor-pointer'} ${style.bg} ${style.border} ${style.text}`}
                     >
                       {isSpeciesLocked && (
-                        <div className="absolute -top-2 -right-2 bg-[#fffdf9] border-2 border-amber-600 text-amber-900 p-1 rounded-full shadow z-20 flex items-center justify-center" title="物種綁定">
-                          <Lock size={10} strokeWidth={3} />
+                        <div className="absolute -top-2 -right-1 bg-[#fffdf9] border-2 border-amber-600 text-amber-900 px-1.5 py-0.5 rounded-full shadow z-20 flex items-center gap-0.5" title="此相性由物種提供，不能手動修改；換物種才會變">
+                          <Lock size={9} strokeWidth={3} />
+                          <span className="text-[9px] font-bold leading-none">物種</span>
                         </div>
                       )}
                       <div className="flex items-center gap-1 sm:gap-2 mb-1.5">
@@ -3180,6 +3281,14 @@ export default function App({
             {step4SubTab === 'skills' && (
               <div className="space-y-6">
 
+            {/* 額度為 0 時，「定位技能」面板會整個不渲染（SectionAccordion 的 hideIfZeroMax）。
+                新手因此不知道有這個系統，也不知道它會在升級後冒出來——所以在這裡留一句說明。 */}
+            {!state.isFreeModeEnabled && maxRoleSkills === 0 && (
+              <p className="text-[11px] text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] rounded-lg px-3 py-2 leading-relaxed">
+                「定位技能」的額度由職業與等級決定，目前是 0，所以這一區暫時不會出現。升級或換職業後會自動解鎖。
+              </p>
+            )}
+
             {/* 基礎攻擊與核心能力 (Basic Attacks) */}
             {basicAttacksToRender.length > 0 && (
               <SectionAccordion title="基礎攻擊與核心能力" icon={<GiCrossedSwords size={16} />} current={basicAttacksToRender.length} max={basicAttacksToRender.length} hideIfZeroMax={false} titleColor="text-amber-900" borderColor="border-[#d6c7ab]" isFreeMode={state.isFreeModeEnabled}>
@@ -3195,7 +3304,7 @@ export default function App({
 
             <SectionAccordion title="客製化規則" icon={<Settings size={16} />} current={usedCustomizations} max={maxCustomizations} hideIfZeroMax={!hasChampSupport} titleColor="text-amber-900" borderColor="border-[#d6c7ab]" isFreeMode={state.isFreeModeEnabled}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {ROLES_DATA[state.role].availableSkills.filter(s => s.source === 'customization').map(skill => {
+                {(ROLES_DATA[state.role]?.availableSkills || []).filter(s => s.source === 'customization').map(skill => {
                   const activeSkillData = processedSkills.find(s => s.libId === skill.id);
                   const isActive = !!activeSkillData;
 
@@ -3210,7 +3319,10 @@ export default function App({
                   ) : null;
 
                   const isOverBudget = isActive && activeSkillData?.isOverBudget && !lockedMsg;
-                  const isDisabled = isRequirementLocked || (!isActive && !state.isFreeModeEnabled && usedCustomizations >= maxCustomizations);
+                  // 額度用完時，其餘卡片會變灰；沒有文字說明就只是「不敢動」（GM-12-01）。
+                  const isBudgetLocked = !isActive && !state.isFreeModeEnabled && usedCustomizations >= maxCustomizations;
+                  const budgetMsg = isBudgetLocked ? '客製化額度已滿' : null;
+                  const isDisabled = isRequirementLocked || isBudgetLocked;
                   const targetId = activeSkillData?.id || skill.id;
 
                   return (
@@ -3252,7 +3364,7 @@ export default function App({
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {ROLES_DATA[state.role].availableSkills.filter(s => s.source === 'roleSkill').filter(skill => !roleSkillSearch || (skill.originalName || '').toLowerCase().includes(roleSkillSearch.toLowerCase()) || (skill.originalDesc || '').toLowerCase().includes(roleSkillSearch.toLowerCase())).map(skill => {
+                {(ROLES_DATA[state.role]?.availableSkills || []).filter(s => s.source === 'roleSkill').filter(skill => !roleSkillSearch || (skill.originalName || '').toLowerCase().includes(roleSkillSearch.toLowerCase()) || (skill.originalDesc || '').toLowerCase().includes(roleSkillSearch.toLowerCase())).map(skill => {
                   const activeSkillData = processedSkills.find(s => s.libId === skill.id);
                   const isActive = !!activeSkillData;
 
@@ -3617,6 +3729,11 @@ export default function App({
                       </button>
                     ))}
                   </div>
+                  {/* 這 6 顆按鈕同時改階級和倍率，但外觀只像「選一個數字」。
+                      階級可以在步驟 2 改回（可逆），所以不攔，只把後果寫出來。 */}
+                  <p className="text-[11px] text-[#6b5a4b] mt-3 leading-relaxed text-center">
+                    覺醒會把階級改為「冠位」並套用所選倍率。想改回其他階級，回步驟 2 調整即可。
+                  </p>
                 </div>
               </div>
             ) : (
@@ -3704,6 +3821,13 @@ export default function App({
             <div className="bg-[#f5efdf] border-l-4 border-red-700 p-4 rounded text-[#2c221e] border border-[#d6c7ab] shadow-sm">
               <h3 className="font-bold mb-1 text-red-900">步驟 6：配置負面技能</h3>
               <p className="text-sm text-[#574c43]">為你的 NPC 配備一個顯著的弱點以換取額外的額度。</p>
+              {/* 「換取額度」原本兌現時沒有任何回饋——額度只反映在左側面板的數字上，
+                  而「(包含負面技能獎勵 +N)」那行寫在步驟 4。所以在這裡把兌現結果說出來。 */}
+              {(state.selectedNegativeSkills || []).length > 0 && (
+                <p className="text-xs text-emerald-800 font-bold mt-2 flex items-center gap-1">
+                  <GiSparkles size={12} /> 已選定弱點：定位技能額度 +{(state.selectedNegativeSkills || []).length}（在步驟 4 的「定位技能」可以看到）
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {NEGATIVE_SKILLS_DATA.map(skill => {
@@ -3720,7 +3844,7 @@ export default function App({
 
                 const isDisabled = isRequirementLocked || (!isActive && !state.isFreeModeEnabled && (state.selectedNegativeSkills || []).length >= 1);
                 return (
-                  <div key={skill.id}>
+                  <div key={skill.id} id={`negative-skill-${skill.id}`}>
                     <SkillCard
                       skill={isActive ? { ...skill, ...selection } : skill}
                       isActive={isActive}
@@ -3972,7 +4096,7 @@ export default function App({
               <p className="text-sm text-[#574c43]">最後決定 NPC 的戰術。</p>
             </div>
             <div className="bg-[#fffdf9] p-4 rounded-lg border border-[#d6c7ab] mb-6 shadow-sm">
-              <textarea className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded p-3 text-[#2c221e] outline-none h-48 resize-none focus:border-amber-600 text-sm leading-relaxed font-medium" value={state.tactics || ""} onChange={e => setState({ ...state, tactics: e.target.value })} placeholder="..." />
+              <textarea className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded p-3 text-[#2c221e] outline-none h-48 resize-none focus:border-amber-600 text-sm leading-relaxed font-medium" value={state.tactics || ""} onChange={e => setState({ ...state, tactics: e.target.value })} placeholder="描述這個 NPC 在戰鬥中會怎麼行動。例如：優先攻擊施法者；血量低於一半時退到後排，改用遠程攻擊。" />
             </div>
             <div className="flex justify-end"><button onClick={() => setActiveMainTab('preview')} className="bg-amber-700 hover:bg-amber-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-bold shadow-md transition-transform hover:scale-105"><Eye size={18} /> 立即查看角色卡</button></div>
           </div>
@@ -4132,10 +4256,10 @@ export default function App({
                   />
                   <span
                     className="bg-white hover:bg-[#ede4d1] text-[#3c2415] border border-[#d6c7ab] px-3.5 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-xs transition-all hover:scale-102 justify-center text-xs cursor-pointer"
-                    title="匯入 NPC JSON 檔案"
+                    title="匯入單張 NPC 的 JSON 檔案（載入後還要按「儲存」才會進檔案庫）"
                   >
                     <Upload className="w-3.5 h-3.5 text-amber-800" />
-                    <span>匯入 NPC</span>
+                    <span>匯入單張 NPC</span>
                   </span>
                 </label>
 
@@ -4220,7 +4344,8 @@ export default function App({
                       <div className="mt-auto flex gap-2">
                         <button onClick={() => { setState(npc); setActiveMainTab('build'); }} className="flex-1 bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-[#d6c7ab]"><Edit3 size={14} /> 編輯</button>
                         <button onClick={() => { setState(npc); setActiveMainTab('preview'); }} className="flex-1 bg-amber-100 hover:bg-amber-200 text-amber-900 py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-amber-300"><Eye size={14} /> 預覽</button>
-                        <button onClick={() => handleSendToCombat(npc)} className="bg-rose-100 hover:bg-rose-200 text-rose-900 px-3 py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-rose-300" title="推入戰鬥房間"><GiCrossedSwords size={14} /> 入戰</button>
+                        <button onClick={() => handleExportJSON(npc)} className="bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] px-3 py-2 rounded transition-colors border border-[#d6c7ab] flex justify-center items-center" title={`匯出「${npc.name || "未知實體"}」的 JSON 存檔`} aria-label={`匯出「${npc.name || "未知實體"}」的 JSON 存檔`}><Download size={16} /></button>
+                <button onClick={() => handleSendToCombat(npc)} className="bg-rose-100 hover:bg-rose-200 text-rose-900 px-3 py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-rose-300" title="推入戰鬥房間"><GiCrossedSwords size={14} /> 入戰</button>
                         <button onClick={() => {
                           if (window.confirm(`確定要刪除「${npc.name || "未知實體"}」嗎？此操作無法復原。`)) {
                             setLibrary(prev => {
@@ -4233,7 +4358,7 @@ export default function App({
                             });
                             showToast(`已刪除「${npc.name || "未知實體"}」`);
                           }
-                        }} className="bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded transition-colors border border-red-200"><Trash2 size={16} /></button>
+                        }} title={`刪除「${npc.name || "未知實體"}」`} aria-label={`刪除「${npc.name || "未知實體"}」`} className="bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded transition-colors border border-red-200"><Trash2 size={16} /></button>
                       </div>
                     </div>
                   </div>
@@ -4289,9 +4414,15 @@ export default function App({
             <button
               onClick={() => { setCurrentStep(4); setStep4SubTab('stats'); }}
               className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-300 bg-amber-50 text-amber-900 transition-all hover:scale-105 ml-auto md:ml-0"
-              title="點擊前往相性配置"
+              title="數字只計算你手動分配的額度；物種自帶的抗性另計、不佔額度。點擊前往相性配置"
             >
+              <span className="text-[9px] font-normal opacity-70">手動</span>
               ▽ 弱 {currentAffinities.vul} | ▼ 抗 {currentAffinities.res} | ◆ 免 {currentAffinities.imm}
+              {speciesAffinitySummary && (
+                <span className="hidden md:inline ml-1 pl-1.5 border-l border-amber-300 text-[#8a6d3b] font-normal">
+                  物種：{speciesAffinitySummary}
+                </span>
+              )}
             </button>
           </div>
 
@@ -4373,7 +4504,7 @@ export default function App({
               {currentStep !== 1 && (
                 <div className="w-full border-t py-3 shrink-0 z-50 relative shadow-[0_-10px_20px_-10px_rgba(44,34,30,0.1)] bg-[#f4ebd9] border-[#d6c7ab]" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
                   <div className="max-w-4xl mx-auto flex justify-between items-center px-4 md:px-8">
-                    <button onClick={prevStep} className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold transition-all text-sm text-[#3c2f21] bg-[#eee6d3] hover:bg-[#e4d9c0] border border-[#d6c7ab] shadow-sm">
+                    <button onClick={prevStep} title="上一步（Alt + ←）" className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold transition-all text-sm text-[#3c2f21] bg-[#eee6d3] hover:bg-[#e4d9c0] border border-[#d6c7ab] shadow-sm">
                       <ChevronLeft size={16} /> 上一步
                     </button>
 
@@ -4382,7 +4513,7 @@ export default function App({
                         <Check size={16} /> 預覽角色卡
                       </button>
                     ) : (
-                      <button onClick={nextStep} className="flex items-center gap-2 px-8 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm text-white hover:scale-105 bg-amber-700 hover:bg-amber-600">
+                      <button onClick={nextStep} title="下一步（Alt + →）" className="flex items-center gap-2 px-8 py-2.5 rounded-lg font-bold transition-all shadow-md text-sm text-white hover:scale-105 bg-amber-700 hover:bg-amber-600">
                         下一步 <ChevronRight size={16} />
                       </button>
                     )}
@@ -4509,7 +4640,7 @@ export default function App({
                                   className="w-3.5 h-3.5 rounded-full shrink-0 border shadow-xs"
                                   style={{ backgroundColor: theme.accent, borderColor: theme.accentDark }}
                                 />
-                                <span className="truncate">{theme.name.replace(/^[^\s]+\s*/, '')}</span>
+                                <span className="truncate">{theme.name}</span>
                                 {isSelected && <Check size={12} className="ml-auto text-amber-800 shrink-0" />}
                               </button>
                             );
@@ -4567,6 +4698,19 @@ export default function App({
                 </button>
               </div>
             </div>
+            {/* GM-08-02／GM-08-03：揭示等級是跨頁籤保留的狀態，而背景故事與戰術
+                只在「完整」才渲染。少了這條提示，GM 切過 10+ 之後再回來改故事，
+                會以為自己寫的東西被吃掉了；`??` 也會被讀成資料缺失而不是刻意遮蔽。 */}
+            {revealLevel !== 'full' && (
+              <div className="w-full mb-3 flex items-start gap-2 rounded-lg border border-amber-600/60 bg-amber-50 px-3 py-2 text-[12px] leading-relaxed text-amber-950 shadow-sm">
+                <Eye size={14} className="mt-0.5 shrink-0 text-amber-700" />
+                <span>
+                  目前是研究檢定視角（<span className="font-black">{revealLevel}+</span>）：背景故事與戰術不會顯示
+                  {revealLevel === '7' && <>，數值欄位中的 <span className="font-mono font-black">??</span> 代表「尚未揭示」</>}
+                  。切回「<span className="font-black">完整</span>」可以看到全部內容。
+                </span>
+              </div>
+            )}
             {renderCharacterCard()}
 
             <div className="h-20 w-full flex-shrink-0"></div>

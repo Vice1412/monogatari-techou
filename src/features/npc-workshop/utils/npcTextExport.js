@@ -111,6 +111,11 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     if (revealLevel === 'full' && state.tactics) {
       text += `**戰術慣例**:\n${state.tactics}\n`;
     }
+    // GM-09-01：三種文字格式原本都不輸出背景故事，只有 ccfolia 的 memo 有。
+    // 同一顆「複製文本」按鈕，換格式就少一段，GM 不會發現。
+    if (revealLevel === 'full' && state.story) {
+      text += `\n**背景故事**:\n${state.story}\n`;
+    }
   } else if (format === 'plain') {
     text += `${state.name} (Lv. ${state.level})\n`;
     const rankDisplay = state.rank === "冠位" ? `${state.rank} (${state.championMultiplier})` : state.rank;
@@ -156,6 +161,9 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     if (revealLevel === 'full' && state.tactics) {
       text += `\n戰術慣例:\n${state.tactics}\n`;
     }
+    if (revealLevel === 'full' && state.story) {
+      text += `\n背景故事:\n${state.story}\n`;
+    }
   } else if (format === 'ccfolia') {
     const rankDisplay = state.rank === "冠位" ? `${state.rank} (${state.championMultiplier})` : state.rank;
     const villainTier = state.villainTier || 'none';
@@ -163,9 +171,13 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     const speciesName = state.selectedSpeciesId ? (SPECIES_THEMES[state.selectedSpeciesId]?.label || '') : '';
 
     // 1. Build Memo (說明欄)
+    //
+    // GM-09-02：ccfolia 分支原本**完全不理會 revealLevel**——研究檢定切到 10+ 之後，
+    // 其餘三種格式都剔掉了故事與戰術、也把數值遮成 ??，只有這裡照樣全送，
+    // 等於把 GM 刻意要藏的東西直接交到玩家手上。這裡補上與其他分支一致的閘門。
     const memoLines = [];
     memoLines.push(`【${rankDisplay}】${state.role}`);
-    if (villainTier !== 'none') {
+    if (villainTier !== 'none' && revealLevel === 'full') {
       memoLines.push(`反派位階：${villainInfo.label} (UP: ${villainInfo.up})`);
     }
     if (speciesName) {
@@ -174,29 +186,31 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     if (state.faction) {
       memoLines.push(`陣營：${state.faction}`);
     }
-    if (state.traits) {
-      memoLines.push(`特質：${state.traits}`);
-    }
-
-    // 相性
-    const affs = [];
-    DAMAGE_TYPES.forEach(t => {
-      const aff = mergedAffinities[t];
-      if (aff && aff !== 'normal') {
-        const label = aff === 'vul' ? '弱點' : aff === 'res' ? '抗性' : aff === 'imm' ? '免疫' : '吸收';
-        affs.push(`${t}:${label}`);
+    if (isRevealed('stats')) {
+      if (state.traits) {
+        memoLines.push(`特質：${state.traits}`);
       }
-    });
-    if (affs.length > 0) {
-      memoLines.push(`相性：${affs.join(', ')}`);
+
+      // 相性
+      const affs = [];
+      DAMAGE_TYPES.forEach(t => {
+        const aff = mergedAffinities[t];
+        if (aff && aff !== 'normal') {
+          const label = aff === 'vul' ? '弱點' : aff === 'res' ? '抗性' : aff === 'imm' ? '免疫' : '吸收';
+          affs.push(`${t}:${label}`);
+        }
+      });
+      if (affs.length > 0) {
+        memoLines.push(`相性：${affs.join(', ')}`);
+      }
+      if (stats.statusImmunities && stats.statusImmunities.length > 0) {
+        memoLines.push(`異常免疫：${stats.statusImmunities.join(', ')}`);
+      }
     }
-    if (stats.statusImmunities && stats.statusImmunities.length > 0) {
-      memoLines.push(`異常免疫：${stats.statusImmunities.join(', ')}`);
-    }
-    if (state.tactics) {
+    if (revealLevel === 'full' && state.tactics) {
       memoLines.push(`\n戰術慣例：\n${state.tactics}`);
     }
-    if (state.story) {
+    if (revealLevel === 'full' && state.story) {
       memoLines.push(`\n背景故事：\n${state.story}`);
     }
 
@@ -330,7 +344,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
       data: {
         name: `${state.name || 'NPC'} (Lv.${state.level || 5})`,
         memo: memoLines.join('\n'),
-        initiative: parseInt(stats.Init, 10) || 0,
+        initiative: isRevealed('stats') ? (parseInt(stats.Init, 10) || 0) : 0,
         externalUrl: "",
         status: statusArr,
         params: paramsArr,
@@ -444,6 +458,9 @@ export const buildNpcText = (ctx, format = 'markdown') => {
 
     if (revealLevel === 'full' && state.tactics) {
       md += `**戰術慣例**:\n${state.tactics}\n`;
+    }
+    if (revealLevel === 'full' && state.story) {
+      md += `\n**背景故事**:\n${state.story}\n`;
     }
     text = md;
   }

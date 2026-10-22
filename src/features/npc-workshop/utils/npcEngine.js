@@ -48,6 +48,10 @@ export const getInitialAffinities = () => {
   return init;
 };
 
+// ── 物種相性（唯一實作）──────────────────────────────────────────────
+// 2026-10-21 階段 11 裁定：本檔這一份為準，`NPCWorkshop.jsx` 原本自帶的本地版已刪除。
+// 兩份的差別只有「不死 b1」一處，而**差錯的是原本這一份**（把固定換暗寫成了讀
+// `sp_undead_abs_choice`），詳見下方 `sp_undead` 分支的註解。
 export const getSpeciesAffinities = (sid, sCfg) => {
   const affs = {};
   if (!sid || !sCfg) return affs;
@@ -108,12 +112,16 @@ export const getSpeciesAffinities = (sid, sCfg) => {
   }
 
   if (sid === 'sp_undead') {
+    affs['光'] = 'vul';
     affs['暗'] = 'imm';
     affs['毒'] = 'imm';
-    affs['光'] = 'vul';
-    if (sBenefits.includes('b1') && sCfg.sp_undead_abs_choice) {
-      affs[sCfg.sp_undead_abs_choice] = 'abs';
-    }
+    if (sCfg.sp_undead_extra_vul && sCfg.sp_undead_extra_vul !== '無') affs[sCfg.sp_undead_extra_vul] = 'vul';
+    // b1 的原文（`data/speciesData.js:163`）是「將對暗傷害的免疫替換為對暗傷害的吸收」——
+    // 固定換「暗」，沒有選擇項。這裡原本寫成 `sCfg.sp_undead_abs_choice`，
+    // 而不死物種根本沒有這個 key（物種資料與 UI 都沒有），於是選了 b1 之後
+    // 卡面（`NPCCardPreview` 走的就是這一份）仍然顯示「免疫」——選了等於沒選。
+    // 2026-10-21 階段 11 裁定：以原書為準，固定換暗。
+    if (sBenefits.includes('b1')) affs['暗'] = 'abs';
   }
 
   return affs;
@@ -480,18 +488,85 @@ export const migrateSpellSentinel = (npc) => {
   return out;
 };
 
+// ── 存檔遷移（唯一實作）──────────────────────────────────────────────
+// 2026-10-21 階段 11 裁定：本檔這一份為準，`NPCWorkshop.jsx` 原本自帶的本地版已刪除。
+//
+// 為什麼要裁定：兩份並存時，同一張卡會依「誰先載入」而遷移成不同形狀——
+// 工坊走本地版（補齊形狀、修舊技能 id、補齊定位預設技能），戰鬥房間走這一份（只補
+// `affinities`／`customDice`／`villainTier`）。於是 `skills: undefined` 的壞卡在工坊裡
+// 打得開，被 `CombatTracker` 載到就是 `reading 'map'`。這與 `getDynamicValues` 那次
+// 收斂（見 `NPCWorkshop.jsx:73`）是同一個病：**測試綠燈只保證被測到的那一份正確。**
+//
+// 取捨：以本地版為主體（它才是 2026-10-21 階段 10 補過形狀保證的那一份），
+// 併入本檔原本多出來的三件事——`!npc` 回傳全新卡、補 `id`、`faction` 預設「未分類」。
 export const migrateNpcState = (npc) => {
-  if (!npc) return createNewNPC();
+  if (!npc || typeof npc !== 'object') return createNewNPC();
   const migrated = migrateSpellSentinel({ ...npc });
+
+  // 0. 形狀保證（2026-10-21，階段 10）。
+  //    舊檔、手改過的備份檔、被外部工具截斷的卡都可能缺欄位，或把陣列存成 null。
+  //    以前這裡只補 `affinities` 與 `customDice`，於是 `skills: undefined` 一路活到
+  //    編輯頁的 `.map`，一按「編輯」就是全頁 ErrorBoundary，而訊息只寫
+  //    「Cannot read properties of undefined (reading 'map')」——看不出是哪張卡、哪個欄位。
+  //    這裡只補型別、不動既有的合法值；補完之後下游才敢用 `.map`／`.filter`。
+  const asArray = (v) => (Array.isArray(v) ? v : []);
+  const asObject = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  ['skills', 'linkedNpcs', 'selectedNegativeSkills', 'selectedBossSkills', 'customRules', 'tags']
+    .forEach((k) => { migrated[k] = asArray(migrated[k]); });
+  ['speciesConfig', 'customDice', 'attributes'].forEach((k) => { migrated[k] = asObject(migrated[k]); });
+  migrated.overrides = { hp: 0, mp: 0, init: 0, def: 0, mdef: 0, ...asObject(migrated.overrides) };
+  ['name', 'traits', 'story', 'tactics', 'faction'].forEach((k) => {
+    if (typeof migrated[k] !== 'string') migrated[k] = k === 'name' ? '未命名實體' : '';
+  });
+  // 職業與等級是整份面板的索引鍵：認不得的職業會讓右側每一步都讀到 undefined。
+  // 但**只補缺、不改寫既有的值**——`role` 是字串就原樣留著，即使本版不認識它。
+  // （`tests/npcWorkshop.test.mjs` G 段有一條「未知定位仍可遷移」在守這件事；
+  //  真正該修的是渲染端：`case 4` 的兩個 `ROLES_DATA[state.role].availableSkills`
+  //  已於 2026-10-21 階段 11 改成 `?.` ＋ 空陣列回退，所以未知定位不再崩頁。）
+  if (typeof migrated.role !== 'string' || !migrated.role) migrated.role = '暴徒';
+  const lv = Number(migrated.level);
+  if (!Number.isFinite(lv) || lv <= 0) migrated.level = 5;
+  if (!migrated.rank) migrated.rank = '士兵';
+
   if (!migrated.id) migrated.id = `npc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   if (!migrated.faction) migrated.faction = "未分類";
-  if (!migrated.tags || !Array.isArray(migrated.tags)) migrated.tags = [];
   if (!migrated.affinities) migrated.affinities = getInitialAffinities();
-  if (!migrated.customDice) migrated.customDice = {};
+  else if (typeof migrated.affinities.vulnerabilities === 'string') migrated.affinities = getInitialAffinities();
   if (!migrated.villainTier) migrated.villainTier = "none";
+  if (migrated.avatarScale === undefined) migrated.avatarScale = 1;
+  if (!migrated.avatarFit) migrated.avatarFit = 'cover';
+  if (migrated.avatarOffsetX === undefined) migrated.avatarOffsetX = 0;
+  if (migrated.avatarOffsetY === undefined) migrated.avatarOffsetY = 0;
 
-  if (migrated.role && migrated.skills && ROLES_DATA[migrated.role]) {
+  if (migrated.role && ROLES_DATA[migrated.role]) {
+    // 1. Repair: Ensure skills that look like defaults (legacy) have libId and isDefault
+    migrated.skills = migrated.skills.map((s) => {
+      // Legacy skills might have id 'b1', 'b2' but no libId or isDefault flag
+      if (s && !s.libId && s.id && /^[bhmu][1-9]$/.test(s.id)) {
+        return { ...s, libId: s.id, isDefault: true };
+      }
+      return s;
+    }).filter((s) => s && typeof s === 'object');
+
+    // 2. Sync level passives
     migrated.skills = syncLevelPassives(migrated.role, migrated.level || 5, migrated.skills);
+
+    // 3. Ensure all default skills for current role exist
+    ROLES_DATA[migrated.role].defaultSkills.forEach((ds) => {
+      if (!migrated.skills.some((s) => s.libId === ds.id)) {
+        migrated.skills.push({ ...ds, id: `${ds.id}_${Date.now()}`, libId: ds.id, isDefault: true });
+      }
+    });
+
+    // 4. Final safety: Deduplicate default skills by libId (keep the first one found)
+    const seenLibIds = new Set();
+    migrated.skills = migrated.skills.filter((s) => {
+      if (s.libId && /^[bhmu][1-9]$/.test(s.libId)) {
+        if (seenLibIds.has(s.libId)) return false;
+        seenLibIds.add(s.libId);
+      }
+      return true;
+    });
   }
 
   return migrated;

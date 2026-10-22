@@ -127,6 +127,11 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
       ) : (
         <div className={`text-sm leading-relaxed ${isOverBudget && isActive ? 'text-red-700/80' : skill.customDesc !== undefined ? 'text-amber-900 font-medium' : 'text-[#574c43]'}`}>{renderFormattedText(currentDesc, skill.selections, npcLevel, partyLevel)}</div>
       )}
+      {/* 模板裡的 `{key}` 未填時畫成空虛線框，但那框沒有文字標籤——不點下去不知道要填什麼。
+          這裡先講「有幾個欄位要填」，讓使用者知道那條虛線不是壞掉。 */}
+      {!isActive && skill.category !== 'attack' && Array.isArray(skill.selectionsConfig) && skill.selectionsConfig.length > 0 && (
+        <div className="mt-2 text-[10px] text-amber-800 font-bold">選取後可填 {skill.selectionsConfig.length} 個欄位</div>
+      )}
       {isActive && skill.selectionsConfig && skill.category !== 'attack' && (
         <div className={`mt-4 pt-3 border-t flex flex-col gap-2 animate-in slide-in-from-top-2 ${isOverBudget ? 'border-red-300' : 'border-[#d6c7ab]/60'}`}>
           {skill.selectionsConfig
