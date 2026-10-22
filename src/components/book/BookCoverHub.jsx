@@ -116,11 +116,11 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
           </button>
 
           {/* Restore */}
-          <label className="cursor-pointer">
-            <input type="file" accept=".json" onChange={onRestore} className="hidden" />
+          <label className="cursor-pointer" title="還原全站備份（會覆蓋目前的全部資料）">
+            <input type="file" accept=".json" onChange={onRestore} className="hidden" aria-label="還原全站備份" />
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-sky-300 bg-white/80 hover:bg-sky-50 text-sky-900 hover:text-cyan-700 transition-colors shadow-sm font-medium">
               <GiOpenChest className="w-4 h-4 text-sky-600" />
-              <span className="hidden sm:inline">還原</span>
+              <span className="hidden sm:inline">還原全站</span>
             </span>
           </label>
 

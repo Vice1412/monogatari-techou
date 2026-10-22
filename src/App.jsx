@@ -198,6 +198,13 @@ export default function App() {
   };
 
   // Full site restore
+  const RESTORE_LABELS = {
+    npcLibrary: 'NPC 檔案庫',
+    characterRoster: '角色名冊',
+    activeCombat: '戰鬥房間',
+    fateClocks: '命刻記錄',
+  };
+
   const handleFullRestore = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -206,6 +213,22 @@ export default function App() {
     reader.onload = (ev) => {
       try {
         const parsed = JSON.parse(ev.target.result);
+        const hit = Object.keys(RESTORE_LABELS).filter((k) => parsed[k]);
+        if (hit.length === 0) {
+          alert('這個檔案裡沒有任何可還原的資料。\n若您想匯入單張 NPC，請到「NPC 工坊」的「匯入 NPC」。');
+          e.target.value = '';
+          return;
+        }
+        // 這是不可逆的覆蓋。先把「會被換掉什麼」講清楚，再讓玩家自己按確定——
+        // 這顆按鈕和 NPC 工坊的「匯入 NPC」吃同一種副檔名，且在畫面上相距不到一指寬。
+        const ok = window.confirm(
+          `即將用這個備份覆蓋目前的：\n\n${hit.map((k) => `· ${RESTORE_LABELS[k]}`).join('\n')}\n\n此操作無法復原，確定要繼續嗎？`,
+        );
+        if (!ok) {
+          e.target.value = '';
+          return;
+        }
+
         if (parsed.npcLibrary) writeJSON(STORAGE_KEYS.npcLibrary, parsed.npcLibrary);
         if (parsed.characterRoster) writeJSON(STORAGE_KEYS.characterRoster, parsed.characterRoster);
         if (parsed.activeCombat) writeJSON(STORAGE_KEYS.activeCombat, parsed.activeCombat);

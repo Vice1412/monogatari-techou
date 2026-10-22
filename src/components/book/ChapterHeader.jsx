@@ -210,19 +210,22 @@ export default function ChapterHeader({
         </button>
 
         {/* Restore */}
-        <label className="cursor-pointer">
+        {/* 這顆和 NPC 工坊的「匯入 NPC」都吃 .json，而且在同一條水平線上。
+            誤觸的代價是用一個單卡檔案覆蓋全站資料，所以標題要寫清楚「全站」。 */}
+        <label className="cursor-pointer" title="還原全站備份（會覆蓋目前的全部資料）">
           <input
             type="file"
             accept=".json"
             onChange={onRestore}
             className="hidden"
+            aria-label="還原全站備份"
           />
           <span
             className={`inline-flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border text-xs font-medium transition-colors ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
             style={customTheme ? { backgroundColor: customTheme.cardBg || '#ffffff', borderColor: customTheme.border, color: customTheme.textDark } : {}}
           >
             <GiOpenChest className="w-4 h-4" style={customTheme ? { color: customTheme.accent } : {}} />
-            <span className="hidden lg:inline">還原</span>
+            <span className="hidden lg:inline">還原全站</span>
           </span>
         </label>
 
