@@ -329,7 +329,6 @@ Get-ChildItem -Path "src" -Recurse -File |
 | Playtest 其餘選用規則 | 前後排、Applause Points、Surrender、休息場景、電影式造物計畫等；目前只實裝「開局英雄技能」與「高階角色起始資金」 |
 | D5 金手指選項 | 「倖存者」③ IP 永久 +2、「墮落天使」③ 最大 MP +10 未實作；**結構性原因**：金手指只有名稱比對，無法承載「選項」 |
 | D6 洋蔥戒指 | Core p.289；實測不在 `rulesData.equipment.accessories`（僅 6 筆）→ 玩家無法選用 |
-| NPC 工坊重複函式 | `NPCWorkshop.jsx` 與 `utils/npcEngine.js` 有三組同名函式，`migrateNpcState`（48 vs 18 行）與 `getSpeciesAffinities`（66 vs 70 行）**行為不同**，需裁定以哪份為準（見 `docs/decisions.md` §AX／§AY） |
 
 ### 6.2 已結案（索引）—— 2026-10-20 整表搬出本檔
 

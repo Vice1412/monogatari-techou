@@ -122,6 +122,32 @@ git rev-list --objects --all | Select-String "<path>"    # 歷史層（真正會
 用正則批次改 import 陳述式時踩過：單行與多行格式不同，正則只在單行正確，
 多行檔案被改壞。**是 `npm run build` 抓到的，不是測試**——因為測試跑的是已打包的產物。
 
+### 2.5 手動 E2E 稽核（`scripts/audit-npc-workshop.mjs`）
+
+NPC 工坊的功能稽核腳本，**不進 `npm test`**（CI 沒有 Chrome，且它需要 `npm run dev` 在跑）。
+
+```
+npm run dev                                  # 另一個視窗，http://localhost:3000
+node scripts/audit-npc-workshop.mjs          # 需本機 Chrome；CHROME_PATH／CDP_PORT 可覆寫
+```
+
+**它驗的是「行為」不是「渲染」**：真的打字、真的按鈕、真的上傳檔案、真的下載檔案，
+並用 CDP 攔 `navigator.clipboard` 驗複製內容。`exit 0` 才代表全過。
+
+腳本裡已經封裝了六個**會讓人誤報 bug** 的陷阱，改腳本前先讀：
+
+| 陷阱 | 症狀 | 對策（已寫進腳本） |
+|---|---|---|
+| viewport 不等於 `--window-size` | 角色卡整段不進 `innerText`（`xl:` 以下被隱藏）→ 誤判「預覽壞了」 | `Emulation.setDeviceMetricsOverride` 設 1600×1000 |
+| 手風琴是**切換**語意 | 已展開時再按等於關起來 → `cards=0` | `openAccordion()` 先看有沒有 body 再決定要不要按 |
+| `deepest()` 取 document 順序最後一個 | 「完整」按鈕與「切回『完整』」提示句同名 → 按到提示句，什麼都沒發生 | `clickButtonExact()` 只在 `<button>` 上找 |
+| `Page.reload` 會清掉注入的 `window.*` | clipboard 墊片失效 → 「複製成功」驗不到內容 | 墊片在 reload **之後**才裝 |
+| 章節是 lazy chunk + 翻頁鎖 | 剛退出封面時章節卡 `onClick` 被 `transitionState` 擋掉；進場後還顯示「正在展開章節……」 | 等 850ms 動畫結束；等該字串消失才斷言 |
+| 非 `workshop` 章節有開發中提醒 | 點了章節卡不會翻頁，畫面停在封面 | 還要再按「確定進入」 |
+
+> **有效性已驗證**（2026-10-22）：故意把搜尋篩選改成 no-op、把 Discord 格式的回傳值改成空字串，
+> 稽核精準 FAIL 在對應的 4 項、其餘 79 項照樣綠；還原後 83/83 全綠。
+
 ---
 
 ## 3. Git 歷史改寫始末（2026-10-05，**接手前必讀**）

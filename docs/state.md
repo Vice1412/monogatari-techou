@@ -164,4 +164,29 @@
 | D6 官方飾品「洋蔥戒指」 | Core p.289：每個**不同職業**使最大 HP 與 MP 各 +2。**實測不在** `rulesData.equipment.accessories`（現僅 6 筆）→ 玩家無法選用 | 待裁定 |
 | ~~D7 暗黑之刃【Playtest】遠程~~ | ✅ **已隨 BC1 結案**：該職業已於 2026-10-19 刪除（無官方對應），此缺陷不再存在。核心職業「暗黑之刃」的免費增益是「HP +5，職業近戰/防具」，沒有二選一歧義 | ✅ 已結案 |
 | ~~BC1~~ 6 個【Playtest】職業無官方對應 | ✅ **2026-10-19 已依使用者裁定結案**：覆核最新修訂文件（Playtest Materials ENG **2026-10-01**，45 頁）——整份只有 p.24「ARCANIST (variant)」一個職業級變體；守護者／武器大師／博學士／暗黑之刃／神射手／吟唱者**只作為英雄技能的前提被提到**（那是核心職業本身），沒有任何職業資料。**已刪除這 6 個職業**（`SOURCEBOOKS.playtest.classes`、`CLASS_METADATA`、`rulesData.classes`）。唯一保留的變體職業已於 **§BF** 改名為「秘儀師【變體】」並整份對齊原文；兩個 SL 上限（幻影之力 5、快速召喚 4）已於 §BC 修正，與 PDF 一致 | ✅ 已結案 |
-| NPC 工坊重複函式 | `NPCWorkshop.jsx` 與 `utils/npcEngine.js` 之間有三組**同名函式**：`getInitialAffinities`（邏輯相同，可安全收斂）、**`migrateNpcState`（48 vs 18 行）**、**`getSpeciesAffinities`（66 vs 70 行）**——後兩者**行為不同**，且測試只覆蓋 `npcEngine.js` 那份、**生產端元件用的是另一份**（與 §AW「測試與生產分歧」同型）。**需裁定以哪份為準**（涉及既有 NPC 資料的遷移與相性計算）。詳見 `docs/decisions.md` §AX／§AY | 待裁定 |
+| ~~NPC 工坊重複函式~~ | `NPCWorkshop.jsx` 與 `utils/npcEngine.js` 之間有三組**同名函式**：`getInitialAffinities`（邏輯相同，可安全收斂）、**`migrateNpcState`（48 vs 18 行）**、**`getSpeciesAffinities`（66 vs 70 行）**——後兩者**行為不同**，且測試只覆蓋 `npcEngine.js` 那份、**生產端元件用的是另一份**（與 §AW「測試與生產分歧」同型）。**需裁定以哪份為準**（涉及既有 NPC 資料的遷移與相性計算）。詳見 `docs/decisions.md` §AX／§AY 。**2026-10-22 已裁定，見 `docs/decisions.md` §BQ**：三組一律以 `utils/npcEngine.js` 為唯一實作、兩份取聯集；合併時發現引擎那份的 `getSpeciesAffinities` 要求一個**不存在的 key**（`sp_undead_abs_choice`），導致「不死 b1：免疫換吸收」從來沒生效——而錯的那份正是角色卡預覽與入戰在用的。護欄：`scripts/gm/stage11-probe.mjs`（15 條）＋ `stage10` B 段 | ✅ 已結案 |
+
+## 7. NPC 工坊 GM 實測（2026-10-22 完成）
+
+以「新手 GM 開一張卡」的視角，把 NPC 工坊的八道建角步驟、預覽輸出、檔案庫、邊界韌性逐段實測，
+分 11 個階段進行，逐段留紀錄。**正本：[`docs/npc-workshop-gm-test.md`](npc-workshop-gm-test.md)**（階段計畫、67 筆缺陷登記、每階段實測依據與裁定）。
+
+- **規模**：11 個階段、67 筆缺陷（S1 四筆、其餘 S2–S4），標籤為「找不到／看不懂／不敢動／不知成功／救不回」。
+- **修復節奏**：會污染後續量測基準的缺陷集中到最後一階段修（阻塞池），其餘「下一階段開頭直接解決」。
+- **護欄**：`scripts/gm/stage0.mjs`～`stage10.mjs`（逐階段關卡）＋ `scripts/gm/stage11-probe.mjs`（修復批次探測）。
+  ⚠️ 這些是**手動工具**，刻意**不**串進 `npm test`（要跑真的瀏覽器與 dev server）；用法見各檔檔頭。
+- **修復批次的三個結論**（詳見 `docs/decisions.md` §BQ）：
+  1. 三組重複函式收斂為引擎單一實作，並在合併時抓到一個**從未生效的規則**（不死 b1 的免疫換吸收）。
+  2. 「認不得的定位」不再被無聲改寫，改成「數值借基準值＋字串原樣保留＋畫面明說」。
+  3. 增益卡補上鍵盤可達性（原本整區 Tab 直接跳過）。
+- **回歸**：`npm run test:emoji`／`npm run build`／`npm test` 全 `exit 0`；`stage0`～`stage10` 全綠。
+
+### 7.1 全功能稽核（2026-10-22 完成，83 項）
+
+上述 GM 實測是「新手 GM 走一遍」的**敘事視角**；本節是**逐條功能的存在性與連動**驗證，兩者互補。
+
+- **工具**：`scripts/audit-npc-workshop.mjs`（手動，需本機 Chrome ＋ `npm run dev`；**刻意不進 `npm test`**，用法與六個量測陷阱見 `docs/handoff.md` §2.5）。
+- **規模**：13 組、83 項檢查（進入與空狀態／八步內容與導覽／定位・等級・階級・物種・反派・相性／技能・咒語・自訂能力・額度 HUD／Boss 與負面技能／稱呼・特質・故事・頭像裁切・戰術／存檔／預覽（揭露 7+・10+・13+・完整、六種卡片風格、四種複製格式、JPG 匯出、複製圖片）／嚴謹↔自由模式／檔案庫搜尋・篩選・排序・單張匯出・備份・匯入・入戰・刪除／跨章節整合）。
+- **結果**：83/83 通過，`exit 0`，執行期例外 0、`console.error` 0。
+- **有效性驗證**（依 `docs/handoff.md` §2.3 的鐵律）：刻意把搜尋篩選改成 no-op、把 Discord 格式回傳值改成空字串 → 精準 FAIL 在對應 4 項、其餘 79 項仍綠；還原後 83/83 全綠。
+- **附帶確認**：這一輪**沒有發現 NPC 工坊的實際缺陷**——所有 FAIL 都是稽核腳本自身的量測問題（viewport、切換語意、同名元素、reload 清墊片、lazy chunk、開發中提醒）。
