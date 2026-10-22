@@ -129,9 +129,13 @@ section('A. 鍵註冊表完整性');
   ];
   check('世代 2 的 6 個舊鍵全部登記', GEN2_LEGACY.every((k) => typeof k === 'string' && k.startsWith(DEPRECATED_PREFIX)), true);
   check('世代 2 舊鍵之間無重複', new Set(GEN2_LEGACY).size, 6);
-  check('世代 2 舊鍵與權威鍵一對一對應', GEN2_LEGACY.length, values.length - 1); // npcCardTheme 的舊鍵是 fabula-npc-card-theme
+  // 世代 2 舊鍵與權威鍵的對應關係。扣掉的兩個是**本來就沒有世代 2 舊鍵**的鍵：
+  //   - `npcCardTheme`：舊鍵是 `fabula-npc-card-theme`（世代 1）
+  //   - `npcDraft`（2026-10-22 新增）：全新寫入端，沒有任何前身
+  check('世代 2 舊鍵與權威鍵一對一對應', GEN2_LEGACY.length, values.length - 2);
 
-  // 每一個權威鍵都必須有對應的舊鍵可遷移（否則更名等於直接刪資料）
+  // 每一個「由舊鍵更名而來」的權威鍵都必須有對應的舊鍵可遷移（否則更名等於直接刪資料）。
+  // `npcDraft` 不在此列：它是 2026-10-22 新增的鍵，不是任何舊鍵的新名字。
   const CANONICAL_WITH_LEGACY = [
     STORAGE_KEYS.npcLibrary,
     STORAGE_KEYS.characterRoster,
@@ -141,7 +145,8 @@ section('A. 鍵註冊表完整性');
     STORAGE_KEYS.characterTheme,
     STORAGE_KEYS.npcCardTheme,
   ];
-  check('7 個權威鍵全部列入遷移計畫', CANONICAL_WITH_LEGACY.length, values.length);
+  check('7 個由更名而來的權威鍵全部列入遷移計畫', CANONICAL_WITH_LEGACY.length, values.length - 1);
+  check('npcDraft 沒有任何舊鍵（全新寫入端）', CANONICAL_WITH_LEGACY.includes(STORAGE_KEYS.npcDraft), false);
   check('NPC 卡片配色舊鍵（世代 2）', LEGACY_KEYS.npcCardThemeLegacy, 'fabula-npc-card-theme');
   check('NPC 卡片配色舊鍵（世代 1）', LEGACY_KEYS.npcCardThemeV1, 'fabula-npc-theme');
 }

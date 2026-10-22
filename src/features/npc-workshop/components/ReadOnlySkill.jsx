@@ -9,6 +9,7 @@
 import React from 'react';
 import { DAMAGE_TYPES, TYPE_STYLES, BOSS_SKILLS_DATA, isOffensiveSpell, normalizeSpellName } from '../data';
 import { getPlainText, renderFormattedText } from '../utils/displayText';
+import { resolveAttack } from '../utils/attackDisplay';
 import CopyButton from './CopyButton';
 
 const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onInspectorClick }) => {
@@ -21,7 +22,10 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
     });
   };
 
-  const replacedDist = replaceNPC(skill.attack?.distance); const replacedForm = replaceNPC(skill.attack?.formula); const replacedType = replaceNPC(skill.attack?.type);
+  // 距離／公式／屬性一律先過 utils/attackDisplay.js 的解析：宣告了同名選單就以選單為準，
+  // 這樣「顯示」「複製文字」與「卡片選單」才會是同一份值。
+  const atk = skill.attack ? resolveAttack(skill.attack, skill.selections, skill.selectionsConfig) : null;
+  const replacedDist = replaceNPC(atk?.distance); const replacedForm = replaceNPC(atk?.formula); const replacedType = replaceNPC(atk?.type);
   let effectiveOrigDesc = skill.originalDesc || "";
   if (skill.selectionsConfig) {
     const libSkill = BOSS_SKILLS_DATA.find(bs => bs.id === skill.libId);
@@ -121,23 +125,20 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
       )}
 
       {skill.attack && (() => {
-        let resolvedType = replacedType;
-        if (typeof resolvedType === 'string' && resolvedType.startsWith('{') && resolvedType.endsWith('}')) {
-          const k = resolvedType.slice(1, -1);
-          resolvedType = skill.selections?.[k] || resolvedType;
-        }
+        // 與 EditableSkill 共用同一套解析：宣告了同名選單就以選單為準（utils/attackDisplay.js）。
+        const resolvedType = atk.type;
         const typeInfo = TYPE_STYLES[resolvedType];
-        const isRanged = String(replacedDist).includes('遠程') || skill.selections?.distance === '遠程';
+        const isRanged = String(atk.distance).includes('遠程');
 
         return (
           <div className={`bg-[#fffdf9] border-l-4 p-2.5 my-1 text-sm ml-2 md:ml-4 rounded-r border border-stone-200 shadow-sm ${skill.isSecretArt ? 'border-l-fuchsia-600' : skill.category === 'boss' ? 'border-l-amber-600' : 'border-l-red-700'}`}>
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
               <span className="inline-flex items-center gap-1 text-[#3c2f21] bg-[#e8dec8] px-2 py-0.5 rounded text-xs font-bold shrink-0 shadow-2xs">
                 <span className="fu-icon text-sm leading-none translate-y-[0.5px]">{isRanged ? 'r' : 'm'}</span>
-                <span>{renderFormattedText(replacedDist, skill.selections, npcLevel, partyLevel, true)}</span>
+                <span>{renderFormattedText(atk.distance, skill.selections, npcLevel, partyLevel, true)}</span>
               </span>
               <span className="text-blue-900 font-bold inline-flex items-center gap-1">
-                <span>{renderFormattedText(replacedForm, skill.selections, npcLevel, partyLevel, true)}</span>
+                <span>{renderFormattedText(atk.formula, skill.selections, npcLevel, partyLevel, true)}</span>
                 {finalStats.Acc !== 0 && (
                   <span className="text-amber-700 font-bold">
                     {finalStats.Acc > 0 ? `+ ${finalStats.Acc}` : `- ${Math.abs(finalStats.Acc)}`}

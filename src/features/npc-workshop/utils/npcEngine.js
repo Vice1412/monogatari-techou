@@ -5,6 +5,9 @@ import {
   SPECIES_DATA,
   stripLegacySentinel
 } from '../data';
+// 攻擊欄位的「選單 vs 寫死值」規則只有一份實作（2026-10-22，見 `docs/decisions.md` §BR）。
+// 這裡只用到 `unfreezeAttackField`，且 `attackDisplay.js` 不 import 任何模組，無循環依賴。
+import { unfreezeAttackField } from './attackDisplay';
 
 /**
  * 舊版語意哨兵（U+26A1）。
@@ -568,6 +571,33 @@ export const migrateNpcState = (npc) => {
       return true;
     });
   }
+
+  // 5. 清掉舊版「凍結」在資料裡的攻擊欄位（2026-10-22，見 `docs/decisions.md` §BR／§BU）。
+  //    舊版編輯面板會把字面值寫進 `attack.distance`／`formula`／`type`，那個值之後
+  //    永遠蓋掉卡片選單——使用者看到的是「選了屬性卻不跟著、存檔後鎖死」。
+  //    顯示端（`resolveAttack`）早就以選單為準，所以這一步**不改變任何畫面**，
+  //    只是把資料清乾淨，免得下一個人打開備份檔還以為那裡的值有意義。
+  //
+  //    ※ 刻意比存檔路徑**保守**：只在「該欄位確實有選值」時才還原成 `{key}`。
+  //      若選單是空的（例：使用者從沒選過距離），寫死的 `近戰` 是畫面上唯一的值，
+  //      把它換成佔位符會讓卡片從「近戰」變成「待配置項目」——那是**畫面退化**，
+  //      不是清理。存檔路徑不設這個條件，因為那是使用者自己按的動作，而且編輯面板
+  //      就擺著一個空白的「選擇」下拉，狀態是可見的。
+  migrated.skills = migrated.skills.map((s) => {
+    if (!s || !s.attack || !Array.isArray(s.selectionsConfig)) return s;
+    const next = { ...s.attack };
+    let changed = false;
+    ['distance', 'formula', 'type'].forEach((key) => {
+      const picked = s.selections?.[key];
+      if (picked === undefined || picked === null || picked === '') return;
+      const unfrozen = unfreezeAttackField(s.attack[key], key, s.selectionsConfig);
+      if (unfrozen !== s.attack[key]) {
+        next[key] = unfrozen;
+        changed = true;
+      }
+    });
+    return changed ? { ...s, attack: next } : s;
+  });
 
   return migrated;
 };

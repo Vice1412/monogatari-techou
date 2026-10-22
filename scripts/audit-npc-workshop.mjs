@@ -497,7 +497,7 @@ group('G3 定位・等級・階級・物種・反派・相性');
 
   await gotoStep(1);
   await sleep(300);
-  const roleClick = await t.clickRe('^獵人 · HUNTER$');
+  const roleClick = await t.clickRe('^獵人$');
   await sleep(300);
   const confirmRole = await t.click('確認定位');
   await sleep(400);
@@ -525,15 +525,25 @@ group('G3 定位・等級・階級・物種・反派・相性');
 
   await gotoStep(3);
   await sleep(300);
-  const sp = await t.clickRe('^野獸物種 BEAST$');
+  const sp = await t.clickRe('^野獸物種$');
   await sleep(400);
   record('物種可選（野獸）', sp === 'ok' && (await t.has('野獸')));
 
   await gotoStep(4);
   await sleep(400);
+  // 2026-10-22（`docs/decisions.md` §BT）：第 4 步的**預設**子頁已改為「技能・咒語・能力」。
+  // 這裡是整份稽核第一次進入第 4 步，所以先斷言預設狀態（G4 之後再進來時，
+  // 子頁已經被下面的檢查切過，證明不了「預設」）。反派等級與相性在「基礎數值與相性」頁。
+  const step4FirstVisit = await t.text();
+  record('第 4 步預設停在技能頁（第一次進入時不必切子頁）',
+    /技能・咒語・能力/.test(step4FirstVisit) && /攻擊與技能庫/.test(step4FirstVisit),
+    step4FirstVisit.slice(0, 140));
+  const statsTab = await t.clickRe('^基礎數值與相性');
+  await sleep(500);
   const villain = await t.clickRe('^主要反派 10 UP$');
   await sleep(400);
-  record('反派等級可選（主要反派）', villain === 'ok' && (await t.has('主要反派')));
+  record('反派等級可選（主要反派）', statsTab === 'ok' && villain === 'ok' && (await t.has('主要反派')),
+    `${statsTab}/${villain}`);
 
   // 相性：先選「弱點」分頁，再點物理
   const vulTab = await t.clickRe('^弱點 VUL');
@@ -544,23 +554,68 @@ group('G3 定位・等級・階級・物種・反派・相性');
     const m = window.__t.text().match(/弱點 VUL (\\d+)/); return m ? Number(m[1]) : -1;
   })()`);
   record('相性可點選（弱點 物理 → 弱 1）', vulTab === 'ok' && phys === 'ok' && vulCount === 1, `VUL=${vulCount}`);
+
+  // 切回技能頁：G4 要在技能頁上做技能與咒語的檢查，而且那些檢查本身不該靠
+  // 「自己先點一次子頁」才成立（那正是使用者抱怨的那一層）。
+  const backToSkills = await t.clickRe('^技能・咒語・能力');
+  await sleep(400);
+  record('第 4 步子頁可切回技能頁', backToSkills === 'ok' && (await t.has('攻擊與技能庫')), backToSkills);
 }
 
 // ═══ G4 技能／咒語／自訂能力／額度 HUD ═════════════════════
 group('G4 技能・咒語・自訂能力・額度 HUD');
 {
   await gotoStep(4);
-  await sleep(300);
-  // 「攻擊與技能庫」是第 4 步的子分頁（不是手風琴）；卡片在底下的手風琴裡。
-  const openSkills = await t.clickRe('^攻擊與技能庫');
-  await sleep(900);
+  await sleep(400);
+  // 2026-10-22（`docs/decisions.md` §BT）：子頁由三頁收成兩頁、預設停在「技能・咒語・能力」，
+  // 且「基礎攻擊與核心能力」預設展開。所以下面這三條的重點是**不點任何東西**就成立——
+  // 舊版要點一次子頁（`^攻擊與技能庫`）再點一次手風琴標題才看得到卡片，那兩層就是使用者說的
+  // 「沒有必要把他們藏得這麼深」。`攻擊與技能庫`／`咒語與自訂能力` 現在是區塊標題，不是分頁。
+  const defaultPage = await t.text();
+  const defaultCards = await t.count('[id^="skill-card-"]');
+  record('進入第 4 步後技能與咒語區塊直接可見（不需任何點擊）',
+    /技能・咒語・能力/.test(defaultPage) && /攻擊與技能庫/.test(defaultPage), defaultPage.slice(0, 140));
+  record('「基礎攻擊與核心能力」預設展開（不點就看得到卡片）', defaultCards > 0, `cards=${defaultCards}`);
+  record('「咒語與自訂能力」與技能同一頁（第三個子頁已收掉）',
+    /咒語與自訂能力/.test(defaultPage), defaultPage.slice(0, 140));
+
   const basic = await openAccordion('基礎攻擊與核心能力');
-  const cardCount = await t.count('[id^="skill-card-"]');
-  record('「攻擊與技能庫」子分頁可切換（區塊標題出現）',
-    openSkills === 'ok' && basic.headers.some((h) => h.startsWith('基礎攻擊與核心能力')),
-    `${openSkills} headers=${basic.headers.join(' / ')}`);
-  record('基礎攻擊卡片渲染於「攻擊與技能庫」', cardCount > 0,
-    `toggle=${basic.toggled} cards=${cardCount} headers=${basic.headers.join(' / ')}`);
+  record('基礎攻擊手風琴標題存在且預設已展開',
+    basic.headers.some((h) => h.startsWith('基礎攻擊與核心能力')) && basic.toggled === 'already-open',
+    `toggle=${basic.toggled} headers=${basic.headers.join(' / ')}`);
+  const cardCount = defaultCards;
+  record('基礎攻擊卡片渲染於技能頁', cardCount > 0,
+    `cards=${cardCount} headers=${basic.headers.join(' / ')}`);
+
+  // ── 選單 → 存檔 → 卡片仍顯示選取值（2026-10-22 §BR 的回歸點）──
+  // 這條以前只做過手動 E2E（§BR5 的表格），沒進常態稽核。現在草稿會把 `state` 寫進
+  // `npcDraft`，正好可以在不存檔進檔案庫的情況下驗「存進去的到底是什麼」：
+  // 舊版的病灶是選單選了暗、資料裡卻躺著寫死的 `冰`，下一次開卡就再也改不回來。
+  const setType = await T(`(() => {
+    const cards = [...document.querySelectorAll('[id^="skill-card-"]')];
+    if (!cards.length) return 'no-card';
+    for (const card of cards) {
+      const sel = [...card.querySelectorAll('select')]
+        .find((s) => [...s.options].some((o) => o.value === '暗'));
+      if (!sel) continue;
+      sel.value = '暗';
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      return card.id.replace('skill-card-', '');
+    }
+    return 'no-select';
+  })()`);
+  await sleep(1000);
+  const draftRaw = await t.ls('monogatari_techou_npc_draft');
+  const draftObj = (() => {
+    try { return JSON.parse(draftRaw || 'null'); } catch (e) { return null; }
+  })();
+  const picked = (draftObj?.npc?.skills || []).find((s) => s.id === setType) || null;
+  record('選單選「暗」後寫入草稿（自動暫存生效）',
+    setType !== 'no-card' && setType !== 'no-select' && !!draftObj?.npc && !!draftObj.savedAt,
+    `${setType} savedAt=${draftObj?.savedAt || '無'}`);
+  record('選單值寫進 selections，而不是把 attack 寫死',
+    picked?.selections?.type === '暗' && picked?.attack?.type === '{type}',
+    `selections.type=${picked?.selections?.type} attack.type=${picked?.attack?.type}`);
 
   // 點卡片 → 卡片轉為已選取狀態（SkillCard 的 isActive 樣式），並記下 HUD 變化
   const pick = await T(`(() => {
@@ -618,10 +673,11 @@ group('G4 技能・咒語・自訂能力・額度 HUD');
   record('HUD「定位技能」藥丸可跳回第 4 步技能分頁',
     jump === 'ok' && (await t.step()) === '4' && (await t.has('攻擊與技能庫')), jump);
 
-  await t.clickRe('^咒語與自訂能力');
-  await sleep(600);
-  const spellPanel = await t.text();
-  record('「咒語與自訂能力」可展開', /咒語與自訂能力/.test(spellPanel));
+  // 第三個子頁（咒語與自訂能力）已於 2026-10-22 併入技能頁（§BT），
+  // 所以這裡不再「切分頁」，改為斷言它底下的區塊就在同一頁上。
+  const spellPage = await t.text();
+  record('「完全自訂技能」與技能同頁可見（原第三個子頁的內容）', /完全自訂技能/.test(spellPage),
+    spellPage.slice(0, 140));
 
   // 自訂技能表單
   const hasCustomForm = await T(`(() => {
@@ -880,7 +936,7 @@ group('G11 檔案庫：搜尋・篩選・排序');
   const created = await t.click('建立新 NPC');
   await sleep(700);
   await gotoStep(1);
-  const roleClick2 = await t.clickRe('^衛士 · SENTINEL$');
+  const roleClick2 = await t.clickRe('^衛士$');
   await sleep(300);
   await t.click('確認定位');
   await sleep(300);

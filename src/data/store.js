@@ -212,6 +212,8 @@ const MIGRATION_PLAN = Object.freeze([
  * ※ 2026-10-16 起涵蓋全部 7 個權威鍵（前綴由 `fu_companion_` 改為 `monogatari_techou_`），
  *   不再只有 NPC 檔案庫。`LEGACY_KEYS.creationRulesCampaign` 刻意不在計畫內——
  *   它沒有任何寫入端，本來就是空的。
+ *   `STORAGE_KEYS.npcDraft`（2026-10-22 新增）同樣不在計畫內：它是全新的寫入端，
+ *   **沒有前身可搬**，登記在計畫裡只會讓「每個權威鍵都有舊鍵」這條護欄變成假的。
  *
  * @returns {{migrated: Array<{canonical:string, from:string}>, skipped: string[], empty: string[]}}
  *   回傳報告而非只做事，是為了讓它能在 Node 中被測試。

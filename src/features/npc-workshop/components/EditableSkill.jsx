@@ -10,16 +10,32 @@ import React, { useState, useEffect } from 'react';
 import { Edit3, Save, Trash2, X, Lock } from 'lucide-react';
 import { DAMAGE_TYPES, CATEGORIES, TYPE_STYLES, isOffensiveSpell, normalizeSpellName } from '../data';
 import { renderFormattedText } from '../utils/displayText';
+import { resolveAttack, unfreezeAttackField } from '../utils/attackDisplay';
 
 const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection, finalStats, npcLevel, partyLevel }) => {
   const baseSkill = rawSkill || skill;
+
+  // 距離／公式／屬性只要技能宣告了同名選單欄位，選單就是唯一真相（見 utils/attackDisplay.js）。
+  // 這裡把「被寫死的舊值」還原成佔位符再當成編輯狀態的起點，存檔才不會把選單鎖死。
+  const seedAttack = (a) => {
+    const base = a || { distance: '近戰', formula: '【靈】+【靈】', baseDmg: 5, type: '物理' };
+    return {
+      ...base,
+      distance: unfreezeAttackField(base.distance, 'distance', skill.selectionsConfig),
+      formula: unfreezeAttackField(base.formula, 'formula', skill.selectionsConfig),
+      type: unfreezeAttackField(base.type, 'type', skill.selectionsConfig),
+    };
+  };
+  const selCfg = (key) => (Array.isArray(skill.selectionsConfig)
+    ? skill.selectionsConfig.find((cfg) => cfg && cfg.key === key)
+    : undefined);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(skill.customName || skill.originalName);
   const [editDesc, setEditDesc] = useState(
     skill.customDesc !== undefined ? skill.customDesc :
     (skill.originalDesc || (baseSkill.category === 'attack' ? baseSkill.attack?.extra || "" : ""))
   );
-  const [editAttack, setEditAttack] = useState(baseSkill.attack || { distance: '近戰', formula: '【靈】+【靈】', baseDmg: 5, type: '物理' });
+  const [editAttack, setEditAttack] = useState(() => seedAttack(baseSkill.attack));
 
   const initialTargetType = skill.spellData?.targetType || (skill.spellData?.target?.includes('至多') ? '至多 X 個生物' : skill.spellData?.target || '一個生物');
   const initialMaxTargets = skill.spellData?.maxTargets || (skill.spellData?.target?.match(/\d+/) ? skill.spellData.target.match(/\d+/)[0] : '3');
@@ -43,7 +59,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
         skill.customDesc !== undefined ? skill.customDesc :
         (skill.originalDesc || (baseSkill.category === 'attack' ? baseSkill.attack?.extra || "" : ""))
       );
-      setEditAttack(baseSkill.attack || { distance: '近戰', formula: '【靈】+【靈】', baseDmg: 5, type: '物理' });
+      setEditAttack(seedAttack(baseSkill.attack));
       
       const tType = skill.spellData?.targetType || (skill.spellData?.target?.includes('至多') ? '至多 X 個生物' : skill.spellData?.target || '一個生物');
       const mTargets = skill.spellData?.maxTargets || (skill.spellData?.target?.match(/\d+/) ? skill.spellData.target.match(/\d+/)[0] : '3');
@@ -73,7 +89,13 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
     onUpdate(skill.id, {
       customName: finalName === (skill.originalName || '') ? undefined : finalName,
       customDesc: editDesc,
-      attack: skill.category === 'attack' ? editAttack : undefined,
+      attack: skill.category === 'attack' ? {
+        ...editAttack,
+        // 有同名選單的欄位一律存回佔位符：寫死等於把選單永久鎖住（見 utils/attackDisplay.js）。
+        distance: unfreezeAttackField(editAttack.distance, 'distance', skill.selectionsConfig),
+        formula: unfreezeAttackField(editAttack.formula, 'formula', skill.selectionsConfig),
+        type: unfreezeAttackField(editAttack.type, 'type', skill.selectionsConfig),
+      } : undefined,
       spellData: skill.category === 'spell' ? {
         mp: computedMp,
         baseMp: cleanBaseMp,
@@ -95,12 +117,37 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
         <div className="flex items-center gap-2 mb-2"><span className="text-xs font-bold text-[#6b5a4b]">編輯名稱：</span><input type="text" className="flex-1 bg-[#fbf7ee] border border-[#d6c7ab] p-1.5 rounded text-sm text-[#2c221e] font-bold outline-none focus:border-amber-600" value={editName} onChange={(e) => setEditName(e.target.value)} /></div>
 
         {skill.category === 'attack' && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 bg-[#f8f3e6] p-2 rounded border border-[#e2d6c1] text-xs">
-            <div><label className="block text-[#6b5a4b] mb-1 font-bold">距離</label><select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.distance} onChange={e => setEditAttack({ ...editAttack, distance: e.target.value })}><option value="近戰">近戰</option><option value="遠程">遠程</option></select></div>
-            <div><label className="block text-[#6b5a4b] mb-1 font-bold">檢定公式</label><input type="text" className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.formula} onChange={e => setEditAttack({ ...editAttack, formula: e.target.value })} /></div>
+          <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-1 bg-[#f8f3e6] p-2 rounded border border-[#e2d6c1] text-xs">
+            <div><label className="block text-[#6b5a4b] mb-1 font-bold">距離</label>
+              {selCfg('distance') ? (
+                <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.distance || ''} onChange={e => onUpdateSelection(skill.id, 'distance', e.target.value)}><option value="">選擇</option>{selCfg('distance').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
+              ) : (
+                <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.distance} onChange={e => setEditAttack({ ...editAttack, distance: e.target.value })}><option value="近戰">近戰</option><option value="遠程">遠程</option></select>
+              )}
+            </div>
+            <div><label className="block text-[#6b5a4b] mb-1 font-bold">檢定公式</label>
+              {selCfg('formula') ? (
+                <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.formula || ''} onChange={e => onUpdateSelection(skill.id, 'formula', e.target.value)}><option value="">選擇</option>{selCfg('formula').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
+              ) : (
+                <input type="text" className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.formula} onChange={e => setEditAttack({ ...editAttack, formula: e.target.value })} />
+              )}
+            </div>
             <div><label className="block text-[#6b5a4b] mb-1 font-bold font-mono">基礎傷害 HR+</label><input type="number" className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.baseDmg} onChange={e => setEditAttack({ ...editAttack, baseDmg: parseInt(e.target.value) || 0 })} /></div>
-            <div><label className="block text-[#6b5a4b] mb-1 font-bold">屬性</label><select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.type} onChange={e => setEditAttack({ ...editAttack, type: e.target.value })}>{DAMAGE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
+            <div><label className="block text-[#6b5a4b] mb-1 font-bold">屬性</label>
+              {selCfg('type') ? (
+                <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.type || ''} onChange={e => onUpdateSelection(skill.id, 'type', e.target.value)}><option value="">選擇</option>{selCfg('type').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
+              ) : (
+                <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.type} onChange={e => setEditAttack({ ...editAttack, type: e.target.value })}>{DAMAGE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select>
+              )}
+            </div>
           </div>
+          {(selCfg('distance') || selCfg('formula') || selCfg('type')) && (
+            <p className="text-[10px] text-amber-800 font-bold mb-2 leading-relaxed">
+              ※ 距離／公式／屬性與卡片上的同名選單是同一份設定——在這裡改就是改那裡，不會另外鎖死一份值。
+            </p>
+          )}
+          </>
         )}
 
         {skill.category === 'spell' && (
@@ -248,23 +295,21 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
         return (
           <>
             {skill.attack && (() => {
-              let resolvedType = skill.attack.type;
-              if (typeof resolvedType === 'string' && resolvedType.startsWith('{') && resolvedType.endsWith('}')) {
-                const k = resolvedType.slice(1, -1);
-                resolvedType = skill.selections?.[k] || resolvedType;
-              }
+              // 顯示端與儲存端共用同一套解析規則：宣告了同名選單就以選單為準。
+              const atk = resolveAttack(skill.attack, skill.selections, skill.selectionsConfig);
+              const resolvedType = atk.type;
               const typeInfo = TYPE_STYLES[resolvedType];
-              const isRanged = String(skill.attack.distance).includes('遠程') || skill.selections?.distance === '遠程';
+              const isRanged = String(atk.distance).includes('遠程');
 
               return (
                 <div className="bg-[#f8f3e6] border border-[#e2d6c1] p-2 my-1 rounded text-sm">
                   <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mb-1">
                     <span className="inline-flex items-center gap-1 text-[#3c2f21] bg-[#e8dec8] px-2 py-0.5 rounded text-xs font-bold shrink-0 shadow-2xs">
                       <span className="fu-icon text-sm leading-none translate-y-[0.5px]">{isRanged ? 'r' : 'm'}</span>
-                      <span>{renderFormattedText(skill.attack.distance, skill.selections, npcLevel, partyLevel)}</span>
+                      <span>{renderFormattedText(atk.distance, skill.selections, npcLevel, partyLevel)}</span>
                     </span>
                     <span className="text-blue-900 font-bold">
-                      {renderFormattedText(skill.attack.formula, skill.selections, npcLevel, partyLevel)}
+                      {renderFormattedText(atk.formula, skill.selections, npcLevel, partyLevel)}
                     </span>
                     <span className="text-stone-400 text-xs select-none">✦</span>
                     <span className="inline-flex items-center gap-1 font-bold text-red-800">
@@ -277,7 +322,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                           <span>{resolvedType}</span>
                         </span>
                       ) : (
-                        renderFormattedText(skill.attack.type, skill.selections, npcLevel, partyLevel)
+                        renderFormattedText(atk.type, skill.selections, npcLevel, partyLevel)
                       )}
                       <span>傷害</span>
                     </span>

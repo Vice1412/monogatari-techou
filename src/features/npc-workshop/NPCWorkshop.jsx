@@ -81,9 +81,8 @@ import { resolveDragDirection } from './utils/dragDirection';
 import { getPlainText, renderFormattedText } from './utils/displayText';
 import { SPECIES_THEMES } from './data/speciesThemes';
 import { buildNpcText } from './utils/npcTextExport';
-import { withEn } from '../../utils/properNouns';
 import { STORAGE_KEYS, LEGACY_KEYS } from '../../data/keys';
-import { readJSON, writeJSON, readRaw, writeRaw } from '../../data/store';
+import { readJSON, writeJSON, readRaw, writeRaw, removeKey } from '../../data/store';
 
 // 以下 8 個元件與 1 份卡片配色表已抽到獨立檔案（2026-10-16 拆檔第一批）。
 import CopyButton from './components/CopyButton';
@@ -114,6 +113,24 @@ import { THEMES } from './data/workshopThemes';
  *   「搬錯只會靜默改畫面」的風險放大好幾倍（見 `docs/decisions.md` §AY）。
  *   **生產端永不傳入這三個 props；不傳時行為與過去逐字相同。**
  */
+
+/**
+ * 讀回上次未完成的建角草稿（2026-10-22，見 `docs/decisions.md` §BS）。
+ *
+ * 放在模組層的理由：它只依賴 `readJSON` 與「有沒有測試注入」，不依賴任何元件狀態，
+ * 因此可以被掛載時的三個 `useState` 初始器共用同一份結果（元件內宣告會晚於那些初始器）。
+ *
+ * 回傳 `null` 的三種情況：測試注入了草稿（不得被真實草稿覆蓋）、鍵不存在、
+ * 內容不是「有 npc 物件」的形狀（手改備份檔或半截寫入）。
+ */
+const readDraftSnapshot = (injectedDraft) => {
+  if (injectedDraft) return null;
+  const snap = readJSON(STORAGE_KEYS.npcDraft, null);
+  if (!snap || typeof snap !== 'object') return null;
+  if (!snap.npc || typeof snap.npc !== 'object' || Array.isArray(snap.npc)) return null;
+  return snap;
+};
+
 export default function App({
   setHeaderExtraLeft, setHeaderExtraRight, onSubNavChange = null,
   initialDraft = null, initialMainTab = 'library', initialStep = 1,
@@ -139,8 +156,25 @@ export default function App({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [activeMainTab, setActiveMainTab] = useState(initialMainTab);
-  const [state, setState] = useState(initialDraft);
+  // ── 建角草稿（2026-10-22，見 `docs/decisions.md` §BS）───────────────────────
+  // 八步建角是十幾分鐘的工序，而草稿原本只活在 React state 裡：回封面、換章節
+  // （章節切換是條件渲染，元件一卸載 state 就沒了）、重新整理、關分頁，全部歸零。
+  // `beforeunload` 只攔「真的離開頁面」，攔不到站內換章節——這是使用者實際踩到的洞。
+  // 現在每次改動都寫進 `STORAGE_KEYS.npcDraft`，回到工坊時接回去。
+  const [draftSnapshot] = useState(() => readDraftSnapshot(initialDraft));
+  // 檔案庫頁的「接續草稿」提示。預設就是快照本身，使用者選擇接續或丟棄後清空。
+  const [draftOffer, setDraftOffer] = useState(draftSnapshot);
+
+  const [activeMainTab, setActiveMainTab] = useState(() => {
+    if (initialMainTab !== 'library') return initialMainTab;
+    // 只有「離開時人在建角頁」才自動接回去；從檔案庫離開的就留在檔案庫，
+    // 改由檔案庫頁的提示條提供「繼續編輯」。
+    return draftSnapshot?.mainTab === 'build' ? 'build' : 'library';
+  });
+  const [state, setState] = useState(() => {
+    if (initialDraft) return initialDraft;
+    return draftSnapshot?.mainTab === 'build' ? draftSnapshot.npc : null;
+  });
   // 「最新草稿」ref（latest-ref）：ChapterHeader 的「儲存」按鈕與「返回檔案庫」都是
   // 由 useEffect 推上去的，而那些 effect 的依賴陣列刻意只列 `state?.name`（列整個 `state`
   // 等於每敲一個字就重建一次 header）。代價是：只要改的不是名字，按鈕上持有的
@@ -174,7 +208,10 @@ export default function App({
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [library, activeMainTab]);
-  const [currentStep, setCurrentStep] = useState(initialStep);
+  const [currentStep, setCurrentStep] = useState(() => {
+    if (initialStep !== 1) return initialStep;
+    return draftSnapshot?.mainTab === 'build' ? (draftSnapshot.step || 1) : 1;
+  });
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   // 這裡原本還有一個 `dragStartX` state，但拖曳事件讀的是 `.current`（ref 寫法）。
@@ -195,7 +232,31 @@ export default function App({
   const [pendingRawSource, setPendingRawSource] = useState(null);
   const [isFreeModeConfirmOpen, setIsFreeModeConfirmOpen] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-  const [step4SubTab, setStep4SubTab] = useState('stats'); // 'stats' | 'skills' | 'spells'
+  // 2026-10-22：子頁由三頁收斂成兩頁（'stats' | 'skills'），並預設停在「技能」。
+  // 理由見 `docs/decisions.md` §BT——舊版預設停在「基礎數值與相性」，而
+  // 「基礎攻擊與核心能力」還要再點一次子頁＋一次折疊標題才看得到，等於三層。
+  const [step4SubTab, setStep4SubTab] = useState(() => {
+    const saved = draftSnapshot?.subTab;
+    return saved === 'stats' || saved === 'skills' ? saved : 'skills';
+  }); // 'stats' | 'skills'
+
+  // 草稿自動暫存（2026-10-22，見 `docs/decisions.md` §BS）。
+  // debounce 600ms：`state` 可能夾著 base64 頭像或幾千字背景故事，每個按鍵都序列化不划算，
+  // 而 600ms 的視窗遠小於「切章節／關分頁」的操作間隔，實務上等於不會漏。
+  // 這裡刻意不擋「已存進檔案庫」的草稿：留著它，下次進來才接得回同一個工作現場。
+  useEffect(() => {
+    if (!state) return;
+    const timer = setTimeout(() => {
+      writeJSON(STORAGE_KEYS.npcDraft, {
+        npc: state,
+        mainTab: activeMainTab,
+        step: currentStep,
+        subTab: step4SubTab,
+        savedAt: new Date().toISOString(),
+      });
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [state, activeMainTab, currentStep, step4SubTab]);
   const [roleSkillSearch, setRoleSkillSearch] = useState('');
   const [spellSearch, setSpellSearch] = useState('');
   const [copyFormatDropdownOpen, setCopyFormatDropdownOpen] = useState(false);
@@ -589,7 +650,9 @@ export default function App({
       setCurrentStep(5);
     } else {
       setCurrentStep(4);
-      setStep4SubTab(subTabHint);
+      // 2026-10-22：子頁只剩「數值」與「技能・咒語・能力」兩頁（§BT）。任何其他提示值
+      // 一律落到技能頁，否則會出現「切到步驟 4、兩頁條件都不符合、整頁空白」。
+      setStep4SubTab(subTabHint === 'stats' ? 'stats' : 'skills');
     }
     setHighlightedSkillId(skillId);
     showToast("已反向定位至該技能配置卡片", "info");
@@ -797,6 +860,38 @@ export default function App({
     setRoleDrafts({});
     setLibrary(prevLib => getReconciledLibrary(stamped, prevLib));
     showToast(`已成功儲存「${latest.name || "未知實體"}」！`, 'success');
+  };
+
+  // ── 檔案庫頁的「接續草稿」提示條（2026-10-22，見 `docs/decisions.md` §BS）─────
+  // 只在「草稿跟檔案庫裡那張卡不一樣」時才提示。一樣就沒什麼好接續的，
+  // 出現只是噪音（例如：存檔後按「返回檔案庫」再離開）。
+  const hasUnsavedDraft = (offer) => {
+    if (!offer?.npc) return false;
+    const strip = (o) => {
+      if (!o) return '';
+      const { updatedAt, ...rest } = o;
+      return JSON.stringify(rest);
+    };
+    const saved = library.find((n) => n.id === offer.npc.id);
+    return strip(saved) !== strip(offer.npc);
+  };
+
+  const handleResumeDraft = () => {
+    if (!draftOffer?.npc) return;
+    setState(draftOffer.npc);
+    setCurrentStep(draftOffer.step || 1);
+    if (draftOffer.subTab === 'stats' || draftOffer.subTab === 'skills') {
+      setStep4SubTab(draftOffer.subTab);
+    }
+    setActiveMainTab('build');
+    setDraftOffer(null);
+    showToast(`已接續「${draftOffer.npc.name || '未命名 NPC'}」的未完成草稿`, 'info');
+  };
+
+  const handleDiscardDraft = () => {
+    removeKey(STORAGE_KEYS.npcDraft);
+    setDraftOffer(null);
+    showToast('已丟棄未完成的草稿', 'info');
   };
 
   const handleToggleNPCLink = (targetId) => {
@@ -2455,7 +2550,7 @@ export default function App({
                             })()}
                           </div>
                           <div>
-                            <h2 className="text-3xl sm:text-4xl font-black text-[#3c2415] tracking-[0.15em] mb-1">{withEn(roleName)}</h2>
+                            <h2 className="text-3xl sm:text-4xl font-black text-[#3c2415] tracking-[0.15em] mb-1">{roleName}</h2>
                             <div className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase ${isActive ? 'bg-amber-200/80 text-amber-950 border border-amber-400' : 'bg-[#eee6d3] text-[#6b5a4b]'}`}>
                               {ROLE_DESCRIPTIONS[roleName].subtitle}
                             </div>
@@ -2506,7 +2601,7 @@ export default function App({
                         <QuickIcon className="w-6 h-6 sm:w-7 sm:h-7" />
                       ) : null}
                     </div>
-                    <div className={`text-[9px] sm:text-[11px] font-black tracking-widest ${isCurrent ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>{withEn(r)}</div>
+                    <div className={`text-[9px] sm:text-[11px] font-black tracking-widest ${isCurrent ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>{r}</div>
                   </button>
                 );
               })}
@@ -2711,10 +2806,7 @@ export default function App({
                         {theme.icon}
                       </div>
                       <span className={`text-[12px] font-bold tracking-tight text-center leading-tight ${isSelected ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>
-                        {sp.name.includes(' ') ? sp.name.split(' ')[0] : sp.name}
-                      </span>
-                      <span className={`text-[9px] font-black tracking-[1px] mt-0.5 ${isSelected ? 'text-amber-800' : 'text-[#8c7b6c]'}`}>
-                        {theme.label}
+                        {sp.name}
                       </span>
                     </button>
                   );
@@ -2738,9 +2830,8 @@ export default function App({
                             <div>
                               <div className="flex items-center gap-2">
                                 <h4 className={`text-lg font-black tracking-[2px] ${selectedTheme.text}`}>{sp.name}</h4>
-                                <span className={`text-[10px] font-black px-2 py-0.5 rounded bg-[#fffdf9] ${selectedTheme.text} border border-[#d6c7ab] tracking-[1px]`}>{selectedTheme.label}</span>
                               </div>
-                              <p className="text-[10px] font-bold text-[#6b5a4b] tracking-widest uppercase mt-0.5">固定物種特性 FIXED TRAITS</p>
+                              <p className="text-[10px] font-bold text-[#6b5a4b] tracking-widest uppercase mt-0.5">固定物種特性</p>
                             </div>
                           </div>
                           <p className="text-sm text-[#2c221e] leading-relaxed font-medium pl-3 border-l-2 border-amber-700 italic">
@@ -3008,8 +3099,7 @@ export default function App({
             <div className="flex bg-[#e8dec8] rounded-xl p-1 gap-1 border border-[#d6c7ab] shadow-inner">
               {[
                 { id: 'stats', label: '基礎數值與相性', Icon: GiRollingDices },
-                { id: 'skills', label: '攻擊與技能庫', Icon: GiCrossedSwords },
-                { id: 'spells', label: '咒語與自訂能力', Icon: GiSpellBook },
+                { id: 'skills', label: '技能・咒語・能力', Icon: GiCrossedSwords },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -3023,7 +3113,7 @@ export default function App({
                 >
                   <tab.Icon className="w-4 h-4" />
                   <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.id === 'stats' ? '數值' : tab.id === 'skills' ? '技能' : '咒語'}</span>
+                  <span className="sm:hidden">{tab.id === 'stats' ? '數值' : '能力'}</span>
                 </button>
               ))}
             </div>
@@ -3277,9 +3367,16 @@ export default function App({
 
               </div>
             )}
-            {/* Sub-tab: 攻擊與技能庫 */}
+            {/* Sub-tab: 技能・咒語・能力（2026-10-22 由「攻擊與技能庫」＋「咒語與自訂能力」
+                兩頁合併而成，見 `docs/decisions.md` §BT。以下三個區塊共用同一個子頁，
+                因此「基礎攻擊」「咒語書」各留一個小標題當定位錨點。） */}
             {step4SubTab === 'skills' && (
               <div className="space-y-6">
+
+            <div className="flex items-center gap-2">
+              <GiCrossedSwords size={16} className="text-amber-900" />
+              <h3 className="text-sm font-black text-[#3c2415] tracking-wide">攻擊與技能庫</h3>
+            </div>
 
             {/* 額度為 0 時，「定位技能」面板會整個不渲染（SectionAccordion 的 hideIfZeroMax）。
                 新手因此不知道有這個系統，也不知道它會在升級後冒出來——所以在這裡留一句說明。 */}
@@ -3289,9 +3386,10 @@ export default function App({
               </p>
             )}
 
-            {/* 基礎攻擊與核心能力 (Basic Attacks) */}
+            {/* 基礎攻擊與核心能力 (Basic Attacks)
+                `defaultExpanded`：這是全卡最常改的一區（距離／屬性／傷害），預設收合等於白做一層。 */}
             {basicAttacksToRender.length > 0 && (
-              <SectionAccordion title="基礎攻擊與核心能力" icon={<GiCrossedSwords size={16} />} current={basicAttacksToRender.length} max={basicAttacksToRender.length} hideIfZeroMax={false} titleColor="text-amber-900" borderColor="border-[#d6c7ab]" isFreeMode={state.isFreeModeEnabled}>
+              <SectionAccordion title="基礎攻擊與核心能力" icon={<GiCrossedSwords size={16} />} current={basicAttacksToRender.length} max={basicAttacksToRender.length} hideIfZeroMax={false} defaultExpanded={true} titleColor="text-amber-900" borderColor="border-[#d6c7ab]" isFreeMode={state.isFreeModeEnabled}>
                 <div className="space-y-4">
                   {basicAttacksToRender.map(skill => (
                     <div key={skill.id} id={`skill-card-${skill.id}`} className={`transition-all duration-300 ${highlightedSkillId === skill.id ? 'ring-4 ring-amber-500 bg-amber-100 rounded-xl p-1 shadow-lg scale-[1.02]' : ''}`}>
@@ -3404,12 +3502,17 @@ export default function App({
 
               </div>
             )}
-            {/* Sub-tab: 咒語與自訂能力 */}
-            {step4SubTab === 'spells' && (
+            {/* 咒語與自訂能力（2026-10-22 起與「攻擊與技能庫」同屬一個子頁，見 §BT） */}
+            {step4SubTab === 'skills' && (
               <div className="space-y-6">
 
+            <div className="flex items-center gap-2 pt-2 border-t border-[#d6c7ab]">
+              <GiSpellBook size={16} className="text-purple-900" />
+              <h3 className="text-sm font-black text-[#3c2415] tracking-wide">咒語與自訂能力</h3>
+            </div>
+
             {allSpellbooksToRender.length > 0 && (
-              <SectionAccordion title="咒語書配置" icon={<GiSpellBook size={16} />} current={allSpellbooksToRender.reduce((sum, s) => sum + (s.selectedSpells || []).length, 0)} max={allSpellbooksToRender.reduce((sum, s) => sum + (s.spellConfig?.capacity || 0), 0)} titleColor="text-purple-900" borderColor="border-[#d6c7ab]" isFreeMode={state.isFreeModeEnabled}>
+              <SectionAccordion title="咒語書配置" icon={<GiSpellBook size={16} />} current={allSpellbooksToRender.reduce((sum, s) => sum + (s.selectedSpells || []).length, 0)} max={allSpellbooksToRender.reduce((sum, s) => sum + (s.spellConfig?.capacity || 0), 0)} defaultExpanded={true} titleColor="text-purple-900" borderColor="border-[#d6c7ab]" isFreeMode={state.isFreeModeEnabled}>
                 <div className="space-y-4">
                   {/* Search box for spells */}
                   <div className="relative">
@@ -4070,7 +4173,7 @@ export default function App({
                           >
                             <div className="flex flex-col gap-0.5 overflow-hidden">
                               <span className="text-sm font-bold truncate">{npc.name || "未知"}</span>
-                              <span className="text-[10px] opacity-70 tracking-tight">Lv. {npc.level} | {withEn(npc.role)}</span>
+                              <span className="text-[10px] opacity-70 tracking-tight">Lv. {npc.level} | {npc.role}</span>
                             </div>
                             {isLinked ? (
                               <div className="bg-amber-700 text-white rounded-full p-1 shadow-sm">
@@ -4165,6 +4268,34 @@ export default function App({
       {activeMainTab === 'library' && (
         <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar animate-in fade-in bg-[#fbf7ee]">
           <div className="max-w-6xl mx-auto flex flex-col min-h-full">
+            {/* 接續草稿提示條（2026-10-22，見 `docs/decisions.md` §BS）：
+                使用者從檔案庫離開、下次再進來時，未存進檔案庫的草稿不會自己跳出來搶畫面，
+                改由這條提示提供「繼續編輯／丟棄」兩個明確選擇。 */}
+            {draftOffer && hasUnsavedDraft(draftOffer) && (
+              <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 shadow-sm">
+                <div className="flex items-start gap-2 min-w-0">
+                  <GiScrollUnfurled size={18} className="text-amber-800 shrink-0 mt-0.5" />
+                  <p className="text-xs text-[#3c2415] leading-relaxed">
+                    <strong className="font-black">上次有一份沒存進檔案庫的草稿</strong>
+                    <span className="text-[#574c43]">　「{draftOffer.npc?.name || '未命名 NPC'}」</span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={handleResumeDraft}
+                    className="px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-sm transition-colors"
+                  >
+                    繼續編輯
+                  </button>
+                  <button
+                    onClick={handleDiscardDraft}
+                    className="px-3 py-1.5 rounded-lg bg-[#eee6d3] hover:bg-[#e4d9c0] border border-[#d6c7ab] text-[#3c2f21] text-xs font-bold shadow-sm transition-colors"
+                  >
+                    丟棄
+                  </button>
+                </div>
+              </div>
+            )}
             {/* Top Control Bar: Search & Filters on left, Actions on right (Matches Character Sheet hierarchy) */}
             <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pb-4 mb-6 border-b border-[#d6c7ab]">
               {/* Search Input & Filter Dropdowns */}
@@ -4339,7 +4470,7 @@ export default function App({
                           const LibRoleIcon = ROLE_ICONS[npc.role] || ROLE_DESCRIPTIONS[npc.role]?.Icon;
                           return LibRoleIcon ? <LibRoleIcon className="w-3.5 h-3.5 text-amber-800 shrink-0 inline" /> : null;
                         })()}
-                        <span>{withEn(npc.role)}</span>
+                        <span>{npc.role}</span>
                       </p>
                       <div className="mt-auto flex gap-2">
                         <button onClick={() => { setState(npc); setActiveMainTab('build'); }} className="flex-1 bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-[#d6c7ab]"><Edit3 size={14} /> 編輯</button>
@@ -4396,7 +4527,7 @@ export default function App({
               const maxSpells = allSpellbooksToRender.reduce((s, b) => s + (b.spellConfig?.capacity || 0), 0);
               return (
                 <button
-                  onClick={() => { setCurrentStep(4); setStep4SubTab('spells'); }}
+                  onClick={() => { setCurrentStep(4); setStep4SubTab('skills'); }}
                   className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all hover:scale-105 ${
                     usedSpells > maxSpells
                       ? 'bg-red-100 text-red-800 border-red-400 animate-pulse'

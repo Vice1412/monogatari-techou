@@ -80,7 +80,10 @@
   - **截圖量寬度**：`--window-size=390` 的實際視窗是 500px → 要用 iframe 驗（§2.2）
   - **`git push` 卡住**：WorkBuddy 的 PortableGit 憑證 helper 是 GUI 選擇器 → 改用系統 Git（§1.5）
 - **資料層**：純 localStorage，但**已收斂為單一存取層**（2026-10-04，見 `docs/decisions.md` §L）：
-  - 鍵註冊表 `src/data/keys.js`：**7 個權威鍵（`monogatari_techou_` 前綴）+ 11 個舊鍵**
+  - 鍵註冊表 `src/data/keys.js`：**權威鍵（`monogatari_techou_` 前綴）+ 舊鍵**。
+    新增權威鍵時要回答一個問題：**它有沒有前身？** 有前身就登記進 `store.js` 的
+    `MIGRATION_PLAN`（`tests/dataLayer.test.mjs` 會逼你登記）；全新寫入端（如 `npcDraft`）
+    **不准**登記——登記了會讓「每個權威鍵都有舊鍵可搬」這條護欄變成假的。
   - 存取層 `src/data/store.js`：`readJSON`／`writeJSON`／`readRaw`／`writeRaw`／`subscribe`／`migrateLegacyStorage`
   - **全站不得再直接呼叫 `localStorage`**（`src/` 內已零殘留，僅註解提及）
   - 舊鍵遷移於 `main.jsx` 首次渲染前執行；**冪等、不覆寫、不刪除舊鍵**
@@ -245,13 +248,17 @@ Get-ChildItem -Path "src" -Recurse -File |
 
 ### C. 純中文的已知例外（規則三，經裁定保留）
 
-- `SPECIES_THEMES` 的八個物種英文標籤（`'BEAST'`…`'UNDEAD'`）——物種屬專有名詞，
-  且物種瓷磚本即中英並列（中文名一行、英文標籤一行）。
-  ✅ 英文名已由原書 **Core p.302** 逐字核對：`beast, construct, demon, elemental, humanoid, monster, plant, undead`。
+- ✅ **物種英文標籤已於 2026-10-22 全部下架**（使用者裁定，見 `docs/decisions.md` §BR）：
+  NPC 工坊的物種瓷磚、選定物種標題、定位名稱、卡片預覽、匯出文本**一律只顯示中文**。
+  `SPECIES_THEMES` 的 `label` 欄位（`'BEAST'`…`'UNDEAD'`）**只剩搜尋比對用途**，
+  **不得再出現在任何顯示路徑**（`npm run test:npcattack` 有原始碼守門）。
+  ※ 原裁定（「物種屬專有名詞，瓷磚中英並列」）已被使用者推翻，該例外失效。
 - `CharacterEditor.jsx` 的 `✓` / `✗`（dingbat，依 2026-10-03 裁定允許）
 - ⚠️ `NPCWorkshop.jsx` 的 ccfolia 參數 `{ label: "INIT", … }`——**這是外部工具（ccfolia）的欄位識別字，
   不是顯示文案，刻意保留**。改掉會破壞使用者既有的 ccfolia 聊天巨集。
 - **英文保留在搜尋比對**（`filterList` 仍比對 `item.en`）：那是檢索，不是顯示。
+- `withEn()`（`src/utils/properNouns.js`）**仍存在且仍合法**——角色卡、戰鬥追蹤器照舊使用；
+  下架範圍僅限 NPC 工坊。
 
 > 其餘「已清除的清單」與「已結案的例外」見 `docs/state.md` §3。
 

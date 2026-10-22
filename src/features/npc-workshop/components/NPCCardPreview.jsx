@@ -27,7 +27,6 @@ import {
 } from '../data';
 import StatBadge from '../../../components/ui/StatBadge';
 import JRPGBadge from '../../../components/ui/JRPGBadge';
-import { withEn } from '../../../utils/properNouns';
 
 export default function NPCCardPreview({
   npc,
@@ -110,7 +109,7 @@ export default function NPCCardPreview({
           <div className="flex items-center gap-2 text-xs text-[#6b5a4b] mt-1 font-mono flex-wrap">
             <span>種族: <strong className="text-[#2c221e] font-sans font-bold">{speciesObj?.name || '無'}</strong></span>
             <span>·</span>
-            <span>定位: <strong className="text-amber-800 font-sans font-bold">{withEn(npc.role)}</strong></span>
+            <span>定位: <strong className="text-amber-800 font-sans font-bold">{npc.role}</strong></span>
             {npc.villainTier && npc.villainTier !== 'none' && (
               <span className="text-red-700 font-bold">★ {npc.villainTier === 'minor' ? '次要反派' : npc.villainTier === 'major' ? '主要反派' : '最終反派'}</span>
             )}

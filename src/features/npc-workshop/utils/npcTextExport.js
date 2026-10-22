@@ -26,7 +26,8 @@
  */
 import { DAMAGE_TYPES, VILLAIN_TIERS, NEGATIVE_SKILLS_DATA, SPELLS_DATA, isOffensiveSpell, normalizeSpellName } from '../data';
 import { getPlainText } from './displayText';
-import { SPECIES_THEMES } from '../data/speciesThemes';
+import { resolveAttack } from './attackDisplay';
+import { SPECIES_DATA } from '../data/speciesData';
 
 export const buildNpcText = (ctx, format = 'markdown') => {
   const {
@@ -103,7 +104,8 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
         text += `> **${skillName}**\n`;
         if (s.attack) {
-          text += `> [${getPlainText(s.attack.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(s.attack.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(s.attack.type, s.selections, state.level, state.partyLevel)}傷害\n`;
+          const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
+          text += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
         }
         text += `> ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true).split('\n').join('\n> ')}\n\n`;
       });
@@ -154,7 +156,8 @@ export const buildNpcText = (ctx, format = 'markdown') => {
       processedSkills.filter(s => !s.isOverBudget).forEach(s => {
         if (revealLevel !== 'full' && (s.source === 'bossSkill' || s.category === 'rule' || s.category === 'action')) return;
         let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
-        let atkStr = s.attack ? ` [${getPlainText(s.attack.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(s.attack.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(s.attack.type, s.selections, state.level, state.partyLevel)}傷害` : '';
+        const atk = s.attack ? resolveAttack(s.attack, s.selections, s.selectionsConfig) : null;
+        let atkStr = atk ? ` [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害` : '';
         text += `- ${skillName}${atkStr}\n  ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true)}\n`;
       });
     }
@@ -168,7 +171,8 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     const rankDisplay = state.rank === "冠位" ? `${state.rank} (${state.championMultiplier})` : state.rank;
     const villainTier = state.villainTier || 'none';
     const villainInfo = VILLAIN_TIERS[villainTier] || { up: 0, label: '非反派' };
-    const speciesName = state.selectedSpeciesId ? (SPECIES_THEMES[state.selectedSpeciesId]?.label || '') : '';
+    // 純中文顯示（規則三）：物種取中文名，不再輸出英文標籤。
+    const speciesName = state.selectedSpeciesId ? (SPECIES_DATA.find(sp => sp.id === state.selectedSpeciesId)?.name || '') : '';
 
     // 1. Build Memo (說明欄)
     //
@@ -257,9 +261,10 @@ export const buildNpcText = (ctx, format = 'markdown') => {
       cmdLines.push(`// ===== 基本攻擊 =====`);
       attackSkills.forEach(s => {
         let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
-        const dist = getPlainText(s.attack.distance, s.selections, state.level, state.partyLevel);
-        const rawFormula = getPlainText(s.attack.formula, s.selections, state.level, state.partyLevel);
-        const dmgType = getPlainText(s.attack.type, s.selections, state.level, state.partyLevel);
+        const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
+        const dist = getPlainText(atk.distance, s.selections, state.level, state.partyLevel);
+        const rawFormula = getPlainText(atk.formula, s.selections, state.level, state.partyLevel);
+        const dmgType = getPlainText(atk.type, s.selections, state.level, state.partyLevel);
         const totalDmg = (s.attack.baseDmg || 0) + (stats.Dmg || 0);
 
         let diceExpr = '1d{DEX}+1d{MIG}';
@@ -442,7 +447,8 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         let skillName = rawName.replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
         md += `> **${skillName}**\n`;
         if (s.attack) {
-          md += `> [${getPlainText(s.attack.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(s.attack.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(s.attack.type, s.selections, state.level, state.partyLevel)}傷害\n`;
+          const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
+          md += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
         }
         if (s.customDesc || s.originalDesc) {
           md += `> ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true)}\n`;

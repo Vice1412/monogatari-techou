@@ -35,6 +35,10 @@ import ReadOnlySkill from '../src/features/npc-workshop/components/ReadOnlySkill
 import FreeModeConfirmModal from '../src/features/npc-workshop/components/FreeModeConfirmModal.jsx';
 import AvatarCropperModal from '../src/features/npc-workshop/components/AvatarCropperModal.jsx';
 import { createNewNPC } from '../src/features/npc-workshop/utils/npcEngine.js';
+// F 段（建角草稿讀回）需要注入儲存後端與權威鍵常數：
+// 直接墊一個假 localStorage 會測到「假的 store」，而草稿的洞正是發生在真 store 上。
+import { STORAGE_KEYS } from '../src/data/keys.js';
+import { __setStorageBackend } from '../src/data/store.js';
 
 let pass = 0;
 let fail = 0;
@@ -298,6 +302,133 @@ STEP_ANCHORS.forEach(([step, needle]) => {
 lines.push('');
 lines.push('D. 護欄自我檢查');
 check('渲染輸出不是被 mock 掉的字串', desktopHtml.startsWith('<'), `開頭為「${desktopHtml.slice(0, 20)}」`);
+
+// ── F. 建角草稿的讀回路徑 ─────────────────────────────────────
+// 2026-10-22（`docs/decisions.md` §BS）。使用者實際踩到的洞是「換章節回來，八步建角
+// 全部歸零」——那是元件被卸載、React state 消失，而 `beforeunload` 攔不到站內切換。
+// 修法是每次改動寫進 `STORAGE_KEYS.npcDraft`，掛載時接回去。
+//
+// 這裡測的是**讀回**這一段：它發生在三個 `useState` 的初始器裡，屬純渲染路徑，
+// SSR 走得到（寫入是 `useEffect`，SSR 不執行，故由 `scripts/audit-npc-workshop.mjs` 守）。
+// 儲存後端用 `__setStorageBackend` 注入——不墊 localStorage，測到的才是真的 store。
+
+lines.push('');
+lines.push('F. 建角草稿讀回（儲存後端注入）');
+
+const makeBackend = (entries = {}) => {
+  const map = new Map(Object.entries(entries));
+  return {
+    getItem: (k) => (map.has(k) ? map.get(k) : null),
+    setItem: (k, v) => { map.set(k, String(v)); },
+    removeItem: (k) => { map.delete(k); },
+    key: (i) => Array.from(map.keys())[i] ?? null,
+    get length() { return map.size; },
+  };
+};
+
+const withBackend = (entries, fn) => {
+  __setStorageBackend(makeBackend(entries));
+  try {
+    return fn();
+  } finally {
+    __setStorageBackend(null);
+  }
+};
+
+const renderPlain = (props = {}) => renderToStaticMarkup(React.createElement(NPCWorkshop, {
+  setHeaderExtraLeft: () => {},
+  setHeaderExtraRight: () => {},
+  onSubNavChange: null,
+  ...props,
+}));
+
+const DRAFT_BANNER = '上次有一份沒存進檔案庫的草稿';
+const draftNpc = { ...createNewNPC(), name: '草稿測試體' };
+const draftKey = STORAGE_KEYS.npcDraft;
+
+// F1：離開時人在建角頁 → 直接接回同一頁、同一步。
+const restoredBuild = withBackend(
+  { [draftKey]: JSON.stringify({ npc: draftNpc, mainTab: 'build', step: 3, subTab: 'skills' }) },
+  () => renderPlain()
+);
+check('草稿（建角頁離開）→ 回到建角流程而不是檔案庫', restoredBuild.includes('建構步驟'), '找不到「建構步驟」');
+check('草稿記著的步驟被接回（第 3 步「設定物種」）', restoredBuild.includes('設定物種'), '找不到「設定物種」');
+check('接回建角頁時不顯示接續提示條', !restoredBuild.includes(DRAFT_BANNER), '不該出現提示條');
+
+// F2：離開時人在檔案庫 → 停在檔案庫，改由提示條提供選擇。
+const restoredLib = withBackend(
+  { [draftKey]: JSON.stringify({ npc: draftNpc, mainTab: 'library', step: 1, subTab: 'skills' }) },
+  () => renderPlain()
+);
+check('草稿（檔案庫離開）→ 停在檔案庫', restoredLib.includes('檔案庫目前空空如也'), '找不到檔案庫空狀態文案');
+check('檔案庫出現接續草稿提示條', restoredLib.includes(DRAFT_BANNER), '找不到提示條');
+check('提示條提供「繼續編輯」', restoredLib.includes('繼續編輯'), '找不到「繼續編輯」');
+check('提示條提供「丟棄」', restoredLib.includes('丟棄'), '找不到「丟棄」');
+
+// F3：沒有草稿 → 提示條不得出現（「不傳時行為逐字不變」的同一條鐵律）。
+const noDraft = withBackend({}, () => renderPlain());
+check('沒有草稿時不顯示提示條', !noDraft.includes(DRAFT_BANNER), '不該出現提示條');
+check('沒有草稿時停在檔案庫', noDraft.includes('檔案庫目前空空如也'), '找不到檔案庫空狀態文案');
+
+// F4：壞掉的草稿不得讓工坊開不起來（手改備份檔／半截寫入）。
+const badDrafts = {
+  '空物件': '{}',
+  'npc 為 null': '{"npc":null}',
+  'npc 是陣列': '{"npc":[]}',
+  '不是 JSON': 'not-json',
+};
+Object.entries(badDrafts).forEach(([label, raw]) => {
+  let err = null;
+  let html = '';
+  try {
+    html = withBackend({ [draftKey]: raw }, () => renderPlain());
+  } catch (e) {
+    err = e;
+  }
+  check(`壞掉的草稿（${label}）不拋例外`, err === null, err ? `${err.name}: ${err.message}` : '');
+  if (err === null) {
+    check(`壞掉的草稿（${label}）不顯示提示條`, !html.includes(DRAFT_BANNER), '不該出現提示條');
+  }
+});
+
+// F5：測試注入點優先於真實草稿（否則測試會被使用者上一次的草稿污染）。
+const injectedWins = withBackend(
+  { [draftKey]: JSON.stringify({ npc: draftNpc, mainTab: 'build', step: 3, subTab: 'skills' }) },
+  () => renderPlain({ initialDraft: { ...createNewNPC(), name: '注入體' }, initialMainTab: 'build', initialStep: 1 })
+);
+check('注入的 initialDraft 不被真實草稿覆蓋', injectedWins.includes('注入體'), '找不到「注入體」');
+check('注入 initialDraft 時草稿內容不出現', !injectedWins.includes('草稿測試體'), '出現了草稿內容');
+
+// F6：草稿記著的子頁被接回（第 4 步的「數值」頁）。
+const restoredStats = withBackend(
+  { [draftKey]: JSON.stringify({ npc: draftNpc, mainTab: 'build', step: 4, subTab: 'stats' }) },
+  () => renderPlain()
+);
+check('草稿記著的第 4 步子頁被接回（數值頁）', restoredStats.includes('基礎數值與相性'), '找不到「基礎數值與相性」');
+
+// ── G. 第 4 步的介面深度（2026-10-22，`docs/decisions.md` §BT）──
+// 使用者的原話是「沒有必要把他們藏得這麼深」。修法是把子頁從三頁收成兩頁、
+// 預設停在能力頁，並讓「基礎攻擊」「咒語書」預設展開。
+// 這裡守的就是「不點任何東西也看得到」——SSR 沒有點擊可言，所以能直接斷言。
+
+lines.push('');
+lines.push('G. 第 4 步預設就看得到技能與咒語');
+
+const step4Default = stepHtml[4] || '';
+check('第 4 步預設顯示「技能・咒語・能力」子頁', step4Default.includes('技能・咒語・能力'), '找不到子頁標籤');
+check('第 4 步預設就看得到「攻擊與技能庫」區塊', step4Default.includes('攻擊與技能庫'), '找不到區塊標題');
+check('第 4 步預設就看得到「咒語與自訂能力」區塊', step4Default.includes('咒語與自訂能力'), '找不到區塊標題');
+check(
+  '「基礎攻擊與核心能力」預設展開（技能卡直接渲染出來）',
+  step4Default.includes('skill-card-'),
+  '找不到任何 skill-card'
+);
+check(
+  '兩個子頁標籤同時存在（數值／能力）',
+  step4Default.includes('基礎數值與相性') && step4Default.includes('技能・咒語・能力'),
+  '子頁標籤不完整'
+);
+
 
 // ── 輸出 ──────────────────────────────────────────────────────
 

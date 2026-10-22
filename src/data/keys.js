@@ -50,6 +50,17 @@ export const STORAGE_KEYS = Object.freeze({
   npcCardTheme: 'monogatari_techou_npc_card_theme',
   /** 角色卡配色 */
   characterTheme: 'monogatari_techou_character_theme',
+  /**
+   * NPC 工坊的建角草稿（2026-10-22 新增，見 `docs/decisions.md` §BS）。
+   *
+   * 為什麼需要它：八步建角是十幾分鐘的工序，而草稿原本只活在 React state 裡——
+   * 回封面、換章節、重新整理、關分頁，全部歸零，畫面上沒有任何提示
+   * （`beforeunload` 只攔「真的離開頁面」，攔不到站內換章節）。
+   *
+   * ※ 這個鍵**沒有舊鍵**：它不是任何舊資料的更名，純粹是新寫入端，
+   *   因此不在 `store.MIGRATION_PLAN` 內（沒有東西可搬）。
+   */
+  npcDraft: 'monogatari_techou_npc_draft',
 });
 
 /**

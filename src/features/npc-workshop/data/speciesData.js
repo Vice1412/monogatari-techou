@@ -1,7 +1,7 @@
 export const SPECIES_DATA = [
   {
     id: 'sp_beast',
-    name: '野獸物種 BEAST',
+    name: '野獸物種',
     fixedDesc: '',
     mandatorySelections: [],
     optionalDrawback: null,
@@ -19,7 +19,7 @@ export const SPECIES_DATA = [
   },
   {
     id: 'sp_construct',
-    name: '構裝體物種 CONSTRUCT',
+    name: '構裝體物種',
     fixedDesc: '添加對土傷害的抗性、對毒傷害的免疫，以及對中毒狀態效果的免疫。',
     mandatorySelections: [],
     optionalDrawback: {
@@ -49,7 +49,7 @@ export const SPECIES_DATA = [
   },
   {
     id: 'sp_demon',
-    name: '惡魔物種 DEMON',
+    name: '惡魔物種',
     fixedDesc: '添加對兩種你選擇的傷害類型的抗性。',
     mandatorySelections: [
       { key: 'sp_demon_resists', label: '選擇抗性', type: 'multiselect_2', options: ['風', '電', '暗', '土', '火', '冰', '光', '物理', '毒'] }
@@ -68,7 +68,7 @@ export const SPECIES_DATA = [
   },
   {
     id: 'sp_element',
-    name: '元素物種 ELEMENTAL',
+    name: '元素物種',
     fixedDesc: '添加對毒傷害的免疫、對另一種你選擇的傷害類型的免疫，以及對中毒狀態效果的免疫。',
     mandatorySelections: [
       { key: 'sp_element_immune', label: '選擇免疫', type: 'select', options: ['風', '電', '暗', '土', '火', '冰', '光'] }
@@ -90,7 +90,7 @@ export const SPECIES_DATA = [
   },
   {
     id: 'sp_humanoid',
-    name: '類人物種 HUMANOID',
+    name: '類人物種',
     fixedDesc: '添加一個傷害弱點（物理除外）。',
     mandatorySelections: [
       { key: 'sp_humanoid_weakness', label: '選擇弱點', type: 'select', options: ['暗', '光', '毒'] }
@@ -110,7 +110,7 @@ export const SPECIES_DATA = [
   },
   {
     id: 'sp_monster',
-    name: '魔獸物種 MONSTER',
+    name: '魔獸物種',
     fixedDesc: '',
     mandatorySelections: [],
     optionalDrawback: null,
@@ -128,7 +128,7 @@ export const SPECIES_DATA = [
   },
   {
     id: 'sp_plant',
-    name: '植物物種 PLANT',
+    name: '植物物種',
     fixedDesc: '添加對眩暈、憤怒和動搖狀態效果的免疫。',
     mandatorySelections: [
       { key: 'sp_plant_weakness', label: '選擇弱點', type: 'select', options: ['風', '電', '火', '冰'] }
@@ -149,7 +149,7 @@ export const SPECIES_DATA = [
   },
   {
     id: 'sp_undead',
-    name: '不死物種 UNDEAD',
+    name: '不死物種',
     fixedDesc: '添加對光傷害的弱點、對暗傷害和毒傷害的免疫，以及對中毒狀態效果的免疫。不死生物會受到恢復 HP 效果的傷害。',
     mandatorySelections: [],
     optionalDrawback: {

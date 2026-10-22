@@ -148,6 +148,27 @@ node scripts/audit-npc-workshop.mjs          # 需本機 Chrome；CHROME_PATH／
 > **有效性已驗證**（2026-10-22）：故意把搜尋篩選改成 no-op、把 Discord 格式的回傳值改成空字串，
 > 稽核精準 FAIL 在對應的 4 項、其餘 79 項照樣綠；還原後 83/83 全綠。
 
+### 2.6 建角草稿的端到端稽核（`scripts/audit-npc-draft.mjs`）
+
+`audit-npc-workshop.mjs` **刻意不 reload**（reload 會清掉注入的墊片與 `window.__t`），
+所以「草稿寫進真 localStorage → 真 reload → 接回建角頁 → 提示條兩顆按鈕」這段
+沒有任何常態關卡在守。這支腳本補的就是那一段，同樣**不進 `npm test`**：
+
+```
+npm run dev
+node scripts/audit-npc-draft.mjs                 # GM_BASE 可覆寫網址
+```
+
+兩個新踩到的陷阱（與 §2.5 那六個不重複）：
+
+| 陷阱 | 症狀 | 對策 |
+|---|---|---|
+| 腳本跑完不返回 | 明明做完了，終端機一直掛著；配上 `\| Select-Object` 看起來像「完全沒輸出」 | 收尾 `api.proc.kill()` ＋ `process.exit(code)`；進度用 `process.stdout.write` 即時印，不要等 `report()` |
+| 封面章節卡不是按鈕 | `querySelectorAll('button')` 找不到「NPC工坊」；`innerText === 'NPC工坊'` 也找不到 | 卡片是 `<div>`，文字是「NPC工坊／完整功能／點擊翻開」；用 `startsWith('NPC工坊') && includes('點擊翻開')` 取最深一層，且**先等 1600ms** 讓翻頁鎖解除 |
+
+> ⚠️ **§BR5 的教訓**：當時那支探測腳本用完就刪（`scratch/` 不進版控），覆蓋率當場歸零。
+> **能重跑的探測才叫護欄，跑一次的不算**——所以這次留在 `scripts/`。
+
 ---
 
 ## 3. Git 歷史改寫始末（2026-10-05，**接手前必讀**）
