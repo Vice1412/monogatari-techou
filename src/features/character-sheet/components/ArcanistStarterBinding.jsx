@@ -55,12 +55,12 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
   };
 
   return (
-    <div className="p-4 rounded-xl border-2 border-amber-300 bg-amber-50/60 space-y-3" data-testid="arcanist-starter-binding">
+    <div className="p-4 rounded-xl border-2 border-[#d6c7ab] bg-[#f9f5eb] space-y-3" data-testid="arcanist-starter-binding">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h4 className="text-sm font-bold text-amber-900 flex items-center gap-2">
-          <GiSparkles className="text-amber-600" />
+        <h4 className="text-sm font-bold text-[#3c2415] flex items-center gap-2">
+          <GiSparkles className="text-[#6b5a4b]" />
           <span>開局自選阿爾卡納</span>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 border border-amber-300 text-amber-800">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
             已選 {boundIds.length} / {quota}
           </span>
         </h4>
@@ -69,7 +69,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
             type="button"
             onClick={() => writeBound('')}
             disabled={locked}
-            className={`text-[11px] px-2 py-0.5 rounded border border-amber-400 text-amber-800 hover:bg-amber-100 ${
+            className={`text-[11px] px-2 py-0.5 rounded border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] ${
               locked ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
@@ -78,11 +78,11 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
         )}
       </div>
 
-      <p className="text-t12 leading-relaxed text-amber-900/80">
+      <p className="text-t12 leading-relaxed text-[#3c2415]">
         【{ARCANIST_BINDING_SKILL}】讓你在開始遊戲前自選 {quota} 個阿爾卡納作為已綁定的契約
         {variant ? '（變體版同樣是開局一個，可從範例清單挑選或與隊友共創）' : ''}。
         除此之外，新的阿爾卡納只能透過探索與故事推進取得。
-        <span className="block mt-1 text-amber-900/70">
+        <span className="block mt-1 text-[#6b5a4b]">
           每張卡都附上{mergeLabel}的前三行；點一下即選定，下方會展開完整效果供你比對。
         </span>
       </p>
@@ -96,8 +96,8 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
               key={arcana.id}
               className={`p-2 rounded-lg border transition-colors ${
                 checked
-                  ? 'bg-white border-amber-500'
-                  : 'bg-white/60 border-amber-200 hover:border-amber-400'
+                  ? 'bg-white border-[#3c2415]'
+                  : 'bg-white/60 border-[#e8dcc4] hover:border-[#7c6a58]'
               } ${locked ? 'opacity-70' : ''}`}
             >
               <label
@@ -111,7 +111,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
                   checked={checked}
                   disabled={locked}
                   onChange={() => writeBound(arcana.id)}
-                  className="mt-0.5 accent-amber-600"
+                  className="mt-0.5 accent-[#a63d40]"
                 />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">
@@ -139,10 +139,10 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
 
       {selectedArcana && (
         <div
-          className="rounded-lg border border-amber-400 bg-white p-3 space-y-1"
+          className="rounded-lg border border-[#d6c7ab] bg-white p-3 space-y-1"
           data-testid="arcanist-starter-detail"
         >
-          <div className="text-[11px] font-bold text-amber-900 flex items-center gap-2 flex-wrap">
+          <div className="text-[11px] font-bold text-[#3c2415] flex items-center gap-2 flex-wrap">
             <span>已選：{selectedArcana.name}</span>
             <span className="text-[10px] font-normal text-[#6b5a4b]">領域：{selectedArcana.domains}</span>
           </div>
@@ -156,7 +156,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
       )}
 
       {!selectedId && (
-        <p className="text-t12 text-amber-900/70">
+        <p className="text-t12 text-[#6b5a4b]">
           尚未選擇——這一格空著不算完成創角，規則自檢會提醒。
         </p>
       )}

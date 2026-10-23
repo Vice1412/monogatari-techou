@@ -70,7 +70,7 @@ export default function CharacterCard({
         <div
           onClick={onAvatarClick || undefined}
           className={`w-16 h-16 rounded-xl bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-2xl font-bold shadow-inner ${
-            onAvatarClick ? 'cursor-pointer hover:ring-2 hover:ring-amber-500/50 hover:scale-105 transition-all' : ''
+            onAvatarClick ? 'cursor-pointer hover:ring-2 hover:ring-[#3c2415]/40 hover:scale-105 transition-all' : ''
           }`}
           style={{ borderColor: theme.border, color: theme.accent }}
           title={onAvatarClick ? "點擊更換或調整頭像肖像" : character.name}
@@ -170,7 +170,7 @@ export default function CharacterCard({
           {/* Classes pill tags with Game-Icons */}
           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
             {(!character.classes || character.classes.length === 0) ? (
-              <span className="text-[11px] px-2 py-0.5 rounded-md border border-dashed border-amber-400 bg-[#f5efdf] text-amber-950 font-mono italic">
+              <span className="text-[11px] px-2 py-0.5 rounded-md border border-dashed border-[#d6c7ab] bg-[#f5efdf] text-[#2c221e] font-mono italic">
                 【 尚未配置職業 (起始需配置 2~3 個職業) 】
               </span>
             ) : (
@@ -195,7 +195,7 @@ export default function CharacterCard({
                   const reqSL = getCharacterLevel(character);
                   if (totalSL < reqSL) {
                     return (
-                      <span className="text-[10px] px-2 py-0.5 rounded-md border border-dashed border-amber-400 bg-amber-50 text-amber-900 font-mono font-bold">
+                      <span className="text-[10px] px-2 py-0.5 rounded-md border border-dashed border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] font-mono font-bold">
                         尚餘 {reqSL - totalSL} 點特技未分配
                       </span>
                     );
@@ -278,11 +278,11 @@ export default function CharacterCard({
           </div>
 
           {/* FP */}
-          <div className="bg-[#fef3c7] rounded-lg p-2.5 border border-[#fcd34d]">
-            <div className="text-[10px] text-amber-900 font-mono font-bold flex items-center gap-1">
-              <GiSparkles className="w-3.5 h-3.5 text-amber-700" /> 物語點
+          <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
+            <div className="text-[10px] text-[#3c2415] font-mono font-bold flex items-center gap-1">
+              <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" /> 物語點
             </div>
-            <div className="text-base font-mono font-black text-amber-950 mt-0.5">
+            <div className="text-base font-mono font-black text-[#2c221e] mt-0.5">
               {character.fabulaPoints ?? 3}
             </div>
           </div>

@@ -814,7 +814,7 @@ export default function CharacterPlayHUD({
 
             <button
               onClick={handleSendToCombat}
-              className="px-3 py-1.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1.5 transition-colors"
               title="將角色即時狀態同步至戰鬥追蹤器"
             >
               <GiCrossedSwords className="w-3.5 h-3.5" />
@@ -1159,7 +1159,7 @@ export default function CharacterPlayHUD({
                 onClick={() => handleToggleAffliction(key)}
                 className={`py-1.5 px-2 rounded-ui border text-xs font-bold transition-all flex items-center justify-center gap-1 ${
                   isActive
-                    ? 'bg-[#a63d40] border-[#8c3235] text-white'
+                    ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
                     : 'bg-[#f5efdf] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#ebdcc4]'
                 }`}
                 title={aff.desc}
@@ -2124,7 +2124,7 @@ export default function CharacterPlayHUD({
                   <button
                     type="button"
                     onClick={() => setIsBondModalOpen(true)}
-                    className="px-3 py-1.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                    className="px-3 py-1.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>新增羈絆</span>
@@ -2528,8 +2528,8 @@ export default function CharacterPlayHUD({
                     }}
                     className="text-left rounded-ui border p-2 transition-all cursor-pointer hover:border-[#8b5e34]"
                     style={{
-                      backgroundColor: levelUpTarget === 'class' ? '#fffbeb' : '#fffdf9',
-                      borderColor: levelUpTarget === 'class' ? '#f59e0b' : '#d6c7ab'
+                      backgroundColor: levelUpTarget === 'class' ? '#f4ebd9' : '#fffdf9',
+                      borderColor: levelUpTarget === 'class' ? '#3c2415' : '#d6c7ab'
                     }}
                   >
                     <span className="block text-xs font-bold text-[#3c2415]">固有職業</span>
@@ -2550,8 +2550,8 @@ export default function CharacterPlayHUD({
                         : 'cursor-pointer hover:border-[#8b5e34]'
                     }`}
                     style={{
-                      backgroundColor: levelUpTarget === 'mnemosphere' ? '#fffbeb' : '#fffdf9',
-                      borderColor: levelUpTarget === 'mnemosphere' ? '#f59e0b' : '#d6c7ab'
+                      backgroundColor: levelUpTarget === 'mnemosphere' ? '#f4ebd9' : '#fffdf9',
+                      borderColor: levelUpTarget === 'mnemosphere' ? '#3c2415' : '#d6c7ab'
                     }}
                   >
                     <span className="block text-xs font-bold text-[#3c2415]">職業魔石</span>
@@ -2646,8 +2646,8 @@ export default function CharacterPlayHUD({
                           maxed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-[#8b5e34]'
                         } ${isSel ? 'ring-2 ring-[#a63d40]' : ''}`}
                         style={{
-                          backgroundColor: isSel ? '#fffbeb' : '#fffdf9',
-                          borderColor: isSel ? '#f59e0b' : '#d6c7ab'
+                          backgroundColor: isSel ? '#f4ebd9' : '#fffdf9',
+                          borderColor: isSel ? '#3c2415' : '#d6c7ab'
                         }}
                       >
                         <div className="flex items-center justify-between gap-2">
@@ -2749,7 +2749,7 @@ export default function CharacterPlayHUD({
           <button
             type="button"
             onClick={handleAddBond}
-            className="w-full py-2.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-white font-bold text-xs mt-2"
+            className="w-full py-2.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs mt-2"
           >
             確認建立羈絆
           </button>

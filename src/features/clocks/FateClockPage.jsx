@@ -62,7 +62,7 @@ export default function FateClockPage({ initialClocks } = {}) {
       <div className="flex items-center justify-between flex-wrap gap-4 pb-2 border-b border-[#d6c7ab]">
         <div>
           <h2 className="font-serif font-black text-2xl text-[#2c221e] flex items-center gap-2.5 tracking-wide">
-            <span className="text-amber-700">◷</span> 命刻編織者
+            <span className="text-[#6b5a4b]">◷</span> 命刻編織者
           </h2>
           <p className="text-xs text-[#6b5a4b] mt-0.5">
             《物語手帳》進度時鐘工作台 · 支援圓盤切片與線形進度 · 多主題色調與即時互動
@@ -103,7 +103,7 @@ export default function FateClockPage({ initialClocks } = {}) {
           {clocks.map(clk => (
           <div
             key={clk.id}
-            className="bg-[#fffdf9] rounded-xl border border-[#d6c7ab] hover:border-amber-600 p-5 hover:shadow-md transition-all flex flex-col items-center gap-4 relative group"
+            className="bg-[#fffdf9] rounded-xl border border-[#d6c7ab] hover:border-[#3c2415] p-5 hover:shadow-md transition-all flex flex-col items-center gap-4 relative group"
           >
             {/* Top Toolbar */}
             <div className="w-full flex items-center justify-between border-b border-[#d6c7ab]/80 pb-2">
@@ -112,7 +112,7 @@ export default function FateClockPage({ initialClocks } = {}) {
                 value={clk.title}
                 onChange={e => handleUpdateClock(clk.id, { title: e.target.value })}
                 placeholder="命刻名稱..."
-                className="bg-transparent font-serif font-bold text-base text-[#2c221e] outline-none flex-1 border-b border-transparent focus:border-amber-700 mr-2"
+                className="bg-transparent font-serif font-bold text-base text-[#2c221e] outline-none flex-1 border-b border-transparent focus:border-[#3c2415] mr-2"
               />
 
               <button
@@ -187,8 +187,8 @@ export default function FateClockPage({ initialClocks } = {}) {
       )}
 
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#fffdf9] border border-amber-600 text-[#2c221e] px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 font-medium text-xs animate-fade-in">
-          <GiCheckMark className="w-4 h-4 text-amber-700 shrink-0" />
+        <div className="fixed bottom-6 right-6 z-50 bg-[#fffdf9] border border-[#3c2415] text-[#2c221e] px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 font-medium text-xs animate-fade-in">
+          <GiCheckMark className="w-4 h-4 text-[#6b5a4b] shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}

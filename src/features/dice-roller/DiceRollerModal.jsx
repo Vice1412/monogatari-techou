@@ -81,7 +81,7 @@ export default function DiceRollerModal({
                   onClick={() => setDie1Type(d)}
                   className={`px-2 py-1 rounded text-xs font-mono font-bold transition-colors ${
                     die1Type === d
-                      ? 'bg-amber-700 text-white shadow-sm'
+                      ? 'bg-[#a63d40] text-[#fffdf9] shadow-sm'
                       : 'bg-[#fffdf9] border border-[#d6c7ab] text-[#6b5a4b] hover:text-[#2c221e]'
                   }`}
                 >
@@ -101,7 +101,7 @@ export default function DiceRollerModal({
                   onClick={() => setDie2Type(d)}
                   className={`px-2 py-1 rounded text-xs font-mono font-bold transition-colors ${
                     die2Type === d
-                      ? 'bg-amber-700 text-white shadow-sm'
+                      ? 'bg-[#a63d40] text-[#fffdf9] shadow-sm'
                       : 'bg-[#fffdf9] border border-[#d6c7ab] text-[#6b5a4b] hover:text-[#2c221e]'
                   }`}
                 >
@@ -122,7 +122,7 @@ export default function DiceRollerModal({
             >
               -
             </button>
-            <span className="font-mono font-bold text-amber-800 text-sm w-8 text-center">
+            <span className="font-mono font-bold text-[#3c2415] text-sm w-8 text-center">
               {modifier >= 0 ? `+${modifier}` : modifier}
             </span>
             <button
@@ -150,14 +150,14 @@ export default function DiceRollerModal({
         {rollResult && (
           <div className={`p-4 rounded-xl border flex flex-col items-center gap-2 text-center transition-all ${
             rollResult.isCritical
-              ? 'bg-amber-50 border-amber-500 shadow-md'
+              ? 'bg-[#f9f5eb] border-[#3c2415] shadow-md'
               : rollResult.isFumble
                 ? 'bg-rose-50 border-rose-500 shadow-md'
                 : 'bg-[#f5efdf] border border-[#d6c7ab]'
           }`}>
             {rollResult.isCritical && (
-              <div className="text-amber-800 font-bold text-sm flex items-center gap-1.5">
-                <GiTrophyCup className="w-5 h-5 text-amber-600" /> ✦ CRITICAL SUCCESS 大成功！ ✦
+              <div className="text-[#3c2415] font-bold text-sm flex items-center gap-1.5">
+                <GiTrophyCup className="w-5 h-5 text-[#6b5a4b]" /> ✦ CRITICAL SUCCESS 大成功！ ✦
               </div>
             )}
 
@@ -181,7 +181,7 @@ export default function DiceRollerModal({
               {rollResult.modifier !== 0 && (
                 <>
                   <span className="text-[#7c6a58] font-mono text-xl font-bold">+</span>
-                  <div className="w-10 h-10 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] flex items-center justify-center font-mono text-amber-800 font-bold text-sm">
+                  <div className="w-10 h-10 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] flex items-center justify-center font-mono text-[#3c2415] font-bold text-sm">
                     {rollResult.modifier > 0 ? `+${rollResult.modifier}` : rollResult.modifier}
                   </div>
                 </>
@@ -192,7 +192,7 @@ export default function DiceRollerModal({
             <div className="flex items-center gap-6 pt-1 border-t border-[#d6c7ab] w-full justify-center text-xs font-mono">
               <div>
                 <span className="text-[#6b5a4b]">檢定總值: </span>
-                <strong className="text-lg text-amber-800 font-bold">{rollResult.total}</strong>
+                <strong className="text-lg text-[#3c2415] font-bold">{rollResult.total}</strong>
               </div>
               <div>
                 <span className="text-[#6b5a4b]">高點 HR: </span>

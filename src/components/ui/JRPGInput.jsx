@@ -34,7 +34,7 @@ export function JRPGInput({
           className={twMerge(
             clsx(
               "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3.5 py-2 text-sm text-[#2c221e] placeholder-[#7c6a58] outline-none transition-all duration-150",
-              "focus:border-amber-700 focus:ring-1 focus:ring-amber-600/30 focus:bg-white",
+              "focus:border-[#3c2415] focus:ring-1 focus:ring-[#3c2415]/25 focus:bg-white",
               Icon && "pl-9",
               error && "border-red-500 focus:border-red-600 focus:ring-red-500/20",
               type === 'number' && "font-mono font-bold",
@@ -84,7 +84,7 @@ export function JRPGSelect({
           className={twMerge(
             clsx(
               "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3.5 py-2 text-sm text-[#2c221e] outline-none transition-all duration-150 appearance-none cursor-pointer",
-              "focus:border-amber-700 focus:ring-1 focus:ring-amber-600/30 focus:bg-white font-medium",
+              "focus:border-[#3c2415] focus:ring-1 focus:ring-[#3c2415]/25 focus:bg-white font-medium",
               className
             )
           )}

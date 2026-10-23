@@ -13,7 +13,7 @@ export default function JRPGBadge({
   const baseStyles = "inline-flex items-center font-mono font-medium rounded-md select-none tracking-wide transition-colors";
 
   const variantStyles = {
-    gold: "bg-[#fbf3de] text-amber-900 border border-amber-400/60 font-bold",
+    gold: "bg-[#f4ebd9] text-[#9c4d16] border border-[#9c4d16]/40 font-bold",
     amber: "bg-amber-50 text-amber-900 border border-amber-300 font-bold",
     cyan: "bg-blue-50 text-blue-900 border border-blue-300 font-bold",
     rose: "bg-red-50 text-red-900 border border-red-300 font-bold",

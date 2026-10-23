@@ -160,7 +160,7 @@ export default function NPCCardPreview({
         </div>
 
         {/* Def */}
-        <div className="bg-[#fef3c7] rounded-lg p-2.5 border border-[#fcd34d]">
+        <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
           <div className="text-[10px] text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
             <GiCheckedShield className="w-3 h-3 text-[#6b5a4b]" /> 物防 DEF
           </div>

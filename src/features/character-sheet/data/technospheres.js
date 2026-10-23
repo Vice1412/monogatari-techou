@@ -329,7 +329,7 @@ export const slotSupportsQuality = (slotId) => SLOT_QUALITY_ELIGIBLE_SLOTS.inclu
 export const MNEMOSPHERE_BEAD_TINTS = Object.freeze({
   魔奏者: '#8b5cf6',
   嵌合師: '#65a30d',
-  指揮官: '#b45309',
+  指揮官: '#9c4d16',
   舞者: '#db2777',
   元素師: '#ea580c',
   熵師: '#6d28d9',

@@ -624,7 +624,7 @@ export default function WayfarerCompanionModal({
                 <button
                   type="button"
                   onClick={handleAddOtherAction}
-                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#f9f5eb] text-[#3c2415] border border-[#d6c7ab] hover:bg-[#f4ebd9] transition flex items-center gap-1"
                 >
                   <span className="fu-icon text-xs">s</span>
                   <span>+ 其餘行動</span>
@@ -739,16 +739,16 @@ export default function WayfarerCompanionModal({
             {/* 其餘行動清單 */}
             {formData.otherActions.length > 0 && (
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-amber-800 flex items-center gap-1">
+                <span className="text-[11px] font-bold text-[#3c2415] flex items-center gap-1">
                   <span className="fu-icon text-xs">s</span>
                   <span>其餘行動（{formData.otherActions.length}）</span>
                 </span>
                 <div className="space-y-2">
                   {formData.otherActions.map((act, idx) => (
-                    <div key={act.id || idx} className="p-3 rounded-xl border border-amber-200 bg-white space-y-2">
+                    <div key={act.id || idx} className="p-3 rounded-xl border border-[#e8dcc4] bg-white space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-1">
-                          <span className="fu-icon text-sm font-bold text-amber-800">s</span>
+                          <span className="fu-icon text-sm font-bold text-[#3c2415]">s</span>
                           <input
                             type="text"
                             value={act.name}

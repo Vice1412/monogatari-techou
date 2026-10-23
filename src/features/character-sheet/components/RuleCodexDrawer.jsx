@@ -177,11 +177,11 @@ export default function RuleCodexDrawer({
         {/* 典籍標題 Header */}
         <div className="px-5 py-3.5 bg-[#3c2415] text-[#f7f3e8] flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-2.5">
-            <GiSpellBook className="text-2xl text-amber-200" />
+            <GiSpellBook className="text-2xl text-[#f7f3e8]" />
             <div>
               <h2 className="text-base font-black tracking-wide flex items-center gap-2">
                 <span>規則概念速查</span>
-                <span className="text-xs font-normal text-amber-200/90 font-mono bg-amber-950/50 px-2 py-0.5 rounded border border-amber-500/30">
+                <span className="text-xs font-normal text-[#e8dcc4] font-mono bg-[#2c221e]/60 px-2 py-0.5 rounded border border-[#7c6a58]/40">
                   {currentRule.page}
                 </span>
               </h2>
@@ -190,7 +190,7 @@ export default function RuleCodexDrawer({
           <button
             type="button"
             onClick={handleClose}
-            className="p-1.5 rounded-lg text-amber-200 hover:text-white hover:bg-amber-800/80 transition-colors"
+            className="p-1.5 rounded-lg text-[#e8dcc4] hover:text-[#f7f3e8] hover:bg-[#f7f3e8]/12 transition-colors"
             title="關閉速查 (ESC)"
           >
             <X className="w-5 h-5" />
@@ -225,7 +225,7 @@ export default function RuleCodexDrawer({
                     setActiveRuleId(item.id);
                     setSearchTerm('');
                   }}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${ isActive ? 'bg-amber-600 text-white shadow-xs' : 'text-[#3c2415] hover:bg-[#eae0d2] ' }`}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${ isActive ? 'bg-[#a63d40] text-[#fffdf9] shadow-xs' : 'text-[#3c2415] hover:bg-[#eae0d2] ' }`}
                 >
                   <Icon className="text-sm" />
                   <span>{item.label}</span>
@@ -252,7 +252,7 @@ export default function RuleCodexDrawer({
           {/* 條列規則 */}
           {currentRule.rules && currentRule.rules.length > 0 && (
             <div className="space-y-2">
-              <h3 className="font-bold text-amber-900 text-xs sm:text-sm">核心運作規則：</h3>
+              <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">核心運作規則：</h3>
               <ul className="list-disc list-inside space-y-1.5 text-xs text-[#3c2415] pl-1">
                 {currentRule.rules.map((r, rIdx) => (
                   <li key={rIdx} className="leading-relaxed">
@@ -268,7 +268,7 @@ export default function RuleCodexDrawer({
             <div className="space-y-5">
               {currentRule.sections.map((sec, si) => (
                 <div key={si} className="space-y-2">
-                  <h3 className="font-bold text-amber-900 text-xs sm:text-sm">
+                  <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">
                     {sec.title}
                   </h3>
 
@@ -292,7 +292,7 @@ export default function RuleCodexDrawer({
                         </thead>
                         <tbody className="divide-y divide-[#e8dcc4]">
                           {sec.rows.map((row, ri) => (
-                            <tr key={ri} className="hover:bg-amber-50/40 align-top">
+                            <tr key={ri} className="hover:bg-[#f9f5eb] align-top">
                               {row.map((cell, ci) => (
                                 <td
                                   key={ci}
@@ -322,7 +322,7 @@ export default function RuleCodexDrawer({
                           <div className="flex items-center justify-between gap-2 border-b border-[#e8dcc4] pb-1">
                             <strong className="text-[#2c221e]">{it.name}</strong>
                             {it.meta && (
-                              <span className="text-[10px] font-mono text-amber-800 font-bold whitespace-nowrap">
+                              <span className="text-[10px] font-mono text-[#3c2415] font-bold whitespace-nowrap">
                                 {it.meta}
                               </span>
                             )}
@@ -346,7 +346,7 @@ export default function RuleCodexDrawer({
           {Array.isArray(currentRule.catalog) && (
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <h3 className="font-bold text-amber-900 text-xs sm:text-sm">
+                <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">
                   {currentRule.catalogTitle || '阿爾卡納目錄'}
                 </h3>
                 <div className="relative">
@@ -355,7 +355,7 @@ export default function RuleCodexDrawer({
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="搜尋阿爾卡納或領域..."
-                    className="px-2.5 py-1 text-xs rounded-lg border border-[#d6c7ab] bg-white text-[#3c2415] pr-7 focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                    className="px-2.5 py-1 text-xs rounded-lg border border-[#d6c7ab] bg-white text-[#3c2415] pr-7 focus:outline-hidden focus:ring-1 focus:ring-[#3c2415]"
                   />
                   <Search className="w-3.5 h-3.5 text-[#7c6a58] absolute right-2 top-2 pointer-events-none" />
                 </div>
@@ -370,14 +370,14 @@ export default function RuleCodexDrawer({
                       className="p-3 rounded-xl bg-white border border-[#ded2be] space-y-2"
                     >
                       <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-1.5">
-                        <span className="font-bold text-sm text-amber-950">
+                        <span className="font-bold text-sm text-[#2c221e]">
                           {arcana.name}
                         </span>
                         <span className="text-[11px] font-mono text-[#6b5a4b]">{arcana.domains}</span>
                       </div>
                       <div className="space-y-1 text-xs">
                         <div>
-                          <strong className="text-amber-800 font-bold">【連結】：</strong>
+                          <strong className="text-[#3c2415] font-bold">【連結】：</strong>
                           <span className="text-[#3c2415]">{renderTextWithAffinities(arcana.merge)}</span>
                         </div>
                         {arcana.pulse && (
@@ -402,7 +402,7 @@ export default function RuleCodexDrawer({
             <div className="space-y-5">
               {/* 六大學派表格 */}
               <div className="space-y-2">
-                <h3 className="font-bold text-amber-900 text-xs sm:text-sm">
+                <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">
                   六大學派與施法檢定
                 </h3>
                 <div className="overflow-x-auto rounded-xl border border-[#ded2be] shadow-2xs">
@@ -415,9 +415,9 @@ export default function RuleCodexDrawer({
                     </thead>
                     <tbody className="divide-y divide-[#e8dcc4]">
                       {currentRule.disciplines.map((d, dIdx) => (
-                        <tr key={dIdx} className="hover:bg-amber-50/40">
+                        <tr key={dIdx} className="hover:bg-[#f9f5eb]">
                           <td className="p-2.5 font-bold text-[#2c221e] whitespace-nowrap">{d.name}</td>
-                          <td className="p-2.5 font-mono font-bold text-amber-800 whitespace-nowrap">{d.formula}</td>
+                          <td className="p-2.5 font-mono font-bold text-[#3c2415] whitespace-nowrap">{d.formula}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -426,8 +426,8 @@ export default function RuleCodexDrawer({
               </div>
 
               {/* 儀式五大禁忌 */}
-              <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-300 space-y-2">
-                <h3 className="font-bold text-amber-900 text-xs sm:text-sm">
+              <div className="p-4 rounded-xl bg-[#f9f5eb] border border-[#d6c7ab] space-y-2">
+                <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">
                   記住，儀式魔法永遠不能完成以下任何一項：
                 </h3>
                 <ul className="list-disc list-inside space-y-1.5 text-xs text-[#3c2415] pl-1 leading-relaxed">
@@ -439,7 +439,7 @@ export default function RuleCodexDrawer({
 
               {/* 施法三步驟與計算表 */}
               <div className="space-y-3">
-                <h3 className="font-bold text-amber-900 text-xs sm:text-sm">
+                <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">
                   施法流程與費用計算
                 </h3>
                 <ol className="list-decimal list-inside space-y-1.5 text-xs text-[#3c2415] pl-1 leading-relaxed">
@@ -462,9 +462,9 @@ export default function RuleCodexDrawer({
                       </thead>
                       <tbody className="divide-y divide-[#e8dcc4]">
                         {currentRule.potencyTable.map((p, pIdx) => (
-                          <tr key={pIdx} className="hover:bg-amber-50/40">
+                          <tr key={pIdx} className="hover:bg-[#f9f5eb]">
                             <td className="p-2 font-bold text-[#2c221e] text-center">{p.tier}</td>
-                            <td className="p-2 font-mono text-amber-800 font-bold text-center">{p.mp}</td>
+                            <td className="p-2 font-mono text-[#3c2415] font-bold text-center">{p.mp}</td>
                             <td className="p-2 font-mono font-bold text-center">{p.dl}</td>
                             <td className="p-2 text-[#6b5a4b]">{p.example}</td>
                           </tr>
@@ -485,9 +485,9 @@ export default function RuleCodexDrawer({
                       </thead>
                       <tbody className="divide-y divide-[#e8dcc4]">
                         {currentRule.areaTable.map((a, aIdx) => (
-                          <tr key={aIdx} className="hover:bg-amber-50/40">
+                          <tr key={aIdx} className="hover:bg-[#f9f5eb]">
                             <td className="p-2 font-bold text-[#2c221e] text-center">{a.area}</td>
-                            <td className="p-2 font-mono text-amber-800 font-bold text-center">{a.multiplier}</td>
+                            <td className="p-2 font-mono text-[#3c2415] font-bold text-center">{a.multiplier}</td>
                             <td className="p-2 text-[#6b5a4b]">{a.example}</td>
                           </tr>
                         ))}
@@ -500,7 +500,7 @@ export default function RuleCodexDrawer({
               {/* 團隊檢定與減少成本 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                 <div className="p-3.5 rounded-xl bg-white border border-[#ded2be] space-y-1.5">
-                  <h4 className="font-bold text-amber-900 border-b border-[#e8dcc4] pb-1">
+                  <h4 className="font-bold text-[#3c2415] border-b border-[#e8dcc4] pb-1">
                     團隊檢定下的儀式魔法
                   </h4>
                   <p className="text-[#6b5a4b] leading-relaxed">
@@ -508,7 +508,7 @@ export default function RuleCodexDrawer({
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl bg-white border border-[#ded2be] space-y-1.5">
-                  <h4 className="font-bold text-amber-900 border-b border-[#e8dcc4] pb-1">
+                  <h4 className="font-bold text-[#3c2415] border-b border-[#e8dcc4] pb-1">
                     減少儀式的成本
                   </h4>
                   <ul className="list-disc list-inside space-y-1 text-[#6b5a4b] leading-relaxed pl-1">
@@ -522,16 +522,16 @@ export default function RuleCodexDrawer({
               {/* 衝突期間的儀式 */}
               <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-3">
                 <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-1.5">
-                  <h3 className="font-bold text-amber-900 text-xs sm:text-sm">
+                  <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">
                     衝突期間的儀式
                   </h3>
                   <span className="text-xs text-[#6b5a4b] font-normal">{currentRule.conflict.intro}</span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                   {currentRule.conflict.clocks.map((c, cIdx) => (
-                    <div key={cIdx} className="p-2 rounded-lg bg-amber-50/70 border border-amber-200 text-center">
+                    <div key={cIdx} className="p-2 rounded-lg bg-[#f9f5eb] border border-[#e8dcc4] text-center">
                       <span className="text-[#3c2415] font-bold block">{c.tier}效力</span>
-                      <span className="text-amber-900 font-mono font-bold text-sm">{c.clock}</span>
+                      <span className="text-[#3c2415] font-mono font-bold text-sm">{c.clock}</span>
                     </div>
                   ))}
                 </div>
@@ -552,7 +552,7 @@ export default function RuleCodexDrawer({
               {currentRule.alchemy && (
                 <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-3.5">
                   <div className="border-b border-[#e8dcc4] pb-2">
-                    <h4 className="font-bold text-amber-900 text-sm flex items-center justify-between">
+                    <h4 className="font-bold text-[#3c2415] text-sm flex items-center justify-between">
                       <span>{currentRule.alchemy.title}</span>
                       <span className="text-xs font-normal text-[#6b5a4b]">使用庫存動作調配</span>
                     </h4>
@@ -564,10 +564,10 @@ export default function RuleCodexDrawer({
                     <span className="font-bold text-xs text-[#3c2415] block">混合藥劑規格與消耗：</span>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                       {currentRule.alchemy.mixes.map((m, mIdx) => (
-                        <div key={mIdx} className="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200">
+                        <div key={mIdx} className="p-2.5 rounded-lg bg-[#f9f5eb] border border-[#e8dcc4]">
                           <div className="flex justify-between font-bold mb-1">
-                            <span className="text-amber-950">{m.tier}</span>
-                            <span className="font-mono text-amber-800">{m.cost}</span>
+                            <span className="text-[#2c221e]">{m.tier}</span>
+                            <span className="font-mono text-[#3c2415]">{m.cost}</span>
                           </div>
                           <p className="text-[11px] text-[#6b5a4b] leading-relaxed">{m.desc}</p>
                         </div>
@@ -591,7 +591,7 @@ export default function RuleCodexDrawer({
                           <tbody className="divide-y divide-[#e8dcc4] bg-white text-[11px]">
                             {currentRule.alchemy.targets.map((t, tIdx) => (
                               <tr key={tIdx}>
-                                <td className="p-1.5 text-center font-mono font-bold text-amber-800">{t.roll}</td>
+                                <td className="p-1.5 text-center font-mono font-bold text-[#3c2415]">{t.roll}</td>
                                 <td className="p-1.5 text-[#3c2415]">{t.target}</td>
                               </tr>
                             ))}
@@ -614,7 +614,7 @@ export default function RuleCodexDrawer({
                           <tbody className="divide-y divide-[#e8dcc4] bg-white text-[11px]">
                             {currentRule.alchemy.effects.map((e, eIdx) => (
                               <tr key={eIdx}>
-                                <td className="p-1.5 text-center font-mono font-bold text-amber-800">{e.roll}</td>
+                                <td className="p-1.5 text-center font-mono font-bold text-[#3c2415]">{e.roll}</td>
                                 <td className="p-1.5 text-[#3c2415]">{renderTextWithAffinities(e.effect)}</td>
                               </tr>
                             ))}
@@ -631,10 +631,10 @@ export default function RuleCodexDrawer({
                 <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-3.5">
                   <div className="border-b border-[#e8dcc4] pb-2">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-amber-900 text-sm">
+                      <h4 className="font-bold text-[#3c2415] text-sm">
                         {currentRule.infusions.title}
                       </h4>
-                      <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-300/40">
+                      <span className="text-xs font-bold text-[#3c2415] bg-[#f9f5eb] px-2 py-0.5 rounded border border-[#d6c7ab]">
                         技能對象：{currentRule.infusions.target}
                       </span>
                     </div>
@@ -651,7 +651,7 @@ export default function RuleCodexDrawer({
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         {currentRule.infusions.basic.map((item, idx) => (
                           <div key={idx} className="p-2 rounded-lg bg-[#fbf7ee] border border-[#d6c7ab]">
-                            <span className="font-bold text-amber-900 block mb-0.5">{item.name} ({item.cost})</span>
+                            <span className="font-bold text-[#3c2415] block mb-0.5">{item.name} ({item.cost})</span>
                             <span className="text-[11px] text-[#6b5a4b]">{renderTextWithAffinities(item.desc)}</span>
                           </div>
                         ))}
@@ -663,7 +663,7 @@ export default function RuleCodexDrawer({
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                         {currentRule.infusions.advanced.map((item, idx) => (
                           <div key={idx} className="p-2 rounded-lg bg-[#fbf7ee] border border-[#d6c7ab]">
-                            <span className="font-bold text-amber-900 block mb-0.5">{item.name} ({item.cost})</span>
+                            <span className="font-bold text-[#3c2415] block mb-0.5">{item.name} ({item.cost})</span>
                             <span className="text-[11px] text-[#6b5a4b]">{renderTextWithAffinities(item.desc)}</span>
                           </div>
                         ))}
@@ -675,7 +675,7 @@ export default function RuleCodexDrawer({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {currentRule.infusions.superior.map((item, idx) => (
                           <div key={idx} className="p-2 rounded-lg bg-[#fbf7ee] border border-[#d6c7ab]">
-                            <span className="font-bold text-amber-900 block mb-0.5">{item.name} ({item.cost})</span>
+                            <span className="font-bold text-[#3c2415] block mb-0.5">{item.name} ({item.cost})</span>
                             <span className="text-[11px] text-[#6b5a4b] leading-relaxed">{renderTextWithAffinities(item.desc)}</span>
                           </div>
                         ))}
@@ -689,7 +689,7 @@ export default function RuleCodexDrawer({
               {currentRule.magitech && (
                 <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-3.5">
                   <div className="border-b border-[#e8dcc4] pb-2">
-                    <h4 className="font-bold text-amber-900 text-sm flex items-center justify-between">
+                    <h4 className="font-bold text-[#3c2415] text-sm flex items-center justify-between">
                       <span>{currentRule.magitech.title}</span>
                       <span className="text-xs font-normal text-[#6b5a4b]">官方最新勘誤版機制</span>
                     </h4>
@@ -698,10 +698,10 @@ export default function RuleCodexDrawer({
 
                   <div className="space-y-3 text-xs">
                     {/* 基礎：魔科技篡奪 */}
-                    <div className="p-3 rounded-lg bg-amber-50/70 border border-amber-200 space-y-1">
+                    <div className="p-3 rounded-lg bg-[#f9f5eb] border border-[#e8dcc4] space-y-1">
                       <div className="flex justify-between items-center font-bold">
-                        <span className="text-amber-950">{currentRule.magitech.basic.name}</span>
-                        <span className="font-mono text-amber-800">{currentRule.magitech.basic.cost}</span>
+                        <span className="text-[#2c221e]">{currentRule.magitech.basic.name}</span>
+                        <span className="font-mono text-[#3c2415]">{currentRule.magitech.basic.cost}</span>
                       </div>
                       <p className="text-[#3c2415] leading-relaxed text-[11px]">
                         {currentRule.magitech.basic.desc}
@@ -750,7 +750,7 @@ export default function RuleCodexDrawer({
               {/* 六大造物流程步驟 */}
               <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-3">
                 <div className="border-b border-[#e8dcc4] pb-2">
-                  <h4 className="font-bold text-amber-900 text-sm">
+                  <h4 className="font-bold text-[#3c2415] text-sm">
                     造物流程六大步驟（核心手冊 134~137 頁）
                   </h4>
                   <p className="text-xs text-[#6b5a4b] mt-0.5">
@@ -760,7 +760,7 @@ export default function RuleCodexDrawer({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
                   {currentRule.steps.map((st, stIdx) => (
                     <div key={stIdx} className="p-2.5 rounded-lg bg-[#fbf7ee] border border-[#d6c7ab] space-y-1">
-                      <span className="font-bold text-amber-900 block">{st.step}</span>
+                      <span className="font-bold text-[#3c2415] block">{st.step}</span>
                       <p className="text-[11px] text-[#6b5a4b] leading-relaxed">{st.desc}</p>
                     </div>
                   ))}
@@ -769,10 +769,10 @@ export default function RuleCodexDrawer({
 
               {/* 成本計算公式與三大乘數表 */}
               <div className="space-y-3">
-                <div className="p-3 bg-amber-50/80 rounded-xl border border-amber-200 space-y-1 text-xs">
+                <div className="p-3 bg-[#f9f5eb] rounded-xl border border-[#e8dcc4] space-y-1 text-xs">
                   <div className="flex items-center justify-between flex-wrap gap-1">
-                    <span className="font-bold text-amber-950">材料總成本計算公式：</span>
-                    <span className="font-mono font-bold text-amber-800">總成本 = 基礎效力 × 範圍倍率 × 使用次數倍率</span>
+                    <span className="font-bold text-[#2c221e]">材料總成本計算公式：</span>
+                    <span className="font-mono font-bold text-[#3c2415]">總成本 = 基礎效力 × 範圍倍率 × 使用次數倍率</span>
                   </div>
                   <p className="text-t12 text-[#6b5a4b] leading-relaxed">
                     若為發明協商加入一項致命缺陷（如定時充電、極不可靠、笨重或巨大噪音等），總成本直接減免 25%（× 0.75）。中等以上效力必須包含一項跑團冒險焦點的特殊材料。
@@ -796,7 +796,7 @@ export default function RuleCodexDrawer({
                           {currentRule.potencyTable.map((p, pIdx) => (
                             <tr key={pIdx}>
                               <td className="p-1.5 text-center font-bold text-[#2c221e]">{p.tier}</td>
-                              <td className="p-1.5 text-center font-mono font-bold text-amber-800">{p.cost}</td>
+                              <td className="p-1.5 text-center font-mono font-bold text-[#3c2415]">{p.cost}</td>
                               <td className="p-1.5 text-[#6b5a4b] leading-tight">{p.desc}</td>
                             </tr>
                           ))}
@@ -821,7 +821,7 @@ export default function RuleCodexDrawer({
                           {currentRule.areaTable.map((a, aIdx) => (
                             <tr key={aIdx}>
                               <td className="p-1.5 text-center font-bold text-[#2c221e]">{a.area}</td>
-                              <td className="p-1.5 text-center font-mono font-bold text-amber-800">{a.multiplier}</td>
+                              <td className="p-1.5 text-center font-mono font-bold text-[#3c2415]">{a.multiplier}</td>
                               <td className="p-1.5 text-[#6b5a4b] leading-tight">{a.desc}</td>
                             </tr>
                           ))}
@@ -846,7 +846,7 @@ export default function RuleCodexDrawer({
                           {currentRule.usesTable.map((u, uIdx) => (
                             <tr key={uIdx}>
                               <td className="p-1.5 text-center font-bold text-[#2c221e]">{u.use}</td>
-                              <td className="p-1.5 text-center font-mono font-bold text-amber-800">{u.multiplier}</td>
+                              <td className="p-1.5 text-center font-mono font-bold text-[#3c2415]">{u.multiplier}</td>
                               <td className="p-1.5 text-[#6b5a4b] leading-tight">{u.desc}</td>
                             </tr>
                           ))}
@@ -859,7 +859,7 @@ export default function RuleCodexDrawer({
 
               {/* 進度與推進機制 */}
               <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-2 text-xs">
-                <h4 className="font-bold text-amber-900 border-b border-[#e8dcc4] pb-1 flex items-center justify-between">
+                <h4 className="font-bold text-[#3c2415] border-b border-[#e8dcc4] pb-1 flex items-center justify-between">
                   <span>進度計算與每日自動累積</span>
                   <span className="font-mono text-xs text-[#6b5a4b] font-normal">所需進度 = 最終總成本 / 100z</span>
                 </h4>
@@ -889,7 +889,7 @@ export default function RuleCodexDrawer({
           {/* 5. 忠實夥伴詳細規格 */}
           {activeRuleId === 'companion' && (
             <div className="space-y-4">
-              <h3 className="font-bold text-amber-900 text-xs sm:text-sm">
+              <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">
                 忠實夥伴面板規格與戰鬥機制
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -905,14 +905,14 @@ export default function RuleCodexDrawer({
                   <span className="font-bold text-[#2c221e] block border-b border-[#e8dcc4] pb-1">
                     最大 HP 動態公式
                   </span>
-                  <div className="font-mono text-amber-800 font-bold bg-amber-50 p-1.5 rounded">
+                  <div className="font-mono text-[#3c2415] font-bold bg-[#f9f5eb] p-1.5 rounded">
                     最大 HP = (SL × 夥伴基礎 MIG) + ⌊旅人等級 / 2⌋
                   </div>
                   <p className="text-[#6b5a4b] text-t12">危機值為最大 HP / 2。物防等於當前 DEX 骰，魔防等於當前 INS 骰。</p>
                 </div>
               </div>
               <div className="p-3 rounded-xl bg-white border border-[#ded2be] space-y-2 text-xs">
-                <span className="font-bold text-amber-900 block border-b border-[#e8dcc4] pb-1">
+                <span className="font-bold text-[#3c2415] block border-b border-[#e8dcc4] pb-1">
                   行動指揮與基礎攻擊
                 </span>
                 <ul className="list-disc list-inside space-y-1.5 text-[#3c2415] text-[11px] leading-relaxed pl-1">
@@ -928,7 +928,7 @@ export default function RuleCodexDrawer({
           {activeRuleId === 'spellbooks' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <h3 className="font-bold text-amber-900 text-xs sm:text-sm">
+                <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">
                   三大核心法術書（共 38 門咒語）
                 </h3>
                 <div className="relative">
@@ -937,7 +937,7 @@ export default function RuleCodexDrawer({
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="搜尋咒語名稱或效果..."
-                    className="px-2.5 py-1 text-xs rounded-lg border border-[#d6c7ab] bg-white text-[#3c2415] pr-7 focus:outline-hidden focus:ring-1 focus:ring-amber-500"
+                    className="px-2.5 py-1 text-xs rounded-lg border border-[#d6c7ab] bg-white text-[#3c2415] pr-7 focus:outline-hidden focus:ring-1 focus:ring-[#3c2415]"
                   />
                   <Search className="w-3.5 h-3.5 text-[#7c6a58] absolute right-2 top-2 pointer-events-none" />
                 </div>
@@ -952,7 +952,7 @@ export default function RuleCodexDrawer({
                   return (
                     <div key={sIdx} className="space-y-2">
                       <div className="flex items-center justify-between border-b border-[#e2d7c5] pb-1">
-                        <h4 className="font-bold text-amber-900 text-sm">
+                        <h4 className="font-bold text-[#3c2415] text-sm">
                           {school.name}
                         </h4>
                         <span className="text-xs font-mono font-bold text-[#6b5a4b]">
@@ -995,7 +995,7 @@ export default function RuleCodexDrawer({
           <button
             type="button"
             onClick={handleClose}
-            className="px-4 py-1.5 bg-amber-700 hover:bg-amber-800 text-white rounded-lg font-bold transition-colors shadow-2xs flex items-center gap-1"
+            className="px-4 py-1.5 bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] rounded-lg font-bold transition-colors shadow-2xs flex items-center gap-1"
           >
             <span>關閉並返回</span>
           </button>

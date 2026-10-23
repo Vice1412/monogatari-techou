@@ -100,7 +100,7 @@ export default function IdentityTablesModal({
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
               <h4 className="font-serif font-bold text-sm flex items-center gap-1.5" style={{ color: theme?.textDark || '#3c2415' }}>
-                <GiSpellBook className="w-4 h-4" style={{ color: theme?.accent || '#b45309' }} />
+                <GiSpellBook className="w-4 h-4" style={{ color: theme?.accent || '#a63d40' }} />
                 官方創角機制：核心概念 + 形容特質 + 身世細節
               </h4>
               <p className="text-t12 text-[#6b5a4b] mt-0.5">
@@ -140,9 +140,9 @@ export default function IdentityTablesModal({
             >
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold" style={{ color: theme?.textDark || '#3c2415' }}>
-                  <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent || '#b45309' }} />
+                  <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent || '#a63d40' }} />
                   <span>擲骰結算: </span>
-                  <span className="font-serif text-sm underline" style={{ color: theme?.textDark || '#3c2415', textDecorationColor: theme?.accent || '#b45309' }}>
+                  <span className="font-serif text-sm underline" style={{ color: theme?.textDark || '#3c2415', textDecorationColor: theme?.accent || '#a63d40' }}>
                     {rolledResult.fullZh}
                   </span>
                   <span className="text-[11px] text-[#6b5a4b] font-normal">
@@ -203,7 +203,7 @@ export default function IdentityTablesModal({
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold flex items-center gap-1" style={{ color: theme?.textDark || '#3c2415' }}>
-              <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent || '#b45309' }} />
+              <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent || '#a63d40' }} />
               自選組合身份區（依照中文習慣：身世細節 ➔ 形容特質 ➔ 核心概念）:
             </span>
             {(pickedAdj || pickedConcept || pickedDetail) && (
@@ -227,7 +227,7 @@ export default function IdentityTablesModal({
               className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
                 pickedDetail ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
-              style={pickedDetail ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#b45309', color: theme?.textDark || '#3c2415' } : {}}
+              style={pickedDetail ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
             >
               <span>1. 身世細節: {pickedDetail ? pickedDetail.zh : '尚未選取'}</span>
               {pickedDetail && (
@@ -244,7 +244,7 @@ export default function IdentityTablesModal({
               className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
                 pickedAdj ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
-              style={pickedAdj ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#b45309', color: theme?.textDark || '#3c2415' } : {}}
+              style={pickedAdj ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
             >
               <span>2. 形容特質: {pickedAdj ? pickedAdj.zh : '尚未選取'}</span>
               {pickedAdj && (
@@ -261,7 +261,7 @@ export default function IdentityTablesModal({
               className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
                 pickedConcept ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
-              style={pickedConcept ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#b45309', color: theme?.textDark || '#3c2415' } : {}}
+              style={pickedConcept ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
             >
               <span>3. 核心身分: {pickedConcept ? pickedConcept.zh : '尚未選取'}</span>
               {pickedConcept && (
@@ -305,7 +305,7 @@ export default function IdentityTablesModal({
                   className="px-3 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap border cursor-pointer"
                   style={
                     isActive
-                      ? { backgroundColor: theme?.accent || '#78350f', borderColor: theme?.accentDark || '#451a03', color: '#ffffff' }
+                      ? { backgroundColor: theme?.accent || '#78350f', borderColor: theme?.accentDark || '#76252d', color: '#ffffff' }
                       : { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.border || '#d6c7ab', color: theme?.textDark || '#334155' }
                   }
                 >
@@ -345,7 +345,7 @@ export default function IdentityTablesModal({
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b pb-1.5" style={{ borderColor: theme?.border || '#d6c7ab' }}>
                 <h5 className="font-serif font-black text-sm flex items-center gap-2" style={{ color: theme?.textDark || '#3c2415' }}>
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#b45309' }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#a63d40' }} />
                   {OFFICIAL_IDENTITY_TABLES.coreConcepts.title}
                 </h5>
                 <span className="text-[11px] text-[#6b5a4b] font-mono">
@@ -414,7 +414,7 @@ export default function IdentityTablesModal({
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b pb-1.5" style={{ borderColor: theme?.border || '#d6c7ab' }}>
                 <h5 className="font-serif font-black text-sm flex items-center gap-2" style={{ color: theme?.textDark || '#3c2415' }}>
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#b45309' }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#a63d40' }} />
                   {OFFICIAL_IDENTITY_TABLES.adjectives.title}
                 </h5>
                 <span className="text-[11px] text-[#6b5a4b] font-mono">
@@ -483,7 +483,7 @@ export default function IdentityTablesModal({
             <div className="space-y-3">
               <div className="flex items-center justify-between border-b pb-1.5" style={{ borderColor: theme?.border || '#d6c7ab' }}>
                 <h5 className="font-serif font-black text-sm flex items-center gap-2" style={{ color: theme?.textDark || '#3c2415' }}>
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#b45309' }} />
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#a63d40' }} />
                   {OFFICIAL_IDENTITY_TABLES.details.title}
                 </h5>
                 <span className="text-[11px] text-[#6b5a4b] font-mono">

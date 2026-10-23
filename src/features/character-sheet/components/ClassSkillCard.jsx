@@ -117,8 +117,8 @@ function SkillSuboptionBar({
               <span>已掌握 {selectedCount} / {maxQuota}（超出 {selectedCount - maxQuota} 個，請刪減）</span>
             </span>
           ) : (
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-bold flex items-center gap-1">
-              <GiSparkles className="w-3 h-3 text-amber-600" />
+            <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1">
+              <GiSparkles className="w-3 h-3 text-[#6b5a4b]" />
               <span>已掌握 {selectedCount} / {maxQuota}（尚餘 {maxQuota - selectedCount} 個名額）</span>
             </span>
           )}
@@ -158,8 +158,8 @@ function SkillSuboptionBar({
             }}
             className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
               selectedCount === 0
-                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-2xs'
-                : 'bg-white hover:bg-amber-50 text-amber-900 border border-amber-300'
+                ? 'bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs'
+                : 'bg-white hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]'
             }`}
           >
             <GiQuillInk className="w-3.5 h-3.5" />
@@ -193,12 +193,12 @@ function SkillSuboptionBar({
                     setIsExpanded(true);
                   }}
                   title="點擊展開查看效果詳情"
-                  className="text-[11px] px-2 py-0.5 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-200 font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                  className="text-[11px] px-2 py-0.5 rounded-md bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#2c221e] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                 >
                   {isOffensiveSpell ? (
                     <span className="fu-icon text-red-600 font-bold" title="攻擊性咒語">o</span>
                   ) : (
-                    <span className="text-amber-500">✦</span>
+                    <span className="text-[#3c2415]">✦</span>
                   )}
                   <span>{item}</span>
                 </span>
@@ -343,13 +343,13 @@ function TinkererGadgetsSkillBar({
             </span>
           ) : (
             <>
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-bold">
+              <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
                 煉金 {getTierText(alchemy)} · 灌注 {getTierText(infusion)} · {branch ? branch.name : '魔導'} {getTierText(magitech)}
               </span>
               <span className={`text-[11px] px-2 py-0.5 rounded-md font-mono font-bold ${
                 allocated >= sl
                   ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                  : 'bg-amber-50 text-amber-800 border border-amber-200'
+                  : 'bg-[#f9f5eb] text-[#3c2415] border border-[#e8dcc4]'
               }`}>
                 已分配 {allocated} / {sl} 節點
               </span>
@@ -363,7 +363,7 @@ function TinkererGadgetsSkillBar({
             e.stopPropagation();
             onOpenModal();
           }}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-amber-600 hover:bg-amber-700 text-white shadow-2xs"
+          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
         >
           <GiGears className="w-3.5 h-3.5" />
           <span>{isConfigured ? '管理小工具' : '配置科技樹'}</span>
@@ -630,7 +630,7 @@ export default function ClassSkillCard({
                     萌新會讀成「兩個都給」——留短標籤與按鈕就夠了。 */}
               {classDef.freeBonus && (
                 <div className="flex items-center gap-2 flex-wrap mt-1">
-                  <span className="text-xs font-mono font-bold text-amber-900 bg-amber-200/90 px-2 py-0.5 rounded border border-amber-300">
+                  <span className="text-xs font-mono font-bold text-[#3c2415] bg-[#e8dcc4] px-2 py-0.5 rounded border border-[#d6c7ab]">
                     <SkillDescription desc={classDef.freeBonus} />
                   </span>
                   {classDef.freeBenefits && !isHpMpChoice && (
@@ -841,14 +841,14 @@ export default function ClassSkillCard({
 
       {/* ================= 模式 B：展開點選模式 (Full Allocation / Edit Mode) ================= */}
       {isEditing && (
-        <div className="p-3.5 sm:p-4 space-y-3.5 bg-amber-50/20">
+        <div className="p-3.5 sm:p-4 space-y-3.5 bg-[#fbf7ee]">
           <div className="flex items-center justify-between text-xs text-[#6b5a4b] border-b pb-2" style={{ borderColor: theme.border }}>
             <span className="font-bold flex items-center gap-1">
               <GiSparkles className="w-3.5 h-3.5" style={{ color: theme.accent }} />
               點擊星星或卡片分配技能等級 (SL)，再次點擊已亮星星可降級：
             </span>
             <span className="font-mono font-bold" style={{ color: theme.textDark }}>
-              本職等級合計：<strong className="text-amber-800 text-sm">Lv {draftTotalSL}</strong>
+              本職等級合計：<strong className="text-[#3c2415] text-sm">Lv {draftTotalSL}</strong>
             </span>
           </div>
 
@@ -900,7 +900,7 @@ export default function ClassSkillCard({
                   }}
                   className={`p-3.5 rounded-xl border text-xs space-y-2 transition-all duration-200 cursor-pointer select-none ${
                     isLearned
-                      ? 'bg-amber-50/80 border-amber-400 ring-1 ring-amber-400/40'
+                      ? 'bg-[#f9f5eb] border-[#d6c7ab] ring-1 ring-[#3c2415]/30'
                       : 'bg-white/60 border-[#d6c7ab]/90 hover:bg-white hover:border-[#d6c7ab] opacity-80'
                   }`}
                 >
@@ -908,14 +908,14 @@ export default function ClassSkillCard({
                     <div className="flex items-center gap-2">
                       <span
                         className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                          isLearned ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]' : 'bg-[#d6c7ab]'
+                          isLearned ? 'bg-[#a63d40]' : 'bg-[#d6c7ab]'
                         }`}
                       />
                       {/* 技能名：預覽時原地切換（漸隱/漸顯靠 transition 處理） */}
                       <span
                         key={disp.name /* 變體切換時重新觸發 transition */}
                         className={`text-sm sm:text-base tracking-wide font-black transition-opacity duration-200 ${
-                          isLearned ? 'text-amber-950 font-serif' : 'text-[#3c2415]'
+                          isLearned ? 'text-[#2c221e] font-serif' : 'text-[#3c2415]'
                         }`}
                       >
                         {disp.name}
@@ -932,7 +932,7 @@ export default function ClassSkillCard({
                         </span>
                       )}
                       {!disp.isVariant && isLearned && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 font-mono">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#e8dcc4] text-[#3c2415] font-mono">
                           已學習
                         </span>
                       )}

@@ -198,12 +198,12 @@ export default function CombatTracker() {
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl bg-[#f4ebd9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono shadow-inner">
             <span className="text-[10px] text-[#7c6a58] uppercase tracking-widest font-bold">ROUND</span>
-            <span className="text-2xl font-bold text-amber-800 leading-none">{round}</span>
+            <span className="text-2xl font-bold text-[#3c2415] leading-none">{round}</span>
           </div>
 
           <div>
             <h2 className="font-serif font-black text-xl text-[#2c221e] flex items-center gap-2">
-              <GiCrossedSwords className="w-5 h-5 text-amber-700" /> 戰鬥與輪次管理中樞
+              <GiCrossedSwords className="w-5 h-5 text-[#6b5a4b]" /> 戰鬥與輪次管理中樞
             </h2>
             <div className="flex items-center gap-3 text-xs font-mono mt-1">
               <span className="text-[#2c221e] font-bold">
@@ -254,7 +254,7 @@ export default function CombatTracker() {
             <div className="flex items-center gap-2 text-emerald-800 font-mono font-bold">
               <Wifi className="w-4 h-4 text-emerald-600" />
               <span>
-                {isHost ? 'GM 房間建立完成' : '已連線房間'}: <strong className="text-amber-900 bg-[#fbf3de] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{roomCode}</strong>
+                {isHost ? 'GM 房間建立完成' : '已連線房間'}: <strong className="text-[#3c2415] bg-[#fbf3de] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{roomCode}</strong>
               </span>
               {isHost && (
                 <span className="text-[11px] text-[#6b5a4b] font-normal">
@@ -276,7 +276,7 @@ export default function CombatTracker() {
             <>
               <button
                 onClick={handleCreateRoom}
-                className="px-3 py-1.5 rounded-lg bg-amber-700 text-white font-bold hover:bg-amber-800 transition-colors shadow-sm"
+                className="px-3 py-1.5 rounded-lg bg-[#a63d40] text-[#fffdf9] font-bold hover:bg-[#76252d] transition-colors shadow-sm"
               >
                 + 開創連線房間
               </button>
@@ -286,7 +286,7 @@ export default function CombatTracker() {
                   placeholder="輸入房間碼 (如 FU-8821)"
                   value={inputRoomCode}
                   onChange={e => setInputRoomCode(e.target.value)}
-                  className="bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-2.5 py-1 text-xs text-[#2c221e] uppercase font-mono w-36 focus:border-amber-700 outline-none"
+                  className="bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-2.5 py-1 text-xs text-[#2c221e] uppercase font-mono w-36 focus:border-[#3c2415] outline-none"
                 />
                 <button
                   onClick={handleJoinRoom}

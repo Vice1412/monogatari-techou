@@ -69,7 +69,7 @@ const TASTE_COLOR = {
   鹹味: 'bg-sky-50 border-sky-300 text-sky-900',
   酸味: 'bg-lime-50 border-lime-300 text-lime-900',
   甜味: 'bg-pink-50 border-pink-300 text-pink-900',
-  鮮味: 'bg-amber-50 border-amber-300 text-amber-900'
+  鮮味: 'bg-[#f9f5eb] border-[#d6c7ab] text-[#3c2415]'
 };
 
 /** 群組標題用的小圓點色（與 TASTE_COLOR 同色系）。 */
@@ -78,7 +78,7 @@ const TASTE_DOT = {
   鹹味: 'bg-sky-500',
   酸味: 'bg-lime-500',
   甜味: 'bg-pink-500',
-  鮮味: 'bg-amber-500'
+  鮮味: 'bg-[#a63d40]'
 };
 
 const SUB_TABS = [
@@ -307,7 +307,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
           onClick={() => setTasteFilter(null)}
           className={`flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all cursor-pointer ${
             tasteFilter === null
-              ? 'bg-[#3c2415] border-[#3c2415] text-[#fbf7ee] ring-2 ring-amber-500'
+              ? 'bg-[#3c2415] border-[#3c2415] text-[#fbf7ee] ring-2 ring-[#3c2415]'
               : 'bg-white border-[#d6c7ab] text-[#3c2415] hover:bg-[#ebdcc4]'
           }`}
         >
@@ -328,7 +328,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                 n === 0
                   ? 'bg-[#fbf7ee] border-[#d6c7ab] text-[#7c6a58] cursor-not-allowed'
                   : on
-                    ? 'ring-2 ring-amber-500 ' + (TASTE_COLOR[t] || '')
+                    ? 'ring-2 ring-[#3c2415] ' + (TASTE_COLOR[t] || '')
                     : TASTE_COLOR[t] + ' hover:brightness-95 cursor-pointer'
               }`}
             >
@@ -388,9 +388,9 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
     if (!pending || pending.key !== key) return null;
     const def = DELICACY_EFFECTS[pending.roll];
     return (
-      <div className="p-2 rounded-lg bg-amber-50 border border-amber-400 space-y-1.5">
+      <div className="p-2 rounded-lg bg-[#f9f5eb] border border-[#d6c7ab] space-y-1.5">
         <div className="flex items-center gap-2 flex-wrap text-[11px]">
-          <span className="font-mono font-black text-amber-800">d12 = {pending.roll}</span>
+          <span className="font-mono font-black text-[#3c2415]">d12 = {pending.roll}</span>
           <span className="font-bold text-[#3c2415]">{def.label}</span>
           <span className="text-[#3c2415]">
             {renderTextWithAffinities(formatEffect(pending.roll, pending.choice, level))}
@@ -402,7 +402,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
             <select
               value={pending.choice || ''}
               onChange={(e) => setPending({ ...pending, choice: e.target.value })}
-              className="px-1.5 py-0.5 rounded border border-amber-400 bg-white text-[11px] text-[#3c2415] cursor-pointer"
+              className="px-1.5 py-0.5 rounded border border-[#d6c7ab] bg-white text-[11px] text-[#3c2415] cursor-pointer"
             >
               {def.choice.options.map((o) => (
                 <option key={o} value={o}>{o}</option>
@@ -414,14 +414,14 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
           <button
             type="button"
             onClick={commitPending}
-            className="px-2.5 py-1 rounded-lg bg-amber-700 hover:bg-amber-800 text-white text-[11px] font-bold cursor-pointer"
+            className="px-2.5 py-1 rounded-lg bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] text-[11px] font-bold cursor-pointer"
           >
             寫入食譜（此後固定）
           </button>
           <button
             type="button"
             onClick={() => rollPair(key)}
-            className="px-2 py-1 rounded-lg border border-amber-400 bg-white hover:bg-amber-100 text-[11px] font-bold text-amber-900 cursor-pointer"
+            className="px-2 py-1 rounded-lg border border-[#d6c7ab] bg-white hover:bg-[#f4ebd9] text-[11px] font-bold text-[#3c2415] cursor-pointer"
           >
             重骰
           </button>
@@ -444,7 +444,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
         <button
           type="button"
           onClick={() => rollPair(key)}
-          className="px-2 py-0.5 rounded border border-amber-400 bg-amber-50 hover:bg-amber-100 text-[11px] font-bold text-amber-900 flex items-center gap-1 cursor-pointer"
+          className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[11px] font-bold text-[#3c2415] flex items-center gap-1 cursor-pointer"
         >
           <GiDiceTwentyFacesTwenty className="w-3 h-3" />
           <span>骰 d12</span>
@@ -469,7 +469,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                 type="button"
                 onClick={() => startPending(key, n)}
                 title={DELICACY_EFFECTS[n].label}
-                className="py-1.5 rounded-lg border border-[#d6c7ab] bg-white hover:bg-amber-100 text-[12px] font-black text-[#3c2415] cursor-pointer"
+                className="py-1.5 rounded-lg border border-[#d6c7ab] bg-white hover:bg-[#f4ebd9] text-[12px] font-black text-[#3c2415] cursor-pointer"
               >
                 {n}
               </button>
@@ -485,7 +485,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
       {/* 標題列 */}
       <div className="px-3.5 py-2.5 bg-[#f5efdf] border-b border-[#d6c7ab] flex items-center justify-between flex-wrap gap-2">
         <span className="font-bold text-sm text-[#3c2415] flex items-center gap-1.5">
-          <GiCookingPot className="w-4 h-4 text-amber-700" />
+          <GiCookingPot className="w-4 h-4 text-[#6b5a4b]" />
           <span>美食家工坊</span>
         </span>
         <div className="flex items-center gap-2">
@@ -524,7 +524,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
             {/* d6 對照表——讓玩家在助手外也能擲骰 */}
             <div className="p-2.5 rounded-xl bg-[#f5efdf] border border-[#d6c7ab]">
               <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#3c2415] mb-1.5">
-                <GiPerspectiveDiceSixFacesRandom className="w-3.5 h-3.5 text-amber-700" />
+                <GiPerspectiveDiceSixFacesRandom className="w-3.5 h-3.5 text-[#6b5a4b]" />
                 <span>取得食材時骰 d6 決定口味</span>
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-1">
@@ -533,17 +533,17 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                     key={face}
                     className={`flex items-center justify-center gap-1 px-1.5 py-1 rounded-lg border text-[11px] font-bold ${
                       lastRoll?.die === 'd6' && lastRoll.value === face
-                        ? 'bg-amber-200 border-amber-500 text-amber-950 ring-2 ring-amber-400'
+                        ? 'bg-[#e8dcc4] border-[#3c2415] text-[#2c221e] ring-2 ring-[#3c2415]'
                         : 'bg-white border-[#d6c7ab] text-[#3c2415]'
                     }`}
                   >
-                    <span className="font-mono text-amber-700">{face}</span>
+                    <span className="font-mono text-[#6b5a4b]">{face}</span>
                     <span>{TASTE_ROLL[face] || '由你決定'}</span>
                   </div>
                 ))}
               </div>
               {lastRoll?.die === 'd6' && (
-                <div className="mt-1.5 text-[11px] font-bold text-amber-900">
+                <div className="mt-1.5 text-[11px] font-bold text-[#3c2415]">
                   上次骰出 <span className="font-mono">{lastRoll.value}</span>
                   {lastRoll.isFree
                     ? `（由你決定 → 記為【${lastRoll.taste}】）`
@@ -602,7 +602,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                   className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-bold flex items-center gap-1 ${
                     isFull
                       ? 'border-[#e8dcc4] bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed'
-                      : 'border-amber-400 bg-amber-50 hover:bg-amber-100 text-amber-900 cursor-pointer'
+                      : 'border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#3c2415] cursor-pointer'
                   }`}
                 >
                   <GiPerspectiveDiceSixFacesRandom className="w-3.5 h-3.5" />
@@ -720,9 +720,9 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                         type="button"
                         onClick={() => setSelectedPair(on ? null : key)}
                         title={key}
-                        className={`h-11 rounded-lg border text-[13px] font-black transition-all cursor-pointer ${on ? 'ring-2 ring-amber-500 ' : ''}${
+                        className={`h-11 rounded-lg border text-[13px] font-black transition-all cursor-pointer ${on ? 'ring-2 ring-[#3c2415] ' : ''}${
                           isPending
-                            ? 'bg-amber-200 border-amber-500 text-amber-950'
+                            ? 'bg-[#e8dcc4] border-[#3c2415] text-[#2c221e]'
                             : entry?.roll
                               ? 'bg-[#ebdcc4] border-[#c9b48f] text-[#3c2415]'
                               : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#7c6a58]'
@@ -757,7 +757,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                 ) : cookbook[selectedPair]?.roll ? (
                   <>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono text-xs font-black text-amber-800">{cookbook[selectedPair].roll}</span>
+                      <span className="font-mono text-xs font-black text-[#3c2415]">{cookbook[selectedPair].roll}</span>
                       <span className="text-xs text-[#3c2415]">
                         {renderTextWithAffinities(
                           formatEffect(cookbook[selectedPair].roll, cookbook[selectedPair].choice, level)
@@ -784,7 +784,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
               <div className="p-2.5 rounded-xl bg-white border border-[#d6c7ab] space-y-2">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="text-[11px] font-bold text-[#3c2415] flex items-center gap-1.5">
-                    <GiDiceTwentyFacesTwenty className="w-3.5 h-3.5 text-amber-700" />
+                    <GiDiceTwentyFacesTwenty className="w-3.5 h-3.5 text-[#6b5a4b]" />
                     <span>批次填寫（尚未決定 {undecidedPairs.length} 格）</span>
                   </span>
                   <button
@@ -892,7 +892,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                     <button
                       type="button"
                       onClick={commitBatch}
-                      className="w-full px-3 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                      className="w-full px-3 py-2 rounded-xl bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] text-xs font-bold shadow-sm transition-colors cursor-pointer"
                     >
                       一次寫入食譜（此後固定）
                     </button>
@@ -903,7 +903,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
 
             <div className="p-2.5 rounded-xl bg-white border border-[#d6c7ab]">
               <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#3c2415] mb-1.5">
-                <GiScrollUnfurled className="w-3.5 h-3.5 text-amber-700" />
+                <GiScrollUnfurled className="w-3.5 h-3.5 text-[#6b5a4b]" />
                 <span>尚未骰出的效果（{remaining.length} / 12）</span>
               </div>
               {remaining.length === 0 ? (
@@ -912,7 +912,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                 <div className="space-y-1">
                   {remaining.map((e) => (
                     <div key={e.roll} className="flex items-start gap-2 text-[11px]">
-                      <span className="font-mono font-black text-amber-800 w-5 shrink-0 text-right">{e.roll}</span>
+                      <span className="font-mono font-black text-[#3c2415] w-5 shrink-0 text-right">{e.roll}</span>
                       <span className="text-[#3c2415]">{renderTextWithAffinities(e.text)}</span>
                     </div>
                   ))}
@@ -944,7 +944,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                   onClick={() => togglePick(ing.id)}
                   className={`px-2 py-1.5 rounded-lg border text-[11px] font-bold transition-all cursor-pointer text-left ${
                     on
-                      ? 'ring-2 ring-amber-500 ' + (TASTE_COLOR[ing.taste] || '')
+                      ? 'ring-2 ring-[#3c2415] ' + (TASTE_COLOR[ing.taste] || '')
                       : TASTE_COLOR[ing.taste] || 'bg-[#fbf7ee] border-[#d6c7ab]'
                   }`}
                 >
@@ -968,7 +968,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                 </label>
 
                 <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#3c2415]">
-                  <GiSaltShaker className="w-3.5 h-3.5 text-amber-700" />
+                  <GiSaltShaker className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   <span>這份美食的效果（{cookPairs.length} 項）</span>
                 </div>
 
@@ -1022,7 +1022,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                     const ok = await copyToClipboard(dishText);
                     showToast(ok ? '已複製美食效果' : '複製失敗，請手動選取', ok ? 'success' : 'warning');
                   }}
-                  className="w-full px-3 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                  className="w-full px-3 py-2 rounded-xl bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] text-xs font-bold shadow-sm transition-colors cursor-pointer"
                 >
                   複製這份美食的完整效果
                 </button>

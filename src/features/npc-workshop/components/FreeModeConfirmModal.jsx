@@ -26,10 +26,10 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
         </div>
 
         <div className="text-xs md:text-sm text-[#3c2f21] space-y-3 leading-relaxed mb-6">
-          <div className="bg-amber-50 border border-amber-300 p-3 rounded-xl text-amber-900 text-xs flex items-start gap-2.5">
-            <AlertTriangle size={18} className="shrink-0 text-amber-700 mt-0.5" />
+          <div className="bg-[#f9f5eb] border border-[#d6c7ab] p-3 rounded-xl text-[#3c2415] text-xs flex items-start gap-2.5">
+            <AlertTriangle size={18} className="shrink-0 text-[#6b5a4b] mt-0.5" />
             <div>
-              <span className="font-bold text-amber-900">警示：</span>
+              <span className="font-bold text-[#3c2415]">警示：</span>
               <span>開啟自定義模式將解除官方平衡規則限制。</span>
             </div>
           </div>
@@ -40,7 +40,7 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
 
           <ul className="list-disc list-inside text-xs text-[#574c43] space-y-1.5 pl-1 bg-[#f4ebd9] p-3 rounded-xl border border-[#d6c7ab]">
             <li>自由調整 NPC 的 <strong className="text-[#3c2415]">體質骰子大小</strong>。</li>
-            <li><strong className="text-amber-800">HP, MP, 物防, 魔防</strong> 將依據 Fabula Ultima 體質公式自動連動重算。</li>
+            <li><strong className="text-[#3c2415]">HP, MP, 物防, 魔防</strong> 將依據 Fabula Ultima 體質公式自動連動重算。</li>
             <li>無視等級、職能與技能額度上限限制，自由組合技能與能力。</li>
           </ul>
 

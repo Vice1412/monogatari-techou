@@ -33,7 +33,7 @@ export default function ChapterDevWarningModal({
      章節身份由章節圖示與標題承擔，警告框只管「這件事還沒做完」。 */
   const currentTheme = {
     buttonVariant: 'primary',
-    bgBadge: 'bg-amber-100/90 text-amber-900 border-amber-300',
+    bgBadge: 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]',
   };
 
   const actionButtons = (
@@ -69,20 +69,20 @@ export default function ChapterDevWarningModal({
     >
       <div className="space-y-4 text-[#2c221e]">
         {/* 警告標題徽章橫條 */}
-        <div className="p-3.5 rounded-xl border border-amber-300/80 bg-amber-50/90 flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-amber-100 border border-amber-300 text-amber-800 shrink-0 mt-0.5">
-            <GiHazardSign className="w-5 h-5 text-amber-700" />
+        <div className="p-3.5 rounded-xl border border-[#d6c7ab] bg-[#f9f5eb] flex items-start gap-3">
+          <div className="p-2 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] shrink-0 mt-0.5">
+            <GiHazardSign className="w-5 h-5 text-[#6b5a4b]" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="font-serif font-black text-sm text-amber-950">
+              <h4 className="font-serif font-black text-sm text-[#2c221e]">
                 本章節功能仍在開發與完善中
               </h4>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-200/80 text-amber-900 border border-amber-300">
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab]">
                 WIP 預覽版
               </span>
             </div>
-            <p className="text-xs text-amber-900/90 leading-relaxed">
+            <p className="text-xs text-[#3c2415] leading-relaxed">
               此功能尚未完全成熟，部分機制、數值計算或儲存架構仍未完善使用。
             </p>
           </div>
@@ -101,7 +101,7 @@ export default function ChapterDevWarningModal({
                 <span className="font-serif font-bold text-base text-[#3c2415]">
                   {chapter.title}
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
                   未完善使用
                 </span>
               </div>

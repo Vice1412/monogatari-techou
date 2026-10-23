@@ -187,7 +187,7 @@ export function HeroicSkillPickerBody({
                 <td className="px-3 py-2 font-bold" style={{ color: theme.textDark || '#3c2415' }}>
                   {h.name}
                   {owned > 0 && (
-                    <span className="ml-1.5 text-[10px] font-normal" style={{ color: theme.accent || '#b45309' }}>
+                    <span className="ml-1.5 text-[10px] font-normal" style={{ color: theme.accent || '#a63d40' }}>
                       已持有 {owned}{max > 1 ? `/${max}` : ''}
                     </span>
                   )}
@@ -211,7 +211,7 @@ export function HeroicSkillPickerBody({
                     onClick={() => onPick(h)}
                     className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1"
                     style={{
-                      backgroundColor: canPick ? (theme.accent || '#b45309') : (theme.cardBg || '#fffdf9'),
+                      backgroundColor: canPick ? (theme.accent || '#a63d40') : (theme.cardBg || '#fffdf9'),
                       borderColor: theme.border || '#d6c7ab',
                       color: canPick ? '#fff' : (theme.textDark || '#3c2415')
                     }}

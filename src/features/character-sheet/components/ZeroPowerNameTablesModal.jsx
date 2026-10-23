@@ -73,7 +73,7 @@ function ColumnChip({ active, label, onClick, theme }) {
       className="text-[10px] px-1.5 py-0.5 rounded border cursor-pointer"
       style={{
         backgroundColor: active ? theme?.accentSoft || theme?.subpanelBg || '#ede4d1' : 'transparent',
-        borderColor: active ? theme?.accent || '#b45309' : theme?.border || '#d6c7ab',
+        borderColor: active ? theme?.accent || '#a63d40' : theme?.border || '#d6c7ab',
         color: theme?.textDark || '#3c2415'
       }}
     >
@@ -121,7 +121,7 @@ export function ZeroPowerNameTablesBody({
     picked
       ? {
           backgroundColor: theme?.cardBg || '#ffffff',
-          borderColor: theme?.accent || '#b45309',
+          borderColor: theme?.accent || '#a63d40',
           color: theme?.textDark || '#3c2415'
         }
       : {};
@@ -196,7 +196,7 @@ export function ZeroPowerNameTablesBody({
               className="font-serif font-bold text-sm flex items-center gap-1.5"
               style={{ color: theme?.textDark || '#3c2415' }}
             >
-              <GiSpellBook className="w-4 h-4" style={{ color: theme?.accent || '#b45309' }} />
+              <GiSpellBook className="w-4 h-4" style={{ color: theme?.accent || '#a63d40' }} />
               官方命名機制：由來 ＋ 動作
             </h4>
             <p className="text-t12 text-[#6b5a4b] mt-0.5">
@@ -255,11 +255,11 @@ export function ZeroPowerNameTablesBody({
                 className="flex items-center gap-1.5 text-xs font-bold"
                 style={{ color: theme?.textDark || '#3c2415' }}
               >
-                <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent || '#b45309' }} />
+                <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent || '#a63d40' }} />
                 <span>擲骰結算: </span>
                 <span
                   className="font-serif text-sm underline"
-                  style={{ color: theme?.textDark || '#3c2415', textDecorationColor: theme?.accent || '#b45309' }}
+                  style={{ color: theme?.textDark || '#3c2415', textDecorationColor: theme?.accent || '#a63d40' }}
                 >
                   {rolledResult.name}
                 </span>
@@ -380,7 +380,7 @@ export function ZeroPowerNameTablesBody({
                   isActive
                     ? {
                         backgroundColor: theme?.accent || '#78350f',
-                        borderColor: theme?.accentDark || '#451a03',
+                        borderColor: theme?.accentDark || '#76252d',
                         color: '#ffffff'
                       }
                     : {
@@ -433,7 +433,7 @@ export function ZeroPowerNameTablesBody({
               className="text-xs font-black font-serif flex items-center gap-1.5"
               style={{ color: theme?.textDark || '#3c2415' }}
             >
-              <GiRollingDices className="w-3.5 h-3.5" style={{ color: theme?.accent || '#b45309' }} />
+              <GiRollingDices className="w-3.5 h-3.5" style={{ color: theme?.accent || '#a63d40' }} />
               動作（骰 1d20，依底力技的定位選欄）
             </h5>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
@@ -448,7 +448,7 @@ export function ZeroPowerNameTablesBody({
               className="text-xs font-black font-serif flex items-center gap-1.5"
               style={{ color: theme?.textDark || '#3c2415' }}
             >
-              <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent || '#b45309' }} />
+              <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent || '#a63d40' }} />
               由來（骰 1d10，依底力技的起源選欄）
             </h5>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">

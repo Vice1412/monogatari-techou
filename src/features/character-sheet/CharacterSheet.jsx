@@ -524,9 +524,9 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
           {/* 開局名額的「同團不得重複」（Playtest Materials 2026-10-01 p.4）。
               這是團務層級的規則，所以只有持有名冊的這一頁檢查得到。 */}
           {duplicateStartingHeroic.length > 0 && (
-            <div className="mt-4 rounded-xl border-2 border-amber-400 bg-amber-50 px-4 py-3 flex items-start gap-2.5">
-              <GiLaurelCrown className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-              <div className="text-xs leading-relaxed text-amber-950">
+            <div className="mt-4 rounded-xl border-2 border-[#d6c7ab] bg-[#f9f5eb] px-4 py-3 flex items-start gap-2.5">
+              <GiLaurelCrown className="w-4 h-4 text-[#6b5a4b] shrink-0 mt-0.5" />
+              <div className="text-xs leading-relaxed text-[#2c221e]">
                 <strong>開局名額撞了</strong>
                 ：官方選用規則明文「同一團不得有兩個角色用這個名額拿到同一個英雄技能」。
                 <ul className="mt-1 list-disc list-inside">
@@ -754,7 +754,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         </button>
                         <button
                           onClick={() => handleExportSingleCharacter(char, 'native')}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-amber-800 hover:bg-amber-100/60 transition-colors"
+                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors"
                           title="匯出單卡 JSON"
                         >
                           <Download className="w-4 h-4" />
@@ -768,7 +768,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         </button>
                         <button
                           onClick={() => handleOpenLog(char)}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-amber-800 hover:bg-amber-100/60 transition-colors"
+                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors"
                           title="成長履歷"
                         >
                           <GiScrollQuill className="w-4 h-4" />

@@ -436,7 +436,7 @@ export default function ClassPickerModal({
           {/* 手機端步驟引導 */}
           <div className="flex md:hidden items-center justify-between pb-1.5 mb-1 text-[#6b5a4b]">
             <span className="text-xs font-bold flex items-center gap-1.5">
-              <GiSparkles className="w-3.5 h-3.5 text-amber-600" />
+              <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" />
               步驟 1/2：請點選欲修習的職業
             </span>
             <span className="text-[11px] font-mono text-[#6b5a4b]">
@@ -479,7 +479,7 @@ export default function ClassPickerModal({
                       ? 'opacity-40 bg-[#f4ebd9]/60 border-[#d6c7ab] cursor-not-allowed'
                       : isSelected
                         ? 'ring-2 shadow-sm scale-101'
-                        : 'hover:border-amber-400 hover:shadow-2xs active:scale-98'
+                        : 'hover:border-[#7c6a58] hover:shadow-2xs active:scale-98'
                   }`}
                   style={{
                     backgroundColor: isSelected ? theme.subpanelBg : theme.cardBg,
@@ -534,13 +534,13 @@ export default function ClassPickerModal({
 
                   {/* 免費增益摘要標籤 */}
                   <div className="flex items-center justify-between text-[10px] pt-1 border-t border-[#e8dcc4] font-mono">
-                    <span className="text-amber-900 font-bold truncate bg-amber-100/80 px-1.5 py-0.5 rounded" title={item.def.freeBonus}>
+                    <span className="text-[#3c2415] font-bold truncate bg-[#f4ebd9] px-1.5 py-0.5 rounded" title={item.def.freeBonus}>
                       {item.def.freeBonus || ''}
                     </span>
                     {isAdded ? (
                       <span className="text-[#6b5a4b] font-bold">已修習</span>
                     ) : (
-                      <span className="text-amber-700 font-bold flex items-center gap-0.5">
+                      <span className="text-[#6b5a4b] font-bold flex items-center gap-0.5">
                         <span className="text-[11px]">配點</span> →
                       </span>
                     )}
@@ -564,7 +564,7 @@ export default function ClassPickerModal({
                 <button
                   type="button"
                   onClick={() => setMobileStep('list')}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 bg-amber-100/90 hover:bg-amber-200 active:scale-95 px-3 py-1.5 rounded-lg border border-amber-300 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#3c2415] bg-[#f4ebd9] hover:bg-[#e8dcc4] active:scale-95 px-3 py-1.5 rounded-lg border border-[#d6c7ab] transition-all cursor-pointer"
                 >
                   <span>← 選擇其它職業</span>
                 </button>
@@ -630,7 +630,7 @@ export default function ClassPickerModal({
                       職業免費增益
                     </span>
                     {activeClassItem.def.freeBonus && (
-                      <span className="text-xs font-mono font-bold text-amber-950 bg-amber-200/90 border border-amber-300 px-2 py-0.5 rounded">
+                      <span className="text-xs font-mono font-bold text-[#2c221e] bg-[#e8dcc4] border border-[#d6c7ab] px-2 py-0.5 rounded">
                         <SkillDescription desc={activeClassItem.def.freeBonus} />
                       </span>
                     )}
@@ -736,7 +736,7 @@ export default function ClassPickerModal({
                           {/* `title` 要 hover 才看得到，新手不會去 hover 一顆灰掉的按鈕。
                               所以理由**同時**寫在畫面上。只在真的滿級時出現，不佔平時的版面。 */}
                           {currentSL >= maxSL && (
-                            <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-300 rounded px-1.5 py-0.5 whitespace-nowrap">
+                            <span className="text-[10px] font-bold text-[#3c2415] bg-[#f9f5eb] border border-[#d6c7ab] rounded px-1.5 py-0.5 whitespace-nowrap">
                               已達上限 {maxSL}
                             </span>
                           )}
@@ -819,7 +819,7 @@ export default function ClassPickerModal({
                         ? 'text-[#6b5a4b] bg-[#f4ebd9]'
                         : !budgetOk
                           ? 'text-rose-700 bg-rose-100'
-                          : 'text-amber-800 bg-amber-100'
+                          : 'text-[#3c2415] bg-[#f4ebd9]'
                     }`}>
                       {draftTotal} 級
                     </strong>
@@ -829,7 +829,7 @@ export default function ClassPickerModal({
                   </div>
                   <p className="text-t12 text-[#6b5a4b]">
                     {draftTotal === 0 ? (
-                      <span className="text-amber-700">請至少為一個職業分配 1 級技能</span>
+                      <span className="text-[#6b5a4b]">請至少為一個職業分配 1 級技能</span>
                     ) : draftTotal > remainingBudget ? (
                       <span className="text-rose-600 font-bold flex items-center justify-center sm:justify-start gap-1">
                         <GiHazardSign className="w-3.5 h-3.5 shrink-0" />

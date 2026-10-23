@@ -906,7 +906,7 @@ export default function CharacterEditor({
                   {step.status === 'error' ? (
                     <span className="w-2 h-2 rounded-full bg-red-500 ring-2 ring-red-200 shrink-0" title="有未符合規則的項目" />
                   ) : step.status === 'todo' ? (
-                    <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" title="還有提醒項目" />
+                    <span className="w-2 h-2 rounded-full bg-[#a63d40] shrink-0" title="還有提醒項目" />
                   ) : (
                     <GiCheckMark className={`w-3.5 h-3.5 shrink-0 ${isTabActive ? 'text-white' : 'text-emerald-600'}`} />
                   )}
@@ -923,7 +923,7 @@ export default function CharacterEditor({
               validation.errors.length > 0
                 ? 'bg-rose-50/90 border-rose-300 hover:border-rose-400'
                 : validation.hasWarnings
-                  ? 'bg-amber-50/90 border-amber-300 hover:border-amber-400'
+                  ? 'bg-[#f9f5eb] border-[#d6c7ab] hover:border-[#7c6a58]'
                   : 'bg-emerald-50/90 border-emerald-300 hover:border-emerald-400'
             }`}
             title="點擊查看完整官方創角規則驗證報告"
@@ -933,7 +933,7 @@ export default function CharacterEditor({
                 {validation.errors.length > 0 ? (
                   <GiHazardSign className="w-4 h-4 text-rose-600 shrink-0" />
                 ) : validation.hasWarnings ? (
-                  <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                  <Info className="w-4 h-4 text-[#6b5a4b] shrink-0" />
                 ) : (
                   <GiCheckMark className="w-4 h-4 text-emerald-700 shrink-0" />
                 )}
@@ -941,7 +941,7 @@ export default function CharacterEditor({
                   validation.errors.length > 0
                     ? 'text-rose-950'
                     : validation.hasWarnings
-                      ? 'text-amber-950'
+                      ? 'text-[#2c221e]'
                       : 'text-emerald-950'
                 }>
                   規則自檢
@@ -951,7 +951,7 @@ export default function CharacterEditor({
                 validation.errors.length > 0
                   ? 'bg-rose-200 text-rose-900'
                   : validation.hasWarnings
-                    ? 'bg-amber-200 text-amber-900'
+                    ? 'bg-[#e8dcc4] text-[#3c2415]'
                     : 'bg-emerald-200 text-emerald-900'
               }`}>
                 {validation.errors.length > 0
@@ -965,7 +965,7 @@ export default function CharacterEditor({
               validation.errors.length > 0
                 ? 'text-rose-700'
                 : validation.hasWarnings
-                  ? 'text-amber-700'
+                  ? 'text-[#6b5a4b]'
                   : 'text-emerald-700'
             }`}>
               {validation.errors.length > 0
@@ -1058,7 +1058,7 @@ export default function CharacterEditor({
                   validation.errors.length > 0
                     ? 'bg-rose-50 text-rose-700 border-rose-300'
                     : validation.hasWarnings
-                      ? 'bg-amber-50 text-amber-800 border-amber-300'
+                      ? 'bg-[#f9f5eb] text-[#3c2415] border-[#d6c7ab]'
                       : 'bg-emerald-50 text-emerald-800 border-emerald-300'
                 }`}
                 title="創角規則自檢"
@@ -1066,7 +1066,7 @@ export default function CharacterEditor({
                 {validation.errors.length > 0 ? (
                   <GiHazardSign className="w-3 h-3 text-rose-600" />
                 ) : validation.hasWarnings ? (
-                  <Info className="w-3 h-3 text-amber-600" />
+                  <Info className="w-3 h-3 text-[#6b5a4b]" />
                 ) : (
                   <GiCheckMark className="w-3 h-3 text-emerald-700" />
                 )}
@@ -1692,10 +1692,10 @@ export default function CharacterEditor({
 
               {/* 載入衝突：規則上明確不成立的組合，選完立刻看得到，不用等跑團才被 GM 抓 */}
               {loadoutIssues.length > 0 && (
-                <div className="p-3 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 text-xs space-y-1">
+                <div className="p-3 rounded-lg border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] text-xs space-y-1">
                   {loadoutIssues.map((issue, idx) => (
                     <div key={`${issue.message}_${idx}`} className="flex items-center gap-1.5">
-                      <GiHazardSign className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                      <GiHazardSign className="w-3.5 h-3.5 text-[#6b5a4b] shrink-0" />
                       <span>{issue.message}</span>
                     </div>
                   ))}
@@ -2126,14 +2126,14 @@ export default function CharacterEditor({
                         已精通職業: {stats.masteredClasses.join('、')} 【具備英雄技能資格】
                       </span>
                     ) : (
-                      <span className="text-[11px] font-bold" style={{ color: '#b45309' }}>
+                      <span className="text-[11px] font-bold" style={{ color: '#a63d40' }}>
                         需先精通一個職業（單一職業達 10 級）
                       </span>
                     )}
                     {rules.startingHeroicSkill && (
                       <span
                         className="text-[11px] font-bold"
-                        style={{ color: creationSlotFull ? '#b45309' : theme.accent }}
+                        style={{ color: creationSlotFull ? '#a63d40' : theme.accent }}
                       >
                         開局名額：{creationSlotFull ? '已使用' : '還有一個'}
                       </span>
@@ -2407,14 +2407,14 @@ export default function CharacterEditor({
                 className={`p-3 rounded-lg border text-xs flex items-center justify-between gap-3 cursor-pointer transition-all hover:scale-[1.01] shadow-sm ${
                   w.type === 'error'
                     ? 'border-red-300 bg-red-50 text-red-900'
-                    : 'border-amber-300 bg-amber-50 text-amber-900'
+                    : 'border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415]'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   {w.type === 'error' ? (
                     <GiHazardSign className="w-4 h-4 text-red-600 shrink-0" />
                   ) : (
-                    <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                    <Info className="w-4 h-4 text-[#6b5a4b] shrink-0" />
                   )}
                   <span>{w.message}</span>
                 </div>

@@ -330,17 +330,17 @@ export default function CharacterAvatarUploader({
         className={`relative transition-all duration-200 border-2 rounded-xl p-3.5 ${
           isDraggingOver
             ? 'shadow-md ring-2'
-            : 'hover:border-amber-600'
+            : 'hover:border-[#3c2415]'
         }`}
         style={{
-          backgroundColor: isDraggingOver ? '#fef3c7' : '#fffdf9',
+          backgroundColor: isDraggingOver ? '#f9f5eb' : '#fffdf9',
           borderColor: isDraggingOver ? theme.accent : theme.border
         }}
       >
         {/* 拖曳覆蓋層動畫 */}
         {isDraggingOver && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#fffdf9]/95 backdrop-blur-xs rounded-xl border-2 border-dashed border-amber-600 text-amber-950 pointer-events-none animate-in fade-in duration-150">
-            <Upload size={32} className="mb-1 text-amber-700" />
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#fffdf9]/95 backdrop-blur-xs rounded-xl border-2 border-dashed border-[#3c2415] text-[#2c221e] pointer-events-none animate-in fade-in duration-150">
+            <Upload size={32} className="mb-1 text-[#6b5a4b]" />
             <span className="font-bold text-xs">釋放滑鼠以上傳照片或網址</span>
           </div>
         )}

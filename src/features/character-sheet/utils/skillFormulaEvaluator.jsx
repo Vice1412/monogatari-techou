@@ -276,7 +276,7 @@ function renderWordsAndKeywords(text, keyPrefix = '', linkCodex = true) {
             e.stopPropagation();
             openRuleCodex(part);
           }}
-          className="inline cursor-pointer border-b border-dashed border-amber-600/70 text-amber-900 font-bold hover:text-amber-600 hover:border-amber-500 transition-colors mx-0.5"
+          className="inline cursor-pointer border-b border-dashed border-[#3c2415] text-[#3c2415] font-bold hover:text-[#3c2415] hover:border-[#3c2415] transition-colors mx-0.5"
           title={`點擊速查「${part}」官方規則`}
         >
           {part}
@@ -350,7 +350,7 @@ function FormulaBadge({ seg, sl }) {
   if (!seg.isCalculated) {
     return (
       <span
-        className="inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono font-bold text-amber-800 bg-amber-50 border border-amber-300/80 cursor-help"
+        className="inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono font-bold text-[#3c2415] bg-[#f9f5eb] border border-[#d6c7ab] cursor-help"
         title={seg.formulaNote}
       >
         {seg.evaluatedText}
@@ -376,7 +376,7 @@ function FormulaBadge({ seg, sl }) {
           setShowFormula(prev => !prev);
         }
       }}
-      className={`inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono select-none cursor-pointer transition-all duration-150 ${ showFormula ? 'font-bold text-amber-950 bg-amber-100 border border-dashed border-amber-500 hover:bg-amber-200/80 active:scale-95' : 'font-black text-amber-900 bg-amber-200/90 border border-amber-400 hover:bg-amber-300 active:scale-95' }`}
+      className={`inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono select-none cursor-pointer transition-all duration-150 ${ showFormula ? 'font-bold text-[#2c221e] bg-[#f4ebd9] border border-dashed border-[#3c2415] hover:bg-[#e8dcc4] active:scale-95' : 'font-black text-[#3c2415] bg-[#e8dcc4] border border-[#d6c7ab] hover:bg-[#d6c7ab] active:scale-95' }`}
       title={
         showFormula
           ? `點擊切換回計算結果：${seg.evaluatedText}（當前 SL: ${sl}）`

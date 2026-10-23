@@ -276,7 +276,7 @@ export default function SkillSuboptionModal({
                   type="button"
                   onClick={() => openRuleCodex(skillName)}
                   title={`開啟規則速查「${codexRule.title}」（${codexRule.page}）`}
-                  className="text-[11px] font-bold px-2 py-0.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 transition-colors cursor-pointer flex items-center gap-1"
+                  className="text-[11px] font-bold px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] hover:bg-[#f4ebd9] transition-colors cursor-pointer flex items-center gap-1"
                 >
                   <GiBookCover className="w-3.5 h-3.5" />
                   <span>規則速查：{codexRule.title}</span>
@@ -305,7 +305,7 @@ export default function SkillSuboptionModal({
               </div>
             )}
             {isUnder && currentCount > 0 && (
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold text-xs">
                 <GiSparkles className="w-3.5 h-3.5 shrink-0" />
                 <span>已掌握 {currentCount} / {maxQuota}（尚餘 {remainingCount} 個名額）</span>
               </div>
@@ -320,8 +320,8 @@ export default function SkillSuboptionModal({
 
         {/* 魔奏者專屬規則提醒（至少 1 音調 + 1 曲風） */}
         {!chanterValidation.valid && (
-          <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-2">
-            <GiHazardSign className="w-4 h-4 shrink-0 text-amber-700" />
+          <div className="p-2.5 rounded-lg bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] text-xs flex items-center gap-2">
+            <GiHazardSign className="w-4 h-4 shrink-0 text-[#6b5a4b]" />
             <span>{chanterValidation.message}</span>
           </div>
         )}
@@ -383,7 +383,7 @@ export default function SkillSuboptionModal({
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="搜尋項目名稱或效果描述..."
-              className="w-full pl-9 pr-3 py-1.5 bg-white border border-[#d6c7ab] rounded-lg text-xs placeholder:text-[#6b5a4b] focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full pl-9 pr-3 py-1.5 bg-white border border-[#d6c7ab] rounded-lg text-xs placeholder:text-[#6b5a4b] focus:outline-none focus:ring-1 focus:ring-[#3c2415]"
             />
           </div>
 
@@ -403,7 +403,7 @@ export default function SkillSuboptionModal({
                 type="button"
                 onClick={() => setActiveCategory('keys')}
                 className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                  activeCategory === 'keys' ? 'bg-white shadow-2xs text-amber-900 font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
+                  activeCategory === 'keys' ? 'bg-white shadow-2xs text-[#3c2415] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
                 }`}
               >
                 音調（8 種）
@@ -438,7 +438,7 @@ export default function SkillSuboptionModal({
                   onClick={() => !isDisabled && handleToggleOption(item.name)}
                   className={`p-3 rounded-xl border text-xs space-y-1.5 transition-all select-none cursor-pointer ${
                     isSelected
-                      ? 'bg-amber-50/90 border-amber-400 ring-1 ring-amber-400/50'
+                      ? 'bg-[#f9f5eb] border-[#d6c7ab] ring-1 ring-[#3c2415]/40'
                       : isDisabled
                       ? 'bg-[#fbf7ee]/60 border-[#d6c7ab] opacity-40 cursor-not-allowed'
                       : 'bg-white border-[#d6c7ab] hover:border-[#a63d40] hover:'
@@ -450,14 +450,14 @@ export default function SkillSuboptionModal({
                       <div
                         className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                           isSelected
-                            ? 'bg-amber-600 border-amber-600 text-white'
+                            ? 'bg-[#a63d40] border-[#3c2415] text-[#fffdf9]'
                             : 'border-[#d6c7ab] bg-white'
                         }`}
                       >
                         {isSelected && <GiCheckMark className="w-3 h-3" />}
                       </div>
 
-                      <span className={`font-bold tracking-wide text-sm flex items-center gap-1.5 ${isSelected ? 'text-amber-950 font-serif' : 'text-[#3c2415]'}`}>
+                      <span className={`font-bold tracking-wide text-sm flex items-center gap-1.5 ${isSelected ? 'text-[#2c221e] font-serif' : 'text-[#3c2415]'}`}>
                         {item.isOffensive && (
                           <span className="fu-icon text-red-600 font-bold" title="攻擊性咒語">
                             o
@@ -513,7 +513,7 @@ export default function SkillSuboptionModal({
                         </span>
                       )}
                       {item.event && (
-                        <span className="px-1.5 py-0.5 rounded bg-amber-100/70 text-amber-900 text-[10px]">
+                        <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] text-[10px]">
                           {item.event}
                         </span>
                       )}

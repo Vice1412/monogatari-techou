@@ -80,11 +80,11 @@
 <header class="top">
   <p class="kicker">MONOGATARI TECHOU · DESIGN SYSTEM v5</p>
   <h1>全程淺色 · 冷暖分層</h1>
-  <p class="sub">這份文件是《物語手帳》的設計系統單頁參考：色票、字階、形狀、六種語意各自該走哪條通道，以及<b>讓它不會退化的 163 條護欄</b>。所有數字都是 2026-10-23 第二十五輪結束時的實測值。</p>
+  <p class="sub">這份文件是《物語手帳》的設計系統單頁參考：色票、字階、形狀、六種語意各自該走哪條通道，以及<b>讓它不會退化的 169 條護欄</b>。所有數字都是 2026-10-23 第二十六輪結束時的實測值。</p>
   <div class="meta">
-    <span>第二十五輪 · <b>§CI33 保留色</b></span>
-    <span>護欄 <b>163</b> 條</span>
-    <span>色相家族 <b>1,457</b> 處</span>
+    <span>第二十六輪 · <b>§CI34 警示零色</b></span>
+    <span>護欄 <b>169</b> 條</span>
+    <span>色相家族 <b>637</b> 處</span>
     <span>新增 hex <b>0</b></span>
   </div>
 </header>
@@ -147,13 +147,14 @@
     <div class="rule"><div class="k">怎麼擋</div><div class="v">檔案級白名單 ＋ 硬零。預算制不適用——預算允許「這裡加一個、那裡減一個」，而這裡的退化正是<b>換一個地方偷偷用回去</b>。</div></div>
   </div>
 
-  <div class="grid g3">
+  <div class="grid g4">
+    <div class="card"><div class="stat"><span class="n">838 → 6</span><span class="l">amber</span></div><div class="sw-use" style="margin-top:8px">只留物種 BEAST 與規則書 #1 徽章；其餘七種語意各自回通道</div></div>
     <div class="card"><div class="stat"><span class="n">107 → 6</span><span class="l">purple</span></div><div class="sw-use" style="margin-top:8px">只留物種 MONSTER 與職業徽章兩個身份出口</div></div>
     <div class="card"><div class="stat"><span class="n">85 → 6</span><span class="l">indigo</span></div><div class="sw-use" style="margin-top:8px">只留物種 UNDEAD 與規則書徽章</div></div>
     <div class="card"><div class="stat"><span class="n">29 → 0</span><span class="l">violet</span></div><div class="sw-use" style="margin-top:8px">沒有任何身份出口 → 全站硬零</div></div>
   </div>
 
-  <h3>七種語意各自去了哪裡</h3>
+  <h3>八種語意各自去了哪裡（第二十六輪：amber）</h3>
   <table>
     <thead><tr><th style="width:120px">原本的語意</th><th>通道</th><th style="width:36%">長什麼樣</th></tr></thead>
     <tbody>
@@ -164,8 +165,11 @@
       <tr><td>狀態異常</td><td>危險極性</td><td><span class="chip dgr">狀態</span> <code>border-[#8c2d36]</code></td></tr>
       <tr><td>標記（公測）</td><td>符號 ＋ 墨階</td><td><span class="chip">△ 公測</span><span class="chip">※ 祕技</span></td></tr>
       <tr><td>分類（學派）</td><td>文字</td><td><span class="chip">熵</span> 學派名寫出來，不用 2px 彩色圓點</td></tr>
+      <tr><td><b>警示</b></td><td><b>零色 ＋ 符號</b></td><td><span class="chip">▲ 不支援</span> <code>bg-[#f9f5eb] border-l-4 border-[#3c2415]</code></td></tr>
+      <tr><td><b>主動作</b></td><td><b>登記強調色</b></td><td><span class="chip dgr">匯出</span> <code>bg-[#a63d40] hover:bg-[#8c3235]</code></td></tr>
     </tbody>
   </table>
+  <div class="note"><b>警示為甚麼沒有顏色。</b>一個單一強調色的系統裡，紅只有一個名額。如果警示也拿紅，真正會弄壞資料的那顆按鈕就不再顯眼。所以界線畫在符號上：<b>提醒</b>用零色 ＋ <code>▲</code>，<b>危險</b>用 <code>#8c2d36</code> ＋ <code>✕</code>，<b>主動作</b>用 <code>#a63d40</code>。代價是掃視時警示不再跳出來——這是刻意的取捨，不是疏漏。</div>
 </section>
 
 <section>
@@ -207,7 +211,7 @@
 </section>
 
 <section>
-  <h2><span class="no">07</span>護欄：讓規則不會退化的 163 條斷言</h2>
+  <h2><span class="no">07</span>護欄：讓規則不會退化的 169 條斷言</h2>
   <p class="lede"><code>tests/uiSystem.test.mjs</code>。每一輪的產出不是「改好了」，是「<b>改壞了會叫</b>」。形狀只有六種：硬零、預算、集合大小、一對一、單調性、反向控制。</p>
   <table>
     <thead><tr><th style="width:90px">區段</th><th>擋的是</th><th style="width:120px">形狀</th></tr></thead>
@@ -223,25 +227,32 @@
       <tr><td>H20-b～e</td><td>物種表撞色／出處表分家／公測標記漏改／MP 晶片拆散</td><td>集合大小・極性・逐一</td></tr>
       <tr><td>H21</td><td>空狀態文案搬回裸 <code>&lt;p&gt;</code></td><td>形狀（220 字元內）</td></tr>
       <tr><td>H22</td><td><code>animate-bounce</code> 回歸</td><td>硬零</td></tr>
+      <tr><td><b>H23</b></td><td><b>amber／yellow／orange 外洩到兩個身份出口以外</b></td><td><b>白名單 ＋ 硬零</b></td></tr>
+      <tr><td><b>H23-a</b></td><td><b>白名單檔裡偷加第二行 amber</b></td><td><b>逐項（行級）</b></td></tr>
+      <tr><td>H23-b／c</td><td>琥珀原始 hex 階、琥珀 rgba 發光</td><td>硬零</td></tr>
+      <tr><td>H23-d</td><td>書頁棕被當成 amber 的替代目的地</td><td><b>預算（141，零餘裕）</b></td></tr>
+      <tr><td>H23-e</td><td>強調底上的字退回純白</td><td>硬零</td></tr>
     </tbody>
   </table>
-  <div class="note"><b>「護欄綠燈」≠「行為正確」。</b>唯一的分辨法是<b>故意弄壞，看它會不會叫</b>。第二十五輪跑了 13 個案例（10 紅 3 綠），其中一條新護欄的第一版就是假綠——「至少有一個」型斷言在收斂後的檔案裡必然為真。</div>
+  <div class="note"><b>「護欄綠燈」≠「行為正確」。</b>唯一的分辨法是<b>故意弄壞，看它會不會叫</b>。第二十五輪跑了 13 個案例（10 紅 3 綠），第二十六輪跑了 9 個（6 紅 3 綠）。其中一條新護欄的第一版就是假綠——「至少有一個」型斷言在收斂後的檔案裡必然為真。<b>而護欄永遠抓不到的一類是「兩個分支不同但意思一樣」</b>：第二十六輪有四個三元式被對映成兩個不同卻同義的值，護欄全綠，語意已經塌了，只能靠逐行讀。</div>
 </section>
 
 <section>
   <h2><span class="no">08</span>現況與下一批債</h2>
   <div class="grid g4" style="margin-bottom:16px">
-    <div class="card"><div class="stat"><span class="n">1,457</span><span class="l">全站色相家族（−235）</span></div></div>
+    <div class="card"><div class="stat"><span class="n">637</span><span class="l">全站色相家族（−837）</span></div></div>
     <div class="card"><div class="stat"><span class="n">180</span><span class="l">同族底色＋字色行數（預算）</span></div></div>
-    <div class="card"><div class="stat"><span class="n">814</span><span class="l">任意字級 / 65 檔</span></div></div>
-    <div class="card"><div class="stat"><span class="n">163</span><span class="l">護欄斷言</span></div></div>
+    <div class="card"><div class="stat"><span class="n">371</span><span class="l">任意字級 / 65 檔</span></div></div>
+    <div class="card"><div class="stat"><span class="n">169</span><span class="l">護欄斷言</span></div></div>
   </div>
   <div class="card">
-    <div class="ban"><span class="ok">→</span><div><b>amber 827 處</b>——下一個 purple。至少五種語意：物種 BEAST、狀態警示、已自定義、音調標籤、反派填充階。</div></div>
-    <div class="ban"><span class="ok">→</span><div><b>blue／cyan／emerald</b> 各被物種表登記一格，同時又是通用「資訊／成功」色。</div></div>
-    <div class="ban"><span class="ok">→</span><div><b>ErrorBoundary 的 amber 五階</b>——狀態不是身份，但五階要先分「哪幾階是極性、哪幾階是量」。</div></div>
+    <div class="ban"><span class="ok">→</span><div><b>警示的可讀性沒有實測</b>——「警示變得不顯眼」是本輪唯一肉眼可見的風險，要實跑三個真實情境（崩潰／開發警告／Boss 技能超額）各看一眼。</div></div>
+    <div class="ban"><span class="ok">→</span><div><b>red 214 處／25 檔</b>——下一個家族，而且比 amber 難：它的「危險」用途是真的危險，不能收成零色。</div></div>
+    <div class="ban"><span class="ok">→</span><div><b>emerald 187／blue 30／cyan 29／teal 28／sky 10</b> 各被物種表登記一格，同時又是通用「資訊／成功」色。</div></div>
+    <div class="ban"><span class="ok">→</span><div><b>書頁棕 <code>#8b5e34</code>＋<code>#78350f</code> 141 處</b>——跟 <code>#a63d40</code> 是兩個暖強調色，「合併還是分工」還沒有答案。</div></div>
     <div class="ban"><span class="ok">→</span><div><b>半徑</b>：設定層是 2–6px，「2px 上限」在渲染層並不成立（<code>rounded-lg</code> 436 處）。</div></div>
     <div class="ban"><span class="ok">→</span><div><b>hover:scale- 51 處</b>、<b>CharacterEditor 三色紅綠燈</b>——已量測，未分類。</div></div>
+    <div class="ban"><span class="ok">→</span><div><b>MNEMOSPHERE_BEAD_TINTS</b> 的 11 格身份色全是未登記 hex。</div></div>
   </div>
 </section>
 

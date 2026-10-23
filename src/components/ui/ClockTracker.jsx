@@ -196,7 +196,7 @@ export default function ClockTracker({
             type="button"
             onClick={handleReset}
             disabled={filledSegments === 0}
-            className="p-1 rounded-md bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#6b5a4b] hover:text-amber-800 border border-[#d6c7ab] disabled:opacity-30 transition-colors"
+            className="p-1 rounded-md bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#6b5a4b] hover:text-[#2c221e] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
             title="重置"
           >
             <RotateCcw className="w-3.5 h-3.5" />

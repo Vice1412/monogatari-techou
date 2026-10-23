@@ -292,7 +292,7 @@ export default function ChimeristManager({
                   <span className="text-blue-600 font-bold">✦</span>
                 )}
                 <strong className="text-sm text-[#2c221e]">{sp.name}</strong>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
                   源頭: {sp.species}
                 </span>
                 <span className="text-xs font-mono font-bold text-blue-700">

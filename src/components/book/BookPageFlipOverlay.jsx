@@ -13,7 +13,7 @@ const OVERLAY_PAPER = {
   title: 'text-[#3c2415]',
   subtitle: 'text-[#6b5a4b]',
   tag: 'text-[#8b5e34]',
-  tagAccent: 'text-[#92400e]',
+  tagAccent: 'text-[#3c2415]',
   backBg: 'bg-[#f4ebd9]',
   backBorder: 'border-[#d6c7ab]',
   backText: 'text-[#3c2415]',

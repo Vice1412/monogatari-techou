@@ -310,7 +310,7 @@ export default function ArcanistManager({
             <button
               type="button"
               onClick={handleDismiss}
-              className="px-3 py-1 bg-[#8c2d36] hover:bg-[#76252d] text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1"
+              className="px-3 py-1 bg-[#8c2d36] hover:bg-[#76252d] text-[#fffdf9] font-bold text-xs rounded-lg transition-colors flex items-center gap-1"
             >
               <span>自願解除</span>
             </button>
@@ -594,7 +594,7 @@ export default function ArcanistManager({
               <button
                 type="button"
                 onClick={confirmDismiss}
-                className="px-4 py-1.5 rounded-lg bg-[#8c2d36] hover:bg-[#76252d] text-white font-bold text-xs shadow-sm"
+                className="px-4 py-1.5 rounded-lg bg-[#8c2d36] hover:bg-[#76252d] text-[#fffdf9] font-bold text-xs shadow-sm"
               >
                 確認解除並發動
               </button>

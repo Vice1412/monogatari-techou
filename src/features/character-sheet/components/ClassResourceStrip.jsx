@@ -48,7 +48,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
     <div className="p-3.5 rounded-2xl bg-white border border-[#d6c7ab] space-y-2">
       <div className="flex items-center justify-between text-xs">
         <span className="font-bold text-[#3c2415] flex items-center gap-1">
-          <GiGraveFlowers className="w-3.5 h-3.5 text-amber-600" />
+          <GiGraveFlowers className="w-3.5 h-3.5 text-[#6b5a4b]" />
           <span>職業資源</span>
         </span>
         <span className="text-[10px] text-[#6b5a4b] font-mono">依職業自動出現</span>
@@ -70,7 +70,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
               title={resource.source ? `官方依據：${resource.source}` : undefined}
             >
               <span className="flex items-center gap-1.5 text-xs font-bold text-[#3c2415] min-w-[5.5rem]">
-                {Icon && <Icon className="w-4 h-4 text-amber-700 shrink-0" />}
+                {Icon && <Icon className="w-4 h-4 text-[#6b5a4b] shrink-0" />}
                 <span>{resource.label}</span>
               </span>
 
@@ -82,7 +82,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                 className={`w-6 h-6 rounded-lg border text-sm leading-none font-bold transition-colors ${
                   atMin
                     ? 'border-[#d6c7ab] text-[#c4b79c] cursor-not-allowed'
-                    : 'border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100 cursor-pointer'
+                    : 'border-[#d6c7ab] text-[#3c2415] bg-[#f9f5eb] hover:bg-[#f4ebd9] cursor-pointer'
                 }`}
               >
                 −
@@ -99,7 +99,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                   min={1}
                   value={value}
                   onChange={(e) => writeValue(resource, e.target.value)}
-                  className="w-14 px-1 py-0.5 rounded-lg border border-amber-400 bg-white text-center font-mono text-sm font-black text-[#3c2415]"
+                  className="w-14 px-1 py-0.5 rounded-lg border border-[#d6c7ab] bg-white text-center font-mono text-sm font-black text-[#3c2415]"
                 />
               )}
 
@@ -111,7 +111,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                 className={`w-6 h-6 rounded-lg border text-sm leading-none font-bold transition-colors ${
                   atMax
                     ? 'border-[#d6c7ab] text-[#c4b79c] cursor-not-allowed'
-                    : 'border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100 cursor-pointer'
+                    : 'border-[#d6c7ab] text-[#3c2415] bg-[#f9f5eb] hover:bg-[#f4ebd9] cursor-pointer'
                 }`}
               >
                 +

@@ -130,7 +130,7 @@ export default function AvatarCropperModal({
     }
   };
 
-  const accentColor = theme?.accent || '#b45309';
+  const accentColor = theme?.accent || '#a63d40';
 
   return (
     <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">

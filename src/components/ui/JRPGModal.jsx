@@ -100,7 +100,7 @@ export default function JRPGModal({
             className="font-serif font-black text-base sm:text-lg text-[#3c2415] flex items-center gap-2 truncate"
             style={theme ? { color: theme.textDark } : {}}
           >
-            <span style={theme ? { color: theme.accent } : { color: '#b45309' }}>❖</span>
+            <span style={theme ? { color: theme.accent } : { color: '#a63d40' }}>❖</span>
             {title}
           </h3>
           <button

@@ -69,7 +69,7 @@ export default function TinkererGadgetsQuickRef({
     return (
       <span
         key={name}
-        className={`px-2 py-0.5 rounded-md font-bold text-[11px] border flex items-center gap-1 ${ isUnlocked ? 'bg-amber-100 text-amber-900 border-amber-300 ' : 'bg-[#f4ebd9] text-[#7c6a58] border-[#d6c7ab] ' }`}
+        className={`px-2 py-0.5 rounded-md font-bold text-[11px] border flex items-center gap-1 ${ isUnlocked ? 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ' : 'bg-[#f4ebd9] text-[#7c6a58] border-[#d6c7ab] ' }`}
       >
         <span>{name}</span>
         <span className="font-mono text-[10px] px-1 py-0.2 rounded bg-black/10">
@@ -80,14 +80,14 @@ export default function TinkererGadgetsQuickRef({
   };
 
   return (
-    <div className="mt-2.5 pt-2.5 border-t border-amber-200/80 space-y-2.5 text-xs text-[#3c2415] font-sans">
+    <div className="mt-2.5 pt-2.5 border-t border-[#e8dcc4] space-y-2.5 text-xs text-[#3c2415] font-sans">
       {/* 標題與操作控制列 */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 font-bold text-amber-950">
-          <GiGears className="text-amber-600 text-sm" />
+        <div className="flex items-center gap-1.5 font-bold text-[#2c221e]">
+          <GiGears className="text-[#6b5a4b] text-sm" />
           <span>已掌握小工具戰鬥速查</span>
           {totalAllocated > 0 && (
-            <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold border border-amber-300">
+            <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415] font-bold border border-[#d6c7ab]">
               {totalAllocated} / {sl} 節點
             </span>
           )}
@@ -97,10 +97,10 @@ export default function TinkererGadgetsQuickRef({
           <button
             type="button"
             onClick={onOpenCodex}
-            className="px-2 py-0.5 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-[11px] flex items-center gap-1 transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-[11px] flex items-center gap-1 transition-all cursor-pointer hover:scale-105 active:scale-95"
             title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
           >
-            <GiSpellBook className="text-amber-600 text-xs" />
+            <GiSpellBook className="text-[#6b5a4b] text-xs" />
             <span>規則概念速查</span>
           </button>
 
@@ -135,8 +135,8 @@ export default function TinkererGadgetsQuickRef({
 
       {/* 未配置節點之提示 */}
       {totalAllocated === 0 ? (
-        <div className="p-3 rounded-xl border border-dashed border-amber-300 bg-amber-50/50 text-center space-y-1">
-          <p className="font-bold text-amber-950 text-xs">
+        <div className="p-3 rounded-xl border border-dashed border-[#d6c7ab] bg-[#f9f5eb] text-center space-y-1">
+          <p className="font-bold text-[#2c221e] text-xs">
             尚未配置小工具科技樹節點（可分配 {sl} 點）
           </p>
           <p className="text-t12 text-[#6b5a4b]">
@@ -154,7 +154,7 @@ export default function TinkererGadgetsQuickRef({
               <span className="px-1.5 py-0.5 rounded bg-red-50 border border-red-300 text-red-900 font-medium">
                 焦火【火】
               </span>
-              <span className="px-1.5 py-0.5 rounded bg-amber-50 border border-amber-300 text-amber-900 font-medium">
+              <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] font-medium">
                 電壓【電】
               </span>
             </>
@@ -164,10 +164,10 @@ export default function TinkererGadgetsQuickRef({
               <span className="px-1.5 py-0.5 rounded bg-teal-50 border border-teal-300 text-teal-900 font-medium">
                 疾風【風】
               </span>
-              <span className="px-1.5 py-0.5 rounded bg-yellow-50 border border-yellow-300 text-yellow-900 font-medium">
+              <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] font-medium">
                 驅邪【光】
               </span>
-              <span className="px-1.5 py-0.5 rounded bg-amber-50 border border-amber-300 text-amber-900 font-medium">
+              <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] font-medium">
                 地震【土】
               </span>
               <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#5e387c] font-medium">
@@ -214,7 +214,7 @@ export default function TinkererGadgetsQuickRef({
             </>
           )}
           {alchemy >= 1 && (
-            <span className="px-1.5 py-0.5 rounded bg-amber-50 border border-amber-300 text-amber-900 font-medium">
+            <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] font-medium">
               {alchemy === 1 ? '基礎混合 (2d20 · 3 IP)' : alchemy === 2 ? '進階混合 (3d20 · 4 IP)' : '最高混合 (4d20 · 5 IP)'}
             </span>
           )}
@@ -283,20 +283,20 @@ export default function TinkererGadgetsQuickRef({
                       </div>
                     </div>
 
-                    <div className="p-2 rounded-lg bg-white/90 border border-yellow-200/70 space-y-0.5">
-                      <div className="font-bold text-yellow-950 flex items-center justify-between">
+                    <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
+                      <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>驅邪</span>
-                        <span className="text-[10px] font-mono text-yellow-700 font-bold">2 IP</span>
+                        <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
                       </div>
                       <div className="text-[11px] leading-relaxed">
                         {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【光】屬性。')}
                       </div>
                     </div>
 
-                    <div className="p-2 rounded-lg bg-white/90 border border-amber-200/70 space-y-0.5">
-                      <div className="font-bold text-amber-950 flex items-center justify-between">
+                    <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
+                      <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>地震</span>
-                        <span className="text-[10px] font-mono text-amber-700 font-bold">2 IP</span>
+                        <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
                       </div>
                       <div className="text-[11px] leading-relaxed">
                         {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【土】屬性。')}
@@ -428,11 +428,11 @@ export default function TinkererGadgetsQuickRef({
           {/* ③ 煉金術規格速查 */}
           {alchemy > 0 && (
             <div className="p-3 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-2">
-              <div className="flex items-center justify-between border-b border-amber-100 pb-1.5 flex-wrap gap-1">
-                <div className="flex items-center gap-1.5 text-amber-950 font-bold text-xs">
-                  <GiRoundBottomFlask className="text-amber-600" />
+              <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-1.5 flex-wrap gap-1">
+                <div className="flex items-center gap-1.5 text-[#2c221e] font-bold text-xs">
+                  <GiRoundBottomFlask className="text-[#6b5a4b]" />
                   <span>即席煉金術</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415]">
                     Tier {alchemy}
                   </span>
                 </div>
@@ -441,8 +441,8 @@ export default function TinkererGadgetsQuickRef({
                 </span>
               </div>
 
-              <div className="p-2 rounded-lg bg-white/90 border border-amber-200/70 space-y-1 text-xs">
-                <div className="flex items-center justify-between text-[11px] font-bold text-amber-950">
+              <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-1 text-xs">
+                <div className="flex items-center justify-between text-[11px] font-bold text-[#2c221e]">
                   <span>常駐任意保底選項（任何出目皆可選）：</span>
                   <span className="text-[#6b5a4b] font-normal">手冊 p.213</span>
                 </div>

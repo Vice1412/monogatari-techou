@@ -1974,6 +1974,137 @@ check(
   `${count(bounceSrc, 'animate-bounce')} 處`
 );
 
+// H23：`amber` 家族（第二十六輪）。
+//
+// 這條跟 H20 同一個判準，只是對象大得多：本輪開場實測 `amber` 828 處／`yellow` 6／
+// `orange` 4，共 838 個令牌、43 個檔案，佔全站殘餘色相令牌的 **56%**。它同時在當
+// 物種 BEAST 的身份色、五種警示、選中態、量（星等／選格數／解鎖等級）、出處（系統
+// 技能左條）、主動作按鈕、以及一堆純裝飾。**一個色相包辦七種語意**，跟第二十五輪
+// 的 `purple` 是同一個病，只是劑量高八倍。
+//
+// 判準照抄 §CI33：先問「這個色相被哪張身份表登記走了」。答案是 `speciesThemes` 的
+// `sp_beast`。所以 `amber` 是**保留色**——除了身份出口，其他語意一律不得再借。
+//
+// 為什麼是硬零而不是預算：預算允許「這裡加一個、那裡減一個」，而這裡的退化正是
+// **換一個地方偷偷用回去**。只要允許非零，`amber` 遲早又會長回警示框。
+const AMBER_FAMS = /(?:[a-z-]+:)*(?:text|bg|border|border-[lrtbxy]|ring|ring-offset|divide|from|via|to|fill|stroke|placeholder|shadow|outline|decoration|accent|caret)-(?:amber|yellow|orange)-\d{2,3}(?:\/\d+)?/g;
+// 兩個身份出口：物種 BEAST（`sp_beast`）與規則書 #1 的徽章變體（`amber:`）。
+const AMBER_OUTLETS = {
+  'src/features/npc-workshop/data/speciesThemes.jsx': 'sp_beast:',
+  'src/components/ui/JRPGBadge.jsx': 'amber:',
+};
+const amberLeak = [];
+const amberOutletRows = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const body = stripComments(fs.readFileSync(abs, 'utf8'));
+  const tokens = body.match(AMBER_FAMS) || [];
+  if (!tokens.length) continue;
+  if (!AMBER_OUTLETS[rel]) {
+    amberLeak.push(`${rel}（${tokens.length}）`);
+    continue;
+  }
+  // 逐項，不是「至少一個」：白名單檔裡**每一行**出現 amber 的行，
+  // 都必須是那一張身份表的那一格。多一行就代表有人在裡面偷加裝飾。
+  body.split('\n').forEach((line, i) => {
+    if (!AMBER_FAMS.test(line)) return;
+    AMBER_FAMS.lastIndex = 0;
+    const t = line.trim();
+    if (!t.startsWith(AMBER_OUTLETS[rel])) amberOutletRows.push(`${rel}:${i + 1} → ${t.slice(0, 40)}`);
+  });
+}
+check(
+  'H23 amber／yellow／orange 只留在兩個身份出口（其餘全站硬零）',
+  amberLeak.length === 0,
+  amberLeak.length
+    ? `${amberLeak.length} 檔外洩：${amberLeak.slice(0, 4).join('、')}`
+    : `0 處外洩／出口 ${Object.keys(AMBER_OUTLETS).map((p) => p.split('/').pop()).join('、')}`
+);
+check(
+  'H23-a 身份出口裡 amber 只准出現在那一行（逐項）',
+  amberOutletRows.length === 0,
+  amberOutletRows.length ? amberOutletRows.slice(0, 3).join('；') : '2 檔、各 1 行，沒有夾帶'
+);
+
+// H23-b：琥珀的原始 hex 階硬零。
+//
+// 令牌收乾淨了，還有第二條路：直接寫 hex。`#b45309` 就是 amber-700，本輪開場有
+// **29 處**——它幾乎全部是 `theme?.accent || '#b45309'` 這種主題預設值，畫面上跟
+// 令牌版本同一個顏色。只收令牌不收 hex，等於宣告歸零而牆上還留著同一個色。
+// `#78350f`（amber-900）刻意不列：它是棕色強調 `#8b5e34` 的 hover，屬於另一條待收的線。
+const AMBER_HEX = ['#b45309', '#f59e0b', '#d97706', '#92400e', '#fbbf24', '#fcd34d', '#fde68a', '#fef3c7', '#fffbeb', '#451a03'];
+const amberHexHits = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const body = stripComments(fs.readFileSync(abs, 'utf8')).toLowerCase();
+  for (const h of AMBER_HEX) {
+    const n = count(body, h);
+    if (n) amberHexHits.push(`${rel}:${h}×${n}`);
+  }
+}
+check(
+  'H23-b 琥珀原始 hex 階全站硬零',
+  amberHexHits.length === 0,
+  amberHexHits.length ? amberHexHits.slice(0, 4).join('、') : `0 處／檢查 ${AMBER_HEX.length} 個 hex`
+);
+
+// H23-c：琥珀發光硬零。
+//
+// 收斂時最容易被留下來的就是「發光」——因為它寫在 `shadow-[...]` 裡，不是色相令牌，
+// 任何數令牌的護欄都看不到它。本輪拆掉兩處：已學會的星等光暈、填滿星號的投影。
+const amberGlow = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const body = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const rgb of ['rgba(245,158,11', 'rgba(251,191,36', 'rgba(217,119,6']) {
+    const n = count(body, rgb);
+    if (n) amberGlow.push(`${rel}:${rgb}×${n}`);
+  }
+}
+check('H23-c 琥珀發光（rgba 光暈）全站硬零', amberGlow.length === 0, amberGlow.length ? amberGlow.slice(0, 3).join('、') : '0 處');
+
+// H23-d：另一個暖強調色只減不增（預算）。
+//
+// 這個專案其實有**三個**暖強調色：登記的 `#a63d40`（131 處）、書頁棕 `#8b5e34`（86 處）
+// 加它的 hover `#78350f`（56 處）、以及本輪才收掉的 `#b45309`（29 處）。
+//
+// 為什麼這條用預算，而 H23 用硬零？因為兩者的退化模式相反：
+// `amber` 的退化是**悄悄用回去**（加一個不會被發現），所以只能硬零；
+// 而這裡的退化是**替代**——把 `amber` 換成 `#8b5e34`，總數一定上升。
+// 預算抓的正是「上升」，而它允許的「這裡減、那裡加」在這裡反而是對的：
+// 書頁棕本來就該逐輪往下收，收到 0 是下一輪的事。
+//
+// 開場 85 + 56 = 141（去掉註解後，註解裡提到的不算），本輪沒有動它，所以基準就是 141：任何一處新增都會紅。
+const BROWN_ACCENT_BUDGET = 141;
+const ACCENT_BROWN = '#8b5e34';
+const brownSrc = walkSrc(path.join(ROOT, 'src'))
+  .map((abs) => stripComments(fs.readFileSync(abs, 'utf8')).toLowerCase())
+  .join('\n');
+const brownNow = count(brownSrc, ACCENT_BROWN) + count(brownSrc, '#78350f');
+check(
+  'H23-d 書頁棕強調色只減不增（預算 141）',
+  brownNow <= BROWN_ACCENT_BUDGET,
+  `${brownNow} / 預算 ${BROWN_ACCENT_BUDGET}`
+);
+
+// H23-e：強調底上的字必須是登記的淺色，不是純白。
+//
+// `#fffdf9` 是登記的「墨面上的淺字」；`text-white` 不在登記表裡，而且在羊皮紙的暖白
+// 旁邊會顯出一塊冷白。本輪在 54 處強調底上把 `text-white` 換成 `#fffdf9`，這條把它鎖住。
+const whiteOnAccent = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  stripComments(fs.readFileSync(abs, 'utf8')).split('\n').forEach((line, i) => {
+    if (!/bg-\[#(?:a63d40|8c3235|76252d)\]/.test(line)) return;
+    if (/(?:^|[\s"'`])text-white(?:[\s"'`]|$)/.test(line)) whiteOnAccent.push(`${rel} → ${line.trim().slice(0, 50)}`);
+  });
+}
+check(
+  'H23-e 強調底上的字是登記淺色 #fffdf9，不是純白',
+  whiteOnAccent.length === 0,
+  whiteOnAccent.length ? `${whiteOnAccent.length} 行：${whiteOnAccent.slice(0, 3).join('、')}` : '0 處'
+);
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${'='.repeat(56)}`);
 console.log(`  通過 ${results.length - failed.length} / ${results.length}${failed.length ? `　失敗 ${failed.length}` : '　（全部通過）'}`);

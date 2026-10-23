@@ -55,8 +55,8 @@ export default function SkillStarPips({
               aria-hidden="true"
               className={`fu-icon inline-flex items-center justify-center leading-none transition-all duration-150 ${
                 isFilled
-                  ? 'text-amber-500 drop-shadow-[0_1px_3px_rgba(245,158,11,0.45)] scale-110'
-                  : 'text-[#7c6a58] opacity-40 hover:opacity-90 hover:text-amber-400'
+                  ? 'text-[#3c2415] scale-110'
+                  : 'text-[#7c6a58] opacity-40 hover:opacity-90 hover:text-[#3c2415]'
               }`}
               style={{ fontSize: `${size}px`, width: `${size}px`, height: `${size}px` }}
             >

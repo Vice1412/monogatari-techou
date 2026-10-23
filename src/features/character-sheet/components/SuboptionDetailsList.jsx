@@ -124,18 +124,18 @@ export default function SuboptionDetailsList({
             return (
               <div
                 key={`${detail.name || rawName}_${idx}`}
-                className="p-2.5 rounded-xl border border-amber-200/80 bg-white/95 hover:border-amber-300 transition-all space-y-1.5 text-xs"
+                className="p-2.5 rounded-xl border border-[#e8dcc4] bg-white/95 hover:border-[#7c6a58] transition-all space-y-1.5 text-xs"
               >
                 {/* 卡片標題與標籤列 */}
                 <div className="flex items-center justify-between gap-1.5 flex-wrap">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-amber-500 text-xs">✦</span>
+                    <span className="text-[#3c2415] text-xs">✦</span>
                     {isOffensive && (
                       <span className="fu-icon text-red-600 font-bold" title="攻擊性咒語">
                         o
                       </span>
                     )}
-                    <span className="font-bold text-amber-950 font-serif text-[13px] tracking-wide truncate">
+                    <span className="font-bold text-[#2c221e] font-serif text-[13px] tracking-wide truncate">
                       {detail.name}
                     </span>
 

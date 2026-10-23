@@ -35,7 +35,7 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
         className="w-full flex items-center justify-between gap-3 px-3 py-2 text-left cursor-pointer hover:bg-black/[0.02] transition-colors"
       >
         <span className="flex items-center gap-2 min-w-0">
-          <GiLaurelCrown className="w-4 h-4 shrink-0" style={{ color: theme.accent || '#b45309' }} />
+          <GiLaurelCrown className="w-4 h-4 shrink-0" style={{ color: theme.accent || '#a63d40' }} />
           <span className="text-xs font-bold truncate" style={{ color: theme.textDark || '#3c2415' }}>
             {open ? '收起英雄技能' : '顯示英雄技能'}
           </span>

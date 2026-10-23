@@ -101,11 +101,11 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
   return (
     <div
       onClick={handleCardClick}
-      className={`mb-4 break-inside-avoid p-2.5 rounded-lg border transition-all ${onInspectorClick ? 'cursor-pointer hover:border-amber-500 hover:shadow-md hover:ring-1 hover:ring-amber-500/50 group/inspector' : ''} ${skill.isSecretArt ? 'border-[#3c2415]/40 bg-[#fffdf9]' : skill.category === 'boss' ? 'border-amber-300 bg-amber-50/80' : 'border-[#d6c7ab] bg-[#fbf7ee]/40'}`}
+      className={`mb-4 break-inside-avoid p-2.5 rounded-lg border transition-all ${onInspectorClick ? 'cursor-pointer hover:border-[#3c2415] hover:shadow-md hover:ring-1 hover:ring-[#3c2415]/40 group/inspector' : ''} ${skill.isSecretArt ? 'border-[#3c2415]/40 bg-[#fffdf9]' : skill.category === 'boss' ? 'border-[#d6c7ab] bg-[#f9f5eb]' : 'border-[#d6c7ab] bg-[#fbf7ee]/40'}`}
       title={onInspectorClick ? "點擊反向定位至編輯表單" : ""}
     >
-      <div className={`font-bold text-[15px] mb-1 flex flex-wrap items-center gap-2 ${skill.isSecretArt ? 'text-[#3c2415]' : skill.category === 'boss' ? 'text-amber-900' : 'text-[#2c221e]'}`}>
-        <span className={`w-2 h-2 rounded-full inline-block shrink-0 ${skill.isSecretArt ? 'bg-[#3c2415]' : skill.category === 'boss' ? 'bg-amber-600 shadow-sm' : isSpellCategory ? 'bg-[#3c2415] shadow-sm' : 'bg-amber-700 shadow-sm'}`}></span>{showOffensiveIcon && <span className="fu-icon text-xl text-red-700 drop-shadow-sm mr-1 shrink-0" title="攻擊性咒語">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{normalizeSpellName(displaySkillName)}{skill.isSecretArt && (
+      <div className={`font-bold text-[15px] mb-1 flex flex-wrap items-center gap-2 ${skill.isSecretArt || skill.category === 'boss' ? 'text-[#3c2415]' : 'text-[#2c221e]'}`}>
+        <span className={`w-2 h-2 rounded-full inline-block shrink-0 ${skill.isSecretArt || isSpellCategory ? 'bg-[#3c2415]' : 'bg-[#7c6a58]'}`}></span>{showOffensiveIcon && <span className="fu-icon text-xl text-red-700 drop-shadow-sm mr-1 shrink-0" title="攻擊性咒語">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{normalizeSpellName(displaySkillName)}{skill.isSecretArt && (
           <span className="text-[10px] text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
         )}
         <CopyButton text={textToCopy} />
@@ -134,7 +134,7 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
         const isRanged = String(atk.distance).includes('遠程');
 
         return (
-          <div className={`bg-[#fffdf9] border-l-4 p-2.5 my-1 text-sm ml-2 md:ml-4 rounded-r border border-[#d6c7ab] ${skill.isSecretArt ? 'border-l-[#3c2415]' : skill.category === 'boss' ? 'border-l-amber-600' : 'border-l-red-700'}`}>
+          <div className={`bg-[#fffdf9] border-l-4 p-2.5 my-1 text-sm ml-2 md:ml-4 rounded-r border border-[#d6c7ab] ${skill.isSecretArt ? 'border-l-[#3c2415]' : skill.category === 'boss' ? 'border-l-[#3c2415]' : 'border-l-red-700'}`}>
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
               <span className="inline-flex items-center gap-1 text-[#3c2f21] bg-[#e8dec8] px-2 py-0.5 rounded text-xs font-bold shrink-0 shadow-2xs">
                 <span className="fu-icon text-sm leading-none translate-y-[0.5px]">{isRanged ? 'r' : 'm'}</span>
@@ -143,7 +143,7 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
               <span className="text-blue-900 font-bold inline-flex items-center gap-1">
                 <span>{renderFormattedText(atk.formula, skill.selections, npcLevel, partyLevel, true)}</span>
                 {finalStats.Acc !== 0 && (
-                  <span className="text-amber-700 font-bold">
+                  <span className="text-[#6b5a4b] font-bold">
                     {finalStats.Acc > 0 ? `+ ${finalStats.Acc}` : `- ${Math.abs(finalStats.Acc)}`}
                   </span>
                 )}

@@ -258,7 +258,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
             「裝備著才生效」，而第 2 步管的是成長。玩家在投點時魔石本來就多半沒裝上，
             在那裡亮警告等於把正常狀態說成錯誤。 */}
         {withMnemospheres && idleMnemospheres.length > 0 && (
-          <p className="text-t12 leading-relaxed text-amber-700" data-testid="idle-mnemosphere-warning">
+          <p className="text-t12 leading-relaxed text-[#6b5a4b]" data-testid="idle-mnemosphere-warning">
             有 {idleMnemospheres.length} 顆職業魔石沒有裝在任何插槽上——未裝備的魔石不提供任何技能（p.136）。
           </p>
         )}
@@ -482,7 +482,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                       )}
 
                       {damageTypeConflicts.length > 1 && (
-                        <p className="text-t12 text-amber-700">
+                        <p className="text-t12 text-[#6b5a4b]">
                           同一把武器不能混用不同傷害屬性的附魔魔石（目前混了：{damageTypeConflicts.join('、')}，p.141）。
                         </p>
                       )}
@@ -535,12 +535,12 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                         )}
                       </div>
                       {usage.mnemosphereOverflow && (
-                        <p className="text-t12 text-amber-700">
+                        <p className="text-t12 text-[#6b5a4b]">
                           這個品級最多裝 {slotQualityMnemosphereCap(slot.quality)} 顆職業魔石。
                         </p>
                       )}
                       {usage.overflow && (
-                        <p className="text-t12 text-amber-700">
+                        <p className="text-t12 text-[#6b5a4b]">
                           內容佔用超過插槽容量（{usage.used} / {usage.capacity} 格）。
                         </p>
                       )}

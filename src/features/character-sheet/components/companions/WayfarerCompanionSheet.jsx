@@ -275,26 +275,26 @@ export default function WayfarerCompanionSheet({
       {Array.isArray(comp.otherActions) && comp.otherActions.length > 0 && (
         <div className="space-y-2">
           <span className="text-xs font-bold text-[#6b5a4b] flex items-center gap-1.5">
-            <span className="fu-icon text-amber-800">s</span>
+            <span className="fu-icon text-[#3c2415]">s</span>
             <span>其餘行動（Core p. 306-317）</span>
           </span>
           <div className="space-y-2">
             {comp.otherActions.map((act, idx) => (
               <div
                 key={act.id || idx}
-                className="p-3 rounded-xl bg-white border border-amber-200 space-y-1.5"
+                className="p-3 rounded-xl bg-white border border-[#e8dcc4] space-y-1.5"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="fu-icon text-sm font-bold text-amber-800">s</span>
+                    <span className="fu-icon text-sm font-bold text-[#3c2415]">s</span>
                     <strong className="text-[#2c221e] font-bold">{act.name || '未命名行動'}</strong>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f9f5eb] text-[#3c2415] border border-[#e8dcc4]">
                     行動
                   </span>
                 </div>
                 {act.effect && (
-                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-amber-100 pt-1">
+                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-[#e8dcc4] pt-1">
                     {renderTextWithAffinities(act.effect)}
                   </p>
                 )}

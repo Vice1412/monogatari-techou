@@ -186,7 +186,7 @@ export default function CustomWeaponForgeModal({
           {def.effect}
         </p>
         {reason && (
-          <p className="text-[10px] mt-0.5 text-amber-800">{reason}</p>
+          <p className="text-[10px] mt-0.5 text-[#3c2415]">{reason}</p>
         )}
       </button>
     );
@@ -277,7 +277,7 @@ export default function CustomWeaponForgeModal({
         </div>
 
         {/* 名稱 */}
-        {label('自定義名字', issueFor('name') ? <span className="text-[11px] text-amber-800">{issueFor('name')}</span> : null)}
+        {label('自定義名字', issueFor('name') ? <span className="text-[11px] text-[#3c2415]">{issueFor('name')}</span> : null)}
         <input
           type="text"
           value={spec.name}
@@ -333,7 +333,7 @@ export default function CustomWeaponForgeModal({
 
         {/* 訂製能力 */}
         {label('訂製能力', (
-          <span className="text-[11px] font-bold" style={{ color: remainingSlots(spec) === 0 ? theme.accent : '#b45309' }}>
+          <span className="text-[11px] font-bold" style={{ color: remainingSlots(spec) === 0 ? theme.accent : '#a63d40' }}>
             已用 {usedSlots(spec)} / {CUSTOM_WEAPON_SLOTS} 個名額
           </span>
         ))}
@@ -341,7 +341,7 @@ export default function CustomWeaponForgeModal({
           {CUSTOMIZATIONS.map(renderCustomizationRow)}
         </div>
         {issueFor('customizations') && (
-          <p className="text-[11px] text-amber-800">{issueFor('customizations')}</p>
+          <p className="text-[11px] text-[#3c2415]">{issueFor('customizations')}</p>
         )}
 
         {/* 元素屬性 */}
@@ -365,7 +365,7 @@ export default function CustomWeaponForgeModal({
                 </button>
               ))}
             </div>
-            {issueFor('element') && <p className="text-[11px] text-amber-800">{issueFor('element')}</p>}
+            {issueFor('element') && <p className="text-[11px] text-[#3c2415]">{issueFor('element')}</p>}
           </div>
         )}
 
@@ -392,7 +392,7 @@ export default function CustomWeaponForgeModal({
         </div>
 
         {!ok && (
-          <div className="p-2.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-900 text-xs space-y-1">
+          <div className="p-2.5 rounded-lg border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] text-xs space-y-1">
             {issues.map((i) => <div key={i.message}>{i.message}</div>)}
           </div>
         )}
