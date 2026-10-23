@@ -328,8 +328,8 @@ export default function TinkererGadgetsModal({
             <span className="font-mono text-sm font-bold text-[#3c2415]">
               {allocatedPoints} / {tinkererSL}
             </span>
-            <span className={`px-2 py-0.5 rounded-md font-bold text-[11px] ${ remainingPoints === 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 ' : 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] ' }`}>
-              {remainingPoints === 0 ? '點數已滿額' : `尚有 ${remainingPoints} 點可分配`}
+            <span className={`px-2 py-0.5 rounded-md font-bold text-[11px] ${ remainingPoints === 0 ? 'bg-[#fffdf9] text-[#3c2415] border border-[#3c2415] ' : 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] ' }`}>
+              {remainingPoints === 0 ? '✓ 點數已滿額' : `尚有 ${remainingPoints} 點可分配`}
             </span>
           </div>
 
@@ -564,7 +564,7 @@ export default function TinkererGadgetsModal({
                 尚有未分配的特技點數，您亦可先儲存日後再分配。
               </span>
             ) : (
-              <span className="text-emerald-600 flex items-center gap-1 font-bold">
+              <span className="text-[#6b5a4b] flex items-center gap-1 font-bold">
                 <GiCheckMark className="w-3.5 h-3.5" />
                 科技樹節點配置符合目前特技等級！
               </span>

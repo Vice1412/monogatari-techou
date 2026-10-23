@@ -107,8 +107,8 @@ function SkillSuboptionBar({
               尚未配置任何項目
             </span>
           ) : isComplete ? (
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold flex items-center gap-1">
-              <GiCheckMark className="w-3 h-3 text-emerald-700" />
+            <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1">
+              <GiCheckMark className="w-3 h-3 text-[#3c2415]" />
               <span>已掌握 {selectedCount} / {maxQuota}（已完成構築）</span>
             </span>
           ) : isOver ? (
@@ -244,7 +244,7 @@ function PilotVehicleSkillBar({
               <span className="text-[11px] px-2 py-0.5 rounded-md bg-cyan-100 text-cyan-800 border border-cyan-300 font-bold">
                 {frame.name} · {vehicleData?.name || '個人載具'}
               </span>
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono font-bold">
+              <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold">
                 解鎖 {unlockedCount}/{unlockedQuota} · 啟用 {activeCount}/{activeCapacity} 槽
               </span>
               {vehicleData?.isMounted && (
@@ -290,10 +290,10 @@ function WayfarerCompanionSkillBar({
     <div className="mt-2 pt-2 border-t border-[#d6c7ab]/80 space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold">
+          <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
             {comp.species || '野獸'} · {comp.name || '忠實夥伴'}
           </span>
-          <span className="text-[11px] px-2 py-0.5 rounded-md bg-green-100 text-green-800 border border-green-300 font-mono font-bold">
+          <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold">
             HP {maxHp} · DEF d{comp.dex || 8} | M.DEF d{comp.ins || 8}
           </span>
         </div>
@@ -304,7 +304,7 @@ function WayfarerCompanionSkillBar({
             e.stopPropagation();
             onOpenModal();
           }}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs"
+          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
         >
           <GiPawPrint className="w-3.5 h-3.5" />
           <span>{isConfigured ? '編輯忠實夥伴' : '配置忠實夥伴'}</span>
@@ -348,7 +348,7 @@ function TinkererGadgetsSkillBar({
               </span>
               <span className={`text-[11px] px-2 py-0.5 rounded-md font-mono font-bold ${
                 allocated >= sl
-                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                  ? 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]'
                   : 'bg-[#f9f5eb] text-[#3c2415] border border-[#e8dcc4]'
               }`}>
                 已分配 {allocated} / {sl} 節點
@@ -653,8 +653,8 @@ export default function ClassSkillCard({
                       title={`將此職業的免費增益設為 ${opt} +5`}
                       className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border transition-colors cursor-pointer ${
                         chosenBenefit === opt
-                          ? 'bg-emerald-600 border-emerald-700 text-white'
-                          : 'bg-white border-[#d6c7ab] text-[#6b5a4b] hover:bg-emerald-50'
+                          ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
+                          : 'bg-white border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9]'
                       }`}
                     >
                       {opt} +5

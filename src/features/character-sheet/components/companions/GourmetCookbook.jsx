@@ -907,7 +907,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                 <span>尚未骰出的效果（{remaining.length} / 12）</span>
               </div>
               {remaining.length === 0 ? (
-                <p className="text-t12 text-emerald-700 font-bold">12 種效果全部用上了。</p>
+                <p className="text-t12 text-[#3c2415] font-bold">✓ 12 種效果全部用上了。</p>
               ) : (
                 <div className="space-y-1">
                   {remaining.map((e) => (

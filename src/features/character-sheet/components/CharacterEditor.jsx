@@ -841,9 +841,9 @@ export default function CharacterEditor({
                 locked ? 'hover:bg-[#f9f5eb]' : 'hover:scale-101'
               }`}
               style={{
-                backgroundColor: locked ? theme.cardBg : (canLock ? '#059669' : theme.subpanelBg),
-                borderColor: locked ? theme.border : (canLock ? '#047857' : theme.border),
-                color: locked ? theme.textDark : (canLock ? '#ffffff' : theme.textMuted)
+                backgroundColor: locked ? theme.cardBg : (canLock ? '#a63d40' : theme.subpanelBg),
+                borderColor: locked ? theme.border : (canLock ? '#8c3235' : theme.border),
+                color: locked ? theme.textDark : (canLock ? '#fffdf9' : theme.textMuted)
               }}
               title={locked ? '解除定稿會重新開放身世與四維屬性' : '定稿後創角欄位凍結，只留成長相關欄位'}
             >
@@ -908,7 +908,7 @@ export default function CharacterEditor({
                   ) : step.status === 'todo' ? (
                     <span className="w-2 h-2 rounded-full bg-[#a63d40] shrink-0" title="還有提醒項目" />
                   ) : (
-                    <GiCheckMark className={`w-3.5 h-3.5 shrink-0 ${isTabActive ? 'text-white' : 'text-emerald-600'}`} />
+                    <GiCheckMark className={`w-3.5 h-3.5 shrink-0 ${isTabActive ? 'text-white' : 'text-[#6b5a4b]'}`} />
                   )}
                 </button>
               );
@@ -924,7 +924,7 @@ export default function CharacterEditor({
                 ? 'bg-[#f9f5eb] border-[#8c2d36]/50 hover:border-[#8c2d36]'
                 : validation.hasWarnings
                   ? 'bg-[#f9f5eb] border-[#d6c7ab] hover:border-[#7c6a58]'
-                  : 'bg-emerald-50/90 border-emerald-300 hover:border-emerald-400'
+                  : 'bg-[#f9f5eb] border-[#d6c7ab] hover:border-[#3c2415]'
             }`}
             title="點擊查看完整官方創角規則驗證報告"
           >
@@ -935,14 +935,14 @@ export default function CharacterEditor({
                 ) : validation.hasWarnings ? (
                   <Info className="w-4 h-4 text-[#6b5a4b] shrink-0" />
                 ) : (
-                  <GiCheckMark className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <GiCheckMark className="w-4 h-4 text-[#3c2415] shrink-0" />
                 )}
                 <span className={
                   validation.errors.length > 0
                     ? 'text-[#8c2d36]'
                     : validation.hasWarnings
                       ? 'text-[#2c221e]'
-                      : 'text-emerald-950'
+                      : 'text-[#2c221e]'
                 }>
                   規則自檢
                 </span>
@@ -952,7 +952,7 @@ export default function CharacterEditor({
                   ? 'bg-[#e8dcc4] text-[#8c2d36]'
                   : validation.hasWarnings
                     ? 'bg-[#e8dcc4] text-[#3c2415]'
-                    : 'bg-emerald-200 text-emerald-900'
+                    : 'bg-[#e8dcc4] text-[#2c221e]'
               }`}>
                 {validation.errors.length > 0
                   ? `${validation.errors.length} 項待修正`
@@ -966,7 +966,7 @@ export default function CharacterEditor({
                 ? 'text-[#8c2d36]'
                 : validation.hasWarnings
                   ? 'text-[#6b5a4b]'
-                  : 'text-emerald-700'
+                  : 'text-[#3c2415]'
             }`}>
               {validation.errors.length > 0
                 ? '尚有未符規則項目，點擊查看詳情'
@@ -1059,7 +1059,7 @@ export default function CharacterEditor({
                     ? 'bg-[#f9f5eb] text-[#8c2d36] border-[#8c2d36]/50'
                     : validation.hasWarnings
                       ? 'bg-[#f9f5eb] text-[#3c2415] border-[#d6c7ab]'
-                      : 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                      : 'bg-[#f9f5eb] text-[#3c2415] border-[#d6c7ab]'
                 }`}
                 title="創角規則自檢"
               >
@@ -1068,7 +1068,7 @@ export default function CharacterEditor({
                 ) : validation.hasWarnings ? (
                   <Info className="w-3 h-3 text-[#6b5a4b]" />
                 ) : (
-                  <GiCheckMark className="w-3 h-3 text-emerald-700" />
+                  <GiCheckMark className="w-3 h-3 text-[#3c2415]" />
                 )}
                 <span>
                   {validation.errors.length > 0
@@ -1595,11 +1595,13 @@ export default function CharacterEditor({
               {(() => {
                 const fx = stats.quirkEffects || {};
                 const rows = [
-                  { label: '傷害免疫', values: fx.immuneDamage, tone: '#15803d' },
-                  { label: '抗性', values: fx.resistances, tone: '#166534' },
+                  // 標籤本身就寫了「免疫／抗性／易傷／吸收／狀態免疫」，所以字色不必再上色相。
+                  // 只有「易傷」是真的會壞事 → 走登記危險紅；其餘走墨階。
+                  { label: '傷害免疫', values: fx.immuneDamage, tone: '#2c221e' },
+                  { label: '抗性', values: fx.resistances, tone: '#2c221e' },
                   { label: '易傷', values: fx.vulnerabilities, tone: '#8c2d36' },
-                  { label: '吸收', values: fx.absorption, tone: '#6d28d9' },
-                  { label: '狀態免疫', values: fx.immuneStatuses, tone: '#0e7490' }
+                  { label: '吸收', values: fx.absorption, tone: '#2c221e' },
+                  { label: '狀態免疫', values: fx.immuneStatuses, tone: '#2c221e' }
                 ].filter((row) => Array.isArray(row.values) && row.values.length > 0);
                 if (rows.length === 0) return null;
                 return (

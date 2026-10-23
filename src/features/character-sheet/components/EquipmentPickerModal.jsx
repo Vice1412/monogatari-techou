@@ -525,7 +525,7 @@ export function EquipmentPickerBody({
                 <td className={cellText}>
                   <span className="font-mono font-black text-sm" style={{ color: theme.accent }}>{row.outcome.def}</span>
                   {row.deltaDef !== 0 ? (
-                    <span className={`text-[10px] ml-1 font-mono ${row.deltaDef > 0 ? 'text-emerald-700' : 'text-[#8c2d36]'}`}>
+                    <span className={`text-[10px] ml-1 font-mono ${row.deltaDef > 0 ? 'text-[#3c2415]' : 'text-[#8c2d36]'}`}>
                       {row.deltaDef > 0 ? `+${row.deltaDef}` : row.deltaDef}
                     </span>
                   ) : null}
@@ -533,7 +533,7 @@ export function EquipmentPickerBody({
                 <td className={cellText}>
                   <span className="font-mono font-black text-sm" style={{ color: theme.accent }}>{row.outcome.mdef}</span>
                   {row.deltaMdef !== 0 ? (
-                    <span className={`text-[10px] ml-1 font-mono ${row.deltaMdef > 0 ? 'text-emerald-700' : 'text-[#8c2d36]'}`}>
+                    <span className={`text-[10px] ml-1 font-mono ${row.deltaMdef > 0 ? 'text-[#3c2415]' : 'text-[#8c2d36]'}`}>
                       {row.deltaMdef > 0 ? `+${row.deltaMdef}` : row.deltaMdef}
                     </span>
                   ) : null}

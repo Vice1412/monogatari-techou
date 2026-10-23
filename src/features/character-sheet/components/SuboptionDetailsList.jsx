@@ -179,7 +179,7 @@ export default function SuboptionDetailsList({
 
                 {/* 寓意 / 語錄 */}
                 {detail.quote && (
-                  <div className="text-[11px] text-emerald-800 italic">
+                  <div className="text-[11px] text-[#3c2415] italic">
                     「{detail.quote}」
                   </div>
                 )}
@@ -206,7 +206,7 @@ export default function SuboptionDetailsList({
                   <div className="mt-1.5 pt-1.5 border-t border-[#e8dcc4] space-y-1.5">
                     {detail.effects.map((ef, eIdx) => (
                       <div key={eIdx} className="text-[11px] flex items-start gap-1.5">
-                        <span className="font-mono font-bold text-emerald-900 bg-emerald-100 px-1.5 py-0.5 rounded text-[10px] shrink-0 border border-emerald-200">
+                        <span className="font-mono font-bold text-[#2c221e] bg-[#f4ebd9] px-1.5 py-0.5 rounded text-[10px] shrink-0 border border-[#d6c7ab]">
                           {ef.clock}
                         </span>
                         <span className="text-[#3c2415] leading-relaxed font-sans">

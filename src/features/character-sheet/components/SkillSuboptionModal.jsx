@@ -299,7 +299,7 @@ export default function SkillSuboptionModal({
               </div>
             )}
             {isComplete && (
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold text-xs">
                 <GiCheckMark className="w-3.5 h-3.5 shrink-0" />
                 <span>已掌握 {currentCount} / {maxQuota}（已完成構築）</span>
               </div>
@@ -522,7 +522,7 @@ export default function SkillSuboptionModal({
 
                   {/* 寓意 / 範例 */}
                   {item.quote && (
-                    <div className="text-[11px] text-emerald-800 italic">
+                    <div className="text-[11px] text-[#3c2415] italic">
                       「{item.quote}」
                     </div>
                   )}
@@ -549,7 +549,7 @@ export default function SkillSuboptionModal({
                     <div className="space-y-1 pt-1 border-t border-[#e8dcc4]">
                       {item.effects.map((eff, eIdx) => (
                         <div key={eIdx} className="text-[11px] flex items-start gap-1.5">
-                          <span className="font-mono font-bold text-emerald-900 bg-emerald-100 px-1 py-0.2 rounded text-[10px] shrink-0">
+                          <span className="font-mono font-bold text-[#2c221e] bg-[#f4ebd9] px-1 py-0.2 rounded text-[10px] shrink-0">
                             {eff.clock}
                           </span>
                           <span className="text-[#3c2415] leading-relaxed">{renderTextWithAffinities(eff.text)}</span>

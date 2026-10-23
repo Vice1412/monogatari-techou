@@ -144,7 +144,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
                   <div key={cfg.key} className={`p-2 rounded border ${isOverBudget ? 'bg-[#f9f5eb] border-[#8c2d36]/50' : 'bg-[#f5efdf]/60 border-[#d6c7ab]'}`} onClick={e => e.stopPropagation()}>
                     <div className={`flex justify-between items-center mb-2 text-xs font-bold ${isOverBudget ? 'text-[#8c2d36]' : 'text-[#3c2415]'}`}>
                       <span>{cfg.label}</span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] ${selected.length < (cfg.min || 0) ? 'bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50' : maxReached ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-[#fffdf9] text-[#3c2415] border border-[#d6c7ab]'}`}>已選: {selected.length}/{cfg.max || '∞'}</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] ${selected.length < (cfg.min || 0) ? 'bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50' : maxReached ? 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]' : 'bg-[#fffdf9] text-[#3c2415] border border-[#d6c7ab]'}`}>已選: {selected.length}/{cfg.max || '∞'}</span>
                     </div>
                     <div className="grid grid-cols-1 gap-1">
                       {cfg.options.map(opt => {

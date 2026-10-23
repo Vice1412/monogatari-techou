@@ -83,15 +83,15 @@ export default function WayfarerCompanionSheet({
     <div className="p-4 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-4 text-xs">
       
       {/* 頂部標題與編輯按鈕 */}
-      <div className="flex items-center justify-between border-b border-green-200 pb-2 flex-wrap gap-2">
+      <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
-          <div className="p-1.5 rounded-lg bg-green-600/10 text-green-600">
+          <div className="p-1.5 rounded-lg bg-[#f4ebd9] text-[#6b5a4b]">
             <GiPawPrint className="text-xl" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-green-950 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-[#2c221e] flex items-center gap-2">
               <span>{comp.name || '忠實夥伴'}</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-green-100 text-green-800 border border-green-300">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
                 5 級 {comp.species || '野獸'} · SL {companionSL}
               </span>
             </h3>
@@ -104,19 +104,19 @@ export default function WayfarerCompanionSheet({
         <button
           type="button"
           onClick={() => setIsEditModalOpen(true)}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-white hover:bg-green-50 text-green-900 border border-green-300"
+          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab]"
         >
-          <GiQuillInk className="w-3.5 h-3.5 text-green-600" />
+          <GiQuillInk className="w-3.5 h-3.5 text-[#6b5a4b]" />
           <span>編輯隨從設定</span>
         </button>
       </div>
 
       {/* 生命值與危機儀表 */}
-      <div className="p-3 rounded-xl bg-white border border-green-200 space-y-2">
+      <div className="p-3 rounded-xl bg-white border border-[#d6c7ab] space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="font-bold text-[#3c2415]">夥伴生命值 (HP):</span>
-            <span className="font-mono font-black text-sm text-green-700">
+            <span className="font-mono font-black text-sm text-[#3c2415]">
               {currentHp} / {maxHp}
             </span>
             {isCrisis && (
@@ -147,7 +147,7 @@ export default function WayfarerCompanionSheet({
             <button
               type="button"
               onClick={() => adjustHp(1)}
-              className="px-1.5 py-0.5 rounded bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 font-mono font-bold"
+              className="px-1.5 py-0.5 rounded bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold"
               title="+1 HP"
             >
               +1
@@ -155,7 +155,7 @@ export default function WayfarerCompanionSheet({
             <button
               type="button"
               onClick={() => adjustHp(5)}
-              className="px-1.5 py-0.5 rounded bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 font-mono font-bold"
+              className="px-1.5 py-0.5 rounded bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold"
               title="+5 HP"
             >
               +5
@@ -163,11 +163,16 @@ export default function WayfarerCompanionSheet({
           </div>
         </div>
 
-        {/* HP 進度條 */}
+        {/* HP 進度條
+            填充色：健康走墨階，危機走危險紅。
+            原本健康是 `#245c45`（翠玉色），但那是翡翠綠時鐘、風元素、花園、部分職業主題的
+            登記色——HP 條借它來表示「沒事」，就是同一支色相兩個意思。
+            而且危機態本來就有文字標記（`危機 (≤N)` ＋ 危險圖示），紅綠是重複編碼；
+            長度才是真正的「量」，顏色不必再兼一份工。 */}
         <div className="w-full h-2 rounded-full bg-[#e8dcc4] overflow-hidden">
           <div
             className={`h-full transition-all duration-300 ${
-              isCrisis ? 'bg-[#8c2d36]' : 'bg-[#245c45]'
+              isCrisis ? 'bg-[#8c2d36]' : 'bg-[#3c2415]'
             }`}
             style={{ width: `${Math.min(100, Math.max(0, (currentHp / maxHp) * 100))}%` }}
           />
@@ -205,7 +210,7 @@ export default function WayfarerCompanionSheet({
           {(comp.attacks || []).map((atk, idx) => (
             <div
               key={atk.id || idx}
-              className="p-3 rounded-xl bg-white border border-green-200 space-y-1.5"
+              className="p-3 rounded-xl bg-white border border-[#d6c7ab] space-y-1.5"
             >
               <div className="flex items-center justify-between">
                 <strong className="text-[#2c221e] font-bold">{atk.name}</strong>
@@ -220,14 +225,14 @@ export default function WayfarerCompanionSheet({
                 <button
                   type="button"
                   onClick={() => handleRollAttack(atk)}
-                  className="px-2.5 py-1 rounded bg-green-600 hover:bg-green-700 text-white font-bold text-xs flex items-center gap-1 shadow-2xs"
+                  className="px-2.5 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 shadow-2xs"
                 >
                   <GiRollingDices className="text-xs" />
                   <span>攻擊</span>
                 </button>
               </div>
               {atk.specialEffect && (
-                <p className="text-[10px] text-[#6b5a4b] border-t border-green-100 pt-1 leading-relaxed">
+                <p className="text-[10px] text-[#6b5a4b] border-t border-[#e8dcc4] pt-1 leading-relaxed">
                   {renderTextWithAffinities(atk.specialEffect)}
                 </p>
               )}
@@ -308,23 +313,23 @@ export default function WayfarerCompanionSheet({
       {Array.isArray(comp.specialRules) && comp.specialRules.length > 0 && (
         <div className="space-y-2">
           <span className="text-xs font-bold text-[#6b5a4b] flex items-center gap-1.5">
-            <GiSparkles className="text-emerald-600" />
+            <GiSparkles className="text-[#6b5a4b]" />
             <span>特殊規則（Core p. 306-317）</span>
           </span>
           <div className="space-y-2">
             {comp.specialRules.map((rule, idx) => (
               <div
                 key={rule.id || idx}
-                className="p-3 rounded-xl bg-white border border-emerald-200 space-y-1.5"
+                className="p-3 rounded-xl bg-white border border-[#d6c7ab] space-y-1.5"
               >
                 <div className="flex items-center justify-between">
                   <strong className="text-[#2c221e] font-bold">{rule.name || '未命名規則'}</strong>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f9f5eb] text-[#3c2415] border border-[#d6c7ab]">
                     特殊規則
                   </span>
                 </div>
                 {rule.effect && (
-                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-emerald-100 pt-1">
+                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-[#e8dcc4] pt-1">
                     {renderTextWithAffinities(rule.effect)}
                   </p>
                 )}

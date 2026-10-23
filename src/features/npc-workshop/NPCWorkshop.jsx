@@ -4533,7 +4533,7 @@ export default function App({
                   usedRoleSkills > maxRoleSkills
                     ? 'bg-[#f4ebd9] text-[#8c2d36] border-[#8c2d36]'
                     : usedRoleSkills >= maxRoleSkills
-                    ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
+                    ? 'bg-[#f4ebd9] text-[#3c2415] border-[#3c2415]'
                     : 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]'
                 }`}
                 title="點擊前往定位技能配置"
@@ -4552,7 +4552,7 @@ export default function App({
                     usedSpells > maxSpells
                       ? 'bg-[#f4ebd9] text-[#8c2d36] border-[#8c2d36]'
                       : usedSpells >= maxSpells
-                      ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
+                      ? 'bg-[#f4ebd9] text-[#3c2415] border-[#3c2415]'
                       : 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]'
                   }`}
                   title="點擊前往咒語配置"
@@ -4844,7 +4844,7 @@ export default function App({
                 <button onClick={handleCopyJPG} className="bg-[#3c2415] hover:bg-[#2c221e] text-[#e8dcc4] px-4 py-2 rounded flex items-center gap-2 font-bold shadow transition-transform hover:scale-105 text-sm">
                   <Copy size={16} /> 複製圖片
                 </button>
-                <button onClick={handleExportJPG} className="bg-emerald-800 hover:bg-emerald-700 text-white px-4 py-2 rounded flex items-center gap-2 font-bold shadow transition-transform hover:scale-105 text-sm">
+                <button onClick={handleExportJPG} className="bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] px-4 py-2 rounded flex items-center gap-2 font-bold shadow transition-transform hover:scale-105 text-sm">
                   <Download size={16} /> 匯出 JPG
                 </button>
               </div>

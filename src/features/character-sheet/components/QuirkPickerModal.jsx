@@ -158,7 +158,7 @@ export function QuirkPickerBody({
                     {opened.name}
                   </h3>
                   {selectedName === opened.name && (
-                    <JRPGBadge variant="emerald" size="xs">目前已選</JRPGBadge>
+                    <JRPGBadge variant="selected" size="xs">目前已選</JRPGBadge>
                   )}
                 </div>
 

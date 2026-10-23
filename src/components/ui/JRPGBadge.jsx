@@ -19,7 +19,6 @@ export default function JRPGBadge({
     cyan: "bg-blue-50 text-blue-900 border border-blue-300 font-bold",
     rose: "bg-red-50 text-red-900 border border-red-300 font-bold",
     green: "bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold",
-    emerald: "bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold",
     purple: "bg-purple-50 text-purple-900 border border-purple-300 font-bold",
     indigo: "bg-indigo-50 text-indigo-900 border border-indigo-300 font-bold",
     slate: "bg-[#eee6d3] text-[#3c2f21] border border-[#d6c7ab] font-bold",
@@ -32,7 +31,9 @@ export default function JRPGBadge({
     "rank-top": "bg-[#2c221e] text-[#e8dcc4] border border-[#2c221e] font-bold",
     "rank-mid": "bg-[#7c6a58] text-[#fbf7ee] border border-[#7c6a58] font-bold",
     // 標記（職業限定之類）：零色，只有墨與邊
-    marker: "bg-transparent text-[#6b5a4b] border border-[#6b5a4b]/40"
+    marker: "bg-transparent text-[#6b5a4b] border border-[#6b5a4b]/40",
+    // 已選／選中：墨框 ＋ 紙底（與全站的「選中」同一條通道）
+    selected: "bg-[#fffdf9] text-[#3c2415] border border-[#3c2415] font-bold"
   };
 
   const sizeStyles = {

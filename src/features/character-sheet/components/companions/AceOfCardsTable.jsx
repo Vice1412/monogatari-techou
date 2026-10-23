@@ -521,7 +521,7 @@ export default function AceOfCardsTable({
     const tones = {
       neutral: `bg-white border ${T.border} ${T.text}`,
       warn: 'bg-[#f9f5eb] border-[#d6c7ab] text-[#3c2415]',
-      ok: 'bg-emerald-50 border-emerald-300 text-emerald-900',
+      ok: 'bg-[#f4ebd9] border-[#d6c7ab] text-[#2c221e]',
       bad: 'bg-[#f9f5eb] border-[#8c2d36]/50 text-[#8c2d36]'
     };
     return <span className={`px-2 py-1 rounded-lg border text-xs font-bold ${tones[tone]}`}>{text}</span>;
@@ -728,14 +728,14 @@ export default function AceOfCardsTable({
 
             {/* 符合的效果 */}
             {pickedCards.length >= 2 && (
-              <div className={`p-2.5 rounded-xl border ${matches.length > 0 ? 'bg-emerald-50 border-emerald-300' : 'bg-[#fbf7ee] border-[#d6c7ab]'}`}>
+              <div className={`p-2.5 rounded-xl border ${matches.length > 0 ? 'bg-[#fffdf9] border-[#3c2415]' : 'bg-[#fbf7ee] border-[#d6c7ab]'}`}>
                 <div className="flex items-center gap-1.5 text-[11px] font-bold mb-1.5">
                   {matches.length > 0 ? (
-                    <GiCheckMark className="w-3.5 h-3.5 text-emerald-700" />
+                    <GiCheckMark className="w-3.5 h-3.5 text-[#3c2415]" />
                   ) : (
                     <GiHazardSign className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   )}
-                  <span className={matches.length > 0 ? 'text-emerald-900' : 'text-[#3c2415]'}>
+                  <span className={matches.length > 0 ? 'text-[#2c221e]' : 'text-[#3c2415]'}>
                     {matches.length === 0
                       ? '這組牌不符合任何效果——仍可打出（花 MP、棄牌、補抽），但不會產生效果'
                       : matches.length === 1
@@ -763,8 +763,8 @@ export default function AceOfCardsTable({
                               ? 'bg-[#f4ebd9] border-[#3c2415] ring-2 ring-[#3c2415]'
                               : 'bg-[#fffdf9] border-[#d6c7ab]'
                             : on
-                              ? 'bg-white border-emerald-500 ring-2 ring-emerald-400'
-                              : 'bg-white/60 border-emerald-200'
+                              ? 'bg-white border-[#3c2415] ring-2 ring-[#3c2415]'
+                              : 'bg-white/60 border-[#d6c7ab]'
                         }`}
                       >
                         <span className="flex items-center gap-1.5 flex-wrap">
@@ -795,7 +795,7 @@ export default function AceOfCardsTable({
 
                 {/* 狀態滿貫：選兩種狀態 */}
                 {effective?.id === 'fullStatus' && (
-                  <div className="mt-2 pt-2 border-t border-emerald-200">
+                  <div className="mt-2 pt-2 border-t border-[#d6c7ab]">
                     <div className={`text-[11px] font-bold ${T.text} mb-1`}>
                       {effective.highest % 2 === 0
                         ? '選兩種狀態：你與每個可見盟友從這兩種狀態恢復（需已選 2 種）'
@@ -810,7 +810,7 @@ export default function AceOfCardsTable({
                             type="button"
                             onClick={() => toggleStatusPick(k)}
                             className={`px-2 py-1 rounded-lg border text-[11px] font-bold cursor-pointer transition-all ${
-                              on ? 'bg-white border-emerald-500 ring-2 ring-emerald-400 text-emerald-900' : 'bg-white/60 border-emerald-200 text-[#6b5a4b]'
+                              on ? 'bg-white border-[#3c2415] ring-2 ring-[#3c2415] text-[#2c221e]' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
                             }`}
                           >
                             {STATUS_AFFLICTIONS[k]?.name || k}
@@ -982,13 +982,13 @@ export default function AceOfCardsTable({
                   )}
 
                   {trapDiscarded && (
-                    <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-300">
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-900 mb-1">
+                    <div className="p-2 rounded-lg bg-[#f9f5eb] border border-[#d6c7ab]">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#2c221e] mb-1">
                         <GiCardDraw className="w-3.5 h-3.5" />
                         <span>免費咒語動作：總 MP ≤ {trapCap}（MP 仍須自付）</span>
                       </div>
                       {trapSpells.length === 0 ? (
-                        <p className="text-t12 text-emerald-900">
+                        <p className="text-t12 text-[#2c221e]">
                           沒有總 MP ≤ {trapCap} 的咒語可施放
                         </p>
                       ) : (
@@ -1004,7 +1004,7 @@ export default function AceOfCardsTable({
                                 onClick={() => castTrapSpell(sp)}
                                 className={`w-full text-left px-2 py-1 rounded-lg border text-[11px] ${
                                   affordable
-                                    ? 'bg-white border-emerald-400 cursor-pointer hover:bg-emerald-100'
+                                    ? 'bg-white border-[#3c2415] cursor-pointer hover:bg-[#f4ebd9]'
                                     : 'bg-[#fffdf9] border-[#e8dcc4] text-[#7c6a58] cursor-not-allowed'
                                 }`}
                               >

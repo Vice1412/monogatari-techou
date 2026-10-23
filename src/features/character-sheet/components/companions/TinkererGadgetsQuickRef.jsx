@@ -180,7 +180,7 @@ export default function TinkererGadgetsQuickRef({
               <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#8c2d36]/50 text-[#8c2d36] font-medium">
                 吸血【汲取】
               </span>
-              <span className="px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-300 text-emerald-900 font-medium">
+              <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#2c221e] font-medium">
                 毒液【毒】
               </span>
             </>
@@ -328,10 +328,10 @@ export default function TinkererGadgetsQuickRef({
                       </p>
                     </div>
 
-                    <div className="p-2 rounded-lg bg-white/90 border border-emerald-200/70 space-y-0.5">
-                      <div className="font-bold text-emerald-950 flex items-center justify-between">
+                    <div className="p-2 rounded-lg bg-white/90 border border-[#d6c7ab] space-y-0.5">
+                      <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>毒液</span>
-                        <span className="text-[10px] font-mono text-emerald-700 font-bold">2 IP</span>
+                        <span className="text-[10px] font-mono text-[#3c2415] font-bold">2 IP</span>
                       </div>
                       <div className="text-[11px] leading-relaxed">
                         {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【毒】屬性，且目標陷入中毒狀態。')}

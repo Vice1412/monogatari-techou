@@ -1097,6 +1097,10 @@ check(
 const REGISTERED_HEX = new Set([
   // 三階面
   '#fbf7ee', '#f4ebd9', '#fffdf9',
+  // 第四階面：panel（設計文件 §01 明列的四階紙之一）。
+  // 第二十九輪補進來：它全站用了 121 處、`WarningNote` 也用它，卻一直不在這張表裡——
+  // 因為下面那條「只用登記色票」的護欄只掃 7 個同伴檔，從來沒掃到它。
+  '#f9f5eb',
   // 兩階邊界／分隔
   '#d6c7ab', '#e8dcc4',
   // 四階墨
@@ -2481,6 +2485,195 @@ check(
   'H25-d WarningNote 自身零色相令牌（只有墨階與登記危險紅）',
   warnFamHits.length === 0,
   warnFamHits.length ? `${warnFamHits.length} 個：${[...new Set(warnFamHits)].slice(0, 4).join('、')}` : '0 處'
+);
+
+// H26：`emerald`／`green` 家族（第二十九輪）。
+//
+// 開場實測 213 個令牌／20 檔。它同時在當：
+// 物種 PLANT 的身份色、翡翠青主題的徽章、味表「苦味」的身份色、
+// **成功**（勾勾、toast、已選定）、**選中／已選**（邊框與 ring）、
+// **主動作**（綠色確認鈕）、**量**（數值字）、**面板外殼**（整個同伴面板被漆成綠色）。
+//
+// 判準照抄 §CI33～§CI35：先問「這個色相被哪張身份表登記走了」。答案有三張——
+// `speciesThemes` 的 `sp_plant`、`JRPGBadge` 的 `green`（翡翠青主題）、
+// `GourmetCookbook` 的 `苦味`（味表，chip ＋ 圓點）。所以它是**保留色**。
+//
+// 但這一輪比紅更難的地方在「成功」：紅有 `✕`、警示有 `GiHazardSign`，
+// **成功原本只有顏色**。所以這一輪先把替代符號定下來——`✓`（第二十八輪在
+// 「已選定弱點」那行已經無意間用了第一個），然後成功一律走「✓ ＋ 墨階」。
+const GREEN_FAMS = /(?:[a-z-]+:)*(?:text|bg|border|border-[lrtbxy]|ring|ring-offset|divide|from|via|to|fill|stroke|placeholder|shadow|outline|decoration|accent|caret)-(?:emerald|green)-\d{2,3}(?:\/\d+)?/g;
+
+// H26：令牌只准出現在三張身份表的那幾行（硬零 ＋ 白名單）。
+//
+// 白名單用「檔名 ＋ 該行必須長什麼樣」而不是行號：行號會隨任何一次編輯位移，
+// 而位移之後的護欄會開始保護錯的地方——那種護欄比沒有更糟。
+const GREEN_ALLOWED = [
+  { file: 'src/components/ui/JRPGBadge.jsx', re: /^\s*green: "/, why: '翡翠青主題的徽章（身份）' },
+  { file: 'src/features/npc-workshop/data/speciesThemes.jsx', re: /^\s*sp_plant: /, why: '物種 PLANT（身份）' },
+  { file: 'src/features/character-sheet/components/companions/GourmetCookbook.jsx', re: /^\s*苦味: 'bg-emerald/, why: '味表 苦味（身份）' },
+];
+const greenStray = [];
+let greenTotal = 0;
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  stripComments(fs.readFileSync(abs, 'utf8')).split('\n').forEach((line, i) => {
+    const hits = line.match(GREEN_FAMS);
+    if (!hits) return;
+    greenTotal += hits.length;
+    const ok = GREEN_ALLOWED.some((w) => w.file === rel && w.re.test(line));
+    if (!ok) greenStray.push(`${rel}:${i + 1} → ${hits.join(' ')}`);
+  });
+}
+check(
+  'H26 emerald／green 只准出現在三張身份表的登記行（硬零＋白名單）',
+  greenStray.length === 0,
+  greenStray.length
+    ? `${greenStray.length} 處：${greenStray.slice(0, 3).join('、')}`
+    : `0 處外洩／全站 ${greenTotal} 個令牌，全部在 ${GREEN_ALLOWED.length} 張身份表`
+);
+
+// H26-a：白名單檔裡的每一行，都必須以該表自己的鍵開頭（逐項／行級）。
+//
+// 為什麼要這一條：H26 的白名單是「這個檔案的這一行可以有色相」。如果不逐項檢查，
+// 有人可以在 `GourmetCookbook` 的任意新行加 `text-emerald-500`，H26 會放行——
+// 因為白名單認的是檔案，不是那一行的身份。H24-a 抓過同一個洞。
+const greenWhitelistStray = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  if (!GREEN_ALLOWED.some((w) => w.file === rel)) continue;
+  stripComments(fs.readFileSync(abs, 'utf8')).split('\n').forEach((line, i) => {
+    if (!GREEN_FAMS.test(line)) return;
+    GREEN_FAMS.lastIndex = 0;
+    const ok = GREEN_ALLOWED.some((w) => w.file === rel && w.re.test(line));
+    if (!ok) greenWhitelistStray.push(`${rel}:${i + 1} → ${line.trim().slice(0, 48)}`);
+  });
+}
+check(
+  'H26-a 白名單檔裡每個 emerald／green 令牌都在該表的登記行（逐項）',
+  greenWhitelistStray.length === 0,
+  greenWhitelistStray.length ? `${greenWhitelistStray.length} 行：${greenWhitelistStray.slice(0, 3).join('、')}` : `${GREEN_ALLOWED.length} 張表、逐行乾淨`
+);
+
+// H26-b：綠色原階 hex 全站硬零——只有珠色身份表可以留。
+//
+// `technospheres.js` 的 `MNEMOSPHERE_BEAD_TINTS` 是 §CI35 正式承認的身份色票池
+// （H24-b 的唯一出口），所以它同時是紅與綠的例外。其餘地方一個都不准。
+const GREEN_HEXES = [
+  '#ecfdf5', '#d1fae5', '#a7f3d0', '#6ee7b7', '#34d399', '#10b981', '#059669', '#047857', '#065f46', '#064e3b',
+  '#f0fdf4', '#dcfce7', '#bbf7d0', '#86efac', '#4ade80', '#22c55e', '#16a34a', '#15803d', '#166534', '#14532d', '#052e16',
+];
+const greenHexStray = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  if (rel === BEAD_TABLE) continue;
+  const body = stripComments(fs.readFileSync(abs, 'utf8')).toLowerCase();
+  for (const h of GREEN_HEXES) {
+    const n = body.split(h).length - 1;
+    if (n) greenHexStray.push(`${rel}：${h}×${n}`);
+  }
+}
+check(
+  `H26-b 綠色原階 hex 只准在珠色身份表（逐檔，檢查 ${GREEN_HEXES.length} 個 hex）`,
+  greenHexStray.length === 0,
+  greenHexStray.length ? greenHexStray.slice(0, 3).join('、') : `0 處／${GREEN_HEXES.length} 個 hex`
+);
+
+// H26-c：綠色 rgba 發光硬零。
+const greenGlow = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const m = stripComments(fs.readFileSync(abs, 'utf8')).match(
+    /rgba?\(\s*(?:16\s*,\s*185\s*,\s*129|5\s*,\s*150\s*,\s*105|34\s*,\s*197\s*,\s*94|22\s*,\s*163\s*,\s*74)\s*,[^)]*\)/g
+  );
+  if (m) greenGlow.push(`${rel}（${m.length}）`);
+}
+check('H26-c 綠色光暈（rgba）全站硬零', greenGlow.length === 0, greenGlow.length ? greenGlow.join('、') : '0 處');
+
+// H26-d：**反向控制**——「成功」這條通道真的存在、真的被用。
+//
+// H26／H26-a 都是「不准用綠色」。這種硬零護欄最常見的假綠，是把成功的視覺**全部刪掉**
+// 也會通過——那時綠色確實沒了，但「這裡成功了」也讀不出來了。
+// 所以這裡斷言兩件事：
+//   1. 勾勾類圖示／符號**不准**再帶色相（0 處）；
+//   2. 勾勾 ＋ 墨階的站點 ≥ 10（第二十九輪實測 13 處）。
+// 把成功全部刪光，第 2 條會失敗。
+const CHECK_ICON = /(?:GiCheckMark|CheckCircle2|<Check\b|>\s*✓|\{'✓'\}|✓)/;
+const INK_TEXT = /text-\[#(?:2c221e|3c2415|6b5a4b|7c6a58)\]/;
+let successInk = 0;
+let successHue = 0;
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  stripComments(fs.readFileSync(abs, 'utf8')).split('\n').forEach((line) => {
+    if (!CHECK_ICON.test(line)) return;
+    if (INK_TEXT.test(line)) successInk += 1;
+    if (/(?:text|bg)-(?:emerald|green)-\d/.test(line)) successHue += 1;
+  });
+}
+check(
+  'H26-d 成功走「✓ ＋ 墨階」，而且真的還在用（勾勾不得帶色相／墨階站點 ≥ 10）',
+  successHue === 0 && successInk >= 10,
+  successHue > 0 ? `${successHue} 處勾勾帶色相` : `勾勾＋墨階 ${successInk} 處／帶色相 0 處`
+);
+
+// H26-e：死變體不得回歸，替代通道必須存在。
+//
+// `JRPGBadge` 原本同時有 `green` 與 `emerald` 兩個變體，**值完全相同**——
+// `green` 被翡翠青主題指著，`emerald` 只有一個呼叫端（「目前已選」）。
+// 第二十九輪把 `emerald` 刪掉，改用語意變體 `selected`（墨框＋紙底）。
+// 這條鎖住兩件事：`emerald` 不准回來、`selected` 不准消失。
+check(
+  'H26-e 徽章沒有 `emerald` 死變體，且替代的 `selected` 存在',
+  !KNOWN_VARIANTS.has('emerald') && KNOWN_VARIANTS.has('selected'),
+  KNOWN_VARIANTS.has('emerald')
+    ? '`emerald` 死變體回歸了'
+    : KNOWN_VARIANTS.has('selected')
+      ? `${KNOWN_VARIANTS.size} 個變體／emerald 已刪、selected 在`
+      : '`selected` 不見了（已選狀態沒有形狀）'
+);
+
+// H26-f：令牌總數只減不增（預算 10）。
+//
+// 用預算而不是硬零，因為三張身份表本來就該有色相；用「只減不增」，
+// 因為綠的退化模式是**在既有出口裡加一行**（跟紅一樣），不是換一個地方。
+const GREEN_BUDGET = 10;
+check(
+  `H26-f emerald／green 令牌總數只減不增（預算 ${GREEN_BUDGET}）`,
+  greenTotal <= GREEN_BUDGET,
+  `${greenTotal} / 預算 ${GREEN_BUDGET}`
+);
+
+
+// H26-g：同伴面板的 HP 條不准借翠玉色（逐檔硬零 ＋ 反向控制）。
+//
+// 這條不是從程式碼看出來的，是**看圖看出來的**。去綠之後截了 before／after 對照，
+// 整個面板只剩一條綠——HP 條。它用的是 `#245c45`，登記色沒錯，所以 H26／H26-b
+// 都放行；但那支色相的業主是翡翠綠時鐘、風元素、花園、部分職業主題，
+// HP 條拿它表示「沒事」＝同一支色相兩個意思。
+//
+// 之所以敢拿掉：危機態本來就有文字標記（`危機 (≤N)` ＋ 危險圖示），
+// 紅綠是重複編碼；「量」真正的編碼是長度，不是顏色。
+//
+// 兩段都要：
+//   一、不准出現 `245c45`——否則會有人把它借回來；
+//   二、兩端都還要在（`#3c2415` 健康／`#8c2d36` 危機）——否則「刪掉整條」也能過。
+//
+// 掃描前一定要 stripComments：上面那段說明本身就寫了 `#245c45`，
+// 不剝註解的話這條護欄會指著自己的說明書喊違規（假紅）。
+// 平常 stripComments 是用來防假綠的，這裡剛好相反。
+const HP_BAR_FILE = 'src/features/character-sheet/components/companions/WayfarerCompanionSheet.jsx';
+const hpBarSrc = stripComments(fs.readFileSync(path.join(ROOT, HP_BAR_FILE), 'utf8'));
+const hpBorrowsJade = /245c45/.test(hpBarSrc);
+const hpHasInk = /bg-\[#3c2415\]/.test(hpBarSrc);
+const hpHasDanger = /bg-\[#8c2d36\]/.test(hpBarSrc);
+check(
+  'H26-g 同伴面板 HP 條不借翠玉色（`#245c45` 硬零，兩端墨／危險仍在）',
+  !hpBorrowsJade && hpHasInk && hpHasDanger,
+  hpBorrowsJade
+    ? 'HP 條又借了 `#245c45`（翠玉色是別人的）'
+    : !hpHasInk
+      ? '健康態的墨階不見了'
+      : !hpHasDanger
+        ? '危機態的危險紅不見了'
+        : '不借翠玉色／墨階＋危險紅兩端都在'
 );
 
 const failed = results.filter((r) => !r.ok);

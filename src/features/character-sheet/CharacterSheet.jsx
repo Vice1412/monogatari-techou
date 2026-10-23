@@ -882,11 +882,11 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
         aria-live="polite"
         className={
           toastMessage
-            ? 'fixed bottom-6 right-6 z-50 bg-white border-2 border-emerald-600 text-emerald-950 px-4 py-2.5 rounded-xl shadow-e3 flex items-center gap-2 font-medium text-xs animate-fade-in'
+            ? 'fixed bottom-6 right-6 z-50 bg-white border-2 border-[#3c2415] text-[#2c221e] px-4 py-2.5 rounded-xl shadow-e3 flex items-center gap-2 font-medium text-xs animate-fade-in'
             : 'sr-only'
         }
       >
-        {toastMessage && <GiCheckMark className="w-4 h-4 text-emerald-600 shrink-0" />}
+        {toastMessage && <GiCheckMark className="w-4 h-4 text-[#6b5a4b] shrink-0" />}
         <span>{toastMessage || ''}</span>
       </div>
     </div>

@@ -251,8 +251,8 @@ export default function CombatTracker() {
       <div className="bg-[#f5efdf] rounded-xl border border-[#d6c7ab] p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2.5">
           {isConnected ? (
-            <div className="flex items-center gap-2 text-emerald-800 font-mono font-bold">
-              <Wifi className="w-4 h-4 text-emerald-600" />
+            <div className="flex items-center gap-2 text-[#3c2415] font-mono font-bold">
+              <Wifi className="w-4 h-4 text-[#6b5a4b]" />
               <span>
                 {isHost ? 'GM 房間建立完成' : '已連線房間'}: <strong className="text-[#3c2415] bg-[#fbf3de] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{roomCode}</strong>
               </span>
