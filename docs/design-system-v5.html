@@ -80,11 +80,11 @@
 <header class="top">
   <p class="kicker">MONOGATARI TECHOU · DESIGN SYSTEM v5</p>
   <h1>全程淺色 · 冷暖分層</h1>
-  <p class="sub">這份文件是《物語手帳》的設計系統單頁參考：色票、字階、形狀、六種語意各自該走哪條通道，以及<b>讓它不會退化的 176 條護欄</b>。所有數字都是 2026-10-23 第二十七輪結束時的實測值。</p>
+  <p class="sub">這份文件是《物語手帳》的設計系統單頁參考：色票、字階、形狀、六種語意各自該走哪條通道，以及<b>讓它不會退化的 181 條護欄</b>。所有數字都是 2026-10-23 第二十八輪結束時的實測值。</p>
   <div class="meta">
-    <span>第二十七輪 · <b>§CI35 紅兌現</b></span>
-    <span>護欄 <b>176</b> 條</span>
-    <span>色相家族 <b>337</b> 處</span>
+    <span>第二十八輪 · <b>§CI36 警示有了形狀</b></span>
+    <span>護欄 <b>181</b> 條</span>
+    <span>色相家族 <b>336</b> 處</span>
     <span>新增 hex <b>0</b></span>
   </div>
 </header>
@@ -172,11 +172,44 @@
       <tr><td>狀態異常</td><td>危險極性</td><td><span class="chip dgr">狀態</span> <code>border-[#8c2d36]</code></td></tr>
       <tr><td>標記（公測）</td><td>符號 ＋ 墨階</td><td><span class="chip">△ 公測</span><span class="chip">※ 祕技</span></td></tr>
       <tr><td>分類（學派）</td><td>文字</td><td><span class="chip">熵</span> 學派名寫出來，不用 2px 彩色圓點</td></tr>
-      <tr><td><b>警示</b></td><td><b>零色 ＋ 符號</b></td><td><span class="chip">▲ 不支援</span> <code>bg-[#f9f5eb] border-l-4 border-[#3c2415]</code></td></tr>
+      <tr><td><b>警示</b></td><td><b>零色 ＋ 圖示磚</b></td><td><span class="chip">✕ 不支援</span> <code>&lt;WarningNote&gt;</code>：紙底 ＋ 方形圖示磚 ＋ <code>GiHazardSign</code></td></tr>
       <tr><td><b>主動作</b></td><td><b>登記強調色</b></td><td><span class="chip dgr">匯出</span> <code>bg-[#a63d40] hover:bg-[#8c3235]</code></td></tr>
     </tbody>
   </table>
-  <div class="note"><b>警示為甚麼沒有顏色。</b>一個單一強調色的系統裡，紅只有一個名額。如果警示也拿紅，真正會弄壞資料的那顆按鈕就不再顯眼。所以界線畫在符號上：<b>提醒</b>用零色 ＋ <code>▲</code>，<b>危險</b>用 <code>#8c2d36</code> ＋ <code>✕</code>，<b>主動作</b>用 <code>#a63d40</code>。代價是掃視時警示不再跳出來——這是刻意的取捨，不是疏漏。</div>
+  <div class="note"><b>警示為甚麼沒有顏色，以及它靠甚麼被看見。</b>一個單一強調色的系統裡，紅只有一個名額。如果警示也拿紅，真正會弄壞資料的那顆按鈕就不再顯眼。所以界線畫在符號上：<b>提醒</b>用零色 ＋ 方形圖示磚，<b>危險</b>用 <code>#8c2d36</code> ＋ <code>✕</code>，<b>主動作</b>用 <code>#a63d40</code>。<br><br><b>第二十八輪把「警示長什麼樣」實測了一遍。</b>三個真實情境截圖對照，讀得出來的兩個（<code>ErrorBoundary</code> inline、<code>ChapterDevWarningModal</code>）都有<b>方形圖示磚</b>；讀不出來的那個（Boss 技能超額）沒有磚，而且它跟「步驟 N」導言<b>穿著同一組 class</b>。<br>結論不是「零色錯了」，是<b>零色之後形狀成了唯一通道，而形狀沒有所有權</b>。修法：8 個步驟導言脫掉框，警示收成 <code>WarningNote</code>（紙底 <code>#f9f5eb</code> ＋ 磚底 <code>#f4ebd9</code> ＋ 磚框 <code>#d6c7ab</code> ＋ <code>GiHazardSign</code>，五個部位與那兩個讀得出來的樣本逐項相同）。</div>
+
+  <h3 id="warn-shape">警示的形狀：一種形狀，兩種語氣（第二十八輪新增）</h3>
+  <div class="grid g2">
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="background:#f9f5eb;border:1px solid #d6c7ab;border-radius:2px;padding:12px 14px;margin:14px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="width:28px;height:28px;flex:0 0 28px;background:#f4ebd9;border:1px solid #d6c7ab;border-radius:2px;display:flex;align-items:center;justify-content:center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b5a4b" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 21h20L12 3z"/><path d="M12 9v6"/><path d="M12 18h.01"/></svg>
+          </span>
+          <div>
+            <p style="margin:0;font-weight:800;font-size:12px;color:#2c221e">過多的 Boss 技能</p>
+            <p style="margin:4px 0 0;font-size:12px;line-height:1.6;color:#3c2415">手冊建議：同一個 Boss 超過兩個 Boss 技能時要非常小心。</p>
+          </div>
+        </div>
+      </div>
+      <div class="sw-use" style="padding:0 14px 14px"><b>tone="note"</b>——不會壞事（手冊建議、資料落差）。<b>零色相</b>：只有墨階。</div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="background:#f9f5eb;border:1px solid rgba(140,45,54,.5);border-radius:2px;padding:12px 14px;margin:14px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="width:28px;height:28px;flex:0 0 28px;background:#f4ebd9;border:1px solid rgba(140,45,54,.5);border-radius:2px;display:flex;align-items:center;justify-content:center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8c2d36" stroke-width="2" stroke-linecap="round"><path d="M12 3 2 21h20L12 3z"/><path d="M12 9v6"/><path d="M12 18h.01"/></svg>
+          </span>
+          <div>
+            <p style="margin:0;font-weight:800;font-size:12px;color:#8c2d36">技能列表重複</p>
+            <p style="margin:4px 0 0;font-size:12px;line-height:1.6;color:#3c2415">應避免給予 Boss 來自同一個技能列表的多個技能。</p>
+          </div>
+        </div>
+      </div>
+      <div class="sw-use" style="padding:0 14px 14px"><b>tone="danger"</b>——已經出事了（違規、超額、重複）。用<b>登記危險紅</b> <code>#8c2d36</code>。</div>
+    </div>
+  </div>
+  <div class="note"><b>為甚麼是圖示磚，不是左條。</b>左條在 §CI34 之後已經被<b>出處</b>用掉（<code>EditableSkill</code>／<code>ReadOnlySkill</code>／咒語卡用它標「這張卡從哪來」）。警示再用左條就是「一個形狀兩個意思」。而且 <code>border</code> 與 <code>border-l-4</code> 是同一個 CSS 屬性——兩者寫在同一個 class 字串裡時，誰生效取決於 Tailwind 的產出順序（實測 <code>.border{</code> 24075 <code>&lt;</code> <code>.border-l-4</code> 24401），換一次版本就可能靜默失效。<b>設計系統不該把巧合當承重牆。</b></div>
 
   <h3>十二種語意各自去了哪裡（第二十七輪：red）</h3>
   <table>
@@ -235,7 +268,7 @@
 </section>
 
 <section>
-  <h2><span class="no">07</span>護欄：讓規則不會退化的 176 條斷言</h2>
+  <h2><span class="no">07</span>護欄：讓規則不會退化的 181 條斷言</h2>
   <p class="lede"><code>tests/uiSystem.test.mjs</code>。每一輪的產出不是「改好了」，是「<b>改壞了會叫</b>」。形狀只有六種：硬零、預算、集合大小、一對一、單調性、反向控制。</p>
   <table>
     <thead><tr><th style="width:90px">區段</th><th>擋的是</th><th style="width:120px">形狀</th></tr></thead>
@@ -262,22 +295,27 @@
       <tr><td><b>H24-d</b></td><td><b>呼叫端用了沒登記的徽章 variant（會靜默變成金色）</b></td><td><b>集合歸屬</b></td></tr>
       <tr><td><b>H24-e</b></td><td><b>危機／職業／冠位三種語意徽章借用色相</b></td><td><b>逐項（元素級）</b></td></tr>
       <tr><td>H24-f</td><td>紅家族令牌總數回升</td><td><b>預算（10，零餘裕）</b></td></tr>
+      <tr><td><b>H25</b></td><td><b>步驟導言穿回警示的衣服（有框／底／左條）</b></td><td><b>逐項（元素級）</b></td></tr>
+      <tr><td><b>H25-a</b></td><td><b>舊的行內警示 class 字串復辟</b></td><td><b>硬零</b></td></tr>
+      <tr><td><b>H25-b</b></td><td><b><code>border-l-4</code> 不只出現在三處出處</b></td><td><b>集合大小（恰好 3）</b></td></tr>
+      <tr><td><b>H25-c</b></td><td><b>警示沒有替代通道（<code>WarningNote</code> 四件套 ＋ ≥2 呼叫端）</b></td><td><b>反向控制</b></td></tr>
+      <tr><td>H25-d</td><td><code>WarningNote</code> 自己長出色相</td><td>硬零</td></tr>
     </tbody>
   </table>
-  <div class="note"><b>「護欄綠燈」≠「行為正確」。</b>唯一的分辨法是<b>故意弄壞，看它會不會叫</b>。第二十五輪跑了 13 個案例（10 紅 3 綠），第二十六輪 9 個（6 紅 3 綠），第二十七輪 7 個（7 紅）。其中一條新護欄的第一版就是假綠——「至少有一個」型斷言在收斂後的檔案裡必然為真。<b>而護欄永遠抓不到的一類是「兩個分支不同但意思一樣」</b>：第二十六輪有四個三元式被對映成兩個不同卻同義的值，護欄全綠，語意已經塌了，只能靠逐行讀。<br><br><b>第二十七輪補了兩個新教訓。</b>（一）護欄<b>抓得到「靜默失效」</b>：<code>JRPGBadge</code> 讀 <code>variantStyles[v] || variantStyles.gold</code>，打錯一個字只會安靜變成金色——H24-d 把「每個用到的 variant 都登記過」變成硬性檢查。（二）<b>破壞驗證本身也會假綠</b>：第一版把破壞注入到檔頭註解裡，<code>stripComments</code> 把它一起吃掉，檔案確實壞了但護欄看到的世界裡什麼都沒發生，7 案只抓到 4 案。錨點必須落在程式碼裡。</div>
+  <div class="note"><b>「護欄綠燈」≠「行為正確」。</b>唯一的分辨法是<b>故意弄壞，看它會不會叫</b>。第二十五輪跑了 13 個案例（10 紅 3 綠），第二十六輪 9 個（6 紅 3 綠），第二十七輪 7 個（7 紅）。其中一條新護欄的第一版就是假綠——「至少有一個」型斷言在收斂後的檔案裡必然為真。<b>而護欄永遠抓不到的一類是「兩個分支不同但意思一樣」</b>：第二十六輪有四個三元式被對映成兩個不同卻同義的值，護欄全綠，語意已經塌了，只能靠逐行讀。<br><br><b>第二十七輪補了兩個新教訓。</b>（一）護欄<b>抓得到「靜默失效」</b>：<code>JRPGBadge</code> 讀 <code>variantStyles[v] || variantStyles.gold</code>，打錯一個字只會安靜變成金色——H24-d 把「每個用到的 variant 都登記過」變成硬性檢查。（二）<b>破壞驗證本身也會假綠</b>：第一版把破壞注入到檔頭註解裡，<code>stripComments</code> 把它一起吃掉，檔案確實壞了但護欄看到的世界裡什麼都沒發生，7 案只抓到 4 案。錨點必須落在程式碼裡。<br><br><b>第二十八輪補了第三個教訓，方向相反：破壞驗證也是唯一能發現護欄有洞的方法。</b>H25 第一版掃「含『步驟 N：』的那一行」，第②案把 <code>className</code> 折到上一行（純排版變動），<b>當場漏抓</b>——破壞確實注入了，檔案確實壞了，護欄卻還是綠的。這不是腳本寫錯，是<b>護欄的判定單位選錯了</b>：行級判定對排版工具重排一次毫無抵抗力，而 Prettier 就是會重排。改成抓「包住『步驟 N：』的那個開標籤」才補上。<br>同時確立兩個形狀上的規矩：（一）<b>集合大小的護欄要防兩個方向</b>——<code>border-l-4</code> 用「恰好 3」而不是「≤ 3」，因為刪光出處也是退化；（二）<b>硬零護欄必須配反向控制</b>——H25／H25-a 都是「不准這樣畫」，若把警示全刪光，測試照樣全綠，所以 H25-c 斷言「那要怎麼畫」。</div>
 </section>
 
 <section>
   <h2><span class="no">08</span>現況與下一批債</h2>
   <div class="grid g4" style="margin-bottom:16px">
-    <div class="card"><div class="stat"><span class="n">337</span><span class="l">全站色相家族（−286）</span></div></div>
+    <div class="card"><div class="stat"><span class="n">336</span><span class="l">全站色相家族（−287）</span></div></div>
     <div class="card"><div class="stat"><span class="n">180</span><span class="l">同族底色＋字色行數（預算）</span></div></div>
     <div class="card"><div class="stat"><span class="n">371</span><span class="l">任意字級 / 65 檔</span></div></div>
-    <div class="card"><div class="stat"><span class="n">176</span><span class="l">護欄斷言</span></div></div>
+    <div class="card"><div class="stat"><span class="n">181</span><span class="l">護欄斷言</span></div></div>
   </div>
   <div class="card">
-    <div class="ban"><span class="ok">→</span><div><b>警示／危機的可讀性仍然沒有實測</b>——連續兩輪列它。要實跑三個真實情境（崩潰／開發警告／Boss 技能超額）各看一眼，問「一眼看得出這裡有事嗎」。</div></div>
-    <div class="ban"><span class="ok">→</span><div><b>emerald 184 ＋ green 30 = 214</b>——下一個家族，也是唯一同時背著「身份（PLANT）」與「成功」的色相。它比紅更難：紅有 <code>✕</code>、警示有 <code>▲</code>，<b>成功沒有替代符號</b>。</div></div>
+    <div class="ban"><span class="ok">→</span><div><b>警示面沒有做全站普查</b>——第二十八輪只遷了已知的 4 處（2 個檔案）。普查線索應該是「<b>有沒有方形圖示磚</b>」，不是 class 字串。</div></div>
+    <div class="ban"><span class="ok">→</span><div><b>emerald 184 ＋ green 30 = 214</b>——下一個家族，也是唯一同時背著「身份（PLANT）」與「成功」的色相。它比紅更難：紅有 <code>✕</code>、警示有 <code>GiHazardSign</code>，<b>「成功」的替代符號還沒有定論</b>。第二十八輪在「已選定弱點」那行用了 <code>✓</code>，是第一個樣本，但沒有沉澱成規則。</div></div>
     <div class="ban"><span class="ok">→</span><div><b>blue 24／cyan 29／teal 28／sky 10</b> 各被物種表登記一格，同時又是通用「資訊」色。</div></div>
     <div class="ban"><span class="ok">→</span><div><b><code>JRPGBadge</code> 仍有 8 個色相變體</b>（gold／amber／cyan／rose／green／emerald／purple／indigo），其中 <code>green</code> 與 <code>emerald</code> 的<b>值完全相同</b>——一個死變體。真正的問題是：一個通用徽章元件為甚麼需要 8 個色相？</div></div>
     <div class="ban"><span class="ok">→</span><div><b>書頁棕 <code>#8b5e34</code>＋<code>#78350f</code> 141 處</b>——跟 <code>#a63d40</code> 是兩個暖強調色，「合併還是分工」還沒有答案。</div></div>
@@ -289,8 +327,8 @@
 </section>
 
 <footer>
-  《物語手帳》設計系統 v5 ｜ 第二十七輪（§CI35 紅兌現）結束時的實測快照 ｜
-  完整裁決紀錄見 <code>docs/decisions.md</code> §CI1–§CI35，稽核手冊見 <code>docs/ui-review-refactoring-ui.md</code> §1–§31。
+  《物語手帳》設計系統 v5 ｜ 第二十八輪（§CI36 警示有了形狀）結束時的實測快照 ｜
+  完整裁決紀錄見 <code>docs/decisions.md</code> §CI1–§CI36，稽核手冊見 <code>docs/ui-review-refactoring-ui.md</code> §1–§32。
 </footer>
 
 </div>

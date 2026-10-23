@@ -9,6 +9,7 @@
 import React, { useState } from 'react';
 import { CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { GiSparkles } from 'react-icons/gi';
+import WarningNote from '../../../components/ui/WarningNote';
 
 const SectionAccordion = ({ title, icon, current, max, hideIfZeroMax = false, defaultExpanded = false, alwaysComplete = false, forceOverflow = false, children, titleColor = "text-[#2c221e]", borderColor = "border-[#d6c7ab]", isExpanded: propExpanded, onToggle, stickyTop = "top-0", isFreeMode = false }) => {
   const [localExpanded, setLocalExpanded] = useState(defaultExpanded);
@@ -38,7 +39,7 @@ const SectionAccordion = ({ title, icon, current, max, hideIfZeroMax = false, de
       </button>
       {isExpanded && (
         <div className="p-4 bg-[#fbf7ee]/60 animate-in slide-in-from-top-2 rounded-b-lg">
-          {isOverflow && <div className="mb-4 bg-[#f9f5eb] border border-[#8c2d36]/50 p-3 rounded flex items-start gap-2 text-[#8c2d36] text-xs"><AlertCircle size={16} className="shrink-0 mt-0.5 text-[#8c2d36]" /><div><strong className="block text-[#8c2d36] mb-0.5">△ 額度溢出警告</strong>您目前的選擇已超過系統允許的上限或缺少前置技能。所有標記為紅色的技能將<strong>強制失效</strong>。</div></div>}
+          {isOverflow && <WarningNote tone="danger" title="額度溢出警告" className="mb-4">您目前的選擇已超過系統允許的上限或缺少前置技能。所有標記為紅色的技能將<strong>強制失效</strong>。</WarningNote>}
           {children}
         </div>
       )}

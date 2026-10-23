@@ -54,6 +54,7 @@ import {
 } from 'react-icons/gi';
 
 import EmptyState from '../../components/ui/EmptyState';
+import WarningNote from '../../components/ui/WarningNote';
 
 import {
   DAMAGE_TYPES,
@@ -2467,18 +2468,13 @@ export default function App({
         return (
           <div className="flex flex-col h-full space-y-8 animate-in fade-in zoom-in-95 duration-500 max-w-5xl mx-auto relative pb-10 select-none">
             {unknownRole && (
-              <div className="bg-[#f9f5eb] border-l-4 border-[#3c2415] p-4 rounded text-[#3c2415] border border-[#d6c7ab]">
-                <p className="font-bold mb-1 flex items-center gap-2">
-                  <GiSparkles size={18} className="text-[#6b5a4b]" /> 這張卡的定位「{state.role}」不在本版資料裡
-                </p>
-                <p className="text-[13px] leading-relaxed">
-                  存檔會原樣保留這個字，但畫面上的數值與技能是以暴徒的基準算的。選任一個定位就會覆蓋掉原本的值。
-                </p>
-              </div>
+              <WarningNote title={<>這張卡的定位「{state.role}」不在本版資料裡</>}>
+                存檔會原樣保留這個字，但畫面上的數值與技能是以暴徒的基準算的。選任一個定位就會覆蓋掉原本的值。
+              </WarningNote>
             )}
-            <div className="bg-[#f5efdf] border-l-4 border-[#3c2415] p-4 rounded text-[#2c221e] border border-[#d6c7ab]">
-              <h3 className="font-bold mb-1 text-[#3c2415] flex items-center gap-2"><GiSparkles size={18} className="text-[#6b5a4b]" /> 步驟 1：選擇NPC的定位</h3>
-              <p className="text-sm text-[#574c43]">每個定位都擁有獨特的成長屬性。環狀捲軸已開啟，您可以無限滑動來挑選。</p>
+            <div>
+              <h3 className="font-bold text-t16 text-[#2c221e]">步驟 1：選擇NPC的定位</h3>
+              <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">每個定位都擁有獨特的成長屬性。環狀捲軸已開啟，您可以無限滑動來挑選。</p>
             </div>
 
             {/* Carousel Outer Container */}
@@ -2631,9 +2627,9 @@ export default function App({
         return (
           <div className="flex flex-col h-full space-y-4 animate-in fade-in duration-300 max-w-3xl relative">
             <div className="flex-1 overflow-y-auto pr-1 pb-16 space-y-6 custom-scrollbar">
-              <div className="bg-[#f9f5eb] border-l-4 border-[#3c2415] p-4 rounded text-[#3c2415] border border-[#e8dcc4]">
-                <h3 className="font-bold mb-1">步驟 2：分配等級與階級</h3>
-                <p className="text-sm">切換下方的等級與階級時，系統會自動為你結算基礎數值的成長，並解鎖對應的天賦里程碑！</p>
+              <div>
+                <h3 className="font-bold text-t16 text-[#2c221e]">步驟 2：分配等級與階級</h3>
+                <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">切換下方的等級與階級時，系統會自動為你結算基礎數值的成長，並解鎖對應的天賦里程碑！</p>
               </div>
 
               <div className="bg-[#fffdf9] p-5 rounded-xl border border-[#d6c7ab]">
@@ -2786,9 +2782,9 @@ export default function App({
       case 3:
         return (
           <div className="space-y-4 animate-in fade-in duration-300 max-w-3xl pb-10">
-            <div className="bg-[#f5efdf] border-l-4 border-[#3c2415] p-4 rounded text-[#2c221e] border border-[#d6c7ab]">
-              <h3 className="font-bold mb-1 text-[#3c2415]">步驟 3：設定物種</h3>
-              <p className="text-sm text-[#574c43]">物種決定了 NPC 的基本屬性、抗性加成以及獨特能力。</p>
+            <div>
+              <h3 className="font-bold text-t16 text-[#2c221e]">步驟 3：設定物種</h3>
+              <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">物種決定了 NPC 的基本屬性、抗性加成以及獨特能力。</p>
             </div>
 
             <div className={`p-6 md:p-8 rounded-xl border transition-all duration-300 ${state.selectedSpeciesId ? 'bg-[#fffdf9] border-[#d6c7ab] shadow-md' : 'bg-[#fffdf9]/60 border-[#d6c7ab] opacity-70'}`}>
@@ -3103,9 +3099,9 @@ export default function App({
       case 4:
         return (
           <div className="space-y-6 animate-in fade-in duration-300 max-w-4xl pb-10">
-            <div className="bg-[#f5efdf] border-l-4 border-[#3c2415] p-4 rounded text-[#2c221e] border border-[#d6c7ab]">
-              <h3 className="font-bold mb-1 text-[#3c2415]">步驟 4：調整數值與能力</h3>
-              <p className="text-sm text-[#574c43]">系統會根據你的定位與等級自動為你計算可用額度。請展開下方區塊完成配置。</p>
+            <div>
+              <h3 className="font-bold text-t16 text-[#2c221e]">步驟 4：調整數值與能力</h3>
+              <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">系統會根據你的定位與等級自動為你計算可用額度。請展開下方區塊完成配置。</p>
             </div>
             {/* Step 4 Sub-tabs */}
             <div className="flex bg-[#e8dec8] rounded-xl p-1 gap-1 border border-[#d6c7ab] shadow-inner">
@@ -3748,12 +3744,10 @@ export default function App({
       case 5:
         return (
           <div className="space-y-6 animate-in fade-in duration-300 max-w-4xl pb-10 relative">
-            <div className="bg-[#f5efdf] border-l-4 border-[#3c2415] p-4 rounded text-[#2c221e] border border-[#d6c7ab]">
-              <h3 className="font-bold mb-1 text-[#3c2415]">步驟 5：Boss 技能</h3>
-              <p className="text-sm text-[#574c43]">這些強大且顛覆規則的能力，只有「冠位」級別的敵人才有資格獲得。</p>
-              <div className="mt-2 p-2 bg-[#fffdf9] border border-[#d6c7ab] rounded text-[11px] text-[#574c43] leading-relaxed italic">
-                ※ 規則提醒：您可以透過替換掉相同數量的「定位技能」來獲得額外的 Boss 技能。
-              </div>
+            <div>
+              <h3 className="font-bold text-t16 text-[#2c221e]">步驟 5：Boss 技能</h3>
+              <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">這些強大且顛覆規則的能力，只有「冠位」級別的敵人才有資格獲得。</p>
+              <p className="mt-2 text-t12 text-[#6b5a4b] leading-relaxed">※ 規則提醒：您可以透過替換掉相同數量的「定位技能」來獲得額外的 Boss 技能。</p>
             </div>
 
             {/* Global Sticky Block for Step 5 */}
@@ -3804,22 +3798,14 @@ export default function App({
               {(isMoreThanTwoBossSkills || hasDuplicateBossSubCategory) && (
                 <div className="space-y-3">
                   {isMoreThanTwoBossSkills && (
-                    <div className="bg-[#f9f5eb] border border-[#d6c7ab] p-4 rounded-xl flex gap-3 items-start relative overflow-hidden">
-                      <AlertTriangle className="text-[#6b5a4b] shrink-0 mt-0.5 relative z-10" size={20} />
-                      <div className="relative z-10">
-                        <h4 className="text-sm font-bold text-[#2c221e]">過多的 Boss 技能</h4>
-                        <p className="text-xs text-[#574c43] leading-relaxed mt-1">手冊建議：在給予同一個 Boss 超過兩個 Boss 技能時要非常小心，這可能會導致戰鬥過於複雜或難以平衡。</p>
-                      </div>
-                    </div>
+                    <WarningNote title="過多的 Boss 技能">
+                      手冊建議：在給予同一個 Boss 超過兩個 Boss 技能時要非常小心，這可能會導致戰鬥過於複雜或難以平衡。
+                    </WarningNote>
                   )}
                   {hasDuplicateBossSubCategory && (
-                    <div className="bg-[#f9f5eb] border border-[#8c2d36]/50 p-4 rounded-xl flex gap-3 items-start relative overflow-hidden">
-                      <AlertTriangle className="text-[#8c2d36] shrink-0 mt-0.5 relative z-10" size={20} />
-                      <div className="relative z-10">
-                        <h4 className="text-sm font-bold text-[#8c2d36]">技能列表重複</h4>
-                        <p className="text-xs text-[#574c43] leading-relaxed mt-1">手冊建議：應避免給予 Boss 來自同一個技能列表（子類別）的多個技能。請嘗試選擇不同類型的能力以增加戰術多樣性。</p>
-                      </div>
-                    </div>
+                    <WarningNote tone="danger" title="技能列表重複">
+                      手冊建議：應避免給予 Boss 來自同一個技能列表（子類別）的多個技能。請嘗試選擇不同類型的能力以增加戰術多樣性。
+                    </WarningNote>
                   )}
                 </div>
               )}
@@ -3938,14 +3924,15 @@ export default function App({
       case 6:
         return (
           <div className="space-y-6 animate-in fade-in duration-300 max-w-4xl pb-10">
-            <div className="bg-[#f5efdf] border-l-4 border-[#8c2d36] p-4 rounded text-[#2c221e] border border-[#d6c7ab]">
-              <h3 className="font-bold mb-1 text-[#8c2d36]">步驟 6：配置負面技能</h3>
-              <p className="text-sm text-[#574c43]">為你的 NPC 配備一個顯著的弱點以換取額外的額度。</p>
+            <div>
+              <h3 className="font-bold text-t16 text-[#2c221e]">步驟 6：配置負面技能</h3>
+              <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">為你的 NPC 配備一個顯著的弱點以換取額外的額度。</p>
               {/* 「換取額度」原本兌現時沒有任何回饋——額度只反映在左側面板的數字上，
-                  而「(包含負面技能獎勵 +N)」那行寫在步驟 4。所以在這裡把兌現結果說出來。 */}
+                  而「(包含負面技能獎勵 +N)」那行寫在步驟 4。所以在這裡把兌現結果說出來。
+                  第二十八輪：`emerald-800` 換成墨階 ＋ `✓`。這是「標記」（已選定），不是成功度。 */}
               {(state.selectedNegativeSkills || []).length > 0 && (
-                <p className="text-xs text-emerald-800 font-bold mt-2 flex items-center gap-1">
-                  <GiSparkles size={12} /> 已選定弱點：定位技能額度 +{(state.selectedNegativeSkills || []).length}（在步驟 4 的「定位技能」可以看到）
+                <p className="mt-2 text-t12 text-[#3c2415] font-bold">
+                  ✓ 已選定弱點：定位技能額度 +{(state.selectedNegativeSkills || []).length}（在步驟 4 的「定位技能」可以看到）
                 </p>
               )}
             </div>
@@ -3985,9 +3972,9 @@ export default function App({
       case 7:
         return (
           <div className="space-y-4 animate-in fade-in duration-300 max-w-3xl pb-10">
-            <div className="bg-[#f5efdf] border-l-4 border-[#3c2415] p-4 rounded text-[#2c221e] border border-[#d6c7ab]">
-              <h3 className="font-bold mb-1 text-[#3c2415]">步驟 7：設定稱呼與特質</h3>
-              <p className="text-sm text-[#574c43]">為你的 NPC 起個名字，並設定頭像、特質與背景故事。</p>
+            <div>
+              <h3 className="font-bold text-t16 text-[#2c221e]">步驟 7：設定稱呼與特質</h3>
+              <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">為你的 NPC 起個名字，並設定頭像、特質與背景故事。</p>
             </div>
             <div className="bg-[#fffdf9] p-6 rounded-lg border border-[#d6c7ab] space-y-5">
               <div>
@@ -4215,9 +4202,9 @@ export default function App({
       case 8:
         return (
           <div className="space-y-4 animate-in fade-in duration-300 max-w-3xl pb-10">
-            <div className="bg-[#f5efdf] border-l-4 border-[#3c2415] p-4 rounded text-[#2c221e] border border-[#d6c7ab]">
-              <h3 className="font-bold mb-1 text-[#3c2415]">步驟 8：戰術與行動</h3>
-              <p className="text-sm text-[#574c43]">最後決定 NPC 的戰術。</p>
+            <div>
+              <h3 className="font-bold text-t16 text-[#2c221e]">步驟 8：戰術與行動</h3>
+              <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">最後決定 NPC 的戰術。</p>
             </div>
             <div className="bg-[#fffdf9] p-4 rounded-lg border border-[#d6c7ab] mb-6">
               <textarea className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded p-3 text-[#2c221e] outline-none h-48 resize-none focus:border-[#3c2415] text-sm leading-relaxed font-medium" value={state.tactics || ""} onChange={e => setState({ ...state, tactics: e.target.value })} placeholder="描述這個 NPC 在戰鬥中會怎麼行動。例如：優先攻擊施法者；血量低於一半時退到後排，改用遠程攻擊。" />

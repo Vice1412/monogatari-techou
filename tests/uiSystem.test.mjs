@@ -2350,6 +2350,139 @@ check(
   `${roseNow} / 預算 ${ROSE_TOKEN_BUDGET}`
 );
 
+// H25：警示面（第二十八輪）。
+//
+// 這一輪的起點不是「還有什麼顏色沒收」，是上一輪殘債清單的第一條：
+// **「警示的可讀性沒有實測」**（連列兩輪）。量測方式見 `scratch/r28_shot.mjs`：
+// 把三個真實情境（`ErrorBoundary` inline、`ChapterDevWarningModal`、Boss 技能超額）
+// 用 SSR ＋ chrome --headless 截圖，然後看圖回答「一眼看得出這裡有事嗎」。
+//
+// 量到的結論（截圖 `scratch/r28-inline-before.png`／`r28-modal-before.png`）：
+//   - `ErrorBoundary` inline：**讀得出來**——紅色「重試載入」按鈕承擔了訊號
+//   - `ChapterDevWarningModal`：**讀得出來**——方形圖示磚 ＋ 粗體標題 ＋ WIP 徽章
+//   - Boss 技能超額：**讀不出來**——它跟「步驟 N」的導言一模一樣
+//
+// 所以 §CI34 的取捨（零色 ＋ 符號）沒有錯，錯的是**形狀沒有所有權**：
+// `NPCWorkshop` 有 8 個「步驟 N：…」的導言穿著 `bg-[#f5efdf] border-l-4 border-[#3c2415]
+// p-4 rounded …`，於是「紙底 ＋ 左條 ＋ 粗體標題」在畫面上等於「章節導言」。
+//
+// 修法：導言脫掉那件衣服；警示收成 `WarningNote`（方形圖示磚 ＋ 細框 ＋ 紙底，無左條——
+// 左條留給「出處」）。下面四條把這件事鎖住。
+
+// H25：步驟導言不得有框／底／左條（逐項）。
+//
+// 判定單位是**元素**，不是行。這一條原本寫成「掃含『步驟 N：』的那一行」，
+// 故意破壞驗證的第②案（把 className 折到上一行）當場漏抓——護欄是綠的，
+// 但導言確實穿回了警示的衣服。行級判定對「排版工具重排一次」毫無抵抗力，
+// 所以改成：抓包住「步驟 N：」的那個開標籤，檢查它的 class。
+// 抓不到開標籤時退回行級判定——退化成舊行為，總比靜默放行好。
+const stepBoxed = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  if (!abs.endsWith('.jsx')) continue;
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const src = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const m of src.matchAll(/步驟\s*\d+\s*：/g)) {
+    const before = src.slice(0, m.index);
+    const openTag = /<h3\b[^>]*>\s*$/.exec(before);
+    const line = src.slice(before.lastIndexOf('\n') + 1, src.indexOf('\n', m.index));
+    const probe = openTag ? openTag[0] : line;
+    if (!/bg-\[#|border/.test(probe)) continue;
+    const lineNo = before.split('\n').length;
+    stepBoxed.push(`${rel}:${lineNo} → ${probe.trim().replace(/\s+/g, ' ').slice(0, 60)}`);
+  }
+}
+check(
+  'H25 步驟導言不得有框／底／左條（否則警示沒有形狀可用）',
+  stepBoxed.length === 0,
+  stepBoxed.length ? `${stepBoxed.length} 行：${stepBoxed.slice(0, 3).join('、')}` : '0 處／導言＝純標題＋說明'
+);
+
+// H25-a：舊的行內警示形狀全站硬零（逐項）。
+//
+// 這兩個 class 字串是第二十八輪之前的警示面：一個是「定位不在本版資料裡」，
+// 另一個是 Boss 那兩個（`p-4 rounded-xl flex gap-3 items-start relative overflow-hidden`）。
+// 它們現在都必須走 `WarningNote`。
+const OLD_WARNING_SHAPES = [
+  'border-l-4 border-[#3c2415] p-4 rounded',
+  'p-4 rounded-xl flex gap-3 items-start relative overflow-hidden',
+];
+const oldWarnLeft = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  stripComments(fs.readFileSync(abs, 'utf8')).split('\n').forEach((line, i) => {
+    for (const shape of OLD_WARNING_SHAPES) {
+      if (line.includes(shape)) oldWarnLeft.push(`${rel}:${i + 1} → ${shape}`);
+    }
+  });
+}
+check(
+  'H25-a 舊的行內警示形狀全站硬零（一律走 WarningNote）',
+  oldWarnLeft.length === 0,
+  oldWarnLeft.length ? `${oldWarnLeft.length} 行：${oldWarnLeft.slice(0, 3).join('、')}` : `0 處／檢查 ${OLD_WARNING_SHAPES.length} 個形狀`
+);
+
+// H25-b：`border-l-4` 恰好三處，且都在「出處」。
+//
+// 警示改用圖示磚之後，左條就只剩一個意思：**這張技能卡從哪來**。
+// 用「恰好 N 處」而不是「≤ N」：少一處代表出處的視覺被刪掉了，那也是退化。
+const LEFT_BAR_ALLOWED = {
+  'src/features/npc-workshop/components/EditableSkill.jsx': 1,
+  'src/features/npc-workshop/components/ReadOnlySkill.jsx': 1,
+  'src/features/npc-workshop/NPCWorkshop.jsx': 1,
+};
+const leftBarHits = {};
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const n = (stripComments(fs.readFileSync(abs, 'utf8')).match(/border-l-4/g) || []).length;
+  if (n) leftBarHits[rel] = n;
+}
+const leftBarBad = Object.entries(leftBarHits).filter(([rel, n]) => LEFT_BAR_ALLOWED[rel] !== n);
+check(
+  'H25-b `border-l-4` 恰好三處，且都只在出處（警示不借左條）',
+  leftBarBad.length === 0,
+  leftBarBad.length
+    ? leftBarBad.map(([rel, n]) => `${rel}（${n}）`).slice(0, 3).join('、')
+    : `3 檔各 1 處：${Object.keys(leftBarHits).map((p) => p.split('/').pop()).join('、')}`
+);
+
+// H25-c：反向控制——`WarningNote` 這個替代通道真的存在、真的有被用。
+//
+// 硬零護欄最常見的假綠是「規則生效」與「根本沒在看」長得一樣。
+// 所以 H25／H25-a 這種「不准這樣畫」的斷言，必須配一條「那要怎麼畫」的形狀斷言。
+const WARNING_NOTE = 'src/components/ui/WarningNote.jsx';
+const warningNoteSrc = stripComments(fs.readFileSync(path.join(ROOT, WARNING_NOTE), 'utf8'));
+const warningNoteMissing = [
+  ['data-warning-note', /data-warning-note/],
+  ['▲ 符號（GiHazardSign）', /GiHazardSign/],
+  ['方形圖示磚（w-7 h-7）', /w-7 h-7/],
+  ['兩種語氣', /note:\s*\{[\s\S]*?danger:\s*\{/],
+].filter(([, re]) => !re.test(warningNoteSrc)).map(([name]) => name);
+let warningNoteUsers = 0;
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  if (!abs.endsWith('.jsx')) continue;
+  if (abs.endsWith('WarningNote.jsx')) continue;
+  if (/from '[^']*WarningNote'/.test(fs.readFileSync(abs, 'utf8'))) warningNoteUsers += 1;
+}
+check(
+  'H25-c 警示的替代通道存在且被使用（WarningNote 四件套 ＋ 至少 2 個呼叫端）',
+  warningNoteMissing.length === 0 && warningNoteUsers >= 2,
+  warningNoteMissing.length
+    ? `WarningNote 缺：${warningNoteMissing.join('、')}`
+    : `${warningNoteUsers} 個呼叫端／四件套齊備`
+);
+
+// H25-d：`WarningNote` 自己不准用色相令牌。
+//
+// 它是「警示」的唯一定義，所以它只能有兩種顏色來源：墨階（`note`）與登記危險紅（`danger`）。
+// 一旦這裡出現 `bg-red-50` 之類的東西，全站每一個警示面都會跟著變色——這條是最便宜的保險。
+const WARN_FAMS = /(?:[a-z-]+:)*(?:text|bg|border|border-[lrtbxy]|ring|divide|from|via|to|fill|stroke)-(?:red|rose|pink|amber|yellow|orange|emerald|green|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|lime|slate|gray|zinc|neutral|stone)-\d{2,3}(?:\/\d+)?/g;
+const warnFamHits = warningNoteSrc.match(WARN_FAMS) || [];
+check(
+  'H25-d WarningNote 自身零色相令牌（只有墨階與登記危險紅）',
+  warnFamHits.length === 0,
+  warnFamHits.length ? `${warnFamHits.length} 個：${[...new Set(warnFamHits)].slice(0, 4).join('、')}` : '0 處'
+);
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${'='.repeat(56)}`);
 console.log(`  通過 ${results.length - failed.length} / ${results.length}${failed.length ? `　失敗 ${failed.length}` : '　（全部通過）'}`);

@@ -2936,3 +2936,176 @@ bg-transparent text-[#6b5a4b] border border-[#6b5a4b]/40
 兩次都長成同一個樣子：**你以為你驗證了，其實你驗證的是一個經過清洗的世界。**
 破壞驗證的錨點必須落在**程式碼**裡，而且最好一次注入兩處（一處程式碼、一處註解），
 確認只有前者會叫。
+
+---
+
+## 32. 警示讀不出來，不是因為它沒顏色——是因為它的衣服被導言穿走了
+
+### 32.1 這一輪不是顏色輪
+
+前面七輪都在收色相：`amber` 838 → 6、`fuchsia` 全滅、`red`／`rose`／`pink` 287 → 10。
+到了第二十七輪，殘債清單的第一條已經連續兩輪是同一句話：
+
+> **警示的可讀性還是沒有實測。**
+
+這件事一直往後推是有原因的：它不能靠讀程式碼回答，也不能靠推理回答。
+§CI34 把警示的顏色拿掉（改成「零色 ＋ 符號」）的時候，論證是完整的——
+顏色在 v5 裡是「意思」，而「這裡有事」不該跟任何身份或數值共用顏色。
+但那個論證只回答了「顏色該不該用」，沒有回答「拿掉之後還看得見嗎」。
+
+這一輪把它量掉。結論跟預期相反：**§CI34 是對的。**
+
+### 32.2 量測：把三個情境拍下來
+
+專案裡沒有 playwright，所以管線是自己搭的：`renderToStaticMarkup` 渲染真實元件
+→ 靜態 HTML 引用建置後的 `dist/assets/*.css` → `chrome --headless=new --screenshot`。
+重點是**引真的 CSS**，不是猜 class 會長怎樣。
+
+三個情境，一張表：
+
+| 情境 | 讀得出來嗎 |
+|---|---|
+| `ErrorBoundary` inline | **是** |
+| `ChapterDevWarningModal` | **是** |
+| Boss 技能超額 | **否** |
+
+### 32.3 Before：警示跟步驟導言長得一模一樣
+
+`NPCWorkshop` 的步驟導言（Before）：
+
+```jsx
+<div className="bg-[#f5efdf] border-l-4 border-[#3c2415] p-4 rounded text-[#2c221e] border border-[#d6c7ab]">
+  <h3 className="font-bold mb-1 text-[#3c2415] flex items-center gap-2">
+    <GiSparkles size={18} className="text-[#6b5a4b]" /> 步驟 1：選擇NPC的定位
+  </h3>
+  <p className="text-sm text-[#574c43]">每個定位都擁有獨特的成長屬性。……</p>
+</div>
+```
+
+`NPCWorkshop` 的警示（Before）：
+
+```jsx
+<div className="bg-[#f9f5eb] border-l-4 border-[#3c2415] p-4 rounded text-[#3c2415] border border-[#d6c7ab]">
+  <p className="font-bold mb-1 flex items-center gap-2">
+    <GiSparkles size={18} className="text-[#6b5a4b]" /> 這張卡的定位「{state.role}」不在本版資料裡
+  </p>
+  <p className="text-[13px] leading-relaxed">存檔會原樣保留這個字，但……</p>
+</div>
+```
+
+**同一個紙底、同一條左條、同一個 `rounded`、同一顆 `GiSparkles`、同一個 `text-[#6b5a4b]`。**
+差別只有底色深一階和標題標籤。
+
+這不是「風格不一致」，這是**一個形狀被兩個意思共用**。
+玩家學會的規則是「紙底＋左條＋粗字＝這一步的說明」，
+於是真正的警告出現時，他讀到的是「這一步的說明」。
+
+Boss 那兩則好一點——它們至少沒有左條，用的是 `rounded-xl` 和裸的 `AlertTriangle`。
+但「紙底＋細框＋圖示＋粗體標題」這個組合，還是跟導言同一個語族。
+
+### 32.4 判準：形狀沒有所有權
+
+§CI34 之後，警示失去了顏色這個通道，只剩形狀。
+而它的形狀**不是它專用的**——`NPCWorkshop` 有 8 個步驟導言穿著它。
+
+這是取捨時沒看到的那一半：拿掉顏色是對的，但拿掉顏色會讓「形狀」變成唯一通道，
+於是**形狀就必須有所有權**。顏色收斂到最後，剩下的是形狀的產權問題。
+
+### 32.5 After：導言脫掉，警示收成一種形狀
+
+導言不需要框。它是一段「這一步在幹甚麼」的說明：
+
+```jsx
+<div>
+  <h3 className="font-bold text-t16 text-[#2c221e]">步驟 1：選擇NPC的定位</h3>
+  <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">每個定位都擁有獨特的成長屬性。……</p>
+</div>
+```
+
+8 個全改。畫面上是**減法**：8 個大紙底方塊消失，頁面變輕，而且
+「步驟」與「警示」的距離被拉開了——它們本來就不該長得像。
+
+警示收成 `WarningNote`，形狀是**抄**那兩個讀得出來的，不是發明的：
+
+```jsx
+<span aria-hidden="true" className={`w-7 h-7 rounded-ui border flex items-center justify-center shrink-0 ${t.tile}`}>
+  <GiHazardSign className={`w-4 h-4 ${t.icon}`} />
+</span>
+```
+
+| 部位 | `ErrorBoundary` | `ChapterDevWarningModal` | `WarningNote` |
+|---|---|---|---|
+| 紙底 | `#f9f5eb` | `#f9f5eb` | `#f9f5eb` |
+| 磚底 | `#f4ebd9` | `#f4ebd9` | `#f4ebd9` |
+| 磚框 | `#d6c7ab` | `#d6c7ab` | `#d6c7ab` |
+| 圖示 | `GiHazardSign` | `GiHazardSign` | `GiHazardSign` |
+| 磚尺寸 | `w-6 h-6` | `p-2` | `w-7 h-7` |
+
+五個部位相同，只有尺寸取中間值。**在畫面上已經證明讀得出來的樣本裡，取共同的部分**——
+這比「設計一個好看的警示」可靠，因為它有證據。
+
+語氣兩種：`note`（不會壞事，零色相）與 `danger`（已經出事了，用登記的危險紅 `#8c2d36`）。
+
+### 32.6 為甚麼是圖示磚，不是左條
+
+第一版寫的是左條——跟舊警示一樣，最省事。放棄它，有兩個理由。
+
+**語意**：左條在 §CI34 之後已經被**出處**用掉了。
+`EditableSkill`／`ReadOnlySkill`／咒語卡用 `border-l-4` 標「這張技能卡從哪來」。
+警示再用左條，就是「一個形狀兩個意思」——正是這一輪要修的病。
+
+**實作（量測）**：`border` 和 `border-l-4` 是**同一個 CSS 屬性**。量建置後的 CSS：
+
+```
+.border{      offset 24075
+.border-l-4   offset 24401   → 在後，勝出
+```
+
+「`border` ＋ `border-l-4` 寫在一起，左條會生效」這件事，**現在是靠 Tailwind 的產出順序成立的**。
+換一次版本、或讓 purge 順序變一下，左條就可能被 `border` 的 1px 蓋掉，而且**不會報錯**——
+只是那條線不見了。
+
+設計系統不該把「靠巧合運作」的樣式當承重牆。改用磚之後，`WarningNote` 不需要 `border-l-4`，
+這個巧合就不再承重。
+
+### 32.7 截圖本身也會假綠
+
+第一次跑截圖，腳本回報成功：期望字串都在、PNG 都 > 12 KB、chrome 退出碼 0。
+打開圖才發現——**三個情境全部被 modal 的遮罩蓋住了**。
+
+`JRPGModal` 是 `fixed inset-0` ＋ 60% backdrop。頁面上只要有一個 modal 開著，
+它就蓋掉整個 viewport，包含那三個「頁內」情境。
+
+自檢全部通過，因為它驗的是「有沒有產出檔案」，不是「照片裡有沒有東西」。
+
+修法：拆成兩張——`inline`（關掉 modal）與 `modal`（只看彈窗）。
+作廢的第一張留著，改名 `r28-legibility-first-attempt.png`，不刪。
+
+**教訓**：自動化自檢只能證明流程跑完了，不能證明結果是對的。
+凡是「看圖」得出的結論，都必須真的看圖。
+
+### 32.8 這一輪的護欄學到甚麼
+
+前三輪的護欄課是「驗證方法會騙人」：
+第二十六輪 `stripComments` 吃掉行號，第二十七輪 `stripComments` 吃掉破壞注入。
+
+這一輪補上另一半，而且方向相反：**驗證方法也可能是唯一能發現洞的東西。**
+
+H25 第一版是行級判定——掃「含『步驟 N：』的那一行」有沒有 `bg-[#`／`border`。
+故意破壞驗證的第②案把 `className` 折到上一行，**當場漏抓**。
+破壞確實注入了，檔案確實壞了，護欄卻還是綠的。
+
+這不是腳本寫錯，是**護欄真的有洞**：行級判定對「排版工具重排一次」毫無抵抗力，
+而 Prettier 就是會重排。改成抓**包住「步驟 N：」的那個開標籤**，
+抓不到開標籤才退回行級（退化成舊行為，總比靜默放行好），重跑 7/7。
+
+如果沒有第②案，H25 會一直是綠的，而它保護的東西只要被排版工具碰一次就沒了。
+
+另外一條護欄是這輪新學的形狀——**「恰好 N」而不是「≤ N」**。
+`border-l-4` 現在只准出現在三處（都是出處）。用「≤ 3」的話，
+把三處出處刪光也是綠的，但那是退化：出處的視覺不見了。集合大小的護欄要防兩個方向。
+
+最後是**反向控制**。H25 和 H25-a 都是「不准這樣畫」，這種硬零護欄最常見的假綠是
+「規則生效」和「根本沒在看」長得一樣——把整個 `NPCWorkshop` 的警示刪光，測試照樣全綠。
+所以 H25-c 斷言「那要怎麼畫」：`WarningNote` 必須有 `data-warning-note`、`GiHazardSign`、
+`w-7 h-7`、兩種語氣，而且至少被 2 個檔案引用。
