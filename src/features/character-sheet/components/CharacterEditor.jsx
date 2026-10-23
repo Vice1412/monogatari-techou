@@ -76,6 +76,8 @@ import CreationRulesPanel from './CreationRulesPanel';
 import HeroicSkillPickerModal from './HeroicSkillPickerModal';
 import QuirkPickerModal from './QuirkPickerModal';
 import ZeroPowerBlock from './ZeroPowerBlock';
+import CampActivitiesBlock from './CampActivitiesBlock';
+import { campActivityAccess } from '../data/campActivities';
 import TechnospherePanel from './TechnospherePanel';
 import MnemosphereSection from './MnemosphereSection';
 import { isTechnosphereEnabled, getTechnosphereEquipmentSpend } from '../data/technospheres';
@@ -230,6 +232,11 @@ export default function CharacterEditor({
   // 舊存檔沒有這個欄位 → `resolveCreationRules(undefined)` 補成官方標準，行為與以前相同。
   // `creationRules` 這個 prop 保留給呼叫端明確覆寫（測試與未來的 GM 需求匯入用）。
   const rules = resolveCreationRules(creationRules ?? character.creationRules);
+
+  // 營地活動（自然奇幻手冊 p.130–133）的可用性與上限。
+  // 判定在 `data/campActivities.js`：規則是整團開關，但金手指【老大哥／歐尼醬】
+  // 另外允許「團隊沒開時仍然可以使用，且可選 3 種」——所以不能只寫 `rules.campActivities`。
+  const campAccess = campActivityAccess(character, rules);
 
   // Validation checklist（以這一團的規則驗證，不是寫死的官方標準）
   const validation = validateCharacter(character, rules);
@@ -2052,6 +2059,23 @@ export default function CharacterEditor({
                   showToast={showToast}
                 />
               )}
+
+              {/* 營地活動（自然奇幻手冊 p.130–133）：同樣是「規則沒開就整塊收掉」。
+                  但它多一個金手指出口——【老大哥／歐尼醬】明文允許「團隊沒開時仍然可以使用，
+                  且可以選 3 種」，所以判斷用 `campAccess.enabled`（規則或金手指任一成立），
+                  並在區塊裡註明是不是金手指給的（否則玩家會以為 GM 開了規則）。 */}
+              {campAccess.enabled && (
+                <CampActivitiesBlock
+                  character={character}
+                  theme={theme}
+                  mode="edit"
+                  allowance={campAccess.allowance}
+                  quirkGrant={campAccess.quirkGrant}
+                  onChange={(campActivities) => updateField('campActivities', campActivities)}
+                  showToast={showToast}
+                />
+              )}
+
 
               {/* 英雄技能：開卡規則沒開「開局英雄技能」、又還沒精通任何職業時，這裡
                   **完全沒有可做的事**——原書 p.232 的取得條件是「將一個職業提升到 10 級」，

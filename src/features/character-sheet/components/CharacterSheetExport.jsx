@@ -11,6 +11,13 @@ import { ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
 import { buildCustomWeaponEntries } from '../data/customWeapons';
 import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
 import { isInitiativeVariant } from '../data/initiativeVariant';
+import {
+  CAMP_ACTIVITY_SOURCE,
+  campActivityAccess,
+  campActivityById,
+  campActivityTargetLabel,
+  normalizeCampActivities
+} from '../data/campActivities';
 import { buildImagePdf, dataUrlToBytes } from '../utils/pdfWriter';
 
 /**
@@ -383,6 +390,16 @@ export const buildSheetModel = (character, stats = null) => {
     page3Spells: spellRows.slice(7, 21),
     disciplines,
     quirk: ch.quirk && ch.quirk !== '無' ? ch.quirk : '',
+    // 營地活動（自然奇幻手冊 p.130–133）：表上只印「選了哪幾種＋目標」，
+    // 規則全文與 1d6 表格留在跑團面板（那張表在紙上會把 P2 擠爆）。
+    // 規則沒開、金手指也沒給 → 空陣列，整格不出現（舊角色不受影響）。
+    campActivities: (() => {
+      if (!campActivityAccess(ch).enabled) return [];
+      return normalizeCampActivities(ch.campActivities).picked
+        .map((id) => campActivityById(id))
+        .filter(Boolean)
+        .map((a) => ({ id: a.id, name: a.name, target: campActivityTargetLabel(a) }));
+    })(),
     // 金手指的效果全文（表上原本只有名字，等於什麼都沒說）
     quirkDesc: (() => {
       const name = ch.quirk && ch.quirk !== '無' ? ch.quirk : '';
@@ -748,6 +765,21 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
           {model.quirkDesc ? (
             <SkillDescription desc={model.quirkDesc} sl={1} className="sheet-skill-desc" />
           ) : null}
+        </Box>
+      ) : null}
+
+      {/* 營地活動：建角時選的兩種是**規則決定**，不印在卡上就得每次回頭查編輯器。
+          只印名字與目標；「本次休息已使用」是跑團狀態，屬面板不屬紙卡。 */}
+      {model.campActivities.length ? (
+        <Box title="營地活動" note={CAMP_ACTIVITY_SOURCE} style={{ flex: '0 0 auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {model.campActivities.map((a) => (
+              <div key={a.id} style={{ fontSize: '10px', fontWeight: 700 }}>
+                {a.name}
+                <span style={{ fontSize: '8px', color: C.faint, fontWeight: 400 }}>（{a.target}）</span>
+              </div>
+            ))}
+          </div>
         </Box>
       ) : null}
 

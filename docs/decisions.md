@@ -111,6 +111,7 @@
 | CE | 投點投在哪個技能上：`applyLevelUp` 的兩條路徑都收過不存在的技能 | 缺口寫的是「不驗證技能名屬於該魔石職業」，看起來只是防禦性問題——UI 的下拉是從職業表生成的，玩家選不到錯的東西。實際量下去才發現：**測試自己就在傳不存在的技能名**（`博學士` 沒有「萬能知識」、`舞者` 沒有「舞步」），而引擎兩條路徑都是「找不到就 push」，傳什麼字串都收，一路全綠地寫進技能表。代價不是顯示怪——那筆技能會計入 `totalSkillLevels`，讓技能點預算莫名超支。修法：抽 `resolveLevelUpSkill` 純函式（回 `{ ok, maxSL, name, reason }`），三處呼叫端全接（標準／新職業／魔石，魔石用 `target.className` 而非呼叫端的 `className`），並補 `maxSL` 上限與技能名正規化。同類缺陷的另一半一併補：`validateCharacter` 加「未精通職業超過三個」的 **error**（p.228；升級路徑 §CB 已擋，但匯入與手改存檔不經過那裡），且只在離開起始等級時報，避免與 `classCountMax` 重複。`test:engine` 385 → 400、`test:technospheres` 445 → 451，六輪刻意破壞全部抓到。順帶修掉測試裡 7 處假技能名。 | 2026-10-22 |
 | CF | 魔晶石制的介面缺口：預設範本、雙重盾牌、飾品清單、依賴方向 | 引擎那半在 §CB～§CE 收掉了，介面與資料那半有四項缺口，三項同一病因：**資料層已有結構化欄位，消費端還在做字串比對**。① 預設範本的 `mnemosphere` 只寫進 `notes` 一行字——改走 `createMnemosphere`／`makeMnemosphereId`／`normalizeTechnosphereState`，用範本名稱推導穩定 id（重複套用冪等），並改掉檔頭那句已經說謊的註解。② p.133「ignore the Guardian's Dual Shield skill」：`TECHNOSPHERE_SUPPRESSED_SKILLS` 早就有，**裝備層沒接**——`getDualShieldState` 的 `learned` 是唯一節流閥（同時控制 `active`、主手盾牌合法性、選擇器列、兩處雙盾公式），改一行全部收斂；陷阱是 `modeRestrictsEquipment ≠ isTechnosphereEnabled`，`mnemospheresOnly`（p.138）把官方裝備全放回，那裡**必須**仍有效。③ `equipmentRules` 因此開始依賴 `technospheres`，原本那條「不 import」護欄必然為假——改寫成更強的不變式：`technospheres.js` **零 import** ＋ 只有單向依賴。④ 飾品實測 35 筆＝官方 29 ＋ 早期自造 6，那 6 筆保留並標 `custom: true`（刪掉會讓舊卡出現「查無此項」）。`test:technospheres` 451 → 477。 | 2026-10-22 |
 | CG | 金手指逐筆核對：46 條裡只有 11 條會改數字 | 缺口寫的是「逐筆效果比對尚未做」，實際量下去是**三層斷裂**：資料層有、引擎層沒有、測試層沒問。引擎只有兩段 `quirkName.includes(...)` 的硬編碼，只認得倖存者與束縛你的約定——另外 5 條帶明確數值（空手道、亡者歸來、機器人、墮落天使、會說話的野獸）選了一個字都不生效，而 400 多條斷言全綠。修法：`quirks[].effects` 走**封閉詞彙**（數字鍵相加、陣列鍵去重；屬性詞彙取自 `AFFINITY_BASES`），引擎新增 `getQuirkEffects`（回**固定形狀**，`body`／`option` 分開以便 breakdown 標籤不同）與 `stats.quirkEffects`；`immuneDamage` 與 `resistances` **不可合併**（亡者歸來是「免疫」、墮落天使是「抗性」，寫錯弱一半）。條件式防禦的判定點：主手要另查是不是盾牌（`mainHandDef` 查的是武器表，主手放盾時也是 `null`），否則雙盾會被誤判成空手；兩者都算在「載具防禦覆蓋」之前。多組選項（草木成精要選免疫狀態＋易傷屬性、通智幽魂三組）把 `quirkChoice` 擴成 `string | { [groupId]: optionId }`，字串形態向後相容，UI 一律包成「組」再渲染，每組都選了才准確定。其餘 35 條**不實作**並在 §CG7 分類寫明理由（敘事／章節結算／裝備載具／戰鬥內一次性）——判準是「有欄位放它，而且有東西讀那個欄位」。`test:engine` 400 → 440、`test:ui` 352 → 362。 | 2026-10-22 |
+| CH | 營地活動（自然奇幻手冊 p.130–133） | 掃 NF 全書後**最後一條會動到開卡的選用規則**（其餘章節不是已實裝就是純內容；§AG5 曾把它列「不需要」，已被本節取代）。15 種活動、目標四種、兩張 1d6 表；建角時選 2 種，金手指【老大哥／歐尼醬】給 3 種**且團隊沒開規則時仍可用**（所以門禁是 `campActivityAccess().enabled`，不是 `rules.campActivities`）。CHM 測試版有五處數字落差（探索 1／2／6、抱佛腳 2→3 點、採集 6 口味）一律照英文正式版。三項裁定：不強制整團不重複（交給 GM 審卡）、正規化不依上限截斷、規則關閉時零訊息。`test:campactivities` 127 條 | 2026-10-23 |
 
 ---
 
@@ -8663,3 +8664,103 @@ UI（`QuirkPickerBody`）一律把 `options` 包成 `[{ id: 'default', … }]` �
 引擎目前沒有徒手傷害計算（`parseDamage` 只解析武器字串）。等戰鬥輪次狀態機
 （`docs/state.md` 的剩餘覆蓋缺口）接上時才有地方消費它。這是**已知的預留**，
 不是漏掉。
+---
+
+## §CH 營地活動：自然奇幻手冊最後一條會動到開卡的選用規則（2026-10-23）
+
+### CH1. 為什麼是這一條
+
+使用者要求：「檢查自然奇幻，裡面除了金手指之外，還有什麼新的自選規則會影響到開角色卡的流程，但我們還沒實裝的嗎？」
+
+逐章掃 `Natural Fantasy Atlas`（210 頁，印刷 = PDF − 2，抽取方式見 `docs/rulebooks.md`）：
+
+| 章節 | 內容 | 現況 |
+|---|---|---|
+| p.108–111 New Options | 定制武器、金手指、**營地活動** | 前兩者已實裝（§AS／§AR～§CG），營地活動**未實裝** |
+| p.112–119 Custom Weapons | 造物專案打造武器 | 已實裝（§AS） |
+| p.120–129 Quirks | 46 條金手指 | 已實裝（§AR5／§CG） |
+| p.130–133 **Camp Activities** | 休息場景的 15 種活動，**建角時選 2 種** | **本節** |
+| p.134+ New Classic Characters | 範例角色與經典職業搭配 | 屬預設集，不影響開卡流程 |
+
+**判定依據**：只有「會改變開卡流程」的規則才算缺口。營地活動明文寫在建角步驟裡
+（p.130「Each player character chooses two different Camp Activities」），
+其餘 NF 章節不是已實裝就是純內容。§AG5 的 C 類曾把「營地活動」列為「不需要」——
+**該裁定已由本節取代**（與底力技、魔晶石制同型：當時是「先不做」，不是「不能做」）。
+
+### CH2. 官方原文 vs CHM 測試版：五處數字落差
+
+英文正式版是機制權威（`AGENTS.md` §2 規則二），CHM 漢化
+（`resources/角色卡/03_Natural_Fantasy_自然奇幻/CHM_Playtest_中文翻译/06_可选规则_营地活动Camp_Activities.md`）
+有五處與正式版不符，**一律照正式版實作**：
+
+| 項目 | CHM 測試版 | 官方正式版（實作值） |
+|---|---|---|
+| 探索 1 | 不能恢復 | 恢復正常一半的 HP 與 MP |
+| 探索 2 | 1 點庫存點 | **2 點**庫存點 |
+| 探索 6 | 只寫獲得 zenit | **3 點庫存點 ＋ 等級 × 50 z** |
+| 抱佛腳 | 2 點進度 | **3 點**造物專案進度 |
+| 採集 6 | 自選口味 | **3 份食材，味道各自任選** |
+| 提前規劃 | 先攻檢定 | 由你主持的**團體檢定**（你當領隊） |
+
+（表列六行是因為「提前規劃」與「採集 6」是兩件不同的事；實際落差五處＋一處措辭。）
+
+### CH3. 設計：一條選用規則的五個層面
+
+沿用底力技／魔晶石制的形狀（§BM／§CB），**不新增第二套模式**：
+
+1. **資料層** `data/campActivities.js`：15 筆活動（`id`／`name`／`en`／`page`／`target`／`once`／`summary`／`desc`／`table`）、
+   目標四種（自身／一個盟友／你或一個盟友／擁有美食家職業的角色）、
+   純函式（`toggleCampActivity`／`setCampActivityUsed`／`resetCampActivityUses`／`normalizeCampActivities`／
+   `campActivityIssues`）與判定入口 `campActivityAccess`。
+2. **開卡規則** `creationRules.campActivities`，預設 `false`。`resolveCreationRules` 只認真正的布林
+   （字串 `'true'`、數字 `1` 一律退回預設）——與其他開關同一條護欄。
+3. **角色資料** `character.campActivities = { picked: [], used: [] }`。舊存檔沒有這個欄位 →
+   正規化為空狀態，**不刪不改**。
+4. **建角驗證**（第 5 步）：未選滿 → warning「已選 N／M 種」；超過上限 → warning。
+   **規則關閉時一條訊息都不產生**，既有角色不受影響。
+5. **介面**：`CampActivitiesBlock` 雙模式（`edit` 建角／`play` 跑團），
+   編輯器第 5 步與跑團面板「羈絆」分頁各一處；紙卡匯出多一格「營地活動」（只印名字與目標）。
+
+### CH4. 三項裁定
+
+**① 上限 2 種，金手指【老大哥／歐尼醬】3 種。**
+
+該金手指原文（NF p.122）明寫「你可以選擇**三個**營地活動，即使團隊沒有使用這條規則」。
+所以判定不能只寫 `rules.campActivities`：
+
+- `campActivityAllowance(character)` = `max(2, quirkCampActivityCount(character))`
+- `campActivityAccess(character, rules).enabled` = 規則 **或** 金手指任一成立
+
+金手指的加值走**結構化欄位** `rulesData.quirks[].campActivityCount: 3`，
+不是 `quirkName.includes(...)`——§CG 的教訓：資料層有欄位，消費端就不准再比字串。
+（`quirkCampActivityCount` 保留一個名稱退路，只為了「未來新增同名金手指時不會靜默失效」；
+生產路徑一律先讀欄位。）
+
+**② 不強制「整團不得重複」。**
+
+原書只要求「每個角色選兩種**不同**的活動」（同一角色內不重複），
+沒有說隊友之間不能選一樣的。2026-10-21 的裁定（底力技團隊互斥整個移除，交給 GM 審卡）
+同樣適用——開卡時不做跨角色的硬約束。
+
+**③ 正規化不依上限截斷。**
+
+上限是**規則**，資料是**玩家的選擇**。GM 事後關掉規則或改小上限時，
+正規化若默默截掉第 3 筆，玩家失去的是他自己填的東西。超出上限由驗證回報，不靜默刪除。
+
+### CH5. 護欄
+
+`tests/campActivities.test.mjs` → `npm run test:campactivities`，**127 條**，已排進 `npm test` 串鏈。
+
+分段：A 資料層 15 筆／B 官方數值逐條（CHM 五處落差）／C 開卡規則開關／D 舊存檔正規化／
+E 上限與金手指／F 純函式／G 建角驗證／H 引擎整合／I 介面（原始碼門禁 ＋ SSR 雙模式）／
+J 紙卡匯出／K 原始碼衛生。
+
+**刻意破壞驗證**：把 `campActivityAllowance` 改成恆回 `CAMP_ACTIVITY_BASE_COUNT`（拿掉金手指加值）
+→ 紅 **6** 條（上限 3、金手指例外、來源標記、驗證例外、匯出）；還原後 127/127 全綠。
+
+三條容易寫錯、已被釘住的斷言：
+
+- 編輯器／跑團面板的門禁必須是 `campAccess.enabled`，**不是** `rules.campActivities`
+  （後者會讓金手指的明文例外失效）——原始碼正則同時斷言「不是後者」。
+- 驗證訊息只進 `warnings`，不進 `errors`（不擋存檔）。
+- 跑團模式的「標記使用」只出現在 `once: true` 的活動上（探索／採集／抱佛腳是當場結算，沒有「已使用」狀態）。

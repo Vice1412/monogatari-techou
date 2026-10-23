@@ -131,7 +131,13 @@ unfreeze／原始碼守門／SSR 真渲染，見 `docs/decisions.md` §BR）**�
 高階角色的額外起始魔石（28 條：逐顆等級真值、SSR 空珠座數量、起始等級 vs 角色等級）／
 【雙重盾牌】在裝備層失效（10 條：X 區段，含 `mnemospheresOnly` 必須仍有效），
 各輪皆有刻意破壞驗證，
-見 `docs/decisions.md` §BO、§BW、§BX、§BY、§BZ、§CA、§CB、§CC、§CD、§CE、§CF）**。
+見 `docs/decisions.md` §BO、§BW、§BX、§BY、§BZ、§CA、§CB、§CC、§CD、§CE、§CF）**、
+**營地活動（`test:campactivities`，127 條：15 種活動與目標／CHM 五處數字落差的逐條核對／
+開卡規則開關只認真布林／舊存檔正規化（陣列形態、去重、used ⊆ picked、不依上限截斷）／
+上限 2 與金手指【老大哥／歐尼醬】的 3 種與「團隊沒開仍可用」／純函式選取與休息回充／
+第 5 步驗證（規則關閉時零訊息、只進 warning 不擋存檔）／編輯器與跑團面板的門禁原始碼正則／
+SSR 雙模式真渲染／紙卡匯出，刻意破壞驗證紅 6 條，
+見 `docs/decisions.md` §CH）**。
 
 **剩餘覆蓋缺口**：戰鬥輪次狀態機、Fultimator 匯入匯出。
 
@@ -180,7 +186,8 @@ unfreeze／原始碼守門／SSR 真渲染，見 `docs/decisions.md` §BR）**�
 | ~~先攻變體是否套用~~ | ✅ **2026-10-21 已實裝（§BL）**：改成整團開關 `creationRules.initiativeVariant`（預設 `false`＝與核心逐字相同）。開啟後：防具先攻減值不存在、戰鬥輕甲改物防 +2／魔防 +0、先攻值不存在（顯示「不計」）、影響先攻的效果**忽略而非替換**。判定收斂在 `data/initiativeVariant.js`，`test:initiative` 95 條釘住。**NPC 端刻意未接線**（NPC 工坊沒有開卡規則面板，見 §BL5） | ✅ 已結案 |
 | ~~GitHub repo 改名~~ | **實測 `git remote -v` 已是 `https://github.com/Vice1412/monogatari-techou.git`——改名早已完成。**（2026-10-05 複驗更正） | ✅ 已結案 |
 | 英雄技能「效果文字」逐筆核對 | ✅ **115 筆全部完成**（Core 31 ＋ HF 24 ＋ NF 21 ＋ TF 18 ＋ Bonus 21，共修 20 處；見 §AJ3、§AU）。**待辦**：Playtest changelog 明列約 20 個**修訂既有技能**的項目尚未套用 | 待排程 |
-| Playtest 其餘選用規則 | 同文件還有前後排、Applause Points、Surrender、休息場景、電影式造物計畫等選用規則；本專案目前只實裝「開局英雄技能」與「高階角色起始資金」（實測 `DEFAULT_CREATION_RULES` 無相關欄位）。**另**：高度奇幻手冊的底力技（p.124–131）已於 2026-10-21 實裝，見 §BM——它**不屬** Playtest | 待裁定 |
+| ~~自然奇幻其餘選用規則~~ | ✅ **2026-10-23 已結案（§CH）**：掃 `Natural Fantasy Atlas` 全書（p.108 起 New Options）後，**除了金手指之外只剩營地活動**（p.130–133）會影響開卡流程——定制武器、金手指早已實裝，其餘章節是純內容或預設集。營地活動已完整實裝：整團開關 `creationRules.campActivities`（預設 `false`）、角色資料 `character.campActivities = { picked, used }`、建角選 2 種（金手指【老大哥／歐尼醬】給 3 種且團隊沒開仍可用）、第 5 步驗證、編輯器與跑團面板雙模式區塊、紙卡匯出。CHM 測試版五處數字落差一律照英文正式版。`test:campactivities` 127 條。**註**：§AG5 當年把「營地活動」列為「不需要」，該裁定已由 §CH 取代 | ✅ 已結案 |
+| Playtest 其餘選用規則 | 同文件還有前後排、Applause Points、Surrender、休息場景、電影式造物計畫等選用規則；本專案目前只實裝「開局英雄技能」與「高階角色起始資金」（實測 `DEFAULT_CREATION_RULES` 無相關欄位）。**另**：高度奇幻手冊的底力技（p.124–131）已於 2026-10-21 實裝，見 §BM——它**不屬** Playtest；自然奇幻的營地活動（p.130–133）已於 2026-10-23 實裝，見 §CH——同樣**不屬** Playtest | 待裁定 |
 | ~~D5 金手指選項~~ | ✅ **2026-10-22 已結案（§CF／§CG）**：「倖存者」③ IP +2、「墮落天使」③ 最大 MP +10 都已進 stats。結構性原因一併解除——金手指不再只有名稱比對：`quirks[].options`（單組）與 `quirks[].optionGroups`（多組，草木成精要選免疫狀態＋易傷屬性、通智幽魂三組）都有資料層承載，`quirkChoice` 允許 `string | { [groupId]: optionId }` | ✅ 已結案 |
 | ~~D6 官方飾品「洋蔥戒指」~~ | ✅ **2026-10-22 已結案（§CF4）**：Core p.289 的洋蔥戒指（`{ hpPerClass: 2, mpPerClass: 2 }`，2000z）已在 `rulesData.equipment.accessories`。實測該表 **35 筆** ＝ 官方 **29 筆** ＋ 本專案早期自造 **6 筆**（後者全部標 `custom: true` 並在說明尾巴註明非官方表，保留以免舊存檔出現「查無此項」） | ✅ 已結案 |
 | ~~D7 暗黑之刃【Playtest】遠程~~ | ✅ **已隨 BC1 結案**：該職業已於 2026-10-19 刪除（無官方對應），此缺陷不再存在。核心職業「暗黑之刃」的免費增益是「HP +5，職業近戰/防具」，沒有二選一歧義 | ✅ 已結案 |

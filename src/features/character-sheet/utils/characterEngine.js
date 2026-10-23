@@ -13,6 +13,12 @@ import { VARIANT_ARCANIST_HEROIC_SKILLS } from '../data/variantArcanistHeroicSki
 import { isInitiativeVariant, getArmorProfile, initiativeVariantTermLabel } from '../data/initiativeVariant';
 import { isZeroPowersEnabled, createZeroPowerState } from '../data/zeroPowers';
 import {
+  campActivityAccess,
+  campActivityIssues,
+  createCampActivityState,
+  normalizeCampActivities
+} from '../data/campActivities';
+import {
   createTechnosphereState,
   getActiveMnemospheres,
   getHeldMnemospheres,
@@ -506,6 +512,12 @@ export const createNewCharacter = (overrides = {}, rules = DEFAULT_CREATION_RULE
     // **預設是空的**：建角時不替玩家選觸發或效果（與四維屬性、羈絆、金手指同一原則）。
     // 舊存檔沒有這個欄位 → 由 `normalizeZeroPower` 收斂成空狀態，行為與以前完全相同。
     zeroPower: createZeroPowerState(),
+
+    // 營地活動（自然奇幻手冊 p.130–133 的選用規則）。
+    // **預設是空的**：建角時不替玩家挑活動（與四維屬性、羈絆、金手指、底力技同一原則）。
+    // `used` 是「直到下一次休息前限一次」的追蹤欄位，由跑團面板寫入、休息時清空。
+    // 舊存檔沒有這個欄位 → `normalizeCampActivities` 收斂成空狀態，行為與以前完全相同。
+    campActivities: createCampActivityState(),
 
     // 個人命刻 (Personal Clocks)。
     // 原書的創角八步驟（p.154）與同章都沒有命刻，所以**不預先種一條**——
@@ -2114,6 +2126,22 @@ export const validateCharacter = (char, rules = null) => {
   // 使用者裁定（2026-10-21）團隊約束交給 GM 審卡，不是開卡時的硬性規定。
   if (isZeroPowersEnabled(creation)) {
     zeroPowerIssues(char.zeroPower).forEach((issue) => {
+      warnings.push({ step: 5, field: issue.field, type: issue.type, message: issue.message });
+    });
+  }
+
+  // ── 步驟 5：營地活動（自然奇幻手冊 p.130–133 的選用規則）
+  //
+  // 「規則沒開就不管」的原則與底力技完全相同：舊角色身上殘留的 `campActivities`
+  // 資料不該在關閉後變成警告。
+  // 差別是本規則多一個**金手指出口**——【老大哥／歐尼醬】的原文寫著「如果你跑的團
+  // 沒有使用營地活動，你的角色仍然可以使用它，而且可以選 3 種」，所以判定走
+  // `campActivityAccess`（規則或金手指任一成立），不是只看開關。
+  const campAccess = campActivityAccess(char, creation);
+  if (campAccess.enabled) {
+    campActivityIssues(normalizeCampActivities(char.campActivities), {
+      allowance: campAccess.allowance
+    }).forEach((issue) => {
       warnings.push({ step: 5, field: issue.field, type: issue.type, message: issue.message });
     });
   }

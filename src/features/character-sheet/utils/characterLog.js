@@ -59,7 +59,10 @@ export const LOG_FIELD_LABELS = Object.freeze({
   identity: '身分',
   theme: '主題',
   origin: '故鄉',
-  quirk: '金手指'
+  quirk: '金手指',
+  // 營地活動（自然奇幻手冊 p.130–133）：建角選的兩種與跑團時「本次休息已使用」都會變動，
+  // 兩者都是這張卡的決定——沒有標籤的話履歷上只會出現 `[object Object]`。
+  campActivities: '營地活動'
 });
 
 /** 預設保留的最大條目數（超過時丟棄最舊的） */

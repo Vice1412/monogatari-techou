@@ -1184,3 +1184,10 @@
 *※ 仍缺（已知預留，非漏掉）：`unarmedDamageBonus` 只有顯示、沒有算進任何傷害公式——引擎目前沒有徒手傷害計算，等戰鬥輪次狀態機接上才有地方消費它。*
 
 *※ §6.1 的那五列已全部刪除。仍缺：Bonus Collection 其餘 7 項、英雄技能修訂項目、Playtest 其餘選用規則。*
+---
+
+## 2026-10-23 — 營地活動（§CH）
+
+*§1 的「原書逐條核對」清單加入 `test:campactivities`（新增護欄，見 `docs/decisions.md` §CH）。清單本身仍只是索引，正本是 `package.json` 的 `test` 串鏈。*
+
+*§6.1 未動：營地活動屬自然奇幻手冊，不屬 Playtest；那三列未決事項的狀態沒變。結案紀錄寫在 `docs/state.md` §6 與 `docs/decisions.md` §CH。*

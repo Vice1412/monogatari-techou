@@ -44,7 +44,7 @@
   - **原書逐條核對**：`test:equipment`／`test:creation`／`test:initiative`／`test:log`／
     `test:engine`／`test:projects`／`test:resources`／`test:gourmet`／`test:cards`／
     `test:presets`／`test:codex`／`test:florist`／`test:variants`／`test:aliases`／
-    `test:arcanist`／`test:zeropower`／`test:technospheres`
+    `test:arcanist`／`test:zeropower`／`test:technospheres`／`test:campactivities`
   - **介面與資料層契約**：`test:ui`／`test:datalayer`／`test:sentinel`／
     `test:npcworkshop`／`test:npcworkshopui`
   測試源碼位於受版控的 `tests/`；bundle 產物輸出至 `.test-build/`（已列入 `.gitignore`）。

@@ -57,6 +57,7 @@ export const CREATION_RULE_FIELDS = Object.freeze([
   'allowPlaytest',
   'initiativeVariant',
   'zeroPowers',
+  'campActivities',
   'technospheres'
 ]);
 
@@ -220,6 +221,22 @@ export const DEFAULT_CREATION_RULES = Object.freeze({
    */
   zeroPowers: false,
   /**
+   * 選用規則：營地活動（CAMP ACTIVITIES，自然奇幻手冊 p.130–133）。
+   *
+   * 原書 p.130：「If you use this optional rule, each Player Character gains access to
+   * two different Camp Activities, **chosen during character creation**」——它動到的正是
+   * 開卡流程：第 5 步多一個必選欄位（15 選 2），跑團時每次休息場景可以用掉其中一種。
+   *
+   * 開啟後：建角第 5 步出現營地活動區塊、角色身上多一個 `campActivities` 欄位
+   * （`{ picked, used }`）、跑團面板的休息區塊可以標記「本次休息已使用」。
+   *
+   * ※ 金手指【老大哥／歐尼醬】另外允許「團隊沒開這條規則時仍然使用，且可選 3 種」——
+   *   判定集中在 `data/campActivities.js` 的 `campActivityAccess`，不是這裡的開關。
+   *
+   * 預設 false：官方核心規則沒有營地活動（它是自然奇幻手冊的選用規則）。
+   */
+  campActivities: false,
+  /**
    * 選用規則：魔晶石（TECHNOSPHERES，科技奇幻手冊 p.132–145）。
    *
    * 這一格是**字串**不是布林，因為原書除了完整規則之外還給了三個
@@ -345,6 +362,9 @@ export const resolveCreationRules = (overrides = {}) => {
     ? given.initiativeVariant
     : d.initiativeVariant;
   const zeroPowers = typeof given.zeroPowers === 'boolean' ? given.zeroPowers : d.zeroPowers;
+  const campActivities = typeof given.campActivities === 'boolean'
+    ? given.campActivities
+    : d.campActivities;
 
   return {
     startingLevel,
@@ -361,6 +381,7 @@ export const resolveCreationRules = (overrides = {}) => {
     allowPlaytest,
     initiativeVariant,
     zeroPowers,
+    campActivities,
     technospheres
   };
 };

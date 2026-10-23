@@ -54,6 +54,8 @@ import { STATUS_AFFLICTIONS, ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
 import { hasGreaterTheriomorphosis } from '../data/theriomorphosisVariant';
 import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
 import { isZeroPowersEnabled } from '../data/zeroPowers';
+import { campActivityAccess } from '../data/campActivities';
+import CampActivitiesBlock from './CampActivitiesBlock';
 import { resolveCreationRules } from '../data/creationRules';
 import { modeRestrictsEquipment, isTechnosphereEnabled, isSkillSuppressedByTechnospheres, getLevelUpMnemosphereCandidates, MNEMOSPHERE_MAX_LEVEL } from '../data/technospheres';
 import ZeroPowerBlock from './ZeroPowerBlock';
@@ -279,6 +281,11 @@ export default function CharacterPlayHUD({
 
   const theme = getCharacterTheme(character.themeColor || themeId);
   const stats = calculateCharacterStats(character);
+  // 營地活動（自然奇幻手冊 p.130–133）：規則或金手指【老大哥／歐尼醬】任一成立就顯示。
+  // 休息場景的區塊放在「羈絆」分頁最上面——原書 p.130 明寫兩件事在同一個場景裡發生：
+  // 「Whether they perform a Camp Activity or not, characters may still use the resting
+  // scene to adjust their Bonds」。
+  const campAccess = campActivityAccess(character);
   // 先攻變體（公測 p.34）：先攻值不存在 → 顯示「不計」，副標改寫成變體說明。
   const initiativeVariant = isInitiativeVariant(character);
   const breakdown = stats.breakdown || {};
@@ -2084,6 +2091,18 @@ export default function CharacterPlayHUD({
           {/* TAB 4: 情感羈絆 (Bonds) */}
           {activeTab === 'bonds' && (
             <div className="space-y-3 animate-fade-in text-xs">
+              {/* 營地活動：休息場景的一部分（原書 p.130「進行活動與調整羈絆可以同時做」）。
+                  規則沒開、金手指也沒給 → 整塊不出現（與底力技同一個原則）。 */}
+              {campAccess.enabled && (
+                <CampActivitiesBlock
+                  character={character}
+                  theme={theme}
+                  mode="play"
+                  allowance={campAccess.allowance}
+                  quirkGrant={campAccess.quirkGrant}
+                  onChange={(campActivities) => updateField('campActivities', campActivities)}
+                />
+              )}
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="font-bold text-slate-700 flex items-center gap-1.5">
                   <GiHeartShield className="w-4 h-4 text-rose-700" />
