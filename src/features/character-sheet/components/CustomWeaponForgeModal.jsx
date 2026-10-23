@@ -225,7 +225,7 @@ export default function CustomWeaponForgeModal({
             傷害【HR + {CUSTOM_WEAPON_BASE.damageBonus}】物理、
             命中檢定與遠近類型自選、類別自選。
           </p>
-          <p className="text-[11px] text-slate-600">
+          <p className="text-t12 text-[#6b5a4b]">
             另外獲得 {CUSTOM_WEAPON_SLOTS} 個訂製能力（【迅捷】佔 2 個）。每個能力只能選一次；
             選到標「職業武器」的能力，這把武器就需要對應職業才能裝備。
           </p>
@@ -253,7 +253,7 @@ export default function CustomWeaponForgeModal({
         )}
 
         {/* 類別 */}
-        {label('武器類別', <span className="text-[11px] text-slate-500">十選一（Core p.129）</span>)}
+        {label('武器類別', <span className="text-[11px] text-[#6b5a4b]">十選一（Core p.129）</span>)}
         <div className="flex items-center gap-1.5 flex-wrap">
           {CUSTOM_WEAPON_CATEGORIES.map((cat) => {
             const on = spec.category === cat;
@@ -290,7 +290,7 @@ export default function CustomWeaponForgeModal({
         {/* 攻擊類型與命中檢定 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            {label('攻擊類型', <span className="text-[11px] text-slate-500">與類別無關</span>)}
+            {label('攻擊類型', <span className="text-[11px] text-[#6b5a4b]">與類別無關</span>)}
             <div className="flex items-center gap-1.5">
               {CUSTOM_WEAPON_RANGES.map((r) => (
                 <button
@@ -347,7 +347,7 @@ export default function CustomWeaponForgeModal({
         {/* 元素屬性 */}
         {has('elemental') && (
           <div className="space-y-1.5">
-            {label('元素屬性', <span className="text-[11px] text-slate-500">八選一</span>)}
+            {label('元素屬性', <span className="text-[11px] text-[#6b5a4b]">八選一</span>)}
             <div className="flex items-center gap-1.5 flex-wrap">
               {CUSTOM_WEAPON_ELEMENTS.map((el) => (
                 <button

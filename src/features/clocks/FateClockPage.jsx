@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { GiSparkles, GiTrashCan, GiPocketWatch, GiPalette, GiCheckMark } from 'react-icons/gi';
+import { GiSparkles, GiTrashCan, GiPocketWatch, GiPalette, GiCheckMark, GiClockwork } from 'react-icons/gi';
+import EmptyState from '../../components/ui/EmptyState';
 import JRPGButton from '../../components/ui/JRPGButton';
 import ClockTracker, { CLOCK_THEMES } from '../../components/ui/ClockTracker';
 import { JRPGInput } from '../../components/ui/JRPGInput';
@@ -8,8 +9,11 @@ import { readJSON, writeJSON } from '../../data/store';
 
 const STORAGE_KEY = STORAGE_KEYS.fateClocks;
 
-export default function FateClockPage() {
+export default function FateClockPage({ initialClocks } = {}) {
   const [clocks, setClocks] = useState(() => {
+    // 測試注入點（生產端永不傳入；不傳時行為逐字不變，見 AGENTS.md §1）。
+    // SSR 不執行事件，沒有這個入口就永遠測不到空狀態那一段。
+    if (Array.isArray(initialClocks)) return initialClocks;
     const saved = readJSON(STORAGE_KEY, null);
     if (saved) return saved;
     return [
@@ -65,22 +69,41 @@ export default function FateClockPage() {
           </p>
         </div>
 
-        <JRPGButton
-          variant="primary"
-          size="sm"
-          icon={GiSparkles}
-          onClick={handleAddClock}
-        >
-          新增進度命刻
-        </JRPGButton>
+        {clocks.length > 0 && (
+          <JRPGButton
+            variant="primary"
+            size="sm"
+            icon={GiSparkles}
+            onClick={handleAddClock}
+          >
+            新增進度命刻
+          </JRPGButton>
+        )}
       </div>
 
       {/* Clocks Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {clocks.map(clk => (
+      {clocks.length === 0 ? (
+        /* 空狀態：2026-10-23（v5.1）
+           這章原本**完全沒有空狀態**——把三顆範例命刻刪光之後，畫面只剩標題、
+           一顆按鈕與一大片空白（`clocks.map` 對空陣列就是什麼都不畫）。
+           Refactoring UI §8.4：空狀態是使用者**保證會看到**的畫面，不是例外。
+           做法與 NPC 工坊一致（同一個視覺語法：虛線框＋敘事圖示＋一句解釋＋唯一動作），
+           並且在空狀態時**不顯示**標頭那顆「新增進度命刻」——
+           同一個動作在一屏裡喊兩次，等於告訴使用者「這裡有兩件不同的事」。 */
+        <EmptyState
+          kind="fate-clocks"
+          icon={GiClockwork}
+          title="還沒有任何命刻"
+          teach="命刻用來記錄反派陰謀、倒數計時與場景危機的推進；先建立一個，再逐格填滿它。"
+          action={{ label: '建立第一個命刻', onClick: handleAddClock, icon: GiSparkles }}
+          minHeight="260px"
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {clocks.map(clk => (
           <div
             key={clk.id}
-            className="bg-[#fffdf9] rounded-xl border border-[#d6c7ab] hover:border-amber-600 p-5 shadow-sm hover:shadow-md transition-all flex flex-col items-center gap-4 relative group"
+            className="bg-[#fffdf9] rounded-xl border border-[#d6c7ab] hover:border-amber-600 p-5 hover:shadow-md transition-all flex flex-col items-center gap-4 relative group"
           >
             {/* Top Toolbar */}
             <div className="w-full flex items-center justify-between border-b border-[#d6c7ab]/80 pb-2">
@@ -95,7 +118,7 @@ export default function FateClockPage() {
               <button
                 type="button"
                 onClick={() => handleDeleteClock(clk.id)}
-                className="text-[#8c7b6c] hover:text-rose-700 p-1 transition-colors"
+                className="text-[#7c6a58] hover:text-rose-700 p-1 transition-colors"
                 title="刪除命刻"
               >
                 <GiTrashCan className="w-4 h-4" />
@@ -120,7 +143,7 @@ export default function FateClockPage() {
               <select
                 value={clk.type || 'circle'}
                 onChange={e => handleUpdateClock(clk.id, { type: e.target.value })}
-                className="bg-[#fffdf9] border border-[#d6c7ab] rounded px-2 py-1 text-[#2c221e] text-xs outline-none shadow-sm font-medium"
+                className="bg-[#fffdf9] border border-[#d6c7ab] rounded px-2 py-1 text-[#2c221e] text-xs outline-none font-medium"
               >
                 <option value="circle">圓盤時鐘</option>
                 <option value="line">線形進度</option>
@@ -136,7 +159,7 @@ export default function FateClockPage() {
                     filledSegments: Math.min(clk.filledSegments || 0, seg)
                   });
                 }}
-                className="bg-[#fffdf9] border border-[#d6c7ab] rounded px-2 py-1 text-[#2c221e] text-xs outline-none font-mono shadow-sm font-bold"
+                className="bg-[#fffdf9] border border-[#d6c7ab] rounded px-2 py-1 text-[#2c221e] text-xs outline-none font-mono font-bold"
               >
                 <option value={4}>4 格</option>
                 <option value={6}>6 格</option>
@@ -149,7 +172,7 @@ export default function FateClockPage() {
               <select
                 value={clk.theme || 'amber'}
                 onChange={e => handleUpdateClock(clk.id, { theme: e.target.value })}
-                className="bg-[#fffdf9] border border-[#d6c7ab] rounded px-2 py-1 text-[#2c221e] text-xs outline-none shadow-sm font-medium"
+                className="bg-[#fffdf9] border border-[#d6c7ab] rounded px-2 py-1 text-[#2c221e] text-xs outline-none font-medium"
               >
                 {Object.keys(CLOCK_THEMES).map(tKey => (
                   <option key={tKey} value={tKey}>
@@ -160,7 +183,8 @@ export default function FateClockPage() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-[#fffdf9] border border-amber-600 text-[#2c221e] px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 font-medium text-xs animate-fade-in">

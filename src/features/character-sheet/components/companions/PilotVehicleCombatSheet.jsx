@@ -126,22 +126,22 @@ export default function PilotVehicleCombatSheet({
   };
 
   return (
-    <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-50/80 via-white to-blue-50/60 dark:from-slate-900 dark:via-slate-800 dark:to-cyan-950/20 border border-cyan-300/80 dark:border-cyan-700/60 shadow-sm space-y-3 text-xs">
+    <div className="p-4 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-3 text-xs">
       
       {/* 頂部標題列與搭乘切換開關 */}
-      <div className="flex items-center justify-between border-b border-cyan-200 dark:border-slate-700 pb-2 flex-wrap gap-2">
+      <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
-          <div className="p-1.5 rounded-lg bg-cyan-600/10 text-cyan-600 dark:text-cyan-400">
+          <div className="p-1.5 rounded-lg bg-[#27527a]/10 text-[#27527a]">
             <GiSteeringWheel className="text-xl" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-cyan-950 dark:text-cyan-100 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-[#27527a] flex items-center gap-2">
               <span>{vehicle.name || '個人載具'}</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-800">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#27527a] border border-[#27527a]">
                 {frame.name} · 機師 SL {pilotSl}
               </span>
             </h3>
-            <p className="text-[11px] text-stone-500 dark:text-stone-400">
+            <p className="text-t12 text-[#6b5a4b]">
               乘客：{frame.passengers} 名 | 距離：{frame.distanceModifier} | 啟用模組：{(vehicle.activeModules || []).length} 個
             </p>
           </div>
@@ -151,11 +151,7 @@ export default function PilotVehicleCombatSheet({
         <button
           type="button"
           onClick={toggleMounted}
-          className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition shadow-xs cursor-pointer ${
-            isMounted
-              ? 'bg-cyan-600 hover:bg-cyan-700 text-white ring-2 ring-cyan-400/40'
-              : 'bg-stone-100 dark:bg-slate-700 hover:bg-stone-200 text-stone-700 dark:text-stone-200 border border-stone-300 dark:border-slate-600'
-          }`}
+ className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer ${ isMounted ? 'bg-[#27527a] hover:bg-[#214365] text-white ring-2 ring-[#27527a]/40' : 'bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] ' }`}
         >
           <GiSteeringWheel className="text-sm" />
           <span>{isMounted ? '駕駛中（點擊離開）' : '步行中（點擊搭乘）'}</span>
@@ -164,13 +160,13 @@ export default function PilotVehicleCombatSheet({
 
       {/* 駕駛狀態橫幅提示 */}
       {isMounted ? (
-        <div className="p-2.5 rounded-lg bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+        <div className="p-2.5 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-between flex-wrap gap-2 text-xs">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
-            <strong className="text-cyan-950 dark:text-cyan-200">
+            <span className="w-2 h-2 rounded-full bg-[#27527a]" />
+            <strong className="text-[#27527a]">
               載具已就位
             </strong>
-            <span className="text-stone-500 dark:text-stone-400">
+            <span className="text-[#6b5a4b]">
               {activeArmor.length > 0 ? `防具已切換為【${activeArmor[0].name}】` : '使用角色原防具'}
             </span>
           </div>
@@ -181,7 +177,7 @@ export default function PilotVehicleCombatSheet({
               <button
                 type="button"
                 onClick={() => handleTriggerEngineHeart(`下次造成傷害 +${engineHeartSl * 2}`)}
-                className="px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-cyan-300 dark:border-cyan-700 text-cyan-800 dark:text-cyan-300 font-bold hover:bg-cyan-50 transition"
+                className="px-2 py-0.5 rounded bg-white border border-[#27527a] text-[#27527a] font-bold hover:bg-[#f4ebd9] transition"
                 title={`引擎之心：消耗 ${frame.mpFreeHeart ? 0 : 10} MP，下次傷害 +${engineHeartSl * 2}，或減傷 ${engineHeartSl * 2}，或解除緩慢/虛弱`}
               >
                 引擎之心 ({frame.mpFreeHeart ? '0' : '10'} MP)
@@ -192,7 +188,7 @@ export default function PilotVehicleCombatSheet({
               <button
                 type="button"
                 onClick={() => showToast(frame.ipFreeCompression ? '【壓縮技術】外骨骼免費收納/召喚 (0 IP)' : '【壓縮技術】消耗 2 IP 收納/召喚載具')}
-                className="px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-cyan-300 dark:border-cyan-700 text-cyan-800 dark:text-cyan-300 font-bold hover:bg-cyan-50 transition"
+                className="px-2 py-0.5 rounded bg-white border border-[#27527a] text-[#27527a] font-bold hover:bg-[#f4ebd9] transition"
               >
                 壓縮技術 ({frame.ipFreeCompression ? '0' : '2'} IP)
               </button>
@@ -200,7 +196,7 @@ export default function PilotVehicleCombatSheet({
           </div>
         </div>
       ) : (
-        <div className="p-2 rounded-lg bg-stone-100/80 dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 text-[11px] text-stone-500 dark:text-stone-400 flex items-center justify-between">
+        <div className="p-2 rounded-lg bg-[#f4ebd9]/80 border border-[#d6c7ab] text-[11px] text-[#6b5a4b] flex items-center justify-between">
           <span>目前處於步行狀態。戰鬥中可執行「目標」動作搭乘載具。</span>
           <span className="font-mono">{renderTextWithAffinities(frame.specialRule)}</span>
         </div>
@@ -209,19 +205,19 @@ export default function PilotVehicleCombatSheet({
       {/* 啟用的武裝模組清單與一鍵攻擊 */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
-            <GiCrossedSwords className="text-cyan-600" />
+          <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
+            <GiCrossedSwords className="text-[#27527a]" />
             <span>載具武裝（{activeWeapons.length} / {frame.maxWeapons}）</span>
           </span>
           {hasStrongGrip && (
-            <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold">
+            <span className="text-[10px] text-[#9c4d16] font-bold">
               ✦ 強力握持：可用體質 (MIG) 替換其中一項命中屬性
             </span>
           )}
         </div>
 
         {activeWeapons.length === 0 ? (
-          <div className="p-3 rounded-lg border border-dashed border-stone-200 dark:border-slate-700 text-center text-stone-400">
+          <div className="p-3 rounded-lg border border-dashed border-[#d6c7ab] text-center text-[#7c6a58]">
             載具目前未裝備任何啟用的武裝模組
           </div>
         ) : (
@@ -231,13 +227,13 @@ export default function PilotVehicleCombatSheet({
                 return (
                   <div
                     key={w.id}
-                    className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-cyan-200 dark:border-slate-700 shadow-2xs flex items-center justify-between"
+                    className="p-2.5 rounded-xl bg-white border border-[#d6c7ab] flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2">
-                      <GiShield className="text-base text-cyan-600" />
+                      <GiShield className="text-base text-[#27527a]" />
                       <div>
-                        <strong className="text-stone-900 dark:text-stone-100 font-bold block">{w.name}</strong>
-                        <span className="text-[10px] text-stone-400 font-mono">DEF +2 | M.DEF +2（盾牌）</span>
+                        <strong className="text-[#2c221e] font-bold block">{w.name}</strong>
+                        <span className="text-[10px] text-[#7c6a58] font-mono">DEF +2 | M.DEF +2（盾牌）</span>
                       </div>
                     </div>
                   </div>
@@ -247,17 +243,17 @@ export default function PilotVehicleCombatSheet({
               return (
                 <div
                   key={w.id}
-                  className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-cyan-200 dark:border-slate-700 shadow-2xs space-y-1.5"
+                  className="p-2.5 rounded-xl bg-white border border-[#d6c7ab] space-y-1.5"
                 >
                   <div className="flex items-center justify-between">
-                    <strong className="text-stone-900 dark:text-stone-100 font-bold">{w.name}</strong>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-stone-100 dark:bg-slate-900 text-stone-600 dark:text-stone-400">
+                    <strong className="text-[#2c221e] font-bold">{w.name}</strong>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b]">
                       {w.category} · {w.range === 'melee' ? '近戰' : '遠程'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className="font-mono text-[11px] text-stone-600 dark:text-stone-400">
+                    <span className="font-mono text-[11px] text-[#6b5a4b]">
                       【{w.attr1} + {w.attr2}】{w.modifier > 0 ? `+${w.modifier}` : ''} | {renderTextWithAffinities(w.damage)}
                     </span>
 
@@ -266,7 +262,7 @@ export default function PilotVehicleCombatSheet({
                         <button
                           type="button"
                           onClick={() => handleRollWeapon(w, true)}
-                          className="px-2 py-0.5 rounded bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] shadow-2xs"
+                          className="px-2 py-0.5 rounded bg-[#9c4d16] hover:bg-[#833f12] text-white font-bold text-[10px] shadow-2xs"
                           title="使用強力握持：MIG 替換屬性檢定"
                         >
                           MIG檢定
@@ -275,7 +271,7 @@ export default function PilotVehicleCombatSheet({
                       <button
                         type="button"
                         onClick={() => handleRollWeapon(w, false)}
-                        className="px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs flex items-center gap-1 shadow-2xs"
+                        className="px-2.5 py-1 rounded bg-[#27527a] hover:bg-[#214365] text-white font-bold text-xs flex items-center gap-1 shadow-2xs"
                       >
                         <GiRollingDices className="text-xs" />
                         <span>攻擊</span>
@@ -291,13 +287,13 @@ export default function PilotVehicleCombatSheet({
 
       {/* 支援模組與反元素抗性展示 */}
       {activeSupport.length > 0 && (
-        <div className="pt-2 border-t border-cyan-200 dark:border-slate-700 flex flex-wrap gap-1.5 items-center">
-          <span className="text-[11px] text-stone-400 font-bold">已啟用支援模組：</span>
+        <div className="pt-2 border-t border-[#d6c7ab] flex flex-wrap gap-1.5 items-center">
+          <span className="text-[11px] text-[#7c6a58] font-bold">已啟用支援模組：</span>
           {activeSupport.map(s => (
             <span
               key={s.id}
               title={s.description}
-              className="text-[10px] font-mono px-2 py-0.5 rounded bg-white dark:bg-slate-800 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-slate-700"
+              className="text-[10px] font-mono px-2 py-0.5 rounded bg-white text-[#27527a] border border-[#d6c7ab]"
             >
               {s.name}
               {s.id === 'anti_element_module' && (

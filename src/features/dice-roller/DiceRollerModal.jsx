@@ -71,7 +71,7 @@ export default function DiceRollerModal({
       <div className="space-y-5">
         {/* Dice selectors */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-[#f5efdf] p-3 rounded-xl border border-[#d6c7ab] flex flex-col items-center gap-1.5 shadow-sm">
+          <div className="bg-[#f5efdf] p-3 rounded-xl border border-[#d6c7ab] flex flex-col items-center gap-1.5">
             <span className="text-xs text-[#6b5a4b] font-medium">第一顆骰階</span>
             <div className="flex gap-1">
               {DICE_TIERS.map(d => (
@@ -91,7 +91,7 @@ export default function DiceRollerModal({
             </div>
           </div>
 
-          <div className="bg-[#f5efdf] p-3 rounded-xl border border-[#d6c7ab] flex flex-col items-center gap-1.5 shadow-sm">
+          <div className="bg-[#f5efdf] p-3 rounded-xl border border-[#d6c7ab] flex flex-col items-center gap-1.5">
             <span className="text-xs text-[#6b5a4b] font-medium">第二顆骰階</span>
             <div className="flex gap-1">
               {DICE_TIERS.map(d => (
@@ -113,7 +113,7 @@ export default function DiceRollerModal({
         </div>
 
         {/* Modifier */}
-        <div className="flex items-center justify-between bg-[#f5efdf] p-3 rounded-xl border border-[#d6c7ab] text-xs shadow-sm">
+        <div className="flex items-center justify-between bg-[#f5efdf] p-3 rounded-xl border border-[#d6c7ab] text-xs">
           <span className="text-[#2c221e] font-medium">檢定固定加值</span>
           <div className="flex items-center gap-2">
             <button
@@ -153,35 +153,35 @@ export default function DiceRollerModal({
               ? 'bg-amber-50 border-amber-500 shadow-md'
               : rollResult.isFumble
                 ? 'bg-rose-50 border-rose-500 shadow-md'
-                : 'bg-[#f5efdf] border border-[#d6c7ab] shadow-sm'
+                : 'bg-[#f5efdf] border border-[#d6c7ab]'
           }`}>
             {rollResult.isCritical && (
-              <div className="text-amber-800 font-bold text-sm flex items-center gap-1.5 animate-bounce">
+              <div className="text-amber-800 font-bold text-sm flex items-center gap-1.5">
                 <GiTrophyCup className="w-5 h-5 text-amber-600" /> ✦ CRITICAL SUCCESS 大成功！ ✦
               </div>
             )}
 
             {rollResult.isFumble && (
-              <div className="text-rose-800 font-bold text-sm flex items-center gap-1.5 animate-pulse">
+              <div className="text-rose-800 font-bold text-sm flex items-center gap-1.5">
                 <GiHazardSign className="w-5 h-5 text-rose-600" /> [FUMBLE 大失敗]（獲得 1 點物語點）
               </div>
             )}
 
             {/* Dice Values */}
             <div className="flex items-center gap-4 my-1">
-              <div className="w-14 h-14 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono shadow-sm">
-                <span className="text-[10px] text-[#8c7b6c]">d{die1Type}</span>
+              <div className="w-14 h-14 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
+                <span className="text-[10px] text-[#7c6a58]">d{die1Type}</span>
                 <span className="text-2xl font-bold text-[#2c221e]">{rollResult.die1}</span>
               </div>
-              <span className="text-[#8c7b6c] font-mono text-xl font-bold">+</span>
-              <div className="w-14 h-14 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono shadow-sm">
-                <span className="text-[10px] text-[#8c7b6c]">d{die2Type}</span>
+              <span className="text-[#7c6a58] font-mono text-xl font-bold">+</span>
+              <div className="w-14 h-14 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
+                <span className="text-[10px] text-[#7c6a58]">d{die2Type}</span>
                 <span className="text-2xl font-bold text-[#2c221e]">{rollResult.die2}</span>
               </div>
               {rollResult.modifier !== 0 && (
                 <>
-                  <span className="text-[#8c7b6c] font-mono text-xl font-bold">+</span>
-                  <div className="w-10 h-10 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] flex items-center justify-center font-mono text-amber-800 font-bold text-sm shadow-sm">
+                  <span className="text-[#7c6a58] font-mono text-xl font-bold">+</span>
+                  <div className="w-10 h-10 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] flex items-center justify-center font-mono text-amber-800 font-bold text-sm">
                     {rollResult.modifier > 0 ? `+${rollResult.modifier}` : rollResult.modifier}
                   </div>
                 </>

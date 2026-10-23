@@ -88,7 +88,7 @@ export default function NumberStepper({
         type="button"
         disabled={disabled}
         onClick={() => onDelta(-1)}
-        className={`${baseButton} ${theme ? '' : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'}`}
+        className={`${baseButton} ${theme ? '' : 'bg-[#fbf7ee] hover:bg-[#f4ebd9] border-[#d6c7ab] text-[#3c2415]'}`}
         style={buttonStyle}
         aria-label={`${ariaLabel} -1`}
       >
@@ -120,7 +120,7 @@ export default function NumberStepper({
         type="button"
         disabled={disabled}
         onClick={() => onDelta(1)}
-        className={`${baseButton} ${theme ? '' : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'}`}
+        className={`${baseButton} ${theme ? '' : 'bg-[#fbf7ee] hover:bg-[#f4ebd9] border-[#d6c7ab] text-[#3c2415]'}`}
         style={buttonStyle}
         aria-label={`${ariaLabel} +1`}
       >

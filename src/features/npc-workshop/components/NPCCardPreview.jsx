@@ -19,6 +19,7 @@ import {
 import {
   DAMAGE_TYPES,
   AFFINITY_STATES,
+  VILLAIN_TIERS,
   TYPE_STYLES,
   ROLES_DATA,
   SPECIES_DATA,
@@ -66,12 +67,12 @@ export default function NPCCardPreview({
   return (
     <div className={`bg-[#fffdf9] rounded-xl border-2 border-[#d6c7ab] shadow-md overflow-hidden text-[#2c221e] flex flex-col relative ${className}`}>
       {/* Top Amber Bar */}
-      <div className="h-1.5 w-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700" />
+      <div className="h-1.5 w-full bg-[#8b5e34]" />
 
       {/* Header Profile */}
       <div className="p-4 sm:p-5 border-b border-[#d6c7ab] bg-[#f4ebd9] flex items-start gap-4">
         {/* Avatar */}
-        <div className="w-16 h-16 rounded-xl bg-white border border-[#d6c7ab] overflow-hidden shrink-0 flex items-center justify-center font-serif text-2xl text-amber-800 font-bold shadow-inner">
+        <div className="w-16 h-16 rounded-xl bg-white border border-[#d6c7ab] overflow-hidden shrink-0 flex items-center justify-center font-serif text-2xl text-[#3c2415] font-bold">
           {npc.avatarBase64 ? (
             <img
               src={npc.avatarBase64}
@@ -106,12 +107,12 @@ export default function NPCCardPreview({
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-[#6b5a4b] mt-1 font-mono flex-wrap">
-            <span>種族: <strong className="text-[#2c221e] font-sans font-bold">{speciesObj?.name || '無'}</strong></span>
+          <div className="flex items-center gap-2 text-xs text-[#6b5a4b] mt-1 flex-wrap">
+            <span>物種：<strong className="text-[#2c221e] font-sans font-bold">{speciesObj?.name || '無'}</strong></span>
             <span>·</span>
-            <span>定位: <strong className="text-amber-800 font-sans font-bold">{npc.role}</strong></span>
+            <span>定位：<strong className="text-[#3c2415] font-sans font-bold">{npc.role}</strong></span>
             {npc.villainTier && npc.villainTier !== 'none' && (
-              <span className="text-red-700 font-bold">★ {npc.villainTier === 'minor' ? '次要反派' : npc.villainTier === 'major' ? '主要反派' : '最終反派'}</span>
+              <span className="text-[#8c2d36] font-bold">★ {(VILLAIN_TIERS[npc.villainTier] || VILLAIN_TIERS.none).label}</span>
             )}
           </div>
 
@@ -125,7 +126,7 @@ export default function NPCCardPreview({
         {onEdit && (
           <button
             onClick={onEdit}
-            className="p-1.5 text-[#6b5a4b] hover:text-amber-800 hover:bg-[#e4d9c0] rounded-lg transition-colors shrink-0"
+            className="p-1.5 text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#e4d9c0] rounded-lg transition-colors shrink-0"
             title="編輯 NPC"
           >
             ✎
@@ -137,12 +138,12 @@ export default function NPCCardPreview({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 bg-[#fbf7ee] border-b border-[#d6c7ab]">
         {/* HP */}
         <div className="bg-[#fee2e2] rounded-lg p-2.5 border border-[#fca5a5]">
-          <div className="text-[10px] text-red-800 font-mono uppercase font-bold flex items-center gap-1">
-            <GiHealthNormal className="w-3 h-3 text-red-600" /> HP 生命值
+          <div className="text-[10px] text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
+            <GiHealthNormal className="w-3 h-3 text-[#6b5a4b]" /> HP 生命值
           </div>
-          <div className="text-base font-mono font-black text-red-900 mt-0.5">
+          <div className="text-base font-mono font-black text-[#2c221e] mt-0.5">
             {maxHp}
-            <span className="text-[10px] text-red-700 ml-1.5 font-bold inline-flex items-center gap-0.5" title={`危機值 ≤${crisisHp}`}>
+            <span className="text-[10px] text-[#6b5a4b] ml-1.5 font-bold inline-flex items-center gap-0.5" title={`危機值 ≤${crisisHp}`}>
               <span className="fu-icon text-xs leading-none translate-y-[1.5px]">w</span> {crisisHp}
             </span>
           </div>
@@ -150,31 +151,31 @@ export default function NPCCardPreview({
 
         {/* MP */}
         <div className="bg-[#dbeafe] rounded-lg p-2.5 border border-[#93c5fd]">
-          <div className="text-[10px] text-blue-800 font-mono uppercase font-bold flex items-center gap-1">
-            <GiLightningTear className="w-3 h-3 text-blue-600" /> MP 魔力值
+          <div className="text-[10px] text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
+            <GiLightningTear className="w-3 h-3 text-[#6b5a4b]" /> MP 魔力值
           </div>
-          <div className="text-base font-mono font-black text-blue-900 mt-0.5">
+          <div className="text-base font-mono font-black text-[#2c221e] mt-0.5">
             {maxMp}
           </div>
         </div>
 
         {/* Def */}
         <div className="bg-[#fef3c7] rounded-lg p-2.5 border border-[#fcd34d]">
-          <div className="text-[10px] text-amber-900 font-mono uppercase font-bold flex items-center gap-1">
-            <GiCheckedShield className="w-3 h-3 text-amber-700" /> 物防 DEF
+          <div className="text-[10px] text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
+            <GiCheckedShield className="w-3 h-3 text-[#6b5a4b]" /> 物防 DEF
           </div>
-          <div className="text-base font-mono font-black text-amber-950 mt-0.5">
+          <div className="text-base font-mono font-black text-[#2c221e] mt-0.5">
             {stats.Def}
           </div>
         </div>
 
         {/* Magic Def & Initiative */}
         <div className="bg-[#ede9fe] rounded-lg p-2.5 border border-[#ddd6fe]">
-          <div className="text-[10px] text-purple-900 font-mono uppercase font-bold flex items-center gap-1">
-            <GiCrystalBall className="w-3 h-3 text-purple-700" /> 魔防 M.DEF / 先攻 INIT
+          <div className="text-[10px] text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
+            <GiCrystalBall className="w-3 h-3 text-[#6b5a4b]" /> 魔防 M.DEF / 先攻 INIT
           </div>
-          <div className="text-base font-mono font-black text-purple-950 mt-0.5">
-            {stats.MDef} <span className="text-xs text-stone-500 font-normal">/</span> +{stats.Init}
+          <div className="text-base font-mono font-black text-[#2c221e] mt-0.5">
+            {stats.MDef} <span className="text-xs text-[#6b5a4b] font-normal">/</span> +{stats.Init}
           </div>
         </div>
       </div>
@@ -195,7 +196,7 @@ export default function NPCCardPreview({
         <div className="text-xs font-bold text-[#3c2f21] mb-2 flex items-center justify-between">
           <span>屬性抗性矩陣</span>
           {stats.statusImmunities?.length > 0 && (
-            <span className="text-[11px] text-emerald-800 font-medium">
+            <span className="text-[11px] text-[#6b5a4b] font-medium">
               免疫: {stats.statusImmunities.join(', ')}
             </span>
           )}
@@ -206,11 +207,9 @@ export default function NPCCardPreview({
             const stateCfg = AFFINITY_STATES[aff] || AFFINITY_STATES.normal;
             const style = TYPE_STYLES[type] || {};
 
-            let badgeClass = "bg-[#f5f5f4] text-stone-600 border-[#e7e5e4]";
-            if (aff === 'vul') badgeClass = "bg-red-100 text-red-900 border-red-300 font-bold";
-            if (aff === 'res') badgeClass = "bg-amber-100 text-amber-950 border-amber-300 font-bold";
-            if (aff === 'imm') badgeClass = "bg-sky-100 text-sky-950 border-sky-300 font-bold";
-            if (aff === 'abs') badgeClass = "bg-emerald-100 text-emerald-950 border-emerald-300 font-bold";
+            // 第二十二輪：這裡原本自帶一份 12 個色相令牌的狀態色表（第六份拷貝），
+            // 與 AFFINITY_STATES 各自漂移。現在直接用同一張表的 chip。
+            const badgeClass = stateCfg.chip;
 
             return (
               <div key={type} className={`rounded-md border p-1 flex flex-col items-center justify-center ${badgeClass}`}>
@@ -230,7 +229,7 @@ export default function NPCCardPreview({
         {/* Attacks */}
         {attacks.length > 0 && (
           <div>
-            <h4 className="text-xs font-mono font-bold text-amber-900 uppercase tracking-wider mb-2 flex items-center gap-1.5 border-b border-[#d6c7ab]/60 pb-1">
+            <h4 className="text-xs font-mono font-bold text-[#3c2415] uppercase tracking-wider mb-2 flex items-center gap-1.5 border-b border-[#d6c7ab]/60 pb-1">
               <span className="fu-icon text-sm">m</span> 基本攻擊
             </h4>
             <div className="space-y-2">
@@ -241,7 +240,7 @@ export default function NPCCardPreview({
                   <div key={idx} className="bg-[#fbf7ee] rounded-lg p-2.5 border border-[#d6c7ab] text-xs">
                     <div className="flex items-center justify-between font-bold text-[#3c2415] mb-1">
                       <span>{att.name || att.skillName || '普通攻擊'}</span>
-                      <span className="inline-flex items-center gap-1.5 font-mono text-stone-600">
+                      <span className="inline-flex items-center gap-1.5 font-mono text-[#6b5a4b]">
                         <span className="inline-flex items-center gap-1 text-[#3c2f21] bg-[#e8dec8] px-1.5 py-0.5 rounded text-[11px] font-bold leading-none shrink-0 shadow-2xs">
                           <span className="fu-icon text-xs leading-none translate-y-[0.5px]">{(att.selections?.distance || '').includes('遠程') ? 'r' : 'm'}</span>
                           <span>{att.selections?.distance || '近戰'}</span>
@@ -268,7 +267,7 @@ export default function NPCCardPreview({
         {/* Spells */}
         {spells.length > 0 && (
           <div>
-            <h4 className="text-xs font-mono font-bold text-blue-900 uppercase tracking-wider mb-2 flex items-center gap-1.5 border-b border-[#d6c7ab]/60 pb-1">
+            <h4 className="text-xs font-mono font-bold text-[#3c2415] uppercase tracking-wider mb-2 flex items-center gap-1.5 border-b border-[#d6c7ab]/60 pb-1">
               <span className="fu-icon text-sm">c</span> 咒語
             </h4>
             <div className="space-y-2">
@@ -277,12 +276,12 @@ export default function NPCCardPreview({
                 const rawName = normalizeSpellName(sp.name || sp.spellName || '法術');
                 return (
                   <div key={idx} className="bg-[#fbf7ee] rounded-lg p-2.5 border border-[#d6c7ab] text-xs">
-                    <div className="flex items-center justify-between font-bold text-blue-900 mb-1">
+                    <div className="flex items-center justify-between font-bold text-[#3c2415] mb-1">
                       <span className="flex items-center gap-1">
-                        {isOffensive && <span className="fu-icon text-red-600 font-bold" title="攻擊性咒語">o</span>}
+                        {isOffensive && <span className="fu-icon text-[#8c2d36] font-bold" title="攻擊性咒語">o</span>}
                         <span>{rawName}</span>
                       </span>
-                      <span className="text-[11px] font-mono text-stone-600">
+                      <span className="text-[11px] font-mono text-[#6b5a4b]">
                         MP {sp.selections?.mpCost || 10} · {sp.selections?.target || '單體'}
                       </span>
                     </div>
@@ -299,7 +298,7 @@ export default function NPCCardPreview({
         {/* Other Actions */}
         {otherActions.length > 0 && (
           <div>
-            <h4 className="text-xs font-mono font-bold text-amber-800 uppercase tracking-wider mb-2 flex items-center gap-1.5 border-b border-[#d6c7ab]/60 pb-1">
+            <h4 className="text-xs font-mono font-bold text-[#3c2415] uppercase tracking-wider mb-2 flex items-center gap-1.5 border-b border-[#d6c7ab]/60 pb-1">
               <span className="fu-icon text-sm">s</span> 其餘行動
             </h4>
             <div className="space-y-2">
@@ -327,30 +326,30 @@ export default function NPCCardPreview({
         {/* Boss Skills, Negative Skills & Special Rules */}
         {(bossSkills.length > 0 || rules.length > 0) && (
           <div>
-            <h4 className="text-xs font-mono font-bold text-red-900 uppercase tracking-wider mb-2 flex items-center gap-1.5 border-b border-[#d6c7ab]/60 pb-1">
+            <h4 className="text-xs font-mono font-bold text-[#3c2415] uppercase tracking-wider mb-2 flex items-center gap-1.5 border-b border-[#d6c7ab]/60 pb-1">
               特殊規則
             </h4>
             <div className="space-y-2">
               {[...bossSkills, ...rules].filter(sk => !sk.hideInPreview).map((sk, idx) => {
                 let badgeLabel = '特殊規則';
-                let badgeClass = 'bg-[#eee6d3] text-[#3c2f21] border-[#d6c7ab]';
+                // 徽章只講「這一條技能的來源」。來源是**出處**，不是身份——四類共用同一個中性晶片，
+                // 分辨靠左邊的符號（✦ ❖ ★ ✕）與標籤文字。舊版四類各借一個色相家族
+                // （琥珀／翠綠／紅／紫），等於用顏色說「這是四種不同的東西」；
+                // 實際上它們的差別，文字已經講完了。
+                const badgeClass = 'bg-[#eee6d3] text-[#3c2f21] border-[#d6c7ab]';
                 let icon = '';
 
                 if (sk.source === 'customization') {
                   badgeLabel = '客製化';
-                  badgeClass = 'bg-amber-100 text-amber-900 border-amber-300';
                   icon = '✦';
                 } else if (sk.source === 'roleSkill' || sk.isRoleSkill) {
                   badgeLabel = '定位技能';
-                  badgeClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
                   icon = '❖';
                 } else if (sk.category === 'boss' || sk.source === 'bossSkill') {
                   badgeLabel = 'Boss 技能';
-                  badgeClass = 'bg-red-100 text-red-900 border-red-300';
                   icon = '★';
                 } else if (sk.source === 'negativeSkill' || sk.category === 'negative') {
                   badgeLabel = '負面技能';
-                  badgeClass = 'bg-purple-100 text-purple-900 border-purple-300';
                   icon = '✕';
                 }
 
@@ -380,14 +379,14 @@ export default function NPCCardPreview({
           <div className="bg-[#f5efdf] rounded-lg p-3 border border-[#d6c7ab] text-xs space-y-1.5">
             {npc.tactics && (
               <div>
-                <strong className="text-amber-900 font-mono">戰術方針: </strong>
+                <strong className="text-[#3c2415] font-mono">戰術方針: </strong>
                 <span className="text-[#3c2f21]">{npc.tactics}</span>
               </div>
             )}
             {npc.story && (
               <div>
-                <strong className="text-stone-700 font-mono">背景記敘: </strong>
-                <span className="text-stone-600 italic">{npc.story}</span>
+                <strong className="text-[#3c2415] font-mono">背景記敘: </strong>
+                <span className="text-[#6b5a4b] italic">{npc.story}</span>
               </div>
             )}
           </div>

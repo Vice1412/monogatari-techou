@@ -13,6 +13,7 @@ import {
   GiHazardSign
 } from 'react-icons/gi';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
+import EmptyState from '../../../../components/ui/EmptyState';
 import {
   TASTES,
   TASTE_SHORT,
@@ -325,7 +326,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
               title={n === 0 ? `沒有${t}食材` : `只看${t}（${n} 份）`}
               className={`flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-lg border text-[11px] font-bold transition-all ${
                 n === 0
-                  ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
+                  ? 'bg-[#fbf7ee] border-[#d6c7ab] text-[#7c6a58] cursor-not-allowed'
                   : on
                     ? 'ring-2 ring-amber-500 ' + (TASTE_COLOR[t] || '')
                     : TASTE_COLOR[t] + ' hover:brightness-95 cursor-pointer'
@@ -343,17 +344,35 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
   /** 依口味分組的清單。`renderItem` 決定每筆怎麼呈現。 */
   const renderGrouped = (renderItem) => {
     if (ingredients.length === 0) {
-      return <p className="text-xs text-slate-400 text-center py-4">尚無食材</p>;
+      /* 空 vs 查無：這兩件事長得一樣、意思完全不同（§8.4）。
+         前者是「你還沒有任何食材」——要教會他食材從哪來；
+         後者是「篩選條件下沒有」——要告訴他怎麼離開這個畫面。
+         原本兩者都是同一行 `text-[#6b5a4b]`（2.56:1），等於都沒說。 */
+      return (
+        <EmptyState
+          kind="ingredients"
+          icon={GiMushroom}
+          title="還沒有任何食材"
+          teach="食材在旅途中採集取得；採到的每一樣都會按口味列在這裡，烹飪時從中挑選。"
+        />
+      );
     }
     if (groups.length === 0) {
-      return <p className="text-xs text-slate-400 text-center py-4">這個口味沒有食材</p>;
+      return (
+        <EmptyState
+          kind="ingredient-flavour"
+          icon={GiSaltShaker}
+          title="這個口味沒有食材"
+          teach="手上的食材不在這個口味裡；點上面的「全部」或換一個口味就看得到。"
+        />
+      );
     }
     return (
       <div className="space-y-2.5">
         {groups.map((g) => (
           <div key={g.taste}>
             <div className="flex items-center gap-1.5 mb-1">
-              <span className={`w-2 h-2 rounded-full shrink-0 ${TASTE_DOT[g.taste] || 'bg-slate-400'}`} />
+              <span className={`w-2 h-2 rounded-full shrink-0 ${TASTE_DOT[g.taste] || 'bg-[#7c6a58]'}`} />
               <span className="text-[11px] font-bold text-[#3c2415]">{g.taste}</span>
               <span className="text-[10px] font-mono text-[#6b5a4b]">（{g.items.length}）</span>
             </div>
@@ -462,7 +481,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
   );
 
   return (
-    <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+    <div className="rounded-2xl bg-white border border-[#d6c7ab] overflow-hidden">
       {/* 標題列 */}
       <div className="px-3.5 py-2.5 bg-[#f5efdf] border-b border-[#d6c7ab] flex items-center justify-between flex-wrap gap-2">
         <span className="font-bold text-sm text-[#3c2415] flex items-center gap-1.5">
@@ -482,7 +501,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
       </div>
 
       {/* 子分頁 */}
-      <div className="flex border-b border-slate-200">
+      <div className="flex border-b border-[#d6c7ab]">
         {SUB_TABS.map(({ id, label, Icon }) => (
           <button
             key={id}
@@ -548,7 +567,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
               )}
               <div
                 className={`flex items-end gap-2 flex-wrap p-2.5 rounded-xl border ${
-                  isFull ? 'bg-slate-50 border-slate-200 opacity-70' : 'bg-white border-[#d6c7ab]'
+                  isFull ? 'bg-[#fbf7ee] border-[#d6c7ab] opacity-70' : 'bg-white border-[#d6c7ab]'
                 }`}
               >
                 <label className="flex flex-col gap-1 text-[11px] font-bold text-[#6b5a4b]">
@@ -559,7 +578,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                     disabled={isFull}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder="例：石化蜂蜜"
-                    className="w-36 px-2 py-1 rounded-lg border border-[#d6c7ab] bg-white text-xs text-[#3c2415] disabled:bg-slate-100 disabled:text-slate-400"
+                    className="w-36 px-2 py-1 rounded-lg border border-[#d6c7ab] bg-white text-xs text-[#3c2415] disabled:bg-[#f4ebd9] disabled:text-[#7c6a58]"
                   />
                 </label>
                 <label className="flex flex-col gap-1 text-[11px] font-bold text-[#6b5a4b]">
@@ -568,7 +587,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                     value={newTaste}
                     disabled={isFull}
                     onChange={(e) => setNewTaste(e.target.value)}
-                    className="px-2 py-1 rounded-lg border border-[#d6c7ab] bg-white text-xs text-[#3c2415] cursor-pointer disabled:bg-slate-100 disabled:text-slate-400"
+                    className="px-2 py-1 rounded-lg border border-[#d6c7ab] bg-white text-xs text-[#3c2415] cursor-pointer disabled:bg-[#f4ebd9] disabled:text-[#7c6a58]"
                   >
                     {TASTES.map((t) => (
                       <option key={t} value={t}>{t}</option>
@@ -582,7 +601,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                   title={isFull ? '背包已滿' : '骰 d6 決定口味'}
                   className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-bold flex items-center gap-1 ${
                     isFull
-                      ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                      ? 'border-[#e8dcc4] bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed'
                       : 'border-amber-400 bg-amber-50 hover:bg-amber-100 text-amber-900 cursor-pointer'
                   }`}
                 >
@@ -596,7 +615,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                   title={isFull ? '背包已滿' : '直接新增'}
                   className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-bold ${
                     isFull
-                      ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
+                      ? 'border-[#e8dcc4] bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed'
                       : 'border-[#d6c7ab] bg-white hover:bg-[#ebdcc4] text-[#6b5a4b] cursor-pointer'
                   }`}
                 >
@@ -605,7 +624,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
               </div>
             </div>
 
-            <p className="text-[10px] text-[#6b5a4b] font-mono">
+            <p className="text-t12 text-[#6b5a4b] font-mono">
               購買：隨機口味 {INGREDIENT_PRICE.random}z／自選口味 {INGREDIENT_PRICE.chosen}z
               ・休息於定居點可獲 {cookingSL} 份
             </p>
@@ -614,7 +633,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
             {renderGrouped((ing) => (
               <div
                 key={ing.id}
-                className={`flex items-center gap-2 px-2 py-1.5 rounded-lg border text-xs ${TASTE_COLOR[ing.taste] || 'bg-slate-50 border-slate-200'}`}
+                className={`flex items-center gap-2 px-2 py-1.5 rounded-lg border text-xs ${TASTE_COLOR[ing.taste] || 'bg-[#fbf7ee] border-[#d6c7ab]'}`}
               >
                 <GiMushroom className="w-3.5 h-3.5 shrink-0" />
                 {renamingId === ing.id ? (
@@ -706,7 +725,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                             ? 'bg-amber-200 border-amber-500 text-amber-950'
                             : entry?.roll
                               ? 'bg-[#ebdcc4] border-[#c9b48f] text-[#3c2415]'
-                              : 'bg-slate-50 border-slate-200 text-slate-300'
+                              : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#7c6a58]'
                         }`}
                       >
                         {isPending ? pending.roll : entry?.roll ? entry.roll : '·'}
@@ -745,13 +764,13 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                         )}
                       </span>
                     </div>
-                    <p className="text-[10px] text-[#6b5a4b] font-mono">
+                    <p className="text-t12 text-[#6b5a4b] font-mono">
                       此效果已固定。若當初寫錯，請按上方「刪除此格」重新決定。
                     </p>
                   </>
                 ) : (
                   <>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-t12 text-[#6b5a4b]">
                       尚未決定。首次使用這個組合時決定，之後永久固定。
                     </p>
                     {renderUndecidedActions(selectedPair)}
@@ -806,7 +825,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                           清除
                         </button>
                       </div>
-                      <p className="text-[10px] text-[#6b5a4b] font-mono mt-1">
+                      <p className="text-t12 text-[#6b5a4b] font-mono mt-1">
                         支援空白、逗號、頓號分隔；會依官方口味順序填入下方各列。
                       </p>
                     </div>
@@ -862,7 +881,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                               {def ? (
                                 renderTextWithAffinities(formatEffect(draft.roll, draft.choice, level))
                               ) : (
-                                <span className="text-slate-400">—</span>
+                                <span className="text-[#6b5a4b]">—</span>
                               )}
                             </span>
                           </div>
@@ -888,7 +907,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                 <span>尚未骰出的效果（{remaining.length} / 12）</span>
               </div>
               {remaining.length === 0 ? (
-                <p className="text-[11px] text-emerald-700 font-bold">12 種效果全部用上了。</p>
+                <p className="text-t12 text-emerald-700 font-bold">12 種效果全部用上了。</p>
               ) : (
                 <div className="space-y-1">
                   {remaining.map((e) => (
@@ -899,7 +918,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                   ))}
                 </div>
               )}
-              <p className="text-[10px] text-[#6b5a4b] font-mono mt-1.5">
+              <p className="text-t12 text-[#6b5a4b] font-mono mt-1.5">
                 原書要求每個組合效果不得重複，故這份清單即「還能骰出什麼」。
               </p>
             </div>
@@ -926,7 +945,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                   className={`px-2 py-1.5 rounded-lg border text-[11px] font-bold transition-all cursor-pointer text-left ${
                     on
                       ? 'ring-2 ring-amber-500 ' + (TASTE_COLOR[ing.taste] || '')
-                      : TASTE_COLOR[ing.taste] || 'bg-slate-50 border-slate-200'
+                      : TASTE_COLOR[ing.taste] || 'bg-[#fbf7ee] border-[#d6c7ab]'
                   }`}
                 >
                   <span className="block truncate">{ing.name}</span>
@@ -1010,7 +1029,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
               </div>
             )}
             {!canCook && ingredients.length > 0 && (
-              <p className="text-[11px] text-slate-400 text-center">請至少選擇 2 份食材</p>
+              <p className="text-t12 text-[#6b5a4b] text-center">請至少選擇 2 份食材</p>
             )}
           </>
         )}

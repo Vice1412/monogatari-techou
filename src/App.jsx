@@ -9,6 +9,7 @@ import {
 import BookCoverHub from './components/book/BookCoverHub';
 import ChapterHeader from './components/book/ChapterHeader';
 import BookPageFlipOverlay from './components/book/BookPageFlipOverlay';
+import { BOOK_CHROME } from './components/book/chapterChrome';
 import DiceRollerModal from './features/dice-roller/DiceRollerModal';
 import ChapterDevWarningModal from './components/book/ChapterDevWarningModal';
 import RuleCodexDrawer from './features/character-sheet/components/RuleCodexDrawer';
@@ -47,7 +48,7 @@ const FateClockPage = lazy(CHAPTER_LOADERS.clocks);
  * 先偷跑下載（見該函式）。只有在網路極慢時才會短暫出現，故做成安靜的置中文字。
  */
 const ChapterLoading = () => (
-  <div className="flex-1 flex items-center justify-center py-16 text-xs text-[#8c7b6c] font-serif">
+  <div className="flex-1 flex items-center justify-center py-16 text-t12 text-ink-3 font-serif">
     正在展開章節……
   </div>
 );
@@ -247,48 +248,18 @@ export default function App() {
   const currentMeta = activeChapter ? CHAPTER_METAS[activeChapter] : null;
   const targetMeta = targetChapterId ? CHAPTER_METAS[targetChapterId] : null;
 
-  const CHAPTER_PAGE_THEMES = {
-    workshop: 'bg-[#fbf7ee] text-[#2c221e] selection:bg-amber-200 selection:text-amber-900',
-    character: 'bg-[#f4fbf7] text-[#1e293b] selection:bg-emerald-200 selection:text-emerald-900',
-    combat: 'bg-[#fdf4f5] text-[#1e293b] selection:bg-rose-200 selection:text-rose-900',
-    clocks: 'bg-[#f0f9ff] text-[#1e293b] selection:bg-cyan-200 selection:text-cyan-900',
-  };
-
-  const CHAPTER_FOOTER_THEMES = {
-    character: {
-      border: 'border-emerald-200',
-      bg: 'bg-emerald-50/70',
-      number: 'text-emerald-900',
-      text: 'text-emerald-800',
-      button: 'text-emerald-800 hover:text-emerald-950',
-      subtext: 'text-emerald-600/80',
-    },
-    combat: {
-      border: 'border-rose-200',
-      bg: 'bg-rose-50/70',
-      number: 'text-rose-900',
-      text: 'text-rose-800',
-      button: 'text-rose-800 hover:text-rose-950',
-      subtext: 'text-rose-600/80',
-    },
-    clocks: {
-      border: 'border-sky-200',
-      bg: 'bg-sky-50/70',
-      number: 'text-sky-900',
-      text: 'text-sky-800',
-      button: 'text-sky-800 hover:text-sky-950',
-      subtext: 'text-sky-600/80',
-    },
-  };
-
-  const activePageTheme = (activeChapter && CHAPTER_PAGE_THEMES[activeChapter]) || 'bg-[#f0f7f9] text-[#1e293b] selection:bg-cyan-200 selection:text-cyan-900';
-  const footerTheme = (activeChapter && CHAPTER_FOOTER_THEMES[activeChapter]) || {
-    border: 'border-[#d6c7ab]',
-    bg: 'bg-[#f5efdf]/60',
-    number: 'text-amber-900',
-    text: 'text-[#6b5a4b]',
-    button: 'text-amber-800 hover:text-amber-950',
-    subtext: 'text-[#8c7b6c]',
+  /* 2026-10-23（第八輪）：四章共用同一張紙。
+     原本每章一套頁面底色＋頁尾三色（工坊羊皮紙／角色薄荷／戰鬥粉／命刻天藍，
+     四色跨 316°），翻一章像換一個 app。GM 裁定章節色可收斂，故顏色不再分章；
+     章節身份只剩頁首的圖示與標題。權杖本體在 `components/book/chapterChrome.js`。 */
+  const activePageTheme = BOOK_CHROME.pageBg;
+  const footerTheme = {
+    border: BOOK_CHROME.footerBorder,
+    bg: BOOK_CHROME.footerBg,
+    number: BOOK_CHROME.footerNumber,
+    text: BOOK_CHROME.footerText,
+    button: BOOK_CHROME.footerButton,
+    subtext: BOOK_CHROME.footerSubtext,
   };
 
   return (
@@ -403,7 +374,7 @@ export default function App() {
                   <span>合上本卷並返回封面目錄</span>
                 </button>
                 <p
-                  className={`text-[11px] ${footerTheme.subtext}`}
+                  className={`text-t12 ${footerTheme.subtext}`}
                   style={activeChapter === 'character' && characterSubNav?.theme ? { color: characterSubNav.theme.textMuted } : {}}
                 >
                   純前端零伺服器架構 · 數據即時自動保存

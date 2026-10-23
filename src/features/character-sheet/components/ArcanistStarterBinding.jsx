@@ -78,7 +78,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
         )}
       </div>
 
-      <p className="text-[11px] leading-relaxed text-amber-900/80">
+      <p className="text-t12 leading-relaxed text-amber-900/80">
         【{ARCANIST_BINDING_SKILL}】讓你在開始遊戲前自選 {quota} 個阿爾卡納作為已綁定的契約
         {variant ? '（變體版同樣是開局一個，可從範例清單挑選或與隊友共創）' : ''}。
         除此之外，新的阿爾卡納只能透過探索與故事推進取得。
@@ -96,7 +96,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
               key={arcana.id}
               className={`p-2 rounded-lg border transition-colors ${
                 checked
-                  ? 'bg-white border-amber-500 shadow-2xs'
+                  ? 'bg-white border-amber-500'
                   : 'bg-white/60 border-amber-200 hover:border-amber-400'
               } ${locked ? 'opacity-70' : ''}`}
             >
@@ -115,19 +115,19 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
                 />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">
-                    <span className="font-bold text-stone-900">{arcana.name}</span>
+                    <span className="font-bold text-[#2c221e]">{arcana.name}</span>
                     {arcana.pulse && (
                       <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-sky-100 border border-sky-300 text-sky-800">
                         脈衝
                       </span>
                     )}
                   </span>
-                  <span className="block text-stone-500">領域：{arcana.domains}</span>
+                  <span className="block text-[#6b5a4b]">領域：{arcana.domains}</span>
                 </span>
               </label>
 
               {preview && (
-                <p className="mt-1 pl-6 text-[11px] leading-relaxed text-stone-700 line-clamp-3">
+                <p className="mt-1 pl-6 text-[11px] leading-relaxed text-[#3c2415] line-clamp-3">
                   <span className="font-bold text-blue-800">{preview.label}：</span>
                   {renderTextWithAffinities(preview.text)}
                 </p>
@@ -144,10 +144,10 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
         >
           <div className="text-[11px] font-bold text-amber-900 flex items-center gap-2 flex-wrap">
             <span>已選：{selectedArcana.name}</span>
-            <span className="text-[10px] font-normal text-stone-500">領域：{selectedArcana.domains}</span>
+            <span className="text-[10px] font-normal text-[#6b5a4b]">領域：{selectedArcana.domains}</span>
           </div>
           {buildArcanaEffectSections(selectedArcana, { variant }).map((section) => (
-            <p key={section.key} className="text-[11px] leading-relaxed text-stone-700">
+            <p key={section.key} className="text-[11px] leading-relaxed text-[#3c2415]">
               <span className="font-bold text-blue-800">{section.label}：</span>
               {renderTextWithAffinities(section.text)}
             </p>
@@ -156,7 +156,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
       )}
 
       {!selectedId && (
-        <p className="text-[11px] text-amber-900/70">
+        <p className="text-t12 text-amber-900/70">
           尚未選擇——這一格空著不算完成創角，規則自檢會提醒。
         </p>
       )}

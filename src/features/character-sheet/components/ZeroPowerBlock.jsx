@@ -245,7 +245,7 @@ function ShowcasePlaceholder({ theme, missing }) {
       <span className="block text-[11px] font-bold" style={{ color: textMuted }}>
         選好觸發與效果後，這裡會出現這一招的完整卡片
       </span>
-      <p className="text-[10px]" style={{ color: textMuted }}>{`還缺：${missing}`}</p>
+      <p className="text-t12" style={{ color: textMuted }}>{`還缺：${missing}`}</p>
     </div>
   );
 }
@@ -351,7 +351,7 @@ export default function ZeroPowerBlock({
         <span className="block text-[11px] font-bold" style={{ color: theme.textDark }}>
           覺醒之力：尚未覺醒
         </span>
-        <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+        <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
           角色在衝突中 HP 歸零（取代投降或犧牲），或面對重大轉折時覺醒。覺醒時回復等同危機值的 HP，並當場選定一個與事件相符的觸發。
           {mode === 'edit' ? '（HP 回復由跑團面板自動計算；在這裡覺醒只記錄狀態。）' : ''}
         </p>
@@ -424,7 +424,7 @@ export default function ZeroPowerBlock({
           onSet={(n) => patch({ clock: n })}
         />
 
-        <p className="text-[11px] leading-relaxed" style={{ color: theme.textDark }}>
+        <p className="text-t12 leading-relaxed" style={{ color: theme.textDark }}>
           {state.triggerId || activeEffectId || combined
             ? `${trigger ? trigger.name : '未選觸發'}・${effect ? effect.name : combined ? '未選配對效果' : '未選效果'}`
             : '尚未設定底力技——請在角色編輯第 5 步設定'}
@@ -453,7 +453,7 @@ export default function ZeroPowerBlock({
               })}
             </select>
             {partnerState ? (
-              <p className="text-[10px]" style={{ color: isZeroClockFull(partnerState) ? theme.accent : theme.textMuted }}>
+              <p className="text-t12" style={{ color: isZeroClockFull(partnerState) ? theme.accent : theme.textMuted }}>
                 {`對方的底力命刻：${partnerState.clock}／${zeroClockMax(partnerState)}`}
               </p>
             ) : null}
@@ -490,7 +490,7 @@ export default function ZeroPowerBlock({
           </JRPGButton>
         </div>
 
-        <p className="text-[10px] leading-relaxed" style={{ color: gate.ok ? theme.accent : theme.textMuted }}>
+        <p className="text-t12 leading-relaxed" style={{ color: gate.ok ? theme.accent : theme.textMuted }}>
           {gate.ok ? '命刻全滿，可執行技能動作施展底力效果（每回合一次）。' : gate.reason}
         </p>
       </div>
@@ -550,7 +550,7 @@ export default function ZeroPowerBlock({
         </span>
       </div>
 
-      <p className="text-[11px] leading-relaxed" style={{ color: theme.textMuted }}>
+      <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
         從七個觸發與十一個效果中各選一個。原文建議整團不要重複（p.124），但那是 GM 審卡時的裁定，這裡不阻止你選隊友已經選過的那一項。
       </p>
 
@@ -595,7 +595,7 @@ export default function ZeroPowerBlock({
       {state.variant === 'awakened' && !state.awakened ? (
         <div className="rounded-lg border px-2.5 py-2 space-y-1" style={{ borderColor: theme.border, backgroundColor: theme.cardBg }}>
           <span className="block text-[11px] font-bold" style={{ color: theme.textDark }}>觸發</span>
-          <p className="text-[11px] leading-relaxed" style={{ color: theme.textMuted }}>
+          <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
             覺醒之力建角時不選觸發——觸發在覺醒當下才選定，所以這裡留白是正確狀態，不是漏填。
           </p>
         </div>
@@ -721,7 +721,7 @@ export default function ZeroPowerBlock({
           >
             新增配對
           </JRPGButton>
-          <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+          <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
             四人團＝每人三組配對、全團共六個效果；效果允許重複，觸發仍應盡量不同。
           </p>
         </div>
@@ -886,14 +886,14 @@ export default function ZeroPowerBlock({
         ) : null}
         {state.variant === 'awakened' ? (
           state.awakened ? (
-            <p className="text-[11px] leading-relaxed" style={{ color: theme.textDark }}>
+            <p className="text-t12 leading-relaxed" style={{ color: theme.textDark }}>
               已覺醒（每次戰役一次）：觸發已選定，可正常累積與施展。
             </p>
           ) : awakenArea()
         ) : null}
         {state.variant === 'combined' ? (
           <div className="space-y-1">
-            <p className="text-[10px]" style={{ color: theme.textMuted }}>
+            <p className="text-t12" style={{ color: theme.textMuted }}>
               合體之力下命刻只有 {max} 格；效果由配對共用，雙方命刻皆滿才能施展，施展後兩邊一起清空。
               {state.combinedPairs.length > 0 ? `目前已設定 ${state.combinedPairs.length} 組配對。` : ''}
             </p>

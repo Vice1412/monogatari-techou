@@ -249,7 +249,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
         )}
 
         {withMnemospheres && state.mnemospheres.length === 0 && (
-          <p className="text-[10px] italic" style={{ color: theme.textMuted }} data-testid="mnemosphere-empty">
+          <p className="text-t12 italic" style={{ color: theme.textMuted }} data-testid="mnemosphere-empty">
             尚未取得職業魔石。開局免費一顆 1 級魔石在創角第 2 步「職業與技能」選定（p.134）。
           </p>
         )}
@@ -258,7 +258,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
             「裝備著才生效」，而第 2 步管的是成長。玩家在投點時魔石本來就多半沒裝上，
             在那裡亮警告等於把正常狀態說成錯誤。 */}
         {withMnemospheres && idleMnemospheres.length > 0 && (
-          <p className="text-[10px] leading-relaxed text-amber-700" data-testid="idle-mnemosphere-warning">
+          <p className="text-t12 leading-relaxed text-amber-700" data-testid="idle-mnemosphere-warning">
             有 {idleMnemospheres.length} 顆職業魔石沒有裝在任何插槽上——未裝備的魔石不提供任何技能（p.136）。
           </p>
         )}
@@ -276,7 +276,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                 可容納 {integratedCap} 顆職業魔石（1 ＋ 每 15 級 1 顆；目前 {state.integrated.length} 顆）
               </span>
             </span>
-            <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+            <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
               這一變體把職業魔石改掛在裝置或護腕上，裝備插槽只放附魔魔石，且不能使用 δ 品級。
             </p>
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -398,7 +398,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                   </div>
 
                   {!canSocket && (
-                    <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+                    <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
                       只有自訂武器與自訂防具可以有魔石插槽；飾品與機師模組沒有（p.133）。
                     </p>
                   )}
@@ -445,7 +445,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                                 type="button"
                                 disabled={disabled}
                                 onClick={() => removeContent(slotId, index)}
-                                className="absolute -bottom-0.5 -right-0.5 cursor-pointer text-[9px] leading-none disabled:opacity-40"
+                                className="absolute -bottom-0.5 -right-0.5 cursor-pointer text-t12 leading-none disabled:opacity-40"
                                 style={{ color: '#b91c1c' }}
                                 title="從插槽取下"
                               >
@@ -482,7 +482,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                       )}
 
                       {damageTypeConflicts.length > 1 && (
-                        <p className="text-[10px] text-amber-700">
+                        <p className="text-t12 text-amber-700">
                           同一把武器不能混用不同傷害屬性的附魔魔石（目前混了：{damageTypeConflicts.join('、')}，p.141）。
                         </p>
                       )}
@@ -535,12 +535,12 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                         )}
                       </div>
                       {usage.mnemosphereOverflow && (
-                        <p className="text-[10px] text-amber-700">
+                        <p className="text-t12 text-amber-700">
                           這個品級最多裝 {slotQualityMnemosphereCap(slot.quality)} 顆職業魔石。
                         </p>
                       )}
                       {usage.overflow && (
-                        <p className="text-[10px] text-amber-700">
+                        <p className="text-t12 text-amber-700">
                           內容佔用超過插槽容量（{usage.used} / {usage.capacity} 格）。
                         </p>
                       )}

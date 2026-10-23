@@ -203,19 +203,15 @@ export default function ChimeristManager({
   };
 
   return (
-    <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/60 dark:from-slate-900 dark:via-slate-800 dark:to-emerald-950/20 border border-emerald-300/80 dark:border-emerald-700/60 shadow-sm space-y-4">
+    <div className="p-4 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-4">
       {/* 頂部標題與施法公式設定 */}
-      <div className="flex items-center justify-between border-b border-emerald-200 dark:border-slate-700 pb-2 flex-wrap gap-2">
+      <div className="flex items-center justify-between border-b border-emerald-200 pb-2 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
-          <GiSpellBook className="text-xl text-emerald-600 dark:text-emerald-400" />
+          <GiSpellBook className="text-xl text-emerald-600" />
           <div>
-            <h3 className="text-sm font-bold text-emerald-950 dark:text-emerald-100 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-emerald-950 flex items-center gap-2">
               <span>嵌合魔典與怪物咒語記憶本</span>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
-                spells.length >= maxSlots
-                  ? 'bg-red-100 text-red-800 border-red-300'
-                  : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
-              }`}>
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${ spells.length >= maxSlots ? 'bg-red-100 text-red-800 border-red-300' : 'bg-emerald-100 text-emerald-800 border-emerald-300 ' }`}>
                 記憶容量: {spells.length} / {maxSlots} 格
               </span>
             </h3>
@@ -224,26 +220,18 @@ export default function ChimeristManager({
 
         {/* 施法公式切換器 */}
         <div className="flex items-center gap-1.5 text-xs">
-          <span className="text-stone-500 font-bold">施法檢定:</span>
+          <span className="text-[#6b5a4b] font-bold">施法檢定:</span>
           <button
             type="button"
             onClick={() => handleSelectFormula('INS + WLP')}
-            className={`px-2 py-0.5 rounded font-mono font-bold transition-all ${
-              currentFormula === 'INS + WLP'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-stone-400 hover:bg-emerald-100'
-            }`}
+            className={`px-2 py-0.5 rounded font-mono font-bold transition-all ${ currentFormula === 'INS + WLP' ? 'bg-[#3c2415] text-[#fffdf9] shadow-xs' : 'bg-[#f4ebd9] text-[#6b5a4b] hover:bg-[#fffdf9]' }`}
           >
             【INS + WLP】
           </button>
           <button
             type="button"
             onClick={() => handleSelectFormula('MIG + WLP')}
-            className={`px-2 py-0.5 rounded font-mono font-bold transition-all ${
-              currentFormula === 'MIG + WLP'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-stone-400 hover:bg-emerald-100'
-            }`}
+            className={`px-2 py-0.5 rounded font-mono font-bold transition-all ${ currentFormula === 'MIG + WLP' ? 'bg-[#3c2415] text-[#fffdf9] shadow-xs' : 'bg-[#f4ebd9] text-[#6b5a4b] hover:bg-[#fffdf9]' }`}
           >
             【MIG + WLP】
           </button>
@@ -252,7 +240,7 @@ export default function ChimeristManager({
 
       {/* 惡性循環連攜提示 */}
       {hasViciousCycle && (
-        <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-100/60 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-xs text-emerald-900 dark:text-emerald-200">
+        <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-100/60 border border-emerald-300 text-xs text-emerald-900">
           <GiBiohazard className="text-base text-emerald-600 shrink-0" />
           <span>已學習《惡性循環》特技：當你的咒語對同源物種生物造成傷害時，將必定使其陷入中毒狀態！</span>
         </div>
@@ -260,7 +248,7 @@ export default function ChimeristManager({
 
       {/* 動作按鈕：貼上導入 / 手動新增 */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className="text-xs font-bold text-stone-600 dark:text-stone-400">已記憶怪物咒語清單</span>
+        <span className="text-xs font-bold text-[#6b5a4b]">已記憶怪物咒語清單</span>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -277,7 +265,7 @@ export default function ChimeristManager({
             disabled={spells.length >= maxSlots}
             className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors ${
               spells.length >= maxSlots
-                ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
+                ? 'bg-[#d6c7ab] text-[#6b5a4b] cursor-not-allowed'
                 : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs'
             }`}
           >
@@ -292,9 +280,9 @@ export default function ChimeristManager({
         {spells.map((sp) => (
           <div
             key={sp.id}
-            className="p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-[#ded2be] dark:border-slate-700 shadow-2xs space-y-2"
+            className="p-3.5 rounded-xl bg-white border border-[#ded2be] space-y-2"
           >
-            <div className="flex items-center justify-between flex-wrap gap-2 border-b border-[#eee5d8] dark:border-slate-700 pb-1.5">
+            <div className="flex items-center justify-between flex-wrap gap-2 border-b border-[#eee5d8] pb-1.5">
               <div className="flex items-center gap-2">
                 {sp.isOffensive ? (
                   <span className="fu-icon text-red-600 font-bold" title="攻擊性咒語">
@@ -303,11 +291,11 @@ export default function ChimeristManager({
                 ) : (
                   <span className="text-blue-600 font-bold">✦</span>
                 )}
-                <strong className="text-sm text-stone-900 dark:text-stone-100">{sp.name}</strong>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                <strong className="text-sm text-[#2c221e]">{sp.name}</strong>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
                   源頭: {sp.species}
                 </span>
-                <span className="text-xs font-mono font-bold text-blue-700 dark:text-blue-400">
+                <span className="text-xs font-mono font-bold text-blue-700">
                   MP: {sp.mp}
                 </span>
               </div>
@@ -324,7 +312,7 @@ export default function ChimeristManager({
                 <button
                   type="button"
                   onClick={() => handleDeleteSpell(sp.id)}
-                  className="p-1 rounded text-stone-400 hover:text-red-600 transition-colors"
+                  className="p-1 rounded text-[#7c6a58] hover:text-red-600 transition-colors"
                   title="遺忘咒語"
                 >
                   <GiCancel className="text-sm" />
@@ -332,16 +320,16 @@ export default function ChimeristManager({
               </div>
             </div>
 
-            <div className="text-[11px] text-stone-500 font-mono flex items-center gap-3">
+            <div className="text-[11px] text-[#6b5a4b] font-mono flex items-center gap-3">
               <span>目標: {sp.target}</span>
               <span>持續: {sp.duration}</span>
               {sp.isOffensive && <span>檢定公式: 【{currentFormula}】</span>}
             </div>
 
-            <div className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed bg-[#fdfbf7] dark:bg-slate-900/60 p-2 rounded border border-[#eee5d8] dark:border-slate-800">
+            <div className="text-xs text-[#3c2415] leading-relaxed bg-[#fdfbf7] p-2 rounded border border-[#eee5d8]">
               <p>{renderTextWithAffinities(sp.effect)}</p>
               {hasViciousCycle && (
-                <p className="mt-1 font-bold text-emerald-700 dark:text-emerald-400 text-[11px] flex items-center gap-1 border-t border-emerald-200/60 dark:border-emerald-800/60 pt-1">
+                <p className="mt-1 font-bold text-emerald-700 text-t12 flex items-center gap-1 border-t border-emerald-200/60 pt-1">
                   <GiBiohazard className="text-xs" />
                   <span>若目標是**{sp.species}**，目標同時陷入**中毒**狀態。</span>
                 </p>
@@ -351,10 +339,10 @@ export default function ChimeristManager({
         ))}
 
         {spells.length === 0 && (
-          <div className="p-6 text-center bg-white/60 dark:bg-slate-900/40 rounded-xl border border-dashed border-emerald-300 dark:border-emerald-800 text-stone-400 text-xs space-y-1">
+          <div className="p-6 text-center bg-white/60 rounded-xl border border-dashed border-emerald-300 text-[#7c6a58] text-xs space-y-1">
             <GiSpellBook className="w-8 h-8 mx-auto text-emerald-400/80" />
-            <p className="font-bold text-stone-600 dark:text-stone-300">尚未記錄任何嵌合師咒語</p>
-            <p className="text-[11px]">可貼上 GM 或 NPC 工坊複製之文字一鍵匯入，或點擊「手動記錄咒語」！</p>
+            <p className="font-bold text-[#6b5a4b]">尚未記錄任何嵌合師咒語</p>
+            <p className="text-t12">可貼上 GM 或 NPC 工坊複製之文字一鍵匯入，或點擊「手動記錄咒語」！</p>
           </div>
         )}
       </div>
@@ -362,18 +350,18 @@ export default function ChimeristManager({
       {/* 貼上 NPC 工坊文本 Modal */}
       {isPasteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-[#fdfbf7] dark:bg-slate-900 border border-teal-400 rounded-2xl p-5 w-full max-w-lg shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-teal-200 dark:border-slate-800 pb-2">
-              <h3 className="text-sm font-bold text-teal-950 dark:text-teal-100 flex items-center gap-2">
+          <div className="bg-[#fdfbf7] border border-teal-400 rounded-2xl p-5 w-full max-w-lg shadow-e3 space-y-4">
+            <div className="flex items-center justify-between border-b border-teal-200 pb-2">
+              <h3 className="text-sm font-bold text-teal-950 flex items-center gap-2">
                 <GiClipboard className="text-teal-600" />
                 <span>NPC工坊文本一鍵導入</span>
               </h3>
-              <button onClick={() => setIsPasteModalOpen(false)} className="text-stone-400 hover:text-stone-600">
+              <button onClick={() => setIsPasteModalOpen(false)} className="text-[#7c6a58] hover:text-[#6b5a4b]">
                 <GiCancel className="text-lg" />
               </button>
             </div>
 
-            <p className="text-xs text-stone-600 dark:text-stone-400">
+            <p className="text-xs text-[#6b5a4b]">
               請直接在此貼上從 NPC 工坊導出的咒語區段文字或整份 NPC 卡片，系統將自動解析出名稱、MP、目標與效果：
             </p>
 
@@ -382,14 +370,14 @@ export default function ChimeristManager({
               value={pasteContent}
               onChange={e => setPasteContent(e.target.value)}
               placeholder="例如：&#10;> **劇毒吐息** (MP: 10 | 目標: 一個生物 | 持續: 瞬發)&#10;> 對目標造成【HR + 15】毒屬性傷害，並使其陷入中毒狀態。"
-              className="w-full p-2.5 rounded-lg border border-teal-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-900 dark:text-stone-100 text-xs font-mono outline-none focus:border-teal-500"
+              className="w-full p-2.5 rounded-lg border border-teal-300 bg-white text-[#2c221e] text-xs font-mono outline-none focus:border-teal-500"
             />
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-teal-200 dark:border-slate-800">
+            <div className="flex justify-end gap-2 pt-2 border-t border-teal-200">
               <button
                 type="button"
                 onClick={() => setIsPasteModalOpen(false)}
-                className="px-3 py-1.5 rounded-lg border border-stone-300 dark:border-slate-700 text-stone-600 dark:text-stone-400 text-xs font-bold"
+                className="px-3 py-1.5 rounded-lg border border-[#d6c7ab] text-[#6b5a4b] text-xs font-bold"
               >
                 取消
               </button>
@@ -408,36 +396,36 @@ export default function ChimeristManager({
       {/* 手動新增/確認咒語 Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-[#fdfbf7] dark:bg-slate-900 border border-emerald-400 rounded-2xl p-5 w-full max-w-md shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-emerald-200 dark:border-slate-800 pb-2">
-              <h3 className="text-sm font-bold text-emerald-950 dark:text-emerald-100 flex items-center gap-2">
+          <div className="bg-[#fdfbf7] border border-emerald-400 rounded-2xl p-5 w-full max-w-md shadow-e3 space-y-4">
+            <div className="flex items-center justify-between border-b border-emerald-200 pb-2">
+              <h3 className="text-sm font-bold text-emerald-950 flex items-center gap-2">
                 <Plus className="w-4 h-4 text-emerald-600" />
                 <span>記錄嵌合師咒語</span>
               </h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-stone-400 hover:text-stone-600">
+              <button onClick={() => setIsAddModalOpen(false)} className="text-[#7c6a58] hover:text-[#6b5a4b]">
                 <GiCancel className="text-lg" />
               </button>
             </div>
 
             <form onSubmit={handleAddSpell} className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">咒語名稱</label>
+                <label className="block font-bold text-[#3c2415] mb-1">咒語名稱</label>
                 <input
                   type="text"
                   value={newSpellName}
                   onChange={e => setNewSpellName(e.target.value)}
                   placeholder="例如：劇毒吐息、音波咆哮..."
-                  className="w-full p-2 rounded-lg border border-emerald-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-900 dark:text-stone-100 outline-none focus:border-emerald-500"
+                  className="w-full p-2 rounded-lg border border-emerald-300 bg-white text-[#2c221e] outline-none focus:border-emerald-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">源頭物種</label>
+                  <label className="block font-bold text-[#3c2415] mb-1">源頭物種</label>
                   <select
                     value={newSpecies}
                     onChange={e => setNewSpecies(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-emerald-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-900 dark:text-stone-100 outline-none focus:border-emerald-500"
+                    className="w-full p-2 rounded-lg border border-emerald-300 bg-white text-[#2c221e] outline-none focus:border-emerald-500"
                   >
                     <option value="野獸">野獸 · BEAST</option>
                     <option value="魔獸">魔獸 · MONSTER</option>
@@ -445,36 +433,36 @@ export default function ChimeristManager({
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">MP 消耗</label>
+                  <label className="block font-bold text-[#3c2415] mb-1">MP 消耗</label>
                   <input
                     type="text"
                     value={newMp}
                     onChange={e => setNewMp(e.target.value)}
                     placeholder="10 或 10 × T"
-                    className="w-full p-2 rounded-lg border border-emerald-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-900 dark:text-stone-100 outline-none focus:border-emerald-500"
+                    className="w-full p-2 rounded-lg border border-emerald-300 bg-white text-[#2c221e] outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">目標</label>
+                  <label className="block font-bold text-[#3c2415] mb-1">目標</label>
                   <input
                     type="text"
                     value={newTarget}
                     onChange={e => setNewTarget(e.target.value)}
                     placeholder="一個生物 / 至多 3 個生物"
-                    className="w-full p-2 rounded-lg border border-emerald-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-900 dark:text-stone-100 outline-none focus:border-emerald-500"
+                    className="w-full p-2 rounded-lg border border-emerald-300 bg-white text-[#2c221e] outline-none focus:border-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">持續時間</label>
+                  <label className="block font-bold text-[#3c2415] mb-1">持續時間</label>
                   <input
                     type="text"
                     value={newDuration}
                     onChange={e => setNewDuration(e.target.value)}
                     placeholder="瞬發 / 場景"
-                    className="w-full p-2 rounded-lg border border-emerald-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-900 dark:text-stone-100 outline-none focus:border-emerald-500"
+                    className="w-full p-2 rounded-lg border border-emerald-300 bg-white text-[#2c221e] outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
@@ -487,28 +475,28 @@ export default function ChimeristManager({
                   onChange={e => setNewIsOffensive(e.target.checked)}
                   className="rounded border-emerald-400 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
                 />
-                <label htmlFor="chk-offensive" className="font-bold text-stone-700 dark:text-stone-300 cursor-pointer flex items-center gap-1">
+                <label htmlFor="chk-offensive" className="font-bold text-[#3c2415] cursor-pointer flex items-center gap-1">
                   <span>這是一個攻擊性咒語（o）</span>
-                  <span className="text-[11px] text-stone-400 font-normal">（將使用【{currentFormula}】檢定）</span>
+                  <span className="text-[11px] text-[#7c6a58] font-normal">（將使用【{currentFormula}】檢定）</span>
                 </label>
               </div>
 
               <div>
-                <label className="block font-bold text-stone-700 dark:text-stone-300 mb-1">效果說明</label>
+                <label className="block font-bold text-[#3c2415] mb-1">效果說明</label>
                 <textarea
                   rows={3}
                   value={newEffect}
                   onChange={e => setNewEffect(e.target.value)}
                   placeholder="詳細效果說明..."
-                  className="w-full p-2 rounded-lg border border-emerald-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-900 dark:text-stone-100 outline-none focus:border-emerald-500"
+                  className="w-full p-2 rounded-lg border border-emerald-300 bg-white text-[#2c221e] outline-none focus:border-emerald-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-emerald-200 dark:border-slate-800">
+              <div className="flex justify-end gap-2 pt-2 border-t border-emerald-200">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-3 py-1.5 rounded-lg border border-stone-300 dark:border-slate-700 text-stone-600 dark:text-stone-400 font-bold"
+                  className="px-3 py-1.5 rounded-lg border border-[#d6c7ab] text-[#6b5a4b] font-bold"
                 >
                   取消
                 </button>

@@ -127,7 +127,7 @@ export default function AddCombatantModal({
           <button
             onClick={() => setTab('npc')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
-              tab === 'npc' ? 'bg-amber-700 text-white shadow-sm' : 'bg-[#eee6d3] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#ebdcc4] border border-[#d6c7ab]'
+              tab === 'npc' ? 'bg-amber-700 text-white' : 'bg-[#eee6d3] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#ebdcc4] border border-[#d6c7ab]'
             }`}
           >
             <GiDragonHead className="w-3.5 h-3.5" /> 怪物庫選取 ({npcLibrary.length})
@@ -135,7 +135,7 @@ export default function AddCombatantModal({
           <button
             onClick={() => setTab('character')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
-              tab === 'character' ? 'bg-amber-700 text-white shadow-sm' : 'bg-[#eee6d3] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#ebdcc4] border border-[#d6c7ab]'
+              tab === 'character' ? 'bg-amber-700 text-white' : 'bg-[#eee6d3] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#ebdcc4] border border-[#d6c7ab]'
             }`}
           >
             <GiVisoredHelm className="w-3.5 h-3.5" /> 玩家名冊選取 ({characterRoster.length})
@@ -143,7 +143,7 @@ export default function AddCombatantModal({
           <button
             onClick={() => setTab('quick')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
-              tab === 'quick' ? 'bg-amber-700 text-white shadow-sm' : 'bg-[#eee6d3] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#ebdcc4] border border-[#d6c7ab]'
+              tab === 'quick' ? 'bg-amber-700 text-white' : 'bg-[#eee6d3] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#ebdcc4] border border-[#d6c7ab]'
             }`}
           >
             <Plus className="w-3.5 h-3.5" />
@@ -157,13 +157,13 @@ export default function AddCombatantModal({
             {/* Search & Faction Filter */}
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative flex-1 min-w-[200px]">
-                <Search className="w-3.5 h-3.5 text-[#8c7b6c] absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-[#7c6a58] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="搜尋怪物名稱、定位或標籤..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#2c221e] outline-none focus:border-amber-700 shadow-sm"
+                  className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#2c221e] outline-none focus:border-amber-700"
                 />
               </div>
 
@@ -171,7 +171,7 @@ export default function AddCombatantModal({
               <select
                 value={selectedFaction}
                 onChange={e => setSelectedFaction(e.target.value)}
-                className="bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-2.5 py-1.5 text-xs text-[#2c221e] outline-none shadow-sm font-medium"
+                className="bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-2.5 py-1.5 text-xs text-[#2c221e] outline-none font-medium"
               >
                 <option value="ALL">全部陣營 ({npcLibrary.length})</option>
                 {factions.map(f => (
@@ -183,14 +183,14 @@ export default function AddCombatantModal({
             {/* List */}
             <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
               {filteredNpcs.length === 0 ? (
-                <div className="text-center py-8 text-[#8c7b6c] text-xs font-mono">
+                <div className="text-center py-8 text-[#7c6a58] text-xs font-mono">
                   沒有符合條件的怪物
                 </div>
               ) : (
                 filteredNpcs.map(npc => (
                   <div
                     key={npc.id}
-                    className="p-3 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] hover:border-amber-600 flex items-center justify-between gap-3 transition-colors shadow-sm"
+                    className="p-3 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] hover:border-amber-600 flex items-center justify-between gap-3 transition-colors"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-9 h-9 rounded-lg bg-[#f5efdf] border border-[#d6c7ab] flex items-center justify-center font-bold text-amber-800 text-sm shrink-0">
@@ -232,13 +232,13 @@ export default function AddCombatantModal({
         {tab === 'character' && (
           <div className="space-y-3">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-[#8c7b6c] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-[#7c6a58] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="搜尋角色姓名或身份..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#2c221e] outline-none focus:border-amber-700 shadow-sm"
+                className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#2c221e] outline-none focus:border-amber-700"
               />
             </div>
 
@@ -246,7 +246,7 @@ export default function AddCombatantModal({
               {filteredChars.map(char => (
                 <div
                   key={char.id}
-                  className="p-3 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] hover:border-sky-500 flex items-center justify-between gap-3 transition-colors shadow-sm"
+                  className="p-3 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] hover:border-sky-500 flex items-center justify-between gap-3 transition-colors"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-9 h-9 rounded-lg bg-[#dbeafe] border border-blue-200 flex items-center justify-center font-bold text-blue-900 text-sm shrink-0">

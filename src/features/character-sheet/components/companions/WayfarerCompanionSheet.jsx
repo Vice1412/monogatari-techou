@@ -18,6 +18,7 @@ import {
   createDefaultCompanionData
 } from '../../data/wayfarerCompanionData';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
+import { ATTRIBUTE_COLORS } from '../../data/sourcebookConfig';
 
 export default function WayfarerCompanionSheet({
   character,
@@ -79,22 +80,22 @@ export default function WayfarerCompanionSheet({
   };
 
   return (
-    <div className="p-4 rounded-xl bg-gradient-to-br from-green-50/80 via-white to-emerald-50/60 dark:from-slate-900 dark:via-slate-800 dark:to-green-950/20 border border-green-300/80 dark:border-green-700/60 shadow-sm space-y-4 text-xs">
+    <div className="p-4 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-4 text-xs">
       
       {/* 頂部標題與編輯按鈕 */}
-      <div className="flex items-center justify-between border-b border-green-200 dark:border-slate-700 pb-2 flex-wrap gap-2">
+      <div className="flex items-center justify-between border-b border-green-200 pb-2 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
-          <div className="p-1.5 rounded-lg bg-green-600/10 text-green-600 dark:text-green-400">
+          <div className="p-1.5 rounded-lg bg-green-600/10 text-green-600">
             <GiPawPrint className="text-xl" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-green-950 dark:text-green-100 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-green-950 flex items-center gap-2">
               <span>{comp.name || '忠實夥伴'}</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-300 border border-green-300 dark:border-green-800">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-green-100 text-green-800 border border-green-300">
                 5 級 {comp.species || '野獸'} · SL {companionSL}
               </span>
             </h3>
-            <p className="text-[10px] text-stone-400 font-mono">
+            <p className="text-t12 text-[#7c6a58] font-mono">
               官方 5 級 NPC 隨從（參見手冊 p. 219 與 p. 302-317）
             </p>
           </div>
@@ -103,7 +104,7 @@ export default function WayfarerCompanionSheet({
         <button
           type="button"
           onClick={() => setIsEditModalOpen(true)}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-white dark:bg-slate-800 hover:bg-green-50 dark:hover:bg-slate-700 text-green-900 dark:text-green-200 border border-green-300 dark:border-slate-700 shadow-2xs"
+          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-white hover:bg-green-50 text-green-900 border border-green-300"
         >
           <GiQuillInk className="w-3.5 h-3.5 text-green-600" />
           <span>編輯隨從設定</span>
@@ -111,15 +112,15 @@ export default function WayfarerCompanionSheet({
       </div>
 
       {/* 生命值與危機儀表 */}
-      <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-green-200 dark:border-slate-700 shadow-2xs space-y-2">
+      <div className="p-3 rounded-xl bg-white border border-green-200 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-stone-700 dark:text-stone-300">夥伴生命值 (HP):</span>
-            <span className="font-mono font-black text-sm text-green-700 dark:text-green-400">
+            <span className="font-bold text-[#3c2415]">夥伴生命值 (HP):</span>
+            <span className="font-mono font-black text-sm text-green-700">
               {currentHp} / {maxHp}
             </span>
             {isCrisis && (
-              <span className="px-1.5 py-0.5 rounded font-bold text-[10px] bg-red-100 text-red-700 border border-red-300 flex items-center gap-1 animate-pulse">
+              <span className="px-1.5 py-0.5 rounded font-bold text-[10px] bg-red-100 text-red-700 border border-red-300 flex items-center gap-1">
                 <GiHazardSign className="text-xs" />
                 <span>危機 (≤{crisisHp})</span>
               </span>
@@ -163,7 +164,7 @@ export default function WayfarerCompanionSheet({
         </div>
 
         {/* HP 進度條 */}
-        <div className="w-full h-2 rounded-full bg-stone-200 dark:bg-slate-700 overflow-hidden">
+        <div className="w-full h-2 rounded-full bg-[#e8dcc4] overflow-hidden">
           <div
             className={`h-full transition-all duration-300 ${
               isCrisis ? 'bg-red-500' : 'bg-green-500'
@@ -171,7 +172,7 @@ export default function WayfarerCompanionSheet({
             style={{ width: `${Math.min(100, Math.max(0, (currentHp / maxHp) * 100))}%` }}
           />
         </div>
-        <div className="text-[10px] font-mono text-stone-400 flex justify-between">
+        <div className="text-[10px] font-mono text-[#7c6a58] flex justify-between">
           <span>公式：(SL {companionSL} × MIG d{migDie}) + 等級({charLevel})/2 = {maxHp}</span>
           <span>防禦：DEF d{dexDie} | M.DEF d{insDie}</span>
         </div>
@@ -179,41 +180,41 @@ export default function WayfarerCompanionSheet({
 
       {/* 四維屬性骰展示 */}
       <div className="grid grid-cols-4 gap-2">
-        <div className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-center space-y-0.5">
-          <span className="text-[10px] text-stone-400 block font-bold">DEX</span>
-          <span className="font-mono font-bold text-sm text-amber-700 dark:text-amber-300">d{dexDie}</span>
+        <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
+          <span className="text-[10px] text-[#7c6a58] block font-bold">DEX</span>
+          <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.dex}`}>d{dexDie}</span>
         </div>
-        <div className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-center space-y-0.5">
-          <span className="text-[10px] text-stone-400 block font-bold">INS</span>
-          <span className="font-mono font-bold text-sm text-blue-700 dark:text-blue-300">d{insDie}</span>
+        <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
+          <span className="text-[10px] text-[#7c6a58] block font-bold">INS</span>
+          <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.ins}`}>d{insDie}</span>
         </div>
-        <div className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-center space-y-0.5">
-          <span className="text-[10px] text-stone-400 block font-bold">MIG</span>
-          <span className="font-mono font-bold text-sm text-red-700 dark:text-red-300">d{migDie}</span>
+        <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
+          <span className="text-[10px] text-[#7c6a58] block font-bold">MIG</span>
+          <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.mig}`}>d{migDie}</span>
         </div>
-        <div className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-center space-y-0.5">
-          <span className="text-[10px] text-stone-400 block font-bold">WLP</span>
-          <span className="font-mono font-bold text-sm text-purple-700 dark:text-purple-300">d{wlpDie}</span>
+        <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
+          <span className="text-[10px] text-[#7c6a58] block font-bold">WLP</span>
+          <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.wlp}`}>d{wlpDie}</span>
         </div>
       </div>
 
       {/* 基礎攻擊欄位與一鍵擲骰 */}
       <div className="space-y-2">
-        <span className="text-xs font-bold text-stone-600 dark:text-stone-400">基礎攻擊（命中檢定享有 +{companionSL} 加成）</span>
+        <span className="text-xs font-bold text-[#6b5a4b]">基礎攻擊（命中檢定享有 +{companionSL} 加成）</span>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {(comp.attacks || []).map((atk, idx) => (
             <div
               key={atk.id || idx}
-              className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-green-200 dark:border-slate-700 shadow-2xs space-y-1.5"
+              className="p-3 rounded-xl bg-white border border-green-200 space-y-1.5"
             >
               <div className="flex items-center justify-between">
-                <strong className="text-stone-900 dark:text-stone-100 font-bold">{atk.name}</strong>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-stone-100 dark:bg-slate-900 text-stone-600">
+                <strong className="text-[#2c221e] font-bold">{atk.name}</strong>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b]">
                   {atk.range === 'melee' || atk.type === 'melee' ? '近戰' : '遠程'}
                 </span>
               </div>
               <div className="flex items-center justify-between pt-1">
-                <span className="font-mono text-[11px] text-stone-600 dark:text-stone-400">
+                <span className="font-mono text-[11px] text-[#6b5a4b]">
                   【{atk.attr1} + {atk.attr2}】+{companionSL} | {renderTextWithAffinities(atk.damageText || atk.damage || '【HR + 5】物理')}
                 </span>
                 <button
@@ -226,7 +227,7 @@ export default function WayfarerCompanionSheet({
                 </button>
               </div>
               {atk.specialEffect && (
-                <p className="text-[10px] text-stone-500 dark:text-stone-400 border-t border-green-100 dark:border-slate-700/60 pt-1 leading-relaxed">
+                <p className="text-[10px] text-[#6b5a4b] border-t border-green-100 pt-1 leading-relaxed">
                   {renderTextWithAffinities(atk.specialEffect)}
                 </p>
               )}
@@ -238,29 +239,29 @@ export default function WayfarerCompanionSheet({
       {/* 隨從咒語清單 */}
       {Array.isArray(comp.spells) && comp.spells.length > 0 && (
         <div className="space-y-2">
-          <span className="text-xs font-bold text-stone-600 dark:text-stone-400 flex items-center gap-1.5">
-            <span className="fu-icon text-purple-700 dark:text-purple-400">c</span>
+          <span className="text-xs font-bold text-[#6b5a4b] flex items-center gap-1.5">
+            <span className="fu-icon text-[#3c2415]">c</span>
             <span>隨從咒語（Core p. 306-317）</span>
           </span>
           <div className="space-y-2">
             {comp.spells.map((sp, idx) => (
               <div
                 key={sp.id || idx}
-                className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-purple-200 dark:border-slate-700 shadow-2xs space-y-1.5"
+                className="p-3 rounded-xl bg-white border border-[#d6c7ab] space-y-1.5"
               >
                 <div className="flex items-center justify-between flex-wrap gap-1">
                   <div className="flex items-center gap-1.5">
-                    <span className={`fu-icon text-sm font-bold ${sp.isOffensive ? 'text-red-600 dark:text-red-400' : 'text-purple-600 dark:text-purple-400'}`}>
+                    <span className={`fu-icon text-sm font-bold ${sp.isOffensive ? 'text-[#8c2d36] ' : 'text-[#3c2415] '}`}>
                       {sp.isOffensive ? 'o' : 'c'}
                     </span>
-                    <strong className="text-stone-900 dark:text-stone-100 font-bold">{sp.name || '未命名咒語'}</strong>
+                    <strong className="text-[#2c221e] font-bold">{sp.name || '未命名咒語'}</strong>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
                     MP {sp.mp || 10} · {sp.target || '一個生物'} · {sp.duration || '瞬發'}
                   </span>
                 </div>
                 {sp.effect && (
-                  <p className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed border-t border-purple-100 dark:border-slate-700/60 pt-1">
+                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-[#e2d6c1] pt-1">
                     {renderTextWithAffinities(sp.effect)}
                   </p>
                 )}
@@ -273,27 +274,27 @@ export default function WayfarerCompanionSheet({
       {/* 其餘行動清單 */}
       {Array.isArray(comp.otherActions) && comp.otherActions.length > 0 && (
         <div className="space-y-2">
-          <span className="text-xs font-bold text-stone-600 dark:text-stone-400 flex items-center gap-1.5">
-            <span className="fu-icon text-amber-800 dark:text-amber-500">s</span>
+          <span className="text-xs font-bold text-[#6b5a4b] flex items-center gap-1.5">
+            <span className="fu-icon text-amber-800">s</span>
             <span>其餘行動（Core p. 306-317）</span>
           </span>
           <div className="space-y-2">
             {comp.otherActions.map((act, idx) => (
               <div
                 key={act.id || idx}
-                className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-amber-200 dark:border-slate-700 shadow-2xs space-y-1.5"
+                className="p-3 rounded-xl bg-white border border-amber-200 space-y-1.5"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <span className="fu-icon text-sm font-bold text-amber-800 dark:text-amber-500">s</span>
-                    <strong className="text-stone-900 dark:text-stone-100 font-bold">{act.name || '未命名行動'}</strong>
+                    <span className="fu-icon text-sm font-bold text-amber-800">s</span>
+                    <strong className="text-[#2c221e] font-bold">{act.name || '未命名行動'}</strong>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
                     行動
                   </span>
                 </div>
                 {act.effect && (
-                  <p className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed border-t border-amber-100 dark:border-slate-700/60 pt-1">
+                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-amber-100 pt-1">
                     {renderTextWithAffinities(act.effect)}
                   </p>
                 )}
@@ -306,24 +307,24 @@ export default function WayfarerCompanionSheet({
       {/* 特殊規則清單 */}
       {Array.isArray(comp.specialRules) && comp.specialRules.length > 0 && (
         <div className="space-y-2">
-          <span className="text-xs font-bold text-stone-600 dark:text-stone-400 flex items-center gap-1.5">
-            <GiSparkles className="text-emerald-600 dark:text-emerald-400" />
+          <span className="text-xs font-bold text-[#6b5a4b] flex items-center gap-1.5">
+            <GiSparkles className="text-emerald-600" />
             <span>特殊規則（Core p. 306-317）</span>
           </span>
           <div className="space-y-2">
             {comp.specialRules.map((rule, idx) => (
               <div
                 key={rule.id || idx}
-                className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-emerald-200 dark:border-slate-700 shadow-2xs space-y-1.5"
+                className="p-3 rounded-xl bg-white border border-emerald-200 space-y-1.5"
               >
                 <div className="flex items-center justify-between">
-                  <strong className="text-stone-900 dark:text-stone-100 font-bold">{rule.name || '未命名規則'}</strong>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <strong className="text-[#2c221e] font-bold">{rule.name || '未命名規則'}</strong>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
                     特殊規則
                   </span>
                 </div>
                 {rule.effect && (
-                  <p className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed border-t border-emerald-100 dark:border-slate-700/60 pt-1">
+                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-emerald-100 pt-1">
                     {renderTextWithAffinities(rule.effect)}
                   </p>
                 )}

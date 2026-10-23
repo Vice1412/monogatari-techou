@@ -79,7 +79,7 @@ const affinityTabs = () => api.eval(`(() => {
   const panel = ${PANEL};
   if (!panel) return [];
   return [...panel.querySelectorAll('button')]
-    .filter((b) => /弱點 VUL|抗性 RES|免疫 IMM|吸收 ABS/.test(b.innerText))
+    .filter((b) => /弱點|抗性|免疫|吸收/.test(b.innerText))
     .map((b) => {
       const txt = b.innerText.replace(/\\s+/g, ' ').trim();
       const m = txt.match(/(\\d+)\\s*\\/\\s*(\\d+|∞)/);

@@ -757,7 +757,7 @@ export default function CharacterEditor({
                     style={{ color: theme.accent }}
                   />
                 )}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[9px] font-bold">
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-t12 font-bold">
                   更換
                 </div>
               </div>
@@ -771,7 +771,7 @@ export default function CharacterEditor({
                     Lv {getCharacterLevel(character)}
                   </JRPGBadge>
                 </div>
-                <p className="text-[11px] truncate" style={{ color: theme.textMuted }}>
+                <p className="text-t12 truncate" style={{ color: theme.textMuted }}>
                   {character.identity || '未設定身份'}
                 </p>
               </div>
@@ -825,7 +825,7 @@ export default function CharacterEditor({
               )}
             </div>
 
-            <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+            <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
               {locked
                 ? '身世與四維屬性已凍結；等級、技能、裝備仍可隨時調整。'
                 : canLock
@@ -857,7 +857,7 @@ export default function CharacterEditor({
             className="rounded-xl border shadow-xs p-2 flex flex-col gap-1 transition-colors"
             style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
           >
-            <div className="px-2 py-1 text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+            <div className="px-2 py-1 text-[10px] font-mono font-bold text-[#6b5a4b] uppercase tracking-wider">
               創角流程
             </div>
 
@@ -874,7 +874,7 @@ export default function CharacterEditor({
                   className={`w-full text-left px-2.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between group cursor-pointer ${
                     isTabActive
                       ? 'text-white shadow-sm'
-                      : 'hover:bg-slate-50 text-slate-700'
+                      : 'hover:bg-[#fbf7ee] text-[#3c2415]'
                   }`}
                   style={isTabActive ? { backgroundColor: theme.accent, color: '#ffffff' } : {}}
                 >
@@ -883,7 +883,7 @@ export default function CharacterEditor({
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-mono font-black shrink-0 transition-colors ${
                         isTabActive
                           ? 'bg-white/20 text-white'
-                          : 'bg-slate-100 text-slate-600 group-hover:bg-slate-200'
+                          : 'bg-[#f4ebd9] text-[#6b5a4b] group-hover:bg-[#e8dcc4]'
                       }`}
                     >
                       {t.id}
@@ -895,7 +895,7 @@ export default function CharacterEditor({
                       </div>
                       {/* 這一行以前是標籤的重複；改成「這一格還缺什麼」，導航列就變成進度表 */}
                       <div className={`text-[10px] leading-tight mt-0.5 truncate ${
-                        isTabActive ? 'text-white/80' : 'text-slate-400'
+                        isTabActive ? 'text-white/80' : 'text-[#6b5a4b]'
                       }`}>
                         {step.message}
                       </div>
@@ -1017,7 +1017,9 @@ export default function CharacterEditor({
               >
                 <span className="flex flex-col items-center leading-tight">
                   <span>跑團面板</span>
-                  <span className="text-[9px] font-normal opacity-90">HP／MP／狀態、攻擊與咒語、命刻</span>
+                  {/* 9px→12px 之後這行會折成兩行，而預設斷行把「咒語」切成「咒／語」。
+                      `text-balance` 讓兩行長度接近，斷點落在頓號附近而不是詞中間。 */}
+                  <span className="text-t12 font-normal opacity-90 text-balance">HP／MP／狀態、攻擊與咒語、命刻</span>
                 </span>
               </JRPGButton>
             )}
@@ -1098,7 +1100,7 @@ export default function CharacterEditor({
           </div>
 
           <div className="flex items-center gap-2 pt-1 border-t" style={{ borderColor: theme.border }}>
-            <span className="text-[11px] font-bold text-slate-500 shrink-0">步驟 {activeTab}/{TABS.length}:</span>
+            <span className="text-[11px] font-bold text-[#6b5a4b] shrink-0">步驟 {activeTab}/{TABS.length}:</span>
             <select
               value={activeTab}
               onChange={e => setActiveTab(Number(e.target.value))}
@@ -1335,7 +1337,7 @@ export default function CharacterEditor({
                 <h4 className="font-serif font-black text-lg flex items-center gap-2" style={{ color: theme.textDark }}>
                   <span style={{ color: theme.accent }}>3.</span> 四維基礎屬性骰配置
                 </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-[#6b5a4b] mt-0.5">
                   四維屬性代表骰子面數（d6~d12），將骰子分配至各項體質。
                 </p>
               </div>
@@ -1363,7 +1365,7 @@ export default function CharacterEditor({
                 <h4 className="font-serif font-black text-lg flex items-center gap-2" style={{ color: theme.textDark }}>
                   <span style={{ color: theme.accent }}>2.</span> 職業組合與技能加點
                 </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-[#6b5a4b] mt-0.5">
                   起始 {rules.startingLevel} 級必須分配在 {rules.classCountMin}~{rules.classCountMax} 個不同職業中，每級獲得 1 點技能。
                 </p>
               </div>
@@ -1442,9 +1444,9 @@ export default function CharacterEditor({
                 style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-700">
+                  <span className="text-xs font-bold text-[#3c2415]">
                     目前已選擇 <strong className="font-mono text-sm" style={{ color: theme.accent }}>{(character.classes || []).length}</strong> 個職業
-                    {character.level <= rules.startingLevel && <span className="text-[11px] text-slate-500 ml-1">（創角規定：{rules.classCountMin}~{rules.classCountMax} 個職業）</span>}
+                    {character.level <= rules.startingLevel && <span className="text-[11px] text-[#6b5a4b] ml-1">（創角規定：{rules.classCountMin}~{rules.classCountMax} 個職業）</span>}
                   </span>
                 </div>
 
@@ -1474,8 +1476,8 @@ export default function CharacterEditor({
                       <GiBroadsword size={24} />
                     </div>
                     <div className="space-y-1">
-                      <h4 className="font-serif font-black text-sm text-slate-800">尚未選擇任何職業</h4>
-                      <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                      <h4 className="font-serif font-black text-sm text-[#3c2415]">尚未選擇任何職業</h4>
+                      <p className="text-xs text-[#6b5a4b] max-w-md mx-auto leading-relaxed">
                         《Fabula Ultima》開局角色需要在 {rules.classCountMin}~{rules.classCountMax} 個職業中探索分配起始 {rules.startingLevel} 級。
                       </p>
                     </div>
@@ -1547,7 +1549,7 @@ export default function CharacterEditor({
                 <h4 className="font-serif font-black text-lg flex items-center gap-2" style={{ color: theme.textDark }}>
                   <span style={{ color: theme.accent }}>4.</span> 裝備配置
                 </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-[#6b5a4b] mt-0.5">
                   以目前的四維骰即時換算期望命中、期望傷害與防禦結果；不能裝備的原因直接標在選項上。
                 </p>
               </div>
@@ -1673,7 +1675,7 @@ export default function CharacterEditor({
                 </div>
 
                 <div className="flex items-center justify-between pt-1.5 border-t flex-wrap gap-2 text-xs" style={{ borderColor: `${theme.border}80` }}>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-[#6b5a4b]">
                     剩餘預算 + 2d6 × 10 結算為開局金幣
                   </span>
                   <button
@@ -1815,7 +1817,7 @@ export default function CharacterEditor({
                   <div className="flex items-center gap-1.5">
                     <GameIcon name="cat_sword" size={16} />
                     <span className="text-xs font-bold" style={{ color: theme.textDark }}>{CUSTOM_WEAPON_BASE.label}</span>
-                    <span className="text-[11px] text-slate-500">
+                    <span className="text-[11px] text-[#6b5a4b]">
                       {customWeaponGroups.length > 0 ? `${customWeaponGroups.length} 把` : '尚未鍛造'}
                     </span>
                   </div>
@@ -1830,7 +1832,7 @@ export default function CharacterEditor({
                       <span>鍛造{CUSTOM_WEAPON_BASE.label}</span>
                     </button>
                   ) : (
-                    <span className="text-[11px] text-slate-500">
+                    <span className="text-[11px] text-[#6b5a4b]">
                       此團未開放——請在第 1 步的「此團開卡規則」打開
                     </span>
                   )}
@@ -1872,7 +1874,7 @@ export default function CharacterEditor({
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] truncate" style={{ color: theme.textDark }}>
+                            <p className="text-t12 truncate" style={{ color: theme.textDark }}>
                               {group.isTransforming && (
                                 <span className="font-bold">〔{idx === 0 ? '形態一' : idx === 1 ? '形態二' : '未裝備'}〕</span>
                               )}
@@ -1984,10 +1986,39 @@ export default function CharacterEditor({
                 <h4 className="font-serif font-black text-lg flex items-center gap-2" style={{ color: theme.textDark }}>
                   <span style={{ color: theme.accent }}>5.</span> 英雄技能與特質
                 </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-[#6b5a4b] mt-0.5">
                   精通職業後解鎖英雄技能，並可設定特質。
                 </p>
               </div>
+
+              {/* 空狀態：這一步的三塊內容（金手指特質／底力技／營地活動）**全部由開卡規則決定**。
+                  三者都沒開時，這頁原本只剩標題與一行副標——標題承諾「英雄技能與特質」，
+                  畫面卻是一片空白，而且沒有任何線索說明「為什麼是空的、要怎樣才會有」。
+                  依 §CI12 的空狀態語法補（虛線框 ＋ gi 敘事圖示 ＋ 粗體標題 ＋ 一句教學），
+                  並**刻意不放 CTA**：換規則集的入口在第 1 步，左側步驟列本來就走得到，
+                  同一動作不在同屏喊兩次（§CI11 的教訓）。
+                  英雄技能本身不在這頁——它跟著職業卡走（第 2 步），所以這段文案不承諾它會出現在這裡。 */}
+              {!rules.allowQuirk && !rules.zeroPowers && !campAccess.enabled && (
+                <div
+                  className="p-8 rounded-2xl border border-dashed text-center space-y-3"
+                  style={{ borderColor: theme.border, backgroundColor: theme.panelBg }}
+                >
+                  <div
+                    className="w-12 h-12 rounded-xl mx-auto flex items-center justify-center border shadow-xs"
+                    style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.accent }}
+                  >
+                    <GiScrollUnfurled size={24} />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-serif font-black text-sm text-[#3c2415]">
+                      這一步目前沒有可設定的項目
+                    </h4>
+                    <p className="text-t12 text-[#6b5a4b] max-w-md mx-auto leading-relaxed">
+                      特質、底力技與營地活動都由開卡規則決定。到第 1 步換一組規則集，可設定的項目就會出現在這裡。
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* 金手指特質：開卡規則沒開就直接整塊收掉。
                   ※ 沒開的話清單裡只剩「無特殊金手指」，留一個只能選「無」的下拉是純噪音
@@ -2021,7 +2052,7 @@ export default function CharacterEditor({
                         <button
                           type="button"
                           onClick={() => updateField('quirk', '無')}
-                          className="text-[11px] text-slate-400 hover:text-red-700 cursor-pointer"
+                          className="text-[11px] text-[#6b5a4b] hover:text-red-700 cursor-pointer"
                         >
                           移除
                         </button>
@@ -2039,7 +2070,7 @@ export default function CharacterEditor({
                       </div>
                     </div>
                   ) : (
-                    <p className="text-[11px]" style={{ color: theme.textMuted }}>
+                    <p className="text-t12" style={{ color: theme.textMuted }}>
                       尚未選擇。金手指是選用規則（三大奇幻手冊才推出）——不選也完全可以。
                     </p>
                   )}
@@ -2111,7 +2142,7 @@ export default function CharacterEditor({
                 </div>
 
                 {rules.startingHeroicSkill && (
-                  <p className="text-[11px] leading-relaxed" style={{ color: theme.textMuted }}>
+                  <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
                     此團使用官方選用規則「開局贈送一個英雄技能」（Playtest Materials 2026-10-01）：
                     開局可多拿一個，但第一次因精通職業而該拿到英雄技能時改為不拿。
                     標著 ◈ 的技能靠這個名額取得（需要該職業，但不必精通）。
@@ -2162,14 +2193,14 @@ export default function CharacterEditor({
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-600 mt-0.5">{renderTextWithAffinities(resolveHeroicSkillEffect(hs.name, hs.effect, character))}</p>
+                        <p className="text-[11px] text-[#6b5a4b] mt-0.5">{renderTextWithAffinities(resolveHeroicSkillEffect(hs.name, hs.effect, character))}</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => {
                           updateField('heroicSkills', character.heroicSkills.filter((_, i) => i !== idx));
                         }}
-                        className="text-slate-400 hover:text-red-700 font-bold cursor-pointer"
+                        className="text-[#6b5a4b] hover:text-red-700 font-bold cursor-pointer"
                       >
                         ×
                       </button>
@@ -2197,7 +2228,7 @@ export default function CharacterEditor({
                 <h4 className="font-serif font-black text-lg flex items-center gap-2" style={{ color: theme.textDark }}>
                   <span style={{ color: theme.accent }}>6.</span> 命名與背景
                 </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-[#6b5a4b] mt-0.5">
                   最後一步。看過職業、屬性與裝備之後再取名字，通常比一開始就想容易得多。
                 </p>
               </div>
@@ -2271,7 +2302,7 @@ export default function CharacterEditor({
               type="button"
               disabled={activeTab <= 1}
               onClick={() => setActiveTab(prev => Math.max(1, prev - 1))}
-              className="px-4 py-2 rounded-lg border bg-white hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+ className="px-4 py-2 rounded-lg border bg-white hover:bg-[#fbf7ee] disabled:opacity-30 disabled:pointer-events-none text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
               style={{ borderColor: theme.border, color: theme.textDark }}
             >
               <ChevronLeft className="w-4 h-4" />
@@ -2282,7 +2313,7 @@ export default function CharacterEditor({
               <button
                 type="button"
                 onClick={() => setIsCardPreviewModalOpen(true)}
-                className="px-4 py-2 rounded-lg border bg-white hover:bg-slate-50 text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+ className="px-4 py-2 rounded-lg border bg-white hover:bg-[#fbf7ee] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                 style={{ borderColor: theme.border, color: theme.textDark }}
                 title="唯讀：看這張卡目前長什麼樣，也可以列印、截圖或匯出成 PNG／PDF"
               >
@@ -2361,7 +2392,7 @@ export default function CharacterEditor({
         }
       >
         <div className="space-y-4">
-          <p className="text-xs text-slate-600 leading-relaxed -mt-1">
+          <p className="text-xs text-[#6b5a4b] leading-relaxed -mt-1">
             本清單為輔助提醒，未填寫項<strong>不會強制阻擋</strong>您的儲存或跑團，您可以隨時返回修改。
           </p>
 

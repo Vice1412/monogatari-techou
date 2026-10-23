@@ -56,7 +56,7 @@ export default function SkillStarPips({
               className={`fu-icon inline-flex items-center justify-center leading-none transition-all duration-150 ${
                 isFilled
                   ? 'text-amber-500 drop-shadow-[0_1px_3px_rgba(245,158,11,0.45)] scale-110'
-                  : 'text-slate-300 opacity-40 hover:opacity-90 hover:text-amber-400'
+                  : 'text-[#7c6a58] opacity-40 hover:opacity-90 hover:text-amber-400'
               }`}
               style={{ fontSize: `${size}px`, width: `${size}px`, height: `${size}px` }}
             >
@@ -66,7 +66,7 @@ export default function SkillStarPips({
         );
       })}
 
-      <span className="font-mono text-xs font-bold text-slate-500 ml-1">
+      <span className="font-mono text-xs font-bold text-[#6b5a4b] ml-1">
         SL {safeCurrent}/{safeMax}
       </span>
     </div>

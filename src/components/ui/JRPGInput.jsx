@@ -25,7 +25,7 @@ export function JRPGInput({
       )}
       <div className="relative flex items-center">
         {Icon && (
-          <div className="absolute left-3 text-[#8c7b6c] pointer-events-none" style={theme ? { color: theme.accent } : {}}>
+          <div className="absolute left-3 text-[#7c6a58] pointer-events-none" style={theme ? { color: theme.accent } : {}}>
             <Icon className="w-4 h-4" />
           </div>
         )}
@@ -33,7 +33,7 @@ export function JRPGInput({
           type={type}
           className={twMerge(
             clsx(
-              "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3.5 py-2 text-sm text-[#2c221e] placeholder-[#8c7b6c] outline-none transition-all duration-150 shadow-sm",
+              "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3.5 py-2 text-sm text-[#2c221e] placeholder-[#7c6a58] outline-none transition-all duration-150",
               "focus:border-amber-700 focus:ring-1 focus:ring-amber-600/30 focus:bg-white",
               Icon && "pl-9",
               error && "border-red-500 focus:border-red-600 focus:ring-red-500/20",
@@ -83,7 +83,7 @@ export function JRPGSelect({
           onChange={onChange}
           className={twMerge(
             clsx(
-              "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3.5 py-2 text-sm text-[#2c221e] outline-none transition-all duration-150 appearance-none cursor-pointer shadow-sm",
+              "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3.5 py-2 text-sm text-[#2c221e] outline-none transition-all duration-150 appearance-none cursor-pointer",
               "focus:border-amber-700 focus:ring-1 focus:ring-amber-600/30 focus:bg-white font-medium",
               className
             )
@@ -96,7 +96,7 @@ export function JRPGSelect({
           } : style}
           {...props}
         >
-          {placeholder && <option value="" disabled className="bg-white text-stone-500">{placeholder}</option>}
+          {placeholder && <option value="" disabled className="bg-white text-[#6b5a4b]">{placeholder}</option>}
           {options.map((opt) => {
             const val = typeof opt === 'object' ? opt.value : opt;
             const lbl = typeof opt === 'object' ? opt.label : opt;
@@ -107,7 +107,7 @@ export function JRPGSelect({
             );
           })}
         </select>
-        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-xs" style={theme ? { color: theme.accent } : { color: '#8c7b6c' }}>
+        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-xs" style={theme ? { color: theme.accent } : { color: '#7c6a58' }}>
           ▼
         </div>
       </div>

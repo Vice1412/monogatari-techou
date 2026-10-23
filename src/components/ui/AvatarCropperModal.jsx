@@ -133,8 +133,8 @@ export default function AvatarCropperModal({
   const accentColor = theme?.accent || '#b45309';
 
   return (
-    <div className="fixed inset-0 z-[120] bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-[#fbf7ee] border border-[#d6c7ab] rounded-2xl shadow-2xl max-w-md w-full p-4 sm:p-5 space-y-3.5 sm:space-y-4 text-[#2c221e] max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-[#fbf7ee] border border-[#d6c7ab] rounded-2xl shadow-e3 max-w-md w-full p-4 sm:p-5 space-y-3.5 sm:space-y-4 text-[#2c221e] max-h-[92vh] overflow-y-auto">
         {/* 標題欄 */}
         <div className="flex items-center justify-between pb-2 border-b border-[#d6c7ab]">
           <div>
@@ -198,14 +198,14 @@ export default function AvatarCropperModal({
             </div>
 
             {/* 提示徽章 */}
-            <div className="absolute top-2 left-2 bg-[#fffdf9]/90 backdrop-blur-sm border border-[#d6c7ab] rounded px-2 py-0.5 text-[10px] text-[#3c2415] font-bold flex items-center gap-1 pointer-events-none shadow-xs">
+            <div className="absolute top-2 left-2 bg-[#fffdf9]/90 backdrop-blur-sm border border-[#d6c7ab] rounded px-2 py-0.5 text-[10px] text-[#3c2415] font-bold flex items-center gap-1 pointer-events-none">
               <Move size={11} /> 拖曳移動
             </div>
           </div>
         </div>
 
         {/* 縮放拉桿與倍率按鈕 */}
-        <div className="space-y-3 bg-[#fffdf9] border border-[#d6c7ab] p-3 rounded-xl shadow-xs">
+        <div className="space-y-3 bg-[#fffdf9] border border-[#d6c7ab] p-3 rounded-xl">
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-1.5 text-[#3c2f21] font-bold">
               <ZoomIn size={15} style={{ color: accentColor }} />
@@ -224,7 +224,7 @@ export default function AvatarCropperModal({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-[#8c7b6c] font-mono">20%</span>
+            <span className="text-[10px] text-[#7c6a58] font-mono">20%</span>
             <input
               type="range"
               min="0.2"
@@ -235,11 +235,11 @@ export default function AvatarCropperModal({
               className="flex-1 h-1.5 bg-[#d6c7ab] rounded-lg appearance-none cursor-pointer"
               style={{ accentColor }}
             />
-            <span className="text-[10px] text-[#8c7b6c] font-mono">500%</span>
+            <span className="text-[10px] text-[#7c6a58] font-mono">500%</span>
           </div>
 
           <div className="flex items-center justify-between gap-1 pt-1">
-            <span className="text-[10px] text-[#8c7b6c] font-bold">快速倍率：</span>
+            <span className="text-[10px] text-[#7c6a58] font-bold">快速倍率：</span>
             <div className="flex gap-1 flex-wrap">
               {[0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0].map((sVal) => {
                 const isActive = Math.abs(zoom - sVal) < 0.05;

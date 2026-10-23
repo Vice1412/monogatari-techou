@@ -155,7 +155,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
 
       {open && (
         <div className="px-4 pb-4 pt-1 space-y-4 border-t" style={{ borderColor: theme.border }}>
-          <p className="text-[11px] leading-relaxed" style={{ color: theme.textMuted }}>
+          <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
             GM 列出的開卡需求。這是<strong>這一張卡</strong>的規則——改它不會影響名冊裡的其他角色，
             其他角色之後的改動也不會影響這一張。官方標準以外的手冊、金手指、公測修訂與開局英雄技能都在這裡開。
           </p>
@@ -208,7 +208,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
               {(TECHNOSPHERE_MODE_OPTIONS.find((m) => m.key === (rules.technospheres || 'off')) || {}).desc}
             </p>
             {techOn && (
-              <p className="text-[10px] leading-relaxed font-bold" style={{ color: theme.accent }}>
+              <p className="text-t12 leading-relaxed font-bold" style={{ color: theme.accent }}>
                 職業數固定為 3 個固有職業（上方兩個數字框已鎖定）。
                 {rules.technospheres === 'integrated'
                   ? `內嵌裝置可容納 ${getIntegratedMnemosphereCap(rules.startingLevel)} 顆職業魔石。`

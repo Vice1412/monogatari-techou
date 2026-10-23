@@ -185,7 +185,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
       memoLines.push(`反派位階：${villainInfo.label} (UP: ${villainInfo.up})`);
     }
     if (speciesName) {
-      memoLines.push(`種族：${speciesName}`);
+      memoLines.push(`物種：${speciesName}`);
     }
     if (state.faction) {
       memoLines.push(`陣營：${state.faction}`);

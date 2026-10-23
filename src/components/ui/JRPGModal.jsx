@@ -82,12 +82,13 @@ export default function JRPGModal({
           所以即使有 `w-full`，內容的 min-content 寬度（例如一排不會換行的技能名）
           還是會把整個彈窗撐破、在手機上造成橫向溢出。`min-w-0` 讓它可以真的縮到容器寬度。 */}
       <div
-        className={`relative w-full min-w-0 ${maxWidth} bg-[#fffdf9] border-2 border-[#d6c7ab] rounded-xl shadow-2xl overflow-hidden my-auto flex flex-col max-h-[90vh] text-[#2c221e]`}
+        className={`relative w-full min-w-0 ${maxWidth} bg-[#fffdf9] border-2 border-[#d6c7ab] rounded-xl shadow-e3 overflow-hidden my-auto flex flex-col max-h-[90vh] text-[#2c221e]`}
         style={theme ? { backgroundColor: theme.cardBg || '#ffffff', borderColor: theme.border, color: theme.textDark } : {}}
       >
-        {/* Top accent line */}
+        {/* Top accent line（第十五輪：實心，不再是漸層——漸層是第二套顏色系統） */}
         <div
-          className={`h-1 w-full ${theme?.gradient ? `bg-gradient-to-r ${theme.gradient}` : 'bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700'}`}
+          className="h-1 w-full"
+          style={{ backgroundColor: theme?.accent || '#8b5e34' }}
         />
 
         {/* Modal Header */}

@@ -16,15 +16,21 @@ export const STAT_FORMULA_NOTE =
   '最大生命值與魔力值採用基礎骰，不受狀態異常影響；物防與魔防採用當前骰。';
 
 // kind -> 樣式（沿用全站羊皮紙暖色調；kind 由引擎的 breakdown 提供）
+// kind -> 樣式。**八種出處一律同一個晶片**（第二十五輪）。
+// 顏色原本是八個色相家族（level amber／class emerald／skill indigo／heroic violet／
+// quirk rose／status red），但「這是哪一種加值」這件事**標籤已經寫了**（小字在上）。
+// 顏色不帶任何額外資訊，只讓八個來源看起來像八個不同的東西——那正是「出處」的病：
+// 出處不是身份，零顏色，辨識交給標籤（§CI31.5 同一條判準）。
+// 唯一的例外是 status：狀態異常是**極性**（危險），所以它保留登記的危險紅。
 const KIND_STYLES = {
   base: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
-  level: { chip: 'bg-amber-50 border-amber-300', label: 'text-amber-800', value: 'text-amber-950' },
-  class: { chip: 'bg-emerald-50 border-emerald-300', label: 'text-emerald-800', value: 'text-emerald-950' },
-  skill: { chip: 'bg-indigo-50 border-indigo-300', label: 'text-indigo-800', value: 'text-indigo-950' },
-  equip: { chip: 'bg-stone-100 border-stone-300', label: 'text-stone-600', value: 'text-stone-900' },
-  heroic: { chip: 'bg-violet-50 border-violet-300', label: 'text-violet-800', value: 'text-violet-950' },
-  quirk: { chip: 'bg-rose-50 border-rose-300', label: 'text-rose-800', value: 'text-rose-950' },
-  status: { chip: 'bg-red-50 border-red-300', label: 'text-red-800', value: 'text-red-950' }
+  level: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  class: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  skill: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  equip: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  heroic: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  quirk: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  status: { chip: 'bg-[#fffdf9] border-[#8c2d36]', label: 'text-[#8c2d36]', value: 'text-[#3c2415]' }
 };
 
 const formatTermValue = (value) => {
@@ -53,7 +59,7 @@ export default function StatFormulaPanel({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="text-[10px] font-bold text-[#8c7b6c] hover:text-[#3c2415] transition-colors"
+            className="text-[10px] font-bold text-[#7c6a58] hover:text-[#3c2415] transition-colors"
           >
             收起
           </button>
@@ -62,7 +68,7 @@ export default function StatFormulaPanel({
 
       <div className="flex items-stretch gap-1.5 flex-wrap">
         {terms.length === 0 ? (
-          <span className="text-[10px] font-bold text-[#8c7b6c] px-2 py-1 rounded-lg bg-[#f5efdf] border border-dashed border-[#d6c7ab] self-center">
+          <span className="text-[10px] font-bold text-[#7c6a58] px-2 py-1 rounded-lg bg-[#f5efdf] border border-dashed border-[#d6c7ab] self-center">
             無額外加成
           </span>
         ) : (
@@ -73,7 +79,7 @@ export default function StatFormulaPanel({
                 key={`${term.label}_${idx}`}
                 className={`rounded-lg border px-2 py-1 flex flex-col items-center justify-center min-w-[54px] ${style.chip}`}
               >
-                <span className={`text-[9px] leading-tight text-center ${style.label}`}>
+                <span className={`text-t12 leading-tight text-center ${style.label}`}>
                   {term.label}
                 </span>
                 <span className={`font-mono font-black text-xs leading-tight mt-0.5 ${style.value}`}>
@@ -87,7 +93,7 @@ export default function StatFormulaPanel({
         <div className="flex items-center px-0.5 font-mono font-black text-sm text-[#3c2415] self-center">=</div>
 
         <div className="rounded-lg border-2 border-[#3c2415]/25 bg-white px-2.5 py-1 flex flex-col items-center justify-center">
-          <span className="text-[9px] leading-tight text-[#7c6a58]">合計</span>
+          <span className="text-t12 leading-tight text-[#6b5a4b]">合計</span>
           <span className="font-mono font-black text-sm leading-tight text-[#2c221e]">
             {breakdown.total}
           </span>
@@ -95,7 +101,10 @@ export default function StatFormulaPanel({
       </div>
 
       {note && (
-        <p className="text-[9px] leading-relaxed text-[#8c7b6c] mt-2">
+        // 9px → 12px 時順手換色：原本的 #8c7b6c 在 #fbf7ee 上只有 3.80:1，
+        // 連 4.5:1 的小字門檻都不到（小字不是「大字」，沒有 3:1 的優待）。
+        // 用既有的 #6b5a4b（6.16:1）而不是新開一個色票——色票集已經 218 個，滿了。
+        <p className="text-t12 leading-relaxed text-[#6b5a4b] mt-2">
           {note}
         </p>
       )}

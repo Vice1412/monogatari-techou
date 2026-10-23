@@ -58,8 +58,8 @@ export default function CharacterCard({
       className={`bg-[#fffdf9] rounded-xl border-2 shadow-md overflow-hidden text-[#2c221e] flex flex-col relative transition-colors duration-200 ${isCrisis ? 'crisis-pulse-active border-red-500' : ''} ${className}`}
       style={{ borderColor: isCrisis ? '#ef4444' : theme.border }}
     >
-      {/* Top Banner */}
-      <div className={`h-1.5 w-full bg-gradient-to-r ${theme.gradient}`} />
+      {/* Top Banner（第十五輪：實心 accent，不再是漸層） */}
+      <div className="h-1.5 w-full" style={{ backgroundColor: theme.accent }} />
 
       {/* Header Profile */}
       <div
@@ -234,7 +234,7 @@ export default function CharacterCard({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {/* HP */}
           <div className="bg-[#fee2e2] rounded-lg p-2.5 border border-[#fca5a5]">
-            <div className="text-[10px] text-red-800 font-mono uppercase font-bold flex items-center gap-1">
+            <div className="text-[10px] text-red-800 font-mono font-bold flex items-center gap-1">
               <GiHealthNormal className="w-3.5 h-3.5 text-red-600" /> HP 生命值
             </div>
             <button
@@ -243,13 +243,13 @@ export default function CharacterCard({
               title="點擊查看公式"
               className="text-base font-mono font-black text-red-900 mt-0.5 hover:underline decoration-dotted underline-offset-2 cursor-pointer"
             >
-              {statsUnset ? '—' : <>{curHp} <span className="text-xs text-stone-500 font-normal">/ {stats.maxHp}</span></>}
+              {statsUnset ? '—' : <>{curHp} <span className="text-xs text-[#6b5a4b] font-normal">/ {stats.maxHp}</span></>}
             </button>
           </div>
 
           {/* MP */}
           <div className="bg-[#dbeafe] rounded-lg p-2.5 border border-[#93c5fd]">
-            <div className="text-[10px] text-blue-800 font-mono uppercase font-bold flex items-center gap-1">
+            <div className="text-[10px] text-blue-800 font-mono font-bold flex items-center gap-1">
               <GiLightningTear className="w-3.5 h-3.5 text-blue-600" /> MP 魔力值
             </div>
             <button
@@ -258,13 +258,13 @@ export default function CharacterCard({
               title="點擊查看公式"
               className="text-base font-mono font-black text-blue-900 mt-0.5 hover:underline decoration-dotted underline-offset-2 cursor-pointer"
             >
-              {statsUnset ? '—' : <>{curMp} <span className="text-xs text-stone-500 font-normal">/ {stats.maxMp}</span></>}
+              {statsUnset ? '—' : <>{curMp} <span className="text-xs text-[#6b5a4b] font-normal">/ {stats.maxMp}</span></>}
             </button>
           </div>
 
           {/* IP */}
           <div className="bg-[#d1fae5] rounded-lg p-2.5 border border-[#6ee7b7]">
-            <div className="text-[10px] text-emerald-800 font-mono uppercase font-bold flex items-center gap-1">
+            <div className="text-[10px] text-emerald-800 font-mono font-bold flex items-center gap-1">
               <GiBackpack className="w-3.5 h-3.5 text-emerald-600" /> IP 庫存點
             </div>
             <button
@@ -273,13 +273,13 @@ export default function CharacterCard({
               title="點擊查看公式"
               className="text-base font-mono font-black text-emerald-950 mt-0.5 hover:underline decoration-dotted underline-offset-2 cursor-pointer"
             >
-              {character.currentIp ?? stats.maxIp} <span className="text-xs text-stone-500 font-normal">/ {stats.maxIp}</span>
+              {character.currentIp ?? stats.maxIp} <span className="text-xs text-[#6b5a4b] font-normal">/ {stats.maxIp}</span>
             </button>
           </div>
 
           {/* FP */}
           <div className="bg-[#fef3c7] rounded-lg p-2.5 border border-[#fcd34d]">
-            <div className="text-[10px] text-amber-900 font-mono uppercase font-bold flex items-center gap-1">
+            <div className="text-[10px] text-amber-900 font-mono font-bold flex items-center gap-1">
               <GiSparkles className="w-3.5 h-3.5 text-amber-700" /> 物語點
             </div>
             <div className="text-base font-mono font-black text-amber-950 mt-0.5">
@@ -381,7 +381,7 @@ export default function CharacterCard({
       {/* Equipment List */}
       <div className="p-4 border-b bg-[#fffdf9] text-xs" style={{ borderColor: theme.border }}>
         <h4
-          className="text-[11px] font-mono font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 border-b pb-1"
+          className="text-[11px] font-mono font-bold tracking-wider mb-2 flex items-center gap-1.5 border-b pb-1"
           style={{ color: theme.textDark, borderColor: theme.border }}
         >
           <GiCrossedSwords className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 裝備配置
@@ -426,7 +426,7 @@ export default function CharacterCard({
       <div className="p-4 sm:p-5 space-y-4 flex-1 overflow-y-auto bg-[#fffdf9]">
         <div>
           <h4
-            className="text-xs font-mono font-bold uppercase tracking-wider mb-2 border-b pb-1 flex items-center gap-1.5"
+            className="text-xs font-mono font-bold tracking-wider mb-2 border-b pb-1 flex items-center gap-1.5"
             style={{ color: theme.textDark, borderColor: theme.border }}
           >
             <GiSpellBook className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 職業特技清單
@@ -473,7 +473,7 @@ export default function CharacterCard({
         {character.heroicSkills && character.heroicSkills.length > 0 && (
           <div>
             <h4
-              className="text-xs font-mono font-bold uppercase tracking-wider mb-2 border-b pb-1 flex items-center gap-1.5"
+              className="text-xs font-mono font-bold tracking-wider mb-2 border-b pb-1 flex items-center gap-1.5"
               style={{ color: theme.textDark, borderColor: theme.border }}
             >
               <GiLaurelCrown className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 英雄技能
@@ -512,7 +512,7 @@ export default function CharacterCard({
         {/* Bonds */}
         <div>
           <h4
-            className="text-xs font-mono font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 border-b pb-1"
+            className="text-xs font-mono font-bold tracking-wider mb-2 flex items-center gap-1.5 border-b pb-1"
             style={{ color: theme.textDark, borderColor: theme.border }}
           >
             <GiHeartPlus className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 情感羈絆
@@ -554,7 +554,7 @@ export default function CharacterCard({
         {/* Personal Clocks */}
         <div>
           <h4
-            className="text-xs font-mono font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 border-b pb-1"
+            className="text-xs font-mono font-bold tracking-wider mb-2 flex items-center gap-1.5 border-b pb-1"
             style={{ color: theme.textDark, borderColor: theme.border }}
           >
             <GiPocketWatch className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 個人命刻

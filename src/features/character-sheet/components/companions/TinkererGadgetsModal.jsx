@@ -279,11 +279,11 @@ export default function TinkererGadgetsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-fade-in">
-      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-amber-300 dark:border-amber-700/80 overflow-hidden font-sans text-slate-800 dark:text-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-fade-in">
+      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-e3 border border-amber-300 overflow-hidden font-sans text-[#3c2415]">
         
         {/* 頂部標題列 */}
-        <div className="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-amber-500 via-yellow-600 to-amber-600 text-white shadow-md">
+        <div className="flex items-center justify-between px-5 py-3.5 bg-[#3c2415] text-[#f7f3e8]">
           <div className="flex items-center gap-2.5">
             <GiCog className="w-6 h-6 animate-spin-slow text-amber-100" />
             <div>
@@ -298,7 +298,7 @@ export default function TinkererGadgetsModal({
                   </span>
                 )}
               </h2>
-              <p className="text-[11px] text-amber-100 opacity-90">
+              <p className="text-t12 text-amber-100 opacity-90">
                 {branch
                   ? `魔導科技已拆為兩條互斥分支（p.38）：煉金術與灌注術照舊，第三軌改用【${branch.name}】的三個節點`
                   : technoRestrictsEquipment
@@ -319,25 +319,21 @@ export default function TinkererGadgetsModal({
         </div>
 
         {/* 點數配置進度提示條 */}
-        <div className="px-5 py-2.5 bg-amber-50/90 dark:bg-slate-800/80 border-b border-amber-200 dark:border-slate-700 flex items-center justify-between flex-wrap gap-2 text-xs">
+        <div className="px-5 py-2.5 bg-amber-50/90 border-b border-amber-200 flex items-center justify-between flex-wrap gap-2 text-xs">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+            <span className="font-bold text-[#3c2415] flex items-center gap-1">
               <GiSparkles className="w-4 h-4 text-amber-600" />
               <span>節點配置進度：</span>
             </span>
-            <span className="font-mono text-sm font-bold text-amber-800 dark:text-amber-400">
+            <span className="font-mono text-sm font-bold text-amber-800">
               {allocatedPoints} / {tinkererSL}
             </span>
-            <span className={`px-2 py-0.5 rounded-md font-bold text-[11px] ${
-              remainingPoints === 0
-                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
-                : 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
-            }`}>
+            <span className={`px-2 py-0.5 rounded-md font-bold text-[11px] ${ remainingPoints === 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 ' : 'bg-amber-100 text-amber-900 border border-amber-300 ' }`}>
               {remainingPoints === 0 ? '點數已滿額' : `尚有 ${remainingPoints} 點可分配`}
             </span>
           </div>
 
-          <span className="text-slate-500 dark:text-slate-400 text-[11px]">
+          <span className="text-[#6b5a4b] text-[11px]">
             點擊可解鎖節點，點擊最末端的已解鎖節點可取消
           </span>
         </div>
@@ -357,38 +353,38 @@ export default function TinkererGadgetsModal({
               return (
                 <div
                   key={track.id}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-800/40 space-y-3.5"
+                  className="p-4 rounded-xl border border-[#d6c7ab] bg-[#fbf7ee]/50 space-y-3.5"
                 >
                   {/* 分支標頭 */}
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/20">
                         <TrackIcon className="w-5 h-5" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-slate-800 dark:text-slate-100 font-serif">
+                          <span className="font-bold text-sm text-[#3c2415] font-serif">
                             {track.name}
                           </span>
-                          <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold">
+                          <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#e8dcc4] text-[#3c2415] font-bold">
                             {currentTier === 0 ? '未研發' : currentTier === 1 ? '基礎益處' : currentTier === 2 ? '進階益處' : '最高益處'}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        <p className="text-[11px] text-[#6b5a4b]">
                           {track.subtitle}
                         </p>
                       </div>
                     </div>
 
-                    <div className="text-right text-[11px] font-mono text-slate-500 dark:text-slate-400">
-                      當前階級：<strong className="text-amber-700 dark:text-amber-400 text-xs">Tier {currentTier} / 3</strong>
+                    <div className="text-right text-[11px] font-mono text-[#6b5a4b]">
+                      當前階級：<strong className="text-amber-700 text-xs">Tier {currentTier} / 3</strong>
                     </div>
                   </div>
 
                   {/* 三節點橫向進度線 (三條橫線核心設計) */}
                   <div className="relative pt-2 pb-1">
                     {/* 底層水平連接軌道 */}
-                    <div className="absolute top-1/2 left-8 right-8 -translate-y-1/2 h-1 bg-slate-200 dark:bg-slate-700 z-0 rounded-full" />
+                    <div className="absolute top-1/2 left-8 right-8 -translate-y-1/2 h-1 bg-[#e8dcc4] z-0 rounded-full" />
                     
                     {/* 解鎖進度軌道 */}
                     <div
@@ -411,17 +407,11 @@ export default function TinkererGadgetsModal({
                           <div
                             key={node.tier}
                             onClick={() => isInteractive && handleNodeClick(track.id, node.tier)}
-                            className={`p-3 rounded-xl border transition-all duration-200 flex flex-col justify-between select-none ${
-                              isGrayedOut
-                                ? 'opacity-35 grayscale cursor-not-allowed bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/60 text-slate-400 shadow-none'
-                                : isUnlocked
-                                ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-400 dark:border-amber-600 shadow-sm ring-1 ring-amber-400/50 cursor-pointer'
-                                : 'bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-700/80 shadow-xs hover:border-amber-500 hover:scale-[1.02] cursor-pointer ring-2 ring-amber-400/30 animate-pulse'
-                            }`}
+                            className={`p-3 rounded-xl border transition-all duration-200 flex flex-col justify-between select-none ${ isGrayedOut ? 'opacity-35 grayscale cursor-not-allowed bg-[#f4ebd9] border-[#e8dcc4] text-[#7c6a58] shadow-none' : isUnlocked ? 'bg-amber-50 border-amber-400 ring-1 ring-amber-400/50 cursor-pointer' : 'bg-white border-amber-300 hover:border-amber-500 hover:scale-[1.02] cursor-pointer ring-2 ring-amber-400/30' }`}
                           >
                             {/* 節點頂部狀態 */}
                             <div className="flex items-center justify-between gap-1 mb-2">
-                              <span className="text-[10px] font-bold uppercase tracking-wider font-mono px-1.5 py-0.5 rounded bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                              <span className="text-[10px] font-bold uppercase tracking-wider font-mono px-1.5 py-0.5 rounded bg-[#e8dcc4]/80 text-[#3c2415]">
                                 {node.tierName}
                               </span>
 
@@ -431,11 +421,11 @@ export default function TinkererGadgetsModal({
                                     <GiCheckMark className="w-3 h-3" />
                                   </span>
                                 ) : canUnlock ? (
-                                  <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/60 px-1.5 py-0.5 rounded">
+                                  <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
                                     可點擊解鎖
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] text-slate-400">
+                                  <span className="text-[10px] text-[#6b5a4b]">
                                     未滿足前置
                                   </span>
                                 )}
@@ -444,29 +434,29 @@ export default function TinkererGadgetsModal({
 
                             {/* 節點名稱與消耗 */}
                             <div className="space-y-1 mb-2">
-                              <div className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 flex items-center justify-between">
+                              <div className="font-bold text-xs sm:text-sm text-[#2c221e] flex items-center justify-between">
                                 <span>{node.name}</span>
-                                <span className="font-mono text-[11px] text-amber-700 dark:text-amber-400 font-semibold">
+                                <span className="font-mono text-[11px] text-amber-700 font-semibold">
                                   {node.cost}
                                 </span>
                               </div>
-                              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                              <p className="text-[11px] text-[#6b5a4b] leading-relaxed">
                                 {renderTextWithAffinities(node.summary)}
                               </p>
                             </div>
 
                             {/* 操作指示標籤 */}
-                            <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[10px] font-bold">
-                              <span className="text-slate-500 dark:text-slate-400 font-mono">
+                            <div className="pt-2 border-t border-[#d6c7ab]/60 flex items-center justify-between text-[10px] font-bold">
+                              <span className="text-[#6b5a4b] font-mono">
                                 檢定: {node.dice}
                               </span>
                               {canRevoke && (
-                                <span className="text-rose-600 dark:text-rose-400 hover:underline">
+                                <span className="text-rose-600 hover:underline">
                                   點擊取消分配
                                 </span>
                               )}
                               {canUnlock && (
-                                <span className="text-amber-700 dark:text-amber-400">
+                                <span className="text-amber-700">
                                   投入 1 點解鎖
                                 </span>
                               )}
@@ -483,18 +473,18 @@ export default function TinkererGadgetsModal({
 
           {/* 咒語自選區：核心是最高益處的「魔法球原型」，變體魔法球則是每個節點各 2 顆 */}
           {spellPickerUnlocked && (
-            <div className="p-4 rounded-xl border border-purple-300 dark:border-purple-700/80 bg-purple-50/40 dark:bg-purple-950/20 space-y-3.5 animate-fade-in">
-              <div className="flex items-center justify-between gap-2 flex-wrap border-b border-purple-200 dark:border-purple-800 pb-2.5">
+            <div className="p-4 rounded-xl border border-[#d6c7ab] bg-[#f9f5eb] space-y-3.5 animate-fade-in">
+              <div className="flex items-center justify-between gap-2 flex-wrap border-b border-[#e2d6c1] pb-2.5">
                 <div className="flex items-center gap-2">
-                  <GiCrystalBall className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <GiCrystalBall className="w-5 h-5 text-[#3c2415]" />
                   <div>
-                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                    <h3 className="font-bold text-[#3c2415] text-sm flex items-center gap-2">
                       <span>{isMagispheres ? '魔法球研發' : '魔法球原型咒語研發'}</span>
-                      <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-purple-200 dark:bg-purple-900 text-purple-900 dark:text-purple-200 font-bold">
+                      <span className="font-mono text-xs px-2 py-0.5 rounded-full bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] font-bold">
                         已配置 {selectedSpells.length} / {maxSpells} {isMagispheres ? '顆' : '門'}
                       </span>
                     </h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <p className="text-t12 text-[#6b5a4b]">
                       {isMagispheres
                         ? `每個節點各 2 顆 · 施法檢定一律 ${MAGISPHERE_MAGIC_CHECK}`
                           + `${offensiveBonus ? ` · 攻擊性咒語 +${offensiveBonus}` : ''}`
@@ -505,17 +495,13 @@ export default function TinkererGadgetsModal({
                 </div>
 
                 {/* 學派篩選器 */}
-                <div className="flex items-center gap-1 bg-white dark:bg-slate-800 p-1 rounded-lg border border-purple-200 dark:border-purple-800">
+                <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#d6c7ab]">
                   {schoolFilterOptions.map((sc) => (
                     <button
                       key={sc}
                       type="button"
                       onClick={() => setSpellSchoolFilter(sc)}
-                      className={`px-2.5 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${
-                        spellSchoolFilter === sc
-                          ? 'bg-purple-600 text-white shadow-2xs'
-                          : 'text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950'
-                      }`}
+                      className={`px-2.5 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${ spellSchoolFilter === sc ? 'bg-[#3c2415] text-[#fffdf9] shadow-2xs' : 'text-[#6b5a4b] hover:bg-[#f4ebd9] ' }`}
                     >
                       {sc}
                     </button>
@@ -533,41 +519,30 @@ export default function TinkererGadgetsModal({
                     <div
                       key={sp.name}
                       onClick={() => !isFull && handleToggleSpell(sp.name)}
-                      className={`p-2.5 rounded-lg border transition-all text-xs flex flex-col justify-between ${
-                        isChecked
-                          ? 'bg-purple-100/80 dark:bg-purple-900/40 border-purple-500 shadow-2xs ring-1 ring-purple-500'
-                          : isFull
-                          ? 'opacity-40 grayscale cursor-not-allowed bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-                          : 'bg-white dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 hover:border-purple-300 cursor-pointer'
-                      }`}
+                      className={`p-2.5 rounded-lg border transition-all text-xs flex flex-col justify-between ${ isChecked ? 'bg-[#f4ebd9] border-[#3c2415] ring-1 ring-[#3c2415]/40' : isFull ? 'opacity-40 grayscale cursor-not-allowed bg-[#fbf7ee] border-[#d6c7ab] ' : 'bg-white border-[#d6c7ab] hover:border-[#7c6a58] cursor-pointer' }`}
                     >
                       <div>
                         <div className="flex items-center justify-between gap-1 mb-1">
-                          <span className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                            <span className={`w-2 h-2 rounded-full ${
-                              sp.school === '元素' ? 'bg-red-500'
-                                : sp.school === '靈魂' ? 'bg-cyan-500'
-                                  : sp.school === 'NPC' ? 'bg-stone-500'
-                                    : 'bg-purple-500'
-                            }`} />
+                          <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
+                            <span className="font-normal text-[#7c6a58]">{sp.school}</span>
                             {sp.name}
                           </span>
-                          <span className="font-mono text-[10px] text-purple-700 dark:text-purple-300 font-bold bg-purple-50 dark:bg-purple-950 px-1.5 py-0.5 rounded">
+                          <span className="font-mono text-[10px] text-[#6b5a4b] font-bold bg-[#f4ebd9] border border-[#d6c7ab] px-1.5 py-0.5 rounded">
                             {sp.mp} MP
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                        <p className="text-[11px] text-[#6b5a4b] line-clamp-2 leading-relaxed">
                           {renderTextWithAffinities(sp.effect || sp.desc)}
                         </p>
                       </div>
 
-                      <div className="pt-2 mt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                      <div className="pt-2 mt-2 border-t border-[#d6c7ab]/60 flex items-center justify-between text-[10px] text-[#6b5a4b]">
                         <span>
                           {sp.source === 'npc'
                             ? `NPC 咒語 · 需自訂化${sp.isOffensive && offensiveBonus ? ` · 攻擊性 +${offensiveBonus}` : ''}`
                             : `${sp.school}魔法 · ${sp.duration || '瞬發'}`}
                         </span>
-                        <span className={`font-bold ${isChecked ? 'text-purple-700 dark:text-purple-300' : 'text-slate-400'}`}>
+                        <span className={`font-bold ${isChecked ? 'text-[#2c221e] ' : 'text-[#6b5a4b]'}`}>
                           {isChecked ? (isMagispheres ? '已開發魔法球' : '已收錄原型') : '點擊選取'}
                         </span>
                       </div>
@@ -581,15 +556,15 @@ export default function TinkererGadgetsModal({
         </div>
 
         {/* 底部按鈕列 */}
-        <div className="px-5 py-3.5 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
-          <div className="text-[11px] text-slate-500 dark:text-slate-400">
+        <div className="px-5 py-3.5 bg-[#fbf7ee] border-t border-[#d6c7ab] flex items-center justify-between gap-3">
+          <div className="text-[11px] text-[#6b5a4b]">
             {allocatedPoints < tinkererSL ? (
-              <span className="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+              <span className="text-amber-600 flex items-center gap-1">
                 <GiHazardSign className="w-3.5 h-3.5" />
                 尚有未分配的特技點數，您亦可先儲存日後再分配。
               </span>
             ) : (
-              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-bold">
+              <span className="text-emerald-600 flex items-center gap-1 font-bold">
                 <GiCheckMark className="w-3.5 h-3.5" />
                 科技樹節點配置符合目前特技等級！
               </span>
@@ -600,7 +575,7 @@ export default function TinkererGadgetsModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg border border-[#d6c7ab] text-xs text-[#6b5a4b] hover:text-[#2c221e] font-medium cursor-pointer"
             >
               取消
             </button>

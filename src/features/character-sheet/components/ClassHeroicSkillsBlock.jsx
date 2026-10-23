@@ -57,7 +57,7 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
 
       {open && (
         <div className="border-t divide-y" style={{ borderColor: theme.border || '#d6c7ab' }}>
-          <p className="px-3 py-1.5 text-[10px] leading-snug" style={{ color: theme.textMuted || '#78716c' }}>
+          <p className="px-3 py-1.5 text-t12 leading-snug" style={{ color: theme.textMuted || '#78716c' }}>
             把這個職業練到 10 級（精通）可獲得一個英雄技能（原書 p.232）。以下每一條都必須先精通
             {className}，其他條件列在各自的「條件」欄。實際選用在第 5 步「掌握之英雄技能」。
           </p>
@@ -78,7 +78,7 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
                   {HEROIC_SKILL_SOURCE_LABELS[h.source] || h.source}
                 </span>
               </div>
-              <p className="text-[11px] leading-snug" style={{ color: theme.textMuted || '#78716c' }}>
+              <p className="text-t12 leading-snug" style={{ color: theme.textMuted || '#78716c' }}>
                 <strong>條件：</strong>{h.requirement}
               </p>
               <p className="text-[11px] leading-relaxed whitespace-pre-line" style={{ color: theme.textDark || '#3c2415' }}>

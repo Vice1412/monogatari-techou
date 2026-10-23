@@ -113,7 +113,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
 
   if (isEditing) {
     return (
-      <div className="border-2 border-dashed border-[#b45309] p-3 mb-3 bg-[#fffdf9] rounded-lg shadow-sm text-[#2c221e]">
+      <div className="border-2 border-dashed border-[#b45309] p-3 mb-3 bg-[#fffdf9] rounded-lg text-[#2c221e]">
         <div className="flex items-center gap-2 mb-2"><span className="text-xs font-bold text-[#6b5a4b]">編輯名稱：</span><input type="text" className="flex-1 bg-[#fbf7ee] border border-[#d6c7ab] p-1.5 rounded text-sm text-[#2c221e] font-bold outline-none focus:border-amber-600" value={editName} onChange={(e) => setEditName(e.target.value)} /></div>
 
         {skill.category === 'attack' && (
@@ -143,7 +143,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
             </div>
           </div>
           {(selCfg('distance') || selCfg('formula') || selCfg('type')) && (
-            <p className="text-[10px] text-amber-800 font-bold mb-2 leading-relaxed">
+            <p className="text-t12 text-amber-800 font-bold mb-2 leading-relaxed">
               ※ 距離／公式／屬性與卡片上的同名選單是同一份設定——在這裡改就是改那裡，不會另外鎖死一份值。
             </p>
           )}
@@ -217,10 +217,10 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
             </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 border-t border-[#d6c7ab]">
-              <label className="flex items-center gap-1.5 cursor-pointer font-bold text-indigo-900">
+              <label className="flex items-center gap-1.5 cursor-pointer font-bold text-[#3c2415]">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 rounded text-indigo-700"
+                  className="w-4 h-4 rounded accent-[#a63d40]"
                   checked={editSpellData.isOffensive}
                   onChange={e => setEditSpellData({ ...editSpellData, isOffensive: e.target.checked })}
                 />
@@ -245,22 +245,25 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
         )}
 
         <textarea className="w-full bg-[#fbf7ee] text-[#2c221e] p-2 border border-[#d6c7ab] outline-none h-24 resize-none rounded leading-relaxed text-sm focus:border-amber-600" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder={skill.category === 'attack' ? "輸入自訂的額外效果..." : "技能效果與敘述..."} />
-        <div className="flex justify-end gap-2 mt-3"><button onClick={() => setIsEditing(false)} className="text-sm px-3 py-1 bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] rounded transition-colors border border-[#d6c7ab]">取消</button><button onClick={handleSave} className="text-sm px-3 py-1 bg-amber-700 hover:bg-amber-600 text-white rounded flex items-center gap-1 transition-colors shadow-sm"><Save size={14} /> 保存</button></div>
+        <div className="flex justify-end gap-2 mt-3"><button onClick={() => setIsEditing(false)} className="text-sm px-3 py-1 bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] rounded transition-colors border border-[#d6c7ab]">取消</button><button onClick={handleSave} className="text-sm px-3 py-1 bg-amber-700 hover:bg-amber-600 text-white rounded flex items-center gap-1 transition-colors"><Save size={14} /> 保存</button></div>
       </div>
     );
   }
 
   return (
-    <div className={`group relative border-l-4 ${skill.source === 'levelPassive' ? 'border-amber-500 bg-amber-50/50' : 'border-stone-400 bg-[#fffdf9]'} hover:bg-[#fbf7ee] transition-colors rounded-r py-2.5 pl-3 mb-3 border border-stone-200 shadow-sm ${skill.isSecretArt ? 'ring-2 ring-fuchsia-400 bg-fuchsia-50/40' : ''}`}>
+    <div className={`group relative border-l-4 ${skill.source === 'levelPassive' ? 'border-amber-500 bg-amber-50/50' : 'border-[#7c6a58] bg-[#fffdf9]'} hover:bg-[#fbf7ee] transition-colors rounded-r py-2.5 pl-3 mb-3 border border-[#d6c7ab] ${skill.isSecretArt ? 'ring-1 ring-[#3c2415]/30 bg-[#fffdf9]' : ''}`}>
       <div className="absolute right-1 top-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#fffdf9] p-1 rounded shadow border border-[#d6c7ab] z-10"><button onClick={() => setIsEditing(true)} className="p-1 hover:text-amber-700" title="編輯"><Edit3 size={14} /></button>{!isDefault && <button onClick={() => onDelete(skill.id)} className="p-1 hover:text-red-700" title="刪除"><Trash2 size={14} /></button>}</div>
-      <div className={`font-bold text-[15px] mb-1 flex items-center gap-2 ${skill.isSecretArt ? 'text-fuchsia-900' : 'text-amber-900'}`}><span className="text-[#6b5a4b] text-xs bg-[#f4ebd9] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{CATEGORIES.find(c => c.id === skill.category)?.name || '未分類'}</span>{normalizeSpellName(skill.customName || skill.originalName)}{isOffensiveSpell(skill.customName || skill.originalName) && <span className="fu-icon text-red-700 drop-shadow-sm text-lg ml-0.5">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{!isDefault && <span className="text-[10px] text-red-700 border border-red-300 bg-red-50 px-1 rounded">自訂</span>}{skill.source === 'levelPassive' && <span className="text-[10px] text-amber-800 border border-amber-300 bg-amber-100 px-1 rounded"><Lock size={10} className="inline mr-1 mb-0.5" />等級解鎖</span>}</div>
+      <div className={`font-bold text-[15px] mb-1 flex items-center gap-2 ${skill.isSecretArt ? 'text-[#3c2415]' : 'text-amber-900'}`}><span className="text-[#6b5a4b] text-xs bg-[#f4ebd9] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{CATEGORIES.find(c => c.id === skill.category)?.name || '未分類'}</span>{normalizeSpellName(skill.customName || skill.originalName)}
+          {skill.isSecretArt && (
+            <span className="text-[10px] text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
+          )}{isOffensiveSpell(skill.customName || skill.originalName) && <span className="fu-icon text-red-700 drop- text-lg ml-0.5">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{!isDefault && <span className="text-[10px] text-red-700 border border-red-300 bg-red-50 px-1 rounded">自訂</span>}{skill.source === 'levelPassive' && <span className="text-[10px] text-amber-800 border border-amber-300 bg-amber-100 px-1 rounded"><Lock size={10} className="inline mr-1 mb-0.5" />等級解鎖</span>}</div>
       {skill.selectionsConfig && (
         <div className={`mt-2 flex flex-col gap-2 p-2 bg-[#f8f3e6] border border-[#e2d6c1] rounded text-xs border-l-2 ${skill.source === 'levelPassive' ? 'border-amber-500' : 'border-red-600'} mb-2`}>
           {skill.selectionsConfig
             .filter(cfg => (!cfg.showIfKey || (skill.selections?.[cfg.showIfKey] || "").includes(cfg.showIfValue)) && (!cfg.reqLevel || npcLevel >= cfg.reqLevel))
             .map(cfg => (
-              <label key={cfg.key} className={`flex items-center gap-2 font-bold p-1.5 rounded border ${cfg.isLinked ? 'bg-indigo-50 text-indigo-900 border-indigo-200 ml-4 -mt-1' : 'text-[#3c2f21] border-transparent'}`}>{cfg.label}:
-                <select className={`bg-[#fffdf9] text-[#2c221e] border border-[#d6c7ab] p-1 rounded outline-none max-w-[200px] truncate transition-colors ${cfg.isLinked ? 'focus:border-indigo-500' : skill.source === 'levelPassive' ? 'focus:border-amber-600' : 'focus:border-red-600'}`} value={skill.selections?.[cfg.key] || ''} onChange={(e) => onUpdateSelection(skill.id, cfg.key, e.target.value)}>
+              <label key={cfg.key} className={`flex items-center gap-2 font-bold p-1.5 rounded border ${cfg.isLinked ? 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ml-4 -mt-1' : 'text-[#3c2f21] border-transparent'}`}>{cfg.label}:
+                <select className={`bg-[#fffdf9] text-[#2c221e] border border-[#d6c7ab] p-1 rounded outline-none max-w-[200px] truncate transition-colors ${cfg.isLinked ? 'focus:border-[#3c2415]' : skill.source === 'levelPassive' ? 'focus:border-amber-600' : 'focus:border-red-600'}`} value={skill.selections?.[cfg.key] || ''} onChange={(e) => onUpdateSelection(skill.id, cfg.key, e.target.value)}>
                   <option value="">選擇</option>{cfg.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               </label>
@@ -311,7 +314,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                     <span className="text-blue-900 font-bold">
                       {renderFormattedText(atk.formula, skill.selections, npcLevel, partyLevel)}
                     </span>
-                    <span className="text-stone-400 text-xs select-none">✦</span>
+                    <span className="text-[#7c6a58] text-xs select-none">✦</span>
                     <span className="inline-flex items-center gap-1 font-bold text-red-800">
                       <span>[HR + {skill.attack.baseDmg}]</span>
                       {DAMAGE_TYPES.includes(resolvedType) ? (
@@ -335,7 +338,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
               <div className="text-sm text-[#3c2415] leading-relaxed whitespace-pre-wrap mt-1">{renderFormattedText(displayDesc, skill.selections, npcLevel, partyLevel)}</div>
             )}
             {skill.isSecretArt && (
-              <div className="text-fuchsia-900 mt-1.5 text-xs font-bold">
+              <div className="text-[#6b5a4b] mt-1.5 text-xs font-bold">
                 *(此{skill.attack ? '攻擊' : skill.category === 'spell' ? '咒語' : '技能'}為祕技，除了目標之外沒有人會意識到那是什麼。)*
               </div>
             )}

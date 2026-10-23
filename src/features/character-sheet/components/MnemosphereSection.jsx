@@ -246,7 +246,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
       </div>
 
       <div className="px-3 py-2.5 space-y-2">
-        <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+        <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
           升級時那一點可以投進固有職業，也可以投進職業魔石——兩者是同一個池子，
           魔石的成長方式與職業逐字相同。起始等級同樣在這個池子裡分配，
           但三個固有職業合計至少要 5 級（p.140）。裝進插槽是第 4 步「裝備配置」的事。

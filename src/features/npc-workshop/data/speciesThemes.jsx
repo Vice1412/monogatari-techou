@@ -12,7 +12,7 @@ import { GiPawPrint, GiGearHammer, GiDevilMask, GiSparkSpirit, GiHumanPyramid, G
 
 export const SPECIES_THEMES = {
   sp_beast: { color: 'amber', icon: <GiPawPrint size={24} />, label: 'BEAST', bg: 'bg-amber-50/80', border: 'border-amber-400/60', text: 'text-amber-900 font-bold' },
-  sp_construct: { color: 'stone', icon: <GiGearHammer size={24} />, label: 'CONSTRUCT', bg: 'bg-stone-100/80', border: 'border-stone-400/60', text: 'text-stone-800 font-bold' },
+  sp_construct: { color: 'stone', icon: <GiGearHammer size={24} />, label: 'CONSTRUCT', bg: 'bg-[#f4ebd9]/80', border: 'border-[#7c6a58]/60', text: 'text-[#3c2415] font-bold' },
   sp_demon: { color: 'red', icon: <GiDevilMask size={24} />, label: 'DEMON', bg: 'bg-red-50/80', border: 'border-red-400/60', text: 'text-red-900 font-bold' },
   sp_element: { color: 'cyan', icon: <GiSparkSpirit size={24} />, label: 'ELEMENTAL', bg: 'bg-cyan-50/80', border: 'border-cyan-400/60', text: 'text-cyan-900 font-bold' },
   sp_humanoid: { color: 'blue', icon: <GiHumanPyramid size={24} />, label: 'HUMANOID', bg: 'bg-blue-50/80', border: 'border-blue-400/60', text: 'text-blue-900 font-bold' },

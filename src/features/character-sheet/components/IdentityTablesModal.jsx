@@ -75,7 +75,7 @@ export default function IdentityTablesModal({
       theme={theme}
       actionButtons={
         <div className="flex items-center justify-between w-full">
-          <div className="text-xs text-slate-600 font-medium hidden sm:block">
+          <div className="text-xs text-[#6b5a4b] font-medium hidden sm:block">
             點擊任一項目可自選組合，或直接擲骰一鍵套用
           </div>
           <div className="flex items-center gap-2">
@@ -91,7 +91,7 @@ export default function IdentityTablesModal({
         </div>
       }
     >
-      <div className="space-y-4 text-slate-800">
+      <div className="space-y-4 text-[#3c2415]">
         {/* Top Description & Official Rules Explanation */}
         <div
           className="rounded-xl p-3.5 space-y-2 border transition-colors"
@@ -103,7 +103,7 @@ export default function IdentityTablesModal({
                 <GiSpellBook className="w-4 h-4" style={{ color: theme?.accent || '#b45309' }} />
                 官方創角機制：核心概念 + 形容特質 + 身世細節
               </h4>
-              <p className="text-[11px] text-slate-600 mt-0.5">
+              <p className="text-t12 text-[#6b5a4b] mt-0.5">
                 依據官方英文最新版手冊，共有 60 種身分、40 種特質與 20 種細節，各組均明確對應骰面。
               </p>
               {/*
@@ -115,7 +115,7 @@ export default function IdentityTablesModal({
                 「你不一定要按照這個確切的順序執行這些步驟」。它雖然允許核心概念與形容詞
                 各取最多兩個，但湊滿不是義務；這個按鈕的用途是**產生新點子**。
               */}
-              <p className="text-[11px] mt-1 leading-relaxed" style={{ color: theme?.textMuted || '#7c6a58' }}>
+              <p className="text-t12 mt-1 leading-relaxed" style={{ color: theme?.textMuted || '#7c6a58' }}>
                 <span className="font-bold" style={{ color: theme?.textDark || '#3c2415' }}>這張表是靈感，不是規則</span>
                 ：一次給你一組點子——不喜歡就再擲一次，或直接在「身分」欄自己寫。
               </p>
@@ -145,7 +145,7 @@ export default function IdentityTablesModal({
                   <span className="font-serif text-sm underline" style={{ color: theme?.textDark || '#3c2415', textDecorationColor: theme?.accent || '#b45309' }}>
                     {rolledResult.fullZh}
                   </span>
-                  <span className="text-[11px] text-slate-400 font-normal">
+                  <span className="text-[11px] text-[#6b5a4b] font-normal">
                     / {rolledResult.fullEn}
                   </span>
                 </div>
@@ -163,7 +163,7 @@ export default function IdentityTablesModal({
               {/* Dice roll details breakdown (細節 - 特質 - 核心概念) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] pt-1 border-t" style={{ borderColor: theme?.border || '#ede4d1' }}>
                 <div className="p-1.5 rounded border" style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}>
-                  <span className="text-slate-400 block">1. 身世細節:</span>
+                  <span className="text-[#6b5a4b] block">1. 身世細節:</span>
                   <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
                     d20=[#{rolledResult.rolls.detail.d20}]
                   </span>
@@ -173,7 +173,7 @@ export default function IdentityTablesModal({
                 </div>
 
                 <div className="p-1.5 rounded border" style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}>
-                  <span className="text-slate-400 block">2. 形容特質:</span>
+                  <span className="text-[#6b5a4b] block">2. 形容特質:</span>
                   <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
                     d6=[{rolledResult.rolls.adjective.d6}] {rolledResult.rolls.adjective.group.split(' ')[0]} ➔ d20=[#{rolledResult.rolls.adjective.d20}]
                   </span>
@@ -183,7 +183,7 @@ export default function IdentityTablesModal({
                 </div>
 
                 <div className="p-1.5 rounded border" style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}>
-                  <span className="text-slate-400 block">3. 核心概念:</span>
+                  <span className="text-[#6b5a4b] block">3. 核心概念:</span>
                   <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
                     d6=[{rolledResult.rolls.concept.d6}] {rolledResult.rolls.concept.group.split(' ')[0]} ➔ d20=[#{rolledResult.rolls.concept.d20}]
                   </span>
@@ -214,7 +214,7 @@ export default function IdentityTablesModal({
                   setPickedAdj(null);
                   setPickedConcept(null);
                 }}
-                className="text-[10px] text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                className="text-[10px] text-[#6b5a4b] hover:text-[#3c2415] underline cursor-pointer"
               >
                 重置清空
               </button>
@@ -225,47 +225,47 @@ export default function IdentityTablesModal({
             {/* 1. Picked Detail */}
             <div
               className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
-                pickedDetail ? 'font-bold' : 'bg-white/60 border-slate-200 text-slate-400'
+                pickedDetail ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
               style={pickedDetail ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#b45309', color: theme?.textDark || '#3c2415' } : {}}
             >
               <span>1. 身世細節: {pickedDetail ? pickedDetail.zh : '尚未選取'}</span>
               {pickedDetail && (
-                <button onClick={() => setPickedDetail(null)} className="text-slate-400 hover:text-slate-700">
+                <button onClick={() => setPickedDetail(null)} className="text-[#6b5a4b] hover:text-[#3c2415]">
                   <X className="w-3 h-3" />
                 </button>
               )}
             </div>
 
-            <span className="text-slate-400">➔</span>
+            <span className="text-[#6b5a4b]">➔</span>
 
             {/* 2. Picked Adjective */}
             <div
               className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
-                pickedAdj ? 'font-bold' : 'bg-white/60 border-slate-200 text-slate-400'
+                pickedAdj ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
               style={pickedAdj ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#b45309', color: theme?.textDark || '#3c2415' } : {}}
             >
               <span>2. 形容特質: {pickedAdj ? pickedAdj.zh : '尚未選取'}</span>
               {pickedAdj && (
-                <button onClick={() => setPickedAdj(null)} className="text-slate-400 hover:text-slate-700">
+                <button onClick={() => setPickedAdj(null)} className="text-[#6b5a4b] hover:text-[#3c2415]">
                   <X className="w-3 h-3" />
                 </button>
               )}
             </div>
 
-            <span className="text-slate-400">➔</span>
+            <span className="text-[#6b5a4b]">➔</span>
 
             {/* 3. Picked Concept */}
             <div
               className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
-                pickedConcept ? 'font-bold' : 'bg-white/60 border-slate-200 text-slate-400'
+                pickedConcept ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
               style={pickedConcept ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#b45309', color: theme?.textDark || '#3c2415' } : {}}
             >
               <span>3. 核心身分: {pickedConcept ? pickedConcept.zh : '尚未選取'}</span>
               {pickedConcept && (
-                <button onClick={() => setPickedConcept(null)} className="text-slate-400 hover:text-slate-700">
+                <button onClick={() => setPickedConcept(null)} className="text-[#6b5a4b] hover:text-[#3c2415]">
                   <X className="w-3 h-3" />
                 </button>
               )}
@@ -322,14 +322,14 @@ export default function IdentityTablesModal({
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="搜尋身份、特質、細節或英文..."
-              className="w-full border rounded-lg pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-slate-400"
+              className="w-full border rounded-lg pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-[#6b5a4b]"
               style={{ backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.border || '#d6c7ab', color: theme?.textDark || '#0f172a' }}
             />
             <GiMagnifyingGlass className="w-3.5 h-3.5 absolute left-2 top-2" style={{ color: theme?.accent || '#94a3b8' }} />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-700 cursor-pointer"
+                className="absolute right-2 top-1.5 text-[#6b5a4b] hover:text-[#3c2415] cursor-pointer"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -348,7 +348,7 @@ export default function IdentityTablesModal({
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#b45309' }} />
                   {OFFICIAL_IDENTITY_TABLES.coreConcepts.title}
                 </h5>
-                <span className="text-[11px] text-slate-500 font-mono">
+                <span className="text-[11px] text-[#6b5a4b] font-mono">
                   {OFFICIAL_IDENTITY_TABLES.coreConcepts.rollDesc}
                 </span>
               </div>
@@ -392,7 +392,7 @@ export default function IdentityTablesModal({
                             >
                               <div className="flex items-center gap-1.5 truncate">
                                 <span className={`font-mono text-[10px] w-5 text-right font-bold ${
-                                  isPicked ? 'text-white/80' : 'text-slate-400'
+                                  isPicked ? 'text-white/80' : 'text-[#6b5a4b]'
                                 }`}>
                                   #{item.id}
                                 </span>
@@ -417,7 +417,7 @@ export default function IdentityTablesModal({
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#b45309' }} />
                   {OFFICIAL_IDENTITY_TABLES.adjectives.title}
                 </h5>
-                <span className="text-[11px] text-slate-500 font-mono">
+                <span className="text-[11px] text-[#6b5a4b] font-mono">
                   {OFFICIAL_IDENTITY_TABLES.adjectives.rollDesc}
                 </span>
               </div>
@@ -461,7 +461,7 @@ export default function IdentityTablesModal({
                             >
                               <div className="flex items-center gap-1.5 truncate">
                                 <span className={`font-mono text-[10px] w-5 text-right font-bold ${
-                                  isPicked ? 'text-white/80' : 'text-slate-400'
+                                  isPicked ? 'text-white/80' : 'text-[#6b5a4b]'
                                 }`}>
                                   #{item.id}
                                 </span>
@@ -486,7 +486,7 @@ export default function IdentityTablesModal({
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#b45309' }} />
                   {OFFICIAL_IDENTITY_TABLES.details.title}
                 </h5>
-                <span className="text-[11px] text-slate-500 font-mono">
+                <span className="text-[11px] text-[#6b5a4b] font-mono">
                   {OFFICIAL_IDENTITY_TABLES.details.rollDesc}
                 </span>
               </div>
@@ -511,7 +511,7 @@ export default function IdentityTablesModal({
                       >
                         <div className="flex items-center gap-1.5 truncate">
                           <span className={`font-mono text-[10px] w-5 text-right font-bold ${
-                            isPicked ? 'text-white/80' : 'text-slate-400'
+                            isPicked ? 'text-white/80' : 'text-[#6b5a4b]'
                           }`}>
                             #{item.id}
                           </span>

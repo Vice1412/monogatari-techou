@@ -79,7 +79,7 @@ export default function EquipmentSlotCard({
             ))}
           </div>
           {itemMissing && (
-            <p className="text-[10px] text-rose-700 font-bold mt-0.5">資料表中查無此名稱</p>
+            <p className="text-t12 text-rose-700 font-bold mt-0.5">資料表中查無此名稱</p>
           )}
         </div>
 
@@ -91,7 +91,7 @@ export default function EquipmentSlotCard({
                 className="rounded-lg border px-2 py-1 flex flex-col items-center justify-center min-w-[58px]"
                 style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
               >
-                <span className="text-[9px] leading-tight text-center" style={{ color: theme.textMuted }}>
+                <span className="text-t12 leading-tight text-center" style={{ color: theme.textMuted }}>
                   {m.label}
                 </span>
                 <span className="font-mono font-black text-xs leading-tight mt-0.5" style={{ color: theme.textDark }}>

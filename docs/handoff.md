@@ -122,6 +122,42 @@ git rev-list --objects --all | Select-String "<path>"    # 歷史層（真正會
 用正則批次改 import 陳述式時踩過：單行與多行格式不同，正則只在單行正確，
 多行檔案被改壞。**是 `npm run build` 抓到的，不是測試**——因為測試跑的是已打包的產物。
 
+### 2.4.1 PowerShell 不是「透明的字串搬運工」：三種字元它會自己吃掉
+
+同一件事在本專案發生過三次，每次症狀都不像「被吃字」：
+
+| 寫法 | 它吃掉什麼 | 症狀 |
+|---|---|---|
+| `Set-Content -Encoding utf8`（PS 5.1） | 多寫一個 **BOM** | 下一支 `ConvertFrom-Json` 讀檔失敗 |
+| `@'…'@` here-string 餵給 `.Replace()` | **CRLF**（here-string 一律 CRLF，檔案是 LF） | 替換靜默不匹配 → 改了但沒生效 |
+| `@"…"@` here-string 寫 JS 模板字串 | **反引號**（PS 的跳脫字元） | `` `t `` 變成 TAB、`` `src` `` 被吃掉 → `ReferenceError: document is not defined` |
+
+**規則：要寫含反引號、`$`、模板字串或中文長段落的檔案，用 `write`／`edit` 工具，不要用 pwsh 拼字串。**
+若非得用 pwsh，單引號 here-string `@'…'@` 是唯一安全的（但它只保護 `$` 與反引號，不保護換行），
+而檔案寫入一律用 `[System.IO.File]::WriteAllText($p,$t,(New-Object System.Text.UTF8Encoding($false)))`。
+
+### 2.4.2 只寫 JSX 不匯入 `React`：`build` 綠、`test` 紅
+
+**新增元件時最容易漏、而且症狀完全不像「少一個 import」的坑。**
+
+| 執行環境 | JSX runtime | 需要 `React` 在作用域內？ |
+|---|---|---|
+| `npm run build`（Vite／esbuild automatic） | automatic | 不需要 |
+| `npm test`（`tests/*.test.mjs` 的 esbuild bundle） | **classic** | **需要** |
+
+所以一個只寫 JSX、沒 `import React` 的元件，建置完全乾淨，**只在 SSR 護欄裡炸**：
+
+```
+ReferenceError: React is not defined
+    at EmptyState (file:///…/.test-build/characterLog.mjs:5811:3)
+```
+
+堆疊只指到 bundle 裡的行號，看不出是哪支源碼。**新元件一律顯式 `import React from 'react';`**
+（本專案的既有元件幾乎都這樣寫，原因就是這個）。
+
+> 這個坑的價值在於它的**順序**：先跑 `build` 再跑 `test` 的習慣會讓人以為「建置過了就沒問題」。
+> 兩個環境用不同的 JSX runtime，**其中一個綠不能證明另一個也綠**。
+
 ### 2.5 手動 E2E 稽核（`scripts/audit-npc-workshop.mjs`）
 
 NPC 工坊的功能稽核腳本，**不進 `npm test`**（CI 沒有 Chrome，且它需要 `npm run dev` 在跑）。

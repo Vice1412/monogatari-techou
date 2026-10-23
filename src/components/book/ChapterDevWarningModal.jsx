@@ -27,33 +27,13 @@ export default function ChapterDevWarningModal({
 
   const ChapterIcon = chapter.icon || GiSpellBook;
 
-  // 各章節主題色配置
-  const themeConfig = {
-    character: {
-      accent: '#059669',
-      buttonVariant: 'emerald',
-      bgBadge: 'bg-emerald-100/90 text-emerald-900 border-emerald-300',
-      label: '角色卡助手'
-    },
-    combat: {
-      accent: '#e11d48',
-      buttonVariant: 'danger',
-      bgBadge: 'bg-rose-100/90 text-rose-900 border-rose-300',
-      label: '戰鬥輪次'
-    },
-    clocks: {
-      accent: '#0284c7',
-      buttonVariant: 'cyan',
-      bgBadge: 'bg-sky-100/90 text-sky-900 border-sky-300',
-      label: '命刻記錄'
-    }
-  };
-
-  const currentTheme = themeConfig[chapter.id] || {
-    accent: '#b45309',
+  /* 2026-10-23（第八輪）：章節色已收斂，這裡不再分章。
+     原本四個章節各有 accent／按鈕變體／徽章底色，而工坊落到預設值——
+     那其實是**第五套色表**，而且它出現在「你正要進去的門口」。
+     章節身份由章節圖示與標題承擔，警告框只管「這件事還沒做完」。 */
+  const currentTheme = {
     buttonVariant: 'primary',
     bgBadge: 'bg-amber-100/90 text-amber-900 border-amber-300',
-    label: chapter.title
   };
 
   const actionButtons = (
@@ -89,7 +69,7 @@ export default function ChapterDevWarningModal({
     >
       <div className="space-y-4 text-[#2c221e]">
         {/* 警告標題徽章橫條 */}
-        <div className="p-3.5 rounded-xl border border-amber-300/80 bg-amber-50/90 flex items-start gap-3 shadow-xs">
+        <div className="p-3.5 rounded-xl border border-amber-300/80 bg-amber-50/90 flex items-start gap-3">
           <div className="p-2 rounded-lg bg-amber-100 border border-amber-300 text-amber-800 shrink-0 mt-0.5">
             <GiHazardSign className="w-5 h-5 text-amber-700" />
           </div>
@@ -109,7 +89,7 @@ export default function ChapterDevWarningModal({
         </div>
 
         {/* 章節資訊卡片 */}
-        <div className="p-4 rounded-xl border border-[#d6c7ab] bg-[#fffdf9] space-y-2.5 shadow-2xs">
+        <div className="p-4 rounded-xl border border-[#d6c7ab] bg-[#fffdf9] space-y-2.5">
           <div className="flex items-center gap-3">
             <div
               className={`w-11 h-11 rounded-xl border flex items-center justify-center shadow-xs shrink-0 ${currentTheme.bgBadge}`}

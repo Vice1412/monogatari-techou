@@ -662,6 +662,24 @@ check('未結算起始資金的卡會顯示提醒',
 check('已結算的卡不顯示那則提醒',
   tab2Html.includes('起始資金尚未結算'), false);
 
+/**
+ * 第 5 步的空狀態（第七輪）。
+ *
+ * 這一步的三塊內容（金手指特質／底力技／營地活動）全部由開卡規則決定，
+ * 而三個開關的**預設值都是 false**——所以預設規則下的第 5 步原本是「標題 ＋ 一行副標 ＋ 一片空白」。
+ * 六步流程裡有一頁什麼都不畫，而且畫面上沒有任何線索說明「為什麼是空的、要怎樣才會有」。
+ */
+const tab5Default = renderEditorAt(5);
+check('第 5 步在規則全關時顯示空狀態',
+  tab5Default.includes('這一步目前沒有可設定的項目'), true);
+check('第 5 步空狀態說明「去哪裡開啟」',
+  tab5Default.includes('到第 1 步換一組規則集'), true);
+// 空狀態不放 CTA：換規則集的入口在第 1 步，左側步驟列本來就走得到（同一動作不在同屏喊兩次）
+check('第 5 步空狀態不放 CTA',
+  tab5Default.includes('回到第 1 步'), false);
+check('開啟金手指後第 5 步空狀態消失',
+  renderEditorAt(5, {}, { allowQuirk: true }).includes('這一步目前沒有可設定的項目'), false);
+
 // 姓名搬到第 6 步（原書第 8 步，p.154／p.170）——第 1 步不該再有姓名輸入框
 const tab1Html = renderEditorAt(1);
 const tab6Html = renderEditorAt(6);

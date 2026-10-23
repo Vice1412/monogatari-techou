@@ -45,13 +45,13 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
   };
 
   return (
-    <div className="p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
+    <div className="p-3.5 rounded-2xl bg-white border border-[#d6c7ab] space-y-2">
       <div className="flex items-center justify-between text-xs">
-        <span className="font-bold text-slate-700 flex items-center gap-1">
+        <span className="font-bold text-[#3c2415] flex items-center gap-1">
           <GiGraveFlowers className="w-3.5 h-3.5 text-amber-600" />
           <span>職業資源</span>
         </span>
-        <span className="text-[10px] text-slate-400 font-mono">依職業自動出現</span>
+        <span className="text-[10px] text-[#6b5a4b] font-mono">依職業自動出現</span>
       </div>
 
       <div className="space-y-2">

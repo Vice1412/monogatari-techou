@@ -67,7 +67,7 @@ export function StarterPresetsPanel({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-slate-600 leading-relaxed -mt-1">
+      <p className="text-xs text-[#6b5a4b] leading-relaxed -mt-1">
         嚴格遵循官方五本手冊實裝，共 <strong>{presets.length}</strong> 組經典職業搭配：
         {/* 只列「真的有搭配」的手冊——沒有的會變成「公測修訂 0 組（）」這種噪音。 */}
         {Object.keys(SOURCEBOOKS)
@@ -106,7 +106,7 @@ export function StarterPresetsPanel({
             </button>
           );
         })}
-        <span className="text-[10px] text-slate-400 font-mono ml-auto">{count} 組</span>
+        <span className="text-[10px] text-[#6b5a4b] font-mono ml-auto">{count} 組</span>
       </div>
 
       {/* 關鍵字搜尋 */}
@@ -116,15 +116,15 @@ export function StarterPresetsPanel({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="搜尋經典搭配名稱、職業或特技（例如：黑騎士、舞者、植物學家、混合變形）..."
-          className="w-full px-3.5 py-2 pl-9 text-xs rounded-xl bg-white border text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 shadow-2xs"
+ className="w-full px-3.5 py-2 pl-9 text-xs rounded-xl bg-white border text-[#2c221e] placeholder-[#7c6a58] focus:outline-none focus:ring-2 "
           style={{ borderColor: theme.border }}
         />
-        <GiMagnifyingGlass className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+        <GiMagnifyingGlass className="w-4 h-4 text-[#6b5a4b] absolute left-3 top-2.5" />
         {search && (
           <button
             type="button"
             onClick={() => setSearch('')}
-            className="absolute right-3 top-2 text-xs text-slate-400 hover:text-slate-700 cursor-pointer"
+            className="absolute right-3 top-2 text-xs text-[#6b5a4b] hover:text-[#3c2415] cursor-pointer"
           >
             清除
           </button>
@@ -143,7 +143,7 @@ export function StarterPresetsPanel({
                 <span className="font-serif font-black text-sm" style={{ color: theme.textDark }}>
                   {section.title}
                 </span>
-                <span className="text-[10px] text-slate-400 font-mono">{section.items.length} 名成員</span>
+                <span className="text-[10px] text-[#6b5a4b] font-mono">{section.items.length} 名成員</span>
               </div>
             )}
             {section.items.map((preset) => {
@@ -203,14 +203,14 @@ export function StarterPresetsPanel({
                         {c.className} Lv{c.level}
                       </span>
                     ))}
-                    <span className="text-slate-400 text-[10px]">
+                    <span className="text-[#6b5a4b] text-[10px]">
                       [DEX d{preset.attributes.dex}, INS d{preset.attributes.ins}, MIG d{preset.attributes.mig}, WLP d{preset.attributes.wlp}]
                     </span>
                   </div>
 
                   {/* 習得技能 */}
                   <div
-                    className="text-[11px] text-slate-700 bg-white/90 rounded-lg p-2.5 border space-y-1 shadow-2xs"
+ className="text-[11px] text-[#3c2415] bg-white/90 rounded-lg p-2.5 border space-y-1 "
                     style={{ borderColor: theme.border }}
                   >
                     <div className="font-bold text-[10px] uppercase tracking-wider" style={{ color: theme.accent }}>
@@ -226,10 +226,10 @@ export function StarterPresetsPanel({
 
                   {/* 起始裝備 */}
                   <div
-                    className="text-[11px] text-slate-600 bg-white/70 rounded-lg px-2.5 py-1.5 border flex items-center gap-1.5 shadow-2xs"
+ className="text-[11px] text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border flex items-center gap-1.5 "
                     style={{ borderColor: theme.border }}
                   >
-                    <span className="font-bold text-slate-700">裝備:</span>{' '}
+                    <span className="font-bold text-[#3c2415]">裝備:</span>{' '}
                     {[
                       preset.equipment.mainHand,
                       preset.equipment.offHand && preset.equipment.offHand !== '無盾牌' ? preset.equipment.offHand : null,
@@ -241,10 +241,10 @@ export function StarterPresetsPanel({
                       有結構化規格時由規格推導（單一來源）；只有出處的（如科技奇幻樣本）才印原文。 */}
                   {(preset.customWeapons?.length > 0 || preset.customWeapon) && (
                     <div
-                      className="text-[11px] text-slate-600 bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed shadow-2xs"
+ className="text-[11px] text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
                       style={{ borderColor: theme.border }}
                     >
-                      <span className="font-bold text-slate-700">定制武器:</span>{' '}
+                      <span className="font-bold text-[#3c2415]">定制武器:</span>{' '}
                       {preset.customWeapons?.length > 0
                         ? preset.customWeapons.map((w) => `${w.name}（${describeCustomWeapon(w)}）`).join(' ／ ')
                         : preset.customWeapon}
@@ -252,21 +252,21 @@ export function StarterPresetsPanel({
                   )}
                   {preset.mnemosphere && (
                     <div
-                      className="text-[11px] text-slate-600 bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed shadow-2xs"
+ className="text-[11px] text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
                       style={{ borderColor: theme.border }}
                     >
                       {/* 結構化欄位（§CF）：`{ className, level, label }`。
                           以前這裡直接印字串，現在要自己組回「魔晶石名（視同某職業 N 級）」。 */}
-                      <span className="font-bold text-slate-700">魔晶石:</span>{' '}
+                      <span className="font-bold text-[#3c2415]">魔晶石:</span>{' '}
                       {preset.mnemosphere.label}（視同{preset.mnemosphere.className} {preset.mnemosphere.level} 級）
                     </div>
                   )}
                   {preset.quirk && (
                     <div
-                      className="text-[11px] text-slate-600 bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed shadow-2xs"
+ className="text-[11px] text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
                       style={{ borderColor: theme.border }}
                     >
-                      <span className="font-bold text-slate-700">金手指:</span> {preset.quirk}
+                      <span className="font-bold text-[#3c2415]">金手指:</span> {preset.quirk}
                     </div>
                   )}
 

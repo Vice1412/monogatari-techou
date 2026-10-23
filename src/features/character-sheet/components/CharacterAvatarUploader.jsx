@@ -340,7 +340,7 @@ export default function CharacterAvatarUploader({
         {/* 拖曳覆蓋層動畫 */}
         {isDraggingOver && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#fffdf9]/95 backdrop-blur-xs rounded-xl border-2 border-dashed border-amber-600 text-amber-950 pointer-events-none animate-in fade-in duration-150">
-            <Upload size={32} className="animate-bounce mb-1 text-amber-700" />
+            <Upload size={32} className="mb-1 text-amber-700" />
             <span className="font-bold text-xs">釋放滑鼠以上傳照片或網址</span>
           </div>
         )}
@@ -373,13 +373,13 @@ export default function CharacterAvatarUploader({
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center text-slate-500 gap-1 p-2 text-center w-full h-full group-hover:bg-[#ebdcc4] transition-colors">
+              <div className="flex flex-col items-center justify-center text-[#6b5a4b] gap-1 p-2 text-center w-full h-full group-hover:bg-[#ebdcc4] transition-colors">
                 {character?.avatar ? (
                   <GameIcon name={character.avatar} size={36} style={{ color: theme.accent }} />
                 ) : (
                   <GameIcon name={currentClassName} size={36} style={{ color: theme.accent }} />
                 )}
-                <span className="text-[9px] font-bold text-slate-400">點擊上傳照片</span>
+                <span className="text-t12 font-bold text-[#6b5a4b]">點擊上傳照片</span>
               </div>
             )}
           </div>
@@ -422,7 +422,7 @@ export default function CharacterAvatarUploader({
                   <button
                     type="button"
                     onClick={handleClearAvatar}
-                    className="px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
                   >
                     <Trash2 size={13} />
                     <span>清除</span>
@@ -430,7 +430,7 @@ export default function CharacterAvatarUploader({
                 </>
               )}
 
-              <span className="text-[11px] text-slate-400 hidden lg:inline font-bold">
+              <span className="text-[11px] text-[#6b5a4b] hidden lg:inline font-bold">
                 或直接拖曳圖片至此
               </span>
             </div>
@@ -473,7 +473,7 @@ export default function CharacterAvatarUploader({
               </button>
             </div>
 
-            <p className="text-[10px] text-slate-500 leading-tight">
+            <p className="text-t12 text-[#6b5a4b] leading-tight">
               支援 JPG, PNG, GIF, WebP 檔案或網址，可自由縮放與移動裁切。將同步顯示於角色卡、跑團面板與名冊大廳。
             </p>
           </div>
@@ -482,18 +482,18 @@ export default function CharacterAvatarUploader({
         {/* 快速選用經典職業圖標庫面板 */}
         {showClassIconPicker && (
           <div className="mt-3 pt-3 border-t space-y-2 animate-in fade-in duration-150" style={{ borderColor: theme.border }}>
-            <div className="text-[11px] font-bold text-slate-600 flex items-center justify-between">
+            <div className="text-[11px] font-bold text-[#6b5a4b] flex items-center justify-between">
               <span>經典職業符號（無照片時可作為卡面標誌）：</span>
               <button
                 type="button"
                 onClick={() => setShowClassIconPicker(false)}
-                className="text-[10px] text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="text-[10px] text-[#6b5a4b] hover:text-[#3c2415] cursor-pointer"
               >
                 收起
               </button>
             </div>
 
-            <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-1.5 bg-slate-50/80 rounded-lg border" style={{ borderColor: theme.border }}>
+            <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-1.5 bg-[#fbf7ee]/80 rounded-lg border" style={{ borderColor: theme.border }}>
               {Object.values(CLASS_METADATA)
                 .filter((cls) => cls.source !== 'playtest')
                 .map((cls) => {
@@ -506,7 +506,7 @@ export default function CharacterAvatarUploader({
                       className={`px-2 py-1 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
                         isSelected
                           ? 'text-white shadow-xs'
-                          : 'bg-white hover:bg-slate-100 text-slate-700'
+                          : 'bg-white hover:bg-[#f4ebd9] text-[#3c2415]'
                       }`}
                       style={isSelected ? { backgroundColor: theme.accent, borderColor: theme.accent } : { borderColor: theme.border }}
                       title={`${cls.name} / ${cls.en}：${cls.tagline}`}

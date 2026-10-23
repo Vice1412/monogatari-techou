@@ -14,8 +14,10 @@ import {
   GiCheckedShield,
   GiCrossedSwords,
   GiPocketWatch,
+  GiSpikedDragonHead,
 } from 'react-icons/gi';
 import JRPGButton from '../../components/ui/JRPGButton';
+import EmptyState from '../../components/ui/EmptyState';
 import JRPGBadge from '../../components/ui/JRPGBadge';
 import CombatantCard from './components/CombatantCard';
 import AddCombatantModal from './components/AddCombatantModal';
@@ -189,13 +191,13 @@ export default function CombatTracker() {
   return (
     <div className="space-y-6">
       {/* Top Banner & Round Controller */}
-      <div className="bg-[#fffdf9] rounded-xl border border-[#d6c7ab] p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-600 via-rose-600 to-sky-600" />
+      <div className="bg-[#fffdf9] rounded-xl border border-[#d6c7ab] p-5 flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#a63d40]" />
 
         {/* Round Counter */}
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl bg-[#f4ebd9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono shadow-inner">
-            <span className="text-[10px] text-[#8c7b6c] uppercase tracking-widest font-bold">ROUND</span>
+            <span className="text-[10px] text-[#7c6a58] uppercase tracking-widest font-bold">ROUND</span>
             <span className="text-2xl font-bold text-amber-800 leading-none">{round}</span>
           </div>
 
@@ -204,11 +206,11 @@ export default function CombatTracker() {
               <GiCrossedSwords className="w-5 h-5 text-amber-700" /> 戰鬥與輪次管理中樞
             </h2>
             <div className="flex items-center gap-3 text-xs font-mono mt-1">
-              <span className="text-sky-800 font-bold">
+              <span className="text-[#2c221e] font-bold">
                 玩家隊待行動: {playerUnactedCount} / {playerCombatants.length}
               </span>
               <span className="text-[#d6c7ab]">|</span>
-              <span className="text-rose-800 font-bold">
+              <span className="text-[#a63d40] font-bold">
                 敵方待行動: {enemyUnactedCount} / {enemyCombatants.length}
               </span>
             </div>
@@ -246,11 +248,11 @@ export default function CombatTracker() {
       </div>
 
       {/* Online Room Sync Bar (P2P WebRTC) */}
-      <div className="bg-[#f5efdf] rounded-xl border border-[#d6c7ab] p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-sm">
+      <div className="bg-[#f5efdf] rounded-xl border border-[#d6c7ab] p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2.5">
           {isConnected ? (
             <div className="flex items-center gap-2 text-emerald-800 font-mono font-bold">
-              <Wifi className="w-4 h-4 animate-pulse text-emerald-600" />
+              <Wifi className="w-4 h-4 text-emerald-600" />
               <span>
                 {isHost ? 'GM 房間建立完成' : '已連線房間'}: <strong className="text-amber-900 bg-[#fbf3de] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{roomCode}</strong>
               </span>
@@ -262,7 +264,7 @@ export default function CombatTracker() {
             </div>
           ) : (
             <div className="flex items-center gap-2 text-[#6b5a4b] font-mono">
-              <WifiOff className="w-4 h-4 text-[#8c7b6c]" />
+              <WifiOff className="w-4 h-4 text-[#7c6a58]" />
               <span>當前為本地單機模式（支援無網運行）</span>
             </div>
           )}
@@ -310,7 +312,7 @@ export default function CombatTracker() {
       </div>
 
       {/* Scene Clocks (場景命刻) Bar */}
-      <div className="bg-[#fffdf9] rounded-xl border border-[#d6c7ab] p-4 shadow-sm space-y-3">
+      <div className="bg-[#fffdf9] rounded-xl border border-[#d6c7ab] p-4 space-y-3">
         <div className="flex items-center justify-between border-b border-[#d6c7ab]/80 pb-2">
           <div className="flex items-center gap-2">
             <GiPocketWatch className="w-4 h-4 text-rose-700" />
@@ -343,7 +345,7 @@ export default function CombatTracker() {
               <button
                 type="button"
                 onClick={() => handleRemoveSceneClock(clk.id)}
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-[#8c7b6c] hover:text-rose-700 p-1 transition-opacity"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-[#7c6a58] hover:text-rose-700 p-1 transition-opacity"
                 title="刪除此命刻"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -357,22 +359,25 @@ export default function CombatTracker() {
       <div className="space-y-6">
         {/* Player Party Column */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between border-b border-sky-600/40 pb-2">
+          <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2">
             <div className="flex items-center gap-2">
-              <GiCheckedShield className="w-4 h-4 text-sky-700" />
-              <h3 className="font-serif font-bold text-base text-sky-900">
+              <GiCheckedShield className="w-4 h-4 text-[#6b5a4b]" />
+              <h3 className="font-serif font-bold text-base text-[#2c221e]">
                 玩家小隊
               </h3>
-              <JRPGBadge variant="cyan" size="xs">
+              <JRPGBadge variant="slate" size="xs">
                 {playerCombatants.length} 人
               </JRPGBadge>
             </div>
           </div>
 
           {playerCombatants.length === 0 ? (
-            <div className="py-8 text-center text-[#8c7b6c] text-xs font-mono bg-[#f5efdf]/50 rounded-xl border border-dashed border-[#d6c7ab]">
-              尚無玩家參戰者。點擊上方「調度參戰者」從角色名冊載入。
-            </div>
+            <EmptyState
+              kind="combat-players"
+              icon={GiCrossedSwords}
+              title="還沒有人上場"
+              teach="點上方「調度參戰者」從角色名冊載入參戰者；同一顆按鈕的「怪物庫」分頁負責敵方。"
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {playerCombatants.map(c => (
@@ -390,10 +395,10 @@ export default function CombatTracker() {
 
         {/* Enemy / Monster Column */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between border-b border-rose-600/40 pb-2">
+          <div className="flex items-center justify-between border-b border-[#a63d40]/40 pb-2">
             <div className="flex items-center gap-2">
-              <GiCrossedSwords className="w-4 h-4 text-rose-700" />
-              <h3 className="font-serif font-bold text-base text-rose-900">
+              <GiCrossedSwords className="w-4 h-4 text-[#a63d40]" />
+              <h3 className="font-serif font-bold text-base text-[#a63d40]">
                 敵方怪物與 Boss
               </h3>
               <JRPGBadge variant="rose" size="xs">
@@ -403,9 +408,13 @@ export default function CombatTracker() {
           </div>
 
           {enemyCombatants.length === 0 ? (
-            <div className="py-8 text-center text-[#8c7b6c] text-xs font-mono bg-[#f5efdf]/50 rounded-xl border border-dashed border-[#d6c7ab]">
-              戰場上目前沒有敵方怪物。點擊「調度參戰者」從怪物庫派兵。
-            </div>
+            <EmptyState
+              kind="combat-enemies"
+              icon={GiSpikedDragonHead}
+              title="戰場上還沒有敵方"
+              teach="點「調度參戰者」→「怪物庫」派兵；反派 NPC 也可以從 NPC 工坊直接送上場。"
+              tone="inset"
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {enemyCombatants.map(c => (

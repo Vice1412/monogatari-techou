@@ -45,8 +45,8 @@
     `test:engine`／`test:projects`／`test:resources`／`test:gourmet`／`test:cards`／
     `test:presets`／`test:codex`／`test:florist`／`test:variants`／`test:aliases`／
     `test:arcanist`／`test:zeropower`／`test:technospheres`／`test:campactivities`
-  - **介面與資料層契約**：`test:ui`／`test:datalayer`／`test:sentinel`／
-    `test:npcworkshop`／`test:npcworkshopui`
+  - **介面與資料層契約**：`test:ui`／`test:uisystem`／`test:datalayer`／`test:sentinel`／
+    `test:npcworkshop`／`test:npcworkshopui`／`test:fateclock`／`test:playhudempty`
   測試源碼位於受版控的 `tests/`；bundle 產物輸出至 `.test-build/`（已列入 `.gitignore`）。
 
   ⚠️ **新增測試檔時，同步改 `package.json` 的 `test` 串鏈是改動的一部分，不是後續工作**——
@@ -100,6 +100,17 @@
 
 > ⚠️ **為什麼搬出去**：這是**操作手冊**，只在做規則核對時需要。放在 `AGENTS.md` 等於
 > 每一次任務都付一次 token，而它佔了 §1 的一半。
+
+### 1.2 改介面外觀前先讀 `docs/ui-review-refactoring-ui.md`
+
+**任何會改變畫面的改動**（版面、字級、顏色、間距、陰影、按鈕層級）之前，先讀
+**[`docs/ui-review-refactoring-ui.md`](docs/ui-review-refactoring-ui.md)**（《Refactoring UI》規則 →
+可檢查條目 → 本專案的稽核與令牌）。護欄 `npm run test:uisystem` 會在退化時 `exit 1`。
+
+兩條**現在就會咬人**的判準：
+
+- **面 ≠ 字面**：`ui-1`／`ui-2` 是 hover 底與內凹槽，**不放小字**（三級墨在其上必然低於 AA）。
+- **字級只能用型階梯**（`text-t12`…`text-t39`）：任意值（`text-[10px]`）是技術債，**只能減不能增**。
 
 ---
 

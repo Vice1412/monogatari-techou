@@ -92,24 +92,24 @@ export default function ChanterComposer({
   };
 
   return (
-    <div className="p-3.5 rounded-2xl bg-gradient-to-br from-purple-50/95 via-white to-amber-50/80 border border-purple-200/90 shadow-xs space-y-3">
+    <div className="p-3.5 rounded-2xl bg-[#fffdf9] border border-[#d6c7ab] space-y-3">
       {/* 頂部標題列 */}
-      <div className="flex items-center justify-between border-b border-purple-200/60 pb-2">
+      <div className="flex items-center justify-between border-b border-[#d6c7ab]/60 pb-2">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center shadow-2xs">
+          <div className="w-6 h-6 rounded-lg bg-[#5e387c] text-white flex items-center justify-center shadow-2xs">
             <GiMusicalNotes className="w-3.5 h-3.5" />
           </div>
           <div>
-            <div className="font-bold text-xs text-purple-950 tracking-wide font-serif">
+            <div className="font-bold text-xs text-[#5e387c] tracking-wide font-serif">
               魔法演奏即時合成器
             </div>
-            <div className="text-[10px] text-purple-700/80">
+            <div className="text-[10px] text-[#5e387c]/80">
               選擇音量、音調與曲風，實時動態合成歌曲與消耗
             </div>
           </div>
         </div>
 
-        <div className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-purple-100 text-purple-900 border border-purple-200">
+        <div className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-[#f4ebd9] text-[#5e387c] border border-[#d6c7ab]">
           當前 MP: {currentMp}
         </div>
       </div>
@@ -117,10 +117,10 @@ export default function ChanterComposer({
       {/* 選擇欄位 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
         {/* ① 選擇音量 */}
-        <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-purple-100 shadow-2xs">
-          <div className="font-bold text-[11px] text-purple-900 flex items-center justify-between">
+        <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-[#d6c7ab]">
+          <div className="font-bold text-[11px] text-[#5e387c] flex items-center justify-between">
             <span>① 選擇音量</span>
-            <span className="text-[10px] text-slate-400">消耗與目標</span>
+            <span className="text-[10px] text-[#6b5a4b]">消耗與目標</span>
           </div>
           <div className="flex flex-col gap-1">
             {CHANTER_DATA.volumes.map(vol => {
@@ -132,12 +132,12 @@ export default function ChanterComposer({
                   onClick={() => setSelectedVolId(vol.id)}
                   className={`px-2 py-1.5 rounded-lg text-left transition-all flex items-center justify-between cursor-pointer ${
                     isSelected
-                      ? 'bg-purple-600 text-white font-bold shadow-xs'
-                      : 'bg-purple-50/60 hover:bg-purple-100/80 text-purple-950 border border-purple-100'
+                      ? 'bg-[#5e387c] text-white font-bold shadow-xs'
+                      : 'bg-[#f4ebd9]/60 hover:bg-[#f4ebd9]/80 text-[#5e387c] border border-[#d6c7ab]'
                   }`}
                 >
                   <span className="font-serif">{vol.name}</span>
-                  <span className={`font-mono text-[10px] px-1.5 py-0.2 rounded ${isSelected ? 'bg-purple-700/90 text-white' : 'bg-white text-purple-800'}`}>
+                  <span className={`font-mono text-[10px] px-1.5 py-0.2 rounded ${isSelected ? 'bg-[#5e387c]/90 text-white' : 'bg-white text-[#5e387c]'}`}>
                     {vol.mp} MP
                   </span>
                 </button>
@@ -147,10 +147,10 @@ export default function ChanterComposer({
         </div>
 
         {/* ② 選擇音調 */}
-        <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-purple-100 shadow-2xs">
-          <div className="font-bold text-[11px] text-amber-900 flex items-center justify-between">
+        <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-[#d6c7ab]">
+          <div className="font-bold text-[11px] text-[#9c4d16] flex items-center justify-between">
             <span>② 選擇音調</span>
-            <span className="text-[10px] text-slate-400">已掌握</span>
+            <span className="text-[10px] text-[#6b5a4b]">已掌握</span>
           </div>
           <div className="flex flex-col gap-1 max-h-[140px] overflow-y-auto pr-0.5">
             {availableKeys.map(kName => {
@@ -163,13 +163,13 @@ export default function ChanterComposer({
                   onClick={() => setSelectedKeyName(kName)}
                   className={`px-2 py-1.5 rounded-lg text-left transition-all flex items-center justify-between cursor-pointer ${
                     isSelected
-                      ? 'bg-amber-600 text-white font-bold shadow-xs'
-                      : 'bg-amber-50/60 hover:bg-amber-100/80 text-amber-950 border border-amber-100'
+                      ? 'bg-[#9c4d16] text-white font-bold shadow-xs'
+                      : 'bg-[#f4ebd9]/60 hover:bg-[#f4ebd9]/80 text-[#9c4d16] border border-[#d6c7ab]'
                   }`}
                 >
                   <span className="font-serif truncate">{kName}</span>
                   {keyData && (
-                    <span className={`text-[10px] px-1 rounded ${isSelected ? 'bg-amber-700/90 text-white' : 'bg-white text-amber-900'}`}>
+                    <span className={`text-[10px] px-1 rounded ${isSelected ? 'bg-[#9c4d16]/90 text-white' : 'bg-white text-[#9c4d16]'}`}>
                       {keyData.damageType}
                     </span>
                   )}
@@ -180,10 +180,10 @@ export default function ChanterComposer({
         </div>
 
         {/* ③ 選擇曲風 */}
-        <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-purple-100 shadow-2xs">
-          <div className="font-bold text-[11px] text-purple-900 flex items-center justify-between">
+        <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-[#d6c7ab]">
+          <div className="font-bold text-[11px] text-[#5e387c] flex items-center justify-between">
             <span>③ 選擇曲風</span>
-            <span className="text-[10px] text-slate-400">已掌握</span>
+            <span className="text-[10px] text-[#6b5a4b]">已掌握</span>
           </div>
           <div className="flex flex-col gap-1 max-h-[140px] overflow-y-auto pr-0.5">
             {availableTones.map(tName => {
@@ -195,8 +195,8 @@ export default function ChanterComposer({
                   onClick={() => setSelectedToneName(tName)}
                   className={`px-2 py-1.5 rounded-lg text-left transition-all flex items-center justify-between cursor-pointer ${
                     isSelected
-                      ? 'bg-purple-700 text-white font-bold shadow-xs'
-                      : 'bg-purple-50/60 hover:bg-purple-100/80 text-purple-950 border border-purple-100'
+                      ? 'bg-[#5e387c] text-white font-bold shadow-xs'
+                      : 'bg-[#f4ebd9]/60 hover:bg-[#f4ebd9]/80 text-[#5e387c] border border-[#d6c7ab]'
                   }`}
                 >
                   <span className="font-serif truncate">{tName}</span>
@@ -210,21 +210,21 @@ export default function ChanterComposer({
 
       {/* 合成結果預覽展示卡 */}
       {currentSong && (
-        <div className="p-3 bg-white rounded-xl border-2 border-purple-300 shadow-xs space-y-2">
+        <div className="p-3 bg-white rounded-xl border-2 border-[#5e387c] space-y-2">
           {/* 歌名與數據標籤 */}
-          <div className="flex items-center justify-between gap-2 flex-wrap border-b border-purple-100 pb-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap border-b border-[#d6c7ab] pb-2">
             <div className="flex items-center gap-1.5">
-              <GiSparkles className="w-4 h-4 text-purple-600 shrink-0" />
-              <span className="font-bold text-sm text-purple-950 font-serif tracking-wide">
+              <GiSparkles className="w-4 h-4 text-[#5e387c] shrink-0" />
+              <span className="font-bold text-sm text-[#5e387c] font-serif tracking-wide">
                 {currentSong.songTitle}
               </span>
             </div>
 
             <div className="flex items-center gap-1.5 text-xs font-mono">
-              <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 font-bold border border-indigo-200">
+              <span className="px-2 py-0.5 rounded-full bg-[#f4ebd9] text-[#27527a] font-bold border border-[#d6c7ab]">
                 消耗：{currentSong.mp} MP
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 font-sans">
+              <span className="px-2 py-0.5 rounded-full bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-sans">
                 目標：{currentSong.target}
               </span>
             </div>
@@ -233,23 +233,23 @@ export default function ChanterComposer({
           {/* 音調特性輔助標籤 */}
           {currentSong.key && (
             <div className="flex flex-wrap gap-1.5 text-[10px]">
-              <span className="px-1.5 py-0.2 rounded bg-amber-50 text-amber-900 border border-amber-200">
+              <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#9c4d16] border border-[#d6c7ab]">
                 傷害【{currentSong.key.damageType}】
               </span>
-              <span className="px-1.5 py-0.2 rounded bg-rose-50 text-rose-900 border border-rose-200">
+              <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#8c2d36] border border-[#d6c7ab]">
                 狀態【{currentSong.key.status}】
               </span>
-              <span className="px-1.5 py-0.2 rounded bg-blue-50 text-blue-900 border border-blue-200 font-mono">
+              <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#27527a] border border-[#d6c7ab] font-mono">
                 屬性【{currentSong.key.attribute}】
               </span>
-              <span className="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-900 border border-emerald-200">
+              <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#245c45] border border-[#d6c7ab]">
                 恢復【{currentSong.key.recovery}】
               </span>
             </div>
           )}
 
           {/* 置換後的完整機制效果文本（透過 renderTextWithAffinities 帶官方字型符號高亮） */}
-          <div className="text-xs text-slate-800 leading-relaxed font-sans bg-purple-50/40 p-2.5 rounded-lg border border-purple-100/80">
+          <div className="text-xs text-[#3c2415] leading-relaxed font-sans bg-[#f4ebd9]/40 p-2.5 rounded-lg border border-[#d6c7ab]/80">
             {renderTextWithAffinities(currentSong.composedEffect)}
           </div>
 
@@ -258,9 +258,9 @@ export default function ChanterComposer({
             <button
               type="button"
               onClick={handleCopySong}
-              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
             >
-              {copied ? <GiCheckMark className="w-3.5 h-3.5 text-emerald-600" /> : null}
+              {copied ? <GiCheckMark className="w-3.5 h-3.5 text-[#245c45]" /> : null}
               <span>{copied ? '已複製！' : '複製歌曲效果'}</span>
             </button>
 
@@ -270,8 +270,8 @@ export default function ChanterComposer({
               disabled={!isMpSufficient}
               className={`px-4 py-1.5 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer ${
                 isMpSufficient
-                  ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/30'
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  ? 'bg-[#5e387c] hover:bg-[#4f2e67] text-white shadow-[#3c2415]/30'
+                  : 'bg-[#e8dcc4] text-[#7c6a58] cursor-not-allowed'
               }`}
             >
               <GiMusicalNotes className="w-3.5 h-3.5" />

@@ -50,13 +50,13 @@ export default function SuboptionDetailsList({
     <div className={`space-y-2.5 ${classNameCustom}`}>
       {/* 1. 魔奏者專屬：基礎 3 大音量常駐外顯卡片 */}
       {isChanter && showVolumeBlock && (
-        <div className="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/90 space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-purple-900 border-b border-purple-200/60 pb-1.5">
+        <div className="p-2.5 rounded-xl bg-[#f9f5eb] border border-[#d6c7ab] space-y-2">
+          <div className="flex items-center justify-between text-xs font-bold text-[#3c2415] border-b border-[#e2d6c1] pb-1.5">
             <span className="flex items-center gap-1.5">
-              <GiMusicalNotes className="w-3.5 h-3.5 text-purple-700" />
+              <GiMusicalNotes className="w-3.5 h-3.5 text-[#3c2415]" />
               <span>基礎音量體系（自動掌握全部 3 種音量）</span>
             </span>
-            <span className="text-[10px] text-purple-700 font-normal">
+            <span className="text-[10px] text-[#6b5a4b] font-normal">
               無須消耗配額
             </span>
           </div>
@@ -65,18 +65,18 @@ export default function SuboptionDetailsList({
             {CHANTER_DATA.volumes.map(vol => (
               <div
                 key={vol.id}
-                className="p-2 bg-white rounded-lg border border-purple-100/90 shadow-2xs space-y-1"
+                className="p-2 bg-white rounded-lg border border-[#e2d6c1] space-y-1"
               >
                 <div className="flex items-center justify-between font-bold text-xs">
-                  <span className="text-purple-950 font-serif">{vol.name}</span>
-                  <span className="px-1.5 py-0.2 rounded bg-purple-100 text-purple-900 font-mono text-[10px] font-bold">
+                  <span className="text-[#3c2415] font-serif">{vol.name}</span>
+                  <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] font-mono text-[10px] font-bold">
                     {vol.mp} MP
                   </span>
                 </div>
-                <div className="text-[10px] text-slate-500 font-medium">
+                <div className="text-[10px] text-[#6b5a4b] font-medium">
                   目標：{vol.target}
                 </div>
-                <p className="text-[11px] text-slate-700 leading-snug">
+                <p className="text-[11px] text-[#3c2415] leading-snug">
                   {renderTextWithAffinities(vol.desc)}
                 </p>
               </div>
@@ -103,7 +103,7 @@ export default function SuboptionDetailsList({
             )}
           </div>
           {therioLines.map((line) => (
-            <div key={line} className="text-[11px] leading-snug text-slate-700">
+            <div key={line} className="text-[11px] leading-snug text-[#3c2415]">
               {line}
             </div>
           ))}
@@ -124,7 +124,7 @@ export default function SuboptionDetailsList({
             return (
               <div
                 key={`${detail.name || rawName}_${idx}`}
-                className="p-2.5 rounded-xl border border-amber-200/80 bg-white/95 shadow-2xs hover:border-amber-300 transition-all space-y-1.5 text-xs"
+                className="p-2.5 rounded-xl border border-amber-200/80 bg-white/95 hover:border-amber-300 transition-all space-y-1.5 text-xs"
               >
                 {/* 卡片標題與標籤列 */}
                 <div className="flex items-center justify-between gap-1.5 flex-wrap">
@@ -141,12 +141,12 @@ export default function SuboptionDetailsList({
 
                     {/* 分類標籤 (如 音調 / 曲風) */}
                     {isChanterKey && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 font-bold border border-amber-200">
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                         音調
                       </span>
                     )}
                     {isChanterTone && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-100 text-purple-900 font-bold border border-purple-200">
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                         曲風
                       </span>
                     )}
@@ -155,22 +155,22 @@ export default function SuboptionDetailsList({
                   {/* 右側數值標籤群 */}
                   <div className="flex items-center gap-1 shrink-0 text-[10px] font-mono flex-wrap">
                     {detail.mp && (
-                      <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-900 font-bold border border-indigo-200">
+                      <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                         {detail.mp} MP
                       </span>
                     )}
                     {detail.duration && (
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                      <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
                         持續：{detail.duration}
                       </span>
                     )}
                     {detail.target && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200 font-sans">
+                      <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] font-sans">
                         目標：{detail.target}
                       </span>
                     )}
                     {detail.event && (
-                      <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-900 border border-purple-200 font-sans">
+                      <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] font-sans">
                         時機：{detail.event}
                       </span>
                     )}
@@ -184,32 +184,32 @@ export default function SuboptionDetailsList({
                   </div>
                 )}
                 {detail.examples && (
-                  <div className="text-[10px] text-slate-500">
+                  <div className="text-[10px] text-[#6b5a4b]">
                     象徵範例：{detail.examples}
                   </div>
                 )}
 
                 {/* 核心效果描述（透過 renderTextWithAffinities 內聯渲染官方符號與色彩） */}
                 {detail.effect && (
-                  <p className="text-[11px] text-slate-700 leading-relaxed font-sans">
+                  <p className="text-[11px] text-[#3c2415] leading-relaxed font-sans">
                     {renderTextWithAffinities(detail.effect)}
                   </p>
                 )}
                 {detail.desc && !detail.effect && (
-                  <p className="text-[11px] text-slate-700 leading-relaxed font-sans">
+                  <p className="text-[11px] text-[#3c2415] leading-relaxed font-sans">
                     {renderTextWithAffinities(detail.desc)}
                   </p>
                 )}
 
                 {/* 植物學家多階刻度與回合效果 */}
                 {detail.effects && Array.isArray(detail.effects) && (
-                  <div className="mt-1.5 pt-1.5 border-t border-slate-100 space-y-1.5">
+                  <div className="mt-1.5 pt-1.5 border-t border-[#e8dcc4] space-y-1.5">
                     {detail.effects.map((ef, eIdx) => (
                       <div key={eIdx} className="text-[11px] flex items-start gap-1.5">
                         <span className="font-mono font-bold text-emerald-900 bg-emerald-100 px-1.5 py-0.5 rounded text-[10px] shrink-0 border border-emerald-200">
                           {ef.clock}
                         </span>
-                        <span className="text-slate-700 leading-relaxed font-sans">
+                        <span className="text-[#3c2415] leading-relaxed font-sans">
                           {renderTextWithAffinities(ef.text)}
                         </span>
                       </div>
@@ -221,7 +221,7 @@ export default function SuboptionDetailsList({
           })}
         </div>
       ) : (
-        <div className="p-3 text-center bg-slate-50/80 rounded-lg border border-dashed border-slate-300 text-slate-500 text-xs italic">
+        <div className="p-3 text-center bg-[#fbf7ee]/80 rounded-lg border border-dashed border-[#d6c7ab] text-[#6b5a4b] text-xs italic">
           尚未配置任何項目。請點擊上方按鈕展開清單完成角色構築。
         </div>
       )}

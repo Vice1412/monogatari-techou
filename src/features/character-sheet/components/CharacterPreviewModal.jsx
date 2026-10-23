@@ -21,7 +21,7 @@ export default function CharacterPreviewModal({
   character,
   stats = null,
   theme = null,
-  themeId = 'emerald',
+  themeId = 'amber',
   showToast = null,
   closeLabel = '返回編輯',
   secondaryAction = null,
@@ -95,7 +95,7 @@ export default function CharacterPreviewModal({
           />
         ) : (
           <>
-            <div className="text-xs text-slate-500 flex items-center justify-between px-1 flex-wrap gap-1">
+            <div className="text-xs text-[#6b5a4b] flex items-center justify-between px-1 flex-wrap gap-1">
               <span>隨時檢視角色卡排版與構築進度</span>
               <span className="font-mono text-[11px]" style={{ color: theme?.accent }}>
                 （填寫中未完成欄位均以空格標註）

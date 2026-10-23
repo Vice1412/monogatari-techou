@@ -117,8 +117,8 @@ const SUIT_ICON = {
 const SUIT_TEXT = {
   diamond: 'text-red-600',
   heart: 'text-red-600',
-  club: 'text-slate-900',
-  spade: 'text-slate-900'
+  club: 'text-[#2c221e]',
+  spade: 'text-[#2c221e]'
 };
 
 /** 小丑牌未指定花色與數值時的顏色。 */
@@ -503,7 +503,7 @@ export default function AceOfCardsTable({
         onClick={() => selectable && onToggle && onToggle(card.id)}
         title={label}
         aria-label={label}
-        className={`bg-white border border-slate-300 shadow-sm flex items-center justify-center gap-[3px] leading-none transition-all ${s.box} ${
+        className={`bg-white border border-[#d6c7ab] flex items-center justify-center gap-[3px] leading-none transition-all ${s.box} ${
           selectable ? 'cursor-pointer' : 'cursor-default'
         } ${selected ? 'ring-2 ring-amber-500 -translate-y-0.5' : ''} ${
           dim ? 'opacity-30 grayscale' : ''
@@ -528,7 +528,7 @@ export default function AceOfCardsTable({
   };
 
   return (
-    <div className="rounded-2xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+    <div className="rounded-2xl bg-white border border-[#d6c7ab] overflow-hidden">
       {/* 標題列 */}
       <div className={`px-3.5 py-2.5 ${T.bg} border-b ${T.border} flex items-center justify-between flex-wrap gap-2`}>
         <span className={`font-bold text-sm ${T.text} flex items-center gap-1.5`}>
@@ -596,7 +596,7 @@ export default function AceOfCardsTable({
             })}
           </div>
           {!suitOk && (
-            <p className="mt-1.5 text-[10px] font-bold text-red-800 flex items-center gap-1">
+            <p className="mt-1.5 text-t12 font-bold text-red-800 flex items-center gap-1">
               <GiHazardSign className="w-3 h-3 shrink-0" />
               <span>有花色對應到同一種傷害類型——原書要求四個花色各不相同</span>
             </p>
@@ -628,7 +628,15 @@ export default function AceOfCardsTable({
                 手牌（點擊選取，最多 {maxCards} 張）
               </SectionTitle>
               {hand.length === 0 ? (
-                <p className="text-[11px] text-slate-400 text-center py-3">手牌已空</p>
+                /* 空手牌：原本是 `text-[#6b5a4b]` 的一行「手牌已空」（白底 2.56:1）。
+                   這裡說兩件事——牌去哪了、怎麼拿回來；否則玩家只會看到一個空白區塊。 */
+                <div className="py-5 px-4 text-center bg-[#fbf7ee] rounded-xl border border-dashed border-[#d6c7ab] flex flex-col items-center justify-center">
+                  <GiCardPickup className="w-7 h-7 text-amber-700/80" />
+                  <p className="mt-2 font-bold text-[#3c2415] text-xs tracking-wide">手牌已空</p>
+                  <p className="mt-1 text-[#6b5a4b] text-t12 leading-relaxed max-w-xs">
+                    打出的牌會進棄牌堆；這一輪用完之後，下次抽牌的時機會重新發滿。
+                  </p>
+                </div>
               ) : (
                 <div className="grid grid-cols-6 sm:grid-cols-10 gap-1.5">
                   {hand.map((c) =>
@@ -720,14 +728,14 @@ export default function AceOfCardsTable({
 
             {/* 符合的效果 */}
             {pickedCards.length >= 2 && (
-              <div className={`p-2.5 rounded-xl border ${matches.length > 0 ? 'bg-emerald-50 border-emerald-300' : 'bg-slate-50 border-slate-300'}`}>
+              <div className={`p-2.5 rounded-xl border ${matches.length > 0 ? 'bg-emerald-50 border-emerald-300' : 'bg-[#fbf7ee] border-[#d6c7ab]'}`}>
                 <div className="flex items-center gap-1.5 text-[11px] font-bold mb-1.5">
                   {matches.length > 0 ? (
                     <GiCheckMark className="w-3.5 h-3.5 text-emerald-700" />
                   ) : (
-                    <GiHazardSign className="w-3.5 h-3.5 text-slate-500" />
+                    <GiHazardSign className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   )}
-                  <span className={matches.length > 0 ? 'text-emerald-900' : 'text-slate-700'}>
+                  <span className={matches.length > 0 ? 'text-emerald-900' : 'text-[#3c2415]'}>
                     {matches.length === 0
                       ? '這組牌不符合任何效果——仍可打出（花 MP、棄牌、補抽），但不會產生效果'
                       : matches.length === 1
@@ -752,8 +760,8 @@ export default function AceOfCardsTable({
                         className={`w-full text-left px-2 py-1.5 rounded-lg border text-[11px] transition-all cursor-pointer ${
                           isMonarch
                             ? on
-                              ? 'bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border-amber-600 ring-2 ring-amber-400 shadow-[0_0_14px_rgba(217,119,6,0.45)]'
-                              : 'bg-gradient-to-r from-amber-50 via-yellow-50/60 to-amber-50 border-amber-400 shadow-[0_0_8px_rgba(217,119,6,0.25)]'
+                              ? 'bg-amber-100 border-amber-600 ring-2 ring-amber-400'
+                              : 'bg-[#fffdf9] border-[#d6c7ab]'
                             : on
                               ? 'bg-white border-emerald-500 ring-2 ring-emerald-400'
                               : 'bg-white/60 border-emerald-200'
@@ -770,7 +778,7 @@ export default function AceOfCardsTable({
                           </span>
                           <span className={`font-mono text-[10px] ${T.sub}`}>（{m.requirement}）</span>
                           {isMonarch && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border border-amber-600 bg-amber-100 text-amber-900">
+                            <span className="text-t12 font-bold px-1.5 py-0.5 rounded border border-amber-600 bg-amber-100 text-amber-900">
                               禁忌
                             </span>
                           )}
@@ -802,7 +810,7 @@ export default function AceOfCardsTable({
                             type="button"
                             onClick={() => toggleStatusPick(k)}
                             className={`px-2 py-1 rounded-lg border text-[11px] font-bold cursor-pointer transition-all ${
-                              on ? 'bg-white border-emerald-500 ring-2 ring-emerald-400 text-emerald-900' : 'bg-white/60 border-emerald-200 text-slate-600'
+                              on ? 'bg-white border-emerald-500 ring-2 ring-emerald-400 text-emerald-900' : 'bg-white/60 border-emerald-200 text-[#6b5a4b]'
                             }`}
                           >
                             {STATUS_AFFLICTIONS[k]?.name || k}
@@ -824,7 +832,7 @@ export default function AceOfCardsTable({
               className={`w-full px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5 ${
                 canResolve
                   ? 'bg-amber-700 hover:bg-amber-800 text-white cursor-pointer'
-                  : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                  : 'bg-[#f4ebd9] text-[#7c6a58] border border-[#e8dcc4] cursor-not-allowed'
               }`}
             >
               <GiDiceTwentyFacesTwenty className="w-4 h-4" />
@@ -845,7 +853,7 @@ export default function AceOfCardsTable({
 
             {/* 牌運亨通目前狀態 */}
             {hasHighOrLowState(highOrLow) && (
-              <div className="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200">
+              <div className="p-2.5 rounded-xl bg-[#f9f5eb] border border-[#d6c7ab]">
                 <SectionTitle icon={GiRollingDices}>牌運亨通（生效至你的下個回合開始）</SectionTitle>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {highOrLow.extraDamage > 0 && chip(`+${highOrLow.extraDamage} 傷害`, 'ok')}
@@ -892,7 +900,7 @@ export default function AceOfCardsTable({
                     onClick={doMulligan}
                     className={`w-full px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
                       mulliganPicked.length === 0
-                        ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                        ? 'bg-[#f4ebd9] text-[#7c6a58] border border-[#e8dcc4] cursor-not-allowed'
                         : 'bg-amber-700 hover:bg-amber-800 text-white cursor-pointer'
                     }`}
                   >
@@ -926,7 +934,7 @@ export default function AceOfCardsTable({
                               setTrapPicked([]);
                             }}
                             className={`px-2 py-1 rounded-lg border text-[11px] font-bold cursor-pointer transition-all ${
-                              on ? 'bg-white border-amber-500 ring-2 ring-amber-400 text-amber-900' : 'bg-white/60 border-[#d6c7ab] text-slate-600'
+                              on ? 'bg-white border-amber-500 ring-2 ring-amber-400 text-amber-900' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
                             }`}
                           >
                             {a.name}
@@ -943,7 +951,7 @@ export default function AceOfCardsTable({
                         符合的牌 {trapEligible.length} 張（小丑牌，或花色為{trapAction.type}）／已選 {trapPicked.length} / {trapDiscardLimit(trapSL)}
                       </div>
                       {trapEligible.length === 0 ? (
-                        <p className="text-[11px] text-slate-400">手牌中沒有符合的牌——陷阱卡這次無法使用</p>
+                        <p className="text-t12 text-[#6b5a4b]">手牌中沒有符合的牌——陷阱卡這次無法使用</p>
                       ) : (
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {hand.map((c) =>
@@ -962,7 +970,7 @@ export default function AceOfCardsTable({
                         onClick={confirmTrapDiscard}
                         className={`mt-2 w-full px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
                           trapPicked.length === 0 || usedThisTurn.trap
-                            ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                            ? 'bg-[#f4ebd9] text-[#7c6a58] border border-[#e8dcc4] cursor-not-allowed'
                             : 'bg-amber-700 hover:bg-amber-800 text-white cursor-pointer'
                         }`}
                       >
@@ -980,7 +988,7 @@ export default function AceOfCardsTable({
                         <span>免費咒語動作：總 MP ≤ {trapCap}（MP 仍須自付）</span>
                       </div>
                       {trapSpells.length === 0 ? (
-                        <p className="text-[11px] text-emerald-900">
+                        <p className="text-t12 text-emerald-900">
                           沒有總 MP ≤ {trapCap} 的咒語可施放
                         </p>
                       ) : (
@@ -997,7 +1005,7 @@ export default function AceOfCardsTable({
                                 className={`w-full text-left px-2 py-1 rounded-lg border text-[11px] ${
                                   affordable
                                     ? 'bg-white border-emerald-400 cursor-pointer hover:bg-emerald-100'
-                                    : 'bg-white/60 border-slate-200 text-slate-400 cursor-not-allowed'
+                                    : 'bg-[#fffdf9] border-[#e8dcc4] text-[#7c6a58] cursor-not-allowed'
                                 }`}
                               >
                                 <span className="font-bold text-[#3c2415]">{sp.name}</span>
@@ -1060,7 +1068,7 @@ export default function AceOfCardsTable({
                   <tr key={e.id} className="align-top border-t border-[#e8dfcb]">
                     <td className={`py-1 pr-1 font-bold ${T.text}`}>
                       {e.name}
-                      {e.heroic && <span className={`block font-mono text-[9px] ${T.sub}`}>需英雄技能</span>}
+                      {e.heroic && <span className={`block font-mono text-t12 ${T.sub}`}>需英雄技能</span>}
                     </td>
                     <td className={`py-1 pr-1 ${T.sub}`}>{e.requirement}</td>
                     <td className="py-1 text-[#3c2415]">{renderTextWithAffinities(e.reference)}</td>
@@ -1068,13 +1076,13 @@ export default function AceOfCardsTable({
                 ))}
               </tbody>
             </table>
-            <p className={`text-[10px] font-mono ${T.sub}`}>
+            <p className={`text-t12 font-mono ${T.sub}`}>
               推薦花色對應：風(♦)、土(♣)、火(♥)、冰(♠)
             </p>
-            <p className={`text-[10px] font-mono ${T.sub}`}>
+            <p className={`text-t12 font-mono ${T.sub}`}>
               炫目順子／雙重麻煩／魔法同花順：L20+ 額外 10 傷害、L40+ 額外 20 傷害
             </p>
-            <p className={`text-[10px] font-mono ${T.sub}`}>
+            <p className={`text-t12 font-mono ${T.sub}`}>
               陷阱卡的動作對應：攻擊＝冰、目標＝火、技能＝土、咒語＝風
             </p>
           </div>

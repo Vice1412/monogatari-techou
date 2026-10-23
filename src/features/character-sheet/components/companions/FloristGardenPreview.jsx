@@ -49,14 +49,14 @@ export default function FloristGardenPreview({
   return (
     <div
       data-testid="florist-garden-preview"
-      className="mt-2 p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/90 space-y-2"
+      className="mt-2 p-2.5 rounded-xl bg-[#f4ebd9]/70 border border-[#d6c7ab]/90 space-y-2"
     >
       {/* 標題列 ＋ 規則速查入口 */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5">
-          <GiFlowerPot className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-          <span className="font-bold text-xs text-emerald-950 font-serif">花園與生長命刻</span>
-          <span className="text-[10px] text-emerald-800/80">
+          <GiFlowerPot className="w-3.5 h-3.5 text-[#245c45] shrink-0" />
+          <span className="font-bold text-xs text-[#245c45] font-serif">花園與生長命刻</span>
+          <span className="text-[10px] text-[#245c45]/80">
             （建角預覽；播種與推進在跑團卡操作）
           </span>
         </div>
@@ -66,7 +66,7 @@ export default function FloristGardenPreview({
             type="button"
             onClick={() => openRuleCodex(skillName)}
             title={`開啟規則速查「${codexRule.title}」（${codexRule.page}）`}
-            className="text-[10px] font-bold px-2 py-0.5 rounded-lg border border-emerald-300 bg-white text-emerald-900 hover:bg-emerald-100 transition-colors cursor-pointer flex items-center gap-1"
+            className="text-[10px] font-bold px-2 py-0.5 rounded-lg border border-[#245c45] bg-white text-[#245c45] hover:bg-[#f4ebd9] transition-colors cursor-pointer flex items-center gap-1"
           >
             <GiBookCover className="w-3 h-3" />
             <span>規則速查：{codexRule.title}</span>
@@ -75,14 +75,14 @@ export default function FloristGardenPreview({
       </div>
 
       {/* 花園鐵則（一句話） */}
-      <p className="text-[10px] text-emerald-900/90 leading-relaxed">
+      <p className="text-t12 text-[#245c45]/90 leading-relaxed">
         花園同時只容納 <strong>1 顆</strong>魔法種子；你的回合結束時填入 1 格；
         填滿第 {GROWTH_CLOCK_MAX} 格時種子離園，格數全部抹去。
       </p>
 
       {/* 生長命刻撥盤：預覽各格數下生效的階級 */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-[10px] font-bold text-emerald-900">預覽格數</span>
+        <span className="text-[10px] font-bold text-[#245c45]">預覽格數</span>
         <div className="flex items-center gap-1">
           {Array.from({ length: GROWTH_CLOCK_MAX + 1 }, (_, t) => t).map((t) => (
             <button
@@ -92,15 +92,15 @@ export default function FloristGardenPreview({
               title={`預覽生長命刻 ${t} 格時生效的效果`}
               className={`w-6 h-6 rounded-md border text-[11px] font-mono font-bold transition-colors cursor-pointer ${
                 previewClock === t
-                  ? 'bg-emerald-700 border-emerald-800 text-white'
-                  : 'bg-white border-emerald-200 text-emerald-800 hover:bg-emerald-100'
+                  ? 'bg-[#245c45] border-[#245c45] text-white'
+                  : 'bg-white border-[#d6c7ab] text-[#245c45] hover:bg-[#f4ebd9]'
               }`}
             >
               {t}
             </button>
           ))}
         </div>
-        <span className="text-[10px] text-emerald-800/80">
+        <span className="text-[10px] text-[#245c45]/80">
           只套用與 {previewClock} 格「完全相同」的那一階，不是以上或以下
         </span>
       </div>
@@ -115,13 +115,13 @@ export default function FloristGardenPreview({
             return (
               <div
                 key={seed.id || seed.name}
-                className="p-1.5 rounded-lg bg-white border border-emerald-200/80 space-y-0.5"
+                className="p-1.5 rounded-lg bg-white border border-[#d6c7ab]/80 space-y-0.5"
               >
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="font-serif font-bold text-[11px] text-emerald-950">
+                  <span className="font-serif font-bold text-[11px] text-[#245c45]">
                     {seed.name}
                   </span>
-                  <span className="text-[10px] font-mono font-bold text-emerald-700">
+                  <span className="text-[10px] font-mono font-bold text-[#245c45]">
                     {previewClock} 格
                   </span>
                 </div>
@@ -129,16 +129,16 @@ export default function FloristGardenPreview({
                 {active.length > 0 ? (
                   active.map((ef, i) => (
                     <div key={i} className="flex items-start gap-1.5 text-[11px]">
-                      <span className="font-mono font-bold text-emerald-900 bg-emerald-100 px-1.5 py-0.5 rounded text-[10px] shrink-0 border border-emerald-200">
+                      <span className="font-mono font-bold text-[#245c45] bg-[#f4ebd9] px-1.5 py-0.5 rounded text-[10px] shrink-0 border border-[#d6c7ab]">
                         {ef.clock}
                       </span>
-                      <span className="text-slate-700 leading-relaxed font-sans">
+                      <span className="text-[#3c2415] leading-relaxed font-sans">
                         {renderTextWithAffinities(ef.text)}
                       </span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-[10px] text-slate-500 italic">
+                  <p className="text-t12 text-[#6b5a4b] italic">
                     此格數沒有對應效果——該階不生效。
                   </p>
                 )}
@@ -147,7 +147,7 @@ export default function FloristGardenPreview({
           })}
         </div>
       ) : (
-        <p className="text-[11px] text-slate-600 italic">
+        <p className="text-t12 text-[#6b5a4b] italic">
           尚未配置魔法種子。點上方「配置魔法種子」挑選後，這裡會顯示各格數下實際生效的效果。
         </p>
       )}

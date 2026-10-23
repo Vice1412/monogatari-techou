@@ -105,8 +105,8 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
   };
 
   return (
-    <div className="fixed inset-0 z-[120] bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-[#fbf7ee] border border-[#d6c7ab] rounded-2xl shadow-2xl max-w-md w-full p-5 space-y-4 text-[#2c221e]">
+    <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-[#fbf7ee] border border-[#d6c7ab] rounded-2xl shadow-e3 max-w-md w-full p-5 space-y-4 text-[#2c221e]">
         <div className="flex items-center justify-between pb-2 border-b border-[#d6c7ab]">
           <div>
             <h3 className="font-bold text-base text-[#3c2415] flex items-center gap-2">
@@ -171,7 +171,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
           </div>
         </div>
 
-        <div className="space-y-3 bg-[#fffdf9] border border-[#d6c7ab] p-3 rounded-xl shadow-sm">
+        <div className="space-y-3 bg-[#fffdf9] border border-[#d6c7ab] p-3 rounded-xl">
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-1.5 text-[#3c2f21] font-bold">
               <ZoomIn size={15} className="text-amber-700" />
@@ -190,7 +190,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-[#8c7b6c] font-mono">20%</span>
+            <span className="text-[10px] text-[#7c6a58] font-mono">20%</span>
             <input
               type="range"
               min="0.2"
@@ -200,11 +200,11 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
               onChange={(e) => setZoom(parseFloat(e.target.value))}
               className="flex-1 h-1.5 bg-[#d6c7ab] rounded-lg appearance-none cursor-pointer accent-amber-600"
             />
-            <span className="text-[10px] text-[#8c7b6c] font-mono">500%</span>
+            <span className="text-[10px] text-[#7c6a58] font-mono">500%</span>
           </div>
 
           <div className="flex items-center justify-between gap-1 pt-1">
-            <span className="text-[10px] text-[#8c7b6c]">快速倍率：</span>
+            <span className="text-[10px] text-[#7c6a58]">快速倍率：</span>
             <div className="flex gap-1 flex-wrap">
               {[0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0].map((sVal) => (
                 <button

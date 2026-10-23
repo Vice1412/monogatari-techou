@@ -169,7 +169,7 @@ export function ZeroPowerNameTablesBody({
               >
                 <div className="flex items-center gap-1.5 truncate">
                   <span
-                    className={`font-mono text-[10px] w-5 text-right font-bold ${picked ? 'text-white/80' : 'text-slate-400'}`}
+                    className={`font-mono text-[10px] w-5 text-right font-bold ${picked ? 'text-white/80' : 'text-[#6b5a4b]'}`}
                   >
                     {`#${row.id}`}
                   </span>
@@ -184,7 +184,7 @@ export function ZeroPowerNameTablesBody({
   };
 
   return (
-    <div className="space-y-4 text-slate-800">
+    <div className="space-y-4 text-[#3c2415]">
       {/* 說明卡 */}
       <div
         className="rounded-xl p-3.5 space-y-2 border transition-colors"
@@ -199,10 +199,10 @@ export function ZeroPowerNameTablesBody({
               <GiSpellBook className="w-4 h-4" style={{ color: theme?.accent || '#b45309' }} />
               官方命名機制：由來 ＋ 動作
             </h4>
-            <p className="text-[11px] text-slate-600 mt-0.5">
+            <p className="text-t12 text-[#6b5a4b] mt-0.5">
               高度奇幻手冊 p.128–129。動作骰 1d20、由來骰 1d10；兩張表都是「先依底力技的定位選一欄，再依骰面取詞」。
             </p>
-            <p className="text-[11px] mt-1 leading-relaxed" style={{ color: theme?.textMuted || '#7c6a58' }}>
+            <p className="text-t12 mt-1 leading-relaxed" style={{ color: theme?.textMuted || '#7c6a58' }}>
               <span className="font-bold" style={{ color: theme?.textDark || '#3c2415' }}>這張表是靈感，不是規則</span>
               ：原文允許調整語序與所有格（王家之刃／刃・王家）。一次給你一個名字——不喜歡就再擲一次，或直接在「底力技名稱」欄自己寫。
             </p>
@@ -283,21 +283,21 @@ export function ZeroPowerNameTablesBody({
                 className="p-1.5 rounded border"
                 style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}
               >
-                <span className="text-slate-400 block">1. 由來:</span>
+                <span className="text-[#6b5a4b] block">1. 由來:</span>
                 <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
                   {`d10 = ${rolledResult.originRoll} → ${rolledResult.origin}`}
                 </span>
-                <span className="block text-slate-400">{ZERO_NAME_ORIGINS.columns[rolledResult.originColumn]}</span>
+                <span className="block text-[#6b5a4b]">{ZERO_NAME_ORIGINS.columns[rolledResult.originColumn]}</span>
               </div>
               <div
                 className="p-1.5 rounded border"
                 style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}
               >
-                <span className="text-slate-400 block">2. 動作:</span>
+                <span className="text-[#6b5a4b] block">2. 動作:</span>
                 <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
                   {`d20 = ${rolledResult.actionRoll} → ${rolledResult.action}`}
                 </span>
-                <span className="block text-slate-400">{ZERO_NAME_ACTIONS.columns[rolledResult.actionColumn]}</span>
+                <span className="block text-[#6b5a4b]">{ZERO_NAME_ACTIONS.columns[rolledResult.actionColumn]}</span>
               </div>
             </div>
           </div>
@@ -307,29 +307,29 @@ export function ZeroPowerNameTablesBody({
         <div className="flex flex-wrap items-center gap-2 text-xs pt-1">
           <div
             className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
-              pickedOrigin ? 'font-bold' : 'bg-white/60 border-slate-200 text-slate-400'
+              pickedOrigin ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
             }`}
             style={pickedStyle(pickedOrigin)}
           >
             <span>{`1. 由來: ${pickedOrigin ? pickedOrigin.zh : '尚未選取'}`}</span>
             {pickedOrigin ? (
-              <button type="button" onClick={() => onPick('origin', null)} className="text-slate-400 hover:text-slate-700">
+              <button type="button" onClick={() => onPick('origin', null)} className="text-[#6b5a4b] hover:text-[#3c2415]">
                 <X className="w-3 h-3" />
               </button>
             ) : null}
           </div>
 
-          <span className="text-slate-400">➔</span>
+          <span className="text-[#6b5a4b]">➔</span>
 
           <div
             className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
-              pickedAction ? 'font-bold' : 'bg-white/60 border-slate-200 text-slate-400'
+              pickedAction ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
             }`}
             style={pickedStyle(pickedAction)}
           >
             <span>{`2. 動作: ${pickedAction ? pickedAction.zh : '尚未選取'}`}</span>
             {pickedAction ? (
-              <button type="button" onClick={() => onPick('action', null)} className="text-slate-400 hover:text-slate-700">
+              <button type="button" onClick={() => onPick('action', null)} className="text-[#6b5a4b] hover:text-[#3c2415]">
                 <X className="w-3 h-3" />
               </button>
             ) : null}
@@ -339,7 +339,7 @@ export function ZeroPowerNameTablesBody({
             <button
               type="button"
               onClick={onClearPicks}
-              className="text-[10px] text-slate-500 hover:text-slate-800 underline cursor-pointer"
+              className="text-[10px] text-[#6b5a4b] hover:text-[#3c2415] underline cursor-pointer"
             >
               重置清空
             </button>
@@ -402,7 +402,7 @@ export function ZeroPowerNameTablesBody({
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="搜尋動作或由來的詞..."
-            className="w-full border rounded-lg pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-slate-400"
+            className="w-full border rounded-lg pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-[#6b5a4b]"
             style={{
               backgroundColor: theme?.cardBg || '#ffffff',
               borderColor: theme?.border || '#d6c7ab',
@@ -417,7 +417,7 @@ export function ZeroPowerNameTablesBody({
             <button
               type="button"
               onClick={() => onSearchChange('')}
-              className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-700 cursor-pointer"
+              className="absolute right-2 top-1.5 text-[#6b5a4b] hover:text-[#3c2415] cursor-pointer"
             >
               <X className="w-3 h-3" />
             </button>
@@ -511,7 +511,7 @@ export default function ZeroPowerNameTablesModal({
       theme={theme}
       actionButtons={
         <div className="flex items-center justify-between w-full">
-          <div className="text-xs text-slate-600 font-medium hidden sm:block">
+          <div className="text-xs text-[#6b5a4b] font-medium hidden sm:block">
             點擊任一詞可自選組合，或直接擲骰一鍵套用
             {currentName ? `（目前名稱：${currentName}）` : ''}
           </div>

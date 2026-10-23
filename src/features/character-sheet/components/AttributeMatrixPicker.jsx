@@ -4,9 +4,11 @@ import {
   GiD12,
   GiD10,
   GiDiceEightFacesEight,
-  GiDiceSixFacesSix
+  GiDiceSixFacesSix,
+  GiRollingDices
 } from 'react-icons/gi';
 import { Info, X, RotateCcw, Check } from 'lucide-react';
+import EmptyState from '../../../components/ui/EmptyState';
 // 三大屬性陣列與四個屬性名都是**資料**，放在 data/ 讓測試可以直接匯入（不必把 React 拉進 node 測試）
 import { ATTRIBUTE_PRESET_ARRAYS, ATTRIBUTE_NAMES, ATTRIBUTE_KEYS } from '../data/sourcebookConfig';
 import { ATTRIBUTE_DICE_TIERS } from '../utils/characterEngine';
@@ -17,43 +19,55 @@ import {
 } from '../utils/attributePresets';
 
 /**
- * 骰階色彩漸層配置（視覺直覺區分，無文字贅述）：
- * - d12 / d10（最大/強勢）：青色 (Cyan / Teal 漸層)
- * - d8（第二/基準）：深琥珀金黃色 (Amber / Golden Honey，加深對比，杜絕刺眼)
- * - d6（最小/短板）：紅色 (Rose / Red 漸層)
+ * 骰階色（第十二輪）——**階梯，不是色相**。
+ *
+ * 這裡原本是三套色相漸層（青／琥珀／玫瑰）配近黑的深字與發光環，理由是
+ * 「一組封閉的四色對應」。但那句話不成立：**d12 與 d10 是同一個青色**，
+ * 所以色相在這裡不承載任何資訊——它承載的是「飽和度」，而飽和度是最吵的那種量表達法。
+ *
+ * 骰階是**量**（同一個屬性的強弱），不是**身份**（DEX／INS／MIG／WLP）。
+ * 量用深淺與粗細說，身份才用色相說；把兩者混在一起，畫面就有兩個互相競爭的色系。
+ *
+ * 現在是單調階梯，四階只有一件事在變——離「實心強調色」有多遠：
+ *   d12  實心 accent ＋ 白字        ← 全頁唯一實心強調色，最強階自己站出來
+ *   d10  accent 描邊 ＋ accent 字
+ *   d8   羊皮紙描邊 ＋ 墨字
+ *   d6   內凹底 ＋ 三級墨（最弱階退到背景裡）
+ *
+ * glow 欄位保留（呼叫端仍在展開它），但**永遠是空字串**：發光環是第四種說法，
+ * 而一個元素只需要一種方式說「我比較強」。
  */
 export const getDiceColorConfig = (val) => {
   if (val >= 12) {
     return {
-      bgClass: 'bg-gradient-to-br from-cyan-400 via-teal-500 to-emerald-600',
-      borderClass: 'border-teal-400',
-      textClass: 'text-slate-950 font-black',
-      glow: 'shadow-teal-500/40 ring-2 ring-cyan-300'
+      bgClass: 'bg-[#a63d40]',
+      borderClass: 'border-[#a63d40]',
+      textClass: 'text-[#fffdf9] font-black',
+      glow: ''
     };
   }
   if (val === 10) {
     return {
-      bgClass: 'bg-gradient-to-br from-cyan-400 via-teal-500 to-teal-700',
-      borderClass: 'border-teal-500',
-      textClass: 'text-slate-950 font-black',
-      glow: 'shadow-teal-600/30 ring-1 ring-teal-400/50'
+      bgClass: 'bg-[#fffdf9]',
+      borderClass: 'border-[#a63d40]',
+      textClass: 'text-[#a63d40] font-black',
+      glow: ''
     };
   }
   if (val === 8) {
-    // 沉穩飽和的琥珀深金色，字體與圖標採用深黑純色，保證高對比與清晰度
     return {
-      bgClass: 'bg-gradient-to-br from-amber-500 via-amber-600 to-yellow-600',
-      borderClass: 'border-amber-600',
-      textClass: 'text-slate-950 font-black',
-      glow: 'shadow-amber-600/40 ring-1 ring-amber-500/60'
+      bgClass: 'bg-[#fffdf9]',
+      borderClass: 'border-[#d6c7ab]',
+      textClass: 'text-[#2c221e] font-black',
+      glow: ''
     };
   }
   // d6 或更低
   return {
-    bgClass: 'bg-gradient-to-br from-rose-500 via-red-600 to-rose-700',
-    borderClass: 'border-rose-700',
-    textClass: 'text-white font-black',
-    glow: 'shadow-rose-600/30 ring-1 ring-rose-400/50'
+    bgClass: 'bg-[#f4ebd9]',
+    borderClass: 'border-[#d6c7ab]',
+    textClass: 'text-[#6b5a4b] font-black',
+    glow: ''
   };
 };
 
@@ -437,25 +451,25 @@ export default function AttributeMatrixPicker({
           }}
         >
           <div
-            className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-2xl border-2 flex flex-col items-center justify-center p-1 shadow-2xl ring-4 ring-amber-400/90 ${floatingCol.bgClass} ${floatingCol.borderClass} ${floatingCol.glow}`}
+            className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-ui border-2 flex flex-col items-center justify-center p-1 shadow-e3 ring-4 ring-[#a63d40]/40 ${floatingCol.bgClass} ${floatingCol.borderClass} ${floatingCol.glow}`}
           >
             <FloatingDieIcon className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 ${floatingCol.textClass} drop-shadow-md`} />
             <span className={`font-mono text-base sm:text-lg font-black ${floatingCol.textClass} drop-shadow-md mt-1 leading-none`}>
               d{floatingDie.val}
             </span>
           </div>
-          <div className="mt-2 px-2.5 py-0.5 rounded-full bg-slate-950/90 text-white text-[10px] font-bold border border-slate-700 shadow-xl whitespace-nowrap">
+          <div className="mt-2 px-2.5 py-0.5 rounded-full bg-[#3c2415] text-[#f7f3e8] text-t12 font-bold border border-[#78350f] whitespace-nowrap">
             點擊體質入座 · ESC 取消
           </div>
         </div>
       )}
 
       {/* ==================== 頂部：三大起始陣列 ＋ 快捷功能按鈕 ==================== */}
-      <div className="bg-white p-3 sm:p-4 rounded-xl border shadow-xs" style={{ borderColor: theme.border || '#e2e8f0' }}>
+      <div className="bg-[#fffdf9] p-3 sm:p-4 rounded-ui border" style={{ borderColor: theme.border || '#d6c7ab' }}>
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2.5">
           <div className="flex items-center gap-2">
-            <GiSparkles className="w-4 h-4" style={{ color: theme.accent || '#059669' }} />
-            <span className="font-serif font-black text-xs sm:text-sm text-slate-900">
+            <GiSparkles className="w-4 h-4" style={{ color: theme.accent || '#8b5e34' }} />
+            <span className="font-serif font-black text-xs sm:text-sm text-[#2c221e]">
               選擇起始陣列
             </span>
           </div>
@@ -465,20 +479,20 @@ export default function AttributeMatrixPicker({
             <button
               type="button"
               onClick={handleAutoFill}
-              className="text-[11px] font-bold px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 shadow-2xs"
-              style={{ backgroundColor: theme.subpanelBg || '#ecfdf5', color: theme.textDark || '#064e3b', borderColor: theme.border || '#a7f3d0' }}
+              className="text-t12 font-bold px-2.5 py-1 rounded-ui transition-colors flex items-center gap-1"
+              style={{ backgroundColor: theme.subpanelBg || '#f5efdf', color: theme.textDark || '#3c2415', borderColor: theme.border || '#d6c7ab' }}
               title="按預設順序一鍵填入四個體質"
             >
-              <Check className="w-3.5 h-3.5" style={{ color: theme.accent || '#059669' }} />
+              <Check className="w-3.5 h-3.5" style={{ color: theme.accent || '#8b5e34' }} />
               <span>一鍵填入</span>
             </button>
             <button
               type="button"
               onClick={handleClearToTray}
-              className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors flex items-center gap-1 shadow-2xs"
+              className="text-t12 font-bold px-2.5 py-1 rounded-ui bg-[#f5efdf] hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] transition-colors flex items-center gap-1"
               title="將所有已放出的骰子收回黑色托盤"
             >
-              <RotateCcw className="w-3 h-3 text-slate-500" />
+              <RotateCcw className="w-3 h-3 text-[#6b5a4b]" />
               <span>清空回盤</span>
             </button>
           </div>
@@ -497,25 +511,25 @@ export default function AttributeMatrixPicker({
                 key={preset.id}
                 type="button"
                 onClick={() => handleApplyPreset(preset)}
-                className={`text-left p-2.5 rounded-xl border transition-all flex items-center justify-between group ${
+                className={`text-left p-2.5 rounded-ui border transition-all flex items-center justify-between group ${
                   isMatch
                     ? 'shadow-xs ring-2'
-                    : 'bg-slate-50/60 hover:bg-slate-100/80 border-slate-200'
+                    : 'bg-[#f5efdf] hover:bg-[#fbf7ee] border-[#d6c7ab]'
                 }`}
                 style={isMatch ? {
-                  backgroundColor: theme.subpanelBg || '#fef3c7',
-                  borderColor: theme.accent || '#b45309',
-                  '--tw-ring-color': theme.border || '#cbd5e1'
+                  backgroundColor: theme.subpanelBg || '#f4ebd9',
+                  borderColor: theme.accent || '#8b5e34',
+                  '--tw-ring-color': theme.border || '#d6c7ab'
                 } : {}}
               >
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-xs text-slate-900 transition-colors" style={isMatch ? { color: theme.textDark } : {}}>
+                    <span className="font-bold text-xs text-[#2c221e] transition-colors" style={isMatch ? { color: theme.textDark } : {}}>
                       {preset.name}
                     </span>
                     <span
-                      className="text-[9px] px-1.5 py-0.2 rounded font-medium"
-                      style={isMatch ? { backgroundColor: theme.cardBg || '#ffffff', color: theme.textDark || '#0f172a', fontWeight: 'bold' } : { backgroundColor: '#e2e8f0', color: '#475569' }}
+                      className="text-t12 px-1.5 py-0.2 rounded font-medium"
+                      style={isMatch ? { backgroundColor: theme.cardBg || '#fffdf9', color: theme.textDark || '#2c221e', fontWeight: 'bold' } : { backgroundColor: '#d6c7ab', color: '#6b5a4b' }}
                     >
                       {isMatch ? '目前' : preset.tag}
                     </span>
@@ -527,7 +541,7 @@ export default function AttributeMatrixPicker({
                       return (
                         <span
                           key={dIdx}
-                          className={`font-mono font-black text-[11px] px-2 py-0.5 rounded shadow-2xs flex items-center gap-1 ${col.bgClass} ${col.textClass}`}
+                          className={`font-mono font-black text-t12 px-2 py-0.5 rounded-ui border flex items-center gap-1 ${col.bgClass} ${col.borderClass} ${col.textClass}`}
                         >
                           <DieIcon className="w-3.5 h-3.5 shrink-0 opacity-80" />
                           <span>d{dVal}</span>
@@ -545,12 +559,12 @@ export default function AttributeMatrixPicker({
       {/* ==================== 等級獎勵：屬性骰 +1 階（原書 p.229） ==================== */}
       {remainingUpgrades > 0 && (
         <div
-          className="rounded-xl border-2 px-3 py-2.5 space-y-2"
-          style={{ backgroundColor: theme.subpanelBg || '#f5efdf', borderColor: theme.accent || '#b45309' }}
+          className="rounded-ui border-2 px-3 py-2.5 space-y-2"
+          style={{ backgroundColor: theme.subpanelBg || '#f5efdf', borderColor: theme.accent || '#8b5e34' }}
         >
           <div className="text-xs leading-relaxed" style={{ color: theme.textDark || '#3c2415' }}>
             <strong>等級獎勵：可以選一顆屬性骰 +1 階</strong>
-            <span className="text-[11px] ml-1.5 opacity-80">
+            <span className="text-t12 ml-1.5 opacity-80">
               （20 級與 40 級各一次，上限 d12，加在<strong>基礎</strong>骰上；還剩 {remainingUpgrades} 次）
             </span>
           </div>
@@ -567,7 +581,7 @@ export default function AttributeMatrixPicker({
                   disabled={!die || maxed}
                   onClick={() => handleUpgradeDie(key)}
                   title={!die ? '先把骰子分配到這一項' : maxed ? '已經是 d12（上限）' : `把 ${ATTRIBUTE_NAMES[key]} 從 d${die.val} 升到 d${next}`}
-                  className="text-[11px] font-bold px-2 py-1 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+                  className="text-t12 font-bold px-2 py-1 rounded-ui border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
                   style={{ backgroundColor: theme.cardBg || '#fffdf9', borderColor: theme.border || '#d6c7ab', color: theme.textDark || '#3c2415' }}
                 >
                   {key.toUpperCase()} {die ? `d${die.val}` : '—'}
@@ -581,17 +595,17 @@ export default function AttributeMatrixPicker({
 
       {/* ==================== 狀態指示列 ==================== */}
       <div className="flex items-center justify-between flex-wrap gap-2 text-xs px-1">
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-[#6b5a4b]">
           點擊或拖曳骰子分配至體質（支援拖回收回）
         </span>
 
         <div className="flex items-center gap-2 font-mono text-xs">
-          <span className="text-slate-500">
-            已分配: <strong className="text-slate-900">{assignedCount}/4</strong>
+          <span className="text-[#6b5a4b]">
+            已分配: <strong className="text-[#2c221e]">{assignedCount}/4</strong>
           </span>
           {assignedCount === 4 && (
             <span
-              className="font-bold px-2 py-0.5 rounded border text-[11px] transition-colors"
+              className="font-bold px-2 py-0.5 rounded border text-t12 transition-colors"
               style={{ backgroundColor: theme.subpanelBg || '#f5efdf', color: theme.textDark || '#3c2415', borderColor: theme.border || '#d6c7ab' }}
             >
               已完成
@@ -609,31 +623,36 @@ export default function AttributeMatrixPicker({
           onDragLeave={handleTrayDragLeave}
           onDrop={handleDropToTray}
           onClick={handleTrayClick}
-          className={`w-full md:w-44 lg:w-48 shrink-0 bg-slate-900 text-white rounded-2xl p-3 sm:p-4 shadow-md border transition-all flex flex-col justify-between cursor-pointer select-none ${
+          className={`w-full md:w-44 lg:w-48 shrink-0 bg-[#f4ebd9] text-[#2c221e] rounded-ui p-3 sm:p-4 border transition-all flex flex-col justify-between cursor-pointer select-none ${
             isTrayDragOver || (floatingDieId && floatingDie?.assignedTo)
-              ? 'ring-4 ring-amber-400 border-amber-400 bg-slate-800 scale-[1.02]'
-              : 'border-slate-800 hover:border-slate-700'
+              ? 'ring-4 ring-[#a63d40]/35 border-[#a63d40] bg-[#fbf7ee] scale-[1.02]'
+              : 'border-[#d6c7ab] hover:border-[#8b5e34]'
           }`}
           title={floatingDieId ? '點擊此處收回' : '點選或拖曳骰子；體質內的骰子可直接拖回此處收回'}
         >
           <div>
-            <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
-              <span className="text-[10px] font-mono text-slate-400">
+            <div className="flex items-center justify-between mb-3 border-b border-[#d6c7ab] pb-2">
+              <span className="text-t12 font-mono text-[#6b5a4b]">
                 {isTrayDragOver ? (
-                  <span className="text-amber-300 font-bold animate-pulse">放開收回</span>
+                  <span className="text-[#a63d40] font-bold">放開收回</span>
                 ) : (
                   <span>剩餘 {unassignedDice.length}</span>
                 )}
               </span>
             </div>
 
-            {/* 托盤空的時候給一句提示——不然整塊會看起來像壞掉 */}
+            {/* 托盤空的時候走 EmptyState——這格原本是一行手抄的灰字，
+                在 176px 的窄欄裡讀起來像壞掉。文法四件（虛線框／gi 圖示／粗體標題／
+                一句教學）用 dense 縮一級，不是另抄一份小號樣板。 */}
             {dicePool.length === 0 && (
-              <div className="flex justify-center items-center py-3">
-                <span className="text-[10px] leading-snug text-slate-500 text-center">
-                  先從上方<br />選一組起始陣列
-                </span>
-              </div>
+              <EmptyState
+                kind="attribute-dice-tray"
+                icon={GiRollingDices}
+                title="托盤是空的"
+                teach="先從上方選一組起始陣列"
+                tone="paper"
+                dense
+              />
             )}
 
             {/* 托盤內的 4 個正方形骰子位置：手機橫向 4 個，桌面直列 4 個 */}
@@ -654,16 +673,16 @@ export default function AttributeMatrixPicker({
                       onClick={(e) => handleGhostSocketClick(die.id, e)}
                       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsTrayDragOver(true); }}
                       onDrop={handleDropToTray}
-                      className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-2xl border-2 border-dashed border-slate-800 bg-slate-950/40 p-1 flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
-                        isFloating ? 'ring-2 ring-amber-400 border-amber-400 opacity-30' : 'hover:border-slate-600 hover:bg-slate-900/60'
+                      className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-ui border-2 border-dashed border-[#d6c7ab] bg-[#f4ebd9]/70 p-1 flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
+                        isFloating ? 'ring-2 ring-[#a63d40]/40 border-[#a63d40] opacity-30' : 'hover:border-[#8b5e34] hover:bg-[#fbf7ee]'
                       }`}
                       title={`已分配至【${targetDetail?.enName} ${targetDetail?.name}】。點擊可拿起此骰子浮動`}
                     >
-                      <DieIcon className="w-5 h-5 text-slate-600 shrink-0" />
-                      <span className="text-[11px] font-mono text-slate-500 font-black mt-0.5 leading-none">
+                      <DieIcon className="w-5 h-5 text-[#6b5a4b] shrink-0" />
+                      <span className="text-t12 font-mono text-[#6b5a4b] font-black mt-0.5 leading-none">
                         d{die.val}
                       </span>
-                      <span className="text-[9px] font-mono font-bold text-slate-400 mt-1 px-1.5 py-0.2 rounded bg-slate-800/80 truncate max-w-[54px]">
+                      <span className="text-t12 font-mono font-bold text-[#6b5a4b] mt-1 px-1.5 py-0.2 rounded bg-[#d6c7ab]/45 truncate max-w-[54px]">
                         {targetDetail?.enName}
                       </span>
                     </div>
@@ -677,12 +696,12 @@ export default function AttributeMatrixPicker({
                     draggable
                     onDragStart={(e) => handleDragStart(die.id, e)}
                     onClick={(e) => handleTrayDieClick(die.id, e)}
-                    className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-2xl border-2 p-1 flex flex-col items-center justify-center select-none cursor-grab active:cursor-grabbing transition-all ${
+                    className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-ui border-2 p-1 flex flex-col items-center justify-center select-none cursor-grab active:cursor-grabbing transition-all ${
                       col.bgClass
                     } ${col.borderClass} ${col.glow} ${
                       isFloating
-                        ? 'opacity-25 scale-90 border-dashed ring-2 ring-white/50'
-                        : 'hover:scale-105 shadow-sm'
+                        ? 'opacity-25 scale-90 border-dashed ring-2 ring-[#a63d40]/30'
+                        : 'hover:scale-105'
                     }`}
                     title="點擊一下即可跟隨滑鼠浮動，再點擊放入體質；亦支援按住拖曳"
                   >
@@ -712,24 +731,24 @@ export default function AttributeMatrixPicker({
                 onDragLeave={() => handleDragLeave(statKey)}
                 onDrop={(e) => handleDrop(statKey, e)}
                 onClick={(e) => handleSlotClick(statKey, e)}
-                className={`rounded-2xl border-2 p-3 sm:p-4 bg-white transition-all cursor-pointer select-none flex items-center justify-between gap-3 sm:gap-4 shadow-xs ${
+                className={`rounded-ui border-2 p-3 sm:p-4 bg-[#fffdf9] transition-all cursor-pointer select-none flex items-center justify-between gap-3 sm:gap-4 ${
                   isDragOver || (floatingDieId && !isFloatingThis)
-                    ? 'hover:border-amber-500 hover:shadow-md'
-                    : 'hover:border-slate-400 hover:shadow-sm'
+                    ? 'hover:border-[#8b5e34]'
+                    : 'hover:border-[#8b5e34]'
                 } ${
                   isDragOver
-                    ? 'ring-4 ring-amber-400 bg-amber-50/60 border-amber-600 scale-[1.01]'
+                    ? 'ring-4 ring-[#a63d40]/35 bg-[#a63d40]/10 border-[#a63d40] scale-[1.01]'
                     : ''
                 }`}
-                style={{ borderColor: isDragOver ? '#059669' : theme.border || '#cbd5e1' }}
+                style={{ borderColor: isDragOver ? '#8b5e34' : theme.border || '#d6c7ab' }}
               >
                 {/* 左側：DEX 加粗，中文名稱字體小一號 */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2.5">
-                    <span className="font-mono font-black text-2xl sm:text-3xl text-slate-900 tracking-wide">
+                    <span className="font-mono font-black text-2xl sm:text-3xl text-[#2c221e] tracking-wide">
                       {detail.enName}
                     </span>
-                    <span className="font-serif font-bold text-lg sm:text-xl text-slate-700">
+                    <span className="font-serif font-bold text-lg sm:text-xl text-[#3c2415]">
                       {detail.name}
                     </span>
 
@@ -740,14 +759,14 @@ export default function AttributeMatrixPicker({
                         e.stopPropagation();
                         setInfoModalKey(statKey);
                       }}
-                      className="w-5 h-5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors inline-flex items-center justify-center ml-0.5"
+                      className="w-5 h-5 rounded hover:bg-[#f4ebd9] text-[#6b5a4b] hover:text-[#2c221e] transition-colors inline-flex items-center justify-center ml-0.5"
                       title="查看特質機制說明"
                     >
                       <Info className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
-                  <p className="text-xs text-slate-500 mt-1 truncate" title={detail.tags}>
+                  <p className="text-xs text-[#6b5a4b] mt-1 truncate" title={detail.tags}>
                     {detail.tags}
                   </p>
                 </div>
@@ -763,11 +782,11 @@ export default function AttributeMatrixPicker({
                         <div
                           draggable
                           onDragStart={(e) => handleDragStart(slottedDie.id, e)}
-                          className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-2xl border-2 flex flex-col items-center justify-center p-1 shadow-md cursor-grab active:cursor-grabbing relative group transition-transform ${
+                          className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-ui border-2 flex flex-col items-center justify-center p-1 cursor-grab active:cursor-grabbing relative group transition-transform ${
                             col.bgClass
                           } ${col.borderClass} ${col.glow} ${
                             isFloatingThis
-                              ? 'opacity-25 scale-90 border-dashed ring-2 ring-amber-400'
+                              ? 'opacity-25 scale-90 border-dashed ring-2 ring-[#a63d40]/40'
                               : 'hover:scale-105'
                           }`}
                           title="點擊一下即可拿起跟隨滑鼠，再點擊其他體質對調或點托盤收回；亦可直接拖曳"
@@ -782,16 +801,16 @@ export default function AttributeMatrixPicker({
                   ) : (
                     // 空白正方形插槽 (Empty Square Socket)
                     <div
-                      className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all ${
+                      className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-ui border-2 border-dashed flex flex-col items-center justify-center transition-all ${
                         floatingDieId
-                          ? 'border-amber-600 bg-amber-50/60 text-amber-900 animate-pulse scale-102'
-                          : 'border-slate-300 bg-slate-50/80 text-slate-400 hover:border-slate-400'
+                          ? 'border-[#a63d40] bg-[#a63d40]/10 text-[#78350f] scale-[1.02]'
+                          : 'border-[#d6c7ab] bg-[#f5efdf] text-[#6b5a4b] hover:border-[#8b5e34]'
                       }`}
                     >
-                      <span className="text-[11px] font-black">
+                      <span className="text-t12 font-black">
                         {floatingDieId ? '點擊放入' : '空置'}
                       </span>
-                      <span className="text-[9px] font-mono opacity-70 mt-0.5">
+                      <span className="text-t12 font-mono opacity-70 mt-0.5">
                         {floatingDieId ? 'Click to Slot' : '拖入 / 點入'}
                       </span>
                     </div>
@@ -805,43 +824,43 @@ export default function AttributeMatrixPicker({
 
       {/* ==================== ⓘ 屬性機制詳情彈窗 (按需查看，不霸佔版面) ==================== */}
       {infoModalKey && (
-        <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-5 space-y-4 animate-fade-in">
+        <div className="fixed inset-0 z-50 bg-[#3c2415]/45 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#fffdf9] rounded-ui border border-[#d6c7ab] shadow-e3 max-w-md w-full p-5 space-y-4 animate-fade-in">
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-baseline gap-2">
-                <span className="font-mono font-black text-xl text-slate-900">
+                <span className="font-mono font-black text-xl text-[#2c221e]">
                   {ATTRIBUTE_DETAILS[infoModalKey].enName}
                 </span>
-                <span className="font-serif font-black text-xl text-slate-900">
+                <span className="font-serif font-black text-xl text-[#2c221e]">
                   {ATTRIBUTE_DETAILS[infoModalKey].name}
                 </span>
-                <span className="text-xs text-slate-500 font-medium ml-1">特質機制解讀</span>
+                <span className="text-xs text-[#6b5a4b] font-medium ml-1">特質機制解讀</span>
               </div>
               <button
                 type="button"
                 onClick={() => setInfoModalKey(null)}
-                className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors"
+                className="w-7 h-7 rounded-ui hover:bg-[#f4ebd9] flex items-center justify-center text-[#6b5a4b] hover:text-[#2c221e] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-2.5 text-xs">
-              <p className="text-slate-600 font-medium bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+              <p className="text-[#6b5a4b] font-medium bg-[#f5efdf] p-2.5 rounded-ui border border-[#d6c7ab]">
                 {ATTRIBUTE_DETAILS[infoModalKey].tags}
               </p>
 
               <div className="space-y-2 pt-1">
-                <span className="font-bold text-slate-800 text-[11px] block">
+                <span className="font-bold text-[#3c2415] text-t12 block">
                   該屬性在遊戲中主導的連動機制：
                 </span>
                 <div className="grid grid-cols-1 gap-2">
                   {ATTRIBUTE_DETAILS[infoModalKey].mechanics.map((item, mIdx) => (
-                    <div key={mIdx} className="p-2 rounded-lg bg-slate-50/80 border border-slate-200/60 flex items-start gap-2">
-                      <span className="font-bold text-slate-800 shrink-0 w-16 text-[11px]">
+                    <div key={mIdx} className="p-2 rounded-ui bg-[#f5efdf] border border-[#d6c7ab] flex items-start gap-2">
+                      <span className="font-bold text-[#3c2415] shrink-0 w-16 text-t12">
                         • {item.label}:
                       </span>
-                      <span className="text-slate-600 text-[11px] leading-relaxed">
+                      <span className="text-[#6b5a4b] text-t12 leading-relaxed">
                         {item.desc}
                       </span>
                     </div>
@@ -854,7 +873,7 @@ export default function AttributeMatrixPicker({
               <button
                 type="button"
                 onClick={() => setInfoModalKey(null)}
-                className="px-4 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors"
+                className="px-4 py-1.5 rounded-ui bg-[#8b5e34] hover:bg-[#78350f] text-[#fffdf9] font-bold text-xs transition-colors"
               >
                 我知道了
               </button>

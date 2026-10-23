@@ -276,7 +276,7 @@ function renderWordsAndKeywords(text, keyPrefix = '', linkCodex = true) {
             e.stopPropagation();
             openRuleCodex(part);
           }}
-          className="inline cursor-pointer border-b border-dashed border-amber-600/70 text-amber-900 dark:text-amber-300 font-bold hover:text-amber-600 hover:border-amber-500 transition-colors mx-0.5"
+          className="inline cursor-pointer border-b border-dashed border-amber-600/70 text-amber-900 font-bold hover:text-amber-600 hover:border-amber-500 transition-colors mx-0.5"
           title={`點擊速查「${part}」官方規則`}
         >
           {part}
@@ -306,7 +306,7 @@ function renderInlineRichText(line, linePrefix = '', linkCodex = true) {
     if (chunk.startsWith('**') && chunk.endsWith('**')) {
       const innerText = chunk.slice(2, -2);
       return (
-        <strong key={k} className="font-bold text-stone-900 dark:text-amber-100">
+        <strong key={k} className="font-bold text-[#2c221e]">
           {renderWordsAndKeywords(innerText, `${k}-bold`, linkCodex)}
         </strong>
       );
@@ -350,7 +350,7 @@ function FormulaBadge({ seg, sl }) {
   if (!seg.isCalculated) {
     return (
       <span
-        className="inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono font-bold text-amber-800 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-300/80 dark:border-amber-700/60 cursor-help"
+        className="inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono font-bold text-amber-800 bg-amber-50 border border-amber-300/80 cursor-help"
         title={seg.formulaNote}
       >
         {seg.evaluatedText}
@@ -376,11 +376,7 @@ function FormulaBadge({ seg, sl }) {
           setShowFormula(prev => !prev);
         }
       }}
-      className={`inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono select-none cursor-pointer transition-all duration-150 ${
-        showFormula
-          ? 'font-bold text-amber-950 bg-amber-100 dark:bg-amber-950/80 dark:text-amber-200 border border-dashed border-amber-500 shadow-2xs hover:bg-amber-200/80 dark:hover:bg-amber-900 active:scale-95'
-          : 'font-black text-amber-900 bg-amber-200/90 dark:bg-amber-700/80 dark:text-amber-100 border border-amber-400 dark:border-amber-500 shadow-2xs hover:bg-amber-300 dark:hover:bg-amber-600 active:scale-95'
-      }`}
+      className={`inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono select-none cursor-pointer transition-all duration-150 ${ showFormula ? 'font-bold text-amber-950 bg-amber-100 border border-dashed border-amber-500 hover:bg-amber-200/80 active:scale-95' : 'font-black text-amber-900 bg-amber-200/90 border border-amber-400 hover:bg-amber-300 active:scale-95' }`}
       title={
         showFormula
           ? `點擊切換回計算結果：${seg.evaluatedText}（當前 SL: ${sl}）`

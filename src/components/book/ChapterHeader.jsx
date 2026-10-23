@@ -8,69 +8,8 @@ import {
 } from 'react-icons/gi';
 import appIcon from '../../assets/app-icon.png';
 import { playBookCloseSound } from '../../utils/soundEffects';
+import { chapterTheme as chapterThemeOf } from './chapterChrome';
 
-const CHAPTER_THEMES = {
-  workshop: {
-    id: 'workshop',
-    headerBg: 'bg-[#f4ebd9]/95 backdrop-blur-md',
-    headerBorder: 'border-[#d6c7ab]',
-    titleText: 'text-[#3c2415]',
-    subtitleText: 'text-[#7c6a58]',
-    exitBtn: 'border-[#8b5e34]/40 bg-gradient-to-r from-[#8b5e34] via-[#92400e] to-[#78350f] hover:from-[#78350f] hover:to-[#602e0c] text-[#fffdf9] shadow-md shadow-[#3c2415]/20',
-    exitIcon: 'text-[#fde68a]',
-    iconWrapper: 'bg-[#ede4d1] border-[#d6c7ab] text-amber-900 shadow-sm',
-    divider: 'bg-[#d6c7ab]',
-    toolBtn: 'border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#ebdcc4] text-[#3c2415] hover:text-amber-950 shadow-sm',
-    toolIcon: 'text-amber-800',
-    appIconBorder: 'border-[#d6c7ab]',
-    subTitleBadge: 'bg-white/85 border-[#d6c7ab] text-[#3c2415]'
-  },
-  character: {
-    id: 'character',
-    headerBg: 'bg-[#ecfdf5]/95 backdrop-blur-md',
-    headerBorder: 'border-emerald-200',
-    titleText: 'text-emerald-950',
-    subtitleText: 'text-emerald-700',
-    exitBtn: 'border-emerald-700/40 bg-gradient-to-r from-emerald-600 via-emerald-700 to-teal-800 hover:from-emerald-500 hover:to-teal-700 text-white shadow-md shadow-emerald-950/20',
-    exitIcon: 'text-emerald-200',
-    iconWrapper: 'bg-emerald-100/90 border-emerald-300 text-emerald-800 shadow-sm',
-    divider: 'bg-emerald-300/80',
-    toolBtn: 'border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-950 hover:text-emerald-900 shadow-sm',
-    toolIcon: 'text-emerald-700',
-    appIconBorder: 'border-emerald-300',
-    subTitleBadge: 'bg-white/85 border-emerald-300 text-emerald-900'
-  },
-  combat: {
-    id: 'combat',
-    headerBg: 'bg-[#fff1f2]/95 backdrop-blur-md',
-    headerBorder: 'border-rose-200',
-    titleText: 'text-rose-950',
-    subtitleText: 'text-rose-700',
-    exitBtn: 'border-rose-700/40 bg-gradient-to-r from-rose-600 via-rose-700 to-red-800 hover:from-rose-500 hover:to-red-700 text-white shadow-md shadow-rose-950/20',
-    exitIcon: 'text-rose-200',
-    iconWrapper: 'bg-rose-100/90 border-rose-300 text-rose-800 shadow-sm',
-    divider: 'bg-rose-300/80',
-    toolBtn: 'border-rose-300 bg-white hover:bg-rose-50 text-rose-950 hover:text-rose-900 shadow-sm',
-    toolIcon: 'text-rose-700',
-    appIconBorder: 'border-rose-300',
-    subTitleBadge: 'bg-white/85 border-rose-300 text-rose-900'
-  },
-  clocks: {
-    id: 'clocks',
-    headerBg: 'bg-[#f0f9ff]/95 backdrop-blur-md',
-    headerBorder: 'border-sky-200',
-    titleText: 'text-slate-800',
-    subtitleText: 'text-sky-700',
-    exitBtn: 'border-sky-400 bg-gradient-to-r from-sky-600 via-cyan-700 to-blue-800 hover:from-sky-500 hover:to-cyan-600 text-white shadow-md shadow-sky-950/20',
-    exitIcon: 'text-sky-200',
-    iconWrapper: 'bg-sky-100/90 border-sky-300 text-sky-800 shadow-sm',
-    divider: 'bg-sky-300/80',
-    toolBtn: 'border-sky-300 bg-white hover:bg-sky-50 text-sky-900 hover:text-sky-950 shadow-sm font-bold',
-    toolIcon: 'text-sky-700',
-    appIconBorder: 'border-sky-300',
-    subTitleBadge: 'bg-white/85 border-sky-300 text-sky-900'
-  }
-};
 
 export default function ChapterHeader({
   chapter,
@@ -92,10 +31,18 @@ export default function ChapterHeader({
     onExitToCover();
   };
 
-  const chapterTheme = CHAPTER_THEMES[chapter?.id] || CHAPTER_THEMES.workshop;
+  const chapterTheme = chapterThemeOf(chapter?.id);
   const customTheme = backOverride?.theme || null;
   const theme = chapterTheme;
   const ChapterIcon = chapter?.icon;
+
+  /* 2026-10-23（v5.1）：手機上的退出鈕原本寫「合上書本 · 返回封面」（10 字），
+     在 390px 下把右側第四顆工具鈕（還原全站）擠到第二列右端，變成一顆孤立的圖示。
+     書中「Layout」一節：空間不夠時**先刪字，不要刪功能**——
+     所以短標籤只砍掉情境詞（合上書本），動作本身（返回封面）一個字都沒少。
+     桌面寬度維持原本的長標籤，因為那裡沒有擁擠問題。 */
+  const exitLabelLong = backOverride ? backOverride.label : '合上書本 · 返回封面';
+  const exitLabelShort = backOverride ? backOverride.label : '返回封面';
 
   return (
     <header
@@ -106,17 +53,18 @@ export default function ChapterHeader({
       <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
         <button
           onClick={handleExit}
-          className={`group inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl border ${customTheme ? 'text-white shadow-md' : theme.exitBtn} text-xs sm:text-sm font-serif font-bold transition-all hover:scale-105 active:scale-95 shrink-0 cursor-pointer`}
+          className={`group inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-ui ${customTheme ? 'text-white shadow-e1' : theme.exitBtn} text-t12 sm:text-t14 font-serif font-bold transition-colors duration-160 shrink-0 cursor-pointer`}
           style={customTheme ? {
-            backgroundImage: `linear-gradient(to right, ${customTheme.accentHover}, ${customTheme.accentDark})`,
+            backgroundColor: customTheme.accentDark,
             borderColor: customTheme.border
           } : {}}
           title={backOverride ? (backOverride.title || backOverride.label) : "合上當前章節，返回典籍封面目錄以選擇其他功能"}
         >
           <ArrowLeft className={`w-4 h-4 ${customTheme ? 'text-white/80' : theme.exitIcon} group-hover:-translate-x-0.5 transition-transform`} />
           <span className="flex items-center gap-1.5">
-            {!backOverride && <GiSpellBook className={`w-4 h-4 ${customTheme ? 'text-white/80' : theme.exitIcon}`} />}
-            <span>{backOverride ? backOverride.label : '合上書本 · 返回封面'}</span>
+            {!backOverride && <GiSpellBook className={`hidden sm:block w-4 h-4 ${customTheme ? 'text-white/80' : theme.exitIcon}`} />}
+            <span className="sm:hidden">{exitLabelShort}</span>
+            <span className="hidden sm:inline">{exitLabelLong}</span>
           </span>
         </button>
 
@@ -130,7 +78,7 @@ export default function ChapterHeader({
         <div className="flex items-center gap-2 sm:gap-2.5">
           {ChapterIcon ? (
             <span
-              className={`p-1.5 rounded-lg border flex items-center justify-center shrink-0 ${customTheme ? 'shadow-sm' : theme.iconWrapper}`}
+              className={`p-1.5 rounded-ui border flex items-center justify-center shrink-0 ${customTheme ? 'shadow-sm' : theme.iconWrapper}`}
               style={customTheme ? { backgroundColor: customTheme.subpanelBg, borderColor: customTheme.border, color: customTheme.accent } : {}}
             >
               <ChapterIcon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -145,14 +93,14 @@ export default function ChapterHeader({
           <div className="flex flex-col justify-center">
             <div className="flex items-center gap-2 flex-wrap">
               <span
-                className={`font-serif font-black text-base sm:text-lg md:text-xl tracking-wide leading-none ${customTheme ? '' : theme.titleText}`}
+                className={`font-serif font-black text-t16 sm:text-t20 tracking-wide leading-none ${customTheme ? '' : theme.titleText}`}
                 style={customTheme ? { color: customTheme.textDark } : {}}
               >
                 {chapter.title}
               </span>
               {backOverride?.subTitle && (
                 <span
-                  className={`text-[11px] font-sans font-bold px-2 py-0.5 rounded-md border shadow-xs ${customTheme ? '' : (theme.subTitleBadge || 'bg-white/80 border-slate-300 text-slate-800')}`}
+                  className={`text-t12 font-sans font-bold px-2 py-0.5 rounded-ui border ${customTheme ? '' : (theme.subTitleBadge || 'bg-white/80 border-[#d6c7ab] text-[#3c2415]')}`}
                   style={customTheme ? { backgroundColor: customTheme.cardBg || '#ffffff', borderColor: customTheme.border, color: customTheme.textDark } : {}}
                 >
                   {backOverride.subTitle}
@@ -160,7 +108,7 @@ export default function ChapterHeader({
               )}
             </div>
             {chapter.subtitle && !backOverride?.subTitle && (
-              <span className={`text-[10px] sm:text-xs font-serif font-bold hidden md:inline tracking-wider mt-0.5 ${theme.subtitleText}`}>
+              <span className={`text-t12 font-serif font-bold hidden md:inline tracking-wider mt-0.5 ${theme.subtitleText}`}>
                 {chapter.subtitle}
               </span>
             )}
@@ -187,10 +135,19 @@ export default function ChapterHeader({
           />
         )}
 
-        {/* Rule Codex Button in Header */}
+        {/* ── 右側動作群：三個層級，不是三個同級按鈕 ────────────────────
+            2026-10-23（v5.1）：原本四顆按鈕（規則速查／擲骰器／還原全站／備份）
+            外觀完全同級，使用者得逐字讀才知道哪顆會覆蓋資料。
+            書中「Actions」一節的分法是三級：
+              · 主要動作 → 實心、高對比（這裡是左側的「合上書本」，因為它是唯一的前進方向）
+              · 次要動作 → 外框、低對比（規則速查、擲骰器、備份）
+              · 第三級動作 → 像連結一樣，找得到但不礙眼（還原全站：破壞性，不該跟備份長一樣）
+            「還原全站」在 ≥sm 顯示文字標籤；手機（<sm）只剩圖示，但它是 `<input type="file">`
+            ——點下去只會開檔案選擇器，不選檔就取消，誤觸不會直接覆蓋資料。
+            真正該防的那一步（選了哪個檔案）由檔案選擇器自己擋。 */}
         <button
           onClick={onOpenCodex}
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg border text-xs font-bold transition-colors cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
+          className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2.5 py-1.5 rounded-ui border text-t12 font-bold transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
           style={customTheme ? { backgroundColor: customTheme.cardBg || '#ffffff', borderColor: customTheme.border, color: customTheme.textDark } : {}}
           title="開啟規則概念速查（16 項官方子系統）"
         >
@@ -198,21 +155,35 @@ export default function ChapterHeader({
           <span className="hidden sm:inline">規則速查</span>
         </button>
 
-        {/* Dice Roller Button in Header */}
         <button
           onClick={onOpenDice}
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg border text-xs font-bold transition-colors cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
+          className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2.5 py-1.5 rounded-ui border text-t12 font-bold transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
           style={customTheme ? { backgroundColor: customTheme.cardBg || '#ffffff', borderColor: customTheme.border, color: customTheme.textDark } : {}}
           title="開啟雙屬性擲骰器"
         >
           <GiRollingDices className="w-4 h-4" style={customTheme ? { color: customTheme.accent } : {}} />
-          <span className="hidden sm:inline font-mono">擲骰器</span>
+          <span className="hidden sm:inline">擲骰器</span>
         </button>
 
-        {/* Restore */}
-        {/* 這顆和 NPC 工坊的「匯入 NPC」都吃 .json，而且在同一條水平線上。
-            誤觸的代價是用一個單卡檔案覆蓋全站資料，所以標題要寫清楚「全站」。 */}
-        <label className="cursor-pointer" title="還原全站備份（會覆蓋目前的全部資料）">
+        {/* Backup（次要） */}
+        <button
+          onClick={onBackup}
+          className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2 py-1.5 rounded-ui border text-t12 font-medium transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
+          style={customTheme ? { backgroundColor: customTheme.cardBg || '#ffffff', borderColor: customTheme.border, color: customTheme.textDark } : {}}
+          title="下載全站完整 JSON 備份檔"
+        >
+          <GiSaveArrow className="w-4 h-4" style={customTheme ? { color: customTheme.accent } : {}} />
+          <span className="hidden lg:inline">備份</span>
+        </button>
+
+        {/* Restore（第三級，破壞性）
+            這顆和 NPC 工坊的「匯入 NPC」都吃 .json，而且在同一條水平線上。
+            誤觸的代價是用一個單卡檔案覆蓋全站資料，所以標題要寫清楚「全站」，
+            並且在視覺上**低於**備份：無邊框、三級墨、hover 才浮出。 */}
+        <label
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-ui px-1.5 sm:px-2 py-1.5 text-t12 text-ink-3 transition-colors duration-160 hover:bg-warm-1 hover:text-[#a63d40]"
+          title="還原全站備份（會覆蓋目前的全部資料）"
+        >
           <input
             type="file"
             accept=".json"
@@ -220,25 +191,9 @@ export default function ChapterHeader({
             className="hidden"
             aria-label="還原全站備份"
           />
-          <span
-            className={`inline-flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border text-xs font-medium transition-colors ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
-            style={customTheme ? { backgroundColor: customTheme.cardBg || '#ffffff', borderColor: customTheme.border, color: customTheme.textDark } : {}}
-          >
-            <GiOpenChest className="w-4 h-4" style={customTheme ? { color: customTheme.accent } : {}} />
-            <span className="hidden lg:inline">還原全站</span>
-          </span>
+          <GiOpenChest className="w-4 h-4" />
+          <span className="hidden sm:inline">還原全站</span>
         </label>
-
-        {/* Backup */}
-        <button
-          onClick={onBackup}
-          className={`inline-flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
-          style={customTheme ? { backgroundColor: customTheme.cardBg || '#ffffff', borderColor: customTheme.border, color: customTheme.textDark } : {}}
-          title="下載全站完整 JSON 備份檔"
-        >
-          <GiSaveArrow className="w-4 h-4" style={customTheme ? { color: customTheme.accent } : {}} />
-          <span className="hidden lg:inline">備份</span>
-        </button>
       </div>
     </header>
   );

@@ -288,7 +288,7 @@ export default function CombatantCard({
                 key={st.key}
                 type="button"
                 onClick={() => handleToggleStatus(st.key)}
-                className={`px-1.5 py-1 rounded text-[11px] font-mono border transition-colors duration-120 text-center flex flex-col items-center ${
+                className={`px-1.5 py-1 rounded text-t12 font-mono border transition-colors duration-120 text-center flex flex-col items-center ${
                   isActive
                     ? `${st.color} font-bold`
                     : 'border-warm-line bg-warm-0 text-ink-2 hover:border-ink-3'
@@ -296,7 +296,7 @@ export default function CombatantCard({
                 title={st.desc}
               >
                 <span className="font-bold">{st.name}</span>
-                <span className="text-[9px] opacity-80">{st.desc}</span>
+                <span className="text-t12 opacity-80">{st.desc}</span>
               </button>
             );
           })}

@@ -1,15 +1,20 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-// 四個屬性名只有一份定義（見 sourcebookConfig 的 ATTRIBUTE_NAMES）。
+// 四個屬性的名字與顏色都只有一份定義（見 sourcebookConfig 的 ATTRIBUTE_NAMES／ATTRIBUTE_COLORS）。
 // 這裡原本寫「力量」，而編輯器與三頁匯出寫「體魄」——同一組屬性在站上有兩個名字。
-import { ATTRIBUTE_NAMES } from '../../features/character-sheet/data/sourcebookConfig';
+// 顏色也是同一個病、同一個藥：第二十一輪之前有五份拷貝，DEX 在角色卡上是琥珀、
+// 在 NPC 工坊是藍色。名字與顏色現在都從那張表來，改一次就全站一致。
+import { ATTRIBUTE_NAMES, ATTRIBUTE_COLORS } from '../../features/character-sheet/data/sourcebookConfig';
 
+// 面全部相同（第十五輪）：四屬性的底色與邊框一律紙色，身份只由字色承擔。
+// 舊版每個屬性各自帶 bg-*-50 與 border-*-400——那不是身份，是三層噪音，
+// 而且底色一深一淺之後，「哪一個是靈巧」就不再只由一個訊號回答了。
 const STAT_CONFIG = {
-  dex: { name: ATTRIBUTE_NAMES.dex, en: 'DEX', color: 'text-amber-800', border: 'border-amber-400', bg: 'bg-amber-50' },
-  ins: { name: ATTRIBUTE_NAMES.ins, en: 'INS', color: 'text-blue-800', border: 'border-blue-400', bg: 'bg-blue-50' },
-  mig: { name: ATTRIBUTE_NAMES.mig, en: 'MIG', color: 'text-red-800', border: 'border-red-400', bg: 'bg-red-50' },
-  wlp: { name: ATTRIBUTE_NAMES.wlp, en: 'WLP', color: 'text-emerald-800', border: 'border-emerald-400', bg: 'bg-emerald-50' }
+  dex: { name: ATTRIBUTE_NAMES.dex, en: 'DEX', color: ATTRIBUTE_COLORS.dex },
+  ins: { name: ATTRIBUTE_NAMES.ins, en: 'INS', color: ATTRIBUTE_COLORS.ins },
+  mig: { name: ATTRIBUTE_NAMES.mig, en: 'MIG', color: ATTRIBUTE_COLORS.mig },
+  wlp: { name: ATTRIBUTE_NAMES.wlp, en: 'WLP', color: ATTRIBUTE_COLORS.wlp }
 };
 
 const VALID_TIERS = [6, 8, 10, 12];
@@ -47,9 +52,7 @@ export default function StatBadge({
     <div
       className={twMerge(
         clsx(
-          "inline-flex items-center rounded-lg border px-2.5 py-1 select-none transition-all shadow-sm",
-          cfg.bg,
-          cfg.border,
+          "inline-flex items-center rounded-lg border border-[#d6c7ab] bg-[#fffdf9] px-2.5 py-1 select-none transition-all",
           size === 'sm' && "text-xs py-0.5 px-2",
           size === 'lg' && "text-base py-1.5 px-3",
           className
@@ -68,7 +71,7 @@ export default function StatBadge({
           type="button"
           onClick={() => handleStep(-1)}
           disabled={numValue <= 6}
-          className="text-[#8c7b6c] hover:text-amber-800 disabled:opacity-30 px-1 font-mono font-bold"
+          className="text-[#7c6a58] hover:text-[#3c2415] disabled:opacity-30 px-1 font-mono font-bold"
         >
           -
         </button>
@@ -83,7 +86,7 @@ export default function StatBadge({
           type="button"
           onClick={() => handleStep(1)}
           disabled={numValue >= 12}
-          className="text-[#8c7b6c] hover:text-amber-800 disabled:opacity-30 px-1 font-mono font-bold"
+          className="text-[#7c6a58] hover:text-[#3c2415] disabled:opacity-30 px-1 font-mono font-bold"
         >
           +
         </button>

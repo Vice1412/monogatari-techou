@@ -132,7 +132,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
       ) : null}
 
       {activity.once ? (
-        <p className="text-[10px]" style={{ color: theme.textMuted }}>
+        <p className="text-t12" style={{ color: theme.textMuted }}>
           直到下一次休息前限一次。
         </p>
       ) : null}
@@ -183,12 +183,12 @@ export default function CampActivitiesBlock({
         </div>
 
         {picked.length === 0 ? (
-          <p className="text-[11px]" style={{ color: theme.textMuted }}>
+          <p className="text-t12" style={{ color: theme.textMuted }}>
             尚未在創角時選擇營地活動——請在角色編輯第 5 步選 {allowance} 種。
           </p>
         ) : (
           <>
-            <p className="text-[11px] leading-relaxed" style={{ color: theme.textDark }}>
+            <p className="text-t12 leading-relaxed" style={{ color: theme.textDark }}>
               休息場景中，你可以進行其中一種，並把效益套用到該活動的目標上。沒有進行活動也照樣可以調整羈絆。
             </p>
             <div className="space-y-2">
@@ -231,7 +231,7 @@ export default function CampActivitiesBlock({
         </span>
       </div>
 
-      <p className="text-[11px] leading-relaxed" style={{ color: theme.textMuted }}>
+      <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
         原書 p.130：使用這條選用規則時，每個玩家角色在創角時選 {CAMP_ACTIVITY_BASE_COUNT} 種不同的營地活動，
         之後每次休息場景可以進行其中一種。
         {quirkGrant ? '金手指【老大哥／歐尼醬】讓你多選一種。' : ''}
@@ -261,7 +261,7 @@ export default function CampActivitiesBlock({
           ))}
         </div>
       ) : (
-        <p className="text-[11px]" style={{ color: theme.textMuted }}>
+        <p className="text-t12" style={{ color: theme.textMuted }}>
           尚未選擇。上面的 15 張卡片點一下就會選取，選滿 {allowance} 種為止。
         </p>
       )}

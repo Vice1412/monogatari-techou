@@ -546,12 +546,12 @@ group('G3 定位・等級・階級・物種・反派・相性');
     `${statsTab}/${villain}`);
 
   // 相性：先選「弱點」分頁，再點物理
-  const vulTab = await t.clickRe('^弱點 VUL');
+  const vulTab = await t.clickRe('^弱點');
   await sleep(300);
   const phys = await t.clickRe('^p 物理');
   await sleep(400);
   const vulCount = await T(`(() => {
-    const m = window.__t.text().match(/弱點 VUL (\\d+)/); return m ? Number(m[1]) : -1;
+    const m = window.__t.text().match(/弱點\\s*(\\d+)/); return m ? Number(m[1]) : -1;
   })()`);
   record('相性可點選（弱點 物理 → 弱 1）', vulTab === 'ok' && phys === 'ok' && vulCount === 1, `VUL=${vulCount}`);
 

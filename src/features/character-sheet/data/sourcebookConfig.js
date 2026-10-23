@@ -461,6 +461,42 @@ export const ATTRIBUTE_NAMES = Object.freeze({
 export const ATTRIBUTE_KEYS = Object.freeze(['dex', 'ins', 'mig', 'wlp']);
 
 /**
+ * 四維屬性的身份色（第二十一輪）。
+ *
+ * 這張表和 `ATTRIBUTE_NAMES` 放在一起，理由與那張表完全相同：**同一個身份只准有一份定義**。
+ * 這一輪之前，四屬性的顏色有五份獨立的拷貝，而且**當場就不一致**：
+ *
+ * | 出處 | DEX | INS | MIG | WLP |
+ * |---|---|---|---|---|
+ * | `StatBadge` | amber-800 | blue-800 | red-800 | emerald-800 |
+ * | `NPCWorkshop` 的兩張數值表 | blue-800 | emerald-800 | red-800 | purple-800 |
+ * | `NPCWorkshop` 的屬性卡 | blue-900 | emerald-900 | red-900 | purple-900 |
+ * | `WayfarerCompanionModal` | amber-600 | blue-600 | red-600 | purple-600 |
+ * | `WayfarerCompanionSheet` | amber-700 | blue-700 | red-700 | purple-700 |
+ *
+ * 於是「靈巧」在角色卡上是琥珀、在 NPC 工坊是藍色。那不是深淺差，是**兩個身份**。
+ *
+ * **為什麼不用紅**：`#a63d40` 是強調色——它講的是「這裡可以按」。屬性色講的是「這是哪一個」。
+ * 同一個訊號不能同時講兩件事，所以四屬性一律避開強調色所在的紅家族
+ * （`#a63d40`／`#8c2d36`／`#76252d` 三個都在那一族裡）。
+ *
+ * 四個 hex 的挑法與九相相同：先量色相角（108° / 182° / 237° / 295°，
+ * 相鄰差 74°／55°／58°），再量三面（`#fbf7ee`／`#f4ebd9`／`#fffdf9`）的對比，
+ * 落在 **6.00–7.25:1**——與九相的 5.01–7.60 同一個帶。
+ * 與九相的距離靠飽和度分：意志 237° ↔ 物理 215°（Δs 24）、力量 295° ↔ 暗 274°（Δs 24）。
+ *
+ * ※ 這裡寫的是**字面量 class**（`text-[#336327]`），不是 hex 變數：Tailwind 只掃字面量，
+ * `text-[${hex}]` 不會生成任何 class。護欄 H15 擋「回退成色相令牌」與「四色撞色」，
+ * H15-b 擋「再長出第六份拷貝」。
+ */
+export const ATTRIBUTE_COLORS = Object.freeze({
+  dex: 'text-[#336327]',
+  ins: 'text-[#216163]',
+  mig: 'text-[#91259d]',
+  wlp: 'text-[#3d458f]'
+});
+
+/**
  * 官方六大狀態異常 (Status Afflictions)
  */
 export const STATUS_AFFLICTIONS = {

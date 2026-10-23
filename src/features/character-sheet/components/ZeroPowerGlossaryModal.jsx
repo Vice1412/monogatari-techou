@@ -80,7 +80,7 @@ export function ZeroPowerGlossaryBody({
               <GiScrollUnfurled className="w-3.5 h-3.5" style={{ color: accent }} />
               觸發決定命刻什麼時候填，效果決定施展時發生什麼事
             </span>
-            <p className="text-[10px] leading-relaxed" style={{ color: textMuted }}>
+            <p className="text-t12 leading-relaxed" style={{ color: textMuted }}>
               建角時各選一個。命刻填滿後，在衝突場景中執行技能動作施展，施展完命刻清空。
             </p>
           </div>

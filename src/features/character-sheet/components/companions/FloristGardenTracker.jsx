@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GiSprout, GiFlowerPot, GiSparkles, GiCheckMark, GiHazardSign, GiPlantRoots } from 'react-icons/gi';
+import EmptyState from '../../../../components/ui/EmptyState';
 import { Plus, Trash2, RotateCcw } from 'lucide-react';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 import { FLORIST_MAGISEEDS, isSeedEffectActiveAt } from '../../data/skillSuboptionsData';
@@ -108,21 +109,21 @@ export default function FloristGardenTracker({
   };
 
   return (
-    <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50/95 via-white to-teal-50/80 border border-emerald-200/90 shadow-xs space-y-3">
+    <div className="p-3.5 rounded-2xl bg-[#fffdf9] border border-[#d6c7ab] space-y-3">
       {/* 頂部標題列 */}
-      <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2 flex-wrap gap-2">
+      <div className="flex items-center justify-between border-b border-[#d6c7ab]/60 pb-2 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-emerald-700 text-white flex items-center justify-center shadow-2xs shrink-0">
+          <div className="w-6 h-6 rounded-lg bg-[#245c45] text-white flex items-center justify-center shadow-2xs shrink-0">
             <GiFlowerPot className="w-3.5 h-3.5" />
           </div>
           <div>
-            <div className="font-bold text-xs text-emerald-950 tracking-wide font-serif flex items-center gap-1.5">
+            <div className="font-bold text-xs text-[#245c45] tracking-wide font-serif flex items-center gap-1.5">
               <span>花園生長盤</span>
-              <span className="font-mono text-[10px] text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded border border-emerald-200">
+              <span className="font-mono text-[10px] text-[#245c45] bg-[#f4ebd9] px-1.5 py-0.2 rounded border border-[#d6c7ab]">
                 容量: {gardenList.length}/{maxCapacity}
               </span>
             </div>
-            <div className="text-[10px] text-emerald-800/80">
+            <div className="text-[10px] text-[#245c45]/80">
               每回合結束推進 1 格生長命刻（滿 4 格離園）
             </div>
           </div>
@@ -133,7 +134,7 @@ export default function FloristGardenTracker({
           <button
             type="button"
             onClick={handleAdvanceAll}
-            className="px-2.5 py-1 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
+            className="px-2.5 py-1 rounded-xl bg-[#245c45] hover:bg-[#1e4b39] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
             title="回合結束時，將花園內所有植物命刻推進 1 格"
           >
             <GiSprout className="w-3.5 h-3.5" />
@@ -144,11 +145,11 @@ export default function FloristGardenTracker({
 
       {/* 播種操作列（未滿容量時顯示） */}
       {gardenList.length < maxCapacity && (
-        <div className="flex items-center gap-2 p-2 bg-emerald-100/50 rounded-xl border border-emerald-200/70 text-xs">
+        <div className="flex items-center gap-2 p-2 bg-[#f4ebd9]/50 rounded-xl border border-[#d6c7ab]/70 text-xs">
           <select
             value={selectedSeedToPlant}
             onChange={e => setSelectedSeedToPlant(e.target.value)}
-            className="flex-1 bg-white border border-emerald-200 rounded-lg px-2.5 py-1 text-xs text-emerald-950 font-sans outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+            className="flex-1 bg-white border border-[#d6c7ab] rounded-lg px-2.5 py-1 text-xs text-[#245c45] font-sans outline-none focus:ring-1 focus:ring-[#245c45] cursor-pointer"
           >
             <option value="">-- 選擇要播種的魔法種子 --</option>
             {fallbackSeeds.map(s => (
@@ -161,7 +162,7 @@ export default function FloristGardenTracker({
             type="button"
             onClick={() => handlePlantSeed(selectedSeedToPlant)}
             disabled={!selectedSeedToPlant}
-            className="px-3 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white font-bold text-xs flex items-center gap-1 transition-all shrink-0 cursor-pointer"
+            className="px-3 py-1 rounded-lg bg-[#245c45] hover:bg-[#1e4b39] disabled:opacity-40 text-white font-bold text-xs flex items-center gap-1 transition-all shrink-0 cursor-pointer"
           >
             <Plus className="w-3 h-3" />
             <span>播種入園</span>
@@ -179,16 +180,16 @@ export default function FloristGardenTracker({
             return (
               <div
                 key={item.instanceId}
-                className="p-3 rounded-xl bg-white border border-emerald-200 shadow-2xs space-y-2 transition-all hover:border-emerald-300"
+                className="p-3 rounded-xl bg-white border border-[#d6c7ab] space-y-2 transition-all hover:border-[#245c45]"
               >
                 {/* 植物抬頭與命刻控制 */}
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                    <span className="font-serif font-black text-sm text-emerald-950">
+                    <span className="w-2 h-2 rounded-full bg-[#245c45] shrink-0" />
+                    <span className="font-serif font-black text-sm text-[#245c45]">
                       {item.seedName}
                     </span>
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#245c45] border border-[#d6c7ab] font-bold">
                       {clock === 0 ? '剛播種 (0格)' : clock < 4 ? `第 ${clock === 1 ? '1' : clock} 回合 (${clock}/4 格)` : '滿 4 格（即將離園）'}
                     </span>
                   </div>
@@ -199,7 +200,7 @@ export default function FloristGardenTracker({
                       type="button"
                       onClick={() => handleStepClock(item.instanceId, -1)}
                       disabled={clock <= 0}
-                      className="px-1.5 py-0.5 rounded text-[11px] bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-700 font-mono font-bold cursor-pointer"
+                      className="px-1.5 py-0.5 rounded text-[11px] bg-[#f4ebd9] hover:bg-[#e8dcc4] disabled:opacity-30 text-[#3c2415] font-mono font-bold cursor-pointer"
                       title="後退 1 格"
                     >
                       -1
@@ -208,7 +209,7 @@ export default function FloristGardenTracker({
                       type="button"
                       onClick={() => handleStepClock(item.instanceId, 1)}
                       disabled={clock >= 4}
-                      className="px-2 py-0.5 rounded text-[11px] bg-emerald-600 hover:bg-emerald-700 disabled:opacity-30 text-white font-mono font-bold transition-colors cursor-pointer flex items-center gap-0.5 shadow-2xs"
+                      className="px-2 py-0.5 rounded text-[11px] bg-[#245c45] hover:bg-[#1e4b39] disabled:opacity-30 text-white font-mono font-bold transition-colors cursor-pointer flex items-center gap-0.5 shadow-2xs"
                       title="前進 1 回合 (+1 格)"
                     >
                       <span>+1 格</span>
@@ -216,7 +217,7 @@ export default function FloristGardenTracker({
                     <button
                       type="button"
                       onClick={() => handleRemoveSeed(item.instanceId, item.seedName)}
-                      className="p-1 rounded text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                      className="p-1 rounded text-[#6b5a4b] hover:text-[#8c2d36] transition-colors cursor-pointer"
                       title="移出花園"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -241,8 +242,8 @@ export default function FloristGardenTracker({
                         }}
                         className={`h-2 rounded-full transition-all cursor-pointer ${
                           isFilled
-                            ? 'bg-emerald-600 shadow-2xs'
-                            : 'bg-emerald-100 border border-emerald-200 hover:bg-emerald-200'
+                            ? 'bg-[#245c45] shadow-2xs'
+                            : 'bg-[#f4ebd9] border border-[#d6c7ab] hover:bg-[#f4ebd9]'
                         }`}
                         title={`點擊跳轉至命刻 ${seg} 格`}
                       />
@@ -265,14 +266,14 @@ export default function FloristGardenTracker({
                           key={efIdx}
                           className={`p-1.5 rounded-lg transition-all flex items-start gap-1.5 text-[11px] leading-relaxed ${
                             isActive
-                              ? 'bg-emerald-50 border border-emerald-300 text-emerald-950 font-medium shadow-2xs'
-                              : 'text-slate-400 opacity-60'
+                              ? 'bg-[#f4ebd9] border border-[#245c45] text-[#245c45] font-medium'
+                              : 'text-[#6b5a4b] opacity-60'
                           }`}
                         >
                           <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono shrink-0 font-bold ${
                             isActive
-                              ? 'bg-emerald-700 text-white'
-                              : 'bg-slate-100 text-slate-500'
+                              ? 'bg-[#245c45] text-white'
+                              : 'bg-[#f4ebd9] text-[#6b5a4b]'
                           }`}>
                             {ef.clock}
                           </span>
@@ -280,7 +281,7 @@ export default function FloristGardenTracker({
                             {renderTextWithAffinities(ef.text)}
                           </span>
                           {isActive && (
-                            <span className="text-[10px] text-emerald-700 font-bold shrink-0">
+                            <span className="text-[10px] text-[#245c45] font-bold shrink-0">
                               [生效中]
                             </span>
                           )}
@@ -294,11 +295,12 @@ export default function FloristGardenTracker({
           })}
         </div>
       ) : (
-        <div className="p-4 text-center bg-white/70 rounded-xl border border-dashed border-emerald-200 text-emerald-800/70 text-xs space-y-1">
-          <GiPlantRoots className="w-6 h-6 mx-auto text-emerald-400" />
-          <p>花園目前尚無種植中的魔法種子。</p>
-          <p className="text-[10px] text-slate-400">請從上方選單選擇已掌握的種子進行播種。</p>
-        </div>
+        <EmptyState
+          kind="florist-garden"
+          icon={GiPlantRoots}
+          title="花園裡還沒有種子"
+          teach="從上方選單挑一個已掌握的魔法種子播下去；種下之後用卡片上的格子推進花期，開花時收成。"
+        />
       )}
     </div>
   );

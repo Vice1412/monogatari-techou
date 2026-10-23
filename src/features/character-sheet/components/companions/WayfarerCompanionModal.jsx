@@ -20,6 +20,7 @@ import {
   createDefaultCompanionData
 } from '../../data/wayfarerCompanionData';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
+import { ATTRIBUTE_NAMES, ATTRIBUTE_COLORS } from '../../data/sourcebookConfig';
 
 export default function WayfarerCompanionModal({
   isOpen,
@@ -269,24 +270,24 @@ export default function WayfarerCompanionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-2xl overflow-hidden text-stone-800 dark:text-stone-200 text-xs">
+      <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl bg-white border border-[#d6c7ab] shadow-e3 overflow-hidden text-[#3c2415] text-xs">
         
         {/* 頂部 Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 flex-wrap gap-2">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#d6c7ab] bg-[#fbf7ee] flex-wrap gap-2">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400">
+            <div className="p-2 rounded-xl bg-emerald-600/10 text-emerald-600">
               <GiPawPrint className="text-xl" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">
+                <h2 className="text-base font-bold text-[#2c221e]">
                   忠實夥伴隨從檔案
                 </h2>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
                   5 級生物 NPC · 旅人 SL {wayfarerSl}
                 </span>
               </div>
-              <p className="text-[11px] text-stone-500 dark:text-stone-400">
+              <p className="text-t12 text-[#6b5a4b]">
                 依據官方核心手冊 p. 219（忠實夥伴）與 p. 302-317（NPC 規則）配置隨從體質與自訂能力
               </p>
             </div>
@@ -298,12 +299,12 @@ export default function WayfarerCompanionModal({
               value={formData.name}
               onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="夥伴自訂名稱"
-              className="px-2.5 py-1 text-xs rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 font-bold outline-none focus:border-emerald-500 w-32"
+              className="px-2.5 py-1 text-xs rounded-lg border border-[#d6c7ab] bg-white font-bold outline-none focus:border-emerald-500 w-32"
             />
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 transition"
+              className="p-1.5 rounded-lg text-[#7c6a58] hover:text-[#3c2415] hover:bg-[#e8dcc4] transition"
               title="關閉"
             >
               <GiCancel className="text-base" />
@@ -313,7 +314,7 @@ export default function WayfarerCompanionModal({
 
         {/* 錯誤警示 */}
         {errorMessage && (
-          <div className="px-5 py-2 bg-red-50 dark:bg-red-950/40 border-b border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 flex items-center gap-2">
+          <div className="px-5 py-2 bg-red-50 border-b border-red-200 text-red-700 flex items-center gap-2">
             <GiHazardSign className="text-sm shrink-0" />
             <span>{errorMessage}</span>
           </div>
@@ -324,7 +325,7 @@ export default function WayfarerCompanionModal({
           
           {/* 一、生物物種選擇 */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+            <label className="text-xs font-bold text-[#3c2415] flex items-center gap-1.5">
               <GiSparkles className="text-emerald-600" />
               <span>1. 夥伴物種</span>
             </label>
@@ -336,11 +337,7 @@ export default function WayfarerCompanionModal({
                     key={sp.id}
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, species: sp.name }))}
-                    className={`py-2 px-3 rounded-xl border text-center font-bold transition ${
-                      isSelected
-                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500'
-                        : 'border-stone-200 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 text-stone-700 dark:text-stone-300'
-                    }`}
+                    className={`py-2 px-3 rounded-xl border text-center font-bold transition ${ isSelected ? 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500' : 'border-[#d6c7ab] hover:border-[#a63d40] text-[#3c2415] ' }`}
                   >
                     {sp.name}
                   </button>
@@ -352,7 +349,7 @@ export default function WayfarerCompanionModal({
           {/* 二、四維體質方案選取 (官方四大體質) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+              <label className="text-xs font-bold text-[#3c2415] flex items-center gap-1.5">
                 <GiHeartPlus className="text-emerald-600" />
                 <span>2. 官方 NPC 四大體質方案（Core p. 302）</span>
               </label>
@@ -371,14 +368,10 @@ export default function WayfarerCompanionModal({
                     key={arr.id}
                     type="button"
                     onClick={() => handleSelectArrayType(arr.id)}
-                    className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${
-                      isSelected
-                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 ring-1 ring-emerald-500'
-                        : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-800/60 hover:border-stone-300'
-                    }`}
+                    className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${ isSelected ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-[#d6c7ab] bg-white hover:border-[#d6c7ab]' }`}
                   >
-                    <span className="font-bold text-stone-900 dark:text-stone-100">{arr.name}</span>
-                    <span className="text-[11px] font-mono text-emerald-700 dark:text-emerald-300 font-bold mt-1">
+                    <span className="font-bold text-[#2c221e]">{arr.name}</span>
+                    <span className="text-[11px] font-mono text-emerald-700 font-bold mt-1">
                       {arr.dice.map(d => `d${d}`).join(', ')}
                     </span>
                   </button>
@@ -387,13 +380,13 @@ export default function WayfarerCompanionModal({
             </div>
 
             {/* 四維屬性骰下拉分配 */}
-            <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-800/60 border border-stone-200 dark:border-stone-700 grid grid-cols-4 gap-2 text-center">
+            <div className="p-3 rounded-xl bg-[#fbf7ee] border border-[#d6c7ab] grid grid-cols-4 gap-2 text-center">
               <div>
-                <span className="block text-[10px] font-bold text-amber-600 dark:text-amber-400 mb-1">靈巧 (DEX)</span>
+                <span className={`block text-[10px] font-bold mb-1 ${ATTRIBUTE_COLORS.dex}`}>{ATTRIBUTE_NAMES.dex} DEX</span>
                 <select
                   value={formData.dex}
                   onChange={e => setFormData(prev => ({ ...prev, dex: Number(e.target.value) }))}
-                  className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 font-mono font-bold text-center"
+                  className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-white font-mono font-bold text-center"
                 >
                   {[6, 8, 10, 12].map(d => (
                     <option key={d} value={d}>d{d}</option>
@@ -402,11 +395,11 @@ export default function WayfarerCompanionModal({
               </div>
 
               <div>
-                <span className="block text-[10px] font-bold text-blue-600 dark:text-blue-400 mb-1">直覺 (INS)</span>
+                <span className={`block text-[10px] font-bold mb-1 ${ATTRIBUTE_COLORS.ins}`}>{ATTRIBUTE_NAMES.ins} INS</span>
                 <select
                   value={formData.ins}
                   onChange={e => setFormData(prev => ({ ...prev, ins: Number(e.target.value) }))}
-                  className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 font-mono font-bold text-center"
+                  className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-white font-mono font-bold text-center"
                 >
                   {[6, 8, 10, 12].map(d => (
                     <option key={d} value={d}>d{d}</option>
@@ -415,11 +408,11 @@ export default function WayfarerCompanionModal({
               </div>
 
               <div>
-                <span className="block text-[10px] font-bold text-red-600 dark:text-red-400 mb-1">體質 (MIG)</span>
+                <span className={`block text-[10px] font-bold mb-1 ${ATTRIBUTE_COLORS.mig}`}>{ATTRIBUTE_NAMES.mig} MIG</span>
                 <select
                   value={formData.mig}
                   onChange={e => setFormData(prev => ({ ...prev, mig: Number(e.target.value) }))}
-                  className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 font-mono font-bold text-center"
+                  className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-white font-mono font-bold text-center"
                 >
                   {[6, 8, 10, 12].map(d => (
                     <option key={d} value={d}>d{d}</option>
@@ -428,11 +421,11 @@ export default function WayfarerCompanionModal({
               </div>
 
               <div>
-                <span className="block text-[10px] font-bold text-purple-600 dark:text-purple-400 mb-1">意志 (WLP)</span>
+                <span className={`block text-[10px] font-bold mb-1 ${ATTRIBUTE_COLORS.wlp}`}>{ATTRIBUTE_NAMES.wlp} WLP</span>
                 <select
                   value={formData.wlp}
                   onChange={e => setFormData(prev => ({ ...prev, wlp: Number(e.target.value) }))}
-                  className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 font-mono font-bold text-center"
+                  className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-white font-mono font-bold text-center"
                 >
                   {[6, 8, 10, 12].map(d => (
                     <option key={d} value={d}>d{d}</option>
@@ -443,26 +436,26 @@ export default function WayfarerCompanionModal({
           </div>
 
           {/* 三、衍生戰鬥數值即時看板 */}
-          <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+          <div className="p-3 rounded-xl bg-emerald-50/50 border border-emerald-200 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
             <div>
-              <span className="text-[10px] text-stone-500 dark:text-stone-400 block">最大生命 (HP)</span>
-              <strong className="text-sm font-mono text-emerald-700 dark:text-emerald-300 font-black">{maxHp}</strong>
-              <span className="text-[9px] text-stone-400 block font-mono">({wayfarerSl}×{formData.mig})+{Math.floor(characterLevel/2)}</span>
+              <span className="text-[10px] text-[#6b5a4b] block">最大生命 (HP)</span>
+              <strong className="text-sm font-mono text-emerald-700 font-black">{maxHp}</strong>
+              <span className="text-[9px] text-[#7c6a58] block font-mono">({wayfarerSl}×{formData.mig})+{Math.floor(characterLevel/2)}</span>
             </div>
             <div>
-              <span className="text-[10px] text-stone-500 dark:text-stone-400 block">危機值</span>
-              <strong className="text-sm font-mono text-red-600 dark:text-red-400 font-black">{crisisHp}</strong>
-              <span className="text-[9px] text-stone-400 block font-mono">≤{crisisHp}</span>
+              <span className="text-[10px] text-[#6b5a4b] block">危機值</span>
+              <strong className="text-sm font-mono text-red-600 font-black">{crisisHp}</strong>
+              <span className="text-[9px] text-[#7c6a58] block font-mono">≤{crisisHp}</span>
             </div>
             <div>
-              <span className="text-[10px] text-stone-500 dark:text-stone-400 block">物理防禦 (DEF)</span>
-              <strong className="text-sm font-mono text-stone-800 dark:text-stone-200 font-bold">{formData.dex}</strong>
-              <span className="text-[9px] text-stone-400 block font-mono">DEX 骰面</span>
+              <span className="text-[10px] text-[#6b5a4b] block">物理防禦 (DEF)</span>
+              <strong className="text-sm font-mono text-[#3c2415] font-bold">{formData.dex}</strong>
+              <span className="text-t12 text-[#6b5a4b] block font-mono">DEX 骰面</span>
             </div>
             <div>
-              <span className="text-[10px] text-stone-500 dark:text-stone-400 block">魔法防禦 (M.DEF)</span>
-              <strong className="text-sm font-mono text-stone-800 dark:text-stone-200 font-bold">{formData.ins}</strong>
-              <span className="text-[9px] text-stone-400 block font-mono">INS 骰面</span>
+              <span className="text-[10px] text-[#6b5a4b] block">魔法防禦 (M.DEF)</span>
+              <strong className="text-sm font-mono text-[#3c2415] font-bold">{formData.ins}</strong>
+              <span className="text-t12 text-[#6b5a4b] block font-mono">INS 骰面</span>
             </div>
           </div>
 
@@ -470,16 +463,16 @@ export default function WayfarerCompanionModal({
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-[#3c2415] flex items-center gap-1.5">
                   <GiCrossedSwords className="text-emerald-600" />
                   <span>3. 基礎攻擊配置（Core p. 303：命中加成 +{wayfarerSl}）</span>
                 </label>
-                <span className="text-[10px] text-stone-400">官方建議至多 2 種，可自由調整公式與傷害</span>
+                <span className="text-[10px] text-[#7c6a58]">官方建議至多 2 種，可自由調整公式與傷害</span>
               </div>
               <button
                 type="button"
                 onClick={handleAddAttack}
-                className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900 transition flex items-center gap-1"
+                className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition flex items-center gap-1"
               >
                 <span>+ 新增攻擊</span>
               </button>
@@ -489,15 +482,15 @@ export default function WayfarerCompanionModal({
               {formData.attacks.map((atk, idx) => (
                 <div
                   key={atk.id || idx}
-                  className="p-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800/90 space-y-2"
+                  className="p-3 rounded-xl border border-[#d6c7ab] bg-white space-y-2"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-stone-700 dark:text-stone-300">基礎攻擊 #{idx + 1}</span>
+                    <span className="font-bold text-[#3c2415]">基礎攻擊 #{idx + 1}</span>
                     <div className="flex items-center gap-1.5">
                       <select
                         value={atk.range}
                         onChange={e => handleUpdateAttack(idx, { range: e.target.value })}
-                        className="px-2 py-0.5 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-700 text-[11px] font-bold"
+                        className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-[11px] font-bold"
                       >
                         <option value="melee">近戰</option>
                         <option value="ranged">遠程</option>
@@ -506,7 +499,7 @@ export default function WayfarerCompanionModal({
                         <button
                           type="button"
                           onClick={() => handleDeleteAttack(idx)}
-                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 transition"
+                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 transition"
                           title="刪除此攻擊"
                         >
                           <GiTrashCan className="text-xs" />
@@ -521,17 +514,17 @@ export default function WayfarerCompanionModal({
                     value={atk.name}
                     onChange={e => handleUpdateAttack(idx, { name: e.target.value })}
                     placeholder="攻擊名稱（例如：猛撲撕咬）"
-                    className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs font-bold outline-none"
+                    className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs font-bold outline-none"
                   />
 
                   {/* 屬性組合選擇 */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="block text-[10px] text-stone-400">判定屬性一</span>
+                      <span className="block text-[10px] text-[#7c6a58]">判定屬性一</span>
                       <select
                         value={atk.attr1}
                         onChange={e => handleUpdateAttack(idx, { attr1: e.target.value })}
-                        className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-700 text-xs font-mono font-bold"
+                        className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs font-mono font-bold"
                       >
                         {ATTRIBUTE_KEYS.map(k => (
                           <option key={k} value={k}>{k}</option>
@@ -539,11 +532,11 @@ export default function WayfarerCompanionModal({
                       </select>
                     </div>
                     <div>
-                      <span className="block text-[10px] text-stone-400">判定屬性二</span>
+                      <span className="block text-[10px] text-[#7c6a58]">判定屬性二</span>
                       <select
                         value={atk.attr2}
                         onChange={e => handleUpdateAttack(idx, { attr2: e.target.value })}
-                        className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-700 text-xs font-mono font-bold"
+                        className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs font-mono font-bold"
                       >
                         {ATTRIBUTE_KEYS.map(k => (
                           <option key={k} value={k}>{k}</option>
@@ -555,7 +548,7 @@ export default function WayfarerCompanionModal({
                   {/* 傷害類型快速填寫與手動自訂 */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="block text-[10px] text-stone-400">快速填入傷害屬性</span>
+                      <span className="block text-[10px] text-[#7c6a58]">快速填入傷害屬性</span>
                       <select
                         value={atk.damageType || 'physical'}
                         onChange={e => {
@@ -563,7 +556,7 @@ export default function WayfarerCompanionModal({
                           const typeName = DAMAGE_TYPES.find(d => d.id === dt)?.name || '物理';
                           handleUpdateAttack(idx, { damageType: dt, damageText: `【HR + 5】${typeName}` });
                         }}
-                        className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-700 text-xs font-bold"
+                        className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs font-bold"
                       >
                         {DAMAGE_TYPES.map(dt => (
                           <option key={dt.id} value={dt.id}>{dt.name} 傷害</option>
@@ -572,31 +565,31 @@ export default function WayfarerCompanionModal({
                     </div>
 
                     <div>
-                      <span className="block text-[10px] text-stone-400">傷害公式手寫</span>
+                      <span className="block text-[10px] text-[#7c6a58]">傷害公式手寫</span>
                       <input
                         type="text"
                         value={atk.damageText}
                         onChange={e => handleUpdateAttack(idx, { damageText: e.target.value })}
                         placeholder="例如：【HR + 5】物理"
-                        className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs font-bold outline-none"
+                        className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs font-bold outline-none"
                       />
                     </div>
                   </div>
 
                   {/* 額外特殊效果 */}
                   <div>
-                    <span className="block text-[10px] text-stone-400">額外機制效果（選填）</span>
+                    <span className="block text-[10px] text-[#7c6a58]">額外機制效果（選填）</span>
                     <input
                       type="text"
                       value={atk.specialEffect || ''}
                       onChange={e => handleUpdateAttack(idx, { specialEffect: e.target.value })}
                       placeholder="選填：例如 擊中時使目標陷入中毒狀態"
-                      className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs outline-none"
+                      className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs outline-none"
                     />
                   </div>
 
                   {/* 即時檢定公式預覽 */}
-                  <div className="pt-1.5 border-t border-stone-200 dark:border-stone-700 text-[11px] font-mono text-emerald-700 dark:text-emerald-300 flex justify-between">
+                  <div className="pt-1.5 border-t border-[#d6c7ab] text-[11px] font-mono text-emerald-700 flex justify-between">
                     <span>命中：【{atk.attr1} + {atk.attr2}】+{wayfarerSl}</span>
                     <span>傷害：{renderTextWithAffinities(atk.damageText)}</span>
                   </div>
@@ -606,14 +599,14 @@ export default function WayfarerCompanionModal({
           </div>
 
           {/* 五、特殊能力與擴充規則（參照 Core p. 306-317 或 NPC 工坊） */}
-          <div className="space-y-3 pt-3 border-t border-stone-200 dark:border-stone-800">
+          <div className="space-y-3 pt-3 border-t border-[#d6c7ab]">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-[#3c2415] flex items-center gap-1.5">
                   <GiSparkles className="text-emerald-600" />
                   <span>4. 特殊能力與擴充規則（參照 Core 手冊 p. 306-317 或 NPC 工坊）</span>
                 </label>
-                <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                <p className="text-t12 text-[#6b5a4b]">
                   若經 GM 許可或技能等級提升，可自訂隨從掌握的咒語、行動或被動特質（Core p. 306-317）
                 </p>
               </div>
@@ -623,7 +616,7 @@ export default function WayfarerCompanionModal({
                 <button
                   type="button"
                   onClick={() => handleAddSpell(false)}
-                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900 transition flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] hover:bg-[#e8dcc4] transition flex items-center gap-1"
                 >
                   <span className="fu-icon text-xs">c</span>
                   <span>+ 咒語</span>
@@ -631,7 +624,7 @@ export default function WayfarerCompanionModal({
                 <button
                   type="button"
                   onClick={handleAddOtherAction}
-                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900 transition flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition flex items-center gap-1"
                 >
                   <span className="fu-icon text-xs">s</span>
                   <span>+ 其餘行動</span>
@@ -639,7 +632,7 @@ export default function WayfarerCompanionModal({
                 <button
                   type="button"
                   onClick={handleAddSpecialRule}
-                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 hover:bg-stone-200 dark:hover:bg-stone-700 transition flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] hover:bg-[#e8dcc4] transition flex items-center gap-1"
                 >
                   <span>+ 特殊規則</span>
                 </button>
@@ -648,7 +641,7 @@ export default function WayfarerCompanionModal({
 
             {/* 空狀態提示 */}
             {formData.spells.length === 0 && formData.otherActions.length === 0 && formData.specialRules.length === 0 && (
-              <div className="p-4 rounded-xl border border-dashed border-stone-200 dark:border-stone-800 text-center text-stone-400 text-xs">
+              <div className="p-4 rounded-xl border border-dashed border-[#d6c7ab] text-center text-[#7c6a58] text-xs">
                 目前尚未配置自訂咒語、行動或特殊規則。請點擊上方按鈕自訂新增（查閱 Core 手冊 p. 306-317）。
               </div>
             )}
@@ -656,16 +649,16 @@ export default function WayfarerCompanionModal({
             {/* 咒語清單 */}
             {formData.spells.length > 0 && (
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1">
+                <span className="text-[11px] font-bold text-[#6b5a4b] flex items-center gap-1">
                   <span className="fu-icon text-xs">c</span>
                   <span>隨從咒語（{formData.spells.length}）</span>
                 </span>
                 <div className="space-y-2">
                   {formData.spells.map((sp, idx) => (
-                    <div key={sp.id || idx} className="p-3 rounded-xl border border-purple-200 dark:border-slate-700 bg-white dark:bg-stone-800 space-y-2">
+                    <div key={sp.id || idx} className="p-3 rounded-xl border border-[#d6c7ab] bg-white space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-1">
-                          <span className={`fu-icon text-sm font-bold ${sp.isOffensive ? 'text-red-600' : 'text-purple-600'}`}>
+                          <span className={`fu-icon text-sm font-bold ${sp.isOffensive ? 'text-[#8c2d36]' : 'text-[#3c2415]'}`}>
                             {sp.isOffensive ? 'o' : 'c'}
                           </span>
                           <input
@@ -673,7 +666,7 @@ export default function WayfarerCompanionModal({
                             value={sp.name}
                             onChange={e => handleUpdateSpell(idx, { name: e.target.value })}
                             placeholder="咒語名稱（例如：治癒之風、自然祈禱）"
-                            className="flex-1 px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs font-bold outline-none"
+                            className="flex-1 px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs font-bold outline-none"
                           />
                         </div>
 
@@ -682,15 +675,15 @@ export default function WayfarerCompanionModal({
                             type="checkbox"
                             checked={sp.isOffensive}
                             onChange={e => handleUpdateSpell(idx, { isOffensive: e.target.checked })}
-                            className="rounded border-stone-300 text-red-600 focus:ring-red-500"
+                            className="rounded border-[#d6c7ab] text-red-600 focus:ring-red-500"
                           />
-                          <span className="text-stone-600 dark:text-stone-300 font-bold">攻擊性 (o)</span>
+                          <span className="text-[#6b5a4b] font-bold">攻擊性 (o)</span>
                         </label>
 
                         <button
                           type="button"
                           onClick={() => handleDeleteSpell(idx)}
-                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 transition shrink-0"
+                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 transition shrink-0"
                           title="刪除此咒語"
                         >
                           <GiTrashCan className="text-sm" />
@@ -699,33 +692,33 @@ export default function WayfarerCompanionModal({
 
                       <div className="grid grid-cols-3 gap-2">
                         <div>
-                          <span className="block text-[10px] text-stone-400">MP 消耗</span>
+                          <span className="block text-[10px] text-[#7c6a58]">MP 消耗</span>
                           <input
                             type="text"
                             value={sp.mp}
                             onChange={e => handleUpdateSpell(idx, { mp: e.target.value })}
                             placeholder="例: 10 或 5 × T"
-                            className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs font-mono outline-none"
+                            className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs font-mono outline-none"
                           />
                         </div>
                         <div>
-                          <span className="block text-[10px] text-stone-400">目標</span>
+                          <span className="block text-[10px] text-[#7c6a58]">目標</span>
                           <input
                             type="text"
                             value={sp.target}
                             onChange={e => handleUpdateSpell(idx, { target: e.target.value })}
                             placeholder="例: 一個生物、自身"
-                            className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs outline-none"
+                            className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs outline-none"
                           />
                         </div>
                         <div>
-                          <span className="block text-[10px] text-stone-400">持續時間</span>
+                          <span className="block text-[10px] text-[#7c6a58]">持續時間</span>
                           <input
                             type="text"
                             value={sp.duration}
                             onChange={e => handleUpdateSpell(idx, { duration: e.target.value })}
                             placeholder="例: 瞬發、場景"
-                            className="w-full px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs outline-none"
+                            className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs outline-none"
                           />
                         </div>
                       </div>
@@ -735,7 +728,7 @@ export default function WayfarerCompanionModal({
                         onChange={e => handleUpdateSpell(idx, { effect: e.target.value })}
                         placeholder="輸入咒語機制效果描述...（提及屬性傷害時將自動渲染圖標與色彩）"
                         rows={2}
-                        className="w-full p-2 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs outline-none resize-none leading-relaxed"
+                        className="w-full p-2 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs outline-none resize-none leading-relaxed"
                       />
                     </div>
                   ))}
@@ -746,28 +739,28 @@ export default function WayfarerCompanionModal({
             {/* 其餘行動清單 */}
             {formData.otherActions.length > 0 && (
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1">
+                <span className="text-[11px] font-bold text-amber-800 flex items-center gap-1">
                   <span className="fu-icon text-xs">s</span>
                   <span>其餘行動（{formData.otherActions.length}）</span>
                 </span>
                 <div className="space-y-2">
                   {formData.otherActions.map((act, idx) => (
-                    <div key={act.id || idx} className="p-3 rounded-xl border border-amber-200 dark:border-slate-700 bg-white dark:bg-stone-800 space-y-2">
+                    <div key={act.id || idx} className="p-3 rounded-xl border border-amber-200 bg-white space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-1">
-                          <span className="fu-icon text-sm font-bold text-amber-800 dark:text-amber-500">s</span>
+                          <span className="fu-icon text-sm font-bold text-amber-800">s</span>
                           <input
                             type="text"
                             value={act.name}
                             onChange={e => handleUpdateOtherAction(idx, { name: e.target.value })}
                             placeholder="行動名稱（例如：守護咆哮、干擾突襲）"
-                            className="flex-1 px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs font-bold outline-none"
+                            className="flex-1 px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs font-bold outline-none"
                           />
                         </div>
                         <button
                           type="button"
                           onClick={() => handleDeleteOtherAction(idx)}
-                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 transition shrink-0"
+                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 transition shrink-0"
                           title="刪除此行動"
                         >
                           <GiTrashCan className="text-sm" />
@@ -779,7 +772,7 @@ export default function WayfarerCompanionModal({
                         onChange={e => handleUpdateOtherAction(idx, { effect: e.target.value })}
                         placeholder="輸入行動機制效果描述..."
                         rows={2}
-                        className="w-full p-2 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs outline-none resize-none leading-relaxed"
+                        className="w-full p-2 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs outline-none resize-none leading-relaxed"
                       />
                     </div>
                   ))}
@@ -790,25 +783,25 @@ export default function WayfarerCompanionModal({
             {/* 特殊規則清單 */}
             {formData.specialRules.length > 0 && (
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-1">
+                <span className="text-[11px] font-bold text-emerald-800 flex items-center gap-1">
                   <GiSparkles className="text-xs" />
                   <span>特殊規則（{formData.specialRules.length}）</span>
                 </span>
                 <div className="space-y-2">
                   {formData.specialRules.map((rule, idx) => (
-                    <div key={rule.id || idx} className="p-3 rounded-xl border border-emerald-200 dark:border-slate-700 bg-white dark:bg-stone-800 space-y-2">
+                    <div key={rule.id || idx} className="p-3 rounded-xl border border-emerald-200 bg-white space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <input
                           type="text"
                           value={rule.name}
                           onChange={e => handleUpdateSpecialRule(idx, { name: e.target.value })}
                           placeholder="規則特質名稱（例如：飛行能力、水中呼吸、劇毒體質）"
-                          className="flex-1 px-2 py-1 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs font-bold outline-none"
+                          className="flex-1 px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs font-bold outline-none"
                         />
                         <button
                           type="button"
                           onClick={() => handleDeleteSpecialRule(idx)}
-                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 transition shrink-0"
+                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 transition shrink-0"
                           title="刪除此規則"
                         >
                           <GiTrashCan className="text-sm" />
@@ -820,7 +813,7 @@ export default function WayfarerCompanionModal({
                         onChange={e => handleUpdateSpecialRule(idx, { effect: e.target.value })}
                         placeholder="輸入特殊規則或特性描述..."
                         rows={2}
-                        className="w-full p-2 rounded border border-stone-300 dark:border-stone-600 bg-stone-50 dark:bg-stone-800 text-xs outline-none resize-none leading-relaxed"
+                        className="w-full p-2 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs outline-none resize-none leading-relaxed"
                       />
                     </div>
                   ))}
@@ -831,11 +824,11 @@ export default function WayfarerCompanionModal({
         </div>
 
         {/* 底部按鈕區 */}
-        <div className="px-5 py-3 border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/90 flex items-center justify-end gap-2">
+        <div className="px-5 py-3 border-t border-[#d6c7ab] bg-[#fbf7ee] flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg text-xs font-bold border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition"
+            className="px-4 py-1.5 rounded-lg text-xs font-bold border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] transition"
           >
             取消返回
           </button>

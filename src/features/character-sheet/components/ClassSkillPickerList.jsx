@@ -107,7 +107,7 @@ export default function ClassSkillPickerList({
 
   if (rows.length === 0) {
     return (
-      <p className="text-[10px] italic" style={{ color: theme.textMuted }}>
+      <p className="text-t12 italic" style={{ color: theme.textMuted }}>
         {emptyHint || '這個職業沒有技能表'}
       </p>
     );
@@ -142,7 +142,7 @@ export default function ClassSkillPickerList({
                 {row.name}
                 {isLearned && !row.orphan && (
                   <span
-                    className="text-[9px] font-bold px-1 py-0.5 rounded border"
+                    className="text-t12 font-bold px-1 py-0.5 rounded border"
                     style={{ borderColor: theme.border, color: theme.textMuted }}
                   >
                     已學習
@@ -150,7 +150,7 @@ export default function ClassSkillPickerList({
                 )}
                 {row.orphan && (
                   <span
-                    className="text-[9px] font-bold px-1 py-0.5 rounded border"
+                    className="text-t12 font-bold px-1 py-0.5 rounded border"
                     style={{ borderColor: '#fca5a5', color: '#b91c1c' }}
                     title="這個技能名不在目前的職業技能表裡——可能是舊存檔留下的，點星星可以收回點數"
                   >
@@ -190,7 +190,7 @@ export default function ClassSkillPickerList({
           </div>
         );
       })}
-      <p className="text-[10px] font-mono pt-0.5" style={{ color: remaining === 0 ? '#b91c1c' : theme.textMuted }}>
+      <p className="text-t12 font-mono pt-0.5" style={{ color: remaining === 0 ? '#b91c1c' : theme.textMuted }}>
         可分配 {remaining} 點（已用 {spent} / {budget}）
       </p>
     </div>

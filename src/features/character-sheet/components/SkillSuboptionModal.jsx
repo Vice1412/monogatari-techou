@@ -225,7 +225,7 @@ export default function SkillSuboptionModal({
           <button
             type="button"
             onClick={handleClear}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[#6b5a4b] hover:text-rose-600 hover:bg-rose-50 border border-[#d6c7ab] transition-colors cursor-pointer"
           >
             <GiTrashCan className="w-4 h-4" />
             <span>清空已選項目</span>
@@ -235,7 +235,7 @@ export default function SkillSuboptionModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 font-medium transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg border border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9] font-medium transition-colors cursor-pointer"
             >
               取消返回
             </button>
@@ -254,16 +254,16 @@ export default function SkillSuboptionModal({
     >
       <div className="p-4 sm:p-5 space-y-4 max-h-[72vh] overflow-y-auto">
         {/* ================= 頂部狀態與配額指示列 ================= */}
-        <div className="p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white shadow-2xs" style={{ borderColor: theme?.border || '#e2e8f0' }}>
+        <div className="p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white" style={{ borderColor: theme?.border || '#e2e8f0' }}>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-sm text-slate-900">
+              <span className="font-bold text-sm text-[#2c221e]">
                 {className} · {skillName}
               </span>
               <JRPGBadge variant={theme?.badgeVariant || 'gold'} size="xs">
                 SL {sl}
               </JRPGBadge>
-              <span className="text-xs text-slate-500 font-mono">
+              <span className="text-xs text-[#6b5a4b] font-mono">
                 {config.quotaHint ? config.quotaHint(sl) : `上限 ${maxQuota} 個`}
               </span>
 
@@ -283,7 +283,7 @@ export default function SkillSuboptionModal({
                 </button>
               )}
             </div>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-t12 text-[#6b5a4b] mt-0.5">
               本清單共 {rawItems.length} 項；技能等級決定你能掌握幾項
               （目前 SL {sl} → 上限 {maxQuota} 項，不是全部都能拿）。
               {codexRule && `完整機制（含運作方式與出處頁碼）見「規則速查：${codexRule.title}」。`}
@@ -311,7 +311,7 @@ export default function SkillSuboptionModal({
               </div>
             )}
             {currentCount === 0 && (
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-dashed border-slate-300 font-bold text-xs">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold text-xs">
                 <span>尚未配置任何項目（尚餘 {maxQuota} 個名額）</span>
               </div>
             )}
@@ -328,19 +328,19 @@ export default function SkillSuboptionModal({
 
         {/* 魔奏者音量全掌握說明條 */}
         {config.type === 'chanter' && (
-          <div className="p-3 rounded-xl bg-purple-50/70 border border-purple-200 text-purple-950 text-xs space-y-1.5">
-            <div className="font-bold flex items-center gap-1.5 text-purple-900">
+          <div className="p-3 rounded-xl bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] text-xs space-y-1.5">
+            <div className="font-bold flex items-center gap-1.5 text-[#3c2415]">
               <GiMusicalNotes className="w-4 h-4" />
               <span>音量體系（習得本技能自動全數掌握，無須消耗配額）：</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
               {CHANTER_DATA.volumes.map(vol => (
-                <div key={vol.id} className="p-2 bg-white rounded-lg border border-purple-100 shadow-2xs">
-                  <div className="font-bold text-purple-950 flex items-center justify-between">
+                <div key={vol.id} className="p-2 bg-white rounded-lg border border-[#e2d6c1]">
+                  <div className="font-bold text-[#3c2415] flex items-center justify-between">
                     <span>{vol.name}</span>
-                    <span className="font-mono text-purple-700">{vol.mp} MP</span>
+                    <span className="font-mono text-[#6b5a4b]">{vol.mp} MP</span>
                   </div>
-                  <div className="text-slate-600 mt-0.5">{vol.target}</div>
+                  <div className="text-[#6b5a4b] mt-0.5">{vol.target}</div>
                 </div>
               ))}
             </div>
@@ -357,17 +357,17 @@ export default function SkillSuboptionModal({
               <GiDna2 className="w-4 h-4" />
               <span>{therioRules.label}：使用方式</span>
               {isTheriomorphosisVariant(variantId) && (
-                <span className="text-[9px] px-1.5 py-0.5 rounded border border-rose-300 bg-white font-bold">
+                <span className="text-t12 px-1.5 py-0.5 rounded border border-rose-300 bg-white font-bold">
                   【公測】變體
                 </span>
               )}
             </div>
             {therioLines.map((line) => (
-              <div key={line} className="text-[11px] leading-relaxed text-slate-700">
+              <div key={line} className="text-[11px] leading-relaxed text-[#3c2415]">
                 {line}
               </div>
             ))}
-            <div className="text-[11px] leading-relaxed text-slate-500">
+            <div className="text-[11px] leading-relaxed text-[#6b5a4b]">
               形態庫與配額不受變體影響：每取得一級學一個形態（目前 SL {sl} → 上限 {maxQuota} 個）。
             </div>
           </div>
@@ -377,24 +377,24 @@ export default function SkillSuboptionModal({
         <div className="flex flex-col sm:flex-row items-center gap-2 justify-between">
           {/* 搜尋輸入框 */}
           <div className="relative w-full sm:w-72">
-            <GiMagnifyingGlass className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+            <GiMagnifyingGlass className="absolute left-3 top-2.5 w-4 h-4 text-[#6b5a4b]" />
             <input
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="搜尋項目名稱或效果描述..."
-              className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500 shadow-2xs"
+              className="w-full pl-9 pr-3 py-1.5 bg-white border border-[#d6c7ab] rounded-lg text-xs placeholder:text-[#6b5a4b] focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
           </div>
 
           {/* 魔奏者分類切換 */}
           {config.type === 'chanter' && (
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
+            <div className="flex items-center gap-1 bg-[#f4ebd9] p-1 rounded-lg border border-[#d6c7ab] text-xs">
               <button
                 type="button"
                 onClick={() => setActiveCategory('all')}
                 className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                  activeCategory === 'all' ? 'bg-white shadow-2xs text-slate-900 font-bold' : 'text-slate-600 hover:text-slate-900'
+                  activeCategory === 'all' ? 'bg-white shadow-2xs text-[#2c221e] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
                 }`}
               >
                 全部項目
@@ -403,7 +403,7 @@ export default function SkillSuboptionModal({
                 type="button"
                 onClick={() => setActiveCategory('keys')}
                 className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                  activeCategory === 'keys' ? 'bg-white shadow-2xs text-amber-900 font-bold' : 'text-slate-600 hover:text-slate-900'
+                  activeCategory === 'keys' ? 'bg-white shadow-2xs text-amber-900 font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
                 }`}
               >
                 音調（8 種）
@@ -412,7 +412,7 @@ export default function SkillSuboptionModal({
                 type="button"
                 onClick={() => setActiveCategory('tones')}
                 className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                  activeCategory === 'tones' ? 'bg-white shadow-2xs text-purple-900 font-bold' : 'text-slate-600 hover:text-slate-900'
+                  activeCategory === 'tones' ? 'bg-white shadow-2xs text-[#2c221e] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
                 }`}
               >
                 曲風（7 種）
@@ -423,7 +423,7 @@ export default function SkillSuboptionModal({
 
         {/* ================= 項目卡片清單網格 ================= */}
         {filteredItems.length === 0 ? (
-          <div className="p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs">
+          <div className="p-8 text-center bg-[#fbf7ee] rounded-xl border border-dashed border-[#d6c7ab] text-[#6b5a4b] text-xs">
             查無符合關鍵字「{searchQuery}」的項目。請嘗試其他搜尋詞。
           </div>
         ) : (
@@ -438,10 +438,10 @@ export default function SkillSuboptionModal({
                   onClick={() => !isDisabled && handleToggleOption(item.name)}
                   className={`p-3 rounded-xl border text-xs space-y-1.5 transition-all select-none cursor-pointer ${
                     isSelected
-                      ? 'bg-amber-50/90 border-amber-400 shadow-xs ring-1 ring-amber-400/50'
+                      ? 'bg-amber-50/90 border-amber-400 ring-1 ring-amber-400/50'
                       : isDisabled
-                      ? 'bg-slate-50/60 border-slate-200 opacity-40 cursor-not-allowed'
-                      : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-2xs'
+                      ? 'bg-[#fbf7ee]/60 border-[#d6c7ab] opacity-40 cursor-not-allowed'
+                      : 'bg-white border-[#d6c7ab] hover:border-[#a63d40] hover:'
                   }`}
                 >
                   {/* 標題與勾選標籤列 */}
@@ -451,13 +451,13 @@ export default function SkillSuboptionModal({
                         className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                           isSelected
                             ? 'bg-amber-600 border-amber-600 text-white'
-                            : 'border-slate-300 bg-white'
+                            : 'border-[#d6c7ab] bg-white'
                         }`}
                       >
                         {isSelected && <GiCheckMark className="w-3 h-3" />}
                       </div>
 
-                      <span className={`font-bold tracking-wide text-sm flex items-center gap-1.5 ${isSelected ? 'text-amber-950 font-serif' : 'text-slate-800'}`}>
+                      <span className={`font-bold tracking-wide text-sm flex items-center gap-1.5 ${isSelected ? 'text-amber-950 font-serif' : 'text-[#3c2415]'}`}>
                         {item.isOffensive && (
                           <span className="fu-icon text-red-600 font-bold" title="攻擊性咒語">
                             o
@@ -468,7 +468,7 @@ export default function SkillSuboptionModal({
 
                       {/* 類型標籤 */}
                       {item.typeLabel && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold border border-slate-200">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                           {item.typeLabel}
                         </span>
                       )}
@@ -477,14 +477,14 @@ export default function SkillSuboptionModal({
                       {!['dances', 'chanter'].includes(config.type) && (
                         <>
                           {item.affinity && (
-                            <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200">
+                            <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab]">
                               <FUIcon name={item.affinity} className="text-xs" />
                               <span>{item.affinity}</span>
                             </span>
                           )}
 
                           {item.affinities && item.affinities.map(aff => (
-                            <span key={aff} className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200">
+                            <span key={aff} className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab]">
                               <FUIcon name={aff} className="text-xs" />
                               <span>{aff}</span>
                             </span>
@@ -503,12 +503,12 @@ export default function SkillSuboptionModal({
                     {/* 右側附加數據 (MP, 持續時間等) */}
                     <div className="flex items-center gap-1.5 shrink-0 text-[11px] font-mono">
                       {item.mp && (
-                        <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-900 font-bold border border-indigo-200">
+                        <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                           {item.mp} MP
                         </span>
                       )}
                       {item.duration && (
-                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                        <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b]">
                           {item.duration}
                         </span>
                       )}
@@ -527,32 +527,32 @@ export default function SkillSuboptionModal({
                     </div>
                   )}
                   {item.examples && (
-                    <div className="text-[11px] text-slate-500">
+                    <div className="text-[11px] text-[#6b5a4b]">
                       象徵範例：{item.examples}
                     </div>
                   )}
 
                   {/* 核心效果描述 */}
                   {item.effect && (
-                    <p className="text-[11px] text-slate-700 leading-relaxed">
+                    <p className="text-[11px] text-[#3c2415] leading-relaxed">
                       {renderTextWithAffinities(item.effect)}
                     </p>
                   )}
                   {item.desc && (
-                    <p className="text-[11px] text-slate-700 leading-relaxed">
+                    <p className="text-[11px] text-[#3c2415] leading-relaxed">
                       {renderTextWithAffinities(item.desc)}
                     </p>
                   )}
 
                   {/* 植物學家多階刻度效果 */}
                   {item.effects && (
-                    <div className="space-y-1 pt-1 border-t border-slate-100">
+                    <div className="space-y-1 pt-1 border-t border-[#e8dcc4]">
                       {item.effects.map((eff, eIdx) => (
                         <div key={eIdx} className="text-[11px] flex items-start gap-1.5">
                           <span className="font-mono font-bold text-emerald-900 bg-emerald-100 px-1 py-0.2 rounded text-[10px] shrink-0">
                             {eff.clock}
                           </span>
-                          <span className="text-slate-700 leading-relaxed">{renderTextWithAffinities(eff.text)}</span>
+                          <span className="text-[#3c2415] leading-relaxed">{renderTextWithAffinities(eff.text)}</span>
                         </div>
                       ))}
                     </div>

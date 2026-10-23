@@ -35,6 +35,7 @@ import {
   convertMonogatariToFultimator
 } from './utils/fultimatorConverter.js';
 import JRPGButton from '../../components/ui/JRPGButton';
+import EmptyState from '../../components/ui/EmptyState';
 import JRPGBadge from '../../components/ui/JRPGBadge';
 import { STORAGE_KEYS } from '../../data/keys';
 import { readJSON, writeJSON } from '../../data/store';
@@ -351,13 +352,13 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
   // Persistent 6 Theme Color Circles for top right header
   const renderThemeCircles = (char) => {
     if (!char) return null;
-    const currentThemeId = char.themeColor || 'emerald';
+    const currentThemeId = char.themeColor || 'amber';
 
     const currentTheme = getCharacterTheme(currentThemeId);
 
     return (
       <div
-        className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-white/80 border shadow-2xs transition-colors"
+ className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-white/80 border transition-colors"
         style={{ borderColor: currentTheme.border }}
       >
         {Object.values(CHARACTER_THEMES).map(t => {
@@ -417,27 +418,27 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
       {viewMode === 'roster' && (
         <div className="space-y-6">
           {/* Top Control Bar: Search & Filters on left, Actions on right (Matches NPC Workshop hierarchy) */}
-          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pb-4 border-b border-emerald-200">
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pb-4 border-b border-[#d6c7ab]">
             {/* Search Input & Filter Dropdowns */}
             <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
               <div className="relative min-w-[200px] max-w-xs flex-1">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-emerald-700/60 pointer-events-none" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6b5a4b]/60 pointer-events-none" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="搜尋姓名、身份、職業..."
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-emerald-200 bg-white/90 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/25 text-xs text-emerald-950 placeholder:text-emerald-700/50 shadow-xs transition-all"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#d6c7ab] bg-white/90 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5e34]/25 text-xs text-[#2c221e] placeholder:text-[#6b5a4b]/50 transition-all"
                 />
               </div>
 
               {availableClasses.length > 0 && (
-                <div className="flex items-center gap-1.5 bg-white border border-emerald-200 px-2.5 py-1.5 rounded-lg shadow-xs">
-                  <Filter className="w-3.5 h-3.5 text-emerald-700" />
+                <div className="flex items-center gap-1.5 bg-white border border-[#d6c7ab] px-2.5 py-1.5 rounded-lg">
+                  <Filter className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   <select
                     value={classFilter}
                     onChange={(e) => setClassFilter(e.target.value)}
-                    className="bg-transparent text-xs font-medium text-emerald-950 focus:outline-none cursor-pointer"
+                    className="bg-transparent text-xs font-medium text-[#2c221e] focus:outline-none cursor-pointer"
                   >
                     <option value="all">全部職業（{roster.length}）</option>
                     {availableClasses.map(cls => (
@@ -448,12 +449,12 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
               )}
 
               {roster.length > 1 && (
-                <div className="flex items-center gap-1.5 bg-white border border-emerald-200 px-2.5 py-1.5 rounded-lg shadow-xs">
-                  <ArrowUpDown className="w-3.5 h-3.5 text-emerald-700" />
+                <div className="flex items-center gap-1.5 bg-white border border-[#d6c7ab] px-2.5 py-1.5 rounded-lg">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-transparent text-xs font-medium text-emerald-950 focus:outline-none cursor-pointer"
+                    className="bg-transparent text-xs font-medium text-[#2c221e] focus:outline-none cursor-pointer"
                   >
                     <option value="recent">最近更新</option>
                     <option value="name_asc">角色名稱（筆劃/字母）</option>
@@ -467,7 +468,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 <button
                   type="button"
                   onClick={() => { setSearchQuery(''); setClassFilter('all'); }}
-                  className="text-xs px-2.5 py-1.5 rounded-lg text-emerald-800 hover:bg-emerald-100 transition-colors font-medium"
+                  className="text-xs px-2.5 py-1.5 rounded-lg text-[#6b5a4b] hover:bg-[#f4ebd9] transition-colors font-medium"
                 >
                   重設
                 </button>
@@ -477,7 +478,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
             {/* Actions: Import, Backup, Create */}
             <div className="flex items-center gap-2 justify-end shrink-0 flex-wrap">
               {roster.length > 0 && (
-                <span className="text-xs font-mono font-medium text-emerald-800 mr-1 hidden md:inline">
+                <span className="text-xs font-mono font-medium text-[#6b5a4b] mr-1 hidden md:inline">
                   顯示 {filteredRoster.length} / 共 {roster.length} 位
                 </span>
               )}
@@ -490,10 +491,10 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                   className="hidden"
                 />
                 <span
-                  className="bg-white hover:bg-emerald-50 text-emerald-950 border border-emerald-200 px-3.5 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-xs transition-all hover:scale-102 justify-center text-xs cursor-pointer"
+                  className="bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab] px-3.5 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs cursor-pointer"
                   title="支援匯入《物語手帳》備份或 Fultimator 導出之角色 JSON"
                 >
-                  <Upload className="w-3.5 h-3.5 text-emerald-700" />
+                  <Upload className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   <span>匯入卡片</span>
                 </span>
               </label>
@@ -502,17 +503,17 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 type="button"
                 onClick={handleExportJSON}
                 disabled={roster.length === 0}
-                className="bg-white hover:bg-emerald-50 text-emerald-950 border border-emerald-200 px-3.5 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-xs transition-all hover:scale-102 justify-center text-xs disabled:opacity-40 disabled:pointer-events-none"
+                className="bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab] px-3.5 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs disabled:opacity-40 disabled:pointer-events-none"
                 title="匯出全站冒險者名冊 JSON 備份"
               >
-                <Download className="w-3.5 h-3.5 text-emerald-700" />
+                <Download className="w-3.5 h-3.5 text-[#6b5a4b]" />
                 <span>備份名冊</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleCreateCharacter}
-                className="bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-md transition-all hover:scale-102 justify-center text-xs"
+                className="bg-[#8b5e34] hover:bg-[#78350f] text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-md transition-all hover:scale-102 justify-center text-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>建立新角色</span>
@@ -541,29 +542,22 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
 
           {/* Roster Empty State (Matches NPC Workshop empty card) */}
           {roster.length === 0 ? (
-            <div className="text-center py-20 bg-[#fffdf9] rounded-xl border border-emerald-300/70 border-dashed flex flex-col items-center justify-center shadow-xs">
-              <div className="relative mb-6 group flex items-center justify-center">
-                <div className="absolute inset-0 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all duration-700 w-28 h-28 -translate-x-4 -translate-y-2"></div>
-                <GiScrollUnfurled className="w-20 h-20 text-emerald-700/60 group-hover:text-emerald-800/90 transition-all duration-500 relative z-10 drop-shadow" />
-              </div>
-              <p className="text-emerald-950 font-bold tracking-widest text-lg">名冊目前空空如也</p>
-              <p className="text-emerald-700/80 text-sm mt-2">點擊右上方按鈕開始創造你的第一位冒險者吧！</p>
-              <button
-                type="button"
-                onClick={handleCreateCharacter}
-                className="mt-6 bg-emerald-700 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-md transition-all hover:scale-105 text-sm"
-              >
-                <Plus className="w-4 h-4" /> 建立第一位角色
-              </button>
-            </div>
+            <EmptyState
+              kind="roster"
+              icon={GiScrollUnfurled}
+              title="名冊目前空空如也"
+              teach="名冊只存在這台裝置上。建立第一位冒險者之後，記得用封面右上角的「備份」把它存成檔案。"
+              action={{ label: '建立第一位角色', onClick: handleCreateCharacter, icon: Plus }}
+              minHeight="320px"
+            />
           ) : filteredRoster.length === 0 ? (
-            <div className="text-center py-16 bg-[#fffdf9] rounded-xl border border-emerald-200 border-dashed flex flex-col items-center justify-center shadow-xs">
-              <p className="text-emerald-950 font-bold text-base">找不到符合條件的冒險者</p>
-              <p className="text-emerald-700/70 text-xs mt-1">請嘗試變更搜尋關鍵字或職業篩選。</p>
+            <div className="text-center py-16 bg-[#fffdf9] rounded-xl border border-[#d6c7ab] border-dashed flex flex-col items-center justify-center">
+              <p className="text-[#2c221e] font-bold text-base">找不到符合條件的冒險者</p>
+              <p className="text-[#6b5a4b]/70 text-xs mt-1">請嘗試變更搜尋關鍵字或職業篩選。</p>
               <button
                 type="button"
                 onClick={() => { setSearchQuery(''); setClassFilter('all'); }}
-                className="mt-4 text-xs font-bold text-emerald-800 hover:underline"
+                className="mt-4 text-xs font-bold text-[#6b5a4b] hover:underline"
               >
                 清除所有篩選條件
               </button>
@@ -585,10 +579,10 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 return (
                   <div
                     key={char.id}
-                    className="bg-[#fffdf9] rounded-xl shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col group relative border-2"
+                    className="bg-[#fffdf9] rounded-xl hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col group relative border-2"
                     style={{ borderColor: isCrisis ? '#ef4444' : charTheme.border }}
                   >
-                    <div className={`h-1.5 bg-gradient-to-r ${charTheme.gradient}`} />
+                    <div className="h-1.5" style={{ backgroundColor: charTheme.accent }} />
 
                     {/* Profile Header */}
                     <div
@@ -597,7 +591,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                     >
                       <div
                         onClick={() => handleOpenEditorMode(char)}
-                        className="w-12 h-12 rounded-xl bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-xl font-bold shadow-inner cursor-pointer hover:scale-105 hover:ring-2 hover:ring-emerald-500/50 transition-all group relative"
+                        className="w-12 h-12 rounded-xl bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-xl font-bold shadow-inner cursor-pointer hover:scale-105 hover:ring-2 hover:ring-[#8b5e34]/50 transition-all group relative"
                         style={{ borderColor: charTheme.border, color: charTheme.accent }}
                         title="點擊前往編輯此角色與肖像"
                       >
@@ -634,7 +628,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                           )}
                         </div>
 
-                        <p className="text-[11px] text-[#7c6a58] mt-0.5 line-clamp-1">
+                        <p className="text-t12 text-[#7c6a58] mt-0.5 line-clamp-1">
                           {char.identity || '未設定身份'} · <span style={{ color: charTheme.accent, fontWeight: 'bold' }}>{char.theme || '未設定主題'}</span>
                         </p>
 
@@ -656,18 +650,18 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
 
                     {/* Fultimator-Style Visual Resource Meters (HP / MP / IP) */}
                     <div className="p-3.5 space-y-2 border-b bg-[#f5efdf]/70" style={{ borderColor: charTheme.border }}>
-                      {/* HP Gauge */}
+                      {/* HP Gauge（第十五輪：資源條是「量」——同一個墨，只有危急換強調色） */}
                       <div className="space-y-0.5">
-                        <div className="flex items-center justify-between text-[11px] font-mono">
-                          <span className="font-bold flex items-center gap-1" style={{ color: isCrisis ? '#b91c1c' : '#991b1b' }}>
+                        <div className="flex items-center justify-between text-t12 font-mono">
+                          <span className="font-bold flex items-center gap-1" style={{ color: isCrisis ? '#a63d40' : '#3c2415' }}>
                             HP
                             {isCrisis && <FUIcon name="crisis" className="text-xs inline-block" />}
                           </span>
                           <span className="font-bold text-[#3c2415]">{statsUnset ? '—' : `${curHp} / ${stats.maxHp}`}</span>
                         </div>
-                        <div className="h-2 w-full bg-[#e8dec8] rounded-full overflow-hidden">
+                        <div className="h-2 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-gradient-to-r from-red-600 to-rose-700' : 'bg-gradient-to-r from-red-500 to-rose-600'}`}
+                            className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-[#a63d40]' : 'bg-[#3c2415]'}`}
                             style={{ width: `${Math.max(0, Math.min(100, (curHp / stats.maxHp) * 100))}%` }}
                           />
                         </div>
@@ -675,13 +669,13 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
 
                       {/* MP Gauge */}
                       <div className="space-y-0.5">
-                        <div className="flex items-center justify-between text-[11px] font-mono">
-                          <span className="font-bold text-blue-800">MP</span>
+                        <div className="flex items-center justify-between text-t12 font-mono">
+                          <span className="font-bold text-[#3c2415]">MP</span>
                           <span className="font-bold text-[#3c2415]">{statsUnset ? '—' : `${curMp} / ${stats.maxMp}`}</span>
                         </div>
-                        <div className="h-2 w-full bg-[#e8dec8] rounded-full overflow-hidden">
+                        <div className="h-2 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
                           <div
-                            className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-blue-500 to-indigo-600"
+                            className="h-full rounded-full transition-all duration-300 bg-[#3c2415]"
                             style={{ width: `${Math.max(0, Math.min(100, (curMp / stats.maxMp) * 100))}%` }}
                           />
                         </div>
@@ -689,13 +683,13 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
 
                       {/* IP Gauge */}
                       <div className="space-y-0.5">
-                        <div className="flex items-center justify-between text-[11px] font-mono">
-                          <span className="font-bold text-emerald-800">IP</span>
+                        <div className="flex items-center justify-between text-t12 font-mono">
+                          <span className="font-bold text-[#6b5a4b]">IP</span>
                           <span className="font-bold text-[#3c2415]">{curIp} / {stats.maxIp}</span>
                         </div>
-                        <div className="h-2 w-full bg-[#e8dec8] rounded-full overflow-hidden">
+                        <div className="h-2 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
                           <div
-                            className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-emerald-500 to-teal-600"
+                            className="h-full rounded-full transition-all duration-300 bg-[#3c2415]"
                             style={{ width: `${Math.max(0, Math.min(100, (curIp / stats.maxIp) * 100))}%` }}
                           />
                         </div>
@@ -767,7 +761,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         </button>
                         <button
                           onClick={() => handleExportSingleCharacter(char, 'fultimator')}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-purple-700 hover:bg-purple-50 transition-colors font-mono text-[10px] font-bold"
+                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors font-mono text-[10px] font-bold"
                           title="匯出為 Fultimator 相容格式"
                         >
                           <FileCode className="w-4 h-4" />
@@ -791,7 +785,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                       <div className="flex items-center gap-1.5 ml-auto">
                         <button
                           onClick={() => handleOpenEditorMode(char)}
-                          className="px-2.5 py-1 rounded-lg border bg-[#fffdf9] hover:bg-[#f4ebd9] text-xs font-bold transition-colors shadow-xs flex items-center gap-1"
+ className="px-2.5 py-1 rounded-lg border bg-[#fffdf9] hover:bg-[#f4ebd9] text-xs font-bold transition-colors flex items-center gap-1"
                           style={{ borderColor: charTheme.border, color: charTheme.textDark }}
                           title="進入創角與加點工作台"
                         >
@@ -822,7 +816,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
       {viewMode === 'play' && activeChar && (
         <CharacterPlayHUD
           character={activeChar}
-          themeId={activeChar.themeColor || 'emerald'}
+          themeId={activeChar.themeColor || 'amber'}
           onChange={handleUpdateActiveCharacter}
           onBackToRoster={() => setViewMode('roster')}
           onOpenEditor={(tab) => {
@@ -864,7 +858,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
       {viewMode === 'editor' && activeChar && (
         <CharacterEditor
           character={activeChar}
-          themeId={activeChar.themeColor || 'emerald'}
+          themeId={activeChar.themeColor || 'amber'}
           onChange={handleUpdateActiveCharacter}
           onBackToRoster={() => setViewMode('roster')}
           onEnterPlayMode={() => setViewMode('play')}
@@ -888,7 +882,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
         aria-live="polite"
         className={
           toastMessage
-            ? 'fixed bottom-6 right-6 z-50 bg-white border-2 border-emerald-600 text-emerald-950 px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 font-medium text-xs animate-fade-in'
+            ? 'fixed bottom-6 right-6 z-50 bg-white border-2 border-emerald-600 text-emerald-950 px-4 py-2.5 rounded-xl shadow-e3 flex items-center gap-2 font-medium text-xs animate-fade-in'
             : 'sr-only'
         }
       >

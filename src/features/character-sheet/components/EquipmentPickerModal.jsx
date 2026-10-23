@@ -297,7 +297,7 @@ export function EquipmentPickerBody({
         <tbody>
           {filteredWeaponRows.length === 0 && (
             <tr>
-              <td colSpan={6} className="px-2 py-6 text-center text-[#8c7b6c]">
+              <td colSpan={6} className="px-2 py-6 text-center text-[#7c6a58]">
                 {technoRestrictsEquipment
                   ? '魔晶石制沒有官方武器表——主手與副手一律到「定制武器」分頁鍛造（科技奇幻手冊 p.133）。'
                   : '沒有符合條件的武器，請放寬篩選。'}
@@ -347,7 +347,7 @@ export function EquipmentPickerBody({
                     </div>
                   ) : null}
                   {w.note ? (
-                    <div className="text-[10px] text-[#8c7b6c] mt-0.5">{w.note}</div>
+                    <div className="text-[10px] text-[#7c6a58] mt-0.5">{w.note}</div>
                   ) : null}
                 </td>
                 <td className={cellText}>
@@ -363,11 +363,11 @@ export function EquipmentPickerBody({
                 </td>
                 <td className={cellText}>
                   <div className="font-mono text-[11px]">{row.eval.accuracyLabel}</div>
-                  <div className="text-[10px] text-[#8c7b6c]">{row.eval.accuracyFormula}</div>
+                  <div className="text-[10px] text-[#7c6a58]">{row.eval.accuracyFormula}</div>
                 </td>
                 <td className={cellText}>
                   <div className="font-mono text-[11px]">{row.eval.damageFormula}</div>
-                  <div className="text-[10px] text-[#8c7b6c]">{row.eval.damageType}</div>
+                  <div className="text-[10px] text-[#7c6a58]">{row.eval.damageType}</div>
                 </td>
                 <td className={cellText}>
                   <div className="text-[11px] whitespace-nowrap">
@@ -398,7 +398,7 @@ export function EquipmentPickerBody({
         <tbody>
           {filteredShieldRows.length === 0 && (
             <tr>
-              <td colSpan={6} className="px-2 py-6 text-center text-[#8c7b6c]">
+              <td colSpan={6} className="px-2 py-6 text-center text-[#7c6a58]">
                 {technoRestrictsEquipment
                   ? '魔晶石制沒有盾牌——原書要求直接忽略守護者的【雙重盾牌】，副手改裝定制武器（p.133）。'
                   : '沒有符合條件的盾牌，請放寬篩選。'}
@@ -444,11 +444,11 @@ export function EquipmentPickerBody({
                 </td>
                 <td className={cellText}>
                   <span className="font-mono font-black text-sm" style={{ color: theme.accent }}>{row.totalDef}</span>
-                  <span className="text-[10px] text-[#8c7b6c] ml-1">（盾 +{row.outcome.defBonus}）</span>
+                  <span className="text-[10px] text-[#7c6a58] ml-1">（盾 +{row.outcome.defBonus}）</span>
                 </td>
                 <td className={cellText}>
                   <span className="font-mono font-black text-sm" style={{ color: theme.accent }}>{row.totalMdef}</span>
-                  <span className="text-[10px] text-[#8c7b6c] ml-1">（盾 +{row.outcome.mdefBonus}）</span>
+                  <span className="text-[10px] text-[#7c6a58] ml-1">（盾 +{row.outcome.mdefBonus}）</span>
                 </td>
                 <td className={cellText}>
                   <span className="font-mono text-[11px]">{row.outcome.initMod === 0 ? '±0' : row.outcome.initMod}</span>
@@ -480,7 +480,7 @@ export function EquipmentPickerBody({
         <tbody>
           {filteredArmorRows.length === 0 && (
             <tr>
-              <td colSpan={6} className="px-2 py-6 text-center text-[#8c7b6c]">
+              <td colSpan={6} className="px-2 py-6 text-center text-[#7c6a58]">
                 沒有符合條件的防具，請放寬篩選。
               </td>
             </tr>
@@ -557,7 +557,7 @@ export function EquipmentPickerBody({
   const renderAccessoryList = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
       {accessoryRows.length === 0 && (
-        <p className="text-xs text-[#8c7b6c] py-4">沒有符合條件的飾品。</p>
+        <p className="text-xs text-[#7c6a58] py-4">沒有符合條件的飾品。</p>
       )}
       {accessoryRows.map((acc) => {
         const isCurrent = currentValue === acc.name;
@@ -642,7 +642,7 @@ export function EquipmentPickerBody({
       >
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[180px]">
-            <GiMagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8c7b6c]" />
+            <GiMagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7c6a58]" />
             <input
               type="text"
               value={query}
@@ -656,7 +656,7 @@ export function EquipmentPickerBody({
           <label className="text-[11px] flex items-center gap-1.5 cursor-pointer font-bold" style={{ color: theme.textDark }}>
             <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
             顯示目前無法裝備的
-            {hiddenCount > 0 ? <span className="font-mono text-[10px] text-[#8c7b6c]">（隱藏 {hiddenCount} 項）</span> : null}
+            {hiddenCount > 0 ? <span className="font-mono text-[10px] text-[#7c6a58]">（隱藏 {hiddenCount} 項）</span> : null}
           </label>
 
           {slot !== 'accessory' && (
@@ -711,13 +711,13 @@ export function EquipmentPickerBody({
         )}
 
         {showShieldFilters && (
-          <p className="text-[11px]" style={{ color: theme.textMuted }}>
+          <p className="text-t12" style={{ color: theme.textMuted }}>
             盾牌加值與目前防具疊加；表上直接顯示穿好之後的合計物防／魔防。
           </p>
         )}
 
         {slot === 'accessory' && (
-          <p className="text-[11px]" style={{ color: theme.textMuted }}>
+          <p className="text-t12" style={{ color: theme.textMuted }}>
             飾品在原書中一律屬稀有物品，不列入起始 500z 裝備預算。
           </p>
         )}

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { GiQuillInk, GiHazardSign } from 'react-icons/gi';
 import JRPGModal from '../../../components/ui/JRPGModal';
+import EmptyState from '../../../components/ui/EmptyState';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import JRPGBadge from '../../../components/ui/JRPGBadge';
 import GameIcon from '../../../components/ui/GameIcon';
@@ -83,7 +84,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
       className="rounded-lg border px-2 py-1.5 flex flex-col items-center justify-center min-w-[72px]"
       style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
     >
-      <span className="text-[9px] leading-tight" style={{ color: theme.textMuted }}>{label}</span>
+      <span className="text-t12 leading-tight" style={{ color: theme.textMuted }}>{label}</span>
       <span className="font-mono font-black text-xs mt-0.5" style={{ color: theme.textDark }}>{value}</span>
     </div>
   );
@@ -160,12 +161,12 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
 
       {/* 履歷本體 */}
       {visible.length === 0 ? (
-        <div
-          className="rounded-xl border border-dashed p-6 text-center text-xs"
-          style={{ borderColor: theme.border, color: theme.textMuted }}
-        >
-          還沒有任何記錄。跑團時 HP／MP／IP／物語點／EXP／資金的變動、升級、換裝都會自動寫進來。
-        </div>
+        <EmptyState
+          kind="character-log"
+          icon={GiQuillInk}
+          title="這名角色還沒有任何記錄"
+          teach="跑團時 HP／MP／IP／物語點／EXP／資金的變動、升級與換裝都會自動寫進來；第一次變動之後這裡就會有內容。"
+        />
       ) : (
         <div className="flex flex-col gap-1.5 max-h-[52vh] overflow-y-auto pr-0.5">
           {visible.map((entry) => {
@@ -218,7 +219,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
       )}
 
       {summary.count > 0 && (
-        <p className="text-[10px] flex items-center gap-1.5" style={{ color: theme.textMuted }}>
+        <p className="text-t12 flex items-center gap-1.5" style={{ color: theme.textMuted }}>
           <GiHazardSign size={11} className="shrink-0" />
           記錄只增不改；同一欄位的連續變動在時窗內會合併成一筆，避免跑團時留下大量碎記錄。
         </p>

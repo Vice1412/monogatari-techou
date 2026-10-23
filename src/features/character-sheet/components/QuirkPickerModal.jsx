@@ -90,7 +90,7 @@ export function QuirkPickerBody({
     <div className="flex flex-col h-[80vh] md:h-[72vh] max-h-[700px] overflow-hidden -m-1">
       {/* 搜尋列 */}
       <div className="relative mb-3 shrink-0">
-        <GiMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+        <GiMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6b5a4b] w-4 h-4" />
         <input
           type="text"
           value={search}
@@ -112,7 +112,7 @@ export function QuirkPickerBody({
           </span>
           <div className="flex-1 overflow-y-auto space-y-1 pr-1 min-h-0">
             {filtered.length === 0 ? (
-              <p className="text-[11px] py-4 text-center" style={{ color: theme.textMuted }}>
+              <p className="text-t12 py-4 text-center" style={{ color: theme.textMuted }}>
                 沒有符合「{search}」的金手指
               </p>
             ) : (
@@ -248,7 +248,7 @@ export function QuirkPickerBody({
                     <button
                       type="button"
                       onClick={() => { onClear && onClear(); onClose && onClose(); }}
-                      className="text-[11px] text-slate-500 hover:text-red-700 px-2 py-1 cursor-pointer"
+                      className="text-[11px] text-[#6b5a4b] hover:text-red-700 px-2 py-1 cursor-pointer"
                     >
                       移除目前的金手指
                     </button>
@@ -269,7 +269,7 @@ export function QuirkPickerBody({
             <div className="flex-1 flex flex-col items-center justify-center text-center p-6 space-y-2" style={{ color: theme.textMuted }}>
               <GiHazardSign className="w-8 h-8 opacity-40" />
               <p className="text-xs">從左邊點一個金手指，這裡會顯示它的完整內容。</p>
-              <p className="text-[11px] opacity-80">
+              <p className="text-t12 opacity-80">
                 金手指是**選用規則**——原書只建議「想玩就用、而且開局一人一個」，不強制。
               </p>
             </div>

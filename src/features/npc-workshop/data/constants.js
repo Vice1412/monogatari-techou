@@ -15,12 +15,44 @@ export const SPONSOR_CONFIG = {
 
 export const DAMAGE_TYPES = ['物理', '風', '電', '暗', '土', '火', '冰', '光', '毒'];
 export const DAMAGE_TYPES_NO_PHYS = ['風', '電', '暗', '土', '火', '冰', '光', '毒'];
-export const AFFINITY_STATES = { normal: { label: '一般', bg: 'bg-stone-100', border: 'border-stone-300', text: 'text-stone-700' }, vul: { label: '弱點', bg: 'bg-red-100', border: 'border-red-400', text: 'text-red-900 font-bold' }, res: { label: '抗性', bg: 'bg-amber-100', border: 'border-amber-400', text: 'text-amber-950 font-bold' }, imm: { label: '免疫', bg: 'bg-sky-100', border: 'border-sky-400', text: 'text-sky-900 font-bold' }, abs: { label: '吸收', bg: 'bg-emerald-100', border: 'border-emerald-400', text: 'text-emerald-900 font-bold' } };
+/**
+ * 相性狀態：**不是身份，是序**（第二十二輪）。
+ *
+ * 九相是身份——離散、封閉、沒有順序 → 用色相，九色兩兩不同，撞色等於其中一個身份消失。
+ * 相性狀態是**序**：弱點 < 一般 < 抗性 < 免疫 < 吸收，講的是「打我這裡會怎樣」。
+ * 序不該用五個色相承擔：那會讓九張相性磚變成五色彩虹，而色相在那些磚上已經被九相用掉了。
+ *
+ * 所以拆成兩層：
+ *   bar  —— 極性。弱點紅、其餘綠、一般米。只有 4px，只在磚的左緣。
+ *   chip —— 程度。兩端實心（弱點／吸收），中間描邊（抗性／免疫），一般不加框。
+ *   ink  —— 分類標題與分頁標籤的字色，跟 bar 同一個極性。
+ *
+ * 顏色只講「好壞」，文字講「哪一種」。抗性與免疫同色是刻意的——兩者都是「傷害變少」，
+ * 差別在幅度，而幅度由標籤文字承擔。這與九相相反：九相必須單射，狀態不必。
+ * （判準：身份是離散的集合，序是連續的軸。連續的軸用深淺／填色，不用色相。）
+ *
+ * 用色全部是登記色：#8c2d36 危險、#245c45 綠、#d6c7ab 邊框、#e8dcc4 分隔、
+ * #fffdf9 紙面、#6b5a4b 二級墨。零新 hex。
+ *
+ * 消費端（三個，全部引用這張表）：NPCWorkshop 的分類摘要／分頁／相性磚，
+ * NPCCardPreview 的預覽徽章。任何一處自帶顏色就是第二份拷貝。
+ */
+export const AFFINITY_STATES = {
+  normal: { label: '一般', bar: 'bg-[#e8dcc4]', chip: 'border-transparent bg-transparent text-[#6b5a4b]', ink: 'text-[#6b5a4b]' },
+  vul: { label: '弱點', bar: 'bg-[#8c2d36]', chip: 'border-[#8c2d36] bg-[#8c2d36] text-[#fffdf9]', ink: 'text-[#8c2d36]' },
+  res: { label: '抗性', bar: 'bg-[#245c45]', chip: 'border-[#d6c7ab] bg-[#fffdf9] text-[#6b5a4b]', ink: 'text-[#245c45]' },
+  imm: { label: '免疫', bar: 'bg-[#245c45]', chip: 'border-[#245c45] bg-[#fffdf9] text-[#245c45]', ink: 'text-[#245c45]' },
+  abs: { label: '吸收', bar: 'bg-[#245c45]', chip: 'border-[#245c45] bg-[#245c45] text-[#fffdf9]', ink: 'text-[#245c45]' }
+};
 export const LEVELS = [5, 10, 20, 30, 40, 50, 60];
 export const PARTY_LEVELS = [5, 20, 40];
 export const RANKS = ["士兵", "精英", "冠位"];
 export const CATEGORIES = [{ id: 'attack', name: '基本攻擊', fuIcon: 'm' }, { id: 'spell', name: '咒語', fuIcon: 'c' }, { id: 'action', name: '其餘行動', fuIcon: 's' }, { id: 'rule', name: '特殊規則' }, { id: 'boss', name: 'Boss' }];
-export const TYPE_STYLES = { '物理': { fuIcon: 'p', color: 'text-stone-700 font-bold' }, '風': { fuIcon: 'a', color: 'text-cyan-700 font-bold' }, '電': { fuIcon: 'b', color: 'text-amber-600 font-bold' }, '暗': { fuIcon: 'd', color: 'text-indigo-950 font-bold' }, '土': { fuIcon: 'e', color: 'text-amber-800 font-bold' }, '火': { fuIcon: 'f', color: 'text-red-700 font-bold' }, '冰': { fuIcon: 'i', color: 'text-blue-700 font-bold' }, '光': { fuIcon: 'l', color: 'text-amber-600 font-bold' }, '毒': { fuIcon: 't', color: 'text-fuchsia-800 font-bold' }, '攻擊性咒語': { fuIcon: 'o', color: 'text-red-700 font-bold' } };
+// 九相色票：這張表是 `src/components/ui/FUIcon.jsx` 的 FU_ICON_MAP 的**鏡像**，
+// 不是 import 來的——Tailwind 只掃字面量，`text-[${hex}]` 這種模板字串不會生成 class。
+// 兩張表必須逐一相等，護欄見 tests/uiSystem.test.mjs 的 H14-f（值相等）與 H14-g（不得回退成色相令牌）。
+// 撞色的代價不是「不好看」：看到兩個一樣顏色的字，讀者學到「這兩個是同一類」。
+export const TYPE_STYLES = { '物理': { fuIcon: 'p', color: 'text-[#404a58] font-bold' }, '風': { fuIcon: 'a', color: 'text-[#245c45] font-bold' }, '電': { fuIcon: 'b', color: 'text-[#5a6b00] font-bold' }, '暗': { fuIcon: 'd', color: 'text-[#5e387c] font-bold' }, '土': { fuIcon: 'e', color: 'text-[#5c4a26] font-bold' }, '火': { fuIcon: 'f', color: 'text-[#a63d40] font-bold' }, '冰': { fuIcon: 'i', color: 'text-[#27527a] font-bold' }, '光': { fuIcon: 'l', color: 'text-[#9c4d16] font-bold' }, '毒': { fuIcon: 't', color: 'text-[#8c2d6a] font-bold' }, '攻擊性咒語': { fuIcon: 'o', color: 'text-[#8c2d36] font-bold' } };
 export const STATUS_OPTIONS = ["眩暈", "動搖", "緩慢", "虛弱"]; export const STATUS_AND_POISON = ["眩暈", "動搖", "緩慢", "虛弱", "中毒", "憤怒"]; export const ACTION_TYPES = ["攻擊", "裝備", "防禦", "阻礙", "使用庫存", "推進目標", "咒語", "研究", "技能"];
 
 export const ROLE_ICONS = {
@@ -40,11 +72,17 @@ export const ROLE_DESCRIPTIONS = {
   "衛士": { Icon: GiShieldReflect, subtitle: "「堅不可摧的鐵壁守護者」", desc: "擁有最強的雙防禦加成。擅長保護盟友、提供抗性，並在隊友受擊時發動無情的反擊。通常伴隨著需要保護的高威脅目標出現。" },
   "輔助": { Icon: GiHealing, subtitle: "「扭轉戰局的幕後推手」", desc: "缺乏直接攻擊力，但能提供強大增益、治癒並充當 MP 電池。能讓團隊威脅成倍增加，是玩家必須優先集火擊殺的戰術樞紐。" }
 };
-export const VILLAIN_TIERS = { 
-  "none": { up: 0, label: "非反派", color: "text-stone-600", border: "border-stone-300", bg: "bg-stone-100/60" }, 
-  "minor": { up: 5, label: "次要反派", color: "text-purple-800", border: "border-purple-400", bg: "bg-purple-50" }, 
-  "major": { up: 10, label: "主要反派", color: "text-red-800", border: "border-red-400", bg: "bg-red-50" }, 
-  "supreme": { up: 15, label: "最終反派", color: "text-fuchsia-800", border: "border-fuchsia-400", bg: "bg-fuchsia-50" } 
+// 反派階級是**序**（非反派 ＜ 次要 ＜ 主要 ＜ 最終），不是身份——顏色只講極性（危險／不危險），
+// 程度由「填充」承擔：無框（非反派）→ 描邊淺（次要）→ 描邊重（主要）→ 實心（最終）。
+// 三階共用同一個紅 `#8c2d36`：把三階塗成紫／紅／桃紅等於說「這是三個不同的東西」，
+// 而它們是同一件事的三個刻度。護欄 H17-d 量的是**單調性**（每一階必須比上一階響），
+// 不是一對一——與九相（H14-b）、四屬性（H15-a）相反的形狀，理由同 AFFINITY_STATES。
+// 這張卡的身份色已經被**物種主題**（SPECIES_THEMES 的 accent）佔用，反派階級只准當程度。
+export const VILLAIN_TIERS = {
+  "none":    { up: 0,  label: "非反派",   ink: "text-[#6b5a4b]", chip: "border-transparent bg-transparent text-[#6b5a4b]" },
+  "minor":   { up: 5,  label: "次要反派", ink: "text-[#8c2d36]", chip: "border-[#d6c7ab] bg-[#fffdf9] text-[#8c2d36]" },
+  "major":   { up: 10, label: "主要反派", ink: "text-[#8c2d36]", chip: "border-[#8c2d36] bg-[#fffdf9] text-[#8c2d36]" },
+  "supreme": { up: 15, label: "最終反派", ink: "text-[#8c2d36]", chip: "border-[#8c2d36] bg-[#8c2d36] text-[#fffdf9]" }
 };
 
 // --- SHARED UTILS FOR ROLES ---
