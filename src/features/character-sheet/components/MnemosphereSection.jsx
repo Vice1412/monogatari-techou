@@ -424,7 +424,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
                         disabled={disabled}
                         onClick={() => removeMnemosphere(m.id)}
                         className={smallBtn}
-                        style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: '#b91c1c' }}
+                        style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: '#8c2d36' }}
                       >
                         移除
                       </button>
@@ -435,7 +435,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[10px] font-bold" style={{ color: theme.textDark }}>
                         技能
-                        <span className="font-mono ml-1" style={{ color: spent > m.level ? '#b91c1c' : theme.textMuted }}>
+                        <span className="font-mono ml-1" style={{ color: spent > m.level ? '#8c2d36' : theme.textMuted }}>
                           {spent} / {m.level}
                         </span>
                       </span>

@@ -105,7 +105,7 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
       title={onInspectorClick ? "點擊反向定位至編輯表單" : ""}
     >
       <div className={`font-bold text-[15px] mb-1 flex flex-wrap items-center gap-2 ${skill.isSecretArt || skill.category === 'boss' ? 'text-[#3c2415]' : 'text-[#2c221e]'}`}>
-        <span className={`w-2 h-2 rounded-full inline-block shrink-0 ${skill.isSecretArt || isSpellCategory ? 'bg-[#3c2415]' : 'bg-[#7c6a58]'}`}></span>{showOffensiveIcon && <span className="fu-icon text-xl text-red-700 drop-shadow-sm mr-1 shrink-0" title="攻擊性咒語">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{normalizeSpellName(displaySkillName)}{skill.isSecretArt && (
+        <span className={`w-2 h-2 rounded-full inline-block shrink-0 ${skill.isSecretArt || isSpellCategory ? 'bg-[#3c2415]' : 'bg-[#7c6a58]'}`}></span>{showOffensiveIcon && <span className="fu-icon text-xl text-[#8c2d36] drop-shadow-sm mr-1 shrink-0" title="攻擊性咒語">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{normalizeSpellName(displaySkillName)}{skill.isSecretArt && (
           <span className="text-[10px] text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
         )}
         <CopyButton text={textToCopy} />
@@ -134,7 +134,7 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
         const isRanged = String(atk.distance).includes('遠程');
 
         return (
-          <div className={`bg-[#fffdf9] border-l-4 p-2.5 my-1 text-sm ml-2 md:ml-4 rounded-r border border-[#d6c7ab] ${skill.isSecretArt ? 'border-l-[#3c2415]' : skill.category === 'boss' ? 'border-l-[#3c2415]' : 'border-l-red-700'}`}>
+          <div className={`bg-[#fffdf9] border-l-4 p-2.5 my-1 text-sm ml-2 md:ml-4 rounded-r border border-[#d6c7ab] ${skill.isSecretArt ? 'border-l-[#3c2415]' : skill.category === 'boss' ? 'border-l-[#3c2415]' : 'border-l-[#8c2d36]'}`}>
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
               <span className="inline-flex items-center gap-1 text-[#3c2f21] bg-[#e8dec8] px-2 py-0.5 rounded text-xs font-bold shrink-0 shadow-2xs">
                 <span className="fu-icon text-sm leading-none translate-y-[0.5px]">{isRanged ? 'r' : 'm'}</span>
@@ -149,10 +149,10 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
                 )}
               </span>
               <span className="text-[#7c6a58] text-xs select-none">✦</span>
-              <span className="inline-flex items-center gap-1 font-bold text-red-900">
+              <span className="inline-flex items-center gap-1 font-bold text-[#8c2d36]">
                 <span>[HR + <span className="font-extrabold">{skill.attack.baseDmg + finalStats.Dmg}</span>]</span>
                 {DAMAGE_TYPES.includes(resolvedType) ? (
-                  <span className={`inline-flex items-center gap-0.5 ${typeInfo?.color || 'text-red-900'}`}>
+                  <span className={`inline-flex items-center gap-0.5 ${typeInfo?.color || 'text-[#8c2d36]'}`}>
                     {typeInfo?.fuIcon && (
                       <span className="fu-icon text-sm leading-none translate-y-[0.5px]">{typeInfo.fuIcon}</span>
                     )}

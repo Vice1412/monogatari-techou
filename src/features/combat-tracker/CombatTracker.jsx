@@ -239,7 +239,7 @@ export default function CombatTracker() {
 
           <button
             onClick={handleResetCombat}
-            className="p-2 text-[#6b5a4b] hover:text-rose-700 hover:bg-[#f4ebd9] rounded-lg transition-colors border border-transparent hover:border-[#d6c7ab]"
+            className="p-2 text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f4ebd9] rounded-lg transition-colors border border-transparent hover:border-[#d6c7ab]"
             title="清空重置戰場"
           >
             <RotateCcw className="w-4 h-4" />
@@ -303,7 +303,7 @@ export default function CombatTracker() {
                 setIsConnected(false);
                 setRoomCode('');
               }}
-              className="px-2.5 py-1 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] text-[#6b5a4b] hover:text-rose-700 hover:bg-rose-50 font-medium transition-colors"
+              className="px-2.5 py-1 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] font-medium transition-colors"
             >
               斷開連線
             </button>
@@ -315,7 +315,7 @@ export default function CombatTracker() {
       <div className="bg-[#fffdf9] rounded-xl border border-[#d6c7ab] p-4 space-y-3">
         <div className="flex items-center justify-between border-b border-[#d6c7ab]/80 pb-2">
           <div className="flex items-center gap-2">
-            <GiPocketWatch className="w-4 h-4 text-rose-700" />
+            <GiPocketWatch className="w-4 h-4 text-[#8c2d36]" />
             <h3 className="font-serif font-bold text-sm text-[#2c221e]">
               戰鬥場景命刻 (Scene Clocks - 危機倒數與環境進度)
             </h3>
@@ -345,7 +345,7 @@ export default function CombatTracker() {
               <button
                 type="button"
                 onClick={() => handleRemoveSceneClock(clk.id)}
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-[#7c6a58] hover:text-rose-700 p-1 transition-opacity"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-[#7c6a58] hover:text-[#76252d] p-1 transition-opacity"
                 title="刪除此命刻"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -401,7 +401,7 @@ export default function CombatTracker() {
               <h3 className="font-serif font-bold text-base text-[#a63d40]">
                 敵方怪物與 Boss
               </h3>
-              <JRPGBadge variant="rose" size="xs">
+              <JRPGBadge variant="slate" size="xs">
                 {enemyCombatants.length} 隻
               </JRPGBadge>
             </div>

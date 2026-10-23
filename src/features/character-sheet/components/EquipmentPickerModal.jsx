@@ -331,11 +331,11 @@ export function EquipmentPickerBody({
                     />
                     <span className="font-bold" style={{ color: theme.textDark }}>{w.name}</span>
                     {row.isShieldRow ? <JRPGBadge variant="cyan" size="xs">盾牌</JRPGBadge> : null}
-                    {w.martial ? <JRPGBadge variant="rose" size="xs">職業</JRPGBadge> : null}
+                    {w.martial ? <JRPGBadge variant="marker" size="xs">職業</JRPGBadge> : null}
                     {isCurrent ? <JRPGBadge variant={theme.badgeVariant} size="xs">已裝備</JRPGBadge> : null}
                   </div>
                   {blocked ? (
-                    <div className="flex items-center gap-1 text-[10px] text-rose-700 font-bold mt-0.5">
+                    <div className="flex items-center gap-1 text-[10px] text-[#8c2d36] font-bold mt-0.5">
                       <GiHazardSign size={11} />
                       {row.equippable.reason}
                     </div>
@@ -354,11 +354,11 @@ export function EquipmentPickerBody({
                   <span className="text-[11px] text-[#5b4a3a]">{w.category}</span>
                 </td>
                 <td className={cellText}>
-                  <span className={`font-mono font-bold ${overBudget ? 'text-rose-700' : ''}`}>
+                  <span className={`font-mono font-bold ${overBudget ? 'text-[#8c2d36]' : ''}`}>
                     {w.cost}z
                   </span>
                   {overBudget ? (
-                    <div className="text-[10px] text-rose-600">超出預算</div>
+                    <div className="text-[10px] text-[#8c2d36]">超出預算</div>
                   ) : null}
                 </td>
                 <td className={cellText}>
@@ -429,18 +429,18 @@ export function EquipmentPickerBody({
                       style={{ color: theme.accent }}
                     />
                     <span className="font-bold" style={{ color: theme.textDark }}>{row.shield.name}</span>
-                    {row.shield.martial ? <JRPGBadge variant="rose" size="xs">職業</JRPGBadge> : null}
+                    {row.shield.martial ? <JRPGBadge variant="marker" size="xs">職業</JRPGBadge> : null}
                     {isCurrent ? <JRPGBadge variant={theme.badgeVariant} size="xs">已裝備</JRPGBadge> : null}
                   </div>
                   {blocked ? (
-                    <div className="flex items-center gap-1 text-[10px] text-rose-700 font-bold mt-0.5">
+                    <div className="flex items-center gap-1 text-[10px] text-[#8c2d36] font-bold mt-0.5">
                       <GiHazardSign size={11} />
                       {row.equippable.reason}
                     </div>
                   ) : null}
                 </td>
                 <td className={cellText}>
-                  <span className={`font-mono font-bold ${overBudget ? 'text-rose-700' : ''}`}>{row.shield.cost}z</span>
+                  <span className={`font-mono font-bold ${overBudget ? 'text-[#8c2d36]' : ''}`}>{row.shield.cost}z</span>
                 </td>
                 <td className={cellText}>
                   <span className="font-mono font-black text-sm" style={{ color: theme.accent }}>{row.totalDef}</span>
@@ -509,23 +509,23 @@ export function EquipmentPickerBody({
                       style={{ color: theme.accent }}
                     />
                     <span className="font-bold" style={{ color: theme.textDark }}>{row.armor.name}</span>
-                    {row.armor.martial ? <JRPGBadge variant="rose" size="xs">職業</JRPGBadge> : null}
+                    {row.armor.martial ? <JRPGBadge variant="marker" size="xs">職業</JRPGBadge> : null}
                     {isCurrent ? <JRPGBadge variant={theme.badgeVariant} size="xs">已裝備</JRPGBadge> : null}
                   </div>
                   {blocked ? (
-                    <div className="flex items-center gap-1 text-[10px] text-rose-700 font-bold mt-0.5">
+                    <div className="flex items-center gap-1 text-[10px] text-[#8c2d36] font-bold mt-0.5">
                       <GiHazardSign size={11} />
                       {row.equippable.reason}
                     </div>
                   ) : null}
                 </td>
                 <td className={cellText}>
-                  <span className={`font-mono font-bold ${overBudget ? 'text-rose-700' : ''}`}>{row.armor.cost}z</span>
+                  <span className={`font-mono font-bold ${overBudget ? 'text-[#8c2d36]' : ''}`}>{row.armor.cost}z</span>
                 </td>
                 <td className={cellText}>
                   <span className="font-mono font-black text-sm" style={{ color: theme.accent }}>{row.outcome.def}</span>
                   {row.deltaDef !== 0 ? (
-                    <span className={`text-[10px] ml-1 font-mono ${row.deltaDef > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    <span className={`text-[10px] ml-1 font-mono ${row.deltaDef > 0 ? 'text-emerald-700' : 'text-[#8c2d36]'}`}>
                       {row.deltaDef > 0 ? `+${row.deltaDef}` : row.deltaDef}
                     </span>
                   ) : null}
@@ -533,7 +533,7 @@ export function EquipmentPickerBody({
                 <td className={cellText}>
                   <span className="font-mono font-black text-sm" style={{ color: theme.accent }}>{row.outcome.mdef}</span>
                   {row.deltaMdef !== 0 ? (
-                    <span className={`text-[10px] ml-1 font-mono ${row.deltaMdef > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    <span className={`text-[10px] ml-1 font-mono ${row.deltaMdef > 0 ? 'text-emerald-700' : 'text-[#8c2d36]'}`}>
                       {row.deltaMdef > 0 ? `+${row.deltaMdef}` : row.deltaMdef}
                     </span>
                   ) : null}

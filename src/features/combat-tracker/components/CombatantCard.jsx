@@ -143,7 +143,7 @@ export default function CombatantCard({
               Lv {combatant.level}
             </JRPGBadge>
             {combatant.rank && (
-              <JRPGBadge variant={combatant.rank === '冠位' ? 'rose' : combatant.rank === '精英' ? 'cyan' : 'slate'} size="xs">
+              <JRPGBadge variant={combatant.rank === '冠位' ? 'rank-top' : combatant.rank === '精英' ? 'rank-mid' : 'slate'} size="xs">
                 {combatant.rank}
               </JRPGBadge>
             )}

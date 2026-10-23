@@ -32,7 +32,7 @@ export default function EquipmentSlotCard({
       className="rounded-xl border p-3 flex flex-col sm:flex-row items-stretch gap-3 h-full transition-colors"
       style={{
         backgroundColor: theme.cardBg,
-        borderColor: warning ? '#fca5a5' : theme.border
+        borderColor: warning ? '#8c2d36' : theme.border
       }}
     >
       <div className="flex-1 min-w-0 flex flex-col gap-2">
@@ -68,7 +68,7 @@ export default function EquipmentSlotCard({
             />
             <span
               className="font-serif font-black text-sm truncate"
-              style={{ color: itemMissing ? '#b91c1c' : theme.textDark }}
+              style={{ color: itemMissing ? '#8c2d36' : theme.textDark }}
             >
               {itemName}
             </span>
@@ -79,7 +79,7 @@ export default function EquipmentSlotCard({
             ))}
           </div>
           {itemMissing && (
-            <p className="text-t12 text-rose-700 font-bold mt-0.5">資料表中查無此名稱</p>
+            <p className="text-t12 text-[#8c2d36] font-bold mt-0.5">資料表中查無此名稱</p>
           )}
         </div>
 
@@ -109,7 +109,7 @@ export default function EquipmentSlotCard({
         )}
 
         {warning && (
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-rose-700">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#8c2d36]">
             <GiHazardSign size={12} className="shrink-0" />
             <span>{warning}</span>
           </div>

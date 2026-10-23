@@ -151,7 +151,7 @@ export default function TinkererGadgetsQuickRef({
               <span className="px-1.5 py-0.5 rounded bg-cyan-50 border border-cyan-300 text-cyan-900 font-medium">
                 低溫【冰】
               </span>
-              <span className="px-1.5 py-0.5 rounded bg-red-50 border border-red-300 text-red-900 font-medium">
+              <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#8c2d36]/50 text-[#8c2d36] font-medium">
                 焦火【火】
               </span>
               <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] font-medium">
@@ -177,7 +177,7 @@ export default function TinkererGadgetsQuickRef({
           )}
           {infusion >= 3 && (
             <>
-              <span className="px-1.5 py-0.5 rounded bg-rose-50 border border-rose-300 text-rose-900 font-medium">
+              <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#8c2d36]/50 text-[#8c2d36] font-medium">
                 吸血【汲取】
               </span>
               <span className="px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-300 text-emerald-900 font-medium">
@@ -318,10 +318,10 @@ export default function TinkererGadgetsQuickRef({
                 {/* 最高灌注 (Tier 3) */}
                 {infusion >= 3 && (
                   <>
-                    <div className="p-2 rounded-lg bg-white/90 border border-rose-200/70 space-y-0.5">
-                      <div className="font-bold text-rose-950 flex items-center justify-between">
+                    <div className="p-2 rounded-lg bg-white/90 border border-[#8c2d36]/30 space-y-0.5">
+                      <div className="font-bold text-[#8c2d36] flex items-center justify-between">
                         <span>吸血（限單一目標）</span>
-                        <span className="text-[10px] font-mono text-rose-700 font-bold">2 IP</span>
+                        <span className="text-[10px] font-mono text-[#8c2d36] font-bold">2 IP</span>
                       </div>
                       <p className="text-t12 leading-relaxed text-[#3c2415]">
                         恢復相當於目標所受傷害總量一半的 HP 或 MP。

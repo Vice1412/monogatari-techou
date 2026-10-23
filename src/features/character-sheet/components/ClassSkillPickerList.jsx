@@ -151,7 +151,7 @@ export default function ClassSkillPickerList({
                 {row.orphan && (
                   <span
                     className="text-t12 font-bold px-1 py-0.5 rounded border"
-                    style={{ borderColor: '#fca5a5', color: '#b91c1c' }}
+                    style={{ borderColor: '#8c2d36', color: '#8c2d36' }}
                     title="這個技能名不在目前的職業技能表裡——可能是舊存檔留下的，點星星可以收回點數"
                   >
                     技能表查無此技能
@@ -190,7 +190,7 @@ export default function ClassSkillPickerList({
           </div>
         );
       })}
-      <p className="text-t12 font-mono pt-0.5" style={{ color: remaining === 0 ? '#b91c1c' : theme.textMuted }}>
+      <p className="text-t12 font-mono pt-0.5" style={{ color: remaining === 0 ? '#8c2d36' : theme.textMuted }}>
         可分配 {remaining} 點（已用 {spent} / {budget}）
       </p>
     </div>

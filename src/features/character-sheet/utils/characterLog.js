@@ -22,19 +22,19 @@
 
 /** 記錄種類：kind → 顯示與合併策略（封閉詞彙，未登記者一律拒收） */
 export const LOG_KINDS = Object.freeze({
-  creation: { label: '建卡', icon: 'GiScrollQuill', tone: 'amber', coalesce: 0 },
-  levelup: { label: '等級', icon: 'GiUpCard', tone: 'emerald', coalesce: 60000 },
-  skill: { label: '技能', icon: 'GiScrollUnfurled', tone: 'sky', coalesce: 60000 },
-  equipment: { label: '裝備', icon: 'GiChest', tone: 'amber', coalesce: 0 },
-  hp: { label: 'HP', icon: 'GiHealthNormal', tone: 'rose', coalesce: 120000 },
-  mp: { label: 'MP', icon: 'GiLightningTear', tone: 'sky', coalesce: 120000 },
-  ip: { label: 'IP', icon: 'GiBackpack', tone: 'amber', coalesce: 120000 },
-  fp: { label: '物語點', icon: 'GiSparkles', tone: 'violet', coalesce: 120000 },
-  exp: { label: 'EXP', icon: 'GiProgression', tone: 'emerald', coalesce: 120000 },
-  zenit: { label: '資金', icon: 'GiTwoCoins', tone: 'amber', coalesce: 120000 },
-  reward: { label: '團務獎勵', icon: 'GiTrophyCup', tone: 'violet', coalesce: 0 },
-  lock: { label: '定稿', icon: 'GiPadlock', tone: 'stone', coalesce: 0 },
-  note: { label: '記事', icon: 'GiQuillInk', tone: 'stone', coalesce: 0 }
+  creation: { label: '建卡', icon: 'GiScrollQuill', coalesce: 0 },
+  levelup: { label: '等級', icon: 'GiUpCard', coalesce: 60000 },
+  skill: { label: '技能', icon: 'GiScrollUnfurled', coalesce: 60000 },
+  equipment: { label: '裝備', icon: 'GiChest', coalesce: 0 },
+  hp: { label: 'HP', icon: 'GiHealthNormal', coalesce: 120000 },
+  mp: { label: 'MP', icon: 'GiLightningTear', coalesce: 120000 },
+  ip: { label: 'IP', icon: 'GiBackpack', coalesce: 120000 },
+  fp: { label: '物語點', icon: 'GiSparkles', coalesce: 120000 },
+  exp: { label: 'EXP', icon: 'GiProgression', coalesce: 120000 },
+  zenit: { label: '資金', icon: 'GiTwoCoins', coalesce: 120000 },
+  reward: { label: '團務獎勵', icon: 'GiTrophyCup', coalesce: 0 },
+  lock: { label: '定稿', icon: 'GiPadlock', coalesce: 0 },
+  note: { label: '記事', icon: 'GiQuillInk', coalesce: 0 }
 });
 
 /** 欄位顯示名（`formatChange` 用） */

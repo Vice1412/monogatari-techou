@@ -112,8 +112,8 @@ function SkillSuboptionBar({
               <span>已掌握 {selectedCount} / {maxQuota}（已完成構築）</span>
             </span>
           ) : isOver ? (
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 font-bold flex items-center gap-1">
-              <GiHazardSign className="w-3 h-3 text-rose-700" />
+            <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 font-bold flex items-center gap-1">
+              <GiHazardSign className="w-3 h-3 text-[#8c2d36]" />
               <span>已掌握 {selectedCount} / {maxQuota}（超出 {selectedCount - maxQuota} 個，請刪減）</span>
             </span>
           ) : (
@@ -127,9 +127,9 @@ function SkillSuboptionBar({
           {isMutantForms && isTheriomorphosisVariant(variantId) && (
             <span
               data-testid="therioform-variant-chip"
-              className="text-[11px] px-2 py-0.5 rounded-md bg-rose-100 text-rose-900 border border-rose-300 font-bold flex items-center gap-1"
+              className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 font-bold flex items-center gap-1"
             >
-              <GiDna2 className="w-3 h-3 text-rose-700" />
+              <GiDna2 className="w-3 h-3 text-[#8c2d36]" />
               <span>【公測】變體：消耗 {therioRules.hpCostLabel}・顯現至多 {therioCap} 個</span>
             </span>
           )}
@@ -196,7 +196,7 @@ function SkillSuboptionBar({
                   className="text-[11px] px-2 py-0.5 rounded-md bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#2c221e] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                 >
                   {isOffensiveSpell ? (
-                    <span className="fu-icon text-red-600 font-bold" title="攻擊性咒語">o</span>
+                    <span className="fu-icon text-[#8c2d36] font-bold" title="攻擊性咒語">o</span>
                   ) : (
                     <span className="text-[#3c2415]">✦</span>
                   )}
@@ -690,7 +690,7 @@ export default function ClassSkillCard({
             <button
               type="button"
               onClick={() => onRemoveClass(className)}
-              className="p-1.5 text-[#6b5a4b] hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 text-[#6b5a4b] hover:text-[#76252d] rounded-lg transition-colors cursor-pointer"
               title={`移除職業【${withEn(className)}】`}
             >
               <GiTrashCan className="w-4 h-4" />

@@ -787,7 +787,7 @@ export default function CharacterPlayHUD({
                   Lv {getCharacterLevel(character)}
                 </JRPGBadge>
                 {isCrisis && (
-                  <JRPGBadge variant="rose" size="xs" className="flex items-center gap-1 font-mono">
+                  <JRPGBadge variant="danger" size="xs" className="flex items-center gap-1 font-mono">
                     <FUIcon name="crisis" className="text-xs leading-none" />
                     <span>CRISIS 危機</span>
                   </JRPGBadge>

@@ -314,7 +314,7 @@ export default function WayfarerCompanionModal({
 
         {/* 錯誤警示 */}
         {errorMessage && (
-          <div className="px-5 py-2 bg-red-50 border-b border-red-200 text-red-700 flex items-center gap-2">
+          <div className="px-5 py-2 bg-[#f9f5eb] border-b border-[#8c2d36]/30 text-[#8c2d36] flex items-center gap-2">
             <GiHazardSign className="text-sm shrink-0" />
             <span>{errorMessage}</span>
           </div>
@@ -354,7 +354,7 @@ export default function WayfarerCompanionModal({
                 <span>2. 官方 NPC 四大體質方案（Core p. 302）</span>
               </label>
               {!isAttributesValid && (
-                <span className="text-[11px] font-bold text-red-600">
+                <span className="text-[11px] font-bold text-[#8c2d36]">
                   屬性骰分配與方案不合！
                 </span>
               )}
@@ -444,7 +444,7 @@ export default function WayfarerCompanionModal({
             </div>
             <div>
               <span className="text-[10px] text-[#6b5a4b] block">危機值</span>
-              <strong className="text-sm font-mono text-red-600 font-black">{crisisHp}</strong>
+              <strong className="text-sm font-mono text-[#8c2d36] font-black">{crisisHp}</strong>
               <span className="text-[9px] text-[#7c6a58] block font-mono">≤{crisisHp}</span>
             </div>
             <div>
@@ -499,7 +499,7 @@ export default function WayfarerCompanionModal({
                         <button
                           type="button"
                           onClick={() => handleDeleteAttack(idx)}
-                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 transition"
+                          className="p-1 rounded text-[#8c2d36] hover:text-[#76252d] hover:bg-[#f9f5eb] transition"
                           title="刪除此攻擊"
                         >
                           <GiTrashCan className="text-xs" />
@@ -675,7 +675,7 @@ export default function WayfarerCompanionModal({
                             type="checkbox"
                             checked={sp.isOffensive}
                             onChange={e => handleUpdateSpell(idx, { isOffensive: e.target.checked })}
-                            className="rounded border-[#d6c7ab] text-red-600 focus:ring-red-500"
+                            className="rounded border-[#d6c7ab] text-[#8c2d36] focus:ring-[#8c2d36]"
                           />
                           <span className="text-[#6b5a4b] font-bold">攻擊性 (o)</span>
                         </label>
@@ -683,7 +683,7 @@ export default function WayfarerCompanionModal({
                         <button
                           type="button"
                           onClick={() => handleDeleteSpell(idx)}
-                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 transition shrink-0"
+                          className="p-1 rounded text-[#8c2d36] hover:text-[#76252d] hover:bg-[#f9f5eb] transition shrink-0"
                           title="刪除此咒語"
                         >
                           <GiTrashCan className="text-sm" />
@@ -760,7 +760,7 @@ export default function WayfarerCompanionModal({
                         <button
                           type="button"
                           onClick={() => handleDeleteOtherAction(idx)}
-                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 transition shrink-0"
+                          className="p-1 rounded text-[#8c2d36] hover:text-[#76252d] hover:bg-[#f9f5eb] transition shrink-0"
                           title="刪除此行動"
                         >
                           <GiTrashCan className="text-sm" />
@@ -801,7 +801,7 @@ export default function WayfarerCompanionModal({
                         <button
                           type="button"
                           onClick={() => handleDeleteSpecialRule(idx)}
-                          className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 transition shrink-0"
+                          className="p-1 rounded text-[#8c2d36] hover:text-[#76252d] hover:bg-[#f9f5eb] transition shrink-0"
                           title="刪除此規則"
                         >
                           <GiTrashCan className="text-sm" />

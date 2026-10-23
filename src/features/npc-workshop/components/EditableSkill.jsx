@@ -252,18 +252,18 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
 
   return (
     <div className={`group relative border-l-4 ${skill.source === 'levelPassive' ? 'border-[#3c2415] bg-[#f9f5eb]' : 'border-[#7c6a58] bg-[#fffdf9]'} hover:bg-[#fbf7ee] transition-colors rounded-r py-2.5 pl-3 mb-3 border border-[#d6c7ab] ${skill.isSecretArt ? 'ring-1 ring-[#3c2415]/30 bg-[#fffdf9]' : ''}`}>
-      <div className="absolute right-1 top-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#fffdf9] p-1 rounded shadow border border-[#d6c7ab] z-10"><button onClick={() => setIsEditing(true)} className="p-1 hover:text-[#3c2415]" title="編輯"><Edit3 size={14} /></button>{!isDefault && <button onClick={() => onDelete(skill.id)} className="p-1 hover:text-red-700" title="刪除"><Trash2 size={14} /></button>}</div>
+      <div className="absolute right-1 top-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#fffdf9] p-1 rounded shadow border border-[#d6c7ab] z-10"><button onClick={() => setIsEditing(true)} className="p-1 hover:text-[#3c2415]" title="編輯"><Edit3 size={14} /></button>{!isDefault && <button onClick={() => onDelete(skill.id)} className="p-1 hover:text-[#76252d]" title="刪除"><Trash2 size={14} /></button>}</div>
       <div className="font-bold text-[15px] mb-1 flex items-center gap-2 text-[#3c2415]"><span className="text-[#6b5a4b] text-xs bg-[#f4ebd9] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{CATEGORIES.find(c => c.id === skill.category)?.name || '未分類'}</span>{normalizeSpellName(skill.customName || skill.originalName)}
           {skill.isSecretArt && (
             <span className="text-[10px] text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
-          )}{isOffensiveSpell(skill.customName || skill.originalName) && <span className="fu-icon text-red-700 drop- text-lg ml-0.5">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{!isDefault && <span className="text-[10px] text-red-700 border border-red-300 bg-red-50 px-1 rounded">自訂</span>}{skill.source === 'levelPassive' && <span className="text-[10px] text-[#3c2415] border border-[#d6c7ab] bg-[#f4ebd9] px-1 rounded"><Lock size={10} className="inline mr-1 mb-0.5" />等級解鎖</span>}</div>
+          )}{isOffensiveSpell(skill.customName || skill.originalName) && <span className="fu-icon text-[#8c2d36] drop- text-lg ml-0.5">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{!isDefault && <span className="text-[10px] text-[#8c2d36] border border-[#8c2d36]/50 bg-[#f9f5eb] px-1 rounded">自訂</span>}{skill.source === 'levelPassive' && <span className="text-[10px] text-[#3c2415] border border-[#d6c7ab] bg-[#f4ebd9] px-1 rounded"><Lock size={10} className="inline mr-1 mb-0.5" />等級解鎖</span>}</div>
       {skill.selectionsConfig && (
-        <div className={`mt-2 flex flex-col gap-2 p-2 bg-[#f8f3e6] border border-[#e2d6c1] rounded text-xs border-l-2 ${skill.source === 'levelPassive' ? 'border-[#3c2415]' : 'border-red-600'} mb-2`}>
+        <div className={`mt-2 flex flex-col gap-2 p-2 bg-[#f8f3e6] border border-[#e2d6c1] rounded text-xs border-l-2 ${skill.source === 'levelPassive' ? 'border-[#3c2415]' : 'border-[#8c2d36]'} mb-2`}>
           {skill.selectionsConfig
             .filter(cfg => (!cfg.showIfKey || (skill.selections?.[cfg.showIfKey] || "").includes(cfg.showIfValue)) && (!cfg.reqLevel || npcLevel >= cfg.reqLevel))
             .map(cfg => (
               <label key={cfg.key} className={`flex items-center gap-2 font-bold p-1.5 rounded border ${cfg.isLinked ? 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ml-4 -mt-1' : 'text-[#3c2f21] border-transparent'}`}>{cfg.label}:
-                <select className={`bg-[#fffdf9] text-[#2c221e] border border-[#d6c7ab] p-1 rounded outline-none max-w-[200px] truncate transition-colors ${cfg.isLinked ? 'focus:border-[#3c2415]' : skill.source === 'levelPassive' ? 'focus:border-[#3c2415]' : 'focus:border-red-600'}`} value={skill.selections?.[cfg.key] || ''} onChange={(e) => onUpdateSelection(skill.id, cfg.key, e.target.value)}>
+                <select className={`bg-[#fffdf9] text-[#2c221e] border border-[#d6c7ab] p-1 rounded outline-none max-w-[200px] truncate transition-colors ${cfg.isLinked ? 'focus:border-[#3c2415]' : skill.source === 'levelPassive' ? 'focus:border-[#3c2415]' : 'focus:border-[#8c2d36]'}`} value={skill.selections?.[cfg.key] || ''} onChange={(e) => onUpdateSelection(skill.id, cfg.key, e.target.value)}>
                   <option value="">選擇</option>{cfg.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               </label>
@@ -315,10 +315,10 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                       {renderFormattedText(atk.formula, skill.selections, npcLevel, partyLevel)}
                     </span>
                     <span className="text-[#7c6a58] text-xs select-none">✦</span>
-                    <span className="inline-flex items-center gap-1 font-bold text-red-800">
+                    <span className="inline-flex items-center gap-1 font-bold text-[#8c2d36]">
                       <span>[HR + {skill.attack.baseDmg}]</span>
                       {DAMAGE_TYPES.includes(resolvedType) ? (
-                        <span className={`inline-flex items-center gap-0.5 ${typeInfo?.color || 'text-red-800'}`}>
+                        <span className={`inline-flex items-center gap-0.5 ${typeInfo?.color || 'text-[#8c2d36]'}`}>
                           {typeInfo?.fuIcon && (
                             <span className="fu-icon text-sm leading-none translate-y-[0.5px]">{typeInfo.fuIcon}</span>
                           )}

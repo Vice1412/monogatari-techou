@@ -115,8 +115,8 @@ const SUIT_ICON = {
  * 所以即使全站是羊皮紙色調也保留（參考 888poker 的 hand rankings 表）。
  */
 const SUIT_TEXT = {
-  diamond: 'text-red-600',
-  heart: 'text-red-600',
+  diamond: 'text-[#8c2d36]',
+  heart: 'text-[#8c2d36]',
   club: 'text-[#2c221e]',
   spade: 'text-[#2c221e]'
 };
@@ -522,7 +522,7 @@ export default function AceOfCardsTable({
       neutral: `bg-white border ${T.border} ${T.text}`,
       warn: 'bg-[#f9f5eb] border-[#d6c7ab] text-[#3c2415]',
       ok: 'bg-emerald-50 border-emerald-300 text-emerald-900',
-      bad: 'bg-red-50 border-red-300 text-red-900'
+      bad: 'bg-[#f9f5eb] border-[#8c2d36]/50 text-[#8c2d36]'
     };
     return <span className={`px-2 py-1 rounded-lg border text-xs font-bold ${tones[tone]}`}>{text}</span>;
   };
@@ -558,7 +558,7 @@ export default function AceOfCardsTable({
 
       <div className="p-3.5 space-y-3">
         {/* 花色對應 */}
-        <div className={`p-2.5 rounded-xl ${suitOk ? T.bg : 'bg-red-50'} border ${suitOk ? T.border : 'border-red-300'}`}>
+        <div className={`p-2.5 rounded-xl ${suitOk ? T.bg : 'bg-[#f9f5eb]'} border ${suitOk ? T.border : 'border-[#8c2d36]/50'}`}>
           <SectionTitle
             icon={GiSpades}
             right={
@@ -566,7 +566,7 @@ export default function AceOfCardsTable({
                 <button
                   type="button"
                   onClick={applyRecommendedSuits}
-                  className="px-2 py-0.5 rounded-lg border border-red-300 bg-white text-[10px] font-bold text-red-800 cursor-pointer"
+                  className="px-2 py-0.5 rounded-lg border border-[#8c2d36]/50 bg-white text-[10px] font-bold text-[#8c2d36] cursor-pointer"
                 >
                   套用建議對應
                 </button>
@@ -596,7 +596,7 @@ export default function AceOfCardsTable({
             })}
           </div>
           {!suitOk && (
-            <p className="mt-1.5 text-t12 font-bold text-red-800 flex items-center gap-1">
+            <p className="mt-1.5 text-t12 font-bold text-[#8c2d36] flex items-center gap-1">
               <GiHazardSign className="w-3 h-3 shrink-0" />
               <span>有花色對應到同一種傷害類型——原書要求四個花色各不相同</span>
             </p>

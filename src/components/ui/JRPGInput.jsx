@@ -36,7 +36,7 @@ export function JRPGInput({
               "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3.5 py-2 text-sm text-[#2c221e] placeholder-[#7c6a58] outline-none transition-all duration-150",
               "focus:border-[#3c2415] focus:ring-1 focus:ring-[#3c2415]/25 focus:bg-white",
               Icon && "pl-9",
-              error && "border-red-500 focus:border-red-600 focus:ring-red-500/20",
+              error && "border-[#8c2d36] focus:border-[#8c2d36] focus:ring-[#8c2d36]/20",
               type === 'number' && "font-mono font-bold",
               className
             )
@@ -50,7 +50,7 @@ export function JRPGInput({
           {...props}
         />
       </div>
-      {error && <span className="text-xs text-red-600 font-bold">{error}</span>}
+      {error && <span className="text-xs text-[#8c2d36] font-bold">{error}</span>}
     </div>
   );
 }

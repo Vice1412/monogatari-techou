@@ -55,8 +55,8 @@ export default function CharacterCard({
 
   return (
     <div
-      className={`bg-[#fffdf9] rounded-xl border-2 shadow-md overflow-hidden text-[#2c221e] flex flex-col relative transition-colors duration-200 ${isCrisis ? 'crisis-pulse-active border-red-500' : ''} ${className}`}
-      style={{ borderColor: isCrisis ? '#ef4444' : theme.border }}
+      className={`bg-[#fffdf9] rounded-xl border-2 shadow-md overflow-hidden text-[#2c221e] flex flex-col relative transition-colors duration-200 ${isCrisis ? 'crisis-pulse-active border-[#8c2d36]' : ''} ${className}`}
+      style={{ borderColor: isCrisis ? '#8c2d36' : theme.border }}
     >
       {/* Top Banner（第十五輪：實心 accent，不再是漸層） */}
       <div className="h-1.5 w-full" style={{ backgroundColor: theme.accent }} />
@@ -106,7 +106,7 @@ export default function CharacterCard({
               Lv {getCharacterLevel(character)}
             </JRPGBadge>
             {isCrisis && (
-              <JRPGBadge variant="rose" size="xs" className="flex items-center gap-1">
+              <JRPGBadge variant="danger" size="xs" className="flex items-center gap-1">
                 <FUIcon name="crisis" className="text-sm leading-none" />
                 <span>CRISIS 危機狀態</span>
               </JRPGBadge>
@@ -233,45 +233,45 @@ export default function CharacterCard({
       <div className="space-y-2 p-3.5 border-b transition-colors duration-200" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {/* HP */}
-          <div className="bg-[#fee2e2] rounded-lg p-2.5 border border-[#fca5a5]">
-            <div className="text-[10px] text-red-800 font-mono font-bold flex items-center gap-1">
-              <GiHealthNormal className="w-3.5 h-3.5 text-red-600" /> HP 生命值
+          <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
+            <div className="text-[10px] text-[#3c2415] font-mono font-bold flex items-center gap-1">
+              <GiHealthNormal className="w-3.5 h-3.5 text-[#6b5a4b]" /> HP 生命值
             </div>
             <button
               type="button"
               onClick={() => toggleFormula('hp')}
               title="點擊查看公式"
-              className="text-base font-mono font-black text-red-900 mt-0.5 hover:underline decoration-dotted underline-offset-2 cursor-pointer"
+              className="text-base font-mono font-black text-[#2c221e] mt-0.5 hover:underline decoration-dotted underline-offset-2 cursor-pointer"
             >
               {statsUnset ? '—' : <>{curHp} <span className="text-xs text-[#6b5a4b] font-normal">/ {stats.maxHp}</span></>}
             </button>
           </div>
 
           {/* MP */}
-          <div className="bg-[#dbeafe] rounded-lg p-2.5 border border-[#93c5fd]">
-            <div className="text-[10px] text-blue-800 font-mono font-bold flex items-center gap-1">
-              <GiLightningTear className="w-3.5 h-3.5 text-blue-600" /> MP 魔力值
+          <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
+            <div className="text-[10px] text-[#3c2415] font-mono font-bold flex items-center gap-1">
+              <GiLightningTear className="w-3.5 h-3.5 text-[#6b5a4b]" /> MP 魔力值
             </div>
             <button
               type="button"
               onClick={() => toggleFormula('mp')}
               title="點擊查看公式"
-              className="text-base font-mono font-black text-blue-900 mt-0.5 hover:underline decoration-dotted underline-offset-2 cursor-pointer"
+              className="text-base font-mono font-black text-[#2c221e] mt-0.5 hover:underline decoration-dotted underline-offset-2 cursor-pointer"
             >
               {statsUnset ? '—' : <>{curMp} <span className="text-xs text-[#6b5a4b] font-normal">/ {stats.maxMp}</span></>}
             </button>
           </div>
 
           {/* IP */}
-          <div className="bg-[#d1fae5] rounded-lg p-2.5 border border-[#6ee7b7]">
-            <div className="text-[10px] text-emerald-800 font-mono font-bold flex items-center gap-1">
-              <GiBackpack className="w-3.5 h-3.5 text-emerald-600" /> IP 庫存點
+          <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
+            <div className="text-[10px] text-[#3c2415] font-mono font-bold flex items-center gap-1">
+              <GiBackpack className="w-3.5 h-3.5 text-[#6b5a4b]" /> IP 庫存點
             </div>
             <button
               type="button"
               onClick={() => toggleFormula('ip')}
               title="點擊查看公式"
-              className="text-base font-mono font-black text-emerald-950 mt-0.5 hover:underline decoration-dotted underline-offset-2 cursor-pointer"
+              className="text-base font-mono font-black text-[#2c221e] mt-0.5 hover:underline decoration-dotted underline-offset-2 cursor-pointer"
             >
               {character.currentIp ?? stats.maxIp} <span className="text-xs text-[#6b5a4b] font-normal">/ {stats.maxIp}</span>
             </button>
@@ -341,8 +341,8 @@ export default function CharacterCard({
               title="點擊查看公式"
               className="flex items-center gap-1 hover:underline decoration-dotted underline-offset-2 cursor-pointer"
             >
-              <GiShield className="w-3.5 h-3.5 text-blue-800" />
-              <span>魔防: <strong className="text-blue-900 font-bold">{statsUnset ? '—' : stats.mdef}</strong></span>
+              <GiShield className="w-3.5 h-3.5 text-[#7c6a58]" />
+              <span>魔防: <strong className="text-[#3c2415] font-bold">{statsUnset ? '—' : stats.mdef}</strong></span>
             </button>
             <button
               type="button"

@@ -451,7 +451,7 @@ export default function TinkererGadgetsModal({
                                 檢定: {node.dice}
                               </span>
                               {canRevoke && (
-                                <span className="text-rose-600 hover:underline">
+                                <span className="text-[#8c2d36] hover:underline">
                                   點擊取消分配
                                 </span>
                               )}

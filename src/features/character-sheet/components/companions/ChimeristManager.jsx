@@ -211,7 +211,7 @@ export default function ChimeristManager({
           <div>
             <h3 className="text-sm font-bold text-emerald-950 flex items-center gap-2">
               <span>嵌合魔典與怪物咒語記憶本</span>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${ spells.length >= maxSlots ? 'bg-red-100 text-red-800 border-red-300' : 'bg-emerald-100 text-emerald-800 border-emerald-300 ' }`}>
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${ spells.length >= maxSlots ? 'bg-[#f4ebd9] text-[#8c2d36] border-[#8c2d36]/50' : 'bg-emerald-100 text-emerald-800 border-emerald-300 ' }`}>
                 記憶容量: {spells.length} / {maxSlots} 格
               </span>
             </h3>
@@ -285,7 +285,7 @@ export default function ChimeristManager({
             <div className="flex items-center justify-between flex-wrap gap-2 border-b border-[#eee5d8] pb-1.5">
               <div className="flex items-center gap-2">
                 {sp.isOffensive ? (
-                  <span className="fu-icon text-red-600 font-bold" title="攻擊性咒語">
+                  <span className="fu-icon text-[#8c2d36] font-bold" title="攻擊性咒語">
                     o
                   </span>
                 ) : (
@@ -312,7 +312,7 @@ export default function ChimeristManager({
                 <button
                   type="button"
                   onClick={() => handleDeleteSpell(sp.id)}
-                  className="p-1 rounded text-[#7c6a58] hover:text-red-600 transition-colors"
+                  className="p-1 rounded text-[#7c6a58] hover:text-[#76252d] transition-colors"
                   title="遺忘咒語"
                 >
                   <GiCancel className="text-sm" />

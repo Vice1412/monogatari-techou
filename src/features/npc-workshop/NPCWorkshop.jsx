@@ -2106,8 +2106,8 @@ export default function App({
                 <div className="flex flex-col items-center">
                   <span className="text-xs text-[#7c6a58] font-bold mb-1 tracking-widest">HP</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-red-700 drop-shadow-sm">{finalStats.HP}</span>
-                    <span className="text-xs font-bold text-red-800/90 bg-red-100/80 border border-red-300/80 px-1.5 py-0.5 rounded flex items-center gap-1" title={`危機生命值 (Crisis Threshold ≤ ${Math.floor(finalStats.HP / 2)})`}>
+                    <span className="text-2xl font-bold text-[#8c2d36] drop-shadow-sm">{finalStats.HP}</span>
+                    <span className="text-xs font-bold text-[#8c2d36] bg-[#f4ebd9] border border-[#8c2d36]/50 px-1.5 py-0.5 rounded flex items-center gap-1" title={`危機生命值 (Crisis Threshold ≤ ${Math.floor(finalStats.HP / 2)})`}>
                       <span className="fu-icon text-xs leading-none translate-y-[1.5px]">w</span> {Math.floor(finalStats.HP / 2)}
                     </span>
                   </div>
@@ -2295,7 +2295,7 @@ export default function App({
                               <div key={i} className={`bg-[#f9f5eb] border-l-4 p-3 text-sm break-inside-avoid rounded-r-md border border-[#e2d6c1] ${isSecretArtForSpell ? 'border-l-[#3c2415] bg-[#fffdf9] ring-1 ring-[#d6c7ab]' : 'border-l-[#7c6a58]'}`}>
                                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e2d6c1] pb-2 mb-2">
                                   <span className="font-bold text-[16px] flex flex-wrap items-center gap-1 text-[#3c2415]">
-                                    <span className="fu-icon text-xl drop-shadow-sm shrink-0">{CATEGORIES.find(c => c.id === 'spell')?.fuIcon || 'c'}</span> {isOffensive && <span className="fu-icon text-xl text-red-700 drop-shadow-sm mr-0.5 shrink-0" title="攻擊性咒語">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}<span className={selections.customName !== undefined ? 'text-[#3c2415] font-bold' : ''}>{renderFormattedText(normalizeSpellName(effectiveName), selections, state.level, state.partyLevel)}</span>
+                                    <span className="fu-icon text-xl drop-shadow-sm shrink-0">{CATEGORIES.find(c => c.id === 'spell')?.fuIcon || 'c'}</span> {isOffensive && <span className="fu-icon text-xl text-[#8c2d36] drop-shadow-sm mr-0.5 shrink-0" title="攻擊性咒語">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}<span className={selections.customName !== undefined ? 'text-[#3c2415] font-bold' : ''}>{renderFormattedText(normalizeSpellName(effectiveName), selections, state.level, state.partyLevel)}</span>
                                     {isSecretArtForSpell && (
                                       <span className="text-[10px] text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
                                     )}
@@ -2649,7 +2649,7 @@ export default function App({
                   </div>
                   <div className="flex justify-between items-center bg-[#f8f3e6] border border-[#e2d6c1] p-3 rounded-lg">
                     <div className="flex gap-4 md:gap-8 px-2 md:px-4">
-                      <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">HP</span><span className="text-sm md:text-base font-bold text-red-700 leading-none mt-1">{finalStats.HP}</span></div>
+                      <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">HP</span><span className="text-sm md:text-base font-bold text-[#8c2d36] leading-none mt-1">{finalStats.HP}</span></div>
                       <div className="w-px bg-[#d6c7ab]"></div>
                       <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">MP</span><span className="text-sm md:text-base font-bold text-blue-700 leading-none mt-1">{finalStats.MP}</span></div>
                     </div>
@@ -2892,14 +2892,14 @@ export default function App({
                         )}
 
                         {sp.optionalDrawback && (
-                          <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
-                            <label className="text-[11px] font-bold text-red-800 tracking-wider flex items-center gap-1.5 uppercase mb-3 text-center">
+                          <div className="bg-[#f9f5eb] border border-[#8c2d36]/30 p-4 rounded-lg">
+                            <label className="text-[11px] font-bold text-[#8c2d36] tracking-wider flex items-center gap-1.5 uppercase mb-3 text-center">
                               △ 額外代償選項
                             </label>
                             <p className="text-xs text-[#574c43] mb-3 text-center italic">{sp.optionalDrawback.desc}</p>
                             <div className="flex justify-center">
                               <select
-                                className="bg-[#fffdf9] border border-red-300 p-2 rounded text-sm text-red-900 focus:border-red-600 outline-none min-w-[200px] font-bold"
+                                className="bg-[#fffdf9] border border-[#8c2d36]/50 p-2 rounded text-sm text-[#8c2d36] focus:border-[#8c2d36] outline-none min-w-[200px] font-bold"
                                 value={state.speciesConfig[sp.optionalDrawback.selectionConfig.key] || '無'}
                                 onChange={(e) => handleSpeciesConfigChange(sp.optionalDrawback.selectionConfig.key, e.target.value)}
                               >
@@ -3813,10 +3813,10 @@ export default function App({
                     </div>
                   )}
                   {hasDuplicateBossSubCategory && (
-                    <div className="bg-red-50 border border-red-300 p-4 rounded-xl flex gap-3 items-start relative overflow-hidden">
-                      <AlertTriangle className="text-red-700 shrink-0 mt-0.5 relative z-10" size={20} />
+                    <div className="bg-[#f9f5eb] border border-[#8c2d36]/50 p-4 rounded-xl flex gap-3 items-start relative overflow-hidden">
+                      <AlertTriangle className="text-[#8c2d36] shrink-0 mt-0.5 relative z-10" size={20} />
                       <div className="relative z-10">
-                        <h4 className="text-sm font-bold text-red-900">技能列表重複</h4>
+                        <h4 className="text-sm font-bold text-[#8c2d36]">技能列表重複</h4>
                         <p className="text-xs text-[#574c43] leading-relaxed mt-1">手冊建議：應避免給予 Boss 來自同一個技能列表（子類別）的多個技能。請嘗試選擇不同類型的能力以增加戰術多樣性。</p>
                       </div>
                     </div>
@@ -3938,8 +3938,8 @@ export default function App({
       case 6:
         return (
           <div className="space-y-6 animate-in fade-in duration-300 max-w-4xl pb-10">
-            <div className="bg-[#f5efdf] border-l-4 border-red-700 p-4 rounded text-[#2c221e] border border-[#d6c7ab]">
-              <h3 className="font-bold mb-1 text-red-900">步驟 6：配置負面技能</h3>
+            <div className="bg-[#f5efdf] border-l-4 border-[#8c2d36] p-4 rounded text-[#2c221e] border border-[#d6c7ab]">
+              <h3 className="font-bold mb-1 text-[#8c2d36]">步驟 6：配置負面技能</h3>
               <p className="text-sm text-[#574c43]">為你的 NPC 配備一個顯著的弱點以換取額外的額度。</p>
               {/* 「換取額度」原本兌現時沒有任何回饋——額度只反映在左側面板的數字上，
                   而「(包含負面技能獎勵 +N)」那行寫在步驟 4。所以在這裡把兌現結果說出來。 */}
@@ -4008,7 +4008,7 @@ export default function App({
                         setState(p => ({ ...p, avatarBase64: null, avatarScale: 1, avatarFit: 'cover' }));
                         showToast("已清除頭像圖片");
                       }}
-                      className="text-xs text-red-700 hover:text-red-900 flex items-center gap-1 transition-colors font-bold"
+                      className="text-xs text-[#8c2d36] hover:text-[#76252d] flex items-center gap-1 transition-colors font-bold"
                     >
                       <Trash2 size={13} /> 移除圖片
                     </button>
@@ -4083,7 +4083,7 @@ export default function App({
                                 setState(p => ({ ...p, avatarBase64: null, avatarRawBase64: null }));
                                 showToast("已清除頭像圖片");
                               }}
-                              className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold rounded transition"
+                              className="px-3 py-2 bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/30 text-xs font-bold rounded transition"
                             >
                               清除圖片
                             </button>
@@ -4250,7 +4250,7 @@ export default function App({
       {toast && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-5 fade-in duration-300">
           <div className={`backdrop-blur px-6 py-3 rounded-full shadow-md font-bold flex items-center gap-2 border ${
-            toast.type === 'error' ? 'bg-red-50 text-red-900 border-red-300' :
+            toast.type === 'error' ? 'bg-[#f9f5eb] text-[#8c2d36] border-[#8c2d36]/50' :
             toast.type === 'warning' ? 'bg-[#f9f5eb] text-[#3c2415] border-[#d6c7ab]' :
             'bg-[#fffdf9] text-[#3c2415] border-[#d6c7ab]'
           }`}>
@@ -4509,7 +4509,7 @@ export default function App({
                         <button onClick={() => { setState(npc); setActiveMainTab('build'); }} className="flex-1 bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-[#d6c7ab]"><Edit3 size={14} /> 編輯</button>
                         <button onClick={() => { setState(npc); setActiveMainTab('preview'); }} className="flex-1 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-[#d6c7ab]"><Eye size={14} /> 預覽</button>
                         <button onClick={() => handleExportJSON(npc)} className="bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] px-3 py-2 rounded transition-colors border border-[#d6c7ab] flex justify-center items-center" title={`匯出「${npc.name || "未知實體"}」的 JSON 存檔`} aria-label={`匯出「${npc.name || "未知實體"}」的 JSON 存檔`}><Download size={16} /></button>
-                <button onClick={() => handleSendToCombat(npc)} className="bg-rose-100 hover:bg-rose-200 text-rose-900 px-3 py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-rose-300" title="推入戰鬥房間"><GiCrossedSwords size={14} /> 入戰</button>
+                <button onClick={() => handleSendToCombat(npc)} className="bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c2d36] px-3 py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-[#8c2d36]/50" title="推入戰鬥房間"><GiCrossedSwords size={14} /> 入戰</button>
                         <button onClick={() => {
                           if (window.confirm(`確定要刪除「${npc.name || "未知實體"}」嗎？此操作無法復原。`)) {
                             setLibrary(prev => {
@@ -4522,7 +4522,7 @@ export default function App({
                             });
                             showToast(`已刪除「${npc.name || "未知實體"}」`);
                           }
-                        }} title={`刪除「${npc.name || "未知實體"}」`} aria-label={`刪除「${npc.name || "未知實體"}」`} className="bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded transition-colors border border-red-200"><Trash2 size={16} /></button>
+                        }} title={`刪除「${npc.name || "未知實體"}」`} aria-label={`刪除「${npc.name || "未知實體"}」`} className="bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#8c2d36] px-3 py-2 rounded transition-colors border border-[#8c2d36]/30"><Trash2 size={16} /></button>
                       </div>
                     </div>
                   </div>
@@ -4544,7 +4544,7 @@ export default function App({
                 onClick={() => { setCurrentStep(4); setStep4SubTab('skills'); }}
                 className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all hover:scale-105 ${
                   usedRoleSkills > maxRoleSkills
-                    ? 'bg-red-100 text-red-800 border-red-400'
+                    ? 'bg-[#f4ebd9] text-[#8c2d36] border-[#8c2d36]'
                     : usedRoleSkills >= maxRoleSkills
                     ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
                     : 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]'
@@ -4563,7 +4563,7 @@ export default function App({
                   onClick={() => { setCurrentStep(4); setStep4SubTab('skills'); }}
                   className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all hover:scale-105 ${
                     usedSpells > maxSpells
-                      ? 'bg-red-100 text-red-800 border-red-400'
+                      ? 'bg-[#f4ebd9] text-[#8c2d36] border-[#8c2d36]'
                       : usedSpells >= maxSpells
                       ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
                       : 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]'

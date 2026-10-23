@@ -676,7 +676,7 @@ export default function CharacterEditor({
     mainHandBadges.push({ label: mainWeapon.category, variant: theme.badgeVariant });
   }
   if (mainTakesBothHands) mainHandBadges.push({ label: '雙手', variant: 'zinc' });
-  if (mainWeapon?.martial || mainShield?.martial) mainHandBadges.push({ label: '職業', variant: 'rose' });
+  if (mainWeapon?.martial || mainShield?.martial) mainHandBadges.push({ label: '職業', variant: 'marker' });
 
   const offHandMetrics = offShield
     ? [
@@ -838,7 +838,7 @@ export default function CharacterEditor({
               onClick={locked ? handleUnlock : handleLock}
               disabled={!locked && !canLock}
               className={`w-full text-[11px] font-bold px-2.5 py-2 rounded-lg border transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
-                locked ? 'hover:bg-rose-50' : 'hover:scale-101'
+                locked ? 'hover:bg-[#f9f5eb]' : 'hover:scale-101'
               }`}
               style={{
                 backgroundColor: locked ? theme.cardBg : (canLock ? '#059669' : theme.subpanelBg),
@@ -904,7 +904,7 @@ export default function CharacterEditor({
 
                   {/* 狀態：完成打勾、待處理黃點、有問題紅點 */}
                   {step.status === 'error' ? (
-                    <span className="w-2 h-2 rounded-full bg-red-500 ring-2 ring-red-200 shrink-0" title="有未符合規則的項目" />
+                    <span className="w-2 h-2 rounded-full bg-[#8c2d36] ring-2 ring-[#8c2d36]/30 shrink-0" title="有未符合規則的項目" />
                   ) : step.status === 'todo' ? (
                     <span className="w-2 h-2 rounded-full bg-[#a63d40] shrink-0" title="還有提醒項目" />
                   ) : (
@@ -921,7 +921,7 @@ export default function CharacterEditor({
             onClick={() => setIsValidationModalOpen(true)}
             className={`w-full text-left p-3 rounded-xl border transition-all shadow-xs flex flex-col gap-1.5 hover:scale-101 cursor-pointer ${
               validation.errors.length > 0
-                ? 'bg-rose-50/90 border-rose-300 hover:border-rose-400'
+                ? 'bg-[#f9f5eb] border-[#8c2d36]/50 hover:border-[#8c2d36]'
                 : validation.hasWarnings
                   ? 'bg-[#f9f5eb] border-[#d6c7ab] hover:border-[#7c6a58]'
                   : 'bg-emerald-50/90 border-emerald-300 hover:border-emerald-400'
@@ -931,7 +931,7 @@ export default function CharacterEditor({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 font-bold text-xs">
                 {validation.errors.length > 0 ? (
-                  <GiHazardSign className="w-4 h-4 text-rose-600 shrink-0" />
+                  <GiHazardSign className="w-4 h-4 text-[#8c2d36] shrink-0" />
                 ) : validation.hasWarnings ? (
                   <Info className="w-4 h-4 text-[#6b5a4b] shrink-0" />
                 ) : (
@@ -939,7 +939,7 @@ export default function CharacterEditor({
                 )}
                 <span className={
                   validation.errors.length > 0
-                    ? 'text-rose-950'
+                    ? 'text-[#8c2d36]'
                     : validation.hasWarnings
                       ? 'text-[#2c221e]'
                       : 'text-emerald-950'
@@ -949,7 +949,7 @@ export default function CharacterEditor({
               </div>
               <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
                 validation.errors.length > 0
-                  ? 'bg-rose-200 text-rose-900'
+                  ? 'bg-[#e8dcc4] text-[#8c2d36]'
                   : validation.hasWarnings
                     ? 'bg-[#e8dcc4] text-[#3c2415]'
                     : 'bg-emerald-200 text-emerald-900'
@@ -963,7 +963,7 @@ export default function CharacterEditor({
             </div>
             <p className={`text-[11px] leading-tight ${
               validation.errors.length > 0
-                ? 'text-rose-700'
+                ? 'text-[#8c2d36]'
                 : validation.hasWarnings
                   ? 'text-[#6b5a4b]'
                   : 'text-emerald-700'
@@ -1056,7 +1056,7 @@ export default function CharacterEditor({
                 onClick={() => setIsValidationModalOpen(true)}
                 className={`px-2 py-1 rounded-md border text-[11px] font-bold flex items-center gap-1 shadow-2xs cursor-pointer ${
                   validation.errors.length > 0
-                    ? 'bg-rose-50 text-rose-700 border-rose-300'
+                    ? 'bg-[#f9f5eb] text-[#8c2d36] border-[#8c2d36]/50'
                     : validation.hasWarnings
                       ? 'bg-[#f9f5eb] text-[#3c2415] border-[#d6c7ab]'
                       : 'bg-emerald-50 text-emerald-800 border-emerald-300'
@@ -1064,7 +1064,7 @@ export default function CharacterEditor({
                 title="創角規則自檢"
               >
                 {validation.errors.length > 0 ? (
-                  <GiHazardSign className="w-3 h-3 text-rose-600" />
+                  <GiHazardSign className="w-3 h-3 text-[#8c2d36]" />
                 ) : validation.hasWarnings ? (
                   <Info className="w-3 h-3 text-[#6b5a4b]" />
                 ) : (
@@ -1597,7 +1597,7 @@ export default function CharacterEditor({
                 const rows = [
                   { label: '傷害免疫', values: fx.immuneDamage, tone: '#15803d' },
                   { label: '抗性', values: fx.resistances, tone: '#166534' },
-                  { label: '易傷', values: fx.vulnerabilities, tone: '#b91c1c' },
+                  { label: '易傷', values: fx.vulnerabilities, tone: '#8c2d36' },
                   { label: '吸收', values: fx.absorption, tone: '#6d28d9' },
                   { label: '狀態免疫', values: fx.immuneStatuses, tone: '#0e7490' }
                 ].filter((row) => Array.isArray(row.values) && row.values.length > 0);
@@ -1668,7 +1668,7 @@ export default function CharacterEditor({
                   </div>
                   <div className="flex items-center gap-3 font-mono text-xs">
                     <span>已花費: <strong style={{ color: theme.accent }}>{totalEquipCost}z</strong> / {rules.startingZenit}z</span>
-                    <span className={remainingBudget < 0 ? 'text-red-700 font-bold' : 'font-bold'} style={remainingBudget >= 0 ? { color: theme.accent } : undefined}>
+                    <span className={remainingBudget < 0 ? 'text-[#8c2d36] font-bold' : 'font-bold'} style={remainingBudget >= 0 ? { color: theme.accent } : undefined}>
                       剩餘: {remainingBudget}z
                     </span>
                   </div>
@@ -1756,7 +1756,7 @@ export default function CharacterEditor({
                       itemName={offHandLabel}
                       itemIcon={offHandIcon}
                       itemMissing={offHandMissing}
-                      badges={offShield?.martial ? [{ label: '職業', variant: 'rose' }] : []}
+                      badges={offShield?.martial ? [{ label: '職業', variant: 'marker' }] : []}
                       metrics={offHandMetrics}
                       note={offShield?.desc || null}
                       warning={offHandWarning}
@@ -1780,7 +1780,7 @@ export default function CharacterEditor({
                     itemName={armorLabel}
                     itemIcon={armorIcon}
                     itemMissing={armorMissing}
-                    badges={armor?.martial ? [{ label: '職業', variant: 'rose' }] : []}
+                    badges={armor?.martial ? [{ label: '職業', variant: 'marker' }] : []}
                     metrics={armorMetrics}
                     note={armor?.desc || null}
                     warning={armorWarningText}
@@ -1914,7 +1914,7 @@ export default function CharacterEditor({
                             type="button"
                             onClick={() => handleRemoveCustomWeapon(group.id)}
                             className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
-                            style={{ borderColor: theme.border, color: '#9f1239' }}
+                            style={{ borderColor: theme.border, color: '#76252d' }}
                           >
                             刪除
                           </button>
@@ -2052,7 +2052,7 @@ export default function CharacterEditor({
                         <button
                           type="button"
                           onClick={() => updateField('quirk', '無')}
-                          className="text-[11px] text-[#6b5a4b] hover:text-red-700 cursor-pointer"
+                          className="text-[11px] text-[#6b5a4b] hover:text-[#76252d] cursor-pointer"
                         >
                           移除
                         </button>
@@ -2200,7 +2200,7 @@ export default function CharacterEditor({
                         onClick={() => {
                           updateField('heroicSkills', character.heroicSkills.filter((_, i) => i !== idx));
                         }}
-                        className="text-[#6b5a4b] hover:text-red-700 font-bold cursor-pointer"
+                        className="text-[#6b5a4b] hover:text-[#76252d] font-bold cursor-pointer"
                       >
                         ×
                       </button>
@@ -2406,13 +2406,13 @@ export default function CharacterEditor({
                 }}
                 className={`p-3 rounded-lg border text-xs flex items-center justify-between gap-3 cursor-pointer transition-all hover:scale-[1.01] shadow-sm ${
                   w.type === 'error'
-                    ? 'border-red-300 bg-red-50 text-red-900'
+                    ? 'border-[#8c2d36]/50 bg-[#f9f5eb] text-[#8c2d36]'
                     : 'border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415]'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   {w.type === 'error' ? (
-                    <GiHazardSign className="w-4 h-4 text-red-600 shrink-0" />
+                    <GiHazardSign className="w-4 h-4 text-[#8c2d36] shrink-0" />
                   ) : (
                     <Info className="w-4 h-4 text-[#6b5a4b] shrink-0" />
                   )}

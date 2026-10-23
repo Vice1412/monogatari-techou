@@ -120,7 +120,7 @@ export default function WayfarerCompanionSheet({
               {currentHp} / {maxHp}
             </span>
             {isCrisis && (
-              <span className="px-1.5 py-0.5 rounded font-bold text-[10px] bg-red-100 text-red-700 border border-red-300 flex items-center gap-1">
+              <span className="px-1.5 py-0.5 rounded font-bold text-[10px] bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 flex items-center gap-1">
                 <GiHazardSign className="text-xs" />
                 <span>危機 (≤{crisisHp})</span>
               </span>
@@ -131,7 +131,7 @@ export default function WayfarerCompanionSheet({
             <button
               type="button"
               onClick={() => adjustHp(-5)}
-              className="px-1.5 py-0.5 rounded bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-mono font-bold"
+              className="px-1.5 py-0.5 rounded bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/30 font-mono font-bold"
               title="-5 HP"
             >
               -5
@@ -139,7 +139,7 @@ export default function WayfarerCompanionSheet({
             <button
               type="button"
               onClick={() => adjustHp(-1)}
-              className="px-1.5 py-0.5 rounded bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-mono font-bold"
+              className="px-1.5 py-0.5 rounded bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/30 font-mono font-bold"
               title="-1 HP"
             >
               -1
@@ -167,7 +167,7 @@ export default function WayfarerCompanionSheet({
         <div className="w-full h-2 rounded-full bg-[#e8dcc4] overflow-hidden">
           <div
             className={`h-full transition-all duration-300 ${
-              isCrisis ? 'bg-red-500' : 'bg-green-500'
+              isCrisis ? 'bg-[#8c2d36]' : 'bg-[#245c45]'
             }`}
             style={{ width: `${Math.min(100, Math.max(0, (currentHp / maxHp) * 100))}%` }}
           />

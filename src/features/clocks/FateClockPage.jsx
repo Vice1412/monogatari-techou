@@ -118,7 +118,7 @@ export default function FateClockPage({ initialClocks } = {}) {
               <button
                 type="button"
                 onClick={() => handleDeleteClock(clk.id)}
-                className="text-[#7c6a58] hover:text-rose-700 p-1 transition-colors"
+                className="text-[#7c6a58] hover:text-[#76252d] p-1 transition-colors"
                 title="刪除命刻"
               >
                 <GiTrashCan className="w-4 h-4" />

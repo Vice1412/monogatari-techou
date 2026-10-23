@@ -2105,6 +2105,251 @@ check(
   whiteOnAccent.length ? `${whiteOnAccent.length} 行：${whiteOnAccent.slice(0, 3).join('、')}` : '0 處'
 );
 
+// H24：`red`／`rose`／`pink` 家族（第二十七輪）。
+//
+// 開場實測 299 個令牌／33 個檔案，是全站殘餘色相裡最大的一群。它同時在當：
+// 物種 DEMON 的身份色、六本規則書裡「公測修訂」的身份色、美食家「甜味」的身份色、
+// 危險極性（錯誤框／刪除鍵）、HP 條、危機徽章、冠位／精英的等級標籤、裝備「職業」
+// 限定標記、敵方數量晶片、三張資源磚（HP／MP／IP）。
+//
+// 判準照抄 §CI33／§CI34：先問「這個色相被哪張身份表登記走了」。答案有三張——
+// `speciesThemes` 的 `sp_demon`、`JRPGBadge` 的 `rose` 列（硃砂紅主題 ＋ 公測修訂）、
+// `GourmetCookbook` 的 `甜味`。所以紅是**保留色**。
+//
+// 但紅跟琥珀不同。琥珀被拿掉之後只剩身份；紅被拿掉之後**危險就沒有顏色了**。
+// 這一輪的處置是：危險留下全站唯一的那個紅（登記色 `#8c2d36`），其餘全部改走
+// 「序」（填充量）與「標記」（零色）。所以下面這組硬零有一條例外線：`#8c2d36`
+// 可以用，但**只准當危險極性**——不准當身份、不准當裝飾。
+const ROSE_FAMS = /(?:[a-z-]+:)*(?:text|bg|border|border-[lrtbxy]|ring|ring-offset|divide|from|via|to|fill|stroke|placeholder|shadow|outline|decoration|accent|caret)-(?:red|rose|pink)-\d{2,3}(?:\/\d+)?/g;
+// 三個身份出口。注意 `JRPGBadge` 的 `rose` 列有**兩個**身份消費者：
+// 硃砂紅角色主題（characterThemes）與公測修訂規則書（sourcebookConfig）。
+const ROSE_OUTLETS = {
+  'src/features/npc-workshop/data/speciesThemes.jsx': 'sp_demon:',
+  'src/components/ui/JRPGBadge.jsx': 'rose:',
+  'src/features/character-sheet/components/companions/GourmetCookbook.jsx': '甜味:',
+};
+const roseLeak = [];
+const roseOutletRows = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const body = stripComments(fs.readFileSync(abs, 'utf8'));
+  const tokens = body.match(ROSE_FAMS) || [];
+  if (!tokens.length) continue;
+  if (!ROSE_OUTLETS[rel]) {
+    roseLeak.push(`${rel}（${tokens.length}）`);
+    continue;
+  }
+  // 逐項：白名單檔裡每一行出現紅家族令牌的行，都必須是那一張身份表的那一格。
+  body.split('\n').forEach((line, i) => {
+    ROSE_FAMS.lastIndex = 0;
+    if (!ROSE_FAMS.test(line)) return;
+    ROSE_FAMS.lastIndex = 0;
+    const t = line.trim();
+    if (!t.startsWith(ROSE_OUTLETS[rel])) roseOutletRows.push(`${rel}:${i + 1} → ${t.slice(0, 40)}`);
+  });
+}
+check(
+  'H24 red／rose／pink 只留在三個身份出口（其餘全站硬零）',
+  roseLeak.length === 0,
+  roseLeak.length
+    ? `${roseLeak.length} 檔外洩：${roseLeak.slice(0, 4).join('、')}`
+    : `0 處外洩／出口 ${Object.keys(ROSE_OUTLETS).map((p) => p.split('/').pop()).join('、')}`
+);
+check(
+  'H24-a 身份出口裡紅家族只准出現在那一行（逐項）',
+  roseOutletRows.length === 0,
+  roseOutletRows.length ? roseOutletRows.slice(0, 3).join('；') : '3 檔、共 4 行，沒有夾帶'
+);
+
+// H24-b：紅家族的原始 hex 只准出現在珠色身份表裡。
+//
+// 令牌收乾淨了，還有第二條路：直接寫 hex。Tailwind 的紅階（`#ef4444` 之類）
+// 與登記色 `#8c2d36` 是兩個不同的紅，肉眼分不出來、但系統裡是兩個顏色。
+// 全站只剩 `technospheres.js` 的兩張珠色身份表（職業珠色／傷害屬性珠色）還在用
+// 原始 hex——那是本輪**沒有動**的債（11 個身份色全部未登記），列在 §CI35 的收尾清單。
+const RED_RAW_HEX = [
+  '#fef2f2', '#fee2e2', '#fecaca', '#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d', '#450a0a',
+  '#fff1f2', '#ffe4e6', '#fecdd3', '#fda4af', '#fb7185', '#f43f5e', '#e11d48', '#be123c', '#9f1239', '#881337', '#4c0519',
+  '#fdf2f8', '#fce7f3', '#fbcfe8', '#f9a8d4', '#f472b6', '#ec4899', '#db2777', '#be185d', '#9d174d', '#831843', '#500724',
+];
+const BEAD_TABLE = 'src/features/character-sheet/data/technospheres.js';
+const BEAD_ROW = /^\s*[A-Za-z\u4e00-\u9fa5]+:\s*'#[0-9a-fA-F]{6}'/;
+const redHexLeak = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  stripComments(fs.readFileSync(abs, 'utf8')).split('\n').forEach((line, i) => {
+    const low = line.toLowerCase();
+    if (!RED_RAW_HEX.some((h) => low.includes(h))) return;
+    if (rel === BEAD_TABLE && BEAD_ROW.test(line)) return;
+    redHexLeak.push(`${rel}:${i + 1} → ${line.trim().slice(0, 46)}`);
+  });
+}
+check(
+  'H24-b 紅家族原始 hex 只准出現在珠色身份表（逐行）',
+  redHexLeak.length === 0,
+  redHexLeak.length ? `${redHexLeak.length} 行：${redHexLeak.slice(0, 3).join('、')}` : '0 處／33 個 hex'
+);
+
+// H24-c：紅光暈硬零。
+//
+// `shadow-[0_0_12px_rgba(239,68,68,.5)]` 這種東西是「AI 感」的來源之一。
+// 本輪開場量測為 0，這條把它鎖在 0。
+const RED_GLOW = [
+  /rgba\(\s*239\s*,\s*68\s*,\s*68/, /rgba\(\s*220\s*,\s*38\s*,\s*38/, /rgba\(\s*185\s*,\s*28\s*,\s*28/,
+  /rgba\(\s*190\s*,\s*18\s*,\s*60/, /rgba\(\s*244\s*,\s*63\s*,\s*94/, /rgba\(\s*236\s*,\s*72\s*,\s*153/,
+  /rgba\(\s*225\s*,\s*29\s*,\s*72/,
+];
+const redGlow = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const body = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const re of RED_GLOW) {
+    const m = body.match(re);
+    if (m) redGlow.push(`${rel} → ${m[0]}`);
+  }
+}
+check('H24-c 紅光暈（rgba 光暈）全站硬零', redGlow.length === 0, redGlow.length ? redGlow.slice(0, 3).join('、') : '0 處');
+
+// H24-d：呼叫端用到的每一個 `variant` 名稱，都必須在 `variantStyles` 裡登記過。
+//
+// 這條不是風格偏好，是**抓靜默失效**：`JRPGBadge` 讀
+// `variantStyles[variant] || variantStyles.gold`，打錯字或忘了登記的變體不會報錯，
+// 只會安靜地變成金色徽章。本輪新加的 `danger`／`rank-top`／`rank-mid`／`marker`
+// 就是靠這條鎖住的。
+//
+// 為什麼要掃「元素」而不是掃「行」：`variant` 是全站共用的 prop 名，`<Button variant="primary">`
+// 有 13 處。只掃含 `variant` 的行會把它們全部誤判成未登記的徽章變體（第一版就是這樣，
+// 56 個假陽性）。所以先把每個 `<JRPGBadge …>` 元素切出來，只看它自己的開頭標籤。
+const BADGE_FILE = 'src/components/ui/JRPGBadge.jsx';
+const badgeMapSrc = stripComments(fs.readFileSync(path.join(ROOT, BADGE_FILE), 'utf8'));
+const variantBlockStart = badgeMapSrc.indexOf('const variantStyles = {');
+const variantBlockEnd = badgeMapSrc.indexOf('\n  };', variantBlockStart);
+const KNOWN_VARIANTS = new Set(
+  [...badgeMapSrc.slice(variantBlockStart, variantBlockEnd).matchAll(/^\s*"?([a-z][a-z-]*)"?:\s*"/gm)].map((m) => m[1])
+);
+
+/** 取出開頭標籤裡 `variant` 的字面值：`variant="x"`、`variant={'x'}`、`variant={a ? 'x' : 'y'}` */
+function variantValuesIn(tag) {
+  const out = [];
+  const direct = tag.match(/variant="([a-z][a-z-]*)"/);
+  if (direct) out.push(direct[1]);
+  const idx = tag.indexOf('variant={');
+  if (idx >= 0) {
+    let depth = 0;
+    let end = tag.length;
+    for (let i = idx + 'variant='.length; i < tag.length; i += 1) {
+      if (tag[i] === '{') depth += 1;
+      else if (tag[i] === '}') {
+        depth -= 1;
+        if (depth === 0) { end = i; break; }
+      }
+    }
+    const expr = tag.slice(idx + 'variant={'.length, end);
+    for (const m of expr.matchAll(/['"]([a-z][a-z-]*)['"]/g)) out.push(m[1]);
+  }
+  return out;
+}
+
+/** 把每個 `<JRPGBadge …>…</JRPGBadge>` 元素切出來（含開頭標籤與內容） */
+function jrpBadgeElements(src) {
+  const out = [];
+  let i = 0;
+  while ((i = src.indexOf('<JRPGBadge', i)) >= 0) {
+    let depth = 0;
+    let tagEnd = i + 200;
+    for (let j = i; j < i + 200; j += 1) {
+      const c = src[j];
+      if (c === '{') depth += 1;
+      else if (c === '}') depth -= 1;
+      else if (c === '>' && depth === 0) { tagEnd = j; break; }
+    }
+    const close = src.indexOf('</JRPGBadge>', tagEnd);
+    const limit = close >= 0 && close - tagEnd < 400 ? close + '</JRPGBadge>'.length : tagEnd + 1;
+    out.push({
+      line: src.slice(0, i).split('\n').length,
+      openTag: src.slice(i, tagEnd + 1),
+      text: src.slice(i, limit),
+    });
+    i = limit;
+  }
+  return out;
+}
+
+const unknownVariants = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  if (!abs.endsWith('.jsx')) continue;
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const body = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const el of jrpBadgeElements(body)) {
+    for (const v of variantValuesIn(el.openTag)) {
+      if (!KNOWN_VARIANTS.has(v)) unknownVariants.push(`${rel}:${el.line} → ${v}`);
+    }
+  }
+  // 徽章也可能以物件形式傳進 `EquipmentSlotCard` 的 `badges` 陣列（`{ label, variant }`）。
+  body.split('\n').forEach((line, i) => {
+    if (!line.includes('label:') || !line.includes('variant:')) return;
+    for (const m of line.matchAll(/variant:\s*'([a-z][a-z-]*)'/g)) {
+      if (!KNOWN_VARIANTS.has(m[1])) unknownVariants.push(`${rel}:${i + 1} → ${m[1]}`);
+    }
+  });
+}
+check(
+  'H24-d 每個用到的徽章 variant 都登記過（否則靜默變成金色）',
+  unknownVariants.length === 0,
+  unknownVariants.length
+    ? `${unknownVariants.length} 處未登記：${unknownVariants.slice(0, 4).join('、')}`
+    : `${KNOWN_VARIANTS.size} 個登記變體，呼叫端零筆錯字`
+);
+
+// H24-e：三種語意徽章不得借用色相。
+//
+// 「危機」是危險極性 → `danger`；「職業」是標記 → `marker`；
+// 冠位／精英／一般 是序 → `rank-top`／`rank-mid`／`slate`（填充量遞減）。
+// 這三種在第二十七輪之前全部用色相（rose／cyan／slate），也就是**一個色相三個意思**：
+// 紅同時是「怪物身份」「冠位」「職業限定」「危機」「刪除鍵」「HP 條」。
+//
+// 這條看的是**整個元素**（含子節點），因為「危機」這兩個字寫在 `<span>` 裡，
+// 而 `variant` 寫在開頭標籤上。
+const ORDINAL_VARIANTS = new Set(['rank-top', 'rank-mid', 'slate']);
+const semanticBadgeMiss = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  if (!abs.endsWith('.jsx')) continue;
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const body = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const el of jrpBadgeElements(body)) {
+    const vs = variantValuesIn(el.openTag);
+    if (!vs.length) continue;
+    const at = `${rel}:${el.line}`;
+    if (/危機|CRISIS/.test(el.text) && !vs.includes('danger')) semanticBadgeMiss.push(`${at} 危機 → ${vs.join('/')}`);
+    if (/職業/.test(el.text) && !vs.includes('marker')) semanticBadgeMiss.push(`${at} 職業 → ${vs.join('/')}`);
+    if (/冠位/.test(el.text) && !vs.every((v) => ORDINAL_VARIANTS.has(v))) {
+      semanticBadgeMiss.push(`${at} 序 → ${vs.join('/')}`);
+    }
+  }
+}
+check(
+  'H24-e 危機／職業／冠位三種語意徽章走登記語意，不借色相',
+  semanticBadgeMiss.length === 0,
+  semanticBadgeMiss.length ? semanticBadgeMiss.slice(0, 4).join('；') : '危險＝danger、標記＝marker、序＝rank-top/mid/slate'
+);
+
+// H24-f：紅家族令牌總數只減不增（預算 10）。
+//
+// 前三條保證「外面是 0、裡面只有那幾行」。這條是**天花板**：出口自己的行數
+// 也可能被人加回去（例如在 `sp_demon` 那一行多塞一個 `bg-red-500`）。
+// 用預算而不是硬零，因為出口本來就該有令牌；用「只減不增」，因為紅的退化模式
+// 是**在既有出口裡加**，不是換一個地方。
+const ROSE_TOKEN_BUDGET = 10;
+let roseNow = 0;
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  roseNow += (stripComments(fs.readFileSync(abs, 'utf8')).match(ROSE_FAMS) || []).length;
+}
+check(
+  `H24-f 紅家族令牌總數只減不增（預算 ${ROSE_TOKEN_BUDGET}）`,
+  roseNow <= ROSE_TOKEN_BUDGET,
+  `${roseNow} / 預算 ${ROSE_TOKEN_BUDGET}`
+);
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${'='.repeat(56)}`);
 console.log(`  通過 ${results.length - failed.length} / ${results.length}${failed.length ? `　失敗 ${failed.length}` : '　（全部通過）'}`);

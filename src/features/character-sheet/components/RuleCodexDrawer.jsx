@@ -387,7 +387,7 @@ export default function RuleCodexDrawer({
                           </div>
                         )}
                         <div>
-                          <strong className="text-rose-800 font-bold">【解除】：</strong>
+                          <strong className="text-[#8c2d36] font-bold">【解除】：</strong>
                           <span className="text-[#3c2415]">{renderTextWithAffinities(arcana.dismiss)}</span>
                         </div>
                       </div>
@@ -965,7 +965,7 @@ export default function RuleCodexDrawer({
                             <div className="flex items-center justify-between flex-wrap gap-1">
                               <span className="font-bold text-[#2c221e] flex items-center gap-1.5">
                                 {sp.offensive && (
-                                  <span className="fu-icon text-red-600 font-bold" title="攻擊性咒語">
+                                  <span className="fu-icon text-[#8c2d36] font-bold" title="攻擊性咒語">
                                     o
                                   </span>
                                 )}

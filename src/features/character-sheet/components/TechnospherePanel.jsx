@@ -297,7 +297,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                       disabled={disabled}
                       onClick={() => unembedIntegrated(id)}
                       className="cursor-pointer text-[10px] disabled:opacity-40"
-                      style={{ color: '#b91c1c' }}
+                      style={{ color: '#8c2d36' }}
                       title="從內嵌裝置取下"
                     >
                       ✕
@@ -446,7 +446,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                                 disabled={disabled}
                                 onClick={() => removeContent(slotId, index)}
                                 className="absolute -bottom-0.5 -right-0.5 cursor-pointer text-t12 leading-none disabled:opacity-40"
-                                style={{ color: '#b91c1c' }}
+                                style={{ color: '#8c2d36' }}
                                 title="從插槽取下"
                               >
                                 ✕

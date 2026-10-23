@@ -25,20 +25,20 @@ const SectionAccordion = ({ title, icon, current, max, hideIfZeroMax = false, de
   if (isFreeMode) {
     statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><GiSparkles size={12} /> <span className="hidden md:inline">解鎖限制</span> ({current}/∞)</span>;
   } else if (!alwaysComplete) {
-    if (isOverflow) statusBadge = <span className="flex items-center gap-1 text-[10px] text-red-800 bg-red-100 border border-red-300 px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><AlertCircle size={12} /> <span className="hidden md:inline">超額失效</span> ({current}/{max})</span>;
+    if (isOverflow) statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#8c2d36] bg-[#f4ebd9] border border-[#8c2d36]/50 px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><AlertCircle size={12} /> <span className="hidden md:inline">超額失效</span> ({current}/{max})</span>;
     else if (isComplete) statusBadge = <span className="flex items-center gap-1 text-[10px] text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><CheckCircle2 size={12} /> <span className="hidden md:inline">已完成</span> ({current}/{max})</span>;
     else statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#3c2415] bg-[#f4ebd9] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><AlertCircle size={12} /> <span className="hidden md:inline">待配置</span> ({current}/{max})</span>;
   } else statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#574c43] bg-[#e8dec8] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><GiSparkles size={12} /> {current > 0 ? `已加入 ${current} 項` : '選用區塊'}</span>;
 
   return (
-    <div className={`bg-[#fffdf9] border ${isOverflow ? 'border-red-400' : 'border-[#d6c7ab]'} rounded-lg mb-4 transition-all duration-300 relative ${!isComplete && !alwaysComplete && !isOverflow ? 'ring-1 ring-[#3c2415]/40 shadow-md' : isOverflow ? 'ring-1 ring-red-500/50 shadow-md' : ''}`}>
+    <div className={`bg-[#fffdf9] border ${isOverflow ? 'border-[#8c2d36]' : 'border-[#d6c7ab]'} rounded-lg mb-4 transition-all duration-300 relative ${!isComplete && !alwaysComplete && !isOverflow ? 'ring-1 ring-[#3c2415]/40 shadow-md' : isOverflow ? 'ring-1 ring-[#8c2d36]/50 shadow-md' : ''}`}>
       <button className={`w-full flex justify-between items-center p-4 hover:bg-[#f4ebd9] transition-colors outline-none sticky ${stickyTop} z-20 bg-[#fffdf9]/95 backdrop-blur ${isExpanded ? 'border-b border-[#d6c7ab] rounded-t-lg' : 'rounded-lg'}`} onClick={handleToggle}>
-        <div className="flex items-center gap-3"><span className={isOverflow ? 'text-red-700' : titleColor}>{icon}</span><h2 className={`text-sm font-bold ${isOverflow ? 'text-red-900' : titleColor} text-left`}>{title}</h2>{statusBadge}</div>
+        <div className="flex items-center gap-3"><span className={isOverflow ? 'text-[#8c2d36]' : titleColor}>{icon}</span><h2 className={`text-sm font-bold ${isOverflow ? 'text-[#8c2d36]' : titleColor} text-left`}>{title}</h2>{statusBadge}</div>
         <div className="flex items-center gap-2">{!isExpanded && !isComplete && !alwaysComplete && <span className="text-[10px] text-[#6b5a4b] font-bold hidden md:block">點擊展開</span>}{isExpanded ? <ChevronUp size={18} className="text-[#6b5a4b]" /> : <ChevronDown size={18} className="text-[#6b5a4b]" />}</div>
       </button>
       {isExpanded && (
         <div className="p-4 bg-[#fbf7ee]/60 animate-in slide-in-from-top-2 rounded-b-lg">
-          {isOverflow && <div className="mb-4 bg-red-50 border border-red-300 p-3 rounded flex items-start gap-2 text-red-900 text-xs"><AlertCircle size={16} className="shrink-0 mt-0.5 text-red-700" /><div><strong className="block text-red-800 mb-0.5">△ 額度溢出警告</strong>您目前的選擇已超過系統允許的上限或缺少前置技能。所有標記為紅色的技能將<strong>強制失效</strong>。</div></div>}
+          {isOverflow && <div className="mb-4 bg-[#f9f5eb] border border-[#8c2d36]/50 p-3 rounded flex items-start gap-2 text-[#8c2d36] text-xs"><AlertCircle size={16} className="shrink-0 mt-0.5 text-[#8c2d36]" /><div><strong className="block text-[#8c2d36] mb-0.5">△ 額度溢出警告</strong>您目前的選擇已超過系統允許的上限或缺少前置技能。所有標記為紅色的技能將<strong>強制失效</strong>。</div></div>}
           {children}
         </div>
       )}

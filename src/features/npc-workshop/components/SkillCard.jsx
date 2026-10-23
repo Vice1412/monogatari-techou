@@ -52,7 +52,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
   }, [isActive, currentDesc]);
 
   return (
-    <div className={`relative flex flex-col p-4 rounded-xl border-2 transition-all duration-200 text-left overflow-hidden group ${lockedMsg ? 'bg-[#f4ebd9]/70 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed select-none' : isOverBudget && isActive ? 'bg-red-50 border-red-400 opacity-90 shadow-md transform scale-[1.01] z-10' : isActive ? 'bg-[#f9f5eb] border-[#3c2415] shadow-md transform scale-[1.02] z-10' : isDisabled ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee] cursor-pointer'}`} onClick={(e) => { if (isClickableTag(e.target.tagName.toLowerCase())) return; if (lockedMsg && !isActive) return; if (!isDisabled || isActive) onToggle(); }}>
+    <div className={`relative flex flex-col p-4 rounded-xl border-2 transition-all duration-200 text-left overflow-hidden group ${lockedMsg ? 'bg-[#f4ebd9]/70 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed select-none' : isOverBudget && isActive ? 'bg-[#f9f5eb] border-[#8c2d36] opacity-90 shadow-md transform scale-[1.01] z-10' : isActive ? 'bg-[#f9f5eb] border-[#3c2415] shadow-md transform scale-[1.02] z-10' : isDisabled ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee] cursor-pointer'}`} onClick={(e) => { if (isClickableTag(e.target.tagName.toLowerCase())) return; if (lockedMsg && !isActive) return; if (!isDisabled || isActive) onToggle(); }}>
       <div className="absolute top-3 right-3 transition-transform flex flex-col items-end gap-2 z-10">
         {!isActive && <div className="w-5 h-5 rounded-full border-2 border-[#d6c7ab] group-hover:border-[#3c2415]"></div>}
         {isActive && (
@@ -78,12 +78,12 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
           </div>
         )}
       </div>
-      <div className={`font-bold text-[15px] mb-2 pr-6 leading-tight flex flex-col sm:flex-row sm:items-center gap-2 ${lockedMsg ? 'text-[#6b5a4b]' : isOverBudget && isActive ? 'text-red-900' : isActive ? 'text-[#2c221e]' : 'text-[#3c2f21]'}`}>
+      <div className={`font-bold text-[15px] mb-2 pr-6 leading-tight flex flex-col sm:flex-row sm:items-center gap-2 ${lockedMsg ? 'text-[#6b5a4b]' : isOverBudget && isActive ? 'text-[#8c2d36]' : isActive ? 'text-[#2c221e]' : 'text-[#3c2f21]'}`}>
         {isEditing ? (
           <div className="flex-1 relative group/input">
             <input
               type="text"
-              className={`bg-transparent border border-transparent rounded px-1 -mx-1 outline-none w-full transition-colors hover:border-[#d6c7ab] hover:bg-[#fbf7ee] focus:border-[#3c2415] focus:bg-[#fffdf9] ${isOverBudget ? 'text-red-900' : skill.customName !== undefined ? 'text-[#3c2415] font-bold' : 'text-[#2c221e]'}`}
+              className={`bg-transparent border border-transparent rounded px-1 -mx-1 outline-none w-full transition-colors hover:border-[#d6c7ab] hover:bg-[#fbf7ee] focus:border-[#3c2415] focus:bg-[#fffdf9] ${isOverBudget ? 'text-[#8c2d36]' : skill.customName !== undefined ? 'text-[#3c2415] font-bold' : 'text-[#2c221e]'}`}
               value={skill.customName !== undefined ? skill.customName : skill.originalName}
               onChange={(e) => onUpdateSkill(skill.id, { customName: e.target.value })}
               onBlur={(e) => { if (!e.target.value.trim()) onUpdateSkill(skill.id, { customName: undefined }); }}
@@ -97,19 +97,19 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
         {lockedMsg ? (
           <span className="text-[10px] bg-[#e8dcc4] text-[#3c2415] border border-[#7c6a58] px-2 py-0.5 rounded flex items-center gap-1 shrink-0 w-fit font-bold"><Lock size={10} /> {lockedMsg}</span>
         ) : (
-          isOverBudget && isActive && <span className="text-[10px] bg-red-100 text-red-800 border border-red-400 px-2 py-0.5 rounded flex items-center gap-1 shrink-0 w-fit"><AlertCircle size={10} /> 額度溢出失效</span>
+          isOverBudget && isActive && <span className="text-[10px] bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36] px-2 py-0.5 rounded flex items-center gap-1 shrink-0 w-fit"><AlertCircle size={10} /> 額度溢出失效</span>
         )}
       </div>
       {skill.flavorText && (
         <div className="mb-2">
-          <div className={`text-xs italic ${isOverBudget && isActive ? 'text-red-700' : 'text-[#6b5a4b]'}`}>{skill.flavorText}</div>
-          <div className={`border-b mt-2 ${isOverBudget && isActive ? 'border-red-200' : 'border-[#d6c7ab]/50'}`}></div>
+          <div className={`text-xs italic ${isOverBudget && isActive ? 'text-[#8c2d36]' : 'text-[#6b5a4b]'}`}>{skill.flavorText}</div>
+          <div className={`border-b mt-2 ${isOverBudget && isActive ? 'border-[#8c2d36]/30' : 'border-[#d6c7ab]/50'}`}></div>
         </div>
       )}
       {isEditing ? (
         <textarea
           ref={textareaRef}
-          className={`text-sm leading-relaxed w-full bg-transparent border border-transparent rounded px-1 -mx-1 outline-none resize-none overflow-hidden transition-colors hover:border-[#b4a383] hover:bg-[#f5efdf] focus:border-[#a63d40] focus:bg-[#fffdf9] min-h-[3rem] ${isOverBudget ? 'text-red-700/80' : skill.customDesc !== undefined ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}
+          className={`text-sm leading-relaxed w-full bg-transparent border border-transparent rounded px-1 -mx-1 outline-none resize-none overflow-hidden transition-colors hover:border-[#b4a383] hover:bg-[#f5efdf] focus:border-[#a63d40] focus:bg-[#fffdf9] min-h-[3rem] ${isOverBudget ? 'text-[#8c2d36]' : skill.customDesc !== undefined ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}
           value={resolveTemplateVariablesForDisplay(getCleanTextForEditor(skill.customDesc !== undefined ? skill.customDesc : effectiveDesc), skill.selections, { damageEmojis: true })}
           placeholder={resolveTemplateVariablesForDisplay(getCleanTextForEditor(effectiveDesc), skill.selections, { damageEmojis: true })}
           onChange={(e) => {
@@ -125,7 +125,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
-        <div className={`text-sm leading-relaxed ${isOverBudget && isActive ? 'text-red-700/80' : skill.customDesc !== undefined ? 'text-[#3c2415] font-medium' : 'text-[#574c43]'}`}>{renderFormattedText(currentDesc, skill.selections, npcLevel, partyLevel)}</div>
+        <div className={`text-sm leading-relaxed ${isOverBudget && isActive ? 'text-[#8c2d36]' : skill.customDesc !== undefined ? 'text-[#3c2415] font-medium' : 'text-[#574c43]'}`}>{renderFormattedText(currentDesc, skill.selections, npcLevel, partyLevel)}</div>
       )}
       {/* 模板裡的 `{key}` 未填時畫成空虛線框，但那框沒有文字標籤——不點下去不知道要填什麼。
           這裡先講「有幾個欄位要填」，讓使用者知道那條虛線不是壞掉。 */}
@@ -133,7 +133,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
         <div className="mt-2 text-[10px] text-[#3c2415] font-bold">選取後可填 {skill.selectionsConfig.length} 個欄位</div>
       )}
       {isActive && skill.selectionsConfig && skill.category !== 'attack' && (
-        <div className={`mt-4 pt-3 border-t flex flex-col gap-2 animate-in slide-in-from-top-2 ${isOverBudget ? 'border-red-300' : 'border-[#d6c7ab]/60'}`}>
+        <div className={`mt-4 pt-3 border-t flex flex-col gap-2 animate-in slide-in-from-top-2 ${isOverBudget ? 'border-[#8c2d36]/50' : 'border-[#d6c7ab]/60'}`}>
           {skill.selectionsConfig
             .filter(cfg => (!cfg.showIfKey || (skill.selections?.[cfg.showIfKey] || "").includes(cfg.showIfValue)) && (!cfg.reqLevel || npcLevel >= cfg.reqLevel))
             .map(cfg => {
@@ -141,10 +141,10 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
                 const selected = Array.isArray(skill.selections?.[cfg.key]) ? skill.selections[cfg.key] : [];
                 const maxReached = selected.length >= (cfg.max || Infinity);
                 return (
-                  <div key={cfg.key} className={`p-2 rounded border ${isOverBudget ? 'bg-red-50/50 border-red-300' : 'bg-[#f5efdf]/60 border-[#d6c7ab]'}`} onClick={e => e.stopPropagation()}>
-                    <div className={`flex justify-between items-center mb-2 text-xs font-bold ${isOverBudget ? 'text-red-800' : 'text-[#3c2415]'}`}>
+                  <div key={cfg.key} className={`p-2 rounded border ${isOverBudget ? 'bg-[#f9f5eb] border-[#8c2d36]/50' : 'bg-[#f5efdf]/60 border-[#d6c7ab]'}`} onClick={e => e.stopPropagation()}>
+                    <div className={`flex justify-between items-center mb-2 text-xs font-bold ${isOverBudget ? 'text-[#8c2d36]' : 'text-[#3c2415]'}`}>
                       <span>{cfg.label}</span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] ${selected.length < (cfg.min || 0) ? 'bg-red-100 text-red-800 border border-red-300' : maxReached ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-[#fffdf9] text-[#3c2415] border border-[#d6c7ab]'}`}>已選: {selected.length}/{cfg.max || '∞'}</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] ${selected.length < (cfg.min || 0) ? 'bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50' : maxReached ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-[#fffdf9] text-[#3c2415] border border-[#d6c7ab]'}`}>已選: {selected.length}/{cfg.max || '∞'}</span>
                     </div>
                     <div className="grid grid-cols-1 gap-1">
                       {cfg.options.map(opt => {
@@ -166,7 +166,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
               }
               if (cfg.type === 'input') {
                 return (
-                  <label key={cfg.key} className={`flex flex-col gap-1.5 p-2 rounded border bg-[#f5efdf]/60 ${isOverBudget ? 'text-red-800 border-red-300' : 'text-[#3c2415] border-[#d6c7ab]'}`} onClick={e => e.stopPropagation()}>
+                  <label key={cfg.key} className={`flex flex-col gap-1.5 p-2 rounded border bg-[#f5efdf]/60 ${isOverBudget ? 'text-[#8c2d36] border-[#8c2d36]/50' : 'text-[#3c2415] border-[#d6c7ab]'}`} onClick={e => e.stopPropagation()}>
                     <span className="text-xs font-bold">{cfg.label}</span>
                     <input
                       type="text"
@@ -181,7 +181,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
               if (cfg.type === 'checkbox') {
                 const isChecked = !!skill.selections?.[cfg.key];
                 return (
-                  <label key={cfg.key} className={`flex items-center gap-2 p-2 rounded border bg-[#f5efdf]/60 cursor-pointer select-none transition-all ${isChecked ? (isOverBudget ? 'text-red-800 border-red-400 bg-red-100/50' : 'text-[#3c2415] border-[#3c2415] bg-[#f4ebd9]') : (isOverBudget ? 'text-red-800 border-red-300' : 'text-[#3c2415] border-[#d6c7ab] hover:border-[#b4a383]')}`} onClick={e => e.stopPropagation()}>
+                  <label key={cfg.key} className={`flex items-center gap-2 p-2 rounded border bg-[#f5efdf]/60 cursor-pointer select-none transition-all ${isChecked ? (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36] bg-[#f4ebd9]' : 'text-[#3c2415] border-[#3c2415] bg-[#f4ebd9]') : (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36]/50' : 'text-[#3c2415] border-[#d6c7ab] hover:border-[#b4a383]')}`} onClick={e => e.stopPropagation()}>
                     <input type="checkbox" className="accent-[#a63d40] w-3.5 h-3.5 shrink-0" checked={isChecked} onChange={() => onSelectionChange(skill.id, cfg.key, !isChecked)} />
                     <span className="text-xs font-bold">{cfg.label}</span>
                     {isChecked && <span className="text-[10px] bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-1.5 py-0.5 rounded ml-auto">已啟用</span>}
@@ -203,9 +203,9 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
                 finalOptions = cfg.options.filter(opt => !usedValues.includes(opt) || opt === skill.selections?.[cfg.key]);
               }
               return (
-                <label key={cfg.key} className={`flex justify-between items-center text-xs font-bold p-2 rounded border ${isOverBudget ? 'bg-red-50/50 text-red-800 border-red-300' : cfg.isLinked ? 'bg-[#f4ebd9]/80 text-[#3c2415] border-[#d6c7ab] ml-4 -mt-1' : 'bg-[#f5efdf]/60 text-[#3c2415] border-[#d6c7ab]'}`}>
+                <label key={cfg.key} className={`flex justify-between items-center text-xs font-bold p-2 rounded border ${isOverBudget ? 'bg-[#f9f5eb] text-[#8c2d36] border-[#8c2d36]/50' : cfg.isLinked ? 'bg-[#f4ebd9]/80 text-[#3c2415] border-[#d6c7ab] ml-4 -mt-1' : 'bg-[#f5efdf]/60 text-[#3c2415] border-[#d6c7ab]'}`}>
                   {cfg.label}
-                  <select className={`bg-[#fffdf9] text-[#2c221e] border p-1 rounded outline-none w-32 transition-colors ${isOverBudget ? 'border-red-400 focus:border-red-600' : cfg.isLinked ? 'border-[#7c6a58] focus:border-[#3c2415]' : 'border-[#d6c7ab] focus:border-[#3c2415]'}`} value={skill.selections?.[cfg.key] || ''} onChange={(e) => onSelectionChange(skill.id, cfg.key, e.target.value)} onClick={e => e.stopPropagation()} >
+                  <select className={`bg-[#fffdf9] text-[#2c221e] border p-1 rounded outline-none w-32 transition-colors ${isOverBudget ? 'border-[#8c2d36] focus:border-[#8c2d36]' : cfg.isLinked ? 'border-[#7c6a58] focus:border-[#3c2415]' : 'border-[#d6c7ab] focus:border-[#3c2415]'}`} value={skill.selections?.[cfg.key] || ''} onChange={(e) => onSelectionChange(skill.id, cfg.key, e.target.value)} onClick={e => e.stopPropagation()} >
                     <option value="">選擇...</option>{finalOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
                 </label>
@@ -213,7 +213,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
             })}
         </div>
       )}
-      {isActive && skill.category === 'attack' && <div className={`mt-3 pt-2 border-t text-[11px] font-bold flex items-center gap-1 ${isOverBudget ? 'border-red-300 text-red-700' : 'border-[#d6c7ab]/50 text-[#3c2415]'}`}><GiBroadsword size={12} /> {isOverBudget ? '因額度溢出，此技能已從上方【基礎攻擊與核心能力】中移除。' : '已加入上方【基礎攻擊與核心能力】，請至該區塊配置詳細數值。'}</div>}
+      {isActive && skill.category === 'attack' && <div className={`mt-3 pt-2 border-t text-[11px] font-bold flex items-center gap-1 ${isOverBudget ? 'border-[#8c2d36]/50 text-[#8c2d36]' : 'border-[#d6c7ab]/50 text-[#3c2415]'}`}><GiBroadsword size={12} /> {isOverBudget ? '因額度溢出，此技能已從上方【基礎攻擊與核心能力】中移除。' : '已加入上方【基礎攻擊與核心能力】，請至該區塊配置詳細數值。'}</div>}
     </div>
   );
 };

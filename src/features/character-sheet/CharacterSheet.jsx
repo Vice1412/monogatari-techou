@@ -580,7 +580,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                   <div
                     key={char.id}
                     className="bg-[#fffdf9] rounded-xl hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col group relative border-2"
-                    style={{ borderColor: isCrisis ? '#ef4444' : charTheme.border }}
+                    style={{ borderColor: isCrisis ? '#8c2d36' : charTheme.border }}
                   >
                     <div className="h-1.5" style={{ backgroundColor: charTheme.accent }} />
 
@@ -621,7 +621,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                             Lv {getCharacterLevel(char)}
                           </JRPGBadge>
                           {isCrisis && (
-                            <JRPGBadge variant="rose" size="xs" className="flex items-center gap-1 font-mono">
+                            <JRPGBadge variant="danger" size="xs" className="flex items-center gap-1 font-mono">
                               <FUIcon name="crisis" className="text-xs leading-none" />
                               <span>危機</span>
                             </JRPGBadge>
@@ -715,7 +715,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                             <span className="font-black text-[#3c2415] flex items-center gap-0.5">
                               <span>d{attr.cur}</span>
                               {attr.cur < attr.base && (
-                                <span className="text-[9px] text-red-500 line-through">d{attr.base}</span>
+                                <span className="text-[9px] text-[#8c2d36] line-through">d{attr.base}</span>
                               )}
                             </span>
                           </div>
@@ -747,10 +747,10 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         </button>
                         <button
                           onClick={() => handleSendToCombatDirect(char)}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] transition-colors"
                           title="推入戰鬥房間"
                         >
-                          <GiCrossedSwords className="w-4 h-4 text-rose-700" />
+                          <GiCrossedSwords className="w-4 h-4 text-[#8c2d36]" />
                         </button>
                         <button
                           onClick={() => handleExportSingleCharacter(char, 'native')}
@@ -775,7 +775,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         </button>
                         <button
                           onClick={() => handleDeleteCharacter(char.id)}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] transition-colors"
                           title="刪除角色"
                         >
                           <Trash2 className="w-4 h-4" />

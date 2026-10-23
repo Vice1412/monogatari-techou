@@ -248,7 +248,7 @@ export function QuirkPickerBody({
                     <button
                       type="button"
                       onClick={() => { onClear && onClear(); onClose && onClose(); }}
-                      className="text-[11px] text-[#6b5a4b] hover:text-red-700 px-2 py-1 cursor-pointer"
+                      className="text-[11px] text-[#6b5a4b] hover:text-[#76252d] px-2 py-1 cursor-pointer"
                     >
                       移除目前的金手指
                     </button>

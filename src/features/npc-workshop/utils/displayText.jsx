@@ -216,7 +216,7 @@ export const renderFormattedText = (text, selections, npcLevel = 5, partyLevel =
     if (!part) return null;
     if (part.startsWith('__DYN_VALUE__')) {
       const val = part.replace('__DYN_VALUE__', '').replace('__DYN_END__', '');
-      return <span key={i} className="font-black text-pink-400 drop-shadow-[0_0_5px_rgba(244,114,182,0.6)] px-1">{val}</span>;
+      return <span key={i} className="font-black text-[#2c221e] px-1">{val}</span>;
     }
     if (part.startsWith('__NPC_NAME__')) {
       const name = part.replace('__NPC_NAME__', '').replace('__NPC_END__', '');

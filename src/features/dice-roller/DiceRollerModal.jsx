@@ -152,7 +152,7 @@ export default function DiceRollerModal({
             rollResult.isCritical
               ? 'bg-[#f9f5eb] border-[#3c2415] shadow-md'
               : rollResult.isFumble
-                ? 'bg-rose-50 border-rose-500 shadow-md'
+                ? 'bg-[#f9f5eb] border-[#8c2d36] shadow-md'
                 : 'bg-[#f5efdf] border border-[#d6c7ab]'
           }`}>
             {rollResult.isCritical && (
@@ -162,8 +162,8 @@ export default function DiceRollerModal({
             )}
 
             {rollResult.isFumble && (
-              <div className="text-rose-800 font-bold text-sm flex items-center gap-1.5">
-                <GiHazardSign className="w-5 h-5 text-rose-600" /> [FUMBLE 大失敗]（獲得 1 點物語點）
+              <div className="text-[#8c2d36] font-bold text-sm flex items-center gap-1.5">
+                <GiHazardSign className="w-5 h-5 text-[#8c2d36]" /> [FUMBLE 大失敗]（獲得 1 點物語點）
               </div>
             )}
 

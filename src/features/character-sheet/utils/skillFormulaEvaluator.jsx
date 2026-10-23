@@ -259,7 +259,7 @@ function renderWordsAndKeywords(text, keyPrefix = '', linkCodex = true) {
     // 1. 攻擊性咒語官方紅色閃電圖標
     if (/^(（[oO\u26A1]）|\([oO\u26A1]\))$/.test(part)) {
       return (
-        <span key={k} className="inline text-red-600 font-bold select-none mx-0.5">
+        <span key={k} className="inline text-[#8c2d36] font-bold select-none mx-0.5">
           （<span className="fu-icon text-sm leading-none drop-shadow-2xs" title="攻擊性咒語">
             o
           </span>）

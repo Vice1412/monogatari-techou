@@ -96,7 +96,7 @@ export default function NPCCardPreview({
             <JRPGBadge variant="gold" size="xs">
               Lv {npc.level}
             </JRPGBadge>
-            <JRPGBadge variant={npc.rank === '冠位' ? 'rose' : npc.rank === '精英' ? 'cyan' : 'slate'} size="xs">
+            <JRPGBadge variant={npc.rank === '冠位' ? 'rank-top' : npc.rank === '精英' ? 'rank-mid' : 'slate'} size="xs">
               {npc.rank}
               {npc.rank === '冠位' && npc.championMultiplier > 1 && ` ×${npc.championMultiplier}`}
             </JRPGBadge>
@@ -137,7 +137,7 @@ export default function NPCCardPreview({
       {/* Core Resources & Defenses Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 bg-[#fbf7ee] border-b border-[#d6c7ab]">
         {/* HP */}
-        <div className="bg-[#fee2e2] rounded-lg p-2.5 border border-[#fca5a5]">
+        <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
           <div className="text-[10px] text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
             <GiHealthNormal className="w-3 h-3 text-[#6b5a4b]" /> HP 生命值
           </div>
@@ -150,7 +150,7 @@ export default function NPCCardPreview({
         </div>
 
         {/* MP */}
-        <div className="bg-[#dbeafe] rounded-lg p-2.5 border border-[#93c5fd]">
+        <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
           <div className="text-[10px] text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
             <GiLightningTear className="w-3 h-3 text-[#6b5a4b]" /> MP 魔力值
           </div>

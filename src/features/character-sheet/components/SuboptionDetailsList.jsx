@@ -89,15 +89,15 @@ export default function SuboptionDetailsList({
       {isTherioform && (
         <div
           data-testid="therioform-usage"
-          className="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200/90 space-y-1"
+          className="p-2.5 rounded-xl bg-[#f9f5eb] border border-[#8c2d36]/30 space-y-1"
         >
-          <div className="flex items-center justify-between text-xs font-bold text-rose-900 border-b border-rose-200/60 pb-1.5 gap-2 flex-wrap">
+          <div className="flex items-center justify-between text-xs font-bold text-[#8c2d36] border-b border-[#8c2d36]/30 pb-1.5 gap-2 flex-wrap">
             <span className="flex items-center gap-1.5">
-              <GiDna2 className="w-3.5 h-3.5 text-rose-700" />
+              <GiDna2 className="w-3.5 h-3.5 text-[#8c2d36]" />
               <span>{therioRules.label}：使用方式</span>
             </span>
             {isTheriomorphosisVariant(variantId) && (
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-white text-rose-800 border border-rose-300 font-bold">
+              <span className="text-[10px] px-1.5 py-0.2 rounded bg-white text-[#8c2d36] border border-[#8c2d36]/50 font-bold">
                 【公測】變體
               </span>
             )}
@@ -131,7 +131,7 @@ export default function SuboptionDetailsList({
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-[#3c2415] text-xs">✦</span>
                     {isOffensive && (
-                      <span className="fu-icon text-red-600 font-bold" title="攻擊性咒語">
+                      <span className="fu-icon text-[#8c2d36] font-bold" title="攻擊性咒語">
                         o
                       </span>
                     )}

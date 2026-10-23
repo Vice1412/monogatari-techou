@@ -299,7 +299,7 @@ export default function CharacterAvatarUploader({
             <button
               type="button"
               onClick={handleClearAvatar}
-              className="text-[11px] text-red-600 hover:text-red-800 flex items-center gap-1 font-bold transition-colors cursor-pointer"
+              className="text-[11px] text-[#8c2d36] hover:text-[#76252d] flex items-center gap-1 font-bold transition-colors cursor-pointer"
             >
               <Trash2 size={12} />
               <span>移除照片</span>
@@ -422,7 +422,7 @@ export default function CharacterAvatarUploader({
                   <button
                     type="button"
                     onClick={handleClearAvatar}
-                    className="px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1.5 rounded-lg border border-[#8c2d36]/30 bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#8c2d36] text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
                   >
                     <Trash2 size={13} />
                     <span>清除</span>

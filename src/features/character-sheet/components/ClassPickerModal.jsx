@@ -818,7 +818,7 @@ export default function ClassPickerModal({
                       draftTotal === 0
                         ? 'text-[#6b5a4b] bg-[#f4ebd9]'
                         : !budgetOk
-                          ? 'text-rose-700 bg-rose-100'
+                          ? 'text-[#8c2d36] bg-[#f4ebd9]'
                           : 'text-[#3c2415] bg-[#f4ebd9]'
                     }`}>
                       {draftTotal} 級
@@ -831,12 +831,12 @@ export default function ClassPickerModal({
                     {draftTotal === 0 ? (
                       <span className="text-[#6b5a4b]">請至少為一個職業分配 1 級技能</span>
                     ) : draftTotal > remainingBudget ? (
-                      <span className="text-rose-600 font-bold flex items-center justify-center sm:justify-start gap-1">
+                      <span className="text-[#8c2d36] font-bold flex items-center justify-center sm:justify-start gap-1">
                         <GiHazardSign className="w-3.5 h-3.5 shrink-0" />
                         超出可分配等級：這次 {draftTotal} 級，但只剩 {remainingBudget} 級
                       </span>
                     ) : !countOk ? (
-                      <span className="text-rose-600 font-bold flex items-center justify-center sm:justify-start gap-1">
+                      <span className="text-[#8c2d36] font-bold flex items-center justify-center sm:justify-start gap-1">
                         <GiHazardSign className="w-3.5 h-3.5 shrink-0" />
                         確定後會有 {classesAfter} 個職業，開局規定是 {rules.classCountMin}~{rules.classCountMax} 個
                       </span>

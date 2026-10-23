@@ -59,28 +59,24 @@ const CHAPTER_METAS = {
     title: '角色卡助手',
     subtitle: '管理與檢視您創建的所有冒險者角色',
     icon: GiVisoredHelm,
-    color: 'emerald'
   },
   workshop: {
     id: 'workshop',
     title: 'NPC工坊',
     subtitle: '管理與檢視您創建的所有自定義 NPC',
     icon: GiDragonHead,
-    color: 'amber'
   },
   combat: {
     id: 'combat',
     title: '戰鬥輪次',
     subtitle: '管理遭遇戰動態輪次與各參戰者狀態',
     icon: GiSwordClash,
-    color: 'rose'
   },
   clocks: {
     id: 'clocks',
     title: '命刻記錄',
     subtitle: '管理情勢命刻、進度時鐘與場景危機',
     icon: GiPocketWatch,
-    color: 'cyan'
   }
 };
 

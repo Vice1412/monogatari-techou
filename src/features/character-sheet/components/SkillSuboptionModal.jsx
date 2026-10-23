@@ -225,7 +225,7 @@ export default function SkillSuboptionModal({
           <button
             type="button"
             onClick={handleClear}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[#6b5a4b] hover:text-rose-600 hover:bg-rose-50 border border-[#d6c7ab] transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] border border-[#d6c7ab] transition-colors cursor-pointer"
           >
             <GiTrashCan className="w-4 h-4" />
             <span>清空已選項目</span>
@@ -293,7 +293,7 @@ export default function SkillSuboptionModal({
           {/* 配額指示徽章 */}
           <div className="flex items-center gap-2">
             {isOver && (
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-300 font-bold text-xs">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 font-bold text-xs">
                 <GiHazardSign className="w-3.5 h-3.5 shrink-0" />
                 <span>已掌握 {currentCount} / {maxQuota}（超出 {currentCount - maxQuota} 個，請刪減）</span>
               </div>
@@ -351,13 +351,13 @@ export default function SkillSuboptionModal({
         {isMutantForms && (
           <div
             data-testid="therioform-rules"
-            className="p-3 rounded-xl bg-rose-50/60 border border-rose-200 text-xs space-y-1"
+            className="p-3 rounded-xl bg-[#f9f5eb] border border-[#8c2d36]/30 text-xs space-y-1"
           >
-            <div className="font-bold flex items-center gap-1.5 flex-wrap text-rose-900">
+            <div className="font-bold flex items-center gap-1.5 flex-wrap text-[#8c2d36]">
               <GiDna2 className="w-4 h-4" />
               <span>{therioRules.label}：使用方式</span>
               {isTheriomorphosisVariant(variantId) && (
-                <span className="text-t12 px-1.5 py-0.5 rounded border border-rose-300 bg-white font-bold">
+                <span className="text-t12 px-1.5 py-0.5 rounded border border-[#8c2d36]/50 bg-white font-bold">
                   【公測】變體
                 </span>
               )}
@@ -459,7 +459,7 @@ export default function SkillSuboptionModal({
 
                       <span className={`font-bold tracking-wide text-sm flex items-center gap-1.5 ${isSelected ? 'text-[#2c221e] font-serif' : 'text-[#3c2415]'}`}>
                         {item.isOffensive && (
-                          <span className="fu-icon text-red-600 font-bold" title="攻擊性咒語">
+                          <span className="fu-icon text-[#8c2d36] font-bold" title="攻擊性咒語">
                             o
                           </span>
                         )}
@@ -491,7 +491,7 @@ export default function SkillSuboptionModal({
                           ))}
 
                           {item.damageType && (
-                            <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-900 border border-red-200">
+                            <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-[#f9f5eb] text-[#8c2d36] border border-[#8c2d36]/30">
                               <FUIcon name={item.damageType} className="text-xs" />
                               <span>{item.damageType}</span>
                             </span>
