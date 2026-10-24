@@ -23,7 +23,7 @@
  * | `chipBg` | **收斂成一個** | 晶片是面，文字才是內容 |
  * | `accent`／`accentHover`／`accentDark`／`accentLight` | **保留** | 玩家自己選的那一色，封閉集合、每角色一色 → 真身份 |
  * | `headerIconColor`／`ringColor`／`activeTabClass` | **保留**（跟著 accent） | 同一個身份色的小面積延伸 |
- * | `badgeVariant` | **保留** | 徽章是身份色的最小面積版本 |
+ * | `badgeVariant` | **收斂成一個**（第三十三輪 §CI41） | 徽章的內容是 `Lv N`，身份由 `accent`（頭像環／頁籤／圖示）承載；徽章帶色是重複編碼，且六個鍵裡 `blue → cyan` 已失效（靜默變金）、`slate` 借用了「序」的通道 |
  * | `gradient` | **刪除** | 漸層宣告第二套顏色系統；三處使用全改成實心 accent |
  * | `buttonVariant`／`outlineButtonVariant` | **刪除** | 按鈕不該隨角色換色；呼叫端本來就寫了 `\|\| 'primary'`／`\|\| 'outline'` |
  *
@@ -87,7 +87,7 @@ export const CHARACTER_THEMES = {
     accentHover: '#1c4a37',
     accentDark: '#133829',
     accentLight: '#e1eee7',
-    badgeVariant: 'green',
+    badgeVariant: 'ink',
     activeTabClass: 'bg-[#245c45] text-[#fffdf9]',
     ringColor: 'focus:ring-[#245c45]/40 focus:border-[#245c45]',
     headerIconColor: 'text-[#245c45]',
@@ -100,7 +100,7 @@ export const CHARACTER_THEMES = {
     accentHover: '#823f0f',
     accentDark: '#693108',
     accentLight: '#faeedd',
-    badgeVariant: 'gold',
+    badgeVariant: 'ink',
     activeTabClass: 'bg-[#9c4d16] text-[#fffdf9]',
     ringColor: 'focus:ring-[#9c4d16]/40 focus:border-[#9c4d16]',
     headerIconColor: 'text-[#9c4d16]',
@@ -113,7 +113,7 @@ export const CHARACTER_THEMES = {
     accentHover: '#1f4263',
     accentDark: '#17324c',
     accentLight: '#dde7f0',
-    badgeVariant: 'cyan',
+    badgeVariant: 'ink',
     activeTabClass: 'bg-[#27527a] text-[#fffdf9]',
     ringColor: 'focus:ring-[#27527a]/40 focus:border-[#27527a]',
     headerIconColor: 'text-[#27527a]',
@@ -126,7 +126,7 @@ export const CHARACTER_THEMES = {
     accentHover: '#75232b',
     accentDark: '#58171e',
     accentLight: '#f5e6e7',
-    badgeVariant: 'rose',
+    badgeVariant: 'ink',
     activeTabClass: 'bg-[#8c2d36] text-[#fffdf9]',
     ringColor: 'focus:ring-[#8c2d36]/40 focus:border-[#8c2d36]',
     headerIconColor: 'text-[#8c2d36]',
@@ -139,7 +139,7 @@ export const CHARACTER_THEMES = {
     accentHover: '#4e2c67',
     accentDark: '#3a1f4f',
     accentLight: '#eee5f5',
-    badgeVariant: 'purple',
+    badgeVariant: 'ink',
     activeTabClass: 'bg-[#5e387c] text-[#fffdf9]',
     ringColor: 'focus:ring-[#5e387c]/40 focus:border-[#5e387c]',
     headerIconColor: 'text-[#5e387c]',
@@ -152,7 +152,7 @@ export const CHARACTER_THEMES = {
     accentHover: '#303844',
     accentDark: '#20262f',
     accentLight: '#e6eaef',
-    badgeVariant: 'slate',
+    badgeVariant: 'ink',
     activeTabClass: 'bg-[#404a58] text-[#fffdf9]',
     ringColor: 'focus:ring-[#404a58]/40 focus:border-[#404a58]',
     headerIconColor: 'text-[#404a58]',

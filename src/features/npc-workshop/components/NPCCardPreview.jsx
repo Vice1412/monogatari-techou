@@ -93,7 +93,7 @@ export default function NPCCardPreview({
             <h3 className="font-serif font-black text-xl text-[#3c2415] truncate tracking-wide">
               {npc.name || '未命名實體'}
             </h3>
-            <JRPGBadge variant="gold" size="xs">
+            <JRPGBadge variant="ink" size="xs">
               Lv {npc.level}
             </JRPGBadge>
             <JRPGBadge variant={npc.rank === '冠位' ? 'rank-top' : npc.rank === '精英' ? 'rank-mid' : 'slate'} size="xs">

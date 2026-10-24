@@ -260,7 +260,7 @@ export default function SkillSuboptionModal({
               <span className="font-bold text-sm text-[#2c221e]">
                 {className} · {skillName}
               </span>
-              <JRPGBadge variant={theme?.badgeVariant || 'gold'} size="xs">
+              <JRPGBadge variant={theme?.badgeVariant || 'ink'} size="xs">
                 SL {sl}
               </JRPGBadge>
               <span className="text-xs text-[#6b5a4b] font-mono">

@@ -199,7 +199,7 @@ export default function AddCombatantModal({
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="font-bold text-xs text-[#2c221e] truncate">{npc.name}</span>
-                          <JRPGBadge variant="gold" size="xs">Lv {npc.level}</JRPGBadge>
+                          <JRPGBadge variant="ink" size="xs">Lv {npc.level}</JRPGBadge>
                           <JRPGBadge variant="slate" size="xs">{npc.rank}</JRPGBadge>
                         </div>
                         <div className="text-[11px] text-[#6b5a4b] font-mono mt-0.5">

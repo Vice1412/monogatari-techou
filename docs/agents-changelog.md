@@ -2295,3 +2295,33 @@ H25 第一版掃「含『步驟 N：』的那一行」。第②案把 `className
 ### 這一輪沒做的事
 - `JRPGBadge` 15 個色相令牌（amber/rose?/green/purple/indigo）——這是**身份調色盤**問題：徽章變體是封閉語意，要嘛整組改紙墨並改寫 H20/H23/H24/H26 白名單，要嘛正式登記為保留色。需要一次設計裁決 → R33。
 - `REGISTERED_HEX` 盲點（只掃 7 個同伴檔）、珠表 11 格未登記、書頁棕 ~335、`theme?.accent ||`、`text-[Npx]` 814、半徑 835、`hover:scale-` 45、`body` radial-gradient 3——都沒動（R34–R38）。
+
+## 第三十三輪（UI Designer，2026-10-24）——徽章身份出口收斂：`JRPGBadge` 15 → 0
+
+**起點（三個問題）**：① 5 個身份變體帶色相（amber/rose/green/purple/indigo），15 個令牌。② `blue` 主題寫著 `badgeVariant: 'cyan'`，而 `cyan` 在第三十輪已刪 → `variantStyles[v] || variantStyles.gold` 讓它**靜默變金**，與 `amber` 主題撞色。③ `slate` 一鍵兩義：H24-e 定它是「序」第三階，`slate` 主題卻拿它當身份徽章。
+
+> H24-d 只掃 JSX 字面值，掃不到 `theme.badgeVariant` 的間接引用 → ② 在 205 條護欄下活了兩輪。
+
+**判準**：徽章內容是 `Lv N`；身份由 `accent`（頭像環／頁籤／圖示）承載，色相只是重複編碼。且色相是 `speciesThemes` 七族的保留色。GM 裁決：「直接開，改成紙墨。」
+
+**修法**：刪 `gold/amber/rose/green/purple/indigo` 六鍵，新增 `ink`＝`bg-[#f9f5eb] text-[#3c2415] border border-[#d6c7ab] font-bold`；預設與 fallback 改 `ink`；`characterThemes` 六個 `badgeVariant` → `'ink'`；字面 `variant="gold"` 2 處、三元式 `'gold'` 2 處 → `ink`。保留 8 個變體（ink/zinc/danger/rank-top/rank-mid/slate/marker/selected）。
+
+**護欄**：新增 H30 家族 4 條（205 → **209**）——H30 徽章檔零色相、H30-a 六主題身份樣式收斂成同一個值（集合大小）、H30-b `badgeVariant` 值都登記過（補 H24-d 缺口）、H30-c 語意／序變體全在。
+
+**驗證**：`npm test` **209**/209、`npm run build` exit 0、故意破壞 **4/4**（sha256 全一致）。另做**負向對照**：`badgeVariant: 'cyan'` → H30-b 紅、**H24-d 沒紅**（缺口實測存在）。
+
+**附帶收穫**：收斂後 H24-d 抓出 2 處人工 grep 漏掉的 `gold`（藏在 `variant={… ? 'x' : 'gold'}` 三元式）。三次 grep 都漏，護欄一次抓齊。
+
+| 指標 | 開場 → 收場 |
+|---|---|
+| `JRPGBadge` 色相令牌 | 15 → **0** |
+| 身份變體 | 6（1 個失效）→ **1** |
+| 全站色相令牌 | 36／2 檔 → **21／1 檔** |
+| 剩餘分佈 | 全部在 `speciesThemes`（7 物種 × 3） |
+| 護欄 | 205 → **209** |
+
+**里程碑**：全站色相第一次只剩一張登記表。
+
+### 這一輪沒做的事
+- 舊白名單（H20/H23/H24/H26）仍列 `JRPGBadge` 為色相出口——**刻意不改**：它們寫的是「只准出現在 `amber:` 那一行」，該行已不存在，所以任何未來的 `bg-amber-50` 都會被判紅，是額外保護。
+- `REGISTERED_HEX` 盲點（只掃 7 個同伴檔）、珠表 11 格未登記、書頁棕 ~335、`theme?.accent ||`、`text-[Npx]` 814、半徑 835、`hover:scale-` 45、`body` radial-gradient 3——都沒動（R34–R38）。

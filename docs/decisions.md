@@ -13403,3 +13403,68 @@ const stripComments = (src) =>
 ### CI40.8 殘債（下一輪起點）
 - **`JRPGBadge` 15 個色相令牌**（amber/rose?/green/purple/indigo）——這是**身份調色盤**問題，不是機械去色：徽章變體是一組封閉語意，要嘛整組改登記紙墨階（並改寫 H20/H23/H24/H26 的白名單），要嘛保留並在文件裡正式登記。留 R33。
 - `REGISTERED_HEX` 護欄盲點（只掃 7 個同伴檔）、珠色身份表 11 格未登記、書頁棕 ~335、`theme?.accent ||`、`text-[Npx]`（實測 814）、半徑（835）、`hover:scale-`（45）、`body` radial-gradient（3）——R34–R38。
+
+---
+
+## §CI41 第三十三輪：徽章身份出口收斂——`JRPGBadge` 15 → 0（全站色相只剩一張表）
+
+### CI41.1 起點（開場實測，發現三個問題）
+CI40.8 把 `JRPGBadge` 的 15 個色相令牌列為 R33。開場量測發現不只「借色」這麼簡單：
+
+| 問題 | 實測 |
+|---|---|
+| ① 5 個身份變體帶色相 | `amber`／`rose`／`green`／`purple`／`indigo`，各 3 個令牌＝15 |
+| ② `blue` 主題靜默變金 | `characterThemes` 的 `blue → badgeVariant: 'cyan'`，而 `cyan` 在第三十輪已刪 → `variantStyles[v] \|\| variantStyles.gold` 讓它退回金色，**與 `amber` 主題撞色** |
+| ③ `slate` 一鍵兩義 | H24-e 明定 `slate` 是「序」（冠位／精英／一般）的第三階，但 `slate` 主題也拿它當身份徽章 |
+
+> H24-d 的設計目的是抓「未登記變體靜默變金」，但它只掃 `<JRPGBadge variant="…">` 的**字面值**與 `{ label, variant }` 物件，掃不到 `theme.badgeVariant` 這種**間接引用**。所以 ② 活了兩輪。
+
+### CI41.2 判準：徽章的內容是 `Lv N`，色相是重複編碼
+`JRPGBadge` 在角色卡／角色頁／HUD 一律渲染 `Lv {等級}`。角色身份由 `accent` 承載（頭像環、頁籤、圖示——`characterThemes` 判決表裡 `accent` 是**保留**的），徽章帶色只是同一身份的重複小面積編碼。
+
+與 §CI34（味覺去色）同一個判準：**文字已辨識，色相即冗餘。** 且色相是保留色（`speciesThemes` 七族各佔一色），徽章借用等於偷身份。
+
+GM 2026-10-24 裁決：「直接開，改成紙墨。」
+
+### CI41.3 修法：六個身份鍵收斂成一個 `ink`
+- `JRPGBadge.jsx`：刪 `gold`／`amber`／`rose`／`green`／`purple`／`indigo` 六鍵，新增 `ink`＝`bg-[#f9f5eb] text-[#3c2415] border border-[#d6c7ab] font-bold`。預設值與 fallback 同步改為 `ink`。
+- `characterThemes.js`：六個主題的 `badgeVariant` 全部指向 `'ink'`；判決表該列從「保留」改為「收斂成一個」，理由寫進表格。
+- 字面用法 `variant="gold"` 2 處 → `ink`；三元式裡的 `\|\| 'gold'`／`'gold'` 2 處 → `ink`（由 H24-d 當場抓出，見 CI41.5）。
+- 保留 8 個變體：`ink`（身份）、`zinc`（中性）、`danger`（危險極性）、`rank-top`／`rank-mid`／`slate`（序三階）、`marker`（標記）、`selected`（選中）。
+
+### CI41.4 護欄：H30 家族（205 → 209）
+| 條號 | 形狀 | 內容 |
+|---|---|---|
+| H30 | 硬零 | `JRPGBadge.jsx` 全檔零色相令牌 |
+| H30-a | 集合大小 | 六個主題指向的身份樣式必須收斂成**同一個值**（允許是任何值，但必須是同一個——與 §C2 四章外框同款形狀） |
+| H30-b | 逐項 | `characterThemes.badgeVariant` 每個值都必須在 `variantStyles` 登記過（**補 H24-d 的間接引用缺口**） |
+| H30-c | 反向控制 | 8 個語意／序變體全數仍在（收斂不得順手砍掉出口） |
+
+### CI41.5 故意破壞：4/4 ＋ 1 個負向對照
+| 案例 | 期望紅 | 結果 |
+|---|---|---|
+| ① `ink` 改回 `bg-amber-50` | H30 | ✓ FAIL（連帶 H23-a） |
+| ② 一個主題改回 `badgeVariant: 'cyan'` | H30-b | ✓ FAIL |
+| ③ 一個主題改指向 `zinc` | H30-a | ✓ FAIL |
+| ④ 刪掉 `marker` | H30-c | ✓ FAIL（連帶 H24-d） |
+| ⑤ **負向對照**：`badgeVariant: 'cyan'` | H30-b 紅、**H24-d 不該紅** | ✓ H30-b 紅、H24-d 沒紅（缺口實測存在） |
+
+案例⑤證明的是「H24-d 本來就看不到間接引用」——這正是 `cyan` 能在 205 條護欄下活兩輪的原因。
+
+> 附帶收穫：收斂後 H24-d 立刻抓出 2 處我人工 grep 漏掉的 `gold`（藏在 `variant={… ? 'x' : 'gold'}` 三元式裡）。**護欄比人可靠。**
+
+### CI41.6 收尾數字與對帳
+| 指標 | 開場 → 收場 |
+|---|---|
+| `JRPGBadge` 色相令牌 | 15 → **0** |
+| 身份變體數 | 6 個（其中 1 個失效）→ **1 個** |
+| 全站色相令牌 | 36／2 檔 → **21／1 檔** |
+| 剩餘色相的分佈 | `JRPGBadge` 15 ＋ `speciesThemes` 21 → **全部在 `speciesThemes`**（7 物種 × 3 令牌） |
+| 護欄 | 205 → **209** |
+| 新增 hex | 0（`ink` 用既有紙／墨階） |
+
+**里程碑**：全站色相令牌第一次只剩**一張登記表**（`speciesThemes` 的 7 個物種身份色）。這張表是保留色的正當用途，不是債。
+
+### CI41.7 殘債（下一輪起點）
+- 舊白名單（H20／H23／H24／H26）仍列 `JRPGBadge` 為色相出口。**不需要改**：它們寫的是「只准出現在 `amber:` 那一行」，而該行已不存在，所以任何未來的 `bg-amber-50` 都會被判紅——是額外保護，不是漏洞。
+- `REGISTERED_HEX` 盲點（只掃 7 個同伴檔）、珠色身份表 11 格未登記、書頁棕 ~335、`theme?.accent ||`、`text-[Npx]`（814）、半徑（835）、`hover:scale-`（45）、`body` radial-gradient（3）——R34–R38。

@@ -2981,6 +2981,72 @@ check(
   tasteMissing.length ? `缺：${tasteMissing.join('、')}` : '5 項都在'
 );
 
+/* ────────────────────────────────────────────────────────────────
+   H30 家族：徽章身份出口收斂（2026-10-24 第三十三輪 §CI41）
+   ────────────────────────────────────────────────────────────────
+
+   背景：`JRPGBadge` 有六個「身份」變體（gold/amber/rose/green/purple/indigo），
+   由 `characterThemes.badgeVariant` 逐主題指向。三個問題：
+
+   1. 色相是保留色——`speciesThemes` 七族各佔一色，徽章借用等於偷身份。
+   2. `blue` 主題指向 `cyan`，而 `cyan` 在第三十輪已刪 → `variantStyles[v] || …`
+      讓它**靜默變成金色**，與 `amber` 主題撞色。H24-d 掃的是 JSX 字面值，
+      掃不到 `theme.badgeVariant` 這種**間接引用**——這是它的缺口。
+   3. `slate` 同時是「序」（冠位／精英／一般）的通道與 `slate` 主題的身份徽章，
+      一個鍵兩個意思。
+
+   判準：徽章的內容是 `Lv N`，身份由 `accent`（頭像環／頁籤／圖示）承載，
+   色相是重複編碼 → 六個身份鍵收斂成一個 `ink` 紙墨徽章。
+   ──────────────────────────────────────────────────────────────── */
+
+const BADGE_MAP = new Map(
+  [...badgeMapSrc.slice(variantBlockStart, variantBlockEnd).matchAll(/^\s*"?([a-z][a-z-]*)"?:\s*"([^"]*)"/gm)].map((m) => [m[1], m[2]])
+);
+
+// H30：徽章檔本身零色相令牌（硬零）。
+const BADGE_HUE =
+  /(?:text|bg|border|ring|from|via|to|fill|stroke|placeholder|shadow|outline|decoration|accent|caret)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}/g;
+const badgeHueHits = badgeMapSrc.match(BADGE_HUE) || [];
+check(
+  'H30 JRPGBadge 零色相令牌（身份改紙墨）',
+  badgeHueHits.length === 0,
+  badgeHueHits.length ? `命中 ${badgeHueHits.length}：${badgeHueHits.slice(0, 5).join('、')}` : '0 處（全檔紙／墨／登記語意色）'
+);
+
+// H30-a：六個角色主題指向的身份變體，樣式必須**收斂成同一個值**。
+// 用「集合大小」而不是「比對字串」：允許是任何一個值，但必須是**同一個**。
+const themeSrcForBadge = stripComments(
+  fs.readFileSync(path.join(ROOT, 'src/features/character-sheet/utils/characterThemes.js'), 'utf8')
+);
+const themeBadgeVals = [...themeSrcForBadge.matchAll(/badgeVariant:\s*'([a-z][a-z-]*)'/g)].map((m) => m[1]);
+const identityStyles = new Set(themeBadgeVals.map((v) => BADGE_MAP.get(v)).filter(Boolean));
+const inkStyle = BADGE_MAP.get('ink');
+check(
+  'H30-a 六個主題的身份徽章收斂成同一個值（集合大小 1）',
+  themeBadgeVals.length === 6 && identityStyles.size === 1 && identityStyles.has(inkStyle),
+  `${themeBadgeVals.length} 個主題 → ${identityStyles.size} 個不同樣式${identityStyles.size === 1 && !identityStyles.has(inkStyle) ? '（但不是 ink）' : ''}`
+);
+
+// H30-b：`characterThemes.badgeVariant` 的每個值都必須登記過。
+// 這條補 H24-d 的缺口——H24-d 只看 JSX 字面值，看不到 `theme.badgeVariant` 的間接引用。
+const unregisteredBadgeVals = themeBadgeVals.filter((v) => !KNOWN_VARIANTS.has(v));
+check(
+  'H30-b 每個 badgeVariant 值都登記過（補間接引用缺口）',
+  unregisteredBadgeVals.length === 0,
+  unregisteredBadgeVals.length
+    ? `${unregisteredBadgeVals.length} 個未登記：${[...new Set(unregisteredBadgeVals)].join('、')}（會靜默 fallback）`
+    : `${themeBadgeVals.length} 個指向全部有效`
+);
+
+// H30-c：反向控制——語意與序的變體一個都不能被「收斂」順手刪掉。
+const REQUIRED_BADGE_VARIANTS = ['ink', 'zinc', 'danger', 'rank-top', 'rank-mid', 'slate', 'marker', 'selected'];
+const missingBadgeVariants = REQUIRED_BADGE_VARIANTS.filter((v) => !KNOWN_VARIANTS.has(v));
+check(
+  'H30-c 語意／序徽章變體全數仍在（反向控制）',
+  missingBadgeVariants.length === 0,
+  missingBadgeVariants.length ? `缺 ${missingBadgeVariants.join('、')}` : `${REQUIRED_BADGE_VARIANTS.length} 個都在（共 ${KNOWN_VARIANTS.size} 個）`
+);
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${'='.repeat(56)}`);
 console.log(`  通過 ${results.length - failed.length} / ${results.length}${failed.length ? `　失敗 ${failed.length}` : '　（全部通過）'}`);

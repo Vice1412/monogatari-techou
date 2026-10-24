@@ -80,10 +80,10 @@
 <header class="top">
   <p class="kicker">MONOGATARI TECHOU · DESIGN SYSTEM v5</p>
   <h1>全程淺色 · 冷暖分層</h1>
-  <p class="sub">這份文件是《物語手帳》的設計系統單頁參考：色票、字階、形狀、六種語意各自該走哪條通道，以及<b>讓它不會退化的 205 條護欄</b>。所有數字都是 2026-10-24 第三十二輪結束時的實測值。</p>
+  <p class="sub">這份文件是《物語手帳》的設計系統單頁參考：色票、字階、形狀、六種語意各自該走哪條通道，以及<b>讓它不會退化的 209 條護欄</b>。所有數字都是 2026-10-24 第三十三輪結束時的實測值。</p>
   <div class="meta">
-    <span>第三十二輪 · <b>§CI40 護欄自己也會瞎</b></span>
-    <span>護欄 <b>205</b> 條</span>
+    <span>第三十三輪 · <b>§CI41 徽章身份收斂</b></span>
+    <span>護欄 <b>209</b> 條</span>
     <span>色相家族 <b>48</b> 處</span>
     <span>新增 hex <b>0</b></span>
   </div>
@@ -287,7 +287,7 @@
 </section>
 
 <section>
-  <h2><span class="no">07</span>護欄：讓規則不會退化的 205 條斷言</h2>
+  <h2><span class="no">07</span>護欄：讓規則不會退化的 209 條斷言</h2>
   <p class="lede"><code>tests/uiSystem.test.mjs</code>。每一輪的產出不是「改好了」，是「<b>改壞了會叫</b>」。形狀只有六種：硬零、預算、集合大小、一對一、單調性、反向控制。</p>
   <table>
     <thead><tr><th style="width:90px">區段</th><th>擋的是</th><th style="width:120px">形狀</th></tr></thead>
@@ -343,25 +343,30 @@
       <tr><td>H29-b</td><td>真實 JSX 行被塗白（<code>className="</code> 消失）</td><td>逐行不變量</td></tr>
       <tr><td><b>H29-c</b></td><td><b><code>image/*</code> 樣本消失（自檢空轉）</b></td><td><b>反向控制</b></td></tr>
       <tr><td>H29-d</td><td>魔防 M.DEF 屬性列借用色相</td><td>逐項</td></tr>
+      <tr><td><b>H30</b></td><td><b><code>JRPGBadge</code> 出現色相令牌（身份徽章重新借色）</b></td><td><b>硬零</b></td></tr>
+      <tr><td>H30-a</td><td>六個角色主題的身份徽章不再同一個值</td><td>集合大小（1）</td></tr>
+      <tr><td><b>H30-b</b></td><td><b><code>badgeVariant</code> 指向未登記的鍵（靜默 fallback）</b></td><td><b>逐項</b></td></tr>
+      <tr><td><b>H30-c</b></td><td><b>語意／序變體被收斂順手砍掉</b></td><td><b>反向控制</b></td></tr>
     </tbody>
   </table>
-  <div class="note"><b>「護欄綠燈」≠「行為正確」。</b>唯一的分辨法是<b>故意弄壞，看它會不會叫</b>。第二十五輪跑了 13 個案例（10 紅 3 綠），第二十六輪 9 個（6 紅 3 綠），第二十七輪 7 個（7 紅），第二十八輪 7 個（7 綠）。其中一條新護欄的第一版就是假綠——「至少有一個」型斷言在收斂後的檔案裡必然為真。<b>而護欄永遠抓不到的一類是「兩個分支不同但意思一樣」</b>：第二十六輪有四個三元式被對映成兩個不同卻同義的值，護欄全綠，語意已經塌了，只能靠逐行讀。<br><br><b>第二十七輪補了兩個新教訓。</b>（一）護欄<b>抓得到「靜默失效」</b>：<code>JRPGBadge</code> 讀 <code>variantStyles[v] || variantStyles.gold</code>，打錯一個字只會安靜變成金色——H24-d 把「每個用到的 variant 都登記過」變成硬性檢查。（二）<b>破壞驗證本身也會假綠</b>：第一版把破壞注入到檔頭註解裡，<code>stripComments</code> 把它一起吃掉，檔案確實壞了但護欄看到的世界裡什麼都沒發生，7 案只抓到 4 案。錨點必須落在程式碼裡。<br><br><b>第二十八輪補了第三個教訓，方向相反：破壞驗證也是唯一能發現護欄有洞的方法。</b>H25 第一版掃「含『步驟 N：』的那一行」，第②案把 <code>className</code> 折到上一行（純排版變動），<b>當場漏抓</b>——破壞確實注入了，檔案確實壞了，護欄卻還是綠的。這不是腳本寫錯，是<b>護欄的判定單位選錯了</b>：行級判定對排版工具重排一次毫無抵抗力，而 Prettier 就是會重排。改成抓「包住『步驟 N：』的那個開標籤」才補上。<br>同時確立兩個形狀上的規矩：（一）<b>集合大小的護欄要防兩個方向</b>——<code>border-l-4</code> 用「恰好 3」而不是「≤ 3」，因為刪光出處也是退化；（二）<b>硬零護欄必須配反向控制</b>——H25／H25-a 都是「不准這樣畫」，若把警示全刪光，測試照樣全綠，所以 H25-c 斷言「那要怎麼畫」。<br><br><b>第二十九輪補了第四個教訓：截圖也會假綠，而且比護欄更難發現。</b>同伴面板脫漆之後截 before/after，第一次的 before 是舊 JSX 配新 CSS——<code>bg-green-600</code> 被 purge 掉，兩顆「攻擊」按鈕整顆消失。這不是「新版比較好」，是假的對照。修正方法是讓腳本自己證明原始碼 = HEAD 且 CSS 不同；同時也發現 HP 條還在借翠玉色（<code>#245c45</code>），是<b>看圖才看到的，不是程式碼分析</b>。<br><br><b>第三十二輪補了第五個教訓，也是最根本的一個：護欄會瞎，而它不會告訴你。</b><code>stripComments</code> 把 <code>accept="image/*"</code> 的 <code>/*</code> 當成區塊註解開頭，吃掉約 50 行真實 JSX；H20「全站不得有 purple」於是看不見魔防的 <code>text-purple-800</code>，198 條護欄一條都沒紅。<b>更糟的是量測工具用同一個剝註解器</b>——「全站色相 40」是被盲點算出來的，誠實值是 41。這輪因此多了三條規矩：（一）<b>護欄要檢查「檢查本身」</b>——H29 用合成 fixture 證明剝註解器不吞程式碼，H29-a／b 用行號與 <code>className</code> 守恆逐檔守著；（二）<b>反向控制要延伸到工具</b>——H29-c 斷言樣本仍在，否則自檢是空轉；（三）<b>驗證要包含負向對照</b>——除了「弄壞後會紅」，還要證明「<b>修好之前真的不會紅</b>」，否則「修好了」只是說法。實測：舊剝註解器＋purple 同時存在時，H20 家族確實沒紅。</div>
+  <div class="note"><b>「護欄綠燈」≠「行為正確」。</b>唯一的分辨法是<b>故意弄壞，看它會不會叫</b>。第二十五輪跑了 13 個案例（10 紅 3 綠），第二十六輪 9 個（6 紅 3 綠），第二十七輪 7 個（7 紅），第二十八輪 7 個（7 綠）。其中一條新護欄的第一版就是假綠——「至少有一個」型斷言在收斂後的檔案裡必然為真。<b>而護欄永遠抓不到的一類是「兩個分支不同但意思一樣」</b>：第二十六輪有四個三元式被對映成兩個不同卻同義的值，護欄全綠，語意已經塌了，只能靠逐行讀。<br><br><b>第二十七輪補了兩個新教訓。</b>（一）護欄<b>抓得到「靜默失效」</b>：<code>JRPGBadge</code> 讀 <code>variantStyles[v] || variantStyles.gold</code>，打錯一個字只會安靜變成金色——H24-d 把「每個用到的 variant 都登記過」變成硬性檢查。（二）<b>破壞驗證本身也會假綠</b>：第一版把破壞注入到檔頭註解裡，<code>stripComments</code> 把它一起吃掉，檔案確實壞了但護欄看到的世界裡什麼都沒發生，7 案只抓到 4 案。錨點必須落在程式碼裡。<br><br><b>第二十八輪補了第三個教訓，方向相反：破壞驗證也是唯一能發現護欄有洞的方法。</b>H25 第一版掃「含『步驟 N：』的那一行」，第②案把 <code>className</code> 折到上一行（純排版變動），<b>當場漏抓</b>——破壞確實注入了，檔案確實壞了，護欄卻還是綠的。這不是腳本寫錯，是<b>護欄的判定單位選錯了</b>：行級判定對排版工具重排一次毫無抵抗力，而 Prettier 就是會重排。改成抓「包住『步驟 N：』的那個開標籤」才補上。<br>同時確立兩個形狀上的規矩：（一）<b>集合大小的護欄要防兩個方向</b>——<code>border-l-4</code> 用「恰好 3」而不是「≤ 3」，因為刪光出處也是退化；（二）<b>硬零護欄必須配反向控制</b>——H25／H25-a 都是「不准這樣畫」，若把警示全刪光，測試照樣全綠，所以 H25-c 斷言「那要怎麼畫」。<br><br><b>第二十九輪補了第四個教訓：截圖也會假綠，而且比護欄更難發現。</b>同伴面板脫漆之後截 before/after，第一次的 before 是舊 JSX 配新 CSS——<code>bg-green-600</code> 被 purge 掉，兩顆「攻擊」按鈕整顆消失。這不是「新版比較好」，是假的對照。修正方法是讓腳本自己證明原始碼 = HEAD 且 CSS 不同；同時也發現 HP 條還在借翠玉色（<code>#245c45</code>），是<b>看圖才看到的，不是程式碼分析</b>。<br><br><b>第三十二輪補了第五個教訓，也是最根本的一個：護欄會瞎，而它不會告訴你。</b><code>stripComments</code> 把 <code>accept="image/*"</code> 的 <code>/*</code> 當成區塊註解開頭，吃掉約 50 行真實 JSX；H20「全站不得有 purple」於是看不見魔防的 <code>text-purple-800</code>，198 條護欄一條都沒紅。<b>更糟的是量測工具用同一個剝註解器</b>——「全站色相 40」是被盲點算出來的，誠實值是 41。這輪因此多了三條規矩：（一）<b>護欄要檢查「檢查本身」</b>——H29 用合成 fixture 證明剝註解器不吞程式碼，H29-a／b 用行號與 <code>className</code> 守恆逐檔守著；（二）<b>反向控制要延伸到工具</b>——H29-c 斷言樣本仍在，否則自檢是空轉；（三）<b>驗證要包含負向對照</b>——除了「弄壞後會紅」，還要證明「<b>修好之前真的不會紅</b>」，否則「修好了」只是說法。實測：舊剝註解器＋purple 同時存在時，H20 家族確實沒紅。<br><br><b>第三十三輪補了第六個教訓：護欄也有「視野」——它只看得到自己掃的那一種寫法。</b>H24-d 的職責是抓「未登記變體靜默變金」，但它只掃 JSX 字面值，掃不到 <code>theme.badgeVariant</code> 的間接引用；於是 <code>blue → cyan</code>（一個第三十輪已刪除的鍵）在 205 條護欄下活了兩輪，安靜地變成金色、與 <code>amber</code> 主題撞色。補上 H30-b 之後，負向對照證明：改回 <code>'cyan'</code> 時 H30-b 紅、<b>H24-d 仍不紅</b>——缺口是量出來的，不是猜的。同輪還有個反向收穫：收斂後 H24-d 一次抓出 <b>2 處我三次 grep 都漏掉的 <code>gold</code></b>（藏在 <code>variant={… ? 'x' : 'gold'}</code> 三元式裡）。<b>護欄比人可靠。</b></div>
 </section>
 
 <section>
   <h2><span class="no">08</span>現況與下一批債</h2>
   <div class="grid g4" style="margin-bottom:16px">
-    <div class="card"><div class="stat"><span class="n">36</span><span class="l">全站色相家族（本輪 −4）</span></div></div>
+    <div class="card"><div class="stat"><span class="n">21</span><span class="l">全站色相令牌（只剩一張表）</span></div></div>
     <div class="card"><div class="stat"><span class="n">180</span><span class="l">同族底色＋字色行數（預算）</span></div></div>
     <div class="card"><div class="stat"><span class="n">814</span><span class="l">任意字級 / 65 檔</span></div></div>
-    <div class="card"><div class="stat"><span class="n">205</span><span class="l">護欄斷言</span></div></div>
+    <div class="card"><div class="stat"><span class="n">209</span><span class="l">護欄斷言</span></div></div>
   </div>
   <div class="card">
     <div class="ban"><span class="ok">→</span><div><b><code>emerald</code> 10／<code>green</code> 0</b>——殘留 10 個全部在三張身份表。`green` 歸零。</div></div>
     <div class="ban"><span class="ok">→</span><div><b>成功通道已建立：</b><code>✓</code> ＋ 墨階，13 處，0 色相。</div></div>
     <div class="ban"><span class="ok">→</span><div><b><code>cyan</code> 3／<code>teal</code> 0／<code>blue</code> 3／<code>sky</code> 0</b>——殘留 6 個全部在 `speciesThemes` 身份表（`sp_element` + `sp_humanoid`）。</div></div>
-    <div class="ban"><span class="ok">→</span><div><b><code>JRPGBadge</code> 仍有 6 個色相變體</b>（amber／rose／green／purple／indigo／slate），<code>selected</code> 與 <code>marker</code> 是非色相出口。</div></div>
-    <div class="ban"><span class="ok">✓</span><div><b><code>lime</code> 0／<code>pink</code> 0／<code>emerald</code> 味覺 0</b>——味覺五項（苦／鹹／酸／甜／鮮）第三十二輪全部去色，<code>TASTE_COLOR</code> 與 <code>TASTE_DOT</code> 皆走紙／墨。殘餘 <code>emerald</code> 6 個全在 <code>JRPGBadge</code> 3 ＋ <code>speciesThemes</code> 3。</div></div>
+    <div class="ban"><span class="ok">✓</span><div><b><code>JRPGBadge</code> 0 個色相變體</b>——第三十三輪把六個身份鍵（amber／rose／green／purple／indigo／gold）收斂成一個 <code>ink</code> 紙墨徽章。徽章內容是 <code>Lv N</code>，身份由 <code>accent</code>（頭像環／頁籤／圖示）承載。順帶修掉 <code>blue → cyan</code> 的靜默變金與 <code>slate</code> 一鍵兩義。</div></div>
+    <div class="ban"><span class="ok">✓</span><div><b><code>lime</code> 0／<code>pink</code> 0／<code>emerald</code> 味覺 0</b>——味覺五項（苦／鹹／酸／甜／鮮）第三十二輪全部去色，<code>TASTE_COLOR</code> 與 <code>TASTE_DOT</code> 皆走紙／墨。</div></div>
+    <div class="ban"><span class="ok">✓</span><div><b>全站色相只剩一張表</b>：21 個令牌全在 <code>speciesThemes.jsx</code>（7 個物種 × 3 個令牌）——這是保留色的正當用途，不是債。其餘 144 個檔案零色相令牌。</div></div>
     <div class="ban"><span class="ok">✓</span><div><b>剝註解器假綠已修</b>——<code>accept="image/*"</code> 曾讓約 50 行真實 JSX 被塗白，H20 因此看不見魔防的 <code>text-purple-800</code>。改單趟狀態機後行號 145 檔 0 位移，並補 H29 家族 5 條「檢查檢查本身」的斷言。</div></div>
     <div class="ban"><span class="ok">→</span><div><b>書頁棕 <code>#8b5e34</code>＋<code>#78350f</code> 141 處</b>——跟 <code>#a63d40</code> 是兩個暖強調色，「合併還是分工」還沒有答案。</div></div>
     <div class="ban"><span class="ok">→</span><div><b>半徑</b>：設定層是 2–6px，「2px 上限」在渲染層並不成立（<code>rounded-lg</code> 436 處）。</div></div>
@@ -373,8 +378,8 @@
 </section>
 
 <footer>
-  《物語手帳》設計系統 v5 ｜ 第三十二輪（§CI40 護欄自己也會瞎）結束時的實測快照 ｜
-  完整裁決紀錄見 <code>docs/decisions.md</code> §CI1–§CI40，稽核手冊見 <code>docs/ui-review-refactoring-ui.md</code> §1–§36。
+  《物語手帳》設計系統 v5 ｜ 第三十三輪（§CI41 徽章身份收斂）結束時的實測快照 ｜
+  完整裁決紀錄見 <code>docs/decisions.md</code> §CI1–§CI41，稽核手冊見 <code>docs/ui-review-refactoring-ui.md</code> §1–§37。
 </footer>
 
 </div>
