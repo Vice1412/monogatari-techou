@@ -66,7 +66,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
           return (
             <div
               key={resource.id}
-              className="flex items-center gap-2 flex-wrap p-2 rounded-xl bg-[#f5efdf] border border-[#d6c7ab]"
+              className="flex items-center gap-2 flex-wrap p-2 rounded-xl bg-[#f4ebd9] border border-[#d6c7ab]"
               title={resource.source ? `官方依據：${resource.source}` : undefined}
             >
               <span className="flex items-center gap-1.5 text-xs font-bold text-[#3c2415] min-w-[5.5rem]">
@@ -125,7 +125,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                     writeValue(resource, resource.resetTo);
                     showToast(`【${resource.label}】已重置為 ${resource.resetTo}`, 'info');
                   }}
-                  className="px-2 py-1 rounded-lg border border-[#d6c7ab] bg-white text-[11px] font-bold text-[#6b5a4b] hover:bg-[#ebdcc4] transition-colors cursor-pointer"
+                  className="px-2 py-1 rounded-lg border border-[#d6c7ab] bg-white text-[11px] font-bold text-[#6b5a4b] hover:bg-[#e8dcc4] transition-colors cursor-pointer"
                 >
                   {resource.resetLabel}
                 </button>

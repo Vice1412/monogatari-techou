@@ -118,7 +118,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
 
         {skill.category === 'attack' && (
           <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-1 bg-[#f8f3e6] p-2 rounded border border-[#e2d6c1] text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-1 bg-[#f7f3e8] p-2 rounded border border-[#e8dcc4] text-xs">
             <div><label className="block text-[#6b5a4b] mb-1 font-bold">距離</label>
               {selCfg('distance') ? (
                 <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.distance || ''} onChange={e => onUpdateSelection(skill.id, 'distance', e.target.value)}><option value="">選擇</option>{selCfg('distance').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
@@ -151,7 +151,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
         )}
 
         {skill.category === 'spell' && (
-          <div className="flex flex-col gap-3 w-full bg-[#f8f3e6] p-2.5 rounded border border-[#e2d6c1] text-xs mb-3">
+          <div className="flex flex-col gap-3 w-full bg-[#f7f3e8] p-2.5 rounded border border-[#e8dcc4] text-xs mb-3">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div>
                 <label className="block text-[#6b5a4b] mb-1 font-bold">目標</label>
@@ -245,7 +245,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
         )}
 
         <textarea className="w-full bg-[#fbf7ee] text-[#2c221e] p-2 border border-[#d6c7ab] outline-none h-24 resize-none rounded leading-relaxed text-sm focus:border-[#3c2415]" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder={skill.category === 'attack' ? "輸入自訂的額外效果..." : "技能效果與敘述..."} />
-        <div className="flex justify-end gap-2 mt-3"><button onClick={() => setIsEditing(false)} className="text-sm px-3 py-1 bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] rounded transition-colors border border-[#d6c7ab]">取消</button><button onClick={handleSave} className="text-sm px-3 py-1 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] rounded flex items-center gap-1 transition-colors"><Save size={14} /> 保存</button></div>
+        <div className="flex justify-end gap-2 mt-3"><button onClick={() => setIsEditing(false)} className="text-sm px-3 py-1 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] rounded transition-colors border border-[#d6c7ab]">取消</button><button onClick={handleSave} className="text-sm px-3 py-1 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] rounded flex items-center gap-1 transition-colors"><Save size={14} /> 保存</button></div>
       </div>
     );
   }
@@ -258,11 +258,11 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
             <span className="text-[10px] text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
           )}{isOffensiveSpell(skill.customName || skill.originalName) && <span className="fu-icon text-[#8c2d36] drop- text-lg ml-0.5">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{!isDefault && <span className="text-[10px] text-[#8c2d36] border border-[#8c2d36]/50 bg-[#f9f5eb] px-1 rounded">自訂</span>}{skill.source === 'levelPassive' && <span className="text-[10px] text-[#3c2415] border border-[#d6c7ab] bg-[#f4ebd9] px-1 rounded"><Lock size={10} className="inline mr-1 mb-0.5" />等級解鎖</span>}</div>
       {skill.selectionsConfig && (
-        <div className={`mt-2 flex flex-col gap-2 p-2 bg-[#f8f3e6] border border-[#e2d6c1] rounded text-xs border-l-2 ${skill.source === 'levelPassive' ? 'border-[#3c2415]' : 'border-[#8c2d36]'} mb-2`}>
+        <div className={`mt-2 flex flex-col gap-2 p-2 bg-[#f7f3e8] border border-[#e8dcc4] rounded text-xs border-l-2 ${skill.source === 'levelPassive' ? 'border-[#3c2415]' : 'border-[#8c2d36]'} mb-2`}>
           {skill.selectionsConfig
             .filter(cfg => (!cfg.showIfKey || (skill.selections?.[cfg.showIfKey] || "").includes(cfg.showIfValue)) && (!cfg.reqLevel || npcLevel >= cfg.reqLevel))
             .map(cfg => (
-              <label key={cfg.key} className={`flex items-center gap-2 font-bold p-1.5 rounded border ${cfg.isLinked ? 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ml-4 -mt-1' : 'text-[#3c2f21] border-transparent'}`}>{cfg.label}:
+              <label key={cfg.key} className={`flex items-center gap-2 font-bold p-1.5 rounded border ${cfg.isLinked ? 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ml-4 -mt-1' : 'text-[#3c2415] border-transparent'}`}>{cfg.label}:
                 <select className={`bg-[#fffdf9] text-[#2c221e] border border-[#d6c7ab] p-1 rounded outline-none max-w-[200px] truncate transition-colors ${cfg.isLinked ? 'focus:border-[#3c2415]' : skill.source === 'levelPassive' ? 'focus:border-[#3c2415]' : 'focus:border-[#8c2d36]'}`} value={skill.selections?.[cfg.key] || ''} onChange={(e) => onUpdateSelection(skill.id, cfg.key, e.target.value)}>
                   <option value="">選擇</option>{cfg.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
@@ -272,7 +272,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
       )}
 
       {(skill.category === 'spell' || skill.spellData) && (
-        <div className="bg-[#f8f3e6] border border-[#e2d6c1] p-1.5 my-1 rounded text-xs text-[#6b5a4b] font-bold flex flex-wrap gap-2 items-center w-fit">
+        <div className="bg-[#f7f3e8] border border-[#e8dcc4] p-1.5 my-1 rounded text-xs text-[#6b5a4b] font-bold flex flex-wrap gap-2 items-center w-fit">
           <span>MP: <span className="text-[#3c2415]">{skill.spellData?.mp || '10'}</span></span>
           <span className="text-[#d6c7ab]">|</span>
           <span>目標: <span className="text-[#2c221e]">{skill.spellData?.target || '一個生物'}</span></span>
@@ -305,9 +305,9 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
               const isRanged = String(atk.distance).includes('遠程');
 
               return (
-                <div className="bg-[#f8f3e6] border border-[#e2d6c1] p-2 my-1 rounded text-sm">
+                <div className="bg-[#f7f3e8] border border-[#e8dcc4] p-2 my-1 rounded text-sm">
                   <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mb-1">
-                    <span className="inline-flex items-center gap-1 text-[#3c2f21] bg-[#e8dec8] px-2 py-0.5 rounded text-xs font-bold shrink-0 shadow-2xs">
+                    <span className="inline-flex items-center gap-1 text-[#3c2415] bg-[#e8dcc4] px-2 py-0.5 rounded text-xs font-bold shrink-0 shadow-2xs">
                       <span className="fu-icon text-sm leading-none translate-y-[0.5px]">{isRanged ? 'r' : 'm'}</span>
                       <span>{renderFormattedText(atk.distance, skill.selections, npcLevel, partyLevel)}</span>
                     </span>

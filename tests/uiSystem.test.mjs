@@ -559,8 +559,9 @@ const whiteBlack = [...new Set(attrSrc.match(/\b(?:bg|text|border|ring)-(?:white
 check('屬性矩陣沒有純白／純黑', whiteBlack.length === 0, whiteBlack.join('、'));
 
 // 書裡的令牌：羊皮紙四階 ＋ 墨階梯四階 ＋ 強調色 ＋ 深棕。新顏色要進這張表，得先改這張表。
+// （第三十三輪 §CI42：`#f5efdf` 併回 `#f4ebd9` 後從表裡移除——它已不存在於任何檔案。）
 const BOOK_HEX = new Set([
-  '#fbf7ee', '#f4ebd9', '#f5efdf', '#fffdf9', '#d6c7ab',
+  '#fbf7ee', '#f4ebd9', '#fffdf9', '#d6c7ab',
   '#2c221e', '#3c2415', '#6b5a4b', '#7c6a58',
   '#a63d40', '#8b5e34', '#78350f', '#f7f3e8',
 ]);
@@ -1155,6 +1156,16 @@ const REGISTERED_HEX = new Set([
   '#8c2d36', '#245c45', '#9c4d16', '#27527a', '#5e387c', '#404a58',
   // 五個身份色的 hover 階（第十九輪：同色相暗一階，比例照 #a63d40 → #8c3235）
   '#76252d', '#1e4b39', '#833f12', '#214365', '#4f2e67',
+  // 珠色身份表（第三十三輪 §CI42 登記）：`technospheres.js` 的
+  // `MNEMOSPHERE_BEAD_TINTS` 與 `DAMAGE_TYPE_TINTS`。
+  //
+  // 為什麼是「登記」而不是「收斂」：珠子顏色是**真的身份**——二十三種魔晶石
+  // 各佔一色，玩家靠顏色在珠子堆裡認東西。它們不是紙也不是墨，是保留色，
+  // 所以走白名單而不是併回色階。這張表一直是全站唯一沒登記的身份色系。
+  '#0891b2', '#0f766e', '#15803d', '#22c55e', '#2563eb', '#38bdf8',
+  '#475569', '#65a30d', '#6d28d9', '#7c3aed', '#7f1d1d', '#84cc16',
+  '#8a7a63', '#8b5cf6', '#a16207', '#c2410c', '#db2777', '#dc2626',
+  '#ea580c', '#eab308', '#ef4444', '#facc15',
 ]);
 const strayHex = [];
 for (const f of HUE_CONVERGED) {
@@ -2137,11 +2148,15 @@ check(
 //
 // `#fffdf9` 是登記的「墨面上的淺字」；`text-white` 不在登記表裡，而且在羊皮紙的暖白
 // 旁邊會顯出一塊冷白。本輪在 54 處強調底上把 `text-white` 換成 `#fffdf9`，這條把它鎖住。
+//
+// 2026-10-24 第三十三輪修正範圍：原本的寫法連 `hover:bg-[#8c3235]` 也算「強調底」，
+// 於是封面那顆「白字實心 accent」（底色是 `bg-signal-accent`，不是 hex）被誤判。
+// 只看**底色**——前綴不得是 hover／active／focus／group-hover。
 const whiteOnAccent = [];
 for (const abs of walkSrc(path.join(ROOT, 'src'))) {
   const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
   stripComments(fs.readFileSync(abs, 'utf8')).split('\n').forEach((line, i) => {
-    if (!/bg-\[#(?:a63d40|8c3235|76252d)\]/.test(line)) return;
+    if (!/(?<![:\w-])bg-\[#(?:a63d40|8c3235|76252d)\]/.test(line)) return;
     if (/(?:^|[\s"'`])text-white(?:[\s"'`]|$)/.test(line)) whiteOnAccent.push(`${rel} → ${line.trim().slice(0, 50)}`);
   });
 }
@@ -3045,6 +3060,164 @@ check(
   'H30-c 語意／序徽章變體全數仍在（反向控制）',
   missingBadgeVariants.length === 0,
   missingBadgeVariants.length ? `缺 ${missingBadgeVariants.join('、')}` : `${REQUIRED_BADGE_VARIANTS.length} 個都在（共 ${KNOWN_VARIANTS.size} 個）`
+);
+
+/* ────────────────────────────────────────────────────────────────
+   H31 家族：色票登記表的盲點（2026-10-24 第三十三輪 §CI42）
+   ────────────────────────────────────────────────────────────────
+
+   背景：`REGISTERED_HEX` 這張表存在很久，但「只用登記色票」那條護欄
+   **只掃 7 個同伴檔**。所以全站 145 個檔案裡的手寫 hex 從來沒被檢查過。
+
+   實測（本輪開場）：173 個不同 hex、6221 次使用，其中 **149 個未登記**
+   （769 次）。最大的一群是「看起來一樣但不在表裡」的漂移——例如
+   `#f5efdf` 用了 78 次、跟 `#f4ebd9` 只差 6/255，肉眼分不出來，
+   但改色階永遠改不到它，而且它會跟著影印到下一支檔案。
+
+   三條護欄各擋一種退化：
+     H31   預算（只減不增）：未登記 hex 的總使用次數
+     H31-a 逐項：珠色身份表 23 色必須全部登記
+     H31-b 反向控制：珠色身份表 23 色仍在（登記不等於刪掉）
+     H31-c 硬零：不得再有「與登記色 Δ≤12 且色相接近」的未登記 hex
+   ──────────────────────────────────────────────────────────────── */
+
+const H31_HEX = /#[0-9a-fA-F]{6}\b/g;
+const h31Map = new Map();
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const src = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const m of src.matchAll(H31_HEX)) {
+    const h = m[0].toLowerCase();
+    if (!h31Map.has(h)) h31Map.set(h, { n: 0, files: new Set() });
+    const rec = h31Map.get(h);
+    rec.n += 1;
+    rec.files.add(rel);
+  }
+}
+const h31Unreg = [...h31Map.entries()].filter(([h]) => !REGISTERED_HEX.has(h));
+const h31UnregTotal = h31Unreg.reduce((s, x) => s + x[1].n, 0);
+
+// H31：預算（只減不增）。形狀選「預算」而不是「硬零」，因為還有 340 次
+// 未登記的 hex 分佈在書頁棕、工坊六套紙、一次性色碼裡——那些要逐項裁決，
+// 不是機械替換。預算擋的是「繼續增加」，不是「一次清零」。
+const H31_BUDGET = 340;
+check(
+  `H31 全站未登記 hex 只減不增（預算 ${H31_BUDGET}）`,
+  h31UnregTotal <= H31_BUDGET,
+  `${h31UnregTotal} 次／${h31Unreg.length} 個不同 hex ／ 預算 ${H31_BUDGET}`
+);
+
+// H31-a：珠色身份表 23 色全部登記（逐項）。
+const h31TechSrc = stripComments(
+  fs.readFileSync(path.join(ROOT, 'src/features/character-sheet/data/technospheres.js'), 'utf8')
+);
+// 取出一個 `Object.freeze({ … })` 或 `{ … }` 常數的內容（兩種結尾都要吃得下）
+const h31Block = (src, name) => {
+  const i = src.indexOf(`const ${name}`);
+  if (i < 0) return '';
+  const a = src.indexOf('});', i);
+  const b = src.indexOf('};', i);
+  const ends = [a, b].filter((x) => x > 0);
+  return src.slice(i, ends.length ? Math.min(...ends) : src.length);
+};
+const h31BeadPairs = new Map(); // table -> [{k, v}]
+const h31BeadHexes = new Set();
+for (const name of ['MNEMOSPHERE_BEAD_TINTS', 'DAMAGE_TYPE_TINTS']) {
+  const body = h31Block(h31TechSrc, name);
+  const pairs = [...body.matchAll(/^\s*([^\s:]+):\s*'(#[0-9a-fA-F]{6})'/gm)].map((m) => ({ k: m[1], v: m[2].toLowerCase() }));
+  h31BeadPairs.set(name, pairs);
+  for (const p of pairs) h31BeadHexes.add(p.v);
+}
+const h31BeadUnreg = [...h31BeadHexes].filter((h) => !REGISTERED_HEX.has(h));
+const h31BeadKeys = [...h31BeadPairs.values()].reduce((s, p) => s + p.length, 0);
+check(
+  'H31-a 珠色身份表全部 hex 已登記（逐項）',
+  h31BeadKeys >= 23 && h31BeadUnreg.length === 0,
+  h31BeadUnreg.length
+    ? `未登記 ${h31BeadUnreg.length}：${h31BeadUnreg.slice(0, 4).join('、')}`
+    : `${h31BeadKeys} 個鍵／${h31BeadHexes.size} 個相異色，全部在表內`
+);
+
+// H31-b：反向控制——登記不等於刪掉。珠表若被清空，H31-a 會空轉變綠。
+// 用「鍵數」而不是「色數」：兩個表（職業魔石／傷害類型）本來就會共用顏色，
+// 色數天生比鍵數少一；用色數當門檻會把「跨表共用」誤判成退化。
+check(
+  'H31-b 珠色身份表 23 個鍵仍在（反向控制）',
+  h31BeadKeys >= 23,
+  `${h31BeadKeys} 個鍵／${h31BeadHexes.size} 個相異色`
+);
+
+// H31-d：一鍵一色、互不相異（注入性）。
+//
+// 為什麼 H31-b 不夠：把「魔奏者」的紫色換成另一個**新的**紫色，總數還是 23、
+// 而且新色也登記過——H31-a／b 都會綠。但兩個職業從此長得一樣，
+// 那正是 H14-b 對九相圖示擋過的同一件事：撞色的圖示不是「剛好同色」，
+// 是其中一個身份消失了。
+const h31Inject = [];
+for (const [name, pairs] of h31BeadPairs) {
+  const seen = new Map();
+  for (const p of pairs) {
+    if (seen.has(p.v)) h31Inject.push(`${name}: ${p.k} 與 ${seen.get(p.v)} 同為 ${p.v}`);
+    else seen.set(p.v, p.k);
+  }
+}
+check(
+  'H31-d 珠色身份表一鍵一色（互不相異）',
+  h31Inject.length === 0,
+  h31Inject.length ? h31Inject.slice(0, 3).join('；') : `${[...h31BeadPairs.values()].reduce((s, p) => s + p.length, 0)} 個鍵各自一色`
+);
+
+// H31-c：硬零——不得再有「與登記色 Δ≤12 且色相接近」的未登記 hex。
+//
+// 為什麼要色相檢查：最大通道差看不出「冷灰 vs 暖奶油」。`#f2f5f8` 與
+// `#fbf7ee` 的 Δ 只有 10，但色相差 168°——併掉它是把藍灰變成奶油，
+// 不是收斂漂移。所以只有「色相接近」或「兩者都近乎無彩」才算漂移。
+const h31Rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const h31Dist = (a, b) => {
+  const A = h31Rgb(a);
+  const B = h31Rgb(b);
+  return Math.max(...[0, 1, 2].map((i) => Math.abs(A[i] - B[i])));
+};
+const h31Hsl = (hex) => {
+  const [r0, g0, b0] = h31Rgb(hex).map((v) => v / 255);
+  const max = Math.max(r0, g0, b0);
+  const min = Math.min(r0, g0, b0);
+  const l = (max + min) / 2;
+  const d = max - min;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  if (d !== 0) {
+    if (max === r0) h = 60 * (((g0 - b0) / d) % 6);
+    else if (max === g0) h = 60 * ((b0 - r0) / d + 2);
+    else h = 60 * ((r0 - g0) / d + 4);
+  }
+  return { h: (h + 360) % 360, s };
+};
+const h31HueDiff = (a, b) => {
+  const A = h31Hsl(a);
+  const B = h31Hsl(b);
+  if (A.s < 0.06 || B.s < 0.06) return 0;
+  const d = Math.abs(A.h - B.h);
+  return Math.min(d, 360 - d);
+};
+// 書頁棕家族：等 GM 裁決「合併還是分工」，不列入漂移判定。
+const H31_BOOK_BROWN = new Set(['#8b5e34', '#78350f', '#693108', '#7b4720', '#7a5616', '#8b4513', '#8a6a45', '#7c3a20']);
+const h31Drift = [];
+for (const [h, rec] of h31Unreg) {
+  if (H31_BOOK_BROWN.has(h)) continue;
+  let best = null;
+  for (const g of REGISTERED_HEX) {
+    const d = h31Dist(h, g);
+    if (!best || d < best.d) best = { g, d };
+  }
+  if (best.d <= 12 && h31HueDiff(h, best.g) <= 15) {
+    h31Drift.push(`${h}→${best.g}（Δ${best.d}，${rec.n} 次）`);
+  }
+}
+check(
+  'H31-c 全站零「近似漂移」未登記 hex（Δ≤12 且色相接近）',
+  h31Drift.length === 0,
+  h31Drift.length ? `${h31Drift.length} 個：${h31Drift.slice(0, 4).join('、')}` : `0 個／${REGISTERED_HEX.size} 個登記色`
 );
 
 const failed = results.filter((r) => !r.ok);

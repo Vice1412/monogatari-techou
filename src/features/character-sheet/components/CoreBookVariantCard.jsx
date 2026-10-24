@@ -52,11 +52,11 @@ export default function CoreBookVariantCard({
       className="p-2.5 sm:p-3 rounded-xl space-y-2 shadow-2xs transition-colors"
       style={{
         backgroundColor: isSelected
-          ? (theme?.highlightBg || theme?.subpanelBg || '#f5efdf')
-          : (theme?.subpanelBg || '#f5efdf'),
+          ? (theme?.highlightBg || theme?.subpanelBg || '#f4ebd9')
+          : (theme?.subpanelBg || '#f4ebd9'),
         borderColor: isSelected
           ? (theme?.accent || '#c9a227')
-          : (theme?.border || '#ded4bf'),
+          : (theme?.border || '#e8dcc4'),
         borderWidth: isSelected ? 2 : 1,
         borderStyle: isSelected ? 'solid' : 'dashed',
       }}
@@ -114,7 +114,7 @@ export default function CoreBookVariantCard({
               canPress ? 'cursor-pointer active:scale-95' : 'cursor-not-allowed opacity-45'
             }`}
             style={isSelected
-              ? { backgroundColor: theme?.cardBg || '#fff', borderColor: theme?.border || '#ded4bf', color: theme?.textDark || '#3c2415' }
+              ? { backgroundColor: theme?.cardBg || '#fff', borderColor: theme?.border || '#e8dcc4', color: theme?.textDark || '#3c2415' }
               : { backgroundColor: theme?.accent || '#a16207', borderColor: theme?.accentDark || theme?.accent || '#a16207', color: '#fff' }}
           >
             {isSelected ? '改回原版' : '選用此變體'}

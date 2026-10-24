@@ -25,11 +25,11 @@ import GameIcon from '../../../components/ui/GameIcon';
  */
 const STATUS_EFFECTS = [
   { key: 'slow', name: '遲緩', en: 'Slow', desc: '靈巧降階', color: 'border-signal-ip text-[#7a5616] bg-signal-ip/10' },
-  { key: 'dazed', name: '眩暈', en: 'Dazed', desc: '洞察降階', color: 'border-signal-mp text-[#26506e] bg-signal-mp/10' },
+  { key: 'dazed', name: '眩暈', en: 'Dazed', desc: '洞察降階', color: 'border-signal-mp text-[#27527a] bg-signal-mp/10' },
   { key: 'weak', name: '虛弱', en: 'Weak', desc: '力量降階', color: 'border-signal-hp text-[#8b2d27] bg-signal-hp/10' },
   { key: 'shaken', name: '動搖', en: 'Shaken', desc: '意志降階', color: 'border-[#7a6a9c] text-[#4a4068] bg-[#7a6a9c]/10' },
   { key: 'enraged', name: '憤怒', en: 'Enraged', desc: '靈巧·洞察降階·限普攻', color: 'border-[#c0603f] text-[#8a3f26] bg-[#c0603f]/10' },
-  { key: 'poisoned', name: '中毒', en: 'Poison', desc: '回合結束受到5毒傷', color: 'border-signal-ok text-[#28553a] bg-signal-ok/10' }
+  { key: 'poisoned', name: '中毒', en: 'Poison', desc: '回合結束受到5毒傷', color: 'border-signal-ok text-[#1e4b39] bg-signal-ok/10' }
 ];
 
 export default function CombatantCard({
@@ -358,7 +358,7 @@ export default function CombatantCard({
         <button
           type="button"
           onClick={() => onOpenDrawer(combatant)}
-          className="text-xs text-signal-accent hover:text-[#8a3234] flex items-center gap-1 font-bold transition-colors duration-120"
+          className="text-xs text-signal-accent hover:text-[#8c3235] flex items-center gap-1 font-bold transition-colors duration-120"
         >
           <FileText className="w-3.5 h-3.5" /> 查看完整資訊
         </button>

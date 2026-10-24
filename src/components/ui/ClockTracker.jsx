@@ -87,7 +87,7 @@ export default function ClockTracker({
         <path
           key={i}
           d={pathData}
-          fill={isFilled ? t.fill : '#eee6d3'}
+          fill={isFilled ? t.fill : '#f4ebd9'}
           stroke="#fffdf9"
           strokeWidth="2.5"
           className={clsx(
@@ -150,7 +150,7 @@ export default function ClockTracker({
                 "flex-1 rounded transition-all duration-150",
                 idx < filledSegments
                   ? "shadow-sm"
-                  : "bg-[#e4d9c0] hover:bg-[#d6c7ab]",
+                  : "bg-[#e8dcc4] hover:bg-[#d6c7ab]",
                 isInteractive && "cursor-pointer"
               )}
               style={{
@@ -187,7 +187,7 @@ export default function ClockTracker({
             type="button"
             onClick={() => handleStep(-1)}
             disabled={filledSegments <= 0}
-            className="p-1 rounded-md bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
+            className="p-1 rounded-md bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
             title="減 1"
           >
             <Minus className="w-3.5 h-3.5" />
@@ -196,7 +196,7 @@ export default function ClockTracker({
             type="button"
             onClick={handleReset}
             disabled={filledSegments === 0}
-            className="p-1 rounded-md bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#6b5a4b] hover:text-[#2c221e] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
+            className="p-1 rounded-md bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] hover:text-[#2c221e] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
             title="重置"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@ export default function ClockTracker({
             type="button"
             onClick={() => handleStep(1)}
             disabled={filledSegments >= totalSegments}
-            className="p-1 rounded-md bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
+            className="p-1 rounded-md bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
             title="加 1"
           >
             <Plus className="w-3.5 h-3.5" />

@@ -98,7 +98,7 @@ export function StarterPresetsPanel({
               className="text-[11px] px-2.5 py-1 rounded-lg border font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
               style={
                 isActive
-                  ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#ffffff' }
+                  ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
                   : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }
               }
             >

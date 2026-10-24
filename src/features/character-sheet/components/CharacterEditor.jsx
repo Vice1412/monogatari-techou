@@ -876,7 +876,7 @@ export default function CharacterEditor({
                       ? 'text-white shadow-sm'
                       : 'hover:bg-[#fbf7ee] text-[#3c2415]'
                   }`}
-                  style={isTabActive ? { backgroundColor: theme.accent, color: '#ffffff' } : {}}
+                  style={isTabActive ? { backgroundColor: theme.accent, color: '#fffdf9' } : {}}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span
@@ -1395,7 +1395,7 @@ export default function CharacterEditor({
                           className="text-xs px-2.5 py-1 rounded-lg border font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
                           style={
                             isEnabled
-                              ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#ffffff' }
+                              ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
                               : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }
                           }
                         >

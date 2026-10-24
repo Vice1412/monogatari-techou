@@ -58,13 +58,13 @@ export const BOOK_CHROME = Object.freeze({
   // 頁首動作（三級：主要／次要／第三級）
   exitBtn: 'border-[#8b5e34]/40 bg-[#8b5e34] hover:bg-[#78350f] text-[#fffdf9] shadow-e1',
   exitIcon: 'text-[#f7f3e8]',
-  iconWrapper: 'bg-[#ede4d1] border-[#d6c7ab] text-[#3c2415]',
-  toolBtn: 'border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#ebdcc4] text-[#3c2415] hover:text-[#2c221e]',
+  iconWrapper: 'bg-[#f4ebd9] border-[#d6c7ab] text-[#3c2415]',
+  toolBtn: 'border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#e8dcc4] text-[#3c2415] hover:text-[#2c221e]',
   toolIcon: 'text-[#3c2415]',
 
   // 頁尾
   footerBorder: 'border-[#d6c7ab]',
-  footerBg: 'bg-[#f5efdf]/60',
+  footerBg: 'bg-[#f4ebd9]/60',
   footerNumber: 'text-[#3c2415]',
   footerText: 'text-[#6b5a4b]',
   footerButton: 'text-[#3c2415] hover:text-[#2c221e]',

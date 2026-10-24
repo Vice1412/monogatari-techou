@@ -23,13 +23,13 @@ export const STAT_FORMULA_NOTE =
 // 出處不是身份，零顏色，辨識交給標籤（§CI31.5 同一條判準）。
 // 唯一的例外是 status：狀態異常是**極性**（危險），所以它保留登記的危險紅。
 const KIND_STYLES = {
-  base: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
-  level: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
-  class: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
-  skill: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
-  equip: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
-  heroic: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
-  quirk: { chip: 'bg-[#f5efdf] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  base: { chip: 'bg-[#f4ebd9] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  level: { chip: 'bg-[#f4ebd9] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  class: { chip: 'bg-[#f4ebd9] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  skill: { chip: 'bg-[#f4ebd9] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  equip: { chip: 'bg-[#f4ebd9] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  heroic: { chip: 'bg-[#f4ebd9] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
+  quirk: { chip: 'bg-[#f4ebd9] border-[#d6c7ab]', label: 'text-[#7c6a58]', value: 'text-[#3c2415]' },
   status: { chip: 'bg-[#fffdf9] border-[#8c2d36]', label: 'text-[#8c2d36]', value: 'text-[#3c2415]' }
 };
 
@@ -68,7 +68,7 @@ export default function StatFormulaPanel({
 
       <div className="flex items-stretch gap-1.5 flex-wrap">
         {terms.length === 0 ? (
-          <span className="text-[10px] font-bold text-[#7c6a58] px-2 py-1 rounded-lg bg-[#f5efdf] border border-dashed border-[#d6c7ab] self-center">
+          <span className="text-[10px] font-bold text-[#7c6a58] px-2 py-1 rounded-lg bg-[#f4ebd9] border border-dashed border-[#d6c7ab] self-center">
             無額外加成
           </span>
         ) : (

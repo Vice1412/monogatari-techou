@@ -25,7 +25,7 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
           </div>
         </div>
 
-        <div className="text-xs md:text-sm text-[#3c2f21] space-y-3 leading-relaxed mb-6">
+        <div className="text-xs md:text-sm text-[#3c2415] space-y-3 leading-relaxed mb-6">
           <div className="bg-[#f9f5eb] border border-[#d6c7ab] p-3 rounded-xl text-[#3c2415] text-xs flex items-start gap-2.5">
             <AlertTriangle size={18} className="shrink-0 text-[#6b5a4b] mt-0.5" />
             <div>
@@ -34,7 +34,7 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
             </div>
           </div>
 
-          <p className="text-[#3c2f21]">
+          <p className="text-[#3c2415]">
             解鎖後，您將獲得以下權限：
           </p>
 
@@ -53,7 +53,7 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg font-bold text-xs md:text-sm bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] border border-[#d6c7ab] transition-colors"
+            className="px-4 py-2 rounded-lg font-bold text-xs md:text-sm bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-colors"
           >
             取消
           </button>

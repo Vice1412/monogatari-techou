@@ -156,7 +156,7 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
         }`}
       >
         {/* 書脊 */}
-        <div className="hidden w-11 shrink-0 flex-col items-center justify-between bg-[#7d2f31] py-6 md:flex">
+        <div className="hidden w-11 shrink-0 flex-col items-center justify-between bg-[#76252d] py-6 md:flex">
           <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[#f7f3e8]/45" />
           <div className="[writing-mode:vertical-rl] font-serif text-t12 font-semibold tracking-[0.42em] text-[#f7f3e8]">
             物語手帳 · 冒險典籍
@@ -241,7 +241,7 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
             <button
               type="button"
               onClick={onOpenDice}
-              className="inline-flex items-center justify-center gap-2 rounded-ui bg-signal-accent px-4 py-2 text-t14 font-medium text-white transition-colors duration-160 hover:bg-[#8f3235] active:bg-[#7d2f31]"
+              className="inline-flex items-center justify-center gap-2 rounded-ui bg-signal-accent px-4 py-2 text-t14 font-medium text-white transition-colors duration-160 hover:bg-[#8c3235] active:bg-[#76252d]"
             >
               <GiRollingDices aria-hidden="true" className="h-4 w-4" />
               <span>雙屬性擲骰盤</span>
@@ -255,7 +255,7 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
           className="hidden w-2 shrink-0 md:block"
           style={{
             backgroundImage:
-              'repeating-linear-gradient(to right, #efeade 0 1px, #fffdf7 1px 3px)',
+              'repeating-linear-gradient(to right, #f4ebd9 0 1px, #fffdf9 1px 3px)',
           }}
         />
       </div>
@@ -284,7 +284,7 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
               href="https://need.games/wp-content/uploads/2024/06/Fabula-Ultima-Third-Party-Tabletop-License-1.0.pdf"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-signal-accent underline underline-offset-2 hover:text-[#8f3235]"
+              className="text-signal-accent underline underline-offset-2 hover:text-[#8c3235]"
             >
               Fabula Ultima Third-Party Tabletop License 1.0
             </a>

@@ -1160,7 +1160,7 @@ export default function CharacterPlayHUD({
                 className={`py-1.5 px-2 rounded-ui border text-xs font-bold transition-all flex items-center justify-center gap-1 ${
                   isActive
                     ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
-                    : 'bg-[#f5efdf] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#ebdcc4]'
+                    : 'bg-[#f4ebd9] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#e8dcc4]'
                 }`}
                 title={aff.desc}
               >
@@ -1259,7 +1259,7 @@ export default function CharacterPlayHUD({
                     ? 'text-white'
                     : 'text-[#6b5a4b] hover:bg-black/5'
                 }`}
-                style={isTabActive ? { backgroundColor: theme.accent, color: '#ffffff' } : {}}
+                style={isTabActive ? { backgroundColor: theme.accent, color: '#fffdf9' } : {}}
               >
                 <IconComp className="w-3.5 h-3.5 shrink-0" />
                 <span>{tab.label}</span>
@@ -1357,7 +1357,7 @@ export default function CharacterPlayHUD({
                 <button
                   type="button"
                   onClick={() => setIsFreeRollModalOpen(true)}
-                  className="px-2.5 py-1 rounded-ui bg-[#f5efdf] hover:bg-[#ebdcc4] text-[#3c2415] border border-[#d6c7ab] text-t12 font-bold flex items-center gap-1 transition-colors"
+                  className="px-2.5 py-1 rounded-ui bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t12 font-bold flex items-center gap-1 transition-colors"
                 >
                   <GiRollingDices className="w-3.5 h-3.5 text-[#8b5e34]" />
                   <span>自由雙屬性檢定</span>
@@ -1413,7 +1413,7 @@ export default function CharacterPlayHUD({
                     </button>
 
                     {/* Damage Formula Pill */}
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-ui font-mono font-bold text-xs bg-[#f5efdf] border border-[#d6c7ab] text-[#3c2415]">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-ui font-mono font-bold text-xs bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
                       <span>[HR + {mainDamage.hrBonus}]</span>
                       <FUIcon name={mainDamage.damageType} className="text-sm shrink-0" />
                       <span className="text-t12 font-sans text-[#6b5a4b]">{mainDamage.damageType}</span>
@@ -1485,7 +1485,7 @@ export default function CharacterPlayHUD({
                         </span>
                       </button>
 
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-ui font-mono font-bold text-xs bg-[#f5efdf] border border-[#d6c7ab] text-[#3c2415]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-ui font-mono font-bold text-xs bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
                         <span>[HR + {offDamage.hrBonus}]</span>
                         <FUIcon name={offDamage.damageType} className="text-sm shrink-0" />
                         <span className="text-t12 font-sans text-[#6b5a4b]">{offDamage.damageType}</span>

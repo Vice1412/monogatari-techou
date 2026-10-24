@@ -480,7 +480,7 @@ export default function AttributeMatrixPicker({
               type="button"
               onClick={handleAutoFill}
               className="text-t12 font-bold px-2.5 py-1 rounded-ui transition-colors flex items-center gap-1"
-              style={{ backgroundColor: theme.subpanelBg || '#f5efdf', color: theme.textDark || '#3c2415', borderColor: theme.border || '#d6c7ab' }}
+              style={{ backgroundColor: theme.subpanelBg || '#f4ebd9', color: theme.textDark || '#3c2415', borderColor: theme.border || '#d6c7ab' }}
               title="按預設順序一鍵填入四個體質"
             >
               <Check className="w-3.5 h-3.5" style={{ color: theme.accent || '#8b5e34' }} />
@@ -489,7 +489,7 @@ export default function AttributeMatrixPicker({
             <button
               type="button"
               onClick={handleClearToTray}
-              className="text-t12 font-bold px-2.5 py-1 rounded-ui bg-[#f5efdf] hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] transition-colors flex items-center gap-1"
+              className="text-t12 font-bold px-2.5 py-1 rounded-ui bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] transition-colors flex items-center gap-1"
               title="將所有已放出的骰子收回黑色托盤"
             >
               <RotateCcw className="w-3 h-3 text-[#6b5a4b]" />
@@ -514,7 +514,7 @@ export default function AttributeMatrixPicker({
                 className={`text-left p-2.5 rounded-ui border transition-all flex items-center justify-between group ${
                   isMatch
                     ? 'shadow-xs ring-2'
-                    : 'bg-[#f5efdf] hover:bg-[#fbf7ee] border-[#d6c7ab]'
+                    : 'bg-[#f4ebd9] hover:bg-[#fbf7ee] border-[#d6c7ab]'
                 }`}
                 style={isMatch ? {
                   backgroundColor: theme.subpanelBg || '#f4ebd9',
@@ -560,7 +560,7 @@ export default function AttributeMatrixPicker({
       {remainingUpgrades > 0 && (
         <div
           className="rounded-ui border-2 px-3 py-2.5 space-y-2"
-          style={{ backgroundColor: theme.subpanelBg || '#f5efdf', borderColor: theme.accent || '#8b5e34' }}
+          style={{ backgroundColor: theme.subpanelBg || '#f4ebd9', borderColor: theme.accent || '#8b5e34' }}
         >
           <div className="text-xs leading-relaxed" style={{ color: theme.textDark || '#3c2415' }}>
             <strong>等級獎勵：可以選一顆屬性骰 +1 階</strong>
@@ -606,7 +606,7 @@ export default function AttributeMatrixPicker({
           {assignedCount === 4 && (
             <span
               className="font-bold px-2 py-0.5 rounded border text-t12 transition-colors"
-              style={{ backgroundColor: theme.subpanelBg || '#f5efdf', color: theme.textDark || '#3c2415', borderColor: theme.border || '#d6c7ab' }}
+              style={{ backgroundColor: theme.subpanelBg || '#f4ebd9', color: theme.textDark || '#3c2415', borderColor: theme.border || '#d6c7ab' }}
             >
               已完成
             </span>
@@ -804,7 +804,7 @@ export default function AttributeMatrixPicker({
                       className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-ui border-2 border-dashed flex flex-col items-center justify-center transition-all ${
                         floatingDieId
                           ? 'border-[#a63d40] bg-[#a63d40]/10 text-[#78350f] scale-[1.02]'
-                          : 'border-[#d6c7ab] bg-[#f5efdf] text-[#6b5a4b] hover:border-[#8b5e34]'
+                          : 'border-[#d6c7ab] bg-[#f4ebd9] text-[#6b5a4b] hover:border-[#8b5e34]'
                       }`}
                     >
                       <span className="text-t12 font-black">
@@ -846,7 +846,7 @@ export default function AttributeMatrixPicker({
             </div>
 
             <div className="space-y-2.5 text-xs">
-              <p className="text-[#6b5a4b] font-medium bg-[#f5efdf] p-2.5 rounded-ui border border-[#d6c7ab]">
+              <p className="text-[#6b5a4b] font-medium bg-[#f4ebd9] p-2.5 rounded-ui border border-[#d6c7ab]">
                 {ATTRIBUTE_DETAILS[infoModalKey].tags}
               </p>
 
@@ -856,7 +856,7 @@ export default function AttributeMatrixPicker({
                 </span>
                 <div className="grid grid-cols-1 gap-2">
                   {ATTRIBUTE_DETAILS[infoModalKey].mechanics.map((item, mIdx) => (
-                    <div key={mIdx} className="p-2 rounded-ui bg-[#f5efdf] border border-[#d6c7ab] flex items-start gap-2">
+                    <div key={mIdx} className="p-2 rounded-ui bg-[#f4ebd9] border border-[#d6c7ab] flex items-start gap-2">
                       <span className="font-bold text-[#3c2415] shrink-0 w-16 text-t12">
                         • {item.label}:
                       </span>

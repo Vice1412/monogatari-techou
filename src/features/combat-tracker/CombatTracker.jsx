@@ -248,13 +248,13 @@ export default function CombatTracker() {
       </div>
 
       {/* Online Room Sync Bar (P2P WebRTC) */}
-      <div className="bg-[#f5efdf] rounded-xl border border-[#d6c7ab] p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <div className="bg-[#f4ebd9] rounded-xl border border-[#d6c7ab] p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2.5">
           {isConnected ? (
             <div className="flex items-center gap-2 text-[#3c2415] font-mono font-bold">
               <Wifi className="w-4 h-4 text-[#6b5a4b]" />
               <span>
-                {isHost ? 'GM 房間建立完成' : '已連線房間'}: <strong className="text-[#3c2415] bg-[#fbf3de] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{roomCode}</strong>
+                {isHost ? 'GM 房間建立完成' : '已連線房間'}: <strong className="text-[#3c2415] bg-[#f4ebd9] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{roomCode}</strong>
               </span>
               {isHost && (
                 <span className="text-[11px] text-[#6b5a4b] font-normal">
@@ -290,7 +290,7 @@ export default function CombatTracker() {
                 />
                 <button
                   onClick={handleJoinRoom}
-                  className="px-2.5 py-1 rounded-lg bg-[#eee6d3] border border-[#d6c7ab] hover:bg-[#e4d9c0] text-[#2c221e] font-bold transition-colors"
+                  className="px-2.5 py-1 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] hover:bg-[#e8dcc4] text-[#2c221e] font-bold transition-colors"
                 >
                   加入
                 </button>

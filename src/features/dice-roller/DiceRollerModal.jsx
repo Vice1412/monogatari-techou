@@ -71,7 +71,7 @@ export default function DiceRollerModal({
       <div className="space-y-5">
         {/* Dice selectors */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-[#f5efdf] p-3 rounded-xl border border-[#d6c7ab] flex flex-col items-center gap-1.5">
+          <div className="bg-[#f4ebd9] p-3 rounded-xl border border-[#d6c7ab] flex flex-col items-center gap-1.5">
             <span className="text-xs text-[#6b5a4b] font-medium">第一顆骰階</span>
             <div className="flex gap-1">
               {DICE_TIERS.map(d => (
@@ -91,7 +91,7 @@ export default function DiceRollerModal({
             </div>
           </div>
 
-          <div className="bg-[#f5efdf] p-3 rounded-xl border border-[#d6c7ab] flex flex-col items-center gap-1.5">
+          <div className="bg-[#f4ebd9] p-3 rounded-xl border border-[#d6c7ab] flex flex-col items-center gap-1.5">
             <span className="text-xs text-[#6b5a4b] font-medium">第二顆骰階</span>
             <div className="flex gap-1">
               {DICE_TIERS.map(d => (
@@ -113,12 +113,12 @@ export default function DiceRollerModal({
         </div>
 
         {/* Modifier */}
-        <div className="flex items-center justify-between bg-[#f5efdf] p-3 rounded-xl border border-[#d6c7ab] text-xs">
+        <div className="flex items-center justify-between bg-[#f4ebd9] p-3 rounded-xl border border-[#d6c7ab] text-xs">
           <span className="text-[#2c221e] font-medium">檢定固定加值</span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setModifier(prev => prev - 1)}
-              className="px-2.5 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] text-[#2c221e] font-mono hover:bg-[#eee6d3]"
+              className="px-2.5 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] text-[#2c221e] font-mono hover:bg-[#f4ebd9]"
             >
               -
             </button>
@@ -127,7 +127,7 @@ export default function DiceRollerModal({
             </span>
             <button
               onClick={() => setModifier(prev => prev + 1)}
-              className="px-2.5 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] text-[#2c221e] font-mono hover:bg-[#eee6d3]"
+              className="px-2.5 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] text-[#2c221e] font-mono hover:bg-[#f4ebd9]"
             >
               +
             </button>
@@ -153,7 +153,7 @@ export default function DiceRollerModal({
               ? 'bg-[#f9f5eb] border-[#3c2415] shadow-md'
               : rollResult.isFumble
                 ? 'bg-[#f9f5eb] border-[#8c2d36] shadow-md'
-                : 'bg-[#f5efdf] border border-[#d6c7ab]'
+                : 'bg-[#f4ebd9] border border-[#d6c7ab]'
           }`}>
             {rollResult.isCritical && (
               <div className="text-[#3c2415] font-bold text-sm flex items-center gap-1.5">

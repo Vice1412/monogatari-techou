@@ -61,7 +61,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
             {!isEditing ? (
               <button
                 onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-                className="p-1.5 bg-[#eee6d3] text-[#3c2415] border border-[#d6c7ab] rounded-lg hover:bg-[#f4ebd9] transition-all group/edit hide-on-export"
+                className="p-1.5 bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] rounded-lg hover:bg-[#f4ebd9] transition-all group/edit hide-on-export"
                 title="編輯技能文字"
               >
                 <Edit3 size={16} className="group-hover/edit:scale-110 transition-transform" />
@@ -78,7 +78,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
           </div>
         )}
       </div>
-      <div className={`font-bold text-[15px] mb-2 pr-6 leading-tight flex flex-col sm:flex-row sm:items-center gap-2 ${lockedMsg ? 'text-[#6b5a4b]' : isOverBudget && isActive ? 'text-[#8c2d36]' : isActive ? 'text-[#2c221e]' : 'text-[#3c2f21]'}`}>
+      <div className={`font-bold text-[15px] mb-2 pr-6 leading-tight flex flex-col sm:flex-row sm:items-center gap-2 ${lockedMsg ? 'text-[#6b5a4b]' : isOverBudget && isActive ? 'text-[#8c2d36]' : isActive ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}>
         {isEditing ? (
           <div className="flex-1 relative group/input">
             <input
@@ -109,7 +109,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
       {isEditing ? (
         <textarea
           ref={textareaRef}
-          className={`text-sm leading-relaxed w-full bg-transparent border border-transparent rounded px-1 -mx-1 outline-none resize-none overflow-hidden transition-colors hover:border-[#b4a383] hover:bg-[#f5efdf] focus:border-[#a63d40] focus:bg-[#fffdf9] min-h-[3rem] ${isOverBudget ? 'text-[#8c2d36]' : skill.customDesc !== undefined ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}
+          className={`text-sm leading-relaxed w-full bg-transparent border border-transparent rounded px-1 -mx-1 outline-none resize-none overflow-hidden transition-colors hover:border-[#b4a383] hover:bg-[#f4ebd9] focus:border-[#a63d40] focus:bg-[#fffdf9] min-h-[3rem] ${isOverBudget ? 'text-[#8c2d36]' : skill.customDesc !== undefined ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}
           value={resolveTemplateVariablesForDisplay(getCleanTextForEditor(skill.customDesc !== undefined ? skill.customDesc : effectiveDesc), skill.selections, { damageEmojis: true })}
           placeholder={resolveTemplateVariablesForDisplay(getCleanTextForEditor(effectiveDesc), skill.selections, { damageEmojis: true })}
           onChange={(e) => {
@@ -141,7 +141,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
                 const selected = Array.isArray(skill.selections?.[cfg.key]) ? skill.selections[cfg.key] : [];
                 const maxReached = selected.length >= (cfg.max || Infinity);
                 return (
-                  <div key={cfg.key} className={`p-2 rounded border ${isOverBudget ? 'bg-[#f9f5eb] border-[#8c2d36]/50' : 'bg-[#f5efdf]/60 border-[#d6c7ab]'}`} onClick={e => e.stopPropagation()}>
+                  <div key={cfg.key} className={`p-2 rounded border ${isOverBudget ? 'bg-[#f9f5eb] border-[#8c2d36]/50' : 'bg-[#f4ebd9]/60 border-[#d6c7ab]'}`} onClick={e => e.stopPropagation()}>
                     <div className={`flex justify-between items-center mb-2 text-xs font-bold ${isOverBudget ? 'text-[#8c2d36]' : 'text-[#3c2415]'}`}>
                       <span>{cfg.label}</span>
                       <span className={`px-2 py-0.5 rounded text-[10px] ${selected.length < (cfg.min || 0) ? 'bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50' : maxReached ? 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]' : 'bg-[#fffdf9] text-[#3c2415] border border-[#d6c7ab]'}`}>已選: {selected.length}/{cfg.max || '∞'}</span>
@@ -151,7 +151,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
                         const isChecked = selected.includes(opt);
                         const isDisabledOpt = !isChecked && maxReached;
                         return (
-                          <label key={opt} className={`flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-all cursor-pointer select-none ${isDisabledOpt ? 'opacity-40 cursor-not-allowed' : isChecked ? 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]' : 'hover:bg-[#e8dec8]/50 text-[#3c2415] border border-transparent'}`}>
+                          <label key={opt} className={`flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-all cursor-pointer select-none ${isDisabledOpt ? 'opacity-40 cursor-not-allowed' : isChecked ? 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]' : 'hover:bg-[#e8dcc4]/50 text-[#3c2415] border border-transparent'}`}>
                             <input type="checkbox" className="accent-[#a63d40] w-3.5 h-3.5 shrink-0" checked={isChecked} disabled={isDisabledOpt} onChange={() => {
                               const newVal = isChecked ? selected.filter(v => v !== opt) : [...selected, opt];
                               onSelectionChange(skill.id, cfg.key, newVal);
@@ -166,7 +166,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
               }
               if (cfg.type === 'input') {
                 return (
-                  <label key={cfg.key} className={`flex flex-col gap-1.5 p-2 rounded border bg-[#f5efdf]/60 ${isOverBudget ? 'text-[#8c2d36] border-[#8c2d36]/50' : 'text-[#3c2415] border-[#d6c7ab]'}`} onClick={e => e.stopPropagation()}>
+                  <label key={cfg.key} className={`flex flex-col gap-1.5 p-2 rounded border bg-[#f4ebd9]/60 ${isOverBudget ? 'text-[#8c2d36] border-[#8c2d36]/50' : 'text-[#3c2415] border-[#d6c7ab]'}`} onClick={e => e.stopPropagation()}>
                     <span className="text-xs font-bold">{cfg.label}</span>
                     <input
                       type="text"
@@ -181,7 +181,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
               if (cfg.type === 'checkbox') {
                 const isChecked = !!skill.selections?.[cfg.key];
                 return (
-                  <label key={cfg.key} className={`flex items-center gap-2 p-2 rounded border bg-[#f5efdf]/60 cursor-pointer select-none transition-all ${isChecked ? (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36] bg-[#f4ebd9]' : 'text-[#3c2415] border-[#3c2415] bg-[#f4ebd9]') : (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36]/50' : 'text-[#3c2415] border-[#d6c7ab] hover:border-[#b4a383]')}`} onClick={e => e.stopPropagation()}>
+                  <label key={cfg.key} className={`flex items-center gap-2 p-2 rounded border bg-[#f4ebd9]/60 cursor-pointer select-none transition-all ${isChecked ? (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36] bg-[#f4ebd9]' : 'text-[#3c2415] border-[#3c2415] bg-[#f4ebd9]') : (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36]/50' : 'text-[#3c2415] border-[#d6c7ab] hover:border-[#b4a383]')}`} onClick={e => e.stopPropagation()}>
                     <input type="checkbox" className="accent-[#a63d40] w-3.5 h-3.5 shrink-0" checked={isChecked} onChange={() => onSelectionChange(skill.id, cfg.key, !isChecked)} />
                     <span className="text-xs font-bold">{cfg.label}</span>
                     {isChecked && <span className="text-[10px] bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-1.5 py-0.5 rounded ml-auto">已啟用</span>}
@@ -203,7 +203,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
                 finalOptions = cfg.options.filter(opt => !usedValues.includes(opt) || opt === skill.selections?.[cfg.key]);
               }
               return (
-                <label key={cfg.key} className={`flex justify-between items-center text-xs font-bold p-2 rounded border ${isOverBudget ? 'bg-[#f9f5eb] text-[#8c2d36] border-[#8c2d36]/50' : cfg.isLinked ? 'bg-[#f4ebd9]/80 text-[#3c2415] border-[#d6c7ab] ml-4 -mt-1' : 'bg-[#f5efdf]/60 text-[#3c2415] border-[#d6c7ab]'}`}>
+                <label key={cfg.key} className={`flex justify-between items-center text-xs font-bold p-2 rounded border ${isOverBudget ? 'bg-[#f9f5eb] text-[#8c2d36] border-[#8c2d36]/50' : cfg.isLinked ? 'bg-[#f4ebd9]/80 text-[#3c2415] border-[#d6c7ab] ml-4 -mt-1' : 'bg-[#f4ebd9]/60 text-[#3c2415] border-[#d6c7ab]'}`}>
                   {cfg.label}
                   <select className={`bg-[#fffdf9] text-[#2c221e] border p-1 rounded outline-none w-32 transition-colors ${isOverBudget ? 'border-[#8c2d36] focus:border-[#8c2d36]' : cfg.isLinked ? 'border-[#7c6a58] focus:border-[#3c2415]' : 'border-[#d6c7ab] focus:border-[#3c2415]'}`} value={skill.selections?.[cfg.key] || ''} onChange={(e) => onSelectionChange(skill.id, cfg.key, e.target.value)} onClick={e => e.stopPropagation()} >
                     <option value="">選擇...</option>{finalOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}

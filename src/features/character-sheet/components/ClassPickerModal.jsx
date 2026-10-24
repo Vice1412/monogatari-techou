@@ -341,7 +341,7 @@ export default function ClassPickerModal({
                 className="text-xs px-2.5 py-1 rounded-lg border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
                 style={
                   allBooksOn
-                    ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#ffffff' }
+                    ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
                     : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }
                 }
                 title="一次開啟全部手冊（預設）"
@@ -362,7 +362,7 @@ export default function ClassPickerModal({
                     className="text-xs px-2.5 py-1 rounded-lg border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
                     style={
                       isEnabled
-                        ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#ffffff' }
+                        ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
                         : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }
                     }
                   >
@@ -398,7 +398,7 @@ export default function ClassPickerModal({
                     className="relative flex items-center gap-1 pl-1.5 pr-2.5 py-1 rounded-lg border text-[11px] font-bold cursor-pointer transition-all active:scale-95"
                     style={
                       isActive
-                        ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#ffffff' }
+                        ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
                         : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }
                     }
                   >
@@ -409,7 +409,7 @@ export default function ClassPickerModal({
                       style={{
                         backgroundColor: theme.accentDark || theme.accent,
                         borderColor: theme.panelBg,
-                        color: '#ffffff'
+                        color: '#fffdf9'
                       }}
                     >
                       {total}
@@ -491,7 +491,7 @@ export default function ClassPickerModal({
                   {allocated > 0 && (
                     <span
                       className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-mono font-black flex items-center justify-center border"
-                      style={{ backgroundColor: theme.accent, borderColor: theme.panelBg, color: '#ffffff' }}
+                      style={{ backgroundColor: theme.accent, borderColor: theme.panelBg, color: '#fffdf9' }}
                     >
                       {allocated}
                     </span>
@@ -770,7 +770,7 @@ export default function ClassPickerModal({
                             className="w-full text-left text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition-all active:scale-[.99] cursor-pointer flex items-center gap-1.5"
                             style={
                               pickedVariantId === v.id
-                                ? { backgroundColor: theme.accent, borderColor: theme.accentDark || theme.accent, color: '#ffffff' }
+                                ? { backgroundColor: theme.accent, borderColor: theme.accentDark || theme.accent, color: '#fffdf9' }
                                 : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }
                             }
                             title={pickedVariantId === v.id ? '改回原版技能' : `選用【${v.name}】取代【${sk.name}】`}

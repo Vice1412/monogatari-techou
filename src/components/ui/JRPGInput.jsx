@@ -17,7 +17,7 @@ export function JRPGInput({
     <div className={twMerge(clsx("flex flex-col gap-1.5", wrapperClassName))}>
       {label && (
         <label
-          className="text-xs font-bold text-[#3c2f21] flex items-center justify-between"
+          className="text-xs font-bold text-[#3c2415] flex items-center justify-between"
           style={theme ? { color: theme.textDark } : {}}
         >
           <span>{label}</span>
@@ -42,7 +42,7 @@ export function JRPGInput({
             )
           )}
           style={theme ? {
-            backgroundColor: theme.cardBg || '#ffffff',
+            backgroundColor: theme.cardBg || '#fffdf9',
             borderColor: theme.border,
             color: theme.textDark,
             ...style
@@ -71,7 +71,7 @@ export function JRPGSelect({
     <div className={twMerge(clsx("flex flex-col gap-1.5", wrapperClassName))}>
       {label && (
         <label
-          className="text-xs font-bold text-[#3c2f21]"
+          className="text-xs font-bold text-[#3c2415]"
           style={theme ? { color: theme.textDark } : {}}
         >
           {label}
@@ -89,7 +89,7 @@ export function JRPGSelect({
             )
           )}
           style={theme ? {
-            backgroundColor: theme.cardBg || '#ffffff',
+            backgroundColor: theme.cardBg || '#fffdf9',
             borderColor: theme.border,
             color: theme.textDark,
             ...style

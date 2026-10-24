@@ -95,7 +95,7 @@ export default function IdentityTablesModal({
         {/* Top Description & Official Rules Explanation */}
         <div
           className="rounded-xl p-3.5 space-y-2 border transition-colors"
-          style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}
+          style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
         >
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
@@ -136,7 +136,7 @@ export default function IdentityTablesModal({
           {rolledResult && (
             <div
               className="mt-2.5 p-3 rounded-lg border shadow-sm space-y-2 animate-fade-in"
-              style={{ backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.border || '#d6c7ab' }}
+              style={{ backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.border || '#d6c7ab' }}
             >
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold" style={{ color: theme?.textDark || '#3c2415' }}>
@@ -161,8 +161,8 @@ export default function IdentityTablesModal({
               </div>
 
               {/* Dice roll details breakdown (細節 - 特質 - 核心概念) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] pt-1 border-t" style={{ borderColor: theme?.border || '#ede4d1' }}>
-                <div className="p-1.5 rounded border" style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] pt-1 border-t" style={{ borderColor: theme?.border || '#f4ebd9' }}>
+                <div className="p-1.5 rounded border" style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}>
                   <span className="text-[#6b5a4b] block">1. 身世細節:</span>
                   <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
                     d20=[#{rolledResult.rolls.detail.d20}]
@@ -172,7 +172,7 @@ export default function IdentityTablesModal({
                   </span>
                 </div>
 
-                <div className="p-1.5 rounded border" style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}>
+                <div className="p-1.5 rounded border" style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}>
                   <span className="text-[#6b5a4b] block">2. 形容特質:</span>
                   <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
                     d6=[{rolledResult.rolls.adjective.d6}] {rolledResult.rolls.adjective.group.split(' ')[0]} ➔ d20=[#{rolledResult.rolls.adjective.d20}]
@@ -182,7 +182,7 @@ export default function IdentityTablesModal({
                   </span>
                 </div>
 
-                <div className="p-1.5 rounded border" style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}>
+                <div className="p-1.5 rounded border" style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}>
                   <span className="text-[#6b5a4b] block">3. 核心概念:</span>
                   <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
                     d6=[{rolledResult.rolls.concept.d6}] {rolledResult.rolls.concept.group.split(' ')[0]} ➔ d20=[#{rolledResult.rolls.concept.d20}]
@@ -227,7 +227,7 @@ export default function IdentityTablesModal({
               className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
                 pickedDetail ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
-              style={pickedDetail ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
+              style={pickedDetail ? { backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
             >
               <span>1. 身世細節: {pickedDetail ? pickedDetail.zh : '尚未選取'}</span>
               {pickedDetail && (
@@ -244,7 +244,7 @@ export default function IdentityTablesModal({
               className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
                 pickedAdj ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
-              style={pickedAdj ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
+              style={pickedAdj ? { backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
             >
               <span>2. 形容特質: {pickedAdj ? pickedAdj.zh : '尚未選取'}</span>
               {pickedAdj && (
@@ -261,7 +261,7 @@ export default function IdentityTablesModal({
               className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
                 pickedConcept ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
-              style={pickedConcept ? { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
+              style={pickedConcept ? { backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
             >
               <span>3. 核心身分: {pickedConcept ? pickedConcept.zh : '尚未選取'}</span>
               {pickedConcept && (
@@ -305,8 +305,8 @@ export default function IdentityTablesModal({
                   className="px-3 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap border cursor-pointer"
                   style={
                     isActive
-                      ? { backgroundColor: theme?.accent || '#78350f', borderColor: theme?.accentDark || '#76252d', color: '#ffffff' }
-                      : { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.border || '#d6c7ab', color: theme?.textDark || '#334155' }
+                      ? { backgroundColor: theme?.accent || '#78350f', borderColor: theme?.accentDark || '#76252d', color: '#fffdf9' }
+                      : { backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.border || '#d6c7ab', color: theme?.textDark || '#334155' }
                   }
                 >
                   {t.label}
@@ -323,7 +323,7 @@ export default function IdentityTablesModal({
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="搜尋身份、特質、細節或英文..."
               className="w-full border rounded-lg pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-[#6b5a4b]"
-              style={{ backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.border || '#d6c7ab', color: theme?.textDark || '#0f172a' }}
+              style={{ backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.border || '#d6c7ab', color: theme?.textDark || '#0f172a' }}
             />
             <GiMagnifyingGlass className="w-3.5 h-3.5 absolute left-2 top-2" style={{ color: theme?.accent || '#94a3b8' }} />
             {searchTerm && (
@@ -362,15 +362,15 @@ export default function IdentityTablesModal({
                     <div
                       key={grp.d6Range}
                       className="rounded-xl border p-2.5 space-y-2 transition-colors"
-                      style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}
+                      style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
                     >
-                      <div className="flex items-center justify-between px-1 pb-1 border-b" style={{ borderColor: theme?.border || '#ede4d1' }}>
+                      <div className="flex items-center justify-between px-1 pb-1 border-b" style={{ borderColor: theme?.border || '#f4ebd9' }}>
                         <span className="text-xs font-bold font-mono" style={{ color: theme?.textDark || '#3c2415' }}>
                           {grp.title}
                         </span>
                         <span
                           className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border"
-                          style={{ backgroundColor: theme?.subpanelBg || '#ede4d1', borderColor: theme?.border || '#d6c7ab', color: theme?.accent || '#78350f' }}
+                          style={{ backgroundColor: theme?.subpanelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab', color: theme?.accent || '#78350f' }}
                         >
                           d6: {grp.d6Range}
                         </span>
@@ -386,7 +386,7 @@ export default function IdentityTablesModal({
                               className="px-2 py-1 rounded text-xs flex items-center justify-between cursor-pointer transition-colors"
                               style={
                                 isPicked
-                                  ? { backgroundColor: theme?.accent || '#78350f', color: '#ffffff', fontWeight: 'bold' }
+                                  ? { backgroundColor: theme?.accent || '#78350f', color: '#fffdf9', fontWeight: 'bold' }
                                   : { color: theme?.textDark || '#1e293b' }
                               }
                             >
@@ -431,15 +431,15 @@ export default function IdentityTablesModal({
                     <div
                       key={grp.d6Range}
                       className="rounded-xl border p-2.5 space-y-2 transition-colors"
-                      style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}
+                      style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
                     >
-                      <div className="flex items-center justify-between px-1 pb-1 border-b" style={{ borderColor: theme?.border || '#ede4d1' }}>
+                      <div className="flex items-center justify-between px-1 pb-1 border-b" style={{ borderColor: theme?.border || '#f4ebd9' }}>
                         <span className="text-xs font-bold font-mono" style={{ color: theme?.textDark || '#3c2415' }}>
                           {grp.title}
                         </span>
                         <span
                           className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border"
-                          style={{ backgroundColor: theme?.subpanelBg || '#ede4d1', borderColor: theme?.border || '#d6c7ab', color: theme?.accent || '#78350f' }}
+                          style={{ backgroundColor: theme?.subpanelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab', color: theme?.accent || '#78350f' }}
                         >
                           d6: {grp.d6Range}
                         </span>
@@ -455,7 +455,7 @@ export default function IdentityTablesModal({
                               className="px-2 py-1 rounded text-xs flex items-center justify-between cursor-pointer transition-colors"
                               style={
                                 isPicked
-                                  ? { backgroundColor: theme?.accent || '#78350f', color: '#ffffff', fontWeight: 'bold' }
+                                  ? { backgroundColor: theme?.accent || '#78350f', color: '#fffdf9', fontWeight: 'bold' }
                                   : { color: theme?.textDark || '#1e293b' }
                               }
                             >
@@ -493,7 +493,7 @@ export default function IdentityTablesModal({
 
               <div
                 className="rounded-xl border p-2.5 transition-colors"
-                style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}
+                style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-3 gap-y-1">
                   {filterList(OFFICIAL_IDENTITY_TABLES.details.items).map(item => {
@@ -505,7 +505,7 @@ export default function IdentityTablesModal({
                         className="px-2 py-1 rounded text-xs flex items-center justify-between cursor-pointer transition-colors"
                         style={
                           isPicked
-                            ? { backgroundColor: theme?.accent || '#78350f', color: '#ffffff', fontWeight: 'bold' }
+                            ? { backgroundColor: theme?.accent || '#78350f', color: '#fffdf9', fontWeight: 'bold' }
                             : { color: theme?.textDark || '#1e293b' }
                         }
                       >

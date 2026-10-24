@@ -132,7 +132,7 @@ export function QuirkPickerBody({
                     className="w-full text-left px-2.5 py-2 rounded-lg border text-xs font-bold transition-all cursor-pointer active:scale-98 flex items-center justify-between gap-1.5"
                     style={
                       isOpen
-                        ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#ffffff' }
+                        ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
                         : isPicked
                           ? { backgroundColor: theme.subpanelBg, borderColor: theme.accent, color: theme.textDark }
                           : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }

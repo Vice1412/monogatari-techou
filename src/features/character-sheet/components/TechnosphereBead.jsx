@@ -163,7 +163,7 @@ export default function TechnosphereBead({
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#ffffff',
+          color: '#fffdf9',
           filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.55))',
           opacity: dim ? 0.6 : 1
         }}

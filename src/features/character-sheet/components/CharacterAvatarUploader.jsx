@@ -355,7 +355,7 @@ export default function CharacterAvatarUploader({
                 fileInputRef.current.click();
               }
             }}
-            className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl border-2 bg-[#f5efdf] shrink-0 overflow-hidden flex items-center justify-center shadow-inner group select-none cursor-pointer transition-all hover:scale-102"
+            className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl border-2 bg-[#f4ebd9] shrink-0 overflow-hidden flex items-center justify-center shadow-inner group select-none cursor-pointer transition-all hover:scale-102"
             style={{ borderColor: theme.border }}
             title={isCustomPhoto ? "點擊重新裁切調整大小" : "點擊上傳本地照片"}
           >
@@ -373,7 +373,7 @@ export default function CharacterAvatarUploader({
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center text-[#6b5a4b] gap-1 p-2 text-center w-full h-full group-hover:bg-[#ebdcc4] transition-colors">
+              <div className="flex flex-col items-center justify-center text-[#6b5a4b] gap-1 p-2 text-center w-full h-full group-hover:bg-[#e8dcc4] transition-colors">
                 {character?.avatar ? (
                   <GameIcon name={character.avatar} size={36} style={{ color: theme.accent }} />
                 ) : (
@@ -511,7 +511,7 @@ export default function CharacterAvatarUploader({
                       style={isSelected ? { backgroundColor: theme.accent, borderColor: theme.accent } : { borderColor: theme.border }}
                       title={`${cls.name} / ${cls.en}：${cls.tagline}`}
                     >
-                      <GameIcon name={cls.name} size={14} style={{ color: isSelected ? '#ffffff' : theme.accent }} />
+                      <GameIcon name={cls.name} size={14} style={{ color: isSelected ? '#fffdf9' : theme.accent }} />
                       <span>{cls.name}</span>
                     </button>
                   );

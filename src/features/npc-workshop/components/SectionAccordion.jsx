@@ -29,7 +29,7 @@ const SectionAccordion = ({ title, icon, current, max, hideIfZeroMax = false, de
     if (isOverflow) statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#8c2d36] bg-[#f4ebd9] border border-[#8c2d36]/50 px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><AlertCircle size={12} /> <span className="hidden md:inline">超額失效</span> ({current}/{max})</span>;
     else if (isComplete) statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#3c2415] bg-[#f4ebd9] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><CheckCircle2 size={12} /> <span className="hidden md:inline">已完成</span> ({current}/{max})</span>;
     else statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#3c2415] bg-[#f4ebd9] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><AlertCircle size={12} /> <span className="hidden md:inline">待配置</span> ({current}/{max})</span>;
-  } else statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#574c43] bg-[#e8dec8] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><GiSparkles size={12} /> {current > 0 ? `已加入 ${current} 項` : '選用區塊'}</span>;
+  } else statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#574c43] bg-[#e8dcc4] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><GiSparkles size={12} /> {current > 0 ? `已加入 ${current} 項` : '選用區塊'}</span>;
 
   return (
     <div className={`bg-[#fffdf9] border ${isOverflow ? 'border-[#8c2d36]' : 'border-[#d6c7ab]'} rounded-lg mb-4 transition-all duration-300 relative ${!isComplete && !alwaysComplete && !isOverflow ? 'ring-1 ring-[#3c2415]/40 shadow-md' : isOverflow ? 'ring-1 ring-[#8c2d36]/50 shadow-md' : ''}`}>

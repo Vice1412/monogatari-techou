@@ -85,7 +85,7 @@ import {
  */
 
 const T = {
-  bg: 'bg-[#f5efdf]',
+  bg: 'bg-[#f4ebd9]',
   border: 'border-[#d6c7ab]',
   text: 'text-[#3c2415]',
   sub: 'text-[#6b5a4b]'
@@ -871,7 +871,7 @@ export default function AceOfCardsTable({
               <button
                 type="button"
                 onClick={startTurn}
-                className={`px-2.5 py-1 rounded-lg border ${T.border} bg-white hover:bg-[#ebdcc4] text-[11px] font-bold ${T.sub} cursor-pointer`}
+                className={`px-2.5 py-1 rounded-lg border ${T.border} bg-white hover:bg-[#e8dcc4] text-[11px] font-bold ${T.sub} cursor-pointer`}
               >
                 推進到下個回合
               </button>
@@ -1028,7 +1028,7 @@ export default function AceOfCardsTable({
               <button
                 type="button"
                 onClick={endConflict}
-                className={`px-2.5 py-1.5 rounded-lg border ${T.border} bg-white hover:bg-[#ebdcc4] text-[11px] font-bold ${T.sub} cursor-pointer`}
+                className={`px-2.5 py-1.5 rounded-lg border ${T.border} bg-white hover:bg-[#e8dcc4] text-[11px] font-bold ${T.sub} cursor-pointer`}
               >
                 衝突結束（全部洗回）
               </button>
@@ -1065,7 +1065,7 @@ export default function AceOfCardsTable({
               </thead>
               <tbody>
                 {SET_EFFECTS.map((e) => (
-                  <tr key={e.id} className="align-top border-t border-[#e8dfcb]">
+                  <tr key={e.id} className="align-top border-t border-[#e8dcc4]">
                     <td className={`py-1 pr-1 font-bold ${T.text}`}>
                       {e.name}
                       {e.heroic && <span className={`block font-mono text-t12 ${T.sub}`}>需英雄技能</span>}

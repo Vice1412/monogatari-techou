@@ -70,7 +70,7 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
                 <span
                   className="text-[10px] px-1.5 py-0.5 rounded border font-bold"
                   style={{
-                    backgroundColor: theme.subpanelBg || '#f5efdf',
+                    backgroundColor: theme.subpanelBg || '#f4ebd9',
                     borderColor: theme.border || '#d6c7ab',
                     color: theme.textMuted || '#78716c'
                   }}

@@ -487,7 +487,7 @@ export default function App({
                 className={`px-2.5 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1 text-xs shadow-2xs border cursor-pointer ${
                   state.isFreeModeEnabled
                     ? 'bg-[#fffdf9] text-[#a63d40] border-[#a63d40] ring-1 ring-[#a63d40]/40 hover:bg-[#f4ebd9]'
-                    : 'bg-white text-[#3c2415] border-[#d6c7ab] hover:bg-[#ebdcc4]'
+                    : 'bg-white text-[#3c2415] border-[#d6c7ab] hover:bg-[#e8dcc4]'
                 }`}
                 title={state.isFreeModeEnabled ? '規則限制已解除（點擊恢復嚴謹模式）' : '點擊解除規則限制'}
               >
@@ -2047,7 +2047,7 @@ export default function App({
                 onDragOver={handleAvatarDragOver}
                 onDragLeave={handleAvatarDragLeave}
                 onDrop={handleAvatarDrop}
-                className={`relative w-24 h-24 md:w-32 md:h-32 border-2 bg-[#f5efdf] flex-shrink-0 group overflow-hidden shadow-md select-none block transition-all duration-200 ${
+                className={`relative w-24 h-24 md:w-32 md:h-32 border-2 bg-[#f4ebd9] flex-shrink-0 group overflow-hidden shadow-md select-none block transition-all duration-200 ${
                   isDraggingOver ? 'border-[#3c2415] ring-2 ring-[#3c2415]/50 scale-105' : 'border-[#a8987e] hover:border-[#3c2415]'
                 }`}
                 title={state.avatarBase64 ? "NPC 頭像" : "點擊上傳或拖曳圖片至此"}
@@ -2069,7 +2069,7 @@ export default function App({
                       >
                         <Crop size={11} /> 調整大小
                       </button>
-                      <label className="cursor-pointer px-2 py-1 bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] rounded text-[10px] font-bold transition flex items-center gap-1 border border-[#d6c7ab]">
+                      <label className="cursor-pointer px-2 py-1 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] rounded text-[10px] font-bold transition flex items-center gap-1 border border-[#d6c7ab]">
                         <Upload size={11} /> 更換
                         <input
                           type="file"
@@ -2103,7 +2103,7 @@ export default function App({
             )}
 
             <div className="flex flex-col lg:flex-row gap-4 mb-5 border p-4 justify-between lg:items-center shadow-sm rounded-lg transition-colors duration-300" style={{ backgroundColor: currentTheme.subpanelBg, borderColor: currentTheme.border }}>
-              <div className="flex gap-6 justify-center lg:justify-start border-b lg:border-b-0 border-[#e2d6c1] pb-3 lg:pb-0">
+              <div className="flex gap-6 justify-center lg:justify-start border-b lg:border-b-0 border-[#e8dcc4] pb-3 lg:pb-0">
                 <div className="flex flex-col items-center">
                   <span className="text-xs text-[#7c6a58] font-bold mb-1 tracking-widest">HP</span>
                   <div className="flex items-center gap-2">
@@ -2293,8 +2293,8 @@ export default function App({
                             }
 
                             return (
-                              <div key={i} className={`bg-[#f9f5eb] border-l-4 p-3 text-sm break-inside-avoid rounded-r-md border border-[#e2d6c1] ${isSecretArtForSpell ? 'border-l-[#3c2415] bg-[#fffdf9] ring-1 ring-[#d6c7ab]' : 'border-l-[#7c6a58]'}`}>
-                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e2d6c1] pb-2 mb-2">
+                              <div key={i} className={`bg-[#f9f5eb] border-l-4 p-3 text-sm break-inside-avoid rounded-r-md border border-[#e8dcc4] ${isSecretArtForSpell ? 'border-l-[#3c2415] bg-[#fffdf9] ring-1 ring-[#d6c7ab]' : 'border-l-[#7c6a58]'}`}>
+                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e8dcc4] pb-2 mb-2">
                                   <span className="font-bold text-[16px] flex flex-wrap items-center gap-1 text-[#3c2415]">
                                     <span className="fu-icon text-xl drop-shadow-sm shrink-0">{CATEGORIES.find(c => c.id === 'spell')?.fuIcon || 'c'}</span> {isOffensive && <span className="fu-icon text-xl text-[#8c2d36] drop-shadow-sm mr-0.5 shrink-0" title="攻擊性咒語">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}<span className={selections.customName !== undefined ? 'text-[#3c2415] font-bold' : ''}>{renderFormattedText(normalizeSpellName(effectiveName), selections, state.level, state.partyLevel)}</span>
                                     {isSecretArtForSpell && (
@@ -2545,7 +2545,7 @@ export default function App({
                         </div>
 
                         <div className="relative z-10 flex flex-col items-center text-center gap-4">
-                          <div className={`w-28 h-28 rounded-full flex items-center justify-center border transition-all duration-500 ${isActive ? 'bg-[#f4ebd9] border-[#3c2415] shadow-md text-[#3c2415]' : 'bg-[#f5efdf] border-[#d6c7ab] text-[#8b4513]'}`}>
+                          <div className={`w-28 h-28 rounded-full flex items-center justify-center border transition-all duration-500 ${isActive ? 'bg-[#f4ebd9] border-[#3c2415] shadow-md text-[#3c2415]' : 'bg-[#f4ebd9] border-[#d6c7ab] text-[#8b4513]'}`}>
                             {(() => {
                               const CardIcon = ROLE_ICONS[roleName] || ROLE_DESCRIPTIONS[roleName]?.Icon;
                               return CardIcon ? (
@@ -2555,7 +2555,7 @@ export default function App({
                           </div>
                           <div>
                             <h2 className="text-3xl sm:text-4xl font-black text-[#3c2415] tracking-[0.15em] mb-1">{roleName}</h2>
-                            <div className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase ${isActive ? 'bg-[#e8dcc4] text-[#2c221e] border border-[#d6c7ab]' : 'bg-[#eee6d3] text-[#6b5a4b]'}`}>
+                            <div className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase ${isActive ? 'bg-[#e8dcc4] text-[#2c221e] border border-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#6b5a4b]'}`}>
                               {ROLE_DESCRIPTIONS[roleName].subtitle}
                             </div>
                           </div>
@@ -2640,10 +2640,10 @@ export default function App({
                 <div className="flex flex-col gap-3">
                   <div className="grid grid-cols-4 gap-2">
                     {[{ label: 'DEX', val: finalStats.DEX, c: ATTRIBUTE_COLORS.dex }, { label: 'INS', val: finalStats.INS, c: ATTRIBUTE_COLORS.ins }, { label: 'MIG', val: finalStats.MIG, c: ATTRIBUTE_COLORS.mig }, { label: 'WLP', val: finalStats.WLP, c: ATTRIBUTE_COLORS.wlp }].map(s => (
-                      <div key={s.label} className="bg-[#f8f3e6] border border-[#e2d6c1] p-2 text-center rounded-lg"><div className="text-[10px] text-[#7c6a58] font-bold tracking-widest">{s.label}</div><div className={`text-lg md:text-xl font-bold ${s.c} drop- leading-none mt-1`}>{s.val}</div></div>
+                      <div key={s.label} className="bg-[#f7f3e8] border border-[#e8dcc4] p-2 text-center rounded-lg"><div className="text-[10px] text-[#7c6a58] font-bold tracking-widest">{s.label}</div><div className={`text-lg md:text-xl font-bold ${s.c} drop- leading-none mt-1`}>{s.val}</div></div>
                     ))}
                   </div>
-                  <div className="flex justify-between items-center bg-[#f8f3e6] border border-[#e2d6c1] p-3 rounded-lg">
+                  <div className="flex justify-between items-center bg-[#f7f3e8] border border-[#e8dcc4] p-3 rounded-lg">
                     <div className="flex gap-4 md:gap-8 px-2 md:px-4">
                       <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">HP</span><span className="text-sm md:text-base font-bold text-[#8c2d36] leading-none mt-1">{finalStats.HP}</span></div>
                       <div className="w-px bg-[#d6c7ab]"></div>
@@ -2670,7 +2670,7 @@ export default function App({
                             <span className="bg-[#3c2415] text-[#fbf7ee] text-[11px] font-extrabold px-2 py-0.5 rounded shadow-sm w-fit shrink-0">Lv. {skill.unlockLevel}</span>
                             <span className="font-bold text-[#3c2415] text-[15px]">{skill.originalName.replace(/Lv\.\d+\s解鎖天賦：/, '')}</span>
                           </div>
-                          <div className="text-sm text-[#3c2f21] leading-relaxed pl-2 mt-1">{renderFormattedText(skill.originalDesc, skill.selections, state.level, state.partyLevel)}</div>
+                          <div className="text-sm text-[#3c2415] leading-relaxed pl-2 mt-1">{renderFormattedText(skill.originalDesc, skill.selections, state.level, state.partyLevel)}</div>
 
                           {!skill.isSystem && skill.selectionsConfig && skill.selectionsConfig.length > 0 && (
                             <div className="mt-2 pl-2 pt-2 border-t border-[#d6c7ab] flex flex-wrap gap-3">
@@ -2725,7 +2725,7 @@ export default function App({
                           onClick={() => handleRankChange(r)}
                           className={`flex-1 py-3 px-2 rounded-lg text-[11px] font-black transition-all duration-300 tracking-widest relative z-10 ${state.rank === r
                             ? 'bg-[#a63d40] text-[#fffdf9] shadow-md scale-[1.02]'
-                            : 'text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f5efdf]'
+                            : 'text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9]'
                             }`}
                         >
                           {r}
@@ -2789,7 +2789,7 @@ export default function App({
 
             <div className={`p-6 md:p-8 rounded-xl border transition-all duration-300 ${state.selectedSpeciesId ? 'bg-[#fffdf9] border-[#d6c7ab] shadow-md' : 'bg-[#fffdf9]/60 border-[#d6c7ab] opacity-70'}`}>
               <div className="flex items-center gap-3 mb-6">
-                <div className={`p-2 rounded-lg ${state.selectedSpeciesId ? 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]' : 'bg-[#eee6d3] text-[#6b5a4b]'}`}>
+                <div className={`p-2 rounded-lg ${state.selectedSpeciesId ? 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#6b5a4b]'}`}>
                   <GiMonsterGrasp size={24} />
                 </div>
                 <div>
@@ -2810,7 +2810,7 @@ export default function App({
                       onClick={() => handleSpeciesChange(sp.id)}
                       className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 ${isSelected ? 'bg-[#f4ebd9] border-[#3c2415] shadow-md scale-[1.03] z-10' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee]'}`}
                     >
-                      <div className={`p-2.5 rounded-full mb-2 transition-all ${isSelected ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#eee6d3] text-[#6b5a4b]'}`}>
+                      <div className={`p-2.5 rounded-full mb-2 transition-all ${isSelected ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b]'}`}>
                         {theme.icon}
                       </div>
                       <span className={`text-[12px] font-bold tracking-tight text-center leading-tight ${isSelected ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>
@@ -2826,7 +2826,7 @@ export default function App({
                   {(() => {
                     const sp = SPECIES_DATA.find(s => s.id === state.selectedSpeciesId);
                     if (!sp) return null;
-                    const selectedTheme = SPECIES_THEMES[sp.id] || { color: 'gray', icon: <GiMonsterGrasp size={20} />, bg: 'bg-[#f5efdf]', border: 'border-[#d6c7ab]', text: 'text-[#3c2415]', label: '未知' };
+                    const selectedTheme = SPECIES_THEMES[sp.id] || { color: 'gray', icon: <GiMonsterGrasp size={20} />, bg: 'bg-[#f4ebd9]', border: 'border-[#d6c7ab]', text: 'text-[#3c2415]', label: '未知' };
 
                     return (
                       <>
@@ -2912,7 +2912,7 @@ export default function App({
 
                           if (!isConditionMet) {
                             return (
-                              <div className="bg-[#f5efdf] border border-dashed border-[#d6c7ab] p-8 rounded-lg text-center">
+                              <div className="bg-[#f4ebd9] border border-dashed border-[#d6c7ab] p-8 rounded-lg text-center">
                                 <Lock size={24} className="mx-auto mb-2 text-[#7c6a58]" />
                                 <p className="text-xs text-[#7c6a58] font-bold uppercase tracking-widest">選取上方代價以解鎖物種增益</p>
                               </div>
@@ -2928,7 +2928,7 @@ export default function App({
                                 <label className="text-[11px] font-black text-[#3c2415] tracking-widest uppercase flex items-center gap-2">
                                   <GiStarSwirl size={14} /> 物種增益選擇 (Pick {maxPicks})
                                 </label>
-                                <span className={`text-[11px] font-black tracking-widest px-2 py-0.5 rounded ${selectedCount >= maxPicks ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#eee6d3] text-[#6b5a4b]'}`}>
+                                <span className={`text-[11px] font-black tracking-widest px-2 py-0.5 rounded ${selectedCount >= maxPicks ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b]'}`}>
                                   {selectedCount} / {maxPicks}
                                 </span>
                               </div>
@@ -3104,7 +3104,7 @@ export default function App({
               <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">系統會根據你的定位與等級自動為你計算可用額度。請展開下方區塊完成配置。</p>
             </div>
             {/* Step 4 Sub-tabs */}
-            <div className="flex bg-[#e8dec8] rounded-xl p-1 gap-1 border border-[#d6c7ab] shadow-inner">
+            <div className="flex bg-[#e8dcc4] rounded-xl p-1 gap-1 border border-[#d6c7ab] shadow-inner">
               {[
                 { id: 'stats', label: '基礎數值與相性', Icon: GiRollingDices },
                 { id: 'skills', label: '技能・咒語・能力', Icon: GiCrossedSwords },
@@ -3115,7 +3115,7 @@ export default function App({
                   className={`flex-1 py-2.5 px-2 rounded-lg text-xs font-black tracking-wide transition-all duration-200 flex items-center justify-center gap-1.5 ${
                     step4SubTab === tab.id
                       ? 'bg-[#fbf7ee] text-[#2c221e] shadow-sm'
-                      : 'text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#dfd3bc]/60'
+                      : 'text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#e8dcc4]/60'
                   }`}
                   style={step4SubTab === tab.id ? { borderBottom: `2px solid ${workshopTheme.accent}` } : {}}
                 >
@@ -3147,7 +3147,7 @@ export default function App({
                     <button
                       type="button"
                       onClick={() => setState(prev => ({ ...prev, customDice: {} }))}
-                      className="px-3 py-1.5 text-xs font-bold text-[#3c2f21] hover:text-[#2c221e] bg-[#eee6d3] hover:bg-[#e4d9c0] border border-[#d6c7ab] rounded-lg transition-colors flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
+                      className="px-3 py-1.5 text-xs font-bold text-[#3c2415] hover:text-[#2c221e] bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] rounded-lg transition-colors flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
                     >
                       <RotateCcw size={14} /> 重置體質骰子
                     </button>
@@ -3220,7 +3220,7 @@ export default function App({
                                 className={`py-1.5 text-xs font-black rounded transition-all duration-200 relative ${
                                   isActive
                                     ? 'bg-[#a63d40] text-[#fffdf9] font-extrabold shadow-sm scale-105 z-10'
-                                    : 'bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2f21] border border-[#d6c7ab]'
+                                    : 'bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]'
                                 }`}
                               >
                                 {die}
@@ -3291,7 +3291,7 @@ export default function App({
                     abs: { l: AFFINITY_STATES.abs.label, c: AFFINITY_STATES.abs.ink, activeBorder: 'border-[#3c2415]', activeBg: 'bg-[#fffdf9]' }
                   };
                   return (
-                    <button key={st} onClick={() => !isDisabled && setActiveAffinityTab(st)} disabled={isDisabled} className={`flex-1 flex flex-col items-center justify-center p-2 rounded-t-lg border-b-4 transition-all duration-200 ${isDisabled ? 'opacity-40 cursor-not-allowed border-[#d6c7ab] bg-[#f4ebd9] grayscale' : isActive ? `${conf[st].activeBorder} ${conf[st].activeBg} scale-105 z-10` : 'border-[#d6c7ab] bg-[#f5efdf] hover:bg-[#eee6d3]'}`}>
+                    <button key={st} onClick={() => !isDisabled && setActiveAffinityTab(st)} disabled={isDisabled} className={`flex-1 flex flex-col items-center justify-center p-2 rounded-t-lg border-b-4 transition-all duration-200 ${isDisabled ? 'opacity-40 cursor-not-allowed border-[#d6c7ab] bg-[#f4ebd9] grayscale' : isActive ? `${conf[st].activeBorder} ${conf[st].activeBg} scale-105 z-10` : 'border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9]'}`}>
                       <span className={`text-[10px] sm:text-xs font-bold mb-1 ${isDisabled ? 'text-[#7c6a58]' : conf[st].c}`}>{conf[st].l}</span>
                       <span className={`text-sm font-extrabold ${!isDisabled && isFull && max > 0 && !state.isFreeModeEnabled ? 'text-[#3c2415] font-black' : isDisabled ? 'text-[#7c6a58]' : 'text-[#2c221e]'}`}>{curr} <span className="text-[#7c6a58] font-normal mx-0.5">/</span> {state.isFreeModeEnabled ? '∞' : max}</span>
                     </button>
@@ -3674,7 +3674,7 @@ export default function App({
                             </div>
                           </div>
 
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 border-t border-[#e2d6c1]">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 border-t border-[#e8dcc4]">
                             <label className="flex items-center gap-1.5 cursor-pointer group">
                               <input
                                 type="checkbox"
@@ -3828,7 +3828,7 @@ export default function App({
                           setState(prev => ({ ...prev, rank: '冠位', championMultiplier: mult }));
                           showToast(`成功覺醒為冠位 (倍率 x${mult})！`, 'success');
                         }}
-                        className="flex flex-col items-center justify-center py-3 bg-[#f5efdf] border border-[#d6c7ab] rounded-xl hover:bg-[#f4ebd9] hover:border-[#3c2415] hover:scale-105 transition-all"
+                        className="flex flex-col items-center justify-center py-3 bg-[#f4ebd9] border border-[#d6c7ab] rounded-xl hover:bg-[#f4ebd9] hover:border-[#3c2415] hover:scale-105 transition-all"
                       >
                         <span className="text-xl font-black text-[#3c2415] transition-colors drop-shadow-sm">{mult}</span>
                         <span className="text-[10px] text-[#3c2415] font-bold">倍率</span>
@@ -3869,7 +3869,7 @@ export default function App({
                             >
                               <span>{cat}</span>
                               {selectedCount > 0 && (
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full shadow-inner ${isActive ? 'bg-[#fffdf9] text-[#3c2415] font-bold' : 'bg-[#eee6d3] text-[#3c2f21]'}`}>{selectedCount}</span>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full shadow-inner ${isActive ? 'bg-[#fffdf9] text-[#3c2415] font-bold' : 'bg-[#f4ebd9] text-[#3c2415]'}`}>{selectedCount}</span>
                               )}
                             </button>
                           );
@@ -4023,7 +4023,7 @@ export default function App({
 
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     {/* 縮圖預覽框 */}
-                    <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-lg border-2 border-[#d6c7ab] bg-[#f5efdf] flex-shrink-0 overflow-hidden flex items-center justify-center shadow-inner group select-none">
+                    <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-lg border-2 border-[#d6c7ab] bg-[#f4ebd9] flex-shrink-0 overflow-hidden flex items-center justify-center shadow-inner group select-none">
                       {state.avatarBase64 ? (
                         <img
                           src={state.avatarBase64}
@@ -4059,7 +4059,7 @@ export default function App({
                             <button
                               type="button"
                               onClick={handleReCrop}
-                              className="px-3 py-2 bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] border border-[#d6c7ab] text-xs font-bold rounded transition flex items-center gap-1.5"
+                              className="px-3 py-2 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-xs font-bold rounded transition flex items-center gap-1.5"
                             >
                               <Crop size={14} />
                               重新調整大小
@@ -4103,7 +4103,7 @@ export default function App({
                           type="button"
                           onClick={() => handleLoadImageUrl()}
                           disabled={isUrlLoading}
-                          className="px-3 py-1.5 bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] border border-[#d6c7ab] rounded text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0 disabled:opacity-50"
+                          className="px-3 py-1.5 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] rounded text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0 disabled:opacity-50"
                         >
                           <Link size={13} />
                           {isUrlLoading ? '載入中...' : '網址載入'}
@@ -4254,7 +4254,7 @@ export default function App({
             className={`flex-1 py-2 sm:py-3.5 text-sm sm:text-base font-bold tracking-widest flex flex-col sm:flex-row justify-center items-center gap-1 sm:gap-2 transition-all duration-200 ${
               activeMainTab === 'build'
                 ? 'bg-[#fbf7ee] text-[#3c2415] border-b-[3px] border-[#3c2415]'
-                : 'text-[#6b5a4b] hover:bg-[#eee6d3]/60'
+                : 'text-[#6b5a4b] hover:bg-[#f4ebd9]/60'
             }`}
           >
             <Settings size={18} className="sm:w-[18px] sm:h-[18px] w-4 h-4" /> 構築頁面
@@ -4264,7 +4264,7 @@ export default function App({
             className={`flex-1 py-2 sm:py-3.5 text-sm sm:text-base font-bold tracking-widest flex flex-col sm:flex-row justify-center items-center gap-1 sm:gap-2 transition-all duration-200 ${
               activeMainTab === 'preview'
                 ? 'bg-[#fbf7ee] text-[#3c2415] border-b-[3px] border-[#3c2415]'
-                : 'text-[#6b5a4b] hover:bg-[#eee6d3]/60'
+                : 'text-[#6b5a4b] hover:bg-[#f4ebd9]/60'
             }`}
           >
             <Eye size={18} className="sm:w-[18px] sm:h-[18px] w-4 h-4" /> 角色卡預覽
@@ -4297,7 +4297,7 @@ export default function App({
                   </button>
                   <button
                     onClick={handleDiscardDraft}
-                    className="px-3 py-1.5 rounded-lg bg-[#eee6d3] hover:bg-[#e4d9c0] border border-[#d6c7ab] text-[#3c2f21] text-xs font-bold transition-colors"
+                    className="px-3 py-1.5 rounded-lg bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#3c2415] text-xs font-bold transition-colors"
                   >
                     丟棄
                   </button>
@@ -4371,7 +4371,7 @@ export default function App({
                   <button
                     type="button"
                     onClick={() => { setLibSearchQuery(''); setLibRoleFilter('all'); setLibRankFilter('all'); }}
-                    className="text-xs px-2.5 py-1.5 rounded-lg text-[#3c2415] hover:bg-[#ede4d1] transition-colors font-medium"
+                    className="text-xs px-2.5 py-1.5 rounded-lg text-[#3c2415] hover:bg-[#f4ebd9] transition-colors font-medium"
                   >
                     重設
                   </button>
@@ -4394,7 +4394,7 @@ export default function App({
                     className="hidden"
                   />
                   <span
-                    className="bg-white hover:bg-[#ede4d1] text-[#3c2415] border border-[#d6c7ab] px-3.5 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs cursor-pointer"
+                    className="bg-white hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-3.5 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs cursor-pointer"
                     title="匯入單張 NPC 的 JSON 檔案（載入後還要按「儲存」才會進檔案庫）"
                   >
                     <Upload className="w-3.5 h-3.5 text-[#3c2415]" />
@@ -4404,7 +4404,7 @@ export default function App({
 
                 <button
                   onClick={handleBackupAllNPCs}
-                  className="bg-white hover:bg-[#ede4d1] text-[#3c2415] border border-[#d6c7ab] px-3.5 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs"
+                  className="bg-white hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-3.5 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs"
                 >
                   <Download className="w-3.5 h-3.5 text-[#3c2415]" />
                   <span>備份全庫</span>
@@ -4493,9 +4493,9 @@ export default function App({
                         <span>{npc.role}</span>
                       </p>
                       <div className="mt-auto flex gap-2">
-                        <button onClick={() => { setState(npc); setActiveMainTab('build'); }} className="flex-1 bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-[#d6c7ab]"><Edit3 size={14} /> 編輯</button>
+                        <button onClick={() => { setState(npc); setActiveMainTab('build'); }} className="flex-1 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-[#d6c7ab]"><Edit3 size={14} /> 編輯</button>
                         <button onClick={() => { setState(npc); setActiveMainTab('preview'); }} className="flex-1 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-[#d6c7ab]"><Eye size={14} /> 預覽</button>
-                        <button onClick={() => handleExportJSON(npc)} className="bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] px-3 py-2 rounded transition-colors border border-[#d6c7ab] flex justify-center items-center" title={`匯出「${npc.name || "未知實體"}」的 JSON 存檔`} aria-label={`匯出「${npc.name || "未知實體"}」的 JSON 存檔`}><Download size={16} /></button>
+                        <button onClick={() => handleExportJSON(npc)} className="bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] px-3 py-2 rounded transition-colors border border-[#d6c7ab] flex justify-center items-center" title={`匯出「${npc.name || "未知實體"}」的 JSON 存檔`} aria-label={`匯出「${npc.name || "未知實體"}」的 JSON 存檔`}><Download size={16} /></button>
                 <button onClick={() => handleSendToCombat(npc)} className="bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c2d36] px-3 py-2 rounded text-sm font-bold flex justify-center items-center gap-1 transition-colors border border-[#8c2d36]/50" title="推入戰鬥房間"><GiCrossedSwords size={14} /> 入戰</button>
                         <button onClick={() => {
                           if (window.confirm(`確定要刪除「${npc.name || "未知實體"}」嗎？此操作無法復原。`)) {
@@ -4579,8 +4579,8 @@ export default function App({
 
           <div className="flex-1 flex overflow-hidden relative">
             {/* 步驟側邊欄 ( md:flex, 手機端隱藏轉為頂部條 ) */}
-            <div className="hidden md:flex w-64 bg-[#eee6d3] border-r border-[#d8c8b0] flex-col overflow-y-auto custom-scrollbar flex-shrink-0">
-              <div className="p-4 border-b border-[#d8c8b0]">
+            <div className="hidden md:flex w-64 bg-[#f4ebd9] border-r border-[#d6c7ab] flex-col overflow-y-auto custom-scrollbar flex-shrink-0">
+              <div className="p-4 border-b border-[#d6c7ab]">
                 <h2 className="text-xs font-black text-[#6b5a4b] uppercase tracking-wider">建構步驟</h2>
               </div>
               <div className="p-2 space-y-1">
@@ -4591,7 +4591,7 @@ export default function App({
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all ${
                       currentStep === s.num
                         ? 'bg-[#fffdf9] text-[#2c221e] font-black border border-[#d6c7ab]'
-                        : 'text-[#6b5a4b] hover:bg-[#e4d9c0] hover:text-[#2c221e]'
+                        : 'text-[#6b5a4b] hover:bg-[#e8dcc4] hover:text-[#2c221e]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -4655,7 +4655,7 @@ export default function App({
               {currentStep !== 1 && (
                 <div className="w-full border-t py-3 shrink-0 z-50 relative shadow-[0_-10px_20px_-10px_rgba(44,34,30,0.1)] bg-[#f4ebd9] border-[#d6c7ab]" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
                   <div className="max-w-4xl mx-auto flex justify-between items-center px-4 md:px-8">
-                    <button onClick={prevStep} title="上一步（Alt + ←）" className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold transition-all text-sm text-[#3c2f21] bg-[#eee6d3] hover:bg-[#e4d9c0] border border-[#d6c7ab]">
+                    <button onClick={prevStep} title="上一步（Alt + ←）" className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold transition-all text-sm text-[#3c2415] bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab]">
                       <ChevronLeft size={16} /> 上一步
                     </button>
 
@@ -4712,7 +4712,7 @@ export default function App({
                 </div>
                 <div className="flex items-center justify-between px-4 pb-3 shrink-0 border-b border-[#d6c7ab]">
                   <span className="text-sm font-black tracking-widest text-[#3c2415] flex items-center gap-2"><Eye size={14} className="text-[#6b5a4b]" /> 角色卡預覽</span>
-                  <button onClick={() => setIsBottomSheetOpen(false)} className="text-[#6b5a4b] hover:text-[#2c221e] transition-colors p-1 rounded-lg hover:bg-[#e4d9c0]" title="關閉預覽">
+                  <button onClick={() => setIsBottomSheetOpen(false)} className="text-[#6b5a4b] hover:text-[#2c221e] transition-colors p-1 rounded-lg hover:bg-[#e8dcc4]" title="關閉預覽">
                     <X size={18} />
                   </button>
                 </div>
@@ -4833,7 +4833,7 @@ export default function App({
                       </button>
                       <button
                         onClick={() => { handleCopyFullNpc('ccfolia'); setCopyFormatDropdownOpen(false); }}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#2c221e] bg-[#f9f5eb] hover:bg-[#ebdcc4] transition-colors text-left border-t border-[#d6c7ab] font-bold cursor-pointer"
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#2c221e] bg-[#f9f5eb] hover:bg-[#e8dcc4] transition-colors text-left border-t border-[#d6c7ab] font-bold cursor-pointer"
                         title="複製為 ccfolia 格式，至房間直接按 Ctrl+V 貼上即可生成棋子"
                       >
                         <GiRollingDices size={16} className="text-[#3c2415]" /> ccfolia 棋子 (Ctrl+V)

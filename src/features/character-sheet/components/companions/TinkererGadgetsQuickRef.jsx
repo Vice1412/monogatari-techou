@@ -303,7 +303,7 @@ export default function TinkererGadgetsQuickRef({
                       </div>
                     </div>
 
-                    <div className="p-2 rounded-lg bg-white/90 border border-[#e2d6c1] space-y-0.5">
+                    <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
                       <div className="font-bold text-[#3c2415] flex items-center justify-between">
                         <span>暗影</span>
                         <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
@@ -346,7 +346,7 @@ export default function TinkererGadgetsQuickRef({
           {/* ② 魔導科技效果速查 */}
           {magitech > 0 && (
             <div className="p-3 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-2">
-              <div className="flex items-center justify-between border-b border-[#e2d6c1] pb-1.5 flex-wrap gap-1">
+              <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-1.5 flex-wrap gap-1">
                 <div className="flex items-center gap-1.5 text-[#3c2415] font-bold text-xs">
                   <GiGears className="text-[#3c2415]" />
                   <span>{branch ? `${branch.name}工藝` : '魔導科技工藝'}</span>
@@ -359,7 +359,7 @@ export default function TinkererGadgetsQuickRef({
               <div className="space-y-1.5 text-xs">
                 {/* 公測分支（p.38）：第三軌的節點與核心完全不同，選了分支就不再顯示核心三節點 */}
                 {branch && branchNodes.map((n) => (
-                  <div key={n.tier} className="p-2 rounded-lg bg-white/90 border border-[#e2d6c1] space-y-0.5">
+                  <div key={n.tier} className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
                     <div className="flex justify-between items-center font-bold">
                       <span className="text-[#3c2415]">
                         {n.tierName.replace('益處', '')}【{n.name}】
@@ -377,7 +377,7 @@ export default function TinkererGadgetsQuickRef({
                 {!branch && (
                   <>
                 {/* 基礎：魔科技篡奪 */}
-                <div className="p-2 rounded-lg bg-white/90 border border-[#e2d6c1] space-y-0.5">
+                <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
                   <div className="flex justify-between items-center font-bold">
                     <span className="text-[#3c2415]">基礎【魔科技篡奪】</span>
                     <span className="font-mono text-[#6b5a4b] font-bold text-[10px]">10 MP</span>
@@ -402,7 +402,7 @@ export default function TinkererGadgetsQuickRef({
 
                 {/* 魔法球原型：核心在最高檔；魔晶石制下往下兼容成進階檔（p.133） */}
                 {magitech >= magisphereTier && (
-                  <div className="p-2 rounded-lg bg-white/90 border border-[#e2d6c1] space-y-0.5">
+                  <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
                     <div className="flex justify-between items-center font-bold">
                       <span className="text-[#3c2415]">
                         {technoRestrictsEquipment ? '高級【魔法球原型】' : '最高【魔法球原型】'}

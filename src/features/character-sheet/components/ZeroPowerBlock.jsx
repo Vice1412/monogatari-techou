@@ -115,10 +115,10 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
 
   const accent = theme.accent || '#9c4d16';
   const accentDark = theme.accentDark || '#693108';
-  const accentLight = theme.accentLight || '#faeedd';
+  const accentLight = theme.accentLight || '#f4ebd9';
   const border = theme.border || '#d6c7ab';
   const cardBg = theme.cardBg || '#fffdf9';
-  const textDark = theme.textDark || '#382012';
+  const textDark = theme.textDark || '#3c2415';
   const textMuted = theme.textMuted || '#7b4720';
 
   return (
@@ -146,7 +146,7 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
           className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-[10px] font-bold whitespace-nowrap"
           style={{
             backgroundColor: accent,
-            color: '#ffffff',
+            color: '#fffdf9',
             letterSpacing: '0.22em',
             boxShadow: `0 2px 8px -3px ${accentDark}`
           }}
@@ -233,7 +233,7 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
 /** 還沒選齊時的佔位——位置固定在最下面，避免選齊那一刻版面突然長出一塊。 */
 function ShowcasePlaceholder({ theme, missing }) {
   const border = theme.border || '#d6c7ab';
-  const panelBg = theme.panelBg || '#f3ebe0';
+  const panelBg = theme.panelBg || '#f4ebd9';
   const textMuted = theme.textMuted || '#7b4720';
 
   return (

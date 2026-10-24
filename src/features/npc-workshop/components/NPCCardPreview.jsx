@@ -126,7 +126,7 @@ export default function NPCCardPreview({
         {onEdit && (
           <button
             onClick={onEdit}
-            className="p-1.5 text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#e4d9c0] rounded-lg transition-colors shrink-0"
+            className="p-1.5 text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#e8dcc4] rounded-lg transition-colors shrink-0"
             title="編輯 NPC"
           >
             ✎
@@ -181,8 +181,8 @@ export default function NPCCardPreview({
       </div>
 
       {/* Attributes Dices */}
-      <div className="px-4 py-2.5 border-b border-[#d6c7ab] bg-[#f8f3e8] flex items-center justify-between flex-wrap gap-2">
-        <span className="text-xs font-bold text-[#3c2f21]">四維屬性：</span>
+      <div className="px-4 py-2.5 border-b border-[#d6c7ab] bg-[#f7f3e8] flex items-center justify-between flex-wrap gap-2">
+        <span className="text-xs font-bold text-[#3c2415]">四維屬性：</span>
         <div className="flex items-center gap-2 flex-wrap">
           <StatBadge stat="dex" value={stats.DEX} size="sm" />
           <StatBadge stat="ins" value={stats.INS} size="sm" />
@@ -193,7 +193,7 @@ export default function NPCCardPreview({
 
       {/* Affinities Matrix */}
       <div className="p-3.5 border-b border-[#d6c7ab] bg-[#fffdf9]">
-        <div className="text-xs font-bold text-[#3c2f21] mb-2 flex items-center justify-between">
+        <div className="text-xs font-bold text-[#3c2415] mb-2 flex items-center justify-between">
           <span>屬性抗性矩陣</span>
           {stats.statusImmunities?.length > 0 && (
             <span className="text-[11px] text-[#6b5a4b] font-medium">
@@ -241,14 +241,14 @@ export default function NPCCardPreview({
                     <div className="flex items-center justify-between font-bold text-[#3c2415] mb-1">
                       <span>{att.name || att.skillName || '普通攻擊'}</span>
                       <span className="inline-flex items-center gap-1.5 font-mono text-[#6b5a4b]">
-                        <span className="inline-flex items-center gap-1 text-[#3c2f21] bg-[#e8dec8] px-1.5 py-0.5 rounded text-[11px] font-bold leading-none shrink-0 shadow-2xs">
+                        <span className="inline-flex items-center gap-1 text-[#3c2415] bg-[#e8dcc4] px-1.5 py-0.5 rounded text-[11px] font-bold leading-none shrink-0 shadow-2xs">
                           <span className="fu-icon text-xs leading-none translate-y-[0.5px]">{(att.selections?.distance || '').includes('遠程') ? 'r' : 'm'}</span>
                           <span>{att.selections?.distance || '近戰'}</span>
                         </span>
                         <span>【{att.selections?.formula || 'DEX + MIG'}】+ {stats.Acc || 0}</span>
                       </span>
                     </div>
-                    <p className="text-[#3c2f21] leading-relaxed font-sans flex flex-wrap items-center gap-1">
+                    <p className="text-[#3c2415] leading-relaxed font-sans flex flex-wrap items-center gap-1">
                       <span>傷害: 【HR + {stats.Dmg || 5}】點</span>
                       <span className={`inline-flex items-center gap-0.5 ${style.color || ''}`}>
                         <span className="fu-icon text-xs leading-none translate-y-[0.5px]">{style.fuIcon}</span>
@@ -285,7 +285,7 @@ export default function NPCCardPreview({
                         MP {sp.selections?.mpCost || 10} · {sp.selections?.target || '單體'}
                       </span>
                     </div>
-                    <p className="text-[#3c2f21] leading-relaxed font-sans">
+                    <p className="text-[#3c2415] leading-relaxed font-sans">
                       {renderDescription(sp.desc || sp.customDesc, sp.selections)}
                     </p>
                   </div>
@@ -309,11 +309,11 @@ export default function NPCCardPreview({
                   <div key={idx} className="bg-[#fbf7ee] rounded-lg p-2.5 border border-[#d6c7ab] text-xs">
                     <div className="flex items-center justify-between font-bold text-[#3c2415] mb-1">
                       <span>{nameText}</span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border bg-[#eee6d3] text-[#3c2f21] border-[#d6c7ab]">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]">
                         行動
                       </span>
                     </div>
-                    <p className="text-[#3c2f21] leading-relaxed font-sans">
+                    <p className="text-[#3c2415] leading-relaxed font-sans">
                       {renderDescription(descText, sk.selections)}
                     </p>
                   </div>
@@ -336,7 +336,7 @@ export default function NPCCardPreview({
                 // 分辨靠左邊的符號（✦ ❖ ★ ✕）與標籤文字。舊版四類各借一個色相家族
                 // （琥珀／翠綠／紅／紫），等於用顏色說「這是四種不同的東西」；
                 // 實際上它們的差別，文字已經講完了。
-                const badgeClass = 'bg-[#eee6d3] text-[#3c2f21] border-[#d6c7ab]';
+                const badgeClass = 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]';
                 let icon = '';
 
                 if (sk.source === 'customization') {
@@ -364,7 +364,7 @@ export default function NPCCardPreview({
                         {badgeLabel}
                       </span>
                     </div>
-                    <p className="text-[#3c2f21] leading-relaxed font-sans">
+                    <p className="text-[#3c2415] leading-relaxed font-sans">
                       {renderDescription(descText, sk.selections)}
                     </p>
                   </div>
@@ -376,11 +376,11 @@ export default function NPCCardPreview({
 
         {/* Tactics & Narrative Story */}
         {(npc.tactics || npc.story) && (
-          <div className="bg-[#f5efdf] rounded-lg p-3 border border-[#d6c7ab] text-xs space-y-1.5">
+          <div className="bg-[#f4ebd9] rounded-lg p-3 border border-[#d6c7ab] text-xs space-y-1.5">
             {npc.tactics && (
               <div>
                 <strong className="text-[#3c2415] font-mono">戰術方針: </strong>
-                <span className="text-[#3c2f21]">{npc.tactics}</span>
+                <span className="text-[#3c2415]">{npc.tactics}</span>
               </div>
             )}
             {npc.story && (

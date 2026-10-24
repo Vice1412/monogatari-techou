@@ -170,7 +170,7 @@ export default function CharacterCard({
           {/* Classes pill tags with Game-Icons */}
           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
             {(!character.classes || character.classes.length === 0) ? (
-              <span className="text-[11px] px-2 py-0.5 rounded-md border border-dashed border-[#d6c7ab] bg-[#f5efdf] text-[#2c221e] font-mono italic">
+              <span className="text-[11px] px-2 py-0.5 rounded-md border border-dashed border-[#d6c7ab] bg-[#f4ebd9] text-[#2c221e] font-mono italic">
                 【 尚未配置職業 (起始需配置 2~3 個職業) 】
               </span>
             ) : (
@@ -432,7 +432,7 @@ export default function CharacterCard({
             <GiSpellBook className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 職業特技清單
           </h4>
           {(!character.classes || character.classes.flatMap(c => c.skills || []).length === 0) ? (
-            <div className="p-3.5 rounded-lg border border-dashed border-[#d6c7ab] bg-[#f5efdf]/60 text-[#7c6a58] text-xs text-center font-mono">
+            <div className="p-3.5 rounded-lg border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs text-center font-mono">
               【 尚未配置任何職業特技 】（起始 5 級請於步驟 3 分配特技點數）
             </div>
           ) : (
@@ -518,7 +518,7 @@ export default function CharacterCard({
             <GiHeartPlus className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 情感羈絆
           </h4>
           {(!character.bonds || character.bonds.length === 0) ? (
-            <div className="p-3 rounded-lg border border-dashed border-[#d6c7ab] bg-[#f5efdf]/60 text-[#7c6a58] text-xs flex items-center justify-between">
+            <div className="p-3 rounded-lg border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs flex items-center justify-between">
               <span>【 尚未締結任何情感羈絆 】（可建立最多 6 組羈絆）</span>
               <span className="font-mono text-[10px] text-[#a08f7f]">0 / 6</span>
             </div>
@@ -560,7 +560,7 @@ export default function CharacterCard({
             <GiPocketWatch className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 個人命刻
           </h4>
           {(!character.clocks || character.clocks.length === 0) ? (
-            <div className="p-3 rounded-lg border border-dashed border-[#d6c7ab] bg-[#f5efdf]/60 text-[#7c6a58] text-xs">
+            <div className="p-3 rounded-lg border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs">
               <span>【 尚未添加個人命刻 】（可在特質與命刻步驟添加時鐘推進個人目標）</span>
             </div>
           ) : (

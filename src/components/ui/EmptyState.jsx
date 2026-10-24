@@ -37,7 +37,7 @@ import React from 'react';
  * @param {string}   props.teach   一句教學：說「怎麼讓它不空」
  * @param {object}   [props.action] 最多一個動作 `{ label, onClick, icon? }`
  * @param {string}   [props.kind]  `data-empty-state` 的值，供測試與截圖定位
- * @param {'paper'|'inset'} [props.tone]  `paper` = `#fffdf9`（預設）、`inset` = `#f5efdf`
+ * @param {'paper'|'inset'} [props.tone]  `paper` = `#fffdf9`（預設）、`inset` = `#f4ebd9`
  * @param {boolean}  [props.dense]  窄欄用（托盤、側欄）：留白與圖示縮一級，文法四件不變
  * @param {string}   [props.minHeight]  例如 `'260px'`；有值時垂直置中
  * @param {string}   [props.className]  追加樣式（外距、欄寬）
@@ -45,7 +45,7 @@ import React from 'react';
 
 const TONES = {
   paper: 'bg-[#fffdf9]',
-  inset: 'bg-[#f5efdf]/60',
+  inset: 'bg-[#f4ebd9]/60',
 };
 
 // 第十二輪：`dense` 給**窄欄**用（例：屬性矩陣的托盤只有 176px）。

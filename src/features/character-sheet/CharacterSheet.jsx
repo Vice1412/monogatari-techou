@@ -649,7 +649,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                     </div>
 
                     {/* Fultimator-Style Visual Resource Meters (HP / MP / IP) */}
-                    <div className="p-3.5 space-y-2 border-b bg-[#f5efdf]/70" style={{ borderColor: charTheme.border }}>
+                    <div className="p-3.5 space-y-2 border-b bg-[#f4ebd9]/70" style={{ borderColor: charTheme.border }}>
                       {/* HP Gauge（第十五輪：資源條是「量」——同一個墨，只有危急換強調色） */}
                       <div className="space-y-0.5">
                         <div className="flex items-center justify-between text-t12 font-mono">
@@ -708,7 +708,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         ].map(attr => (
                           <div
                             key={attr.key}
-                            className="p-1 rounded-lg border bg-[#f5efdf] flex flex-col items-center"
+                            className="p-1 rounded-lg border bg-[#f4ebd9] flex flex-col items-center"
                             style={{ borderColor: charTheme.border }}
                           >
                             <span className="text-[10px] font-bold text-[#7c6a58]">{attr.label}</span>
@@ -723,7 +723,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                       </div>
 
                       {/* Defense & Initiative Row */}
-                      <div className="flex items-center justify-between px-2 py-1 rounded-lg bg-[#f5efdf] border border-[#d6c7ab] text-[11px] font-mono">
+                      <div className="flex items-center justify-between px-2 py-1 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-[11px] font-mono">
                         <span className="text-[#6b5a4b]">DEF <strong className="text-[#3c2415]">{statsUnset ? '—' : stats.def}</strong></span>
                         <span className="text-[#d6c7ab]">|</span>
                         <span className="text-[#2c221e]">M.DEF <strong className="text-[#2c221e]">{stats.mdef}</strong></span>
@@ -734,13 +734,13 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
 
                     {/* Footer Actions */}
                     <div
-                      className="p-3 flex items-center justify-between gap-1.5 mt-auto transition-colors duration-200 bg-[#f5efdf]/80 border-t"
+                      className="p-3 flex items-center justify-between gap-1.5 mt-auto transition-colors duration-200 bg-[#f4ebd9]/80 border-t"
                       style={{ borderColor: charTheme.border }}
                     >
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleDuplicateCharacter(char)}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#3c2415] hover:bg-[#ebdcc4] transition-colors"
+                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#3c2415] hover:bg-[#e8dcc4] transition-colors"
                           title="複製卡片"
                         >
                           <Copy className="w-4 h-4" />

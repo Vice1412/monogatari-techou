@@ -119,7 +119,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-[#6b5a4b] hover:text-[#2c221e] rounded-lg hover:bg-[#eee6d3] transition"
+            className="p-1 text-[#6b5a4b] hover:text-[#2c221e] rounded-lg hover:bg-[#f4ebd9] transition"
           >
             <X size={18} />
           </button>
@@ -133,7 +133,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
             onPointerCancel={handlePointerUp}
             onWheel={handleWheel}
             style={{ width: VIEWPORT_SIZE, height: VIEWPORT_SIZE }}
-            className={`relative rounded-xl overflow-hidden border-2 border-[#3c2415] bg-[#f5efdf] shadow-md select-none touch-none ${
+            className={`relative rounded-xl overflow-hidden border-2 border-[#3c2415] bg-[#f4ebd9] shadow-md select-none touch-none ${
               isDragging ? 'cursor-grabbing' : 'cursor-grab'
             }`}
             title="按住滑鼠拖曳移動，滾動滑鼠滾輪縮放"
@@ -173,7 +173,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
 
         <div className="space-y-3 bg-[#fffdf9] border border-[#d6c7ab] p-3 rounded-xl">
           <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1.5 text-[#3c2f21] font-bold">
+            <div className="flex items-center gap-1.5 text-[#3c2415] font-bold">
               <ZoomIn size={15} className="text-[#6b5a4b]" />
               <span>縮放大小：</span>
               <span className="text-[#3c2415] font-mono text-sm">
@@ -214,7 +214,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
                   className={`px-2 py-0.5 rounded text-[11px] font-mono transition ${
                     Math.abs(zoom - sVal) < 0.05
                       ? 'bg-[#a63d40] text-[#fffdf9] font-bold'
-                      : 'bg-[#eee6d3] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#e4d9c0]'
+                      : 'bg-[#f4ebd9] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#e8dcc4]'
                   }`}
                 >
                   {Math.round(sVal * 100)}%
@@ -228,7 +228,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-[#eee6d3] hover:bg-[#e4d9c0] text-[#3c2f21] rounded-lg text-xs font-bold transition border border-[#d6c7ab]"
+            className="px-4 py-2 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] rounded-lg text-xs font-bold transition border border-[#d6c7ab]"
           >
             取消
           </button>

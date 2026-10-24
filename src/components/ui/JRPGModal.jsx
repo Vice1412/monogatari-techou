@@ -83,7 +83,7 @@ export default function JRPGModal({
           還是會把整個彈窗撐破、在手機上造成橫向溢出。`min-w-0` 讓它可以真的縮到容器寬度。 */}
       <div
         className={`relative w-full min-w-0 ${maxWidth} bg-[#fffdf9] border-2 border-[#d6c7ab] rounded-xl shadow-e3 overflow-hidden my-auto flex flex-col max-h-[90vh] text-[#2c221e]`}
-        style={theme ? { backgroundColor: theme.cardBg || '#ffffff', borderColor: theme.border, color: theme.textDark } : {}}
+        style={theme ? { backgroundColor: theme.cardBg || '#fffdf9', borderColor: theme.border, color: theme.textDark } : {}}
       >
         {/* Top accent line（第十五輪：實心，不再是漸層——漸層是第二套顏色系統） */}
         <div
@@ -106,7 +106,7 @@ export default function JRPGModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-[#6b5a4b] hover:text-[#2c221e] p-1.5 rounded-lg hover:bg-[#e4d9c0] transition-colors shrink-0"
+            className="text-[#6b5a4b] hover:text-[#2c221e] p-1.5 rounded-lg hover:bg-[#e8dcc4] transition-colors shrink-0"
             style={theme ? { color: theme.textMuted } : {}}
             title="關閉視窗"
           >
@@ -122,7 +122,7 @@ export default function JRPGModal({
         {/* Action Footer */}
         {actionButtons && (
           <div
-            className="px-5 py-3 border-t border-[#d6c7ab] bg-[#f8f3e8] flex items-center justify-end gap-3 shrink-0"
+            className="px-5 py-3 border-t border-[#d6c7ab] bg-[#f7f3e8] flex items-center justify-end gap-3 shrink-0"
             style={theme ? { backgroundColor: theme.subpanelBg, borderColor: theme.border } : {}}
           >
             {actionButtons}

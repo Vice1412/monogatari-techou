@@ -165,7 +165,7 @@ export function HeroicSkillPickerBody({
       {/* ==================== 表格 ==================== */}
       <div className="flex-1 overflow-y-auto min-h-0 rounded-xl border" style={{ borderColor: theme.border || '#d6c7ab' }}>
         <table className="w-full text-xs border-collapse">
-          <thead className="sticky top-0 z-10" style={{ backgroundColor: theme.subpanelBg || '#f5efdf' }}>
+          <thead className="sticky top-0 z-10" style={{ backgroundColor: theme.subpanelBg || '#f4ebd9' }}>
             <tr style={{ color: theme.textDark || '#3c2415' }}>
               <th className="text-left font-bold px-3 py-2 border-b w-[15%]" style={{ borderColor: theme.border }}>名稱</th>
               <th className="text-left font-bold px-3 py-2 border-b w-[8%]" style={{ borderColor: theme.border }}>出處</th>

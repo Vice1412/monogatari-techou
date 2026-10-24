@@ -266,7 +266,7 @@ export default function WayfarerCompanionSheet({
                   </span>
                 </div>
                 {sp.effect && (
-                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-[#e2d6c1] pt-1">
+                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-[#e8dcc4] pt-1">
                     {renderTextWithAffinities(sp.effect)}
                   </p>
                 )}

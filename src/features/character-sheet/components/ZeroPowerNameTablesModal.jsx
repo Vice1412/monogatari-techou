@@ -54,7 +54,7 @@ function DieBadge({ die, count, theme }) {
     <span
       className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border"
       style={{
-        backgroundColor: theme?.subpanelBg || '#ede4d1',
+        backgroundColor: theme?.subpanelBg || '#f4ebd9',
         borderColor: theme?.border || '#d6c7ab',
         color: theme?.accent || '#78350f'
       }}
@@ -72,7 +72,7 @@ function ColumnChip({ active, label, onClick, theme }) {
       onClick={onClick}
       className="text-[10px] px-1.5 py-0.5 rounded border cursor-pointer"
       style={{
-        backgroundColor: active ? theme?.accentSoft || theme?.subpanelBg || '#ede4d1' : 'transparent',
+        backgroundColor: active ? theme?.accentSoft || theme?.subpanelBg || '#f4ebd9' : 'transparent',
         borderColor: active ? theme?.accent || '#a63d40' : theme?.border || '#d6c7ab',
         color: theme?.textDark || '#3c2415'
       }}
@@ -120,7 +120,7 @@ export function ZeroPowerNameTablesBody({
   const pickedStyle = (picked) =>
     picked
       ? {
-          backgroundColor: theme?.cardBg || '#ffffff',
+          backgroundColor: theme?.cardBg || '#fffdf9',
           borderColor: theme?.accent || '#a63d40',
           color: theme?.textDark || '#3c2415'
         }
@@ -134,11 +134,11 @@ export function ZeroPowerNameTablesBody({
       <div
         key={`${kind}-${group.column}`}
         className="rounded-xl p-2.5 space-y-1.5 border"
-        style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}
+        style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
       >
         <div
           className="flex items-center justify-between px-1 pb-1 border-b"
-          style={{ borderColor: theme?.border || '#ede4d1' }}
+          style={{ borderColor: theme?.border || '#f4ebd9' }}
         >
           <span className="text-xs font-bold font-mono" style={{ color: theme?.textDark || '#3c2415' }}>
             {group.column}
@@ -161,10 +161,10 @@ export function ZeroPowerNameTablesBody({
                     ? {
                         backgroundColor: theme?.accent || '#78350f',
                         borderColor: theme?.accent || '#78350f',
-                        color: '#ffffff',
+                        color: '#fffdf9',
                         fontWeight: 'bold'
                       }
-                    : { backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.border || '#d6c7ab', color: theme?.textDark || '#1e293b' }
+                    : { backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.border || '#d6c7ab', color: theme?.textDark || '#1e293b' }
                 }
               >
                 <div className="flex items-center gap-1.5 truncate">
@@ -188,7 +188,7 @@ export function ZeroPowerNameTablesBody({
       {/* 說明卡 */}
       <div
         className="rounded-xl p-3.5 space-y-2 border transition-colors"
-        style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}
+        style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
       >
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
@@ -248,7 +248,7 @@ export function ZeroPowerNameTablesBody({
         {rolledResult ? (
           <div
             className="mt-2.5 p-3 rounded-lg border shadow-sm space-y-2 animate-fade-in"
-            style={{ backgroundColor: theme?.cardBg || '#ffffff', borderColor: theme?.border || '#d6c7ab' }}
+            style={{ backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.border || '#d6c7ab' }}
           >
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div
@@ -277,11 +277,11 @@ export function ZeroPowerNameTablesBody({
 
             <div
               className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-1 border-t"
-              style={{ borderColor: theme?.border || '#ede4d1' }}
+              style={{ borderColor: theme?.border || '#f4ebd9' }}
             >
               <div
                 className="p-1.5 rounded border"
-                style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}
+                style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
               >
                 <span className="text-[#6b5a4b] block">1. 由來:</span>
                 <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
@@ -291,7 +291,7 @@ export function ZeroPowerNameTablesBody({
               </div>
               <div
                 className="p-1.5 rounded border"
-                style={{ backgroundColor: theme?.panelBg || '#f5efdf', borderColor: theme?.border || '#d6c7ab' }}
+                style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
               >
                 <span className="text-[#6b5a4b] block">2. 動作:</span>
                 <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
@@ -381,10 +381,10 @@ export function ZeroPowerNameTablesBody({
                     ? {
                         backgroundColor: theme?.accent || '#78350f',
                         borderColor: theme?.accentDark || '#76252d',
-                        color: '#ffffff'
+                        color: '#fffdf9'
                       }
                     : {
-                        backgroundColor: theme?.cardBg || '#ffffff',
+                        backgroundColor: theme?.cardBg || '#fffdf9',
                         borderColor: theme?.border || '#d6c7ab',
                         color: theme?.textDark || '#334155'
                       }
@@ -404,7 +404,7 @@ export function ZeroPowerNameTablesBody({
             placeholder="搜尋動作或由來的詞..."
             className="w-full border rounded-lg pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-[#6b5a4b]"
             style={{
-              backgroundColor: theme?.cardBg || '#ffffff',
+              backgroundColor: theme?.cardBg || '#fffdf9',
               borderColor: theme?.border || '#d6c7ab',
               color: theme?.textDark || '#0f172a'
             }}

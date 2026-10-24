@@ -269,7 +269,7 @@ export function EquipmentPickerBody({
       className="text-[11px] px-2 py-1 rounded-lg border font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
       style={
         active
-          ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#ffffff' }
+          ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
           : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }
       }
     >
@@ -602,7 +602,7 @@ export function EquipmentPickerBody({
             onClick={() => setOffHandMode('shield')}
             className="text-xs px-3 py-1.5 rounded-lg border font-bold flex items-center gap-1.5 cursor-pointer transition-all"
             style={offHandMode === 'shield'
-              ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#ffffff' }
+              ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
               : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
           >
             <GiRoundShield size={14} />
@@ -613,7 +613,7 @@ export function EquipmentPickerBody({
             onClick={() => setOffHandMode('weapon')}
             className="text-xs px-3 py-1.5 rounded-lg border font-bold flex items-center gap-1.5 cursor-pointer transition-all"
             style={offHandMode === 'weapon'
-              ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#ffffff' }
+              ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
               : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
           >
             <GiCrossedSwords size={14} />

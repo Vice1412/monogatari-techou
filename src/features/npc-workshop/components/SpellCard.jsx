@@ -49,14 +49,14 @@ const SpellCard = ({ skillId, spellName, isActive, isDisabled, isOverBudget, isC
 
   return (
     <div className={`relative flex flex-col p-4 rounded-xl border-2 transition-all duration-200 text-left overflow-hidden group ${isClaimedElsewhere ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 cursor-not-allowed' : isOverBudget && isActive ? 'bg-[#f9f5eb] border-[#8c2d36] opacity-90 shadow-md transform scale-[1.01] z-10' : isActive ? 'bg-[#fffdf9] border-[#3c2415] shadow-md transform scale-[1.02] z-10' : isDisabled ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee] cursor-pointer'}`} onClick={(e) => { if (isClickableTag(e.target.tagName.toLowerCase())) return; if (isClaimedElsewhere) return; if (!isDisabled || isActive) onToggle(); }}>
-      {isClaimedElsewhere ? <div className="absolute top-3 right-3 text-[10px] bg-[#eee6d3] text-[#6b5a4b] px-2 py-0.5 rounded border border-[#d6c7ab] font-bold flex items-center gap-1"><Lock size={10} /> 已學習</div> : <div className="absolute top-3 right-3 transition-transform flex flex-col items-end gap-1 z-10">
+      {isClaimedElsewhere ? <div className="absolute top-3 right-3 text-[10px] bg-[#f4ebd9] text-[#6b5a4b] px-2 py-0.5 rounded border border-[#d6c7ab] font-bold flex items-center gap-1"><Lock size={10} /> 已學習</div> : <div className="absolute top-3 right-3 transition-transform flex flex-col items-end gap-1 z-10">
         {!isActive && <div className="w-5 h-5 rounded-full border-2 border-[#d6c7ab] group-hover:border-[#3c2415]"></div>}
         {isActive && (
           <div className="flex flex-col items-end gap-2">
             {!isOverBudget && <CheckCircle2 className="drop-shadow-sm text-[#3c2415]" size={24} />}
             {!isMaxMp && (
               !isEditing ? (
-                <button onClick={(e) => { e.stopPropagation(); setIsEditing(true); }} className="p-1.5 bg-[#eee6d3] border border-[#d6c7ab] text-[#3c2415] rounded-lg transition-colors group/edit hide-on-export" title="編輯咒語文字"><Edit3 size={16} className="group-hover/edit:scale-110 transition-transform" /></button>
+                <button onClick={(e) => { e.stopPropagation(); setIsEditing(true); }} className="p-1.5 bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] rounded-lg transition-colors group/edit hide-on-export" title="編輯咒語文字"><Edit3 size={16} className="group-hover/edit:scale-110 transition-transform" /></button>
               ) : (
                 <button onClick={(e) => { e.stopPropagation(); setIsEditing(false); }} className="p-1.5 text-[#e8dcc4] bg-[#3c2415] hover:bg-[#2c221e] rounded-lg transition-colors hide-on-export" title="完成編輯"><Save size={16} /></button>
               )
@@ -64,7 +64,7 @@ const SpellCard = ({ skillId, spellName, isActive, isDisabled, isOverBudget, isC
           </div>
         )}
       </div>}
-      <div className={`font-bold text-[16px] mb-2 pr-6 flex flex-col sm:flex-row sm:items-center gap-1 ${isOverBudget && isActive ? 'text-[#8c2d36]' : isActive ? 'text-[#3c2415]' : 'text-[#3c2f21]'}`}>
+      <div className={`font-bold text-[16px] mb-2 pr-6 flex flex-col sm:flex-row sm:items-center gap-1 ${isOverBudget && isActive ? 'text-[#8c2d36]' : isActive ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>
         <div className="flex items-center gap-1 w-full">
           {isMaxMp ? '●' : <span className="fu-icon text-xl text-[#3c2415] drop-shadow-sm shrink-0">{CATEGORIES.find(c => c.id === 'spell')?.fuIcon || 'c'}</span>}
           {isEditing ? (

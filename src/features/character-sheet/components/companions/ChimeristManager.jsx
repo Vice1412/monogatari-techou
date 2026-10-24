@@ -280,7 +280,7 @@ export default function ChimeristManager({
         {spells.map((sp) => (
           <div
             key={sp.id}
-            className="p-3.5 rounded-xl bg-white border border-[#ded2be] space-y-2"
+            className="p-3.5 rounded-xl bg-white border border-[#e8dcc4] space-y-2"
           >
             <div className="flex items-center justify-between flex-wrap gap-2 border-b border-[#d6c7ab] pb-1.5">
               <div className="flex items-center gap-2">

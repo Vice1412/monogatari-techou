@@ -474,7 +474,7 @@ export default function TinkererGadgetsModal({
           {/* 咒語自選區：核心是最高益處的「魔法球原型」，變體魔法球則是每個節點各 2 顆 */}
           {spellPickerUnlocked && (
             <div className="p-4 rounded-xl border border-[#d6c7ab] bg-[#f9f5eb] space-y-3.5 animate-fade-in">
-              <div className="flex items-center justify-between gap-2 flex-wrap border-b border-[#e2d6c1] pb-2.5">
+              <div className="flex items-center justify-between gap-2 flex-wrap border-b border-[#e8dcc4] pb-2.5">
                 <div className="flex items-center gap-2">
                   <GiCrystalBall className="w-5 h-5 text-[#3c2415]" />
                   <div>

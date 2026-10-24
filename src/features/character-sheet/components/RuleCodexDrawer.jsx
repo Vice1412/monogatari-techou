@@ -201,7 +201,7 @@ export default function RuleCodexDrawer({
             18 個分頁在 max-w-3xl 的面板裡排不進一列。sm 以上改成自動換行（全部可見、零橫向捲動，
             並以細分隔線標出原書分界）；手機維持單列橫向滑動，另讓滑鼠滾輪也能左右滑。 */}
         <div
-          className="flex flex-nowrap sm:flex-wrap items-center gap-1 p-2 bg-[#f4ece1] border-b border-[#e2d5c3] overflow-x-auto sm:overflow-x-visible shrink-0"
+          className="flex flex-nowrap sm:flex-wrap items-center gap-1 p-2 bg-[#f7f3e8] border-b border-[#e8dcc4] overflow-x-auto sm:overflow-x-visible shrink-0"
           onWheel={handleTabStripWheel}
         >
           {navItems.map((item, idx) => {
@@ -214,7 +214,7 @@ export default function RuleCodexDrawer({
                 {startsBook && (
                   <span
                     aria-hidden
-                    className="shrink-0 w-px self-stretch my-1 mx-1 bg-[#d9cbb4]"
+                    className="shrink-0 w-px self-stretch my-1 mx-1 bg-[#d6c7ab]"
                   />
                 )}
                 <button
@@ -225,7 +225,7 @@ export default function RuleCodexDrawer({
                     setActiveRuleId(item.id);
                     setSearchTerm('');
                   }}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${ isActive ? 'bg-[#a63d40] text-[#fffdf9] shadow-xs' : 'text-[#3c2415] hover:bg-[#eae0d2] ' }`}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${ isActive ? 'bg-[#a63d40] text-[#fffdf9] shadow-xs' : 'text-[#3c2415] hover:bg-[#f4ebd9] ' }`}
                 >
                   <Icon className="text-sm" />
                   <span>{item.label}</span>
@@ -238,13 +238,13 @@ export default function RuleCodexDrawer({
         {/* 內容主滾動容器 */}
         <div ref={contentScrollRef} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 text-[#2c221e] text-xs sm:text-sm leading-relaxed">
           {/* 當前概念頭銜 */}
-          <div className="border-b border-[#e6dbc9] pb-3">
+          <div className="border-b border-[#e8dcc4] pb-3">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-black text-[#1a1412]">
                 {currentRule.title}
               </h1>
             </div>
-            <p className="mt-2 text-[#3c2415] text-xs leading-relaxed bg-[#fbf7ee] p-3 rounded-lg border border-[#e8ddcc]">
+            <p className="mt-2 text-[#3c2415] text-xs leading-relaxed bg-[#fbf7ee] p-3 rounded-lg border border-[#e8dcc4]">
               {currentRule.summary}
             </p>
           </div>
@@ -281,9 +281,9 @@ export default function RuleCodexDrawer({
                   )}
 
                   {sec.kind === 'table' && (
-                    <div className="overflow-x-auto rounded-xl border border-[#ded2be] shadow-2xs">
+                    <div className="overflow-x-auto rounded-xl border border-[#e8dcc4] shadow-2xs">
                       <table className="w-full text-left text-xs bg-white">
-                        <thead className="bg-[#f5ecdf] text-[#3c2415] font-bold border-b border-[#ded2be]">
+                        <thead className="bg-[#f4ebd9] text-[#3c2415] font-bold border-b border-[#e8dcc4]">
                           <tr>
                             {sec.columns.map((c, ci) => (
                               <th key={ci} className="p-2.5 whitespace-nowrap">{c}</th>
@@ -317,7 +317,7 @@ export default function RuleCodexDrawer({
                       {sec.items.map((it, ii) => (
                         <div
                           key={ii}
-                          className="p-3 rounded-xl bg-white border border-[#ded2be] space-y-1"
+                          className="p-3 rounded-xl bg-white border border-[#e8dcc4] space-y-1"
                         >
                           <div className="flex items-center justify-between gap-2 border-b border-[#e8dcc4] pb-1">
                             <strong className="text-[#2c221e]">{it.name}</strong>
@@ -367,7 +367,7 @@ export default function RuleCodexDrawer({
                   .map((arcana) => (
                     <div
                       key={arcana.id}
-                      className="p-3 rounded-xl bg-white border border-[#ded2be] space-y-2"
+                      className="p-3 rounded-xl bg-white border border-[#e8dcc4] space-y-2"
                     >
                       <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-1.5">
                         <span className="font-bold text-sm text-[#2c221e]">
@@ -405,9 +405,9 @@ export default function RuleCodexDrawer({
                 <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">
                   六大學派與施法檢定
                 </h3>
-                <div className="overflow-x-auto rounded-xl border border-[#ded2be] shadow-2xs">
+                <div className="overflow-x-auto rounded-xl border border-[#e8dcc4] shadow-2xs">
                   <table className="w-full text-left text-xs bg-white">
-                    <thead className="bg-[#f5ecdf] text-[#3c2415] font-bold border-b border-[#ded2be]">
+                    <thead className="bg-[#f4ebd9] text-[#3c2415] font-bold border-b border-[#e8dcc4]">
                       <tr>
                         <th className="p-2.5 w-20">學派</th>
                         <th className="p-2.5">施法檢定</th>
@@ -450,9 +450,9 @@ export default function RuleCodexDrawer({
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-1">
                   {/* 效力表 */}
-                  <div className="overflow-x-auto rounded-xl border border-[#ded2be] shadow-2xs">
+                  <div className="overflow-x-auto rounded-xl border border-[#e8dcc4] shadow-2xs">
                     <table className="w-full text-left text-xs bg-white">
-                      <thead className="bg-[#f5ecdf] text-[#3c2415] font-bold border-b border-[#ded2be]">
+                      <thead className="bg-[#f4ebd9] text-[#3c2415] font-bold border-b border-[#e8dcc4]">
                         <tr>
                           <th className="p-2 w-12 text-center">效力</th>
                           <th className="p-2 w-12 text-center">MP</th>
@@ -474,9 +474,9 @@ export default function RuleCodexDrawer({
                   </div>
 
                   {/* 範圍表 */}
-                  <div className="overflow-x-auto rounded-xl border border-[#ded2be] shadow-2xs">
+                  <div className="overflow-x-auto rounded-xl border border-[#e8dcc4] shadow-2xs">
                     <table className="w-full text-left text-xs bg-white">
-                      <thead className="bg-[#f5ecdf] text-[#3c2415] font-bold border-b border-[#ded2be]">
+                      <thead className="bg-[#f4ebd9] text-[#3c2415] font-bold border-b border-[#e8dcc4]">
                         <tr>
                           <th className="p-2 w-14 text-center">範圍</th>
                           <th className="p-2 w-16 text-center">MP 倍率</th>
@@ -499,7 +499,7 @@ export default function RuleCodexDrawer({
 
               {/* 團隊檢定與減少成本 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-white border border-[#ded2be] space-y-1.5">
+                <div className="p-3.5 rounded-xl bg-white border border-[#e8dcc4] space-y-1.5">
                   <h4 className="font-bold text-[#3c2415] border-b border-[#e8dcc4] pb-1">
                     團隊檢定下的儀式魔法
                   </h4>
@@ -507,7 +507,7 @@ export default function RuleCodexDrawer({
                     {currentRule.groupCheck}
                   </p>
                 </div>
-                <div className="p-3.5 rounded-xl bg-white border border-[#ded2be] space-y-1.5">
+                <div className="p-3.5 rounded-xl bg-white border border-[#e8dcc4] space-y-1.5">
                   <h4 className="font-bold text-[#3c2415] border-b border-[#e8dcc4] pb-1">
                     減少儀式的成本
                   </h4>
@@ -520,7 +520,7 @@ export default function RuleCodexDrawer({
               </div>
 
               {/* 衝突期間的儀式 */}
-              <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-3">
+              <div className="p-4 rounded-xl bg-white border border-[#e8dcc4] space-y-3">
                 <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-1.5">
                   <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">
                     衝突期間的儀式
@@ -550,7 +550,7 @@ export default function RuleCodexDrawer({
             <div className="space-y-5">
               {/* 煉金術 */}
               {currentRule.alchemy && (
-                <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-3.5">
+                <div className="p-4 rounded-xl bg-white border border-[#e8dcc4] space-y-3.5">
                   <div className="border-b border-[#e8dcc4] pb-2">
                     <h4 className="font-bold text-[#3c2415] text-sm flex items-center justify-between">
                       <span>{currentRule.alchemy.title}</span>
@@ -580,9 +580,9 @@ export default function RuleCodexDrawer({
                     {/* 目標表 */}
                     <div className="space-y-1.5">
                       <span className="font-bold text-xs text-[#3c2415] block">目標表（分配 1 個 d20）：</span>
-                      <div className="rounded-lg border border-[#ded2be] overflow-hidden">
+                      <div className="rounded-lg border border-[#e8dcc4] overflow-hidden">
                         <table className="w-full text-left">
-                          <thead className="bg-[#f5ecdf] font-bold border-b border-[#ded2be]">
+                          <thead className="bg-[#f4ebd9] font-bold border-b border-[#e8dcc4]">
                             <tr>
                               <th className="p-2 w-16 text-center">骰值</th>
                               <th className="p-2">影響目標</th>
@@ -603,9 +603,9 @@ export default function RuleCodexDrawer({
                     {/* 效果表 */}
                     <div className="lg:col-span-2 space-y-1.5">
                       <span className="font-bold text-xs text-[#3c2415] block">效果表（分配 1 個 d20）：</span>
-                      <div className="rounded-lg border border-[#ded2be] overflow-hidden max-h-60 overflow-y-auto">
+                      <div className="rounded-lg border border-[#e8dcc4] overflow-hidden max-h-60 overflow-y-auto">
                         <table className="w-full text-left">
-                          <thead className="bg-[#f5ecdf] font-bold border-b border-[#ded2be] sticky top-0">
+                          <thead className="bg-[#f4ebd9] font-bold border-b border-[#e8dcc4] sticky top-0">
                             <tr>
                               <th className="p-2 w-24 text-center">骰值</th>
                               <th className="p-2">藥劑效果</th>
@@ -628,7 +628,7 @@ export default function RuleCodexDrawer({
 
               {/* 灌注術 */}
               {currentRule.infusions && (
-                <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-3.5">
+                <div className="p-4 rounded-xl bg-white border border-[#e8dcc4] space-y-3.5">
                   <div className="border-b border-[#e8dcc4] pb-2">
                     <div className="flex items-center justify-between">
                       <h4 className="font-bold text-[#3c2415] text-sm">
@@ -687,7 +687,7 @@ export default function RuleCodexDrawer({
 
               {/* 魔科技 */}
               {currentRule.magitech && (
-                <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-3.5">
+                <div className="p-4 rounded-xl bg-white border border-[#e8dcc4] space-y-3.5">
                   <div className="border-b border-[#e8dcc4] pb-2">
                     <h4 className="font-bold text-[#3c2415] text-sm flex items-center justify-between">
                       <span>{currentRule.magitech.title}</span>
@@ -748,7 +748,7 @@ export default function RuleCodexDrawer({
           {activeRuleId === 'projects' && (
             <div className="space-y-6">
               {/* 六大造物流程步驟 */}
-              <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-3">
+              <div className="p-4 rounded-xl bg-white border border-[#e8dcc4] space-y-3">
                 <div className="border-b border-[#e8dcc4] pb-2">
                   <h4 className="font-bold text-[#3c2415] text-sm">
                     造物流程六大步驟（核心手冊 134~137 頁）
@@ -783,9 +783,9 @@ export default function RuleCodexDrawer({
                   {/* 效力表 */}
                   <div className="space-y-1.5">
                     <span className="font-bold text-xs text-[#3c2415] block">1. 效力表（基礎成本）：</span>
-                    <div className="rounded-lg border border-[#ded2be] overflow-hidden">
+                    <div className="rounded-lg border border-[#e8dcc4] overflow-hidden">
                       <table className="w-full text-left">
-                        <thead className="bg-[#f5ecdf] font-bold border-b border-[#ded2be]">
+                        <thead className="bg-[#f4ebd9] font-bold border-b border-[#e8dcc4]">
                           <tr>
                             <th className="p-2 w-12 text-center">效力</th>
                             <th className="p-2 w-16 text-center">基礎</th>
@@ -808,9 +808,9 @@ export default function RuleCodexDrawer({
                   {/* 範圍表 */}
                   <div className="space-y-1.5">
                     <span className="font-bold text-xs text-[#3c2415] block">2. 範圍表（成本倍率）：</span>
-                    <div className="rounded-lg border border-[#ded2be] overflow-hidden">
+                    <div className="rounded-lg border border-[#e8dcc4] overflow-hidden">
                       <table className="w-full text-left">
-                        <thead className="bg-[#f5ecdf] font-bold border-b border-[#ded2be]">
+                        <thead className="bg-[#f4ebd9] font-bold border-b border-[#e8dcc4]">
                           <tr>
                             <th className="p-2 w-12 text-center">範圍</th>
                             <th className="p-2 w-14 text-center">倍率</th>
@@ -833,9 +833,9 @@ export default function RuleCodexDrawer({
                   {/* 使用次數表 */}
                   <div className="space-y-1.5">
                     <span className="font-bold text-xs text-[#3c2415] block">3. 使用次數表（成本倍率）：</span>
-                    <div className="rounded-lg border border-[#ded2be] overflow-hidden">
+                    <div className="rounded-lg border border-[#e8dcc4] overflow-hidden">
                       <table className="w-full text-left">
-                        <thead className="bg-[#f5ecdf] font-bold border-b border-[#ded2be]">
+                        <thead className="bg-[#f4ebd9] font-bold border-b border-[#e8dcc4]">
                           <tr>
                             <th className="p-2 w-16 text-center">類型</th>
                             <th className="p-2 w-14 text-center">倍率</th>
@@ -858,7 +858,7 @@ export default function RuleCodexDrawer({
               </div>
 
               {/* 進度與推進機制 */}
-              <div className="p-4 rounded-xl bg-white border border-[#ded2be] space-y-2 text-xs">
+              <div className="p-4 rounded-xl bg-white border border-[#e8dcc4] space-y-2 text-xs">
                 <h4 className="font-bold text-[#3c2415] border-b border-[#e8dcc4] pb-1 flex items-center justify-between">
                   <span>進度計算與每日自動累積</span>
                   <span className="font-mono text-xs text-[#6b5a4b] font-normal">所需進度 = 最終總成本 / 100z</span>
@@ -893,7 +893,7 @@ export default function RuleCodexDrawer({
                 忠實夥伴面板規格與戰鬥機制
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-white border border-[#ded2be] space-y-2">
+                <div className="p-3 rounded-xl bg-white border border-[#e8dcc4] space-y-2">
                   <span className="font-bold text-[#2c221e] block border-b border-[#e8dcc4] pb-1">
                     基礎屬性配置方案
                   </span>
@@ -901,7 +901,7 @@ export default function RuleCodexDrawer({
                     從【d8, d8, d8, d8】、【d10, d8, d8, d6】、【d10, d10, d6, d6】或【d12, d8, d6, d6】中任選一組分配至 DEX, INS, MIG, WLP。固定為 5 級，物種可選野獸、構造體、元素或植物。
                   </p>
                 </div>
-                <div className="p-3 rounded-xl bg-white border border-[#ded2be] space-y-2">
+                <div className="p-3 rounded-xl bg-white border border-[#e8dcc4] space-y-2">
                   <span className="font-bold text-[#2c221e] block border-b border-[#e8dcc4] pb-1">
                     最大 HP 動態公式
                   </span>
@@ -911,7 +911,7 @@ export default function RuleCodexDrawer({
                   <p className="text-[#6b5a4b] text-t12">危機值為最大 HP / 2。物防等於當前 DEX 骰，魔防等於當前 INS 骰。</p>
                 </div>
               </div>
-              <div className="p-3 rounded-xl bg-white border border-[#ded2be] space-y-2 text-xs">
+              <div className="p-3 rounded-xl bg-white border border-[#e8dcc4] space-y-2 text-xs">
                 <span className="font-bold text-[#3c2415] block border-b border-[#e8dcc4] pb-1">
                   行動指揮與基礎攻擊
                 </span>
@@ -951,7 +951,7 @@ export default function RuleCodexDrawer({
                   if (filteredSpells.length === 0) return null;
                   return (
                     <div key={sIdx} className="space-y-2">
-                      <div className="flex items-center justify-between border-b border-[#e2d7c5] pb-1">
+                      <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-1">
                         <h4 className="font-bold text-[#3c2415] text-sm">
                           {school.name}
                         </h4>
@@ -961,7 +961,7 @@ export default function RuleCodexDrawer({
                       </div>
                       <div className="grid grid-cols-1 gap-2">
                         {filteredSpells.map((sp, spIdx) => (
-                          <div key={spIdx} className="p-2.5 rounded bg-white border border-[#ded2be] text-xs space-y-1">
+                          <div key={spIdx} className="p-2.5 rounded bg-white border border-[#e8dcc4] text-xs space-y-1">
                             <div className="flex items-center justify-between flex-wrap gap-1">
                               <span className="font-bold text-[#2c221e] flex items-center gap-1.5">
                                 {sp.offensive && (
@@ -988,7 +988,7 @@ export default function RuleCodexDrawer({
         </div>
 
         {/* 底部 Footer */}
-        <div className="p-3 bg-[#f5ecdf] border-t border-[#ded2be] flex justify-between items-center text-xs text-[#6b5a4b] shrink-0">
+        <div className="p-3 bg-[#f4ebd9] border-t border-[#e8dcc4] flex justify-between items-center text-xs text-[#6b5a4b] shrink-0">
           <span className="text-[11px] text-[#6b5a4b]">
             提示：按 ESC 或點擊視窗外空白處即可關閉並返回
           </span>

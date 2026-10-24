@@ -51,7 +51,7 @@ export default function SuboptionDetailsList({
       {/* 1. 魔奏者專屬：基礎 3 大音量常駐外顯卡片 */}
       {isChanter && showVolumeBlock && (
         <div className="p-2.5 rounded-xl bg-[#f9f5eb] border border-[#d6c7ab] space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-[#3c2415] border-b border-[#e2d6c1] pb-1.5">
+          <div className="flex items-center justify-between text-xs font-bold text-[#3c2415] border-b border-[#e8dcc4] pb-1.5">
             <span className="flex items-center gap-1.5">
               <GiMusicalNotes className="w-3.5 h-3.5 text-[#3c2415]" />
               <span>基礎音量體系（自動掌握全部 3 種音量）</span>
@@ -65,7 +65,7 @@ export default function SuboptionDetailsList({
             {CHANTER_DATA.volumes.map(vol => (
               <div
                 key={vol.id}
-                className="p-2 bg-white rounded-lg border border-[#e2d6c1] space-y-1"
+                className="p-2 bg-white rounded-lg border border-[#e8dcc4] space-y-1"
               >
                 <div className="flex items-center justify-between font-bold text-xs">
                   <span className="text-[#3c2415] font-serif">{vol.name}</span>

@@ -32,7 +32,7 @@ export default function JRPGBadge({
     "rank-top": "bg-[#2c221e] text-[#e8dcc4] border border-[#2c221e] font-bold",
     "rank-mid": "bg-[#7c6a58] text-[#fbf7ee] border border-[#7c6a58] font-bold",
     // 序的第三階（一般）：紙底墨字，填充量最低
-    slate: "bg-[#eee6d3] text-[#3c2f21] border border-[#d6c7ab] font-bold",
+    slate: "bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold",
     // 標記（職業限定之類）：零色，只有墨與邊
     marker: "bg-transparent text-[#6b5a4b] border border-[#6b5a4b]/40",
     // 已選／選中：墨框 ＋ 紙底（與全站的「選中」同一條通道）

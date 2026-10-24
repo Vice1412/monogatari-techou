@@ -101,7 +101,7 @@ export default function ChapterHeader({
               {backOverride?.subTitle && (
                 <span
                   className={`text-t12 font-sans font-bold px-2 py-0.5 rounded-ui border ${customTheme ? '' : (theme.subTitleBadge || 'bg-white/80 border-[#d6c7ab] text-[#3c2415]')}`}
-                  style={customTheme ? { backgroundColor: customTheme.cardBg || '#ffffff', borderColor: customTheme.border, color: customTheme.textDark } : {}}
+                  style={customTheme ? { backgroundColor: customTheme.cardBg || '#fffdf9', borderColor: customTheme.border, color: customTheme.textDark } : {}}
                 >
                   {backOverride.subTitle}
                 </span>
@@ -148,7 +148,7 @@ export default function ChapterHeader({
         <button
           onClick={onOpenCodex}
           className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2.5 py-1.5 rounded-ui border text-t12 font-bold transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
-          style={customTheme ? { backgroundColor: customTheme.cardBg || '#ffffff', borderColor: customTheme.border, color: customTheme.textDark } : {}}
+          style={customTheme ? { backgroundColor: customTheme.cardBg || '#fffdf9', borderColor: customTheme.border, color: customTheme.textDark } : {}}
           title="開啟規則概念速查（16 項官方子系統）"
         >
           <GiSpellBook className="w-4 h-4" style={customTheme ? { color: customTheme.accent } : {}} />
@@ -158,7 +158,7 @@ export default function ChapterHeader({
         <button
           onClick={onOpenDice}
           className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2.5 py-1.5 rounded-ui border text-t12 font-bold transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
-          style={customTheme ? { backgroundColor: customTheme.cardBg || '#ffffff', borderColor: customTheme.border, color: customTheme.textDark } : {}}
+          style={customTheme ? { backgroundColor: customTheme.cardBg || '#fffdf9', borderColor: customTheme.border, color: customTheme.textDark } : {}}
           title="開啟雙屬性擲骰器"
         >
           <GiRollingDices className="w-4 h-4" style={customTheme ? { color: customTheme.accent } : {}} />
@@ -169,7 +169,7 @@ export default function ChapterHeader({
         <button
           onClick={onBackup}
           className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2 py-1.5 rounded-ui border text-t12 font-medium transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
-          style={customTheme ? { backgroundColor: customTheme.cardBg || '#ffffff', borderColor: customTheme.border, color: customTheme.textDark } : {}}
+          style={customTheme ? { backgroundColor: customTheme.cardBg || '#fffdf9', borderColor: customTheme.border, color: customTheme.textDark } : {}}
           title="下載全站完整 JSON 備份檔"
         >
           <GiSaveArrow className="w-4 h-4" style={customTheme ? { color: customTheme.accent } : {}} />

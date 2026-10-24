@@ -50,11 +50,11 @@ export function ZeroPowerGlossaryBody({
 }) {
   const accent = (theme && theme.accent) || '#9c4d16';
   const accentDark = (theme && theme.accentDark) || '#693108';
-  const accentLight = (theme && theme.accentLight) || '#faeedd';
+  const accentLight = (theme && theme.accentLight) || '#f4ebd9';
   const border = (theme && theme.border) || '#d6c7ab';
   const cardBg = (theme && theme.cardBg) || '#fffdf9';
-  const panelBg = (theme && theme.panelBg) || '#f3ebe0';
-  const textDark = (theme && theme.textDark) || '#382012';
+  const panelBg = (theme && theme.panelBg) || '#f4ebd9';
+  const textDark = (theme && theme.textDark) || '#3c2415';
   const textMuted = (theme && theme.textMuted) || '#7b4720';
 
   const showTriggers = activeTab === GLOSSARY_TAB_TRIGGER;
@@ -102,7 +102,7 @@ export function ZeroPowerGlossaryBody({
               className="px-3 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap border cursor-pointer"
               style={
                 isActive
-                  ? { backgroundColor: accent, borderColor: accentDark, color: '#ffffff' }
+                  ? { backgroundColor: accent, borderColor: accentDark, color: '#fffdf9' }
                   : { backgroundColor: cardBg, borderColor: border, color: textDark }
               }
             >
@@ -147,7 +147,7 @@ export function ZeroPowerGlossaryBody({
                   style={{
                     borderColor: isPicked ? accent : border,
                     backgroundColor: isPicked ? accent : cardBg,
-                    color: isPicked ? '#ffffff' : textDark
+                    color: isPicked ? '#fffdf9' : textDark
                   }}
                 >
                   {isPicked ? '✓ 已選' : '選擇'}

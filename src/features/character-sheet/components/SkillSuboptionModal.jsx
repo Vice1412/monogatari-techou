@@ -335,7 +335,7 @@ export default function SkillSuboptionModal({
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
               {CHANTER_DATA.volumes.map(vol => (
-                <div key={vol.id} className="p-2 bg-white rounded-lg border border-[#e2d6c1]">
+                <div key={vol.id} className="p-2 bg-white rounded-lg border border-[#e8dcc4]">
                   <div className="font-bold text-[#3c2415] flex items-center justify-between">
                     <span>{vol.name}</span>
                     <span className="font-mono text-[#6b5a4b]">{vol.mp} MP</span>
