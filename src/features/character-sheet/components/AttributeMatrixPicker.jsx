@@ -451,7 +451,7 @@ export default function AttributeMatrixPicker({
           }}
         >
           <div
-            className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-ui border-2 flex flex-col items-center justify-center p-1 shadow-e3 ring-4 ring-[#a63d40]/40 ${floatingCol.bgClass} ${floatingCol.borderClass} ${floatingCol.glow}`}
+            className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 flex flex-col items-center justify-center p-1 shadow-e3 ring-4 ring-[#a63d40]/40 ${floatingCol.bgClass} ${floatingCol.borderClass} ${floatingCol.glow}`}
           >
             <FloatingDieIcon className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 ${floatingCol.textClass} drop-shadow-md`} />
             <span className={`font-mono text-base sm:text-lg font-black ${floatingCol.textClass} drop-shadow-md mt-1 leading-none`}>
@@ -465,7 +465,7 @@ export default function AttributeMatrixPicker({
       )}
 
       {/* ==================== 頂部：三大起始陣列 ＋ 快捷功能按鈕 ==================== */}
-      <div className="bg-[#fffdf9] p-3 sm:p-4 rounded-ui border" style={{ borderColor: theme.border || '#d6c7ab' }}>
+      <div className="bg-[#fffdf9] p-3 sm:p-4 rounded border" style={{ borderColor: theme.border || '#d6c7ab' }}>
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2.5">
           <div className="flex items-center gap-2">
             <GiSparkles className="w-4 h-4" style={{ color: theme.accent || '#8b5e34' }} />
@@ -479,7 +479,7 @@ export default function AttributeMatrixPicker({
             <button
               type="button"
               onClick={handleAutoFill}
-              className="text-t12 font-bold px-2.5 py-1 rounded-ui transition-colors flex items-center gap-1"
+              className="text-t12 font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1"
               style={{ backgroundColor: theme.subpanelBg || '#f4ebd9', color: theme.textDark || '#3c2415', borderColor: theme.border || '#d6c7ab' }}
               title="按預設順序一鍵填入四個體質"
             >
@@ -489,7 +489,7 @@ export default function AttributeMatrixPicker({
             <button
               type="button"
               onClick={handleClearToTray}
-              className="text-t12 font-bold px-2.5 py-1 rounded-ui bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] transition-colors flex items-center gap-1"
+              className="text-t12 font-bold px-2.5 py-1 rounded bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] transition-colors flex items-center gap-1"
               title="將所有已放出的骰子收回黑色托盤"
             >
               <RotateCcw className="w-3 h-3 text-[#6b5a4b]" />
@@ -511,7 +511,7 @@ export default function AttributeMatrixPicker({
                 key={preset.id}
                 type="button"
                 onClick={() => handleApplyPreset(preset)}
-                className={`text-left p-2.5 rounded-ui border transition-all flex items-center justify-between group ${
+                className={`text-left p-2.5 rounded border transition-all flex items-center justify-between group ${
                   isMatch
                     ? 'shadow-xs ring-2'
                     : 'bg-[#f4ebd9] hover:bg-[#fbf7ee] border-[#d6c7ab]'
@@ -541,7 +541,7 @@ export default function AttributeMatrixPicker({
                       return (
                         <span
                           key={dIdx}
-                          className={`font-mono font-black text-t12 px-2 py-0.5 rounded-ui border flex items-center gap-1 ${col.bgClass} ${col.borderClass} ${col.textClass}`}
+                          className={`font-mono font-black text-t12 px-2 py-0.5 rounded border flex items-center gap-1 ${col.bgClass} ${col.borderClass} ${col.textClass}`}
                         >
                           <DieIcon className="w-3.5 h-3.5 shrink-0 opacity-80" />
                           <span>d{dVal}</span>
@@ -559,7 +559,7 @@ export default function AttributeMatrixPicker({
       {/* ==================== 等級獎勵：屬性骰 +1 階（原書 p.229） ==================== */}
       {remainingUpgrades > 0 && (
         <div
-          className="rounded-ui border-2 px-3 py-2.5 space-y-2"
+          className="rounded border-2 px-3 py-2.5 space-y-2"
           style={{ backgroundColor: theme.subpanelBg || '#f4ebd9', borderColor: theme.accent || '#8b5e34' }}
         >
           <div className="text-xs leading-relaxed" style={{ color: theme.textDark || '#3c2415' }}>
@@ -581,7 +581,7 @@ export default function AttributeMatrixPicker({
                   disabled={!die || maxed}
                   onClick={() => handleUpgradeDie(key)}
                   title={!die ? '先把骰子分配到這一項' : maxed ? '已經是 d12（上限）' : `把 ${ATTRIBUTE_NAMES[key]} 從 d${die.val} 升到 d${next}`}
-                  className="text-t12 font-bold px-2 py-1 rounded-ui border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+                  className="text-t12 font-bold px-2 py-1 rounded border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
                   style={{ backgroundColor: theme.cardBg || '#fffdf9', borderColor: theme.border || '#d6c7ab', color: theme.textDark || '#3c2415' }}
                 >
                   {key.toUpperCase()} {die ? `d${die.val}` : '—'}
@@ -623,7 +623,7 @@ export default function AttributeMatrixPicker({
           onDragLeave={handleTrayDragLeave}
           onDrop={handleDropToTray}
           onClick={handleTrayClick}
-          className={`w-full md:w-44 lg:w-48 shrink-0 bg-[#f4ebd9] text-[#2c221e] rounded-ui p-3 sm:p-4 border transition-all flex flex-col justify-between cursor-pointer select-none ${
+          className={`w-full md:w-44 lg:w-48 shrink-0 bg-[#f4ebd9] text-[#2c221e] rounded p-3 sm:p-4 border transition-all flex flex-col justify-between cursor-pointer select-none ${
             isTrayDragOver || (floatingDieId && floatingDie?.assignedTo)
               ? 'ring-4 ring-[#a63d40]/35 border-[#a63d40] bg-[#fbf7ee] scale-[1.02]'
               : 'border-[#d6c7ab] hover:border-[#8b5e34]'
@@ -673,7 +673,7 @@ export default function AttributeMatrixPicker({
                       onClick={(e) => handleGhostSocketClick(die.id, e)}
                       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsTrayDragOver(true); }}
                       onDrop={handleDropToTray}
-                      className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-ui border-2 border-dashed border-[#d6c7ab] bg-[#f4ebd9]/70 p-1 flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
+                      className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 border-dashed border-[#d6c7ab] bg-[#f4ebd9]/70 p-1 flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
                         isFloating ? 'ring-2 ring-[#a63d40]/40 border-[#a63d40] opacity-30' : 'hover:border-[#8b5e34] hover:bg-[#fbf7ee]'
                       }`}
                       title={`已分配至【${targetDetail?.enName} ${targetDetail?.name}】。點擊可拿起此骰子浮動`}
@@ -696,7 +696,7 @@ export default function AttributeMatrixPicker({
                     draggable
                     onDragStart={(e) => handleDragStart(die.id, e)}
                     onClick={(e) => handleTrayDieClick(die.id, e)}
-                    className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-ui border-2 p-1 flex flex-col items-center justify-center select-none cursor-grab active:cursor-grabbing transition-all ${
+                    className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 p-1 flex flex-col items-center justify-center select-none cursor-grab active:cursor-grabbing transition-all ${
                       col.bgClass
                     } ${col.borderClass} ${col.glow} ${
                       isFloating
@@ -731,7 +731,7 @@ export default function AttributeMatrixPicker({
                 onDragLeave={() => handleDragLeave(statKey)}
                 onDrop={(e) => handleDrop(statKey, e)}
                 onClick={(e) => handleSlotClick(statKey, e)}
-                className={`rounded-ui border-2 p-3 sm:p-4 bg-[#fffdf9] transition-all cursor-pointer select-none flex items-center justify-between gap-3 sm:gap-4 ${
+                className={`rounded border-2 p-3 sm:p-4 bg-[#fffdf9] transition-all cursor-pointer select-none flex items-center justify-between gap-3 sm:gap-4 ${
                   isDragOver || (floatingDieId && !isFloatingThis)
                     ? 'hover:border-[#8b5e34]'
                     : 'hover:border-[#8b5e34]'
@@ -782,7 +782,7 @@ export default function AttributeMatrixPicker({
                         <div
                           draggable
                           onDragStart={(e) => handleDragStart(slottedDie.id, e)}
-                          className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-ui border-2 flex flex-col items-center justify-center p-1 cursor-grab active:cursor-grabbing relative group transition-transform ${
+                          className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 flex flex-col items-center justify-center p-1 cursor-grab active:cursor-grabbing relative group transition-transform ${
                             col.bgClass
                           } ${col.borderClass} ${col.glow} ${
                             isFloatingThis
@@ -801,7 +801,7 @@ export default function AttributeMatrixPicker({
                   ) : (
                     // 空白正方形插槽 (Empty Square Socket)
                     <div
-                      className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded-ui border-2 border-dashed flex flex-col items-center justify-center transition-all ${
+                      className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 border-dashed flex flex-col items-center justify-center transition-all ${
                         floatingDieId
                           ? 'border-[#a63d40] bg-[#a63d40]/10 text-[#78350f] scale-[1.02]'
                           : 'border-[#d6c7ab] bg-[#f4ebd9] text-[#6b5a4b] hover:border-[#8b5e34]'
@@ -825,7 +825,7 @@ export default function AttributeMatrixPicker({
       {/* ==================== ⓘ 屬性機制詳情彈窗 (按需查看，不霸佔版面) ==================== */}
       {infoModalKey && (
         <div className="fixed inset-0 z-50 bg-[#3c2415]/45 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#fffdf9] rounded-ui border border-[#d6c7ab] shadow-e3 max-w-md w-full p-5 space-y-4 animate-fade-in">
+          <div className="bg-[#fffdf9] rounded border border-[#d6c7ab] shadow-e3 max-w-md w-full p-5 space-y-4 animate-fade-in">
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-baseline gap-2">
                 <span className="font-mono font-black text-xl text-[#2c221e]">
@@ -839,14 +839,14 @@ export default function AttributeMatrixPicker({
               <button
                 type="button"
                 onClick={() => setInfoModalKey(null)}
-                className="w-7 h-7 rounded-ui hover:bg-[#f4ebd9] flex items-center justify-center text-[#6b5a4b] hover:text-[#2c221e] transition-colors"
+                className="w-7 h-7 rounded hover:bg-[#f4ebd9] flex items-center justify-center text-[#6b5a4b] hover:text-[#2c221e] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-2.5 text-xs">
-              <p className="text-[#6b5a4b] font-medium bg-[#f4ebd9] p-2.5 rounded-ui border border-[#d6c7ab]">
+              <p className="text-[#6b5a4b] font-medium bg-[#f4ebd9] p-2.5 rounded border border-[#d6c7ab]">
                 {ATTRIBUTE_DETAILS[infoModalKey].tags}
               </p>
 
@@ -856,7 +856,7 @@ export default function AttributeMatrixPicker({
                 </span>
                 <div className="grid grid-cols-1 gap-2">
                   {ATTRIBUTE_DETAILS[infoModalKey].mechanics.map((item, mIdx) => (
-                    <div key={mIdx} className="p-2 rounded-ui bg-[#f4ebd9] border border-[#d6c7ab] flex items-start gap-2">
+                    <div key={mIdx} className="p-2 rounded bg-[#f4ebd9] border border-[#d6c7ab] flex items-start gap-2">
                       <span className="font-bold text-[#3c2415] shrink-0 w-16 text-t12">
                         • {item.label}:
                       </span>
@@ -873,7 +873,7 @@ export default function AttributeMatrixPicker({
               <button
                 type="button"
                 onClick={() => setInfoModalKey(null)}
-                className="px-4 py-1.5 rounded-ui bg-[#8b5e34] hover:bg-[#78350f] text-[#fffdf9] font-bold text-xs transition-colors"
+                className="px-4 py-1.5 rounded bg-[#8b5e34] hover:bg-[#78350f] text-[#fffdf9] font-bold text-xs transition-colors"
               >
                 我知道了
               </button>

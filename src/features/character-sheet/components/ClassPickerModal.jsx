@@ -325,7 +325,7 @@ export default function ClassPickerModal({
       <div className="flex flex-col h-[82vh] md:h-[76vh] max-h-[730px] overflow-hidden -m-1">
         {/* ==================== 頂部上排：拓展開關 ＋ 已選職業配點 ==================== */}
         <div
-          className="px-3 py-2 rounded-xl border flex flex-col gap-2 transition-colors mb-2.5 shrink-0"
+          className="px-3 py-2 rounded border flex flex-col gap-2 transition-colors mb-2.5 shrink-0"
           style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
         >
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -338,7 +338,7 @@ export default function ClassPickerModal({
               <button
                 type="button"
                 onClick={() => onSetSourcebooks && onSetSourcebooks([...BOOK_KEYS])}
-                className="text-xs px-2.5 py-1 rounded-lg border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
                 style={
                   allBooksOn
                     ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -359,7 +359,7 @@ export default function ClassPickerModal({
                     key={sbKey}
                     type="button"
                     onClick={() => onToggleSourcebook && onToggleSourcebook(sbKey)}
-                    className="text-xs px-2.5 py-1 rounded-lg border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                    className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
                     style={
                       isEnabled
                         ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -395,7 +395,7 @@ export default function ClassPickerModal({
                     type="button"
                     onClick={() => focusClass(className)}
                     title={`${className}：投入 ${total} 級（點一下跳到它）`}
-                    className="relative flex items-center gap-1 pl-1.5 pr-2.5 py-1 rounded-lg border text-t11 font-bold cursor-pointer transition-all active:scale-95"
+                    className="relative flex items-center gap-1 pl-1.5 pr-2.5 py-1 rounded border text-t11 font-bold cursor-pointer transition-all active:scale-95"
                     style={
                       isActive
                         ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -452,7 +452,7 @@ export default function ClassPickerModal({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="搜尋職業名稱（中文 / 英文 / 別稱 / 特性關鍵字）..."
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl text-xs border outline-none font-sans shadow-inner transition-colors"
+              className="w-full pl-9 pr-3 py-1.5 rounded text-xs border outline-none font-sans shadow-inner transition-colors"
               style={{
                 backgroundColor: theme.cardBg,
                 borderColor: theme.border,
@@ -474,7 +474,7 @@ export default function ClassPickerModal({
                   onClick={() => {
                     if (!isAdded) focusClass(item.className);
                   }}
-                  className={`relative p-2.5 rounded-xl border transition-all text-left flex flex-col gap-1.5 cursor-pointer select-none ${
+                  className={`relative p-2.5 rounded border transition-all text-left flex flex-col gap-1.5 cursor-pointer select-none ${
                     isAdded
                       ? 'opacity-40 bg-[#f4ebd9]/60 border-[#d6c7ab] cursor-not-allowed'
                       : isSelected
@@ -500,7 +500,7 @@ export default function ClassPickerModal({
                   <div className="flex items-center justify-between gap-1.5">
                     <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className="w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 shadow-2xs"
+                        className="w-7 h-7 rounded border flex items-center justify-center shrink-0 shadow-2xs"
                         style={{
                           backgroundColor: theme.panelBg,
                           borderColor: theme.border,
@@ -564,7 +564,7 @@ export default function ClassPickerModal({
                 <button
                   type="button"
                   onClick={() => setMobileStep('list')}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#3c2415] bg-[#f4ebd9] hover:bg-[#e8dcc4] active:scale-95 px-3 py-1.5 rounded-lg border border-[#d6c7ab] transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#3c2415] bg-[#f4ebd9] hover:bg-[#e8dcc4] active:scale-95 px-3 py-1.5 rounded border border-[#d6c7ab] transition-all cursor-pointer"
                 >
                   <span>← 選擇其它職業</span>
                 </button>
@@ -573,12 +573,12 @@ export default function ClassPickerModal({
 
               {/* 頂部職業標題與風格敘述 */}
               <div
-                className="p-2.5 sm:p-3 rounded-xl border flex items-center justify-between gap-3 shrink-0 shadow-2xs"
+                className="p-2.5 sm:p-3 rounded border flex items-center justify-between gap-3 shrink-0 shadow-2xs"
                 style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center shrink-0 shadow-xs"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded border flex items-center justify-center shrink-0 shadow-xs"
                     style={{
                       backgroundColor: theme.cardBg,
                       borderColor: theme.border,
@@ -621,7 +621,7 @@ export default function ClassPickerModal({
               <div className="flex-1 overflow-y-auto space-y-2.5 pr-1.5 min-h-0">
                 {/* 職業免費增益區塊 */}
                 <div
-                  className="p-2.5 sm:p-3 rounded-xl border space-y-1 shadow-2xs"
+                  className="p-2.5 sm:p-3 rounded border space-y-1 shadow-2xs"
                   style={{ backgroundColor: theme.subpanelBg, borderColor: theme.accent }}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -663,7 +663,7 @@ export default function ClassPickerModal({
                   return (
                     <div
                       key={sk.name}
-                      className="p-2.5 sm:p-3 rounded-xl border space-y-2 shadow-2xs"
+                      className="p-2.5 sm:p-3 rounded border space-y-2 shadow-2xs"
                       style={{
                         backgroundColor: currentSL > 0 ? theme.subpanelBg : theme.cardBg,
                         borderColor: pickedVariant
@@ -767,7 +767,7 @@ export default function ClassPickerModal({
                             key={v.id}
                             type="button"
                             onClick={() => handleToggleVariant(sk.name, pickedVariantId === v.id ? null : v.id)}
-                            className="w-full text-left text-t11 font-bold px-2.5 py-1.5 rounded-lg border transition-all active:scale-[.99] cursor-pointer flex items-center gap-1.5"
+                            className="w-full text-left text-t11 font-bold px-2.5 py-1.5 rounded border transition-all active:scale-[.99] cursor-pointer flex items-center gap-1.5"
                             style={
                               pickedVariantId === v.id
                                 ? { backgroundColor: theme.accent, borderColor: theme.accentDark || theme.accent, color: '#fffdf9' }

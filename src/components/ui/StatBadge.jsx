@@ -52,7 +52,7 @@ export default function StatBadge({
     <div
       className={twMerge(
         clsx(
-          "inline-flex items-center rounded-lg border border-[#d6c7ab] bg-[#fffdf9] px-2.5 py-1 select-none transition-all",
+          "inline-flex items-center rounded border border-[#d6c7ab] bg-[#fffdf9] px-2.5 py-1 select-none transition-all",
           size === 'sm' && "text-xs py-0.5 px-2",
           size === 'lg' && "text-base py-1.5 px-3",
           className

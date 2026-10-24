@@ -114,14 +114,14 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
             type="button"
             onClick={handleSoundToggle}
             aria-pressed={soundOn}
-            className="rounded-ui p-1.5 text-ink-3 transition-colors duration-160 hover:bg-warm-1 hover:text-ink"
+            className="rounded p-1.5 text-ink-3 transition-colors duration-160 hover:bg-warm-1 hover:text-ink"
             title={soundOn ? '關閉翻書音效' : '開啟翻書音效'}
           >
             {soundOn ? <GiSoundOn className="h-4 w-4" /> : <GiSoundOff className="h-4 w-4" />}
           </button>
 
           <label
-            className="flex cursor-pointer items-center gap-1.5 rounded-ui px-2 py-1.5 text-t12 text-ink-3 transition-colors duration-160 hover:bg-warm-1 hover:text-ink"
+            className="flex cursor-pointer items-center gap-1.5 rounded px-2 py-1.5 text-t12 text-ink-3 transition-colors duration-160 hover:bg-warm-1 hover:text-ink"
             title="還原全站備份（會覆蓋目前的全部資料）"
           >
             <input
@@ -138,7 +138,7 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
           <button
             type="button"
             onClick={onBackup}
-            className="flex items-center gap-1.5 rounded-ui px-2 py-1.5 text-t12 text-ink-3 transition-colors duration-160 hover:bg-warm-1 hover:text-ink"
+            className="flex items-center gap-1.5 rounded px-2 py-1.5 text-t12 text-ink-3 transition-colors duration-160 hover:bg-warm-1 hover:text-ink"
             title="下載全站完整備份"
           >
             <GiSaveArrow className="h-4 w-4" />
@@ -151,7 +151,7 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
           書脊（深紅）＋ 封面（暖紙）＋ 右側頁口（細線堆疊）。
           全書只有這一處使用陰影 e3——它是唯一真的「疊在桌面上」的東西。 */}
       <div
-        className={`relative z-10 flex w-full max-w-5xl overflow-hidden rounded-book border border-warm-line bg-paper shadow-e3 transition-all duration-300 ease-out ${
+        className={`relative z-10 flex w-full max-w-5xl overflow-hidden rounded border border-warm-line bg-paper shadow-e3 transition-all duration-300 ease-out ${
           isOpening ? 'pointer-events-none scale-[0.98] opacity-0' : 'scale-100 opacity-100'
         }`}
       >
@@ -197,7 +197,7 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
                   type="button"
                   data-chapter-card={chap.id}
                   onClick={() => onSelectChapter(chap.id)}
-                  className="group relative flex w-full flex-col gap-2 rounded-ui bg-warm-1 p-4 text-left transition-colors duration-160 hover:bg-white active:bg-warm-2 sm:p-5"
+                  className="group relative flex w-full flex-col gap-2 rounded bg-warm-1 p-4 text-left transition-colors duration-160 hover:bg-white active:bg-warm-2 sm:p-5"
                 >
                   {/* 左側 2px 強調條：hover 才出現，用來指示「可進入」而不必加整圈邊框 */}
                   <span
@@ -241,7 +241,7 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
             <button
               type="button"
               onClick={onOpenDice}
-              className="inline-flex items-center justify-center gap-2 rounded-ui bg-signal-accent px-4 py-2 text-t14 font-medium text-white transition-colors duration-160 hover:bg-[#8c3235] active:bg-[#76252d]"
+              className="inline-flex items-center justify-center gap-2 rounded bg-signal-accent px-4 py-2 text-t14 font-medium text-white transition-colors duration-160 hover:bg-[#8c3235] active:bg-[#76252d]"
             >
               <GiRollingDices aria-hidden="true" className="h-4 w-4" />
               <span>雙屬性擲骰盤</span>

@@ -280,7 +280,7 @@ export default function TinkererGadgetsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-fade-in">
-      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-e3 border border-[#d6c7ab] overflow-hidden font-sans text-[#3c2415]">
+      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-white rounded shadow-e3 border border-[#d6c7ab] overflow-hidden font-sans text-[#3c2415]">
         
         {/* 頂部標題列 */}
         <div className="flex items-center justify-between px-5 py-3.5 bg-[#3c2415] text-[#f7f3e8]">
@@ -311,7 +311,7 @@ export default function TinkererGadgetsModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-white/20 text-white/90 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded hover:bg-white/20 text-white/90 hover:text-white transition-colors cursor-pointer"
             title="關閉"
           >
             <GiCancel className="w-5 h-5" />
@@ -328,7 +328,7 @@ export default function TinkererGadgetsModal({
             <span className="font-mono text-sm font-bold text-[#3c2415]">
               {allocatedPoints} / {tinkererSL}
             </span>
-            <span className={`px-2 py-0.5 rounded-md font-bold text-t11 ${ remainingPoints === 0 ? 'bg-[#fffdf9] text-[#3c2415] border border-[#3c2415] ' : 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] ' }`}>
+            <span className={`px-2 py-0.5 rounded font-bold text-t11 ${ remainingPoints === 0 ? 'bg-[#fffdf9] text-[#3c2415] border border-[#3c2415] ' : 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] ' }`}>
               {remainingPoints === 0 ? '✓ 點數已滿額' : `尚有 ${remainingPoints} 點可分配`}
             </span>
           </div>
@@ -353,12 +353,12 @@ export default function TinkererGadgetsModal({
               return (
                 <div
                   key={track.id}
-                  className="p-4 rounded-xl border border-[#d6c7ab] bg-[#fbf7ee]/50 space-y-3.5"
+                  className="p-4 rounded border border-[#d6c7ab] bg-[#fbf7ee]/50 space-y-3.5"
                 >
                   {/* 分支標頭 */}
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
+                      <div className="p-2 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
                         <TrackIcon className="w-5 h-5" />
                       </div>
                       <div>
@@ -407,7 +407,7 @@ export default function TinkererGadgetsModal({
                           <div
                             key={node.tier}
                             onClick={() => isInteractive && handleNodeClick(track.id, node.tier)}
-                            className={`p-3 rounded-xl border transition-all duration-200 flex flex-col justify-between select-none ${ isGrayedOut ? 'opacity-35 grayscale cursor-not-allowed bg-[#f4ebd9] border-[#e8dcc4] text-[#7c6a58] shadow-none' : isUnlocked ? 'bg-[#f9f5eb] border-[#d6c7ab] ring-1 ring-[#3c2415]/40 cursor-pointer' : 'bg-white border-[#d6c7ab] hover:border-[#3c2415] hover:scale-[1.02] cursor-pointer ring-2 ring-[#3c2415]/25' }`}
+                            className={`p-3 rounded border transition-all duration-200 flex flex-col justify-between select-none ${ isGrayedOut ? 'opacity-35 grayscale cursor-not-allowed bg-[#f4ebd9] border-[#e8dcc4] text-[#7c6a58] shadow-none' : isUnlocked ? 'bg-[#f9f5eb] border-[#d6c7ab] ring-1 ring-[#3c2415]/40 cursor-pointer' : 'bg-white border-[#d6c7ab] hover:border-[#3c2415] hover:scale-[1.02] cursor-pointer ring-2 ring-[#3c2415]/25' }`}
                           >
                             {/* 節點頂部狀態 */}
                             <div className="flex items-center justify-between gap-1 mb-2">
@@ -473,7 +473,7 @@ export default function TinkererGadgetsModal({
 
           {/* 咒語自選區：核心是最高益處的「魔法球原型」，變體魔法球則是每個節點各 2 顆 */}
           {spellPickerUnlocked && (
-            <div className="p-4 rounded-xl border border-[#d6c7ab] bg-[#f9f5eb] space-y-3.5 animate-fade-in">
+            <div className="p-4 rounded border border-[#d6c7ab] bg-[#f9f5eb] space-y-3.5 animate-fade-in">
               <div className="flex items-center justify-between gap-2 flex-wrap border-b border-[#e8dcc4] pb-2.5">
                 <div className="flex items-center gap-2">
                   <GiCrystalBall className="w-5 h-5 text-[#3c2415]" />
@@ -495,7 +495,7 @@ export default function TinkererGadgetsModal({
                 </div>
 
                 {/* 學派篩選器 */}
-                <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#d6c7ab]">
+                <div className="flex items-center gap-1 bg-white p-1 rounded border border-[#d6c7ab]">
                   {schoolFilterOptions.map((sc) => (
                     <button
                       key={sc}
@@ -519,7 +519,7 @@ export default function TinkererGadgetsModal({
                     <div
                       key={sp.name}
                       onClick={() => !isFull && handleToggleSpell(sp.name)}
-                      className={`p-2.5 rounded-lg border transition-all text-xs flex flex-col justify-between ${ isChecked ? 'bg-[#f4ebd9] border-[#3c2415] ring-1 ring-[#3c2415]/40' : isFull ? 'opacity-40 grayscale cursor-not-allowed bg-[#fbf7ee] border-[#d6c7ab] ' : 'bg-white border-[#d6c7ab] hover:border-[#7c6a58] cursor-pointer' }`}
+                      className={`p-2.5 rounded border transition-all text-xs flex flex-col justify-between ${ isChecked ? 'bg-[#f4ebd9] border-[#3c2415] ring-1 ring-[#3c2415]/40' : isFull ? 'opacity-40 grayscale cursor-not-allowed bg-[#fbf7ee] border-[#d6c7ab] ' : 'bg-white border-[#d6c7ab] hover:border-[#7c6a58] cursor-pointer' }`}
                     >
                       <div>
                         <div className="flex items-center justify-between gap-1 mb-1">
@@ -575,7 +575,7 @@ export default function TinkererGadgetsModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 rounded-lg border border-[#d6c7ab] text-xs text-[#6b5a4b] hover:text-[#2c221e] font-medium cursor-pointer"
+              className="px-3.5 py-1.5 rounded border border-[#d6c7ab] text-xs text-[#6b5a4b] hover:text-[#2c221e] font-medium cursor-pointer"
             >
               取消
             </button>

@@ -81,7 +81,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
   const tile = (label, value) => (
     <div
       key={label}
-      className="rounded-lg border px-2 py-1.5 flex flex-col items-center justify-center min-w-[72px]"
+      className="rounded border px-2 py-1.5 flex flex-col items-center justify-center min-w-[72px]"
       style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
     >
       <span className="text-t12 leading-tight" style={{ color: theme.textMuted }}>{label}</span>
@@ -102,7 +102,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
 
       {/* 玩家自己補一筆 */}
       <div
-        className="rounded-xl border p-2.5 flex flex-col sm:flex-row gap-2"
+        className="rounded border p-2.5 flex flex-col sm:flex-row gap-2"
         style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
       >
         <input
@@ -111,7 +111,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
           onChange={(e) => setDraftText(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleAddNote(); }}
           placeholder="寫下一筆記錄（場外協議、劇情里程碑、GM 發放的獎勵…）"
-          className="flex-1 min-w-0 rounded-lg px-2.5 py-2 text-xs outline-none border"
+          className="flex-1 min-w-0 rounded px-2.5 py-2 text-xs outline-none border"
           style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
         />
         <div className="flex gap-2 items-center">
@@ -119,7 +119,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
             type="datetime-local"
             value={draftAt}
             onChange={(e) => setDraftAt(e.target.value)}
-            className="rounded-lg px-2 py-2 text-t11 outline-none border font-mono"
+            className="rounded px-2 py-2 text-t11 outline-none border font-mono"
             style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textMuted }}
           />
           <JRPGButton
@@ -145,7 +145,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
                 key={k}
                 type="button"
                 onClick={() => setKindFilter(k)}
-                className="text-t11 px-2 py-1 rounded-lg border font-bold cursor-pointer active:scale-95 transition-all"
+                className="text-t11 px-2 py-1 rounded border font-bold cursor-pointer active:scale-95 transition-all"
                 style={{
                   backgroundColor: active ? theme.accent : theme.panelBg,
                   borderColor: theme.border,
@@ -174,11 +174,11 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
             return (
               <div
                 key={entry.id}
-                className="rounded-xl border p-2.5 flex gap-2.5"
+                className="rounded border p-2.5 flex gap-2.5"
                 style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
               >
                 <span
-                  className="w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 mt-0.5"
+                  className="w-7 h-7 rounded border flex items-center justify-center shrink-0 mt-0.5"
                   style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.accent }}
                 >
                   <GameIcon name={meta.icon} size={15} />

@@ -203,7 +203,7 @@ export default function ChimeristManager({
   };
 
   return (
-    <div className="p-4 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-4">
+    <div className="p-4 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-4">
       {/* 頂部標題與施法公式設定 */}
       <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
@@ -240,7 +240,7 @@ export default function ChimeristManager({
 
       {/* 惡性循環連攜提示 */}
       {hasViciousCycle && (
-        <div className="flex items-center gap-2 p-2 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-xs text-[#2c221e]">
+        <div className="flex items-center gap-2 p-2 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-xs text-[#2c221e]">
           <GiBiohazard className="text-base text-[#6b5a4b] shrink-0" />
           <span>已學習《惡性循環》特技：當你的咒語對同源物種生物造成傷害時，將必定使其陷入中毒狀態！</span>
         </div>
@@ -253,7 +253,7 @@ export default function ChimeristManager({
           <button
             type="button"
             onClick={() => setIsPasteModalOpen(true)}
-            className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs flex items-center gap-1 transition-colors"
+            className="px-2.5 py-1 rounded text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs flex items-center gap-1 transition-colors"
             title="貼上從 NPC 工坊複製的文字一鍵導入"
           >
             <ClipboardPaste className="w-3.5 h-3.5" />
@@ -263,7 +263,7 @@ export default function ChimeristManager({
             type="button"
             onClick={() => { resetForm(); setIsAddModalOpen(true); }}
             disabled={spells.length >= maxSlots}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors ${
+            className={`px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1 transition-colors ${
               spells.length >= maxSlots
                 ? 'bg-[#d6c7ab] text-[#6b5a4b] cursor-not-allowed'
                 : 'bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs'
@@ -280,7 +280,7 @@ export default function ChimeristManager({
         {spells.map((sp) => (
           <div
             key={sp.id}
-            className="p-3.5 rounded-xl bg-white border border-[#e8dcc4] space-y-2"
+            className="p-3.5 rounded bg-white border border-[#e8dcc4] space-y-2"
           >
             <div className="flex items-center justify-between flex-wrap gap-2 border-b border-[#d6c7ab] pb-1.5">
               <div className="flex items-center gap-2">
@@ -304,7 +304,7 @@ export default function ChimeristManager({
                 <button
                   type="button"
                   onClick={() => handleCastSpell(sp)}
-                  className="px-3 py-1 rounded-lg text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-sm flex items-center gap-1 transition-transform hover:scale-105"
+                  className="px-3 py-1 rounded text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-sm flex items-center gap-1 transition-transform hover:scale-105"
                 >
                   <GiRollingDices className="text-sm" />
                   <span>施放</span>
@@ -339,7 +339,7 @@ export default function ChimeristManager({
         ))}
 
         {spells.length === 0 && (
-          <div className="p-6 text-center bg-white/60 rounded-xl border border-dashed border-[#d6c7ab] text-[#7c6a58] text-xs space-y-1">
+          <div className="p-6 text-center bg-white/60 rounded border border-dashed border-[#d6c7ab] text-[#7c6a58] text-xs space-y-1">
             <GiSpellBook className="w-8 h-8 mx-auto text-[#7c6a58]" />
             <p className="font-bold text-[#6b5a4b]">尚未記錄任何嵌合師咒語</p>
             <p className="text-t12">可貼上 GM 或 NPC 工坊複製之文字一鍵匯入，或點擊「手動記錄咒語」！</p>
@@ -350,7 +350,7 @@ export default function ChimeristManager({
       {/* 貼上 NPC 工坊文本 Modal */}
       {isPasteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded-2xl p-5 w-full max-w-lg shadow-e3 space-y-4">
+          <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-5 w-full max-w-lg shadow-e3 space-y-4">
             <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-2">
               <h3 className="text-sm font-bold text-[#2c221e] flex items-center gap-2">
                 <GiClipboard className="text-[#6b5a4b]" />
@@ -370,21 +370,21 @@ export default function ChimeristManager({
               value={pasteContent}
               onChange={e => setPasteContent(e.target.value)}
               placeholder="例如：&#10;> **劇毒吐息** (MP: 10 | 目標: 一個生物 | 持續: 瞬發)&#10;> 對目標造成【HR + 15】毒屬性傷害，並使其陷入中毒狀態。"
-              className="w-full p-2.5 rounded-lg border border-[#d6c7ab] bg-white text-[#2c221e] text-xs font-mono outline-none focus:border-[#a63d40]"
+              className="w-full p-2.5 rounded border border-[#d6c7ab] bg-white text-[#2c221e] text-xs font-mono outline-none focus:border-[#a63d40]"
             />
 
             <div className="flex justify-end gap-2 pt-2 border-t border-[#e8dcc4]">
               <button
                 type="button"
                 onClick={() => setIsPasteModalOpen(false)}
-                className="px-3 py-1.5 rounded-lg border border-[#d6c7ab] text-[#6b5a4b] text-xs font-bold"
+                className="px-3 py-1.5 rounded border border-[#d6c7ab] text-[#6b5a4b] text-xs font-bold"
               >
                 取消
               </button>
               <button
                 type="button"
                 onClick={handleParsePastedText}
-                className="px-4 py-1.5 rounded-lg bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs shadow-sm"
+                className="px-4 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs shadow-sm"
               >
                 自動解析並導入
               </button>
@@ -396,7 +396,7 @@ export default function ChimeristManager({
       {/* 手動新增/確認咒語 Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded-2xl p-5 w-full max-w-md shadow-e3 space-y-4">
+          <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-5 w-full max-w-md shadow-e3 space-y-4">
             <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2">
               <h3 className="text-sm font-bold text-[#2c221e] flex items-center gap-2">
                 <Plus className="w-4 h-4 text-[#6b5a4b]" />
@@ -415,7 +415,7 @@ export default function ChimeristManager({
                   value={newSpellName}
                   onChange={e => setNewSpellName(e.target.value)}
                   placeholder="例如：劇毒吐息、音波咆哮..."
-                  className="w-full p-2 rounded-lg border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
+                  className="w-full p-2 rounded border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
                 />
               </div>
 
@@ -425,7 +425,7 @@ export default function ChimeristManager({
                   <select
                     value={newSpecies}
                     onChange={e => setNewSpecies(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
+                    className="w-full p-2 rounded border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
                   >
                     <option value="野獸">野獸 · BEAST</option>
                     <option value="魔獸">魔獸 · MONSTER</option>
@@ -439,7 +439,7 @@ export default function ChimeristManager({
                     value={newMp}
                     onChange={e => setNewMp(e.target.value)}
                     placeholder="10 或 10 × T"
-                    className="w-full p-2 rounded-lg border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
+                    className="w-full p-2 rounded border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
                   />
                 </div>
               </div>
@@ -452,7 +452,7 @@ export default function ChimeristManager({
                     value={newTarget}
                     onChange={e => setNewTarget(e.target.value)}
                     placeholder="一個生物 / 至多 3 個生物"
-                    className="w-full p-2 rounded-lg border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
+                    className="w-full p-2 rounded border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
                   />
                 </div>
                 <div>
@@ -462,7 +462,7 @@ export default function ChimeristManager({
                     value={newDuration}
                     onChange={e => setNewDuration(e.target.value)}
                     placeholder="瞬發 / 場景"
-                    className="w-full p-2 rounded-lg border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
+                    className="w-full p-2 rounded border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
                   />
                 </div>
               </div>
@@ -488,7 +488,7 @@ export default function ChimeristManager({
                   value={newEffect}
                   onChange={e => setNewEffect(e.target.value)}
                   placeholder="詳細效果說明..."
-                  className="w-full p-2 rounded-lg border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
+                  className="w-full p-2 rounded border border-[#d6c7ab] bg-white text-[#2c221e] outline-none focus:border-[#3c2415]"
                 />
               </div>
 
@@ -496,13 +496,13 @@ export default function ChimeristManager({
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-3 py-1.5 rounded-lg border border-[#d6c7ab] text-[#6b5a4b] font-bold"
+                  className="px-3 py-1.5 rounded border border-[#d6c7ab] text-[#6b5a4b] font-bold"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold shadow-sm"
+                  className="px-4 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold shadow-sm"
                 >
                   記錄並保存
                 </button>

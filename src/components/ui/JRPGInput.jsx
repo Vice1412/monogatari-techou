@@ -33,7 +33,7 @@ export function JRPGInput({
           type={type}
           className={twMerge(
             clsx(
-              "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3.5 py-2 text-sm text-[#2c221e] placeholder-[#7c6a58] outline-none transition-all duration-150",
+              "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded px-3.5 py-2 text-sm text-[#2c221e] placeholder-[#7c6a58] outline-none transition-all duration-150",
               "focus:border-[#3c2415] focus:ring-1 focus:ring-[#3c2415]/25 focus:bg-white",
               Icon && "pl-9",
               error && "border-[#8c2d36] focus:border-[#8c2d36] focus:ring-[#8c2d36]/20",
@@ -83,7 +83,7 @@ export function JRPGSelect({
           onChange={onChange}
           className={twMerge(
             clsx(
-              "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-lg px-3.5 py-2 text-sm text-[#2c221e] outline-none transition-all duration-150 appearance-none cursor-pointer",
+              "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded px-3.5 py-2 text-sm text-[#2c221e] outline-none transition-all duration-150 appearance-none cursor-pointer",
               "focus:border-[#3c2415] focus:ring-1 focus:ring-[#3c2415]/25 focus:bg-white font-medium",
               className
             )

@@ -80,12 +80,12 @@ export default function WayfarerCompanionSheet({
   };
 
   return (
-    <div className="p-4 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-4 text-xs">
+    <div className="p-4 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-4 text-xs">
       
       {/* 頂部標題與編輯按鈕 */}
       <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
-          <div className="p-1.5 rounded-lg bg-[#f4ebd9] text-[#6b5a4b]">
+          <div className="p-1.5 rounded bg-[#f4ebd9] text-[#6b5a4b]">
             <GiPawPrint className="text-xl" />
           </div>
           <div>
@@ -104,7 +104,7 @@ export default function WayfarerCompanionSheet({
         <button
           type="button"
           onClick={() => setIsEditModalOpen(true)}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab]"
+          className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab]"
         >
           <GiQuillInk className="w-3.5 h-3.5 text-[#6b5a4b]" />
           <span>編輯隨從設定</span>
@@ -112,7 +112,7 @@ export default function WayfarerCompanionSheet({
       </div>
 
       {/* 生命值與危機儀表 */}
-      <div className="p-3 rounded-xl bg-white border border-[#d6c7ab] space-y-2">
+      <div className="p-3 rounded bg-white border border-[#d6c7ab] space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="font-bold text-[#3c2415]">夥伴生命值 (HP):</span>
@@ -185,19 +185,19 @@ export default function WayfarerCompanionSheet({
 
       {/* 四維屬性骰展示 */}
       <div className="grid grid-cols-4 gap-2">
-        <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
+        <div className="p-2 rounded bg-white border border-[#d6c7ab] text-center space-y-0.5">
           <span className="text-t10 text-[#7c6a58] block font-bold">DEX</span>
           <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.dex}`}>d{dexDie}</span>
         </div>
-        <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
+        <div className="p-2 rounded bg-white border border-[#d6c7ab] text-center space-y-0.5">
           <span className="text-t10 text-[#7c6a58] block font-bold">INS</span>
           <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.ins}`}>d{insDie}</span>
         </div>
-        <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
+        <div className="p-2 rounded bg-white border border-[#d6c7ab] text-center space-y-0.5">
           <span className="text-t10 text-[#7c6a58] block font-bold">MIG</span>
           <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.mig}`}>d{migDie}</span>
         </div>
-        <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
+        <div className="p-2 rounded bg-white border border-[#d6c7ab] text-center space-y-0.5">
           <span className="text-t10 text-[#7c6a58] block font-bold">WLP</span>
           <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.wlp}`}>d{wlpDie}</span>
         </div>
@@ -210,7 +210,7 @@ export default function WayfarerCompanionSheet({
           {(comp.attacks || []).map((atk, idx) => (
             <div
               key={atk.id || idx}
-              className="p-3 rounded-xl bg-white border border-[#d6c7ab] space-y-1.5"
+              className="p-3 rounded bg-white border border-[#d6c7ab] space-y-1.5"
             >
               <div className="flex items-center justify-between">
                 <strong className="text-[#2c221e] font-bold">{atk.name}</strong>
@@ -252,7 +252,7 @@ export default function WayfarerCompanionSheet({
             {comp.spells.map((sp, idx) => (
               <div
                 key={sp.id || idx}
-                className="p-3 rounded-xl bg-white border border-[#d6c7ab] space-y-1.5"
+                className="p-3 rounded bg-white border border-[#d6c7ab] space-y-1.5"
               >
                 <div className="flex items-center justify-between flex-wrap gap-1">
                   <div className="flex items-center gap-1.5">
@@ -287,7 +287,7 @@ export default function WayfarerCompanionSheet({
             {comp.otherActions.map((act, idx) => (
               <div
                 key={act.id || idx}
-                className="p-3 rounded-xl bg-white border border-[#e8dcc4] space-y-1.5"
+                className="p-3 rounded bg-white border border-[#e8dcc4] space-y-1.5"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
@@ -320,7 +320,7 @@ export default function WayfarerCompanionSheet({
             {comp.specialRules.map((rule, idx) => (
               <div
                 key={rule.id || idx}
-                className="p-3 rounded-xl bg-white border border-[#d6c7ab] space-y-1.5"
+                className="p-3 rounded bg-white border border-[#d6c7ab] space-y-1.5"
               >
                 <div className="flex items-center justify-between">
                   <strong className="text-[#2c221e] font-bold">{rule.name || '未命名規則'}</strong>

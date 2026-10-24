@@ -327,7 +327,7 @@ export default function CharacterAvatarUploader({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`relative transition-all duration-200 border-2 rounded-xl p-3.5 ${
+        className={`relative transition-all duration-200 border-2 rounded p-3.5 ${
           isDraggingOver
             ? 'shadow-md ring-2'
             : 'hover:border-[#3c2415]'
@@ -339,7 +339,7 @@ export default function CharacterAvatarUploader({
       >
         {/* 拖曳覆蓋層動畫 */}
         {isDraggingOver && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#fffdf9]/95 backdrop-blur-xs rounded-xl border-2 border-dashed border-[#3c2415] text-[#2c221e] pointer-events-none animate-in fade-in duration-150">
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#fffdf9]/95 backdrop-blur-xs rounded border-2 border-dashed border-[#3c2415] text-[#2c221e] pointer-events-none animate-in fade-in duration-150">
             <Upload size={32} className="mb-1 text-[#6b5a4b]" />
             <span className="font-bold text-xs">釋放滑鼠以上傳照片或網址</span>
           </div>
@@ -355,7 +355,7 @@ export default function CharacterAvatarUploader({
                 fileInputRef.current.click();
               }
             }}
-            className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl border-2 bg-[#f4ebd9] shrink-0 overflow-hidden flex items-center justify-center shadow-inner group select-none cursor-pointer transition-all hover:scale-102"
+            className="relative w-24 h-24 sm:w-28 sm:h-28 rounded border-2 bg-[#f4ebd9] shrink-0 overflow-hidden flex items-center justify-center shadow-inner group select-none cursor-pointer transition-all hover:scale-102"
             style={{ borderColor: theme.border }}
             title={isCustomPhoto ? "點擊重新裁切調整大小" : "點擊上傳本地照片"}
           >
@@ -389,7 +389,7 @@ export default function CharacterAvatarUploader({
             {/* 按鈕組 */}
             <div className="flex flex-wrap items-center gap-2">
               <label
-                className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded-lg transition-all shadow-2xs hover:opacity-90 active:scale-98"
+                className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded transition-all shadow-2xs hover:opacity-90 active:scale-98"
                 style={{ backgroundColor: theme.accent }}
               >
                 <Upload size={13} />
@@ -408,7 +408,7 @@ export default function CharacterAvatarUploader({
                   <button
                     type="button"
                     onClick={handleReCrop}
-                    className="px-2.5 py-1.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs hover:opacity-90 cursor-pointer"
+                    className="px-2.5 py-1.5 rounded border text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs hover:opacity-90 cursor-pointer"
                     style={{
                       backgroundColor: theme.subpanelBg,
                       borderColor: theme.border,
@@ -422,7 +422,7 @@ export default function CharacterAvatarUploader({
                   <button
                     type="button"
                     onClick={handleClearAvatar}
-                    className="px-2.5 py-1.5 rounded-lg border border-[#8c2d36]/30 bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#8c2d36] text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1.5 rounded border border-[#8c2d36]/30 bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#8c2d36] text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
                   >
                     <Trash2 size={13} />
                     <span>清除</span>
@@ -449,7 +449,7 @@ export default function CharacterAvatarUploader({
                       handleLoadImageUrl();
                     }
                   }}
-                  className="w-full rounded-lg px-2.5 py-1.5 text-xs outline-none border transition-colors font-medium shadow-2xs"
+                  className="w-full rounded px-2.5 py-1.5 text-xs outline-none border transition-colors font-medium shadow-2xs"
                   style={{
                     backgroundColor: theme.cardBg,
                     borderColor: theme.border,
@@ -461,7 +461,7 @@ export default function CharacterAvatarUploader({
                 type="button"
                 onClick={() => handleLoadImageUrl()}
                 disabled={isUrlLoading}
-                className="px-3 py-1.5 rounded-lg border text-xs font-bold transition-all disabled:opacity-50 shadow-2xs shrink-0 cursor-pointer flex items-center gap-1"
+                className="px-3 py-1.5 rounded border text-xs font-bold transition-all disabled:opacity-50 shadow-2xs shrink-0 cursor-pointer flex items-center gap-1"
                 style={{
                   backgroundColor: theme.subpanelBg,
                   borderColor: theme.border,
@@ -493,7 +493,7 @@ export default function CharacterAvatarUploader({
               </button>
             </div>
 
-            <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-1.5 bg-[#fbf7ee]/80 rounded-lg border" style={{ borderColor: theme.border }}>
+            <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-1.5 bg-[#fbf7ee]/80 rounded border" style={{ borderColor: theme.border }}>
               {Object.values(CLASS_METADATA)
                 .filter((cls) => cls.source !== 'playtest')
                 .map((cls) => {
@@ -503,7 +503,7 @@ export default function CharacterAvatarUploader({
                       key={cls.name}
                       type="button"
                       onClick={() => handleSelectClassIcon(cls.name)}
-                      className={`px-2 py-1 rounded-md text-t11 font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
+                      className={`px-2 py-1 rounded text-t11 font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
                         isSelected
                           ? 'text-white shadow-xs'
                           : 'bg-white hover:bg-[#f4ebd9] text-[#3c2415]'

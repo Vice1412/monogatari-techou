@@ -173,14 +173,14 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
   ]);
   const idleMnemospheres = state.mnemospheres.filter((m) => !equippedMnemosphereIds.has(m.id));
 
-  const inputClass = 'w-full rounded-lg px-2.5 py-1.5 text-xs outline-none border font-bold';
+  const inputClass = 'w-full rounded px-2.5 py-1.5 text-xs outline-none border font-bold';
   const inputStyle = { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark };
   const smallBtn = 'px-2 py-0.5 rounded border text-t11 font-bold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
-  const miniSelect = 'rounded-lg px-1.5 py-0.5 text-t10 outline-none border font-bold max-w-[13rem]';
+  const miniSelect = 'rounded px-1.5 py-0.5 text-t10 outline-none border font-bold max-w-[13rem]';
 
   return (
     <div
-      className="rounded-xl border shadow-xs overflow-hidden"
+      className="rounded border shadow-xs overflow-hidden"
       style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
       data-testid="technosphere-panel"
     >
@@ -216,7 +216,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
             「卡片寫 3 級、引擎算 2 級」這種沒人查得出來的漂移。 */}
         {withMnemospheres && state.mnemospheres.length > 0 && (
           <div
-            className="rounded-lg border px-2 py-1.5 space-y-1"
+            className="rounded border px-2 py-1.5 space-y-1"
             style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
             data-testid="mnemosphere-summary"
           >
@@ -266,7 +266,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
         {/* ── 內嵌裝置（integrated 變體）────────────────────── */}
         {integrated && (
           <div
-            className="rounded-lg border px-2 py-1.5 space-y-1.5"
+            className="rounded border px-2 py-1.5 space-y-1.5"
             style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
             data-testid="integrated-carrier"
           >
@@ -362,7 +362,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
               return (
                 <div
                   key={slotId}
-                  className="rounded-lg border px-2 py-1.5 space-y-1"
+                  className="rounded border px-2 py-1.5 space-y-1"
                   style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
                   data-testid={`slot-${slotId}`}
                 >
@@ -381,7 +381,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                           kind: 'technosphere',
                           title: `插槽品級：${label} → ${e.target.value}`
                         })}
-                        className="rounded-lg px-1.5 py-0.5 text-t10 outline-none border font-bold"
+                        className="rounded px-1.5 py-0.5 text-t10 outline-none border font-bold"
                         style={inputStyle}
                         data-testid={`quality-${slotId}`}
                       >

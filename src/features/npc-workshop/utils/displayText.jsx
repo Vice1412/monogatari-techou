@@ -229,7 +229,7 @@ export const renderFormattedText = (text, selections, npcLevel = 5, partyLevel =
         return (
           <span
             key={i}
-            className="inline-flex items-center justify-center min-w-[50px] h-[22px] px-2 bg-[#f4ebd9]/90 border-2 border-dashed border-[#3c2415] rounded-md shadow-inner align-middle mx-1 hover:border-[#3c2415] transition-all select-none group/blankSlot"
+            className="inline-flex items-center justify-center min-w-[50px] h-[22px] px-2 bg-[#f4ebd9]/90 border-2 border-dashed border-[#3c2415] rounded shadow-inner align-middle mx-1 hover:border-[#3c2415] transition-all select-none group/blankSlot"
             title={`待配置項目：${getChineseKeyLabel(key)}`}
           >
             <span className="w-full h-0.5 bg-[#d6c7ab] rounded-full"></span>

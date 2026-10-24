@@ -53,7 +53,7 @@ export default function ChapterHeader({
       <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
         <button
           onClick={handleExit}
-          className={`group inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-ui ${customTheme ? 'text-white shadow-e1' : theme.exitBtn} text-t12 sm:text-t14 font-serif font-bold transition-colors duration-160 shrink-0 cursor-pointer`}
+          className={`group inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded ${customTheme ? 'text-white shadow-e1' : theme.exitBtn} text-t12 sm:text-t14 font-serif font-bold transition-colors duration-160 shrink-0 cursor-pointer`}
           style={customTheme ? {
             backgroundColor: customTheme.accentDark,
             borderColor: customTheme.border
@@ -78,7 +78,7 @@ export default function ChapterHeader({
         <div className="flex items-center gap-2 sm:gap-2.5">
           {ChapterIcon ? (
             <span
-              className={`p-1.5 rounded-ui border flex items-center justify-center shrink-0 ${customTheme ? 'shadow-sm' : theme.iconWrapper}`}
+              className={`p-1.5 rounded border flex items-center justify-center shrink-0 ${customTheme ? 'shadow-sm' : theme.iconWrapper}`}
               style={customTheme ? { backgroundColor: customTheme.subpanelBg, borderColor: customTheme.border, color: customTheme.accent } : {}}
             >
               <ChapterIcon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -100,7 +100,7 @@ export default function ChapterHeader({
               </span>
               {backOverride?.subTitle && (
                 <span
-                  className={`text-t12 font-sans font-bold px-2 py-0.5 rounded-ui border ${customTheme ? '' : (theme.subTitleBadge || 'bg-white/80 border-[#d6c7ab] text-[#3c2415]')}`}
+                  className={`text-t12 font-sans font-bold px-2 py-0.5 rounded border ${customTheme ? '' : (theme.subTitleBadge || 'bg-white/80 border-[#d6c7ab] text-[#3c2415]')}`}
                   style={customTheme ? { backgroundColor: customTheme.cardBg || '#fffdf9', borderColor: customTheme.border, color: customTheme.textDark } : {}}
                 >
                   {backOverride.subTitle}
@@ -147,7 +147,7 @@ export default function ChapterHeader({
             真正該防的那一步（選了哪個檔案）由檔案選擇器自己擋。 */}
         <button
           onClick={onOpenCodex}
-          className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2.5 py-1.5 rounded-ui border text-t12 font-bold transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
+          className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2.5 py-1.5 rounded border text-t12 font-bold transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
           style={customTheme ? { backgroundColor: customTheme.cardBg || '#fffdf9', borderColor: customTheme.border, color: customTheme.textDark } : {}}
           title="開啟規則概念速查（16 項官方子系統）"
         >
@@ -157,7 +157,7 @@ export default function ChapterHeader({
 
         <button
           onClick={onOpenDice}
-          className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2.5 py-1.5 rounded-ui border text-t12 font-bold transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
+          className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2.5 py-1.5 rounded border text-t12 font-bold transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
           style={customTheme ? { backgroundColor: customTheme.cardBg || '#fffdf9', borderColor: customTheme.border, color: customTheme.textDark } : {}}
           title="開啟雙屬性擲骰器"
         >
@@ -168,7 +168,7 @@ export default function ChapterHeader({
         {/* Backup（次要） */}
         <button
           onClick={onBackup}
-          className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2 py-1.5 rounded-ui border text-t12 font-medium transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
+          className={`inline-flex items-center gap-1.5 px-1.5 sm:px-2 py-1.5 rounded border text-t12 font-medium transition-colors duration-160 cursor-pointer ${customTheme ? 'shadow-sm' : theme.toolBtn}`}
           style={customTheme ? { backgroundColor: customTheme.cardBg || '#fffdf9', borderColor: customTheme.border, color: customTheme.textDark } : {}}
           title="下載全站完整 JSON 備份檔"
         >
@@ -181,7 +181,7 @@ export default function ChapterHeader({
             誤觸的代價是用一個單卡檔案覆蓋全站資料，所以標題要寫清楚「全站」，
             並且在視覺上**低於**備份：無邊框、三級墨、hover 才浮出。 */}
         <label
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-ui px-1.5 sm:px-2 py-1.5 text-t12 text-ink-3 transition-colors duration-160 hover:bg-warm-1 hover:text-[#a63d40]"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded px-1.5 sm:px-2 py-1.5 text-t12 text-ink-3 transition-colors duration-160 hover:bg-warm-1 hover:text-[#a63d40]"
           title="還原全站備份（會覆蓋目前的全部資料）"
         >
           <input

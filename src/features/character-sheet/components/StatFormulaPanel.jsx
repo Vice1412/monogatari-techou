@@ -50,7 +50,7 @@ export default function StatFormulaPanel({
   const terms = breakdown.terms || [];
 
   return (
-    <div className="mt-2.5 rounded-xl border border-[#d6c7ab] bg-[#fffdf9] p-2.5 shadow-inner animate-fade-in text-left">
+    <div className="mt-2.5 rounded border border-[#d6c7ab] bg-[#fffdf9] p-2.5 shadow-inner animate-fade-in text-left">
       <div className="flex items-center justify-between gap-2 mb-2">
         <span className="text-t10 font-bold tracking-wider text-[#7c6a58]">
           數值構成{title ? ` · ${title}` : ''}
@@ -68,7 +68,7 @@ export default function StatFormulaPanel({
 
       <div className="flex items-stretch gap-1.5 flex-wrap">
         {terms.length === 0 ? (
-          <span className="text-t10 font-bold text-[#7c6a58] px-2 py-1 rounded-lg bg-[#f4ebd9] border border-dashed border-[#d6c7ab] self-center">
+          <span className="text-t10 font-bold text-[#7c6a58] px-2 py-1 rounded bg-[#f4ebd9] border border-dashed border-[#d6c7ab] self-center">
             無額外加成
           </span>
         ) : (
@@ -77,7 +77,7 @@ export default function StatFormulaPanel({
             return (
               <div
                 key={`${term.label}_${idx}`}
-                className={`rounded-lg border px-2 py-1 flex flex-col items-center justify-center min-w-[54px] ${style.chip}`}
+                className={`rounded border px-2 py-1 flex flex-col items-center justify-center min-w-[54px] ${style.chip}`}
               >
                 <span className={`text-t12 leading-tight text-center ${style.label}`}>
                   {term.label}
@@ -92,7 +92,7 @@ export default function StatFormulaPanel({
 
         <div className="flex items-center px-0.5 font-mono font-black text-sm text-[#3c2415] self-center">=</div>
 
-        <div className="rounded-lg border-2 border-[#3c2415]/25 bg-white px-2.5 py-1 flex flex-col items-center justify-center">
+        <div className="rounded border-2 border-[#3c2415]/25 bg-white px-2.5 py-1 flex flex-col items-center justify-center">
           <span className="text-t12 leading-tight text-[#6b5a4b]">合計</span>
           <span className="font-mono font-black text-sm leading-tight text-[#2c221e]">
             {breakdown.total}

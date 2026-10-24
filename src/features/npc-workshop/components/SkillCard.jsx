@@ -52,7 +52,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
   }, [isActive, currentDesc]);
 
   return (
-    <div className={`relative flex flex-col p-4 rounded-xl border-2 transition-all duration-200 text-left overflow-hidden group ${lockedMsg ? 'bg-[#f4ebd9]/70 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed select-none' : isOverBudget && isActive ? 'bg-[#f9f5eb] border-[#8c2d36] opacity-90 shadow-md transform scale-[1.01] z-10' : isActive ? 'bg-[#f9f5eb] border-[#3c2415] shadow-md transform scale-[1.02] z-10' : isDisabled ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee] cursor-pointer'}`} onClick={(e) => { if (isClickableTag(e.target.tagName.toLowerCase())) return; if (lockedMsg && !isActive) return; if (!isDisabled || isActive) onToggle(); }}>
+    <div className={`relative flex flex-col p-4 rounded border-2 transition-all duration-200 text-left overflow-hidden group ${lockedMsg ? 'bg-[#f4ebd9]/70 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed select-none' : isOverBudget && isActive ? 'bg-[#f9f5eb] border-[#8c2d36] opacity-90 shadow-md transform scale-[1.01] z-10' : isActive ? 'bg-[#f9f5eb] border-[#3c2415] shadow-md transform scale-[1.02] z-10' : isDisabled ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee] cursor-pointer'}`} onClick={(e) => { if (isClickableTag(e.target.tagName.toLowerCase())) return; if (lockedMsg && !isActive) return; if (!isDisabled || isActive) onToggle(); }}>
       <div className="absolute top-3 right-3 transition-transform flex flex-col items-end gap-2 z-10">
         {!isActive && <div className="w-5 h-5 rounded-full border-2 border-[#d6c7ab] group-hover:border-[#3c2415]"></div>}
         {isActive && (
@@ -61,7 +61,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
             {!isEditing ? (
               <button
                 onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-                className="p-1.5 bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] rounded-lg hover:bg-[#f4ebd9] transition-all group/edit hide-on-export"
+                className="p-1.5 bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] rounded hover:bg-[#f4ebd9] transition-all group/edit hide-on-export"
                 title="編輯技能文字"
               >
                 <Edit3 size={16} className="group-hover/edit:scale-110 transition-transform" />
@@ -69,7 +69,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
             ) : (
               <button
                 onClick={(e) => { e.stopPropagation(); setIsEditing(false); }}
-                className="p-1.5 bg-[#a63d40] text-[#fffdf9] rounded-lg hover:bg-[#8c3235] transition-all shadow-sm hide-on-export"
+                className="p-1.5 bg-[#a63d40] text-[#fffdf9] rounded hover:bg-[#8c3235] transition-all shadow-sm hide-on-export"
                 title="完成編輯"
               >
                 <Save size={16} />

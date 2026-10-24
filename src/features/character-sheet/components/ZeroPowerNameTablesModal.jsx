@@ -133,7 +133,7 @@ export function ZeroPowerNameTablesBody({
     return (
       <div
         key={`${kind}-${group.column}`}
-        className="rounded-xl p-2.5 space-y-1.5 border"
+        className="rounded p-2.5 space-y-1.5 border"
         style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
       >
         <div
@@ -155,7 +155,7 @@ export function ZeroPowerNameTablesBody({
                 key={`${kind}-${group.column}-${row.id}`}
                 type="button"
                 onClick={() => onPick(kind, { id: row.id, column: group.columnIndex, zh: row.zh })}
-                className="rounded-lg border px-1.5 py-1 text-left transition-colors cursor-pointer"
+                className="rounded border px-1.5 py-1 text-left transition-colors cursor-pointer"
                 style={
                   picked
                     ? {
@@ -187,7 +187,7 @@ export function ZeroPowerNameTablesBody({
     <div className="space-y-4 text-[#3c2415]">
       {/* 說明卡 */}
       <div
-        className="rounded-xl p-3.5 space-y-2 border transition-colors"
+        className="rounded p-3.5 space-y-2 border transition-colors"
         style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
       >
         <div className="flex items-center justify-between flex-wrap gap-2">
@@ -247,7 +247,7 @@ export function ZeroPowerNameTablesBody({
         {/* 擲骰結果卡 */}
         {rolledResult ? (
           <div
-            className="mt-2.5 p-3 rounded-lg border shadow-sm space-y-2 animate-fade-in"
+            className="mt-2.5 p-3 rounded border shadow-sm space-y-2 animate-fade-in"
             style={{ backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.border || '#d6c7ab' }}
           >
             <div className="flex items-center justify-between flex-wrap gap-2">
@@ -306,7 +306,7 @@ export function ZeroPowerNameTablesBody({
         {/* 自選組合條 */}
         <div className="flex flex-wrap items-center gap-2 text-xs pt-1">
           <div
-            className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
+            className={`px-2.5 py-1 rounded border flex items-center gap-1.5 transition-colors ${
               pickedOrigin ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
             }`}
             style={pickedStyle(pickedOrigin)}
@@ -322,7 +322,7 @@ export function ZeroPowerNameTablesBody({
           <span className="text-[#6b5a4b]">➔</span>
 
           <div
-            className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
+            className={`px-2.5 py-1 rounded border flex items-center gap-1.5 transition-colors ${
               pickedAction ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
             }`}
             style={pickedStyle(pickedAction)}
@@ -375,7 +375,7 @@ export function ZeroPowerNameTablesBody({
                 key={tab.id}
                 type="button"
                 onClick={() => onTabChange(tab.id)}
-                className="px-3 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap border cursor-pointer"
+                className="px-3 py-1 rounded text-xs font-bold transition-all whitespace-nowrap border cursor-pointer"
                 style={
                   isActive
                     ? {
@@ -402,7 +402,7 @@ export function ZeroPowerNameTablesBody({
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="搜尋動作或由來的詞..."
-            className="w-full border rounded-lg pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-[#6b5a4b]"
+            className="w-full border rounded pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-[#6b5a4b]"
             style={{
               backgroundColor: theme?.cardBg || '#fffdf9',
               borderColor: theme?.border || '#d6c7ab',

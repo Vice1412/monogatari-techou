@@ -48,7 +48,7 @@ const SpellCard = ({ skillId, spellName, isActive, isDisabled, isOverBudget, isC
   }, [isActive, currentDesc]);
 
   return (
-    <div className={`relative flex flex-col p-4 rounded-xl border-2 transition-all duration-200 text-left overflow-hidden group ${isClaimedElsewhere ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 cursor-not-allowed' : isOverBudget && isActive ? 'bg-[#f9f5eb] border-[#8c2d36] opacity-90 shadow-md transform scale-[1.01] z-10' : isActive ? 'bg-[#fffdf9] border-[#3c2415] shadow-md transform scale-[1.02] z-10' : isDisabled ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee] cursor-pointer'}`} onClick={(e) => { if (isClickableTag(e.target.tagName.toLowerCase())) return; if (isClaimedElsewhere) return; if (!isDisabled || isActive) onToggle(); }}>
+    <div className={`relative flex flex-col p-4 rounded border-2 transition-all duration-200 text-left overflow-hidden group ${isClaimedElsewhere ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 cursor-not-allowed' : isOverBudget && isActive ? 'bg-[#f9f5eb] border-[#8c2d36] opacity-90 shadow-md transform scale-[1.01] z-10' : isActive ? 'bg-[#fffdf9] border-[#3c2415] shadow-md transform scale-[1.02] z-10' : isDisabled ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee] cursor-pointer'}`} onClick={(e) => { if (isClickableTag(e.target.tagName.toLowerCase())) return; if (isClaimedElsewhere) return; if (!isDisabled || isActive) onToggle(); }}>
       {isClaimedElsewhere ? <div className="absolute top-3 right-3 text-t10 bg-[#f4ebd9] text-[#6b5a4b] px-2 py-0.5 rounded border border-[#d6c7ab] font-bold flex items-center gap-1"><Lock size={10} /> 已學習</div> : <div className="absolute top-3 right-3 transition-transform flex flex-col items-end gap-1 z-10">
         {!isActive && <div className="w-5 h-5 rounded-full border-2 border-[#d6c7ab] group-hover:border-[#3c2415]"></div>}
         {isActive && (
@@ -56,9 +56,9 @@ const SpellCard = ({ skillId, spellName, isActive, isDisabled, isOverBudget, isC
             {!isOverBudget && <CheckCircle2 className="drop-shadow-sm text-[#3c2415]" size={24} />}
             {!isMaxMp && (
               !isEditing ? (
-                <button onClick={(e) => { e.stopPropagation(); setIsEditing(true); }} className="p-1.5 bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] rounded-lg transition-colors group/edit hide-on-export" title="編輯咒語文字"><Edit3 size={16} className="group-hover/edit:scale-110 transition-transform" /></button>
+                <button onClick={(e) => { e.stopPropagation(); setIsEditing(true); }} className="p-1.5 bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] rounded transition-colors group/edit hide-on-export" title="編輯咒語文字"><Edit3 size={16} className="group-hover/edit:scale-110 transition-transform" /></button>
               ) : (
-                <button onClick={(e) => { e.stopPropagation(); setIsEditing(false); }} className="p-1.5 text-[#e8dcc4] bg-[#3c2415] hover:bg-[#2c221e] rounded-lg transition-colors hide-on-export" title="完成編輯"><Save size={16} /></button>
+                <button onClick={(e) => { e.stopPropagation(); setIsEditing(false); }} className="p-1.5 text-[#e8dcc4] bg-[#3c2415] hover:bg-[#2c221e] rounded transition-colors hide-on-export" title="完成編輯"><Save size={16} /></button>
               )
             )}
           </div>

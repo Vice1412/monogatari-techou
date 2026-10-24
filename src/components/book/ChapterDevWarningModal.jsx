@@ -69,8 +69,8 @@ export default function ChapterDevWarningModal({
     >
       <div className="space-y-4 text-[#2c221e]">
         {/* 警告標題徽章橫條 */}
-        <div className="p-3.5 rounded-xl border border-[#d6c7ab] bg-[#f9f5eb] flex items-start gap-3">
-          <div className="p-2 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] shrink-0 mt-0.5">
+        <div className="p-3.5 rounded border border-[#d6c7ab] bg-[#f9f5eb] flex items-start gap-3">
+          <div className="p-2 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] shrink-0 mt-0.5">
             <GiHazardSign className="w-5 h-5 text-[#6b5a4b]" />
           </div>
           <div className="space-y-1">
@@ -89,10 +89,10 @@ export default function ChapterDevWarningModal({
         </div>
 
         {/* 章節資訊卡片 */}
-        <div className="p-4 rounded-xl border border-[#d6c7ab] bg-[#fffdf9] space-y-2.5">
+        <div className="p-4 rounded border border-[#d6c7ab] bg-[#fffdf9] space-y-2.5">
           <div className="flex items-center gap-3">
             <div
-              className={`w-11 h-11 rounded-xl border flex items-center justify-center shadow-xs shrink-0 ${currentTheme.bgBadge}`}
+              className={`w-11 h-11 rounded border flex items-center justify-center shadow-xs shrink-0 ${currentTheme.bgBadge}`}
             >
               <ChapterIcon className="w-6 h-6" />
             </div>

@@ -103,21 +103,21 @@ function SkillSuboptionBar({
         {/* 配額狀態指示徽章 */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {selectedCount === 0 ? (
-            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
+            <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
               尚未配置任何項目
             </span>
           ) : isComplete ? (
-            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1">
+            <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1">
               <GiCheckMark className="w-3 h-3 text-[#3c2415]" />
               <span>已掌握 {selectedCount} / {maxQuota}（已完成構築）</span>
             </span>
           ) : isOver ? (
-            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 font-bold flex items-center gap-1">
+            <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 font-bold flex items-center gap-1">
               <GiHazardSign className="w-3 h-3 text-[#8c2d36]" />
               <span>已掌握 {selectedCount} / {maxQuota}（超出 {selectedCount - maxQuota} 個，請刪減）</span>
             </span>
           ) : (
-            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1">
+            <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1">
               <GiSparkles className="w-3 h-3 text-[#6b5a4b]" />
               <span>已掌握 {selectedCount} / {maxQuota}（尚餘 {maxQuota - selectedCount} 個名額）</span>
             </span>
@@ -127,7 +127,7 @@ function SkillSuboptionBar({
           {isMutantForms && isTheriomorphosisVariant(variantId) && (
             <span
               data-testid="therioform-variant-chip"
-              className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 font-bold flex items-center gap-1"
+              className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 font-bold flex items-center gap-1"
             >
               <GiDna2 className="w-3 h-3 text-[#8c2d36]" />
               <span>【公測】變體：消耗 {therioRules.hpCostLabel}・顯現至多 {therioCap} 個</span>
@@ -144,7 +144,7 @@ function SkillSuboptionBar({
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
               }}
-              className="px-2 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab]/80"
+              className="px-2 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab]/80"
             >
               <span>{isExpanded ? '收合效果詳情' : `展開效果詳情 (${selectedCount})`}</span>
             </button>
@@ -156,7 +156,7 @@ function SkillSuboptionBar({
               e.stopPropagation();
               onOpenModal();
             }}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+            className={`px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
               selectedCount === 0
                 ? 'bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs'
                 : 'bg-white hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]'
@@ -193,7 +193,7 @@ function SkillSuboptionBar({
                     setIsExpanded(true);
                   }}
                   title="點擊展開查看效果詳情"
-                  className="text-t11 px-2 py-0.5 rounded-md bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#2c221e] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                  className="text-t11 px-2 py-0.5 rounded bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#2c221e] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                 >
                   {isOffensiveSpell ? (
                     <span className="fu-icon text-[#8c2d36] font-bold" title="攻擊性咒語">o</span>
@@ -236,15 +236,15 @@ function PilotVehicleSkillBar({
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 flex-wrap">
           {!isConfigured ? (
-            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
+            <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
               尚未配置個人載具
             </span>
           ) : (
             <>
-              <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
+              <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
                 {frame.name} · {vehicleData?.name || '個人載具'}
               </span>
-              <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold">
+              <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold">
                 解鎖 {unlockedCount}/{unlockedQuota} · 啟用 {activeCount}/{activeCapacity} 槽
               </span>
               {vehicleData?.isMounted && (
@@ -262,7 +262,7 @@ function PilotVehicleSkillBar({
             e.stopPropagation();
             onOpenModal();
           }}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
+          className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
         >
           <GiSteeringWheel className="w-3.5 h-3.5" />
           <span>{isConfigured ? '管理個人載具' : '配置個人載具'}</span>
@@ -290,10 +290,10 @@ function WayfarerCompanionSkillBar({
     <div className="mt-2 pt-2 border-t border-[#d6c7ab]/80 space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
+          <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
             {comp.species || '野獸'} · {comp.name || '忠實夥伴'}
           </span>
-          <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold">
+          <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold">
             HP {maxHp} · DEF d{comp.dex || 8} | M.DEF d{comp.ins || 8}
           </span>
         </div>
@@ -304,7 +304,7 @@ function WayfarerCompanionSkillBar({
             e.stopPropagation();
             onOpenModal();
           }}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
+          className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
         >
           <GiPawPrint className="w-3.5 h-3.5" />
           <span>{isConfigured ? '編輯忠實夥伴' : '配置忠實夥伴'}</span>
@@ -338,15 +338,15 @@ function TinkererGadgetsSkillBar({
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 flex-wrap">
           {!isConfigured ? (
-            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
+            <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
               尚未配置{branch ? `【${branch.name}】` : '科技樹'}節點 (可分配 {sl} 點)
             </span>
           ) : (
             <>
-              <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
+              <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
                 煉金 {getTierText(alchemy)} · 灌注 {getTierText(infusion)} · {branch ? branch.name : '魔導'} {getTierText(magitech)}
               </span>
-              <span className={`text-t11 px-2 py-0.5 rounded-md font-mono font-bold ${
+              <span className={`text-t11 px-2 py-0.5 rounded font-mono font-bold ${
                 allocated >= sl
                   ? 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]'
                   : 'bg-[#f9f5eb] text-[#3c2415] border border-[#e8dcc4]'
@@ -363,7 +363,7 @@ function TinkererGadgetsSkillBar({
             e.stopPropagation();
             onOpenModal();
           }}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
+          className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
         >
           <GiGears className="w-3.5 h-3.5" />
           <span>{isConfigured ? '管理小工具' : '配置科技樹'}</span>
@@ -581,7 +581,7 @@ export default function ClassSkillCard({
 
   return (
     <div
-      className="rounded-xl border transition-all duration-200 overflow-hidden shadow-sm"
+      className="rounded border transition-all duration-200 overflow-hidden shadow-sm"
       style={{
         backgroundColor: theme.panelBg,
         borderColor: isEditing ? theme.accent : theme.border
@@ -599,7 +599,7 @@ export default function ClassSkillCard({
           {/* 中英文名 + 圖標 */}
           <div className="flex items-center gap-2.5 min-w-0">
             <div
-              className="w-9 h-9 rounded-lg border flex items-center justify-center shadow-xs shrink-0"
+              className="w-9 h-9 rounded border flex items-center justify-center shadow-xs shrink-0"
               style={{
                 backgroundColor: theme.cardBg,
                 borderColor: theme.border,
@@ -690,7 +690,7 @@ export default function ClassSkillCard({
             <button
               type="button"
               onClick={() => onRemoveClass(className)}
-              className="p-1.5 text-[#6b5a4b] hover:text-[#76252d] rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 text-[#6b5a4b] hover:text-[#76252d] rounded transition-colors cursor-pointer"
               title={`移除職業【${withEn(className)}】`}
             >
               <GiTrashCan className="w-4 h-4" />
@@ -709,7 +709,7 @@ export default function ClassSkillCard({
         <div className="p-3.5 sm:p-4 space-y-2.5">
           {(!classItem.skills || classItem.skills.length === 0) ? (
             <div
-              className="p-4 rounded-xl border border-dashed text-center text-xs space-y-1.5"
+              className="p-4 rounded border border-dashed text-center text-xs space-y-1.5"
               style={{ borderColor: theme.border, backgroundColor: theme.cardBg }}
             >
               <div className="font-bold text-[#3c2415]">尚未分配技能點數</div>
@@ -738,7 +738,7 @@ export default function ClassSkillCard({
                 return (
                   <div
                     key={sIdx}
-                    className="p-3 rounded-xl border text-xs space-y-1.5 transition-colors shadow-2xs"
+                    className="p-3 rounded border text-xs space-y-1.5 transition-colors shadow-2xs"
                     style={{
                       backgroundColor: theme.cardBg,
                       borderColor: disp.isVariant ? theme.accent : theme.border,
@@ -898,7 +898,7 @@ export default function ClassSkillCard({
                       handleSetSkillSL(sk.name, 0);
                     }
                   }}
-                  className={`p-3.5 rounded-xl border text-xs space-y-2 transition-all duration-200 cursor-pointer select-none ${
+                  className={`p-3.5 rounded border text-xs space-y-2 transition-all duration-200 cursor-pointer select-none ${
                     isLearned
                       ? 'bg-[#f9f5eb] border-[#d6c7ab] ring-1 ring-[#3c2415]/30'
                       : 'bg-white/60 border-[#d6c7ab]/90 hover:bg-white hover:border-[#d6c7ab] opacity-80'
@@ -1052,7 +1052,7 @@ export default function ClassSkillCard({
                   {showPlaytestVariants && expandedSkillName === sk.name && skillVariants.length > 0 && !activeVariant && (
                     <div
                       data-testid={`variant-picker-${sk.name}`}
-                      className="rounded-lg border border-dashed p-2 space-y-1.5 text-xs"
+                      className="rounded border border-dashed p-2 space-y-1.5 text-xs"
                       style={{ borderColor: theme.border, backgroundColor: '#f9f5eb' }}
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -1212,7 +1212,7 @@ export default function ClassSkillCard({
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-3 py-1.5 rounded-lg border text-xs text-[#6b5a4b] hover:text-[#2c221e] font-medium cursor-pointer"
+                className="px-3 py-1.5 rounded border text-xs text-[#6b5a4b] hover:text-[#2c221e] font-medium cursor-pointer"
                 style={{ borderColor: theme.border, backgroundColor: theme.cardBg }}
               >
                 取消變更

@@ -49,7 +49,7 @@ export default function CoreBookVariantCard({
 
   return (
     <div
-      className="p-2.5 sm:p-3 rounded-xl space-y-2 shadow-2xs transition-colors"
+      className="p-2.5 sm:p-3 rounded space-y-2 shadow-2xs transition-colors"
       style={{
         backgroundColor: isSelected
           ? (theme?.highlightBg || theme?.subpanelBg || '#f4ebd9')
@@ -110,7 +110,7 @@ export default function CoreBookVariantCard({
                   ? `改回原版【${variant.replaces}】`
                   : `用【${variant.name}】取代原版【${variant.replaces}】`
             }
-            className={`text-t11 font-bold px-2.5 py-1 rounded-lg border transition-all shrink-0 ${
+            className={`text-t11 font-bold px-2.5 py-1 rounded border transition-all shrink-0 ${
               canPress ? 'cursor-pointer active:scale-95' : 'cursor-not-allowed opacity-45'
             }`}
             style={isSelected

@@ -66,11 +66,11 @@ const TONES = {
 export default function WarningNote({ title, children, tone = 'note', className = '' }) {
   const t = TONES[tone] || TONES.note;
   return (
-    <div data-warning-note={tone} className={`border rounded-ui px-3.5 py-3 ${t.wrap} ${className}`}>
+    <div data-warning-note={tone} className={`border rounded px-3.5 py-3 ${t.wrap} ${className}`}>
       <div className="flex items-start gap-2.5">
         <span
           aria-hidden="true"
-          className={`w-7 h-7 rounded-ui border flex items-center justify-center shrink-0 ${t.tile}`}
+          className={`w-7 h-7 rounded border flex items-center justify-center shrink-0 ${t.tile}`}
         >
           <GiHazardSign className={`w-4 h-4 ${t.icon}`} />
         </span>

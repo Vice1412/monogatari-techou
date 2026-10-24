@@ -134,7 +134,7 @@ export default function CustomWeaponForgeModal({
     </div>
   );
 
-  const chipClass = 'px-2.5 py-1 rounded-lg border text-xs font-bold transition-all cursor-pointer';
+  const chipClass = 'px-2.5 py-1 rounded border text-xs font-bold transition-all cursor-pointer';
 
   const renderCustomizationRow = (def) => {
     const picked = has(def.key);
@@ -155,7 +155,7 @@ export default function CustomWeaponForgeModal({
         type="button"
         onClick={() => toggleCustomization(def.key)}
         disabled={blocked && !picked}
-        className={`w-full text-left p-2.5 rounded-lg border transition-all ${blocked && !picked ? 'opacity-45 cursor-not-allowed' : 'cursor-pointer'}`}
+        className={`w-full text-left p-2.5 rounded border transition-all ${blocked && !picked ? 'opacity-45 cursor-not-allowed' : 'cursor-pointer'}`}
         style={{
           backgroundColor: picked ? theme.subpanelBg : theme.cardBg,
           borderColor: picked ? theme.accent : theme.border
@@ -215,7 +215,7 @@ export default function CustomWeaponForgeModal({
     >
       <div className="space-y-3">
         {/* 起始規格（原書固定值，不給改） */}
-        <div className="p-3 rounded-lg border text-xs space-y-1" style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}>
+        <div className="p-3 rounded border text-xs space-y-1" style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}>
           <p className="font-bold" style={{ color: theme.textDark }}>
             起始規格（原書 p.106 固定值）
           </p>
@@ -283,7 +283,7 @@ export default function CustomWeaponForgeModal({
           value={spec.name}
           onChange={(e) => patch({ name: e.target.value })}
           placeholder="例：戰車、魔警巨劍、狂風提琴"
-          className="w-full border rounded-lg px-3 py-2 text-xs outline-none shadow-sm"
+          className="w-full border rounded px-3 py-2 text-xs outline-none shadow-sm"
           style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
         />
 
@@ -370,7 +370,7 @@ export default function CustomWeaponForgeModal({
         )}
 
         {/* 即時預覽：玩家當下看到的就是裝備表會收到的東西 */}
-        <div className="p-3 rounded-lg border space-y-1.5" style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}>
+        <div className="p-3 rounded border space-y-1.5" style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}>
           <div className="flex items-center gap-2">
             <GameIcon name={CATEGORY_ICON[spec.category]} size={18} />
             <span className="text-sm font-bold" style={{ color: theme.textDark }}>
@@ -392,7 +392,7 @@ export default function CustomWeaponForgeModal({
         </div>
 
         {!ok && (
-          <div className="p-2.5 rounded-lg border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] text-xs space-y-1">
+          <div className="p-2.5 rounded border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] text-xs space-y-1">
             {issues.map((i) => <div key={i.message}>{i.message}</div>)}
           </div>
         )}

@@ -43,7 +43,7 @@ function ActivityChip({ activity, active, theme, onClick }) {
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="text-left rounded-lg border px-2.5 py-1.5 transition-all cursor-pointer"
+      className="text-left rounded border px-2.5 py-1.5 transition-all cursor-pointer"
       style={{
         backgroundColor: active ? (theme.accentSoft || theme.subpanelBg) : theme.cardBg,
         borderColor: active ? theme.accent : theme.border,
@@ -69,7 +69,7 @@ function ActivityChip({ activity, active, theme, onClick }) {
 function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsage = false }) {
   return (
     <div
-      className="rounded-xl border p-3 space-y-1.5"
+      className="rounded border p-3 space-y-1.5"
       style={{ backgroundColor: theme.subpanelBg, borderColor: theme.accent }}
     >
       <div className="flex items-start justify-between gap-2">
@@ -86,7 +86,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
             <button
               type="button"
               onClick={onToggleUsed}
-              className="text-t11 px-2 py-0.5 rounded-md border cursor-pointer"
+              className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
               style={{
                 backgroundColor: used ? (theme.accentSoft || theme.cardBg) : theme.cardBg,
                 borderColor: used ? theme.accent : theme.border,
@@ -170,7 +170,7 @@ export default function CampActivitiesBlock({
   if (mode === 'play') {
     return (
       <div
-        className="rounded-xl border p-3 space-y-2.5"
+        className="rounded border p-3 space-y-2.5"
         style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}
         data-testid="camp-activities-play"
       >
@@ -207,7 +207,7 @@ export default function CampActivitiesBlock({
               type="button"
               onClick={() => commit(resetCampActivityUses(state))}
               disabled={state.used.length === 0}
-              className="text-t11 px-2.5 py-1 rounded-lg border cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+              className="text-t11 px-2.5 py-1 rounded border cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
               style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
             >
               下一次休息（清空已使用）

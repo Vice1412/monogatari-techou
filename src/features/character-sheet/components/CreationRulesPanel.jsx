@@ -119,12 +119,12 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
     setField(key, next);
   };
 
-  const inputClass = 'w-full rounded-lg px-2.5 py-1.5 text-xs outline-none border font-mono font-bold';
+  const inputClass = 'w-full rounded px-2.5 py-1.5 text-xs outline-none border font-mono font-bold';
   const inputStyle = { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark };
 
   return (
     <div
-      className="rounded-xl border shadow-xs overflow-hidden"
+      className="rounded border shadow-xs overflow-hidden"
       style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
     >
       <button
@@ -290,7 +290,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
             </div>
             {classPickerOpen && (
               <div
-                className="max-h-40 overflow-y-auto rounded-lg border p-2 grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1"
+                className="max-h-40 overflow-y-auto rounded border p-2 grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-1"
                 style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
               >
                 {ALL_CLASS_NAMES.map((name) => (
@@ -315,7 +315,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
               type="button"
               disabled={disabled || isDefault}
               onClick={() => onChange({})}
-              className="text-t11 font-bold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+              className="text-t11 font-bold px-2.5 py-1.5 rounded border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
               style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
             >
               重設為官方標準

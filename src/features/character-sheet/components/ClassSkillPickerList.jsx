@@ -126,7 +126,7 @@ export default function ClassSkillPickerList({
         return (
           <div
             key={row.name}
-            className="p-2 rounded-lg border text-xs space-y-1"
+            className="p-2 rounded border text-xs space-y-1"
             style={{
               backgroundColor: isLearned ? theme.subpanelBg : theme.cardBg,
               borderColor: isLearned ? theme.accent : theme.border,

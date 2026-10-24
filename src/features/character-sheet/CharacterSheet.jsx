@@ -358,7 +358,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
 
     return (
       <div
- className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-white/80 border transition-colors"
+ className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/80 border transition-colors"
         style={{ borderColor: currentTheme.border }}
       >
         {Object.values(CHARACTER_THEMES).map(t => {
@@ -428,12 +428,12 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="搜尋姓名、身份、職業..."
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#d6c7ab] bg-white/90 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5e34]/25 text-xs text-[#2c221e] placeholder:text-[#6b5a4b]/50 transition-all"
+                  className="w-full pl-9 pr-3 py-2 rounded border border-[#d6c7ab] bg-white/90 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5e34]/25 text-xs text-[#2c221e] placeholder:text-[#6b5a4b]/50 transition-all"
                 />
               </div>
 
               {availableClasses.length > 0 && (
-                <div className="flex items-center gap-1.5 bg-white border border-[#d6c7ab] px-2.5 py-1.5 rounded-lg">
+                <div className="flex items-center gap-1.5 bg-white border border-[#d6c7ab] px-2.5 py-1.5 rounded">
                   <Filter className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   <select
                     value={classFilter}
@@ -449,7 +449,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
               )}
 
               {roster.length > 1 && (
-                <div className="flex items-center gap-1.5 bg-white border border-[#d6c7ab] px-2.5 py-1.5 rounded-lg">
+                <div className="flex items-center gap-1.5 bg-white border border-[#d6c7ab] px-2.5 py-1.5 rounded">
                   <ArrowUpDown className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   <select
                     value={sortBy}
@@ -468,7 +468,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 <button
                   type="button"
                   onClick={() => { setSearchQuery(''); setClassFilter('all'); }}
-                  className="text-xs px-2.5 py-1.5 rounded-lg text-[#6b5a4b] hover:bg-[#f4ebd9] transition-colors font-medium"
+                  className="text-xs px-2.5 py-1.5 rounded text-[#6b5a4b] hover:bg-[#f4ebd9] transition-colors font-medium"
                 >
                   重設
                 </button>
@@ -491,7 +491,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                   className="hidden"
                 />
                 <span
-                  className="bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab] px-3.5 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs cursor-pointer"
+                  className="bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab] px-3.5 py-2 rounded font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs cursor-pointer"
                   title="支援匯入《物語手帳》備份或 Fultimator 導出之角色 JSON"
                 >
                   <Upload className="w-3.5 h-3.5 text-[#6b5a4b]" />
@@ -503,7 +503,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 type="button"
                 onClick={handleExportJSON}
                 disabled={roster.length === 0}
-                className="bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab] px-3.5 py-2 rounded-lg font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs disabled:opacity-40 disabled:pointer-events-none"
+                className="bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab] px-3.5 py-2 rounded font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs disabled:opacity-40 disabled:pointer-events-none"
                 title="匯出全站冒險者名冊 JSON 備份"
               >
                 <Download className="w-3.5 h-3.5 text-[#6b5a4b]" />
@@ -513,7 +513,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
               <button
                 type="button"
                 onClick={handleCreateCharacter}
-                className="bg-[#8b5e34] hover:bg-[#78350f] text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1.5 shadow-md transition-all hover:scale-102 justify-center text-xs"
+                className="bg-[#8b5e34] hover:bg-[#78350f] text-white px-4 py-2 rounded font-bold flex items-center gap-1.5 shadow-md transition-all hover:scale-102 justify-center text-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>建立新角色</span>
@@ -524,7 +524,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
           {/* 開局名額的「同團不得重複」（Playtest Materials 2026-10-01 p.4）。
               這是團務層級的規則，所以只有持有名冊的這一頁檢查得到。 */}
           {duplicateStartingHeroic.length > 0 && (
-            <div className="mt-4 rounded-xl border-2 border-[#d6c7ab] bg-[#f9f5eb] px-4 py-3 flex items-start gap-2.5">
+            <div className="mt-4 rounded border-2 border-[#d6c7ab] bg-[#f9f5eb] px-4 py-3 flex items-start gap-2.5">
               <GiLaurelCrown className="w-4 h-4 text-[#6b5a4b] shrink-0 mt-0.5" />
               <div className="text-xs leading-relaxed text-[#2c221e]">
                 <strong>開局名額撞了</strong>
@@ -551,7 +551,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
               minHeight="320px"
             />
           ) : filteredRoster.length === 0 ? (
-            <div className="text-center py-16 bg-[#fffdf9] rounded-xl border border-[#d6c7ab] border-dashed flex flex-col items-center justify-center">
+            <div className="text-center py-16 bg-[#fffdf9] rounded border border-[#d6c7ab] border-dashed flex flex-col items-center justify-center">
               <p className="text-[#2c221e] font-bold text-base">找不到符合條件的冒險者</p>
               <p className="text-[#6b5a4b]/70 text-xs mt-1">請嘗試變更搜尋關鍵字或職業篩選。</p>
               <button
@@ -579,7 +579,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 return (
                   <div
                     key={char.id}
-                    className="bg-[#fffdf9] rounded-xl hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col group relative border-2"
+                    className="bg-[#fffdf9] rounded hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col group relative border-2"
                     style={{ borderColor: isCrisis ? '#8c2d36' : charTheme.border }}
                   >
                     <div className="h-1.5" style={{ backgroundColor: charTheme.accent }} />
@@ -591,7 +591,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                     >
                       <div
                         onClick={() => handleOpenEditorMode(char)}
-                        className="w-12 h-12 rounded-xl bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-xl font-bold shadow-inner cursor-pointer hover:scale-105 hover:ring-2 hover:ring-[#8b5e34]/50 transition-all group relative"
+                        className="w-12 h-12 rounded bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-xl font-bold shadow-inner cursor-pointer hover:scale-105 hover:ring-2 hover:ring-[#8b5e34]/50 transition-all group relative"
                         style={{ borderColor: charTheme.border, color: charTheme.accent }}
                         title="點擊前往編輯此角色與肖像"
                       >
@@ -708,7 +708,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         ].map(attr => (
                           <div
                             key={attr.key}
-                            className="p-1 rounded-lg border bg-[#f4ebd9] flex flex-col items-center"
+                            className="p-1 rounded border bg-[#f4ebd9] flex flex-col items-center"
                             style={{ borderColor: charTheme.border }}
                           >
                             <span className="text-t10 font-bold text-[#7c6a58]">{attr.label}</span>
@@ -723,7 +723,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                       </div>
 
                       {/* Defense & Initiative Row */}
-                      <div className="flex items-center justify-between px-2 py-1 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-t11 font-mono">
+                      <div className="flex items-center justify-between px-2 py-1 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-t11 font-mono">
                         <span className="text-[#6b5a4b]">DEF <strong className="text-[#3c2415]">{statsUnset ? '—' : stats.def}</strong></span>
                         <span className="text-[#d6c7ab]">|</span>
                         <span className="text-[#2c221e]">M.DEF <strong className="text-[#2c221e]">{stats.mdef}</strong></span>
@@ -740,42 +740,42 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleDuplicateCharacter(char)}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#3c2415] hover:bg-[#e8dcc4] transition-colors"
+                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#3c2415] hover:bg-[#e8dcc4] transition-colors"
                           title="複製卡片"
                         >
                           <Copy className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleSendToCombatDirect(char)}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] transition-colors"
+                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] transition-colors"
                           title="推入戰鬥房間"
                         >
                           <GiCrossedSwords className="w-4 h-4 text-[#8c2d36]" />
                         </button>
                         <button
                           onClick={() => handleExportSingleCharacter(char, 'native')}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors"
+                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors"
                           title="匯出單卡 JSON"
                         >
                           <Download className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleExportSingleCharacter(char, 'fultimator')}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors font-mono text-t10 font-bold"
+                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors font-mono text-t10 font-bold"
                           title="匯出為 Fultimator 相容格式"
                         >
                           <FileCode className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleOpenLog(char)}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors"
+                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors"
                           title="成長履歷"
                         >
                           <GiScrollQuill className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteCharacter(char.id)}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] transition-colors"
+                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] transition-colors"
                           title="刪除角色"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -785,7 +785,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                       <div className="flex items-center gap-1.5 ml-auto">
                         <button
                           onClick={() => handleOpenEditorMode(char)}
- className="px-2.5 py-1 rounded-lg border bg-[#fffdf9] hover:bg-[#f4ebd9] text-xs font-bold transition-colors flex items-center gap-1"
+ className="px-2.5 py-1 rounded border bg-[#fffdf9] hover:bg-[#f4ebd9] text-xs font-bold transition-colors flex items-center gap-1"
                           style={{ borderColor: charTheme.border, color: charTheme.textDark }}
                           title="進入創角與加點工作台"
                         >
@@ -882,7 +882,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
         aria-live="polite"
         className={
           toastMessage
-            ? 'fixed bottom-6 right-6 z-50 bg-white border-2 border-[#3c2415] text-[#2c221e] px-4 py-2.5 rounded-xl shadow-e3 flex items-center gap-2 font-medium text-xs animate-fade-in'
+            ? 'fixed bottom-6 right-6 z-50 bg-white border-2 border-[#3c2415] text-[#2c221e] px-4 py-2.5 rounded shadow-e3 flex items-center gap-2 font-medium text-xs animate-fade-in'
             : 'sr-only'
         }
       >

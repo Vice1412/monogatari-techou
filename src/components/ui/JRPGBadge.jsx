@@ -10,7 +10,7 @@ export default function JRPGBadge({
   icon: Icon,
   ...props
 }) {
-  const baseStyles = "inline-flex items-center font-mono font-medium rounded-md select-none tracking-wide transition-colors";
+  const baseStyles = "inline-flex items-center font-mono font-medium rounded select-none tracking-wide transition-colors";
 
   const variantStyles = {
     // ── 身份（紙／墨）：第三十三輪 §CI41 起，六個角色主題共用同一個身份徽章 ──

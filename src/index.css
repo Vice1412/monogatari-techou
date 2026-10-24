@@ -206,7 +206,9 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: #d6c7ab;
-  border-radius: 4px;
+  /* 第三十六輪：原本 4px。捲軸是 7px 寬，4px 讓它變成藥丸——
+     而 v5 的 2px 上限是全站的，不因為「那是瀏覽器畫的」就例外。 */
+  border-radius: var(--r);
 }
 
 ::-webkit-scrollbar-thumb:hover {

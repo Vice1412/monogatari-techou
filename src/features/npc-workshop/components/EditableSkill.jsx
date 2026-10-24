@@ -113,7 +113,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
 
   if (isEditing) {
     return (
-      <div className="border-2 border-dashed border-[#a63d40] p-3 mb-3 bg-[#fffdf9] rounded-lg text-[#2c221e]">
+      <div className="border-2 border-dashed border-[#a63d40] p-3 mb-3 bg-[#fffdf9] rounded text-[#2c221e]">
         <div className="flex items-center gap-2 mb-2"><span className="text-xs font-bold text-[#6b5a4b]">編輯名稱：</span><input type="text" className="flex-1 bg-[#fbf7ee] border border-[#d6c7ab] p-1.5 rounded text-sm text-[#2c221e] font-bold outline-none focus:border-[#3c2415]" value={editName} onChange={(e) => setEditName(e.target.value)} /></div>
 
         {skill.category === 'attack' && (

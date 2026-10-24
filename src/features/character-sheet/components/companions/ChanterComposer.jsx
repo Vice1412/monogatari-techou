@@ -92,11 +92,11 @@ export default function ChanterComposer({
   };
 
   return (
-    <div className="p-3.5 rounded-2xl bg-[#fffdf9] border border-[#d6c7ab] space-y-3">
+    <div className="p-3.5 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-3">
       {/* 頂部標題列 */}
       <div className="flex items-center justify-between border-b border-[#d6c7ab]/60 pb-2">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-[#5e387c] text-white flex items-center justify-center shadow-2xs">
+          <div className="w-6 h-6 rounded bg-[#5e387c] text-white flex items-center justify-center shadow-2xs">
             <GiMusicalNotes className="w-3.5 h-3.5" />
           </div>
           <div>
@@ -109,7 +109,7 @@ export default function ChanterComposer({
           </div>
         </div>
 
-        <div className="text-t11 font-mono font-bold px-2 py-0.5 rounded-lg bg-[#f4ebd9] text-[#5e387c] border border-[#d6c7ab]">
+        <div className="text-t11 font-mono font-bold px-2 py-0.5 rounded bg-[#f4ebd9] text-[#5e387c] border border-[#d6c7ab]">
           當前 MP: {currentMp}
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function ChanterComposer({
       {/* 選擇欄位 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
         {/* ① 選擇音量 */}
-        <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-[#d6c7ab]">
+        <div className="space-y-1.5 bg-white/80 p-2 rounded border border-[#d6c7ab]">
           <div className="font-bold text-t11 text-[#5e387c] flex items-center justify-between">
             <span>① 選擇音量</span>
             <span className="text-t10 text-[#6b5a4b]">消耗與目標</span>
@@ -130,7 +130,7 @@ export default function ChanterComposer({
                   key={vol.id}
                   type="button"
                   onClick={() => setSelectedVolId(vol.id)}
-                  className={`px-2 py-1.5 rounded-lg text-left transition-all flex items-center justify-between cursor-pointer ${
+                  className={`px-2 py-1.5 rounded text-left transition-all flex items-center justify-between cursor-pointer ${
                     isSelected
                       ? 'bg-[#5e387c] text-white font-bold shadow-xs'
                       : 'bg-[#f4ebd9]/60 hover:bg-[#f4ebd9]/80 text-[#5e387c] border border-[#d6c7ab]'
@@ -147,7 +147,7 @@ export default function ChanterComposer({
         </div>
 
         {/* ② 選擇音調 */}
-        <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-[#d6c7ab]">
+        <div className="space-y-1.5 bg-white/80 p-2 rounded border border-[#d6c7ab]">
           <div className="font-bold text-t11 text-[#9c4d16] flex items-center justify-between">
             <span>② 選擇音調</span>
             <span className="text-t10 text-[#6b5a4b]">已掌握</span>
@@ -161,7 +161,7 @@ export default function ChanterComposer({
                   key={kName}
                   type="button"
                   onClick={() => setSelectedKeyName(kName)}
-                  className={`px-2 py-1.5 rounded-lg text-left transition-all flex items-center justify-between cursor-pointer ${
+                  className={`px-2 py-1.5 rounded text-left transition-all flex items-center justify-between cursor-pointer ${
                     isSelected
                       ? 'bg-[#9c4d16] text-white font-bold shadow-xs'
                       : 'bg-[#f4ebd9]/60 hover:bg-[#f4ebd9]/80 text-[#9c4d16] border border-[#d6c7ab]'
@@ -180,7 +180,7 @@ export default function ChanterComposer({
         </div>
 
         {/* ③ 選擇曲風 */}
-        <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-[#d6c7ab]">
+        <div className="space-y-1.5 bg-white/80 p-2 rounded border border-[#d6c7ab]">
           <div className="font-bold text-t11 text-[#5e387c] flex items-center justify-between">
             <span>③ 選擇曲風</span>
             <span className="text-t10 text-[#6b5a4b]">已掌握</span>
@@ -193,7 +193,7 @@ export default function ChanterComposer({
                   key={tName}
                   type="button"
                   onClick={() => setSelectedToneName(tName)}
-                  className={`px-2 py-1.5 rounded-lg text-left transition-all flex items-center justify-between cursor-pointer ${
+                  className={`px-2 py-1.5 rounded text-left transition-all flex items-center justify-between cursor-pointer ${
                     isSelected
                       ? 'bg-[#5e387c] text-white font-bold shadow-xs'
                       : 'bg-[#f4ebd9]/60 hover:bg-[#f4ebd9]/80 text-[#5e387c] border border-[#d6c7ab]'
@@ -210,7 +210,7 @@ export default function ChanterComposer({
 
       {/* 合成結果預覽展示卡 */}
       {currentSong && (
-        <div className="p-3 bg-white rounded-xl border-2 border-[#5e387c] space-y-2">
+        <div className="p-3 bg-white rounded border-2 border-[#5e387c] space-y-2">
           {/* 歌名與數據標籤 */}
           <div className="flex items-center justify-between gap-2 flex-wrap border-b border-[#d6c7ab] pb-2">
             <div className="flex items-center gap-1.5">
@@ -249,7 +249,7 @@ export default function ChanterComposer({
           )}
 
           {/* 置換後的完整機制效果文本（透過 renderTextWithAffinities 帶官方字型符號高亮） */}
-          <div className="text-xs text-[#3c2415] leading-relaxed font-sans bg-[#f4ebd9]/40 p-2.5 rounded-lg border border-[#d6c7ab]/80">
+          <div className="text-xs text-[#3c2415] leading-relaxed font-sans bg-[#f4ebd9]/40 p-2.5 rounded border border-[#d6c7ab]/80">
             {renderTextWithAffinities(currentSong.composedEffect)}
           </div>
 
@@ -258,7 +258,7 @@ export default function ChanterComposer({
             <button
               type="button"
               onClick={handleCopySong}
-              className="px-3 py-1.5 rounded-lg bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
             >
               {copied ? <GiCheckMark className="w-3.5 h-3.5 text-[#245c45]" /> : null}
               <span>{copied ? '已複製！' : '複製歌曲效果'}</span>
@@ -268,7 +268,7 @@ export default function ChanterComposer({
               type="button"
               onClick={handlePerformSong}
               disabled={!isMpSufficient}
-              className={`px-4 py-1.5 rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer ${
+              className={`px-4 py-1.5 rounded font-bold text-xs transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer ${
                 isMpSufficient
                   ? 'bg-[#5e387c] hover:bg-[#4f2e67] text-white shadow-[#3c2415]/30'
                   : 'bg-[#e8dcc4] text-[#7c6a58] cursor-not-allowed'

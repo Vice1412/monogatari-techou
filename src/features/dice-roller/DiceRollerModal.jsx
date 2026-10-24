@@ -71,7 +71,7 @@ export default function DiceRollerModal({
       <div className="space-y-5">
         {/* Dice selectors */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-[#f4ebd9] p-3 rounded-xl border border-[#d6c7ab] flex flex-col items-center gap-1.5">
+          <div className="bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab] flex flex-col items-center gap-1.5">
             <span className="text-xs text-[#6b5a4b] font-medium">第一顆骰階</span>
             <div className="flex gap-1">
               {DICE_TIERS.map(d => (
@@ -91,7 +91,7 @@ export default function DiceRollerModal({
             </div>
           </div>
 
-          <div className="bg-[#f4ebd9] p-3 rounded-xl border border-[#d6c7ab] flex flex-col items-center gap-1.5">
+          <div className="bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab] flex flex-col items-center gap-1.5">
             <span className="text-xs text-[#6b5a4b] font-medium">第二顆骰階</span>
             <div className="flex gap-1">
               {DICE_TIERS.map(d => (
@@ -113,7 +113,7 @@ export default function DiceRollerModal({
         </div>
 
         {/* Modifier */}
-        <div className="flex items-center justify-between bg-[#f4ebd9] p-3 rounded-xl border border-[#d6c7ab] text-xs">
+        <div className="flex items-center justify-between bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab] text-xs">
           <span className="text-[#2c221e] font-medium">檢定固定加值</span>
           <div className="flex items-center gap-2">
             <button
@@ -148,7 +148,7 @@ export default function DiceRollerModal({
 
         {/* Results Box */}
         {rollResult && (
-          <div className={`p-4 rounded-xl border flex flex-col items-center gap-2 text-center transition-all ${
+          <div className={`p-4 rounded border flex flex-col items-center gap-2 text-center transition-all ${
             rollResult.isCritical
               ? 'bg-[#f9f5eb] border-[#3c2415] shadow-md'
               : rollResult.isFumble
@@ -169,19 +169,19 @@ export default function DiceRollerModal({
 
             {/* Dice Values */}
             <div className="flex items-center gap-4 my-1">
-              <div className="w-14 h-14 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
+              <div className="w-14 h-14 rounded bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
                 <span className="text-t10 text-[#7c6a58]">d{die1Type}</span>
                 <span className="text-2xl font-bold text-[#2c221e]">{rollResult.die1}</span>
               </div>
               <span className="text-[#7c6a58] font-mono text-xl font-bold">+</span>
-              <div className="w-14 h-14 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
+              <div className="w-14 h-14 rounded bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
                 <span className="text-t10 text-[#7c6a58]">d{die2Type}</span>
                 <span className="text-2xl font-bold text-[#2c221e]">{rollResult.die2}</span>
               </div>
               {rollResult.modifier !== 0 && (
                 <>
                   <span className="text-[#7c6a58] font-mono text-xl font-bold">+</span>
-                  <div className="w-10 h-10 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] flex items-center justify-center font-mono text-[#3c2415] font-bold text-sm">
+                  <div className="w-10 h-10 rounded bg-[#fffdf9] border border-[#d6c7ab] flex items-center justify-center font-mono text-[#3c2415] font-bold text-sm">
                     {rollResult.modifier > 0 ? `+${rollResult.modifier}` : rollResult.modifier}
                   </div>
                 </>

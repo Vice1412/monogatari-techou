@@ -25,6 +25,9 @@
  * - **不驗證像素**（截圖比對在 CI 上不穩定）。驗的是**設計令牌的值**與**原始碼的類別字串**。
  * - **不要求全站零 `rounded-xl`**：`tailwind.config.js` 已把圓角階梯收斂成 2/3/4px，
  *   舊類別名會被設定層夾住，逐檔改名只是製造 diff。
+ *   **→ 第三十六輪推翻這條**（見 H34 段）：夾住值不等於收斂名字。設定層留著
+ *   `lg`／`xl`／`2xl` 三個鍵，就等於留三份可以各自漂移的定義；而「渲染層是 3–4px
+ *   不是 2px」這件事，被這句「已夾住」安撫了三十五輪。現在是零。
  * - **不掃註解**：註解裡出現 `animate-pulse` 這種字是「說明規則」，不是「違反規則」。
  *   所有原始碼掃描都先剝掉註解。
  */
@@ -125,7 +128,7 @@ for (const [name, needle] of [
   ['高度階梯 e2', "e2: '0 2px"],
   ['高度階梯 e3', "e3: '0 4px"],
   ['圓角 DEFAULT 2px', "DEFAULT: '2px'"],
-  ['圓角上限 book 4px', "book: '4px'"],
+  ['圓角全圓 full', "full: '9999px'"],
 ]) {
   check(name, tailwind.includes(needle));
 }
@@ -231,7 +234,8 @@ const SHELL_FILES = [
  * - `shadow-2xl`：誇張陰影（v5 的層級靠冷暖，不靠陰影）——2026-10-23 已全數換成 `shadow-e3`，天花板歸零
  * - `bg-gradient-to`：漸層填色（v5 硬邊）
  * - `hover:scale-`：彈性動效（120–200ms 色彩過渡才是本專案語彙）
- * - `rounded-lg/xl/2xl`：超出圓角階梯的類別名（改用 `rounded-ui`／`rounded-book`）
+ * - `rounded-lg/xl/2xl`：超出圓角階梯的類別名（第三十六輪起，這些名字連同
+ *   `sm`／`md`／`ui`／`book` 一起從設定層移除，只剩 `rounded` 與 `rounded-full`）
  * - `font-mono`：中文標籤配等寬字（等寬字是給數值與程式碼的）
  * - `book-cover-leather`／`text-sky-100`：GM 已否決的深藍皮革＋淺藍白字封面
  */
@@ -241,7 +245,7 @@ const BANNED = [
   ['shadow-2xl', /shadow-2xl/],
   ['bg-gradient-to', /bg-gradient-to/],
   ['hover:scale-', /hover:scale-/],
-  ['rounded-lg/xl/2xl', /rounded-(?:lg|xl|2xl)/],
+  ['圓角舊階或任意值', /rounded-(?:sm|md|lg|xl|2xl|3xl|book|ui)\b|rounded-\[[^\]]+\]/],
   ['font-mono', /font-mono/],
   ['text-sky-100 淺藍白字', /text-sky-100/],
   ['book-cover-leather', /book-cover-leather/],
@@ -2493,7 +2497,7 @@ check(
 // 它們現在都必須走 `WarningNote`。
 const OLD_WARNING_SHAPES = [
   'border-l-4 border-[#3c2415] p-4 rounded',
-  'p-4 rounded-xl flex gap-3 items-start relative overflow-hidden',
+  'p-4 rounded flex gap-3 items-start relative overflow-hidden',
 ];
 const oldWarnLeft = [];
 for (const abs of walkSrc(path.join(ROOT, 'src'))) {
@@ -3323,6 +3327,115 @@ check(
   'H32-d 工坊會讀的欄位全部投影出來了（不缺欄位）',
   workshopMissingKeys.length === 0,
   workshopMissingKeys.length ? `缺 ${workshopMissingKeys.join('、')}（會渲染成 undefined 色）` : `${WORKSHOP_USED_KEYS.length} 個欄位齊備`
+);
+
+/* ────────────────────────────────────────────────────────────────
+   H34 家族：圓角只有一個值、一個名字（2026-10-24 第三十六輪 §CI44）
+
+   這一條的起點是**推翻第一輪自己的裁決**。第一輪把 `xl` 從 12px 夾到 3px，
+   然後寫下「不要求全站零 `rounded-xl`，逐檔改名只是製造 diff」——
+   於是設定層留著 `md`／`lg`／`xl`／`2xl`／`3xl`／`book` 六個名字，
+   而「渲染層不是 2px」這件事被那句「已夾住」安撫了三十五輪。
+
+   實測（CDP，兩個畫面共 344 個元素）：角半徑落在 3px 的 11 個、4px 的 10 個。
+   不是「幾乎都是 2px」，是**每十六個元素就有一個的角落比規則圓**。
+
+   判準與第三十五輪的 `workshopThemes` 相同：同一個值有四個名字，
+   那不是階梯，是四份可以各自漂移的定義。收斂成一個名字之後，
+   `rounded-lg` 在設定層**不存在**——它不會得到 3px，也不會得到 Tailwind 預設的 8px，
+   它什麼都不會得到（角落是方的）。錯得看得見，比錯得剛好看起來像設計過容易修。
+   ──────────────────────────────────────────────────────────────── */
+console.log('\n[H34] 圓角：一個值一個名字');
+
+// H34：退役的圓角名字與任意值，全站硬零（掃形狀，不是掃某個字面值）。
+// 注意單邊前綴（`rounded-t-lg`）：只寫 `rounded-(lg|xl)` 會漏掉它們，
+// 而第三十六輪實際套用時，單邊的正好有 12 處。
+const RETIRED_RADIUS = /rounded(?:-(?:t|b|l|r|tl|tr|bl|br))?-(?:sm|md|lg|xl|2xl|3xl|book|ui)\b|rounded-\[[^\]]+\]/g;
+const radiusLeft = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const code = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const m of code.matchAll(RETIRED_RADIUS)) radiusLeft.push(`${rel} → ${m[0]}`);
+}
+check(
+  'H34 全站零退役圓角名字與任意值（只剩 rounded／rounded-full）',
+  radiusLeft.length === 0,
+  radiusLeft.length ? `${radiusLeft.length} 處：${radiusLeft.slice(0, 3).join('、')}` : '0 處'
+);
+
+// H34-a：設定層只有兩個鍵，而且沒有兩個鍵同值（一對一）。
+// 這條擋的是「再加一個 lg: '2px'」——值對、名字多一個，仍然是一份可以漂移的第二定義。
+const radiusBlock = (() => {
+  const i = tailwind.indexOf('borderRadius:');
+  if (i === -1) return '';
+  let depth = 0;
+  let started = false;
+  for (let j = i; j < tailwind.length; j += 1) {
+    if (tailwind[j] === '{') { depth += 1; started = true; }
+    else if (tailwind[j] === '}') { depth -= 1; if (started && depth === 0) return tailwind.slice(i, j + 1); }
+  }
+  return '';
+})();
+const radiusEntries = [...radiusBlock.matchAll(/^\s*'?([A-Za-z0-9-]+)'?:\s*'([^']+)'/gm)].map((m) => [m[1], m[2]]);
+check(
+  'H34-a 圓角設定層恰好兩個鍵（DEFAULT／full）',
+  radiusEntries.length === 2,
+  radiusEntries.length ? radiusEntries.map(([k, v]) => `${k}=${v}`).join('／') : '找不到 borderRadius 區塊'
+);
+const radiusValues = radiusEntries.map(([, v]) => v);
+check(
+  'H34-a2 沒有兩個鍵指向同一個值（一個值一個名字）',
+  new Set(radiusValues).size === radiusValues.length,
+  radiusValues.join('／')
+);
+
+// H34-b：上限。任何 px 值都必須 ≤ 2；`full` 是唯一的例外（全圓不是角半徑）。
+const radiusOver = radiusEntries.filter(([k, v]) => k !== 'full' && /px$/.test(v) && parseFloat(v) > 2);
+check(
+  'H34-b 圓角上限 2px（full 是全圓，不在此限）',
+  radiusOver.length === 0,
+  radiusOver.length ? radiusOver.map(([k, v]) => `${k}=${v}`).join('、') : '全部 ≤ 2px'
+);
+
+// H34-c：反向控制——全圓還在，預設圓角還在。
+// 沒有這一條，「把 rounded-full 全部改成 rounded」也會讓 H34 綠燈（角落全方），
+// 而畫面上每一個圓形頭像、狀態點、膠囊晶片都會變成方塊。
+//
+// ⚠️ 門檻是**當下實測值**，不是「差不多就好」。
+// 第一版寫 `>= 90`（實測 98），刻意留了 8 的餘裕——結果故意破壞第 ⑧ 案
+// 「把一個檔案的 rounded-full 全部改成 rounded」只掉了 15 個中的一部分，
+// 總數 98 → 83，**沒過門檻也沒紅**。反向控制的餘裕就是它的盲區。
+// 現在兩條都是 `>= 當下值`：只能增，不能減；要減就必須來改這個數字（也就是做一次決定）。
+const allSrcRadius = walkSrc(path.join(ROOT, 'src'))
+  .map((abs) => stripComments(fs.readFileSync(abs, 'utf8')))
+  .join('\n');
+const fullRoundUses = (allSrcRadius.match(/\brounded-full\b/g) || []).length;
+const bareRoundUses = (allSrcRadius.match(/\brounded\b(?!-)/g) || []).length;
+check(
+  'H34-c 全圓仍在服役（反向控制，不得減少）',
+  fullRoundUses >= 98,
+  `${fullRoundUses} 處（收斂前 98）`
+);
+check(
+  'H34-c2 預設圓角仍是全站主體（反向控制，不得減少）',
+  bareRoundUses >= 1380,
+  `${bareRoundUses} 處`
+);
+
+// H34-d：CSS 層也不准有別的角半徑。`inherit`（focus 外框跟著宿主）與
+// `var(--r)`（`.ui-panel`、捲軸）是引用不是宣告，另外 `--r` 本身必須是 2px。
+const cssRadiusDecls = [...css.matchAll(/border-radius:\s*([^;]+);/g)].map((m) => m[1].trim());
+const cssRadiusBad = cssRadiusDecls.filter((v) => !/^(inherit|var\(--r\)|0|2px)$/.test(v));
+check(
+  'H34-d CSS 層沒有第二種角半徑（inherit／var(--r)／2px）',
+  cssRadiusBad.length === 0,
+  cssRadiusBad.length ? cssRadiusBad.join('、') : `${cssRadiusDecls.length} 處宣告，全部合格`
+);
+const rVars = [...css.matchAll(/--r:\s*([^;]+);/g)].map((m) => m[1].trim());
+check(
+  'H34-d2 --r 是 2px（CSS 層的唯一來源）',
+  rVars.length > 0 && rVars.every((v) => v === '2px'),
+  rVars.join('／')
 );
 
 const failed = results.filter((r) => !r.ok);

@@ -73,7 +73,7 @@ export default function CharacterPreviewModal({
                 key={key}
                 type="button"
                 onClick={() => setTab(key)}
-                className="text-t11 font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer"
+                className="text-t11 font-bold px-2.5 py-1 rounded border transition-all cursor-pointer"
                 style={{
                   backgroundColor: active ? theme?.accent : theme?.panelBg,
                   borderColor: theme?.border,

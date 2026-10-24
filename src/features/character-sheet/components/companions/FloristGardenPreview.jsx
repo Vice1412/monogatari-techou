@@ -49,7 +49,7 @@ export default function FloristGardenPreview({
   return (
     <div
       data-testid="florist-garden-preview"
-      className="mt-2 p-2.5 rounded-xl bg-[#f4ebd9]/70 border border-[#d6c7ab]/90 space-y-2"
+      className="mt-2 p-2.5 rounded bg-[#f4ebd9]/70 border border-[#d6c7ab]/90 space-y-2"
     >
       {/* 標題列 ＋ 規則速查入口 */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -66,7 +66,7 @@ export default function FloristGardenPreview({
             type="button"
             onClick={() => openRuleCodex(skillName)}
             title={`開啟規則速查「${codexRule.title}」（${codexRule.page}）`}
-            className="text-t10 font-bold px-2 py-0.5 rounded-lg border border-[#245c45] bg-white text-[#245c45] hover:bg-[#f4ebd9] transition-colors cursor-pointer flex items-center gap-1"
+            className="text-t10 font-bold px-2 py-0.5 rounded border border-[#245c45] bg-white text-[#245c45] hover:bg-[#f4ebd9] transition-colors cursor-pointer flex items-center gap-1"
           >
             <GiBookCover className="w-3 h-3" />
             <span>規則速查：{codexRule.title}</span>
@@ -90,7 +90,7 @@ export default function FloristGardenPreview({
               type="button"
               onClick={() => setPreviewClock(t)}
               title={`預覽生長命刻 ${t} 格時生效的效果`}
-              className={`w-6 h-6 rounded-md border text-t11 font-mono font-bold transition-colors cursor-pointer ${
+              className={`w-6 h-6 rounded border text-t11 font-mono font-bold transition-colors cursor-pointer ${
                 previewClock === t
                   ? 'bg-[#245c45] border-[#245c45] text-white'
                   : 'bg-white border-[#d6c7ab] text-[#245c45] hover:bg-[#f4ebd9]'
@@ -115,7 +115,7 @@ export default function FloristGardenPreview({
             return (
               <div
                 key={seed.id || seed.name}
-                className="p-1.5 rounded-lg bg-white border border-[#d6c7ab]/80 space-y-0.5"
+                className="p-1.5 rounded bg-white border border-[#d6c7ab]/80 space-y-0.5"
               >
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="font-serif font-bold text-t11 text-[#245c45]">

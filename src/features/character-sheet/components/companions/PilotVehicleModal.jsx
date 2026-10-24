@@ -239,12 +239,12 @@ export default function PilotVehicleModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded-2xl bg-white border border-[#d6c7ab] shadow-e3 overflow-hidden text-[#3c2415]">
+      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded bg-white border border-[#d6c7ab] shadow-e3 overflow-hidden text-[#3c2415]">
         
         {/* 頂部 Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#d6c7ab] bg-[#fbf7ee] flex-wrap gap-2">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 rounded-xl bg-[#27527a]/10 text-[#27527a]">
+            <div className="p-2 rounded bg-[#27527a]/10 text-[#27527a]">
               <GiSteeringWheel className="text-xl" />
             </div>
             <div>
@@ -268,12 +268,12 @@ export default function PilotVehicleModal({
               value={formData.name}
               onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="載具自訂名稱"
-              className="px-2.5 py-1 text-xs rounded-lg border border-[#d6c7ab] bg-white font-bold outline-none focus:border-[#27527a] w-36"
+              className="px-2.5 py-1 text-xs rounded border border-[#d6c7ab] bg-white font-bold outline-none focus:border-[#27527a] w-36"
             />
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg text-[#7c6a58] hover:text-[#3c2415] hover:bg-[#e8dcc4] transition"
+              className="p-1.5 rounded text-[#7c6a58] hover:text-[#3c2415] hover:bg-[#e8dcc4] transition"
               title="關閉"
             >
               <GiCancel className="text-base" />
@@ -327,7 +327,7 @@ export default function PilotVehicleModal({
           <button
             type="button"
             onClick={() => setFormData(prev => ({ ...prev, isMounted: !prev.isMounted }))}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${ formData.isMounted ? 'bg-[#27527a] text-white shadow-xs' : 'bg-[#e8dcc4] text-[#6b5a4b] hover:bg-[#d6c7ab]' }`}
+            className={`px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1.5 transition ${ formData.isMounted ? 'bg-[#27527a] text-white shadow-xs' : 'bg-[#e8dcc4] text-[#6b5a4b] hover:bg-[#d6c7ab]' }`}
           >
             <GiSteeringWheel className="text-xs" />
             <span>{formData.isMounted ? '駕駛中' : '步行中'}</span>
@@ -363,7 +363,7 @@ export default function PilotVehicleModal({
                     key={f.id}
                     type="button"
                     onClick={() => handleSelectFrame(f.id)}
-                    className={`p-3.5 rounded-xl text-left border transition relative flex flex-col justify-between space-y-2 ${ isSelected ? 'border-[#27527a] bg-[#f4ebd9]/60 ring-1 ring-[#27527a]' : 'border-[#d6c7ab] bg-white hover:border-[#d6c7ab] ' }`}
+                    className={`p-3.5 rounded text-left border transition relative flex flex-col justify-between space-y-2 ${ isSelected ? 'border-[#27527a] bg-[#f4ebd9]/60 ring-1 ring-[#27527a]' : 'border-[#d6c7ab] bg-white hover:border-[#d6c7ab] ' }`}
                   >
                     <div>
                       <div className="flex items-center justify-between mb-1">
@@ -400,25 +400,25 @@ export default function PilotVehicleModal({
                 <span>2. 載具模組庫配置（勾選「解鎖」加入庫存，切換「啟用」裝載於載具）</span>
               </h3>
 
-              <div className="flex items-center gap-1 bg-[#f4ebd9] p-0.5 rounded-lg text-xs font-bold">
+              <div className="flex items-center gap-1 bg-[#f4ebd9] p-0.5 rounded text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => setActiveTab('weapons')}
-                  className={`px-3 py-1 rounded-md transition ${ activeTab === 'weapons' ? 'bg-white text-[#27527a] shadow-2xs' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
+                  className={`px-3 py-1 rounded transition ${ activeTab === 'weapons' ? 'bg-white text-[#27527a] shadow-2xs' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
                 >
                   武裝模組 (17)
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('armor')}
-                  className={`px-3 py-1 rounded-md transition ${ activeTab === 'armor' ? 'bg-white text-[#27527a] shadow-2xs' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
+                  className={`px-3 py-1 rounded transition ${ activeTab === 'armor' ? 'bg-white text-[#27527a] shadow-2xs' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
                 >
                   防具模組 (4)
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('support')}
-                  className={`px-3 py-1 rounded-md transition ${ activeTab === 'support' ? 'bg-white text-[#27527a] shadow-2xs' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
+                  className={`px-3 py-1 rounded transition ${ activeTab === 'support' ? 'bg-white text-[#27527a] shadow-2xs' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
                 >
                   支援模組 (14)
                 </button>
@@ -436,7 +436,7 @@ export default function PilotVehicleModal({
                   return (
                     <div
                       key={w.id}
-                      className={`p-3 rounded-xl border transition flex flex-col justify-between space-y-2 ${ isActive ? 'border-[#27527a] bg-[#f4ebd9]/40 ' : isUnlocked ? 'border-[#d6c7ab] bg-white ' : 'border-[#d6c7ab] bg-[#fbf7ee]/50 opacity-75' }`}
+                      className={`p-3 rounded border transition flex flex-col justify-between space-y-2 ${ isActive ? 'border-[#27527a] bg-[#f4ebd9]/40 ' : isUnlocked ? 'border-[#d6c7ab] bg-white ' : 'border-[#d6c7ab] bg-[#fbf7ee]/50 opacity-75' }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -482,7 +482,7 @@ export default function PilotVehicleModal({
                             type="button"
                             disabled={!isUnlocked || isRestricted}
                             onClick={() => handleToggleActive(w.id)}
-                            className={`px-2.5 py-1 rounded-md text-t11 font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked && !isRestricted ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
+                            className={`px-2.5 py-1 rounded text-t11 font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked && !isRestricted ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
                           >
                             {isActive ? '已啟用' : '啟用'}
                           </button>
@@ -511,7 +511,7 @@ export default function PilotVehicleModal({
                   return (
                     <div
                       key={a.id}
-                      className={`p-3 rounded-xl border transition flex items-center justify-between gap-3 ${ isActive ? 'border-[#27527a] bg-[#f4ebd9]/40 ' : isUnlocked ? 'border-[#d6c7ab] bg-white ' : 'border-[#d6c7ab] bg-[#fbf7ee]/50 opacity-75' }`}
+                      className={`p-3 rounded border transition flex items-center justify-between gap-3 ${ isActive ? 'border-[#27527a] bg-[#f4ebd9]/40 ' : isUnlocked ? 'border-[#d6c7ab] bg-white ' : 'border-[#d6c7ab] bg-[#fbf7ee]/50 opacity-75' }`}
                     >
                       <div>
                         <strong className="text-xs font-bold text-[#2c221e] block">
@@ -538,7 +538,7 @@ export default function PilotVehicleModal({
                           type="button"
                           disabled={!isUnlocked}
                           onClick={() => handleToggleActive(a.id)}
-                          className={`px-2.5 py-1 rounded-md text-t11 font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
+                          className={`px-2.5 py-1 rounded text-t11 font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
                         >
                           {isActive ? '已啟用' : '啟用'}
                         </button>
@@ -560,7 +560,7 @@ export default function PilotVehicleModal({
                   return (
                     <div
                       key={s.id}
-                      className={`p-3 rounded-xl border transition flex flex-col justify-between space-y-2 ${ isActive ? 'border-[#27527a] bg-[#f4ebd9]/40 ' : isUnlocked ? 'border-[#d6c7ab] bg-white ' : 'border-[#d6c7ab] bg-[#fbf7ee]/50 opacity-75' }`}
+                      className={`p-3 rounded border transition flex flex-col justify-between space-y-2 ${ isActive ? 'border-[#27527a] bg-[#f4ebd9]/40 ' : isUnlocked ? 'border-[#d6c7ab] bg-white ' : 'border-[#d6c7ab] bg-[#fbf7ee]/50 opacity-75' }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -597,7 +597,7 @@ export default function PilotVehicleModal({
                             type="button"
                             disabled={!isUnlocked || isRestricted}
                             onClick={() => handleToggleActive(s.id)}
-                            className={`px-2.5 py-1 rounded-md text-t11 font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked && !isRestricted ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
+                            className={`px-2.5 py-1 rounded text-t11 font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked && !isRestricted ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
                           >
                             {isActive ? '已啟用' : '啟用'}
                           </button>
@@ -659,7 +659,7 @@ export default function PilotVehicleModal({
           <button
             type="button"
             onClick={handleReset}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold text-[#6b5a4b] hover:text-[#3c2415] hover:bg-[#e8dcc4] transition"
+            className="px-3 py-1.5 rounded text-xs font-bold text-[#6b5a4b] hover:text-[#3c2415] hover:bg-[#e8dcc4] transition"
           >
             清空已選配置
           </button>
@@ -668,14 +668,14 @@ export default function PilotVehicleModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-1.5 rounded-lg text-xs font-bold border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] transition"
+              className="px-4 py-1.5 rounded text-xs font-bold border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] transition"
             >
               取消返回
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="px-5 py-1.5 rounded-lg text-xs font-bold bg-[#27527a] hover:bg-[#214365] text-white shadow-xs flex items-center gap-1.5 transition"
+              className="px-5 py-1.5 rounded text-xs font-bold bg-[#27527a] hover:bg-[#214365] text-white shadow-xs flex items-center gap-1.5 transition"
             >
               <GiCheckMark className="text-xs" />
               <span>確認並儲存載具配置</span>

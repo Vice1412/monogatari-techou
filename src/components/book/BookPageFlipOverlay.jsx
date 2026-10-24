@@ -45,9 +45,9 @@ export default function BookPageFlipOverlay({ direction, targetChapter, onAnimat
       }`}>
         
         {/* Underneath Page: The Interior Parchment Page (內頁底紙 - 琉璃白玉質感) */}
-        <div className={`absolute w-[90%] sm:w-[85%] h-full rounded-2xl ${theme.bg} border-2 ${theme.border} shadow-e3 p-8 sm:p-12 flex flex-col justify-between overflow-hidden`}>
+        <div className={`absolute w-[90%] sm:w-[85%] h-full rounded ${theme.bg} border-2 ${theme.border} shadow-e3 p-8 sm:p-12 flex flex-col justify-between overflow-hidden`}>
           {/* Parchment Texture & Subtle Filigree */}
-          <div className={`absolute inset-4 border ${theme.innerBorder} rounded-xl pointer-events-none`} />
+          <div className={`absolute inset-4 border ${theme.innerBorder} rounded pointer-events-none`} />
           
           <div className={`flex items-center justify-between border-b ${theme.headerBorder} pb-4`}>
             <div className="flex items-center gap-2">
@@ -73,7 +73,7 @@ export default function BookPageFlipOverlay({ direction, targetChapter, onAnimat
 
         {/* The 3D Turning Page Leaf (翻動之書頁/封面) */}
         <div
-          className={`absolute left-[5%] sm:left-[7.5%] w-[90%] sm:w-[85%] h-full rounded-2xl transform-style-3d ${
+          className={`absolute left-[5%] sm:left-[7.5%] w-[90%] sm:w-[85%] h-full rounded transform-style-3d ${
             isOpening ? 'animate-page-turn-forward' : 'animate-page-turn-reverse'
           }`}
           style={{
@@ -81,7 +81,7 @@ export default function BookPageFlipOverlay({ direction, targetChapter, onAnimat
           }}
         >
           {/* Front of the turning leaf (Outer Cover) */}
-          <div className="absolute inset-0 rounded-2xl book-cover-leather border-2 border-[#d6c7ab]/70 shadow-e3 backface-hidden p-8 flex flex-col justify-between overflow-hidden">
+          <div className="absolute inset-0 rounded book-cover-leather border-2 border-[#d6c7ab]/70 shadow-e3 backface-hidden p-8 flex flex-col justify-between overflow-hidden">
             {/* Corner Ornaments */}
             <div className="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-[#d6c7ab]" />
             <div className="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 border-[#d6c7ab]" />
@@ -92,7 +92,7 @@ export default function BookPageFlipOverlay({ direction, targetChapter, onAnimat
               <img
                 src={appIcon}
                 alt="物語手帳"
-                className="w-16 h-16 rounded-2xl border-2 border-[#d6c7ab] mx-auto mb-4 bg-[#3c2415] p-1.5 shadow-xl"
+                className="w-16 h-16 rounded border-2 border-[#d6c7ab] mx-auto mb-4 bg-[#3c2415] p-1.5 shadow-xl"
               />
               <h2 className="text-2xl sm:text-3xl font-serif font-black gold-text-emboss tracking-widest">
                 《物語手帳》
@@ -105,7 +105,7 @@ export default function BookPageFlipOverlay({ direction, targetChapter, onAnimat
 
           {/* Back of the turning leaf (Reverse side of page: parchment) */}
           <div
-            className={`absolute inset-0 rounded-2xl ${theme.backBg} border-2 ${theme.backBorder} p-8 flex flex-col justify-between shadow-e3 backface-hidden`}
+            className={`absolute inset-0 rounded ${theme.backBg} border-2 ${theme.backBorder} p-8 flex flex-col justify-between shadow-e3 backface-hidden`}
             style={{
               transform: 'rotateY(180deg)'
             }}
@@ -122,7 +122,7 @@ export default function BookPageFlipOverlay({ direction, targetChapter, onAnimat
         </div>
 
         {/* Dynamic Page Turning Shadow Overlay */}
-        <div className="absolute inset-0 pointer-events-none page-shadow-overlay-open rounded-2xl" />
+        <div className="absolute inset-0 pointer-events-none page-shadow-overlay-open rounded" />
       </div>
     </div>
   );

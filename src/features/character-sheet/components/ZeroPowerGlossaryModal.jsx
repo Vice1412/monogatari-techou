@@ -70,7 +70,7 @@ export function ZeroPowerGlossaryBody({
   return (
     <div className="space-y-3" data-testid="zero-power-glossary">
       {/* 說明卡 */}
-      <div className="rounded-xl border p-2.5" style={{ borderColor: border, backgroundColor: panelBg }}>
+      <div className="rounded border p-2.5" style={{ borderColor: border, backgroundColor: panelBg }}>
         <div className="flex items-start justify-between gap-2 flex-wrap">
           <div className="space-y-1">
             <span
@@ -99,7 +99,7 @@ export function ZeroPowerGlossaryBody({
               key={tab.id}
               type="button"
               onClick={() => onTabChange(tab.id)}
-              className="px-3 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap border cursor-pointer"
+              className="px-3 py-1 rounded text-xs font-bold transition-all whitespace-nowrap border cursor-pointer"
               style={
                 isActive
                   ? { backgroundColor: accent, borderColor: accentDark, color: '#fffdf9' }
@@ -119,7 +119,7 @@ export function ZeroPowerGlossaryBody({
           return (
             <div
               key={item.id}
-              className="rounded-xl border p-2.5 space-y-1.5 transition-all"
+              className="rounded border p-2.5 space-y-1.5 transition-all"
               style={{
                 borderColor: isPicked ? accent : border,
                 backgroundColor: isPicked ? accentLight : cardBg

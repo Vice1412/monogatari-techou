@@ -45,7 +45,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
   };
 
   return (
-    <div className="p-3.5 rounded-2xl bg-white border border-[#d6c7ab] space-y-2">
+    <div className="p-3.5 rounded bg-white border border-[#d6c7ab] space-y-2">
       <div className="flex items-center justify-between text-xs">
         <span className="font-bold text-[#3c2415] flex items-center gap-1">
           <GiGraveFlowers className="w-3.5 h-3.5 text-[#6b5a4b]" />
@@ -66,7 +66,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
           return (
             <div
               key={resource.id}
-              className="flex items-center gap-2 flex-wrap p-2 rounded-xl bg-[#f4ebd9] border border-[#d6c7ab]"
+              className="flex items-center gap-2 flex-wrap p-2 rounded bg-[#f4ebd9] border border-[#d6c7ab]"
               title={resource.source ? `官方依據：${resource.source}` : undefined}
             >
               <span className="flex items-center gap-1.5 text-xs font-bold text-[#3c2415] min-w-[5.5rem]">
@@ -79,7 +79,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                 type="button"
                 disabled={atMin}
                 onClick={() => writeValue(resource, value - 1)}
-                className={`w-6 h-6 rounded-lg border text-sm leading-none font-bold transition-colors ${
+                className={`w-6 h-6 rounded border text-sm leading-none font-bold transition-colors ${
                   atMin
                     ? 'border-[#d6c7ab] text-[#c4b79c] cursor-not-allowed'
                     : 'border-[#d6c7ab] text-[#3c2415] bg-[#f9f5eb] hover:bg-[#f4ebd9] cursor-pointer'
@@ -99,7 +99,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                   min={1}
                   value={value}
                   onChange={(e) => writeValue(resource, e.target.value)}
-                  className="w-14 px-1 py-0.5 rounded-lg border border-[#d6c7ab] bg-white text-center font-mono text-sm font-black text-[#3c2415]"
+                  className="w-14 px-1 py-0.5 rounded border border-[#d6c7ab] bg-white text-center font-mono text-sm font-black text-[#3c2415]"
                 />
               )}
 
@@ -108,7 +108,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                 type="button"
                 disabled={atMax}
                 onClick={() => writeValue(resource, value + 1)}
-                className={`w-6 h-6 rounded-lg border text-sm leading-none font-bold transition-colors ${
+                className={`w-6 h-6 rounded border text-sm leading-none font-bold transition-colors ${
                   atMax
                     ? 'border-[#d6c7ab] text-[#c4b79c] cursor-not-allowed'
                     : 'border-[#d6c7ab] text-[#3c2415] bg-[#f9f5eb] hover:bg-[#f4ebd9] cursor-pointer'
@@ -125,7 +125,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                     writeValue(resource, resource.resetTo);
                     showToast(`【${resource.label}】已重置為 ${resource.resetTo}`, 'info');
                   }}
-                  className="px-2 py-1 rounded-lg border border-[#d6c7ab] bg-white text-t11 font-bold text-[#6b5a4b] hover:bg-[#e8dcc4] transition-colors cursor-pointer"
+                  className="px-2 py-1 rounded border border-[#d6c7ab] bg-white text-t11 font-bold text-[#6b5a4b] hover:bg-[#e8dcc4] transition-colors cursor-pointer"
                 >
                   {resource.resetLabel}
                 </button>

@@ -878,8 +878,8 @@ check('卡片名稱用襯線大字', blockSrc.includes('font-serif font-black te
 check('卡片名稱在窄螢幕再放大一級', blockSrc.includes('sm:text-3xl'), true);
 check('卡片頂端有浮在邊框上的徽章', blockSrc.includes('absolute -top-2.5 left-1/2 -translate-x-1/2'), true);
 check(
-  '卡片刻意不是一般淡框（不用 rounded-lg border px-2.5 py-2）',
-  blockSrc.includes('rounded-2xl'),
+  '卡片刻意不是一般淡框（不用 border px-2.5 py-2 的普通欄位形狀）',
+  blockSrc.includes('relative rounded animate-fade-in'),
   true
 );
 

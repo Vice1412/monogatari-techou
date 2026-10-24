@@ -44,7 +44,7 @@ export default function JRPGButton({
   icon: Icon,
   ...props
 }) {
-  const baseStyles = "inline-flex items-center justify-center font-bold tracking-wide transition-colors duration-150 rounded-ui select-none disabled:opacity-50 disabled:pointer-events-none";
+  const baseStyles = "inline-flex items-center justify-center font-bold tracking-wide transition-colors duration-150 rounded select-none disabled:opacity-50 disabled:pointer-events-none";
 
   const variantStyles = {
     primary: "bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] border border-[#8c3235]",

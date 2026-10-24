@@ -220,7 +220,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
 
   return (
     <div
-      className="rounded-xl border shadow-xs overflow-hidden"
+      className="rounded border shadow-xs overflow-hidden"
       style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
       data-testid="mnemosphere-section"
     >
@@ -274,7 +274,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
                       setPendingClass(e.target.value);
                       addMnemosphere(e.target.value);
                     }}
-                    className="rounded-lg px-2 py-1 text-t11 outline-none border font-bold"
+                    className="rounded px-2 py-1 text-t11 outline-none border font-bold"
                     style={inputStyle}
                     data-testid="mnemosphere-class-picker"
                   >
@@ -320,7 +320,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
               return (
                 <div
                   key={`free-slot-${index}`}
-                  className="rounded-lg border border-dashed px-2 py-1.5 flex items-center gap-2 flex-wrap"
+                  className="rounded border border-dashed px-2 py-1.5 flex items-center gap-2 flex-wrap"
                   style={{ borderColor: theme.border, backgroundColor: theme.cardBg }}
                   data-testid="free-mnemosphere-slot"
                   data-slot-index={index}
@@ -344,7 +344,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
                       setPendingClass(e.target.value);
                       addMnemosphere(e.target.value, index);
                     }}
-                    className="ml-auto rounded-lg px-2 py-1 text-t11 outline-none border font-bold"
+                    className="ml-auto rounded px-2 py-1 text-t11 outline-none border font-bold"
                     style={inputStyle}
                     data-testid="mnemosphere-class-picker"
                   >
@@ -371,7 +371,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
               return (
                 <div
                   key={m.id}
-                  className="rounded-lg border px-2 py-1.5 space-y-1"
+                  className="rounded border px-2 py-1.5 space-y-1"
                   style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
                 >
                   <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -462,7 +462,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
                         value={m.heroicSkill || ''}
                         disabled={disabled}
                         onChange={(e) => setHeroicSkill(m.id, e.target.value)}
-                        className="flex-1 min-w-0 rounded-lg px-2 py-0.5 text-t10 outline-none border font-bold"
+                        className="flex-1 min-w-0 rounded px-2 py-0.5 text-t10 outline-none border font-bold"
                         style={inputStyle}
                         data-testid={`heroic-picker-${m.id}`}
                       >

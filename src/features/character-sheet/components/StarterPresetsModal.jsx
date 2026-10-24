@@ -95,7 +95,7 @@ export function StarterPresetsPanel({
               key={sb.id}
               type="button"
               onClick={() => setSourcebook(sb.id)}
-              className="text-t11 px-2.5 py-1 rounded-lg border font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
+              className="text-t11 px-2.5 py-1 rounded border font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
               style={
                 isActive
                   ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -116,7 +116,7 @@ export function StarterPresetsPanel({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="搜尋經典搭配名稱、職業或特技（例如：黑騎士、舞者、植物學家、混合變形）..."
- className="w-full px-3.5 py-2 pl-9 text-xs rounded-xl bg-white border text-[#2c221e] placeholder-[#7c6a58] focus:outline-none focus:ring-2 "
+ className="w-full px-3.5 py-2 pl-9 text-xs rounded bg-white border text-[#2c221e] placeholder-[#7c6a58] focus:outline-none focus:ring-2 "
           style={{ borderColor: theme.border }}
         />
         <GiMagnifyingGlass className="w-4 h-4 text-[#6b5a4b] absolute left-3 top-2.5" />
@@ -151,7 +151,7 @@ export function StarterPresetsPanel({
               return (
               <div
                 key={preset.id}
-                className="rounded-xl border transition-all shadow-xs hover:shadow-md overflow-hidden"
+                className="rounded border transition-all shadow-xs hover:shadow-md overflow-hidden"
                 style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
               >
                 {/* 標頭：**永遠可見**，只放名字與來源。
@@ -210,7 +210,7 @@ export function StarterPresetsPanel({
 
                   {/* 習得技能 */}
                   <div
- className="text-t11 text-[#3c2415] bg-white/90 rounded-lg p-2.5 border space-y-1 "
+ className="text-t11 text-[#3c2415] bg-white/90 rounded p-2.5 border space-y-1 "
                     style={{ borderColor: theme.border }}
                   >
                     <div className="font-bold text-t10 uppercase tracking-wider" style={{ color: theme.accent }}>
@@ -226,7 +226,7 @@ export function StarterPresetsPanel({
 
                   {/* 起始裝備 */}
                   <div
- className="text-t11 text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border flex items-center gap-1.5 "
+ className="text-t11 text-[#6b5a4b] bg-white/70 rounded px-2.5 py-1.5 border flex items-center gap-1.5 "
                     style={{ borderColor: theme.border }}
                   >
                     <span className="font-bold text-[#3c2415]">裝備:</span>{' '}
@@ -241,7 +241,7 @@ export function StarterPresetsPanel({
                       有結構化規格時由規格推導（單一來源）；只有出處的（如科技奇幻樣本）才印原文。 */}
                   {(preset.customWeapons?.length > 0 || preset.customWeapon) && (
                     <div
- className="text-t11 text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
+ className="text-t11 text-[#6b5a4b] bg-white/70 rounded px-2.5 py-1.5 border leading-relaxed "
                       style={{ borderColor: theme.border }}
                     >
                       <span className="font-bold text-[#3c2415]">定制武器:</span>{' '}
@@ -252,7 +252,7 @@ export function StarterPresetsPanel({
                   )}
                   {preset.mnemosphere && (
                     <div
- className="text-t11 text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
+ className="text-t11 text-[#6b5a4b] bg-white/70 rounded px-2.5 py-1.5 border leading-relaxed "
                       style={{ borderColor: theme.border }}
                     >
                       {/* 結構化欄位（§CF）：`{ className, level, label }`。
@@ -263,7 +263,7 @@ export function StarterPresetsPanel({
                   )}
                   {preset.quirk && (
                     <div
- className="text-t11 text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
+ className="text-t11 text-[#6b5a4b] bg-white/70 rounded px-2.5 py-1.5 border leading-relaxed "
                       style={{ borderColor: theme.border }}
                     >
                       <span className="font-bold text-[#3c2415]">金手指:</span> {preset.quirk}
@@ -273,7 +273,7 @@ export function StarterPresetsPanel({
                   <button
                     type="button"
                     onClick={() => onApply(preset)}
-                    className="w-full py-2 rounded-lg text-white font-bold text-xs shadow-xs transition-all hover:opacity-90 active:scale-98 cursor-pointer"
+                    className="w-full py-2 rounded text-white font-bold text-xs shadow-xs transition-all hover:opacity-90 active:scale-98 cursor-pointer"
                     style={{ backgroundColor: theme.accent }}
                   >
                     套用此經典配置

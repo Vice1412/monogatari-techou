@@ -72,7 +72,7 @@ export default function EmptyState({
     <div
       data-empty-state={kind}
       style={minHeight ? { minHeight } : undefined}
-      className={`text-center ${d.pad} rounded-ui border border-[#d6c7ab] border-dashed flex flex-col items-center justify-center ${TONES[tone] || TONES.paper} ${className}`}
+      className={`text-center ${d.pad} rounded border border-[#d6c7ab] border-dashed flex flex-col items-center justify-center ${TONES[tone] || TONES.paper} ${className}`}
     >
       {Icon ? <Icon className={`${d.icon} text-[#8b5e34]`} aria-hidden="true" /> : null}
       <p className={`${d.title} font-bold text-[#2c221e] tracking-wide`}>{title}</p>
@@ -81,7 +81,7 @@ export default function EmptyState({
         <button
           type="button"
           onClick={action.onClick}
-          className="mt-4 bg-[#8b5e34] hover:bg-[#78350f] text-[#fffdf9] px-4 py-2 rounded-ui font-bold text-t12 flex items-center gap-1.5 transition-colors"
+          className="mt-4 bg-[#8b5e34] hover:bg-[#78350f] text-[#fffdf9] px-4 py-2 rounded font-bold text-t12 flex items-center gap-1.5 transition-colors"
         >
           {action.icon ? <action.icon className="w-3.5 h-3.5" aria-hidden="true" /> : null}
           <span>{action.label}</span>

@@ -109,11 +109,11 @@ export default function FloristGardenTracker({
   };
 
   return (
-    <div className="p-3.5 rounded-2xl bg-[#fffdf9] border border-[#d6c7ab] space-y-3">
+    <div className="p-3.5 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-3">
       {/* 頂部標題列 */}
       <div className="flex items-center justify-between border-b border-[#d6c7ab]/60 pb-2 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-[#245c45] text-white flex items-center justify-center shadow-2xs shrink-0">
+          <div className="w-6 h-6 rounded bg-[#245c45] text-white flex items-center justify-center shadow-2xs shrink-0">
             <GiFlowerPot className="w-3.5 h-3.5" />
           </div>
           <div>
@@ -134,7 +134,7 @@ export default function FloristGardenTracker({
           <button
             type="button"
             onClick={handleAdvanceAll}
-            className="px-2.5 py-1 rounded-xl bg-[#245c45] hover:bg-[#1e4b39] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
+            className="px-2.5 py-1 rounded bg-[#245c45] hover:bg-[#1e4b39] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
             title="回合結束時，將花園內所有植物命刻推進 1 格"
           >
             <GiSprout className="w-3.5 h-3.5" />
@@ -145,11 +145,11 @@ export default function FloristGardenTracker({
 
       {/* 播種操作列（未滿容量時顯示） */}
       {gardenList.length < maxCapacity && (
-        <div className="flex items-center gap-2 p-2 bg-[#f4ebd9]/50 rounded-xl border border-[#d6c7ab]/70 text-xs">
+        <div className="flex items-center gap-2 p-2 bg-[#f4ebd9]/50 rounded border border-[#d6c7ab]/70 text-xs">
           <select
             value={selectedSeedToPlant}
             onChange={e => setSelectedSeedToPlant(e.target.value)}
-            className="flex-1 bg-white border border-[#d6c7ab] rounded-lg px-2.5 py-1 text-xs text-[#245c45] font-sans outline-none focus:ring-1 focus:ring-[#245c45] cursor-pointer"
+            className="flex-1 bg-white border border-[#d6c7ab] rounded px-2.5 py-1 text-xs text-[#245c45] font-sans outline-none focus:ring-1 focus:ring-[#245c45] cursor-pointer"
           >
             <option value="">-- 選擇要播種的魔法種子 --</option>
             {fallbackSeeds.map(s => (
@@ -162,7 +162,7 @@ export default function FloristGardenTracker({
             type="button"
             onClick={() => handlePlantSeed(selectedSeedToPlant)}
             disabled={!selectedSeedToPlant}
-            className="px-3 py-1 rounded-lg bg-[#245c45] hover:bg-[#1e4b39] disabled:opacity-40 text-white font-bold text-xs flex items-center gap-1 transition-all shrink-0 cursor-pointer"
+            className="px-3 py-1 rounded bg-[#245c45] hover:bg-[#1e4b39] disabled:opacity-40 text-white font-bold text-xs flex items-center gap-1 transition-all shrink-0 cursor-pointer"
           >
             <Plus className="w-3 h-3" />
             <span>播種入園</span>
@@ -180,7 +180,7 @@ export default function FloristGardenTracker({
             return (
               <div
                 key={item.instanceId}
-                className="p-3 rounded-xl bg-white border border-[#d6c7ab] space-y-2 transition-all hover:border-[#245c45]"
+                className="p-3 rounded bg-white border border-[#d6c7ab] space-y-2 transition-all hover:border-[#245c45]"
               >
                 {/* 植物抬頭與命刻控制 */}
                 <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -264,7 +264,7 @@ export default function FloristGardenTracker({
                       return (
                         <div
                           key={efIdx}
-                          className={`p-1.5 rounded-lg transition-all flex items-start gap-1.5 text-t11 leading-relaxed ${
+                          className={`p-1.5 rounded transition-all flex items-start gap-1.5 text-t11 leading-relaxed ${
                             isActive
                               ? 'bg-[#f4ebd9] border border-[#245c45] text-[#245c45] font-medium'
                               : 'text-[#6b5a4b] opacity-60'

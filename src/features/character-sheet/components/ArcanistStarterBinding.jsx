@@ -55,7 +55,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
   };
 
   return (
-    <div className="p-4 rounded-xl border-2 border-[#d6c7ab] bg-[#f9f5eb] space-y-3" data-testid="arcanist-starter-binding">
+    <div className="p-4 rounded border-2 border-[#d6c7ab] bg-[#f9f5eb] space-y-3" data-testid="arcanist-starter-binding">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h4 className="text-sm font-bold text-[#3c2415] flex items-center gap-2">
           <GiSparkles className="text-[#6b5a4b]" />
@@ -94,7 +94,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
           return (
             <div
               key={arcana.id}
-              className={`p-2 rounded-lg border transition-colors ${
+              className={`p-2 rounded border transition-colors ${
                 checked
                   ? 'bg-white border-[#3c2415]'
                   : 'bg-white/60 border-[#e8dcc4] hover:border-[#7c6a58]'
@@ -139,7 +139,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
 
       {selectedArcana && (
         <div
-          className="rounded-lg border border-[#d6c7ab] bg-white p-3 space-y-1"
+          className="rounded border border-[#d6c7ab] bg-white p-3 space-y-1"
           data-testid="arcanist-starter-detail"
         >
           <div className="text-t11 font-bold text-[#3c2415] flex items-center gap-2 flex-wrap">

@@ -106,7 +106,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
 
   return (
     <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-[#fbf7ee] border border-[#d6c7ab] rounded-2xl shadow-e3 max-w-md w-full p-5 space-y-4 text-[#2c221e]">
+      <div className="bg-[#fbf7ee] border border-[#d6c7ab] rounded shadow-e3 max-w-md w-full p-5 space-y-4 text-[#2c221e]">
         <div className="flex items-center justify-between pb-2 border-b border-[#d6c7ab]">
           <div>
             <h3 className="font-bold text-base text-[#3c2415] flex items-center gap-2">
@@ -119,7 +119,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-[#6b5a4b] hover:text-[#2c221e] rounded-lg hover:bg-[#f4ebd9] transition"
+            className="p-1 text-[#6b5a4b] hover:text-[#2c221e] rounded hover:bg-[#f4ebd9] transition"
           >
             <X size={18} />
           </button>
@@ -133,7 +133,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
             onPointerCancel={handlePointerUp}
             onWheel={handleWheel}
             style={{ width: VIEWPORT_SIZE, height: VIEWPORT_SIZE }}
-            className={`relative rounded-xl overflow-hidden border-2 border-[#3c2415] bg-[#f4ebd9] shadow-md select-none touch-none ${
+            className={`relative rounded overflow-hidden border-2 border-[#3c2415] bg-[#f4ebd9] shadow-md select-none touch-none ${
               isDragging ? 'cursor-grabbing' : 'cursor-grab'
             }`}
             title="按住滑鼠拖曳移動，滾動滑鼠滾輪縮放"
@@ -171,7 +171,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
           </div>
         </div>
 
-        <div className="space-y-3 bg-[#fffdf9] border border-[#d6c7ab] p-3 rounded-xl">
+        <div className="space-y-3 bg-[#fffdf9] border border-[#d6c7ab] p-3 rounded">
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-1.5 text-[#3c2415] font-bold">
               <ZoomIn size={15} className="text-[#6b5a4b]" />
@@ -198,7 +198,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
               step="0.05"
               value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
-              className="flex-1 h-1.5 bg-[#d6c7ab] rounded-lg appearance-none cursor-pointer accent-[#a63d40]"
+              className="flex-1 h-1.5 bg-[#d6c7ab] rounded appearance-none cursor-pointer accent-[#a63d40]"
             />
             <span className="text-t10 text-[#7c6a58] font-mono">500%</span>
           </div>
@@ -228,14 +228,14 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] rounded-lg text-xs font-bold transition border border-[#d6c7ab]"
+            className="px-4 py-2 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] rounded text-xs font-bold transition border border-[#d6c7ab]"
           >
             取消
           </button>
           <button
             type="button"
             onClick={handleApply}
-            className="px-5 py-2 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] rounded-lg text-xs font-bold transition shadow flex items-center gap-1.5"
+            className="px-5 py-2 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] rounded text-xs font-bold transition shadow flex items-center gap-1.5"
           >
             <Check size={14} /> 完成裁切並套用
           </button>

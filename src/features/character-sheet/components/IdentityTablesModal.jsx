@@ -94,7 +94,7 @@ export default function IdentityTablesModal({
       <div className="space-y-4 text-[#3c2415]">
         {/* Top Description & Official Rules Explanation */}
         <div
-          className="rounded-xl p-3.5 space-y-2 border transition-colors"
+          className="rounded p-3.5 space-y-2 border transition-colors"
           style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
         >
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -135,7 +135,7 @@ export default function IdentityTablesModal({
           {/* Rolled Result Card */}
           {rolledResult && (
             <div
-              className="mt-2.5 p-3 rounded-lg border shadow-sm space-y-2 animate-fade-in"
+              className="mt-2.5 p-3 rounded border shadow-sm space-y-2 animate-fade-in"
               style={{ backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.border || '#d6c7ab' }}
             >
               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -198,7 +198,7 @@ export default function IdentityTablesModal({
 
         {/* Custom Builder Bar (順序：身世細節 ➔ 形容特質 ➔ 核心身分) */}
         <div
-          className="p-3 rounded-xl space-y-2 border transition-colors"
+          className="p-3 rounded space-y-2 border transition-colors"
           style={{ backgroundColor: theme?.subpanelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
         >
           <div className="flex items-center justify-between">
@@ -224,7 +224,7 @@ export default function IdentityTablesModal({
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {/* 1. Picked Detail */}
             <div
-              className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
+              className={`px-2.5 py-1 rounded border flex items-center gap-1.5 transition-colors ${
                 pickedDetail ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
               style={pickedDetail ? { backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
@@ -241,7 +241,7 @@ export default function IdentityTablesModal({
 
             {/* 2. Picked Adjective */}
             <div
-              className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
+              className={`px-2.5 py-1 rounded border flex items-center gap-1.5 transition-colors ${
                 pickedAdj ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
               style={pickedAdj ? { backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
@@ -258,7 +258,7 @@ export default function IdentityTablesModal({
 
             {/* 3. Picked Concept */}
             <div
-              className={`px-2.5 py-1 rounded-lg border flex items-center gap-1.5 transition-colors ${
+              className={`px-2.5 py-1 rounded border flex items-center gap-1.5 transition-colors ${
                 pickedConcept ? 'font-bold' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
               }`}
               style={pickedConcept ? { backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.accent || '#a63d40', color: theme?.textDark || '#3c2415' } : {}}
@@ -302,7 +302,7 @@ export default function IdentityTablesModal({
                 <button
                   key={t.id}
                   onClick={() => setActiveTab(t.id)}
-                  className="px-3 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap border cursor-pointer"
+                  className="px-3 py-1 rounded text-xs font-bold transition-all whitespace-nowrap border cursor-pointer"
                   style={
                     isActive
                       ? { backgroundColor: theme?.accent || '#78350f', borderColor: theme?.accentDark || '#76252d', color: '#fffdf9' }
@@ -322,7 +322,7 @@ export default function IdentityTablesModal({
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="搜尋身份、特質、細節或英文..."
-              className="w-full border rounded-lg pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-[#6b5a4b]"
+              className="w-full border rounded pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-[#6b5a4b]"
               style={{ backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.border || '#d6c7ab', color: theme?.textDark || '#0f172a' }}
             />
             <GiMagnifyingGlass className="w-3.5 h-3.5 absolute left-2 top-2" style={{ color: theme?.accent || '#94a3b8' }} />
@@ -361,7 +361,7 @@ export default function IdentityTablesModal({
                   return (
                     <div
                       key={grp.d6Range}
-                      className="rounded-xl border p-2.5 space-y-2 transition-colors"
+                      className="rounded border p-2.5 space-y-2 transition-colors"
                       style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
                     >
                       <div className="flex items-center justify-between px-1 pb-1 border-b" style={{ borderColor: theme?.border || '#f4ebd9' }}>
@@ -430,7 +430,7 @@ export default function IdentityTablesModal({
                   return (
                     <div
                       key={grp.d6Range}
-                      className="rounded-xl border p-2.5 space-y-2 transition-colors"
+                      className="rounded border p-2.5 space-y-2 transition-colors"
                       style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
                     >
                       <div className="flex items-center justify-between px-1 pb-1 border-b" style={{ borderColor: theme?.border || '#f4ebd9' }}>
@@ -492,7 +492,7 @@ export default function IdentityTablesModal({
               </div>
 
               <div
-                className="rounded-xl border p-2.5 transition-colors"
+                className="rounded border p-2.5 transition-colors"
                 style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-3 gap-y-1">

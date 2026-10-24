@@ -107,7 +107,7 @@ export function HeroicSkillPickerBody({
     <div className="flex flex-col h-[82vh] md:h-[76vh] max-h-[760px] overflow-hidden -m-1">
       {/* ==================== 過濾列 ==================== */}
       <div
-        className="shrink-0 rounded-xl border p-3 mb-2 space-y-2"
+        className="shrink-0 rounded border p-3 mb-2 space-y-2"
         style={{ backgroundColor: theme.panelBg || '#fbf7ee', borderColor: theme.border || '#d6c7ab' }}
       >
         <div className="flex items-center gap-2 flex-wrap">
@@ -118,7 +118,7 @@ export function HeroicSkillPickerBody({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜尋名稱、條件或效果…"
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg border text-xs outline-none"
+              className="w-full pl-8 pr-3 py-1.5 rounded border text-xs outline-none"
               style={inputStyle}
             />
           </div>
@@ -126,7 +126,7 @@ export function HeroicSkillPickerBody({
           <select
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value)}
-            className="py-1.5 px-2 rounded-lg border text-xs outline-none cursor-pointer"
+            className="py-1.5 px-2 rounded border text-xs outline-none cursor-pointer"
             style={inputStyle}
           >
             <option value="all">全部出處</option>
@@ -163,7 +163,7 @@ export function HeroicSkillPickerBody({
       </div>
 
       {/* ==================== 表格 ==================== */}
-      <div className="flex-1 overflow-y-auto min-h-0 rounded-xl border" style={{ borderColor: theme.border || '#d6c7ab' }}>
+      <div className="flex-1 overflow-y-auto min-h-0 rounded border" style={{ borderColor: theme.border || '#d6c7ab' }}>
         <table className="w-full text-xs border-collapse">
           <thead className="sticky top-0 z-10" style={{ backgroundColor: theme.subpanelBg || '#f4ebd9' }}>
             <tr style={{ color: theme.textDark || '#3c2415' }}>
@@ -209,7 +209,7 @@ export function HeroicSkillPickerBody({
                     type="button"
                     disabled={!canPick}
                     onClick={() => onPick(h)}
-                    className="text-t11 font-bold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1"
+                    className="text-t11 font-bold px-2.5 py-1.5 rounded border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1"
                     style={{
                       backgroundColor: canPick ? (theme.accent || '#a63d40') : (theme.cardBg || '#fffdf9'),
                       borderColor: theme.border || '#d6c7ab',
@@ -239,7 +239,7 @@ export function HeroicSkillPickerBody({
           <button
             type="button"
             onClick={onClose}
-            className="text-xs font-bold px-3 py-1.5 rounded-lg border cursor-pointer"
+            className="text-xs font-bold px-3 py-1.5 rounded border cursor-pointer"
             style={inputStyle}
           >
             關閉

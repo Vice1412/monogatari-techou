@@ -752,7 +752,7 @@ export default function CharacterPlayHUD({
     <div className="space-y-4 text-[#3c2415] animate-fade-in">
       {/* 1. Top Play HUD Dashboard Banner */}
       <div
-        className="rounded-ui p-4 sm:p-5 space-y-4 border-2 transition-colors duration-200"
+        className="rounded p-4 sm:p-5 space-y-4 border-2 transition-colors duration-200"
         style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
       >
         {/* Header Profile Row */}
@@ -760,7 +760,7 @@ export default function CharacterPlayHUD({
           <div className="flex items-center gap-3">
             <div
               onClick={() => onOpenEditor()}
-              className="w-11 h-11 rounded-ui border flex items-center justify-center font-serif text-lg font-bold overflow-hidden shadow-inner shrink-0 bg-white cursor-pointer hover:ring-2 hover:scale-105 transition-all group relative"
+              className="w-11 h-11 rounded border flex items-center justify-center font-serif text-lg font-bold overflow-hidden shadow-inner shrink-0 bg-white cursor-pointer hover:ring-2 hover:scale-105 transition-all group relative"
               style={{ borderColor: theme.border, color: theme.accent }}
               title="點擊前往「構築與成長」更換或調整頭像"
             >
@@ -805,7 +805,7 @@ export default function CharacterPlayHUD({
               <button
                 type="button"
                 onClick={() => setIsLevelUpModalOpen(true)}
-                className="px-3 py-1.5 rounded-ui bg-[#8b5e34] hover:bg-[#78350f] text-white font-bold text-xs flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded bg-[#8b5e34] hover:bg-[#78350f] text-white font-bold text-xs flex items-center gap-1.5"
               >
                 <GiUpgrade className="w-4 h-4" />
                 <span>可升級！</span>
@@ -814,7 +814,7 @@ export default function CharacterPlayHUD({
 
             <button
               onClick={handleSendToCombat}
-              className="px-3 py-1.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1.5 transition-colors"
               title="將角色即時狀態同步至戰鬥追蹤器"
             >
               <GiCrossedSwords className="w-3.5 h-3.5" />
@@ -823,7 +823,7 @@ export default function CharacterPlayHUD({
 
             <button
               onClick={() => setIsPreviewOpen(true)}
- className="px-3 py-1.5 rounded-ui bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
+ className="px-3 py-1.5 rounded bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
               style={{ borderColor: theme.border, color: theme.textDark }}
               title="看整張卡現在長什麼樣，也可以直接匯出 PNG／PDF"
             >
@@ -833,7 +833,7 @@ export default function CharacterPlayHUD({
 
             <button
               onClick={() => onOpenEditor()}
- className="px-3 py-1.5 rounded-ui bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
+ className="px-3 py-1.5 rounded bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
               style={{ borderColor: theme.border, color: theme.textDark }}
             >
               <span>構築與成長</span>
@@ -842,7 +842,7 @@ export default function CharacterPlayHUD({
             {onOpenLog && (
               <button
                 onClick={onOpenLog}
- className="px-3 py-1.5 rounded-ui bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
+ className="px-3 py-1.5 rounded bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
                 style={{ borderColor: theme.border, color: theme.textDark }}
                 title="成長履歷：HP／MP／EXP／資金／升級／換裝的完整記錄"
               >
@@ -856,7 +856,7 @@ export default function CharacterPlayHUD({
         {/* Level Growth, Zenit Wallet, Fabula Points Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* EXP Progress */}
-          <div className="bg-[#fffdf9] rounded-ui p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
+          <div className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
             <div className="flex items-center justify-between text-xs mb-1">
               <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
                 <GiUpgrade className="w-3.5 h-3.5 text-[#8b5e34]" />
@@ -887,7 +887,7 @@ export default function CharacterPlayHUD({
           </div>
 
           {/* Zenit Wallet */}
-          <div className="bg-[#fffdf9] rounded-ui p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
+          <div className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
             <div className="flex items-center justify-between text-xs mb-1">
               <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
                 <GiCoins className="w-3.5 h-3.5 text-[#8b5e34]" />
@@ -910,7 +910,7 @@ export default function CharacterPlayHUD({
           </div>
 
           {/* Fabula Points */}
-          <div className="bg-[#fffdf9] rounded-ui p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
+          <div className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
             <div className="flex items-center justify-between text-xs mb-1">
               <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
                 <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" />
@@ -937,7 +937,7 @@ export default function CharacterPlayHUD({
       {/* 2. Vital Resource Gauges (HP / MP / IP) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* HP Gauge */}
-        <div className={`rounded-ui p-4 border-2 transition-all ${
+        <div className={`rounded p-4 border-2 transition-all ${
           isCrisis
             ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40]/60'
             : 'bg-[#fffdf9] border-[#d6c7ab]'
@@ -1015,7 +1015,7 @@ export default function CharacterPlayHUD({
         </div>
 
         {/* MP Gauge */}
-        <div className="rounded-ui p-4 border border-[#d6c7ab] bg-[#fffdf9]">
+        <div className="rounded p-4 border border-[#d6c7ab] bg-[#fffdf9]">
           <div className="flex items-center justify-between text-xs mb-1.5">
             <div className="flex items-center gap-1.5 font-bold text-[#6b5a4b]">
               <GiLightningTear className="w-4 h-4 text-[#6b5a4b]" />
@@ -1064,7 +1064,7 @@ export default function CharacterPlayHUD({
         </div>
 
         {/* IP Gauge & Consumables */}
-        <div className="rounded-ui p-4 border border-[#d6c7ab] bg-[#fffdf9] flex flex-col justify-between">
+        <div className="rounded p-4 border border-[#d6c7ab] bg-[#fffdf9] flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-xs mb-1.5">
               <div className="flex items-center gap-1.5 font-bold text-[#6b5a4b]">
@@ -1138,7 +1138,7 @@ export default function CharacterPlayHUD({
       />
 
       {/* 4. Status Afflictions (六大狀態異常) */}
-      <div className="p-3.5 rounded-ui bg-white border border-[#e8dcc4] space-y-2">
+      <div className="p-3.5 rounded bg-white border border-[#e8dcc4] space-y-2">
         <div className="flex items-center justify-between text-xs">
           <span className="font-bold text-[#3c2415] flex items-center gap-1">
             <GiHazardSign className="w-3.5 h-3.5 text-[#8b5e34]" />
@@ -1157,7 +1157,7 @@ export default function CharacterPlayHUD({
                 key={key}
                 type="button"
                 onClick={() => handleToggleAffliction(key)}
-                className={`py-1.5 px-2 rounded-ui border text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                className={`py-1.5 px-2 rounded border text-xs font-bold transition-all flex items-center justify-center gap-1 ${
                   isActive
                     ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
                     : 'bg-[#f4ebd9] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#e8dcc4]'
@@ -1189,7 +1189,7 @@ export default function CharacterPlayHUD({
                 modifier: 0,
                 label: `${attr.enName} (${attr.zhName}) 單項檢定`
               })}
- className="w-full rounded-ui p-3.5 border flex flex-col items-center gap-1 transition-all text-center group bg-[#fffdf9] hover: hover:scale-[1.01]"
+ className="w-full rounded p-3.5 border flex flex-col items-center gap-1 transition-all text-center group bg-[#fffdf9] hover: hover:scale-[1.01]"
               style={{ borderColor: theme.border }}
               title={`點擊使用 ${attr.enName} 擲骰`}
             >
@@ -1219,7 +1219,7 @@ export default function CharacterPlayHUD({
               type="button"
               onClick={() => toggleFormula(`attr:${attr.key}`)}
               title="點擊查看公式"
-              className="w-full text-t12 font-bold text-[#7c6a58] hover:text-[#3c2415] py-0.5 rounded-ui border border-dashed border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
+              className="w-full text-t12 font-bold text-[#7c6a58] hover:text-[#3c2415] py-0.5 rounded border border-dashed border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
             >
               ✦ 公式
             </button>
@@ -1235,7 +1235,7 @@ export default function CharacterPlayHUD({
       </div>
 
       {/* 6. Sub-Tabs: 武器與戰鬥 | 咒語與魔法 | 職業特技 | 情感羈絆 | 個人命刻 | 行囊日誌 */}
-      <div className="bg-[#fffdf9] rounded-ui border-2 overflow-hidden" style={{ borderColor: theme.border }}>
+      <div className="bg-[#fffdf9] rounded border-2 overflow-hidden" style={{ borderColor: theme.border }}>
         <div
           className="flex items-center gap-1 p-2 border-b overflow-x-auto transition-colors duration-200"
           style={{ backgroundColor: theme.headerBg, borderColor: theme.border }}
@@ -1254,7 +1254,7 @@ export default function CharacterPlayHUD({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 rounded-ui text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   isTabActive
                     ? 'text-white'
                     : 'text-[#6b5a4b] hover:bg-black/5'
@@ -1285,14 +1285,14 @@ export default function CharacterPlayHUD({
               {/* Defense & Initiative Dashboard */}
               <div className="space-y-2">
                 <div
-                  className="grid grid-cols-3 gap-3 p-3 rounded-ui border text-center font-mono"
+                  className="grid grid-cols-3 gap-3 p-3 rounded border text-center font-mono"
                   style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
                 >
                   <button
                     type="button"
                     onClick={() => toggleFormula('def')}
                     title="點擊查看公式"
-                    className="p-2 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
+                    className="p-2 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
                   >
                     <span className="text-[#7c6a58] block text-t12 font-sans font-medium">物理防禦</span>
                     <span className="text-2xl font-black" style={{ color: theme.textDark }}>{statsUnset ? '—' : stats.def}</span>
@@ -1304,7 +1304,7 @@ export default function CharacterPlayHUD({
                     type="button"
                     onClick={() => toggleFormula('mdef')}
                     title="點擊查看公式"
-                    className="p-2 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
+                    className="p-2 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
                   >
                     <span className="text-[#6b5a4b] block text-t12 font-sans font-medium">魔法防禦</span>
                     <span className="text-2xl font-black text-[#3c2415]">{stats.mdef}</span>
@@ -1316,7 +1316,7 @@ export default function CharacterPlayHUD({
                     type="button"
                     onClick={() => toggleFormula('init')}
                     title="點擊查看公式"
-                    className="p-2 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
+                    className="p-2 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
                   >
                     <span className="text-[#7c6a58] block text-t12 font-sans font-medium">先攻修正</span>
                     <span className="text-2xl font-black text-[#3c2415]">{formatInitiative(stats.init, initiativeVariant)}</span>
@@ -1357,7 +1357,7 @@ export default function CharacterPlayHUD({
                 <button
                   type="button"
                   onClick={() => setIsFreeRollModalOpen(true)}
-                  className="px-2.5 py-1 rounded-ui bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t12 font-bold flex items-center gap-1 transition-colors"
+                  className="px-2.5 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t12 font-bold flex items-center gap-1 transition-colors"
                 >
                   <GiRollingDices className="w-3.5 h-3.5 text-[#8b5e34]" />
                   <span>自由雙屬性檢定</span>
@@ -1366,7 +1366,7 @@ export default function CharacterPlayHUD({
 
               {/* Main Hand Weapon Pill Card */}
               <div
- className="p-3.5 rounded-ui border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdf9]"
+ className="p-3.5 rounded border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdf9]"
                 style={{ borderColor: theme.border }}
               >
                 <div>
@@ -1382,7 +1382,7 @@ export default function CharacterPlayHUD({
                         type="button"
                         onClick={handleSwitchForm}
                         title="可變形武器：隨時可切換型態。衝突場景中只能在你的回合、且每回合一次（HF p.107）"
-                        className="text-t12 px-2 py-0.5 rounded-ui border font-bold flex items-center gap-1 transition-colors"
+                        className="text-t12 px-2 py-0.5 rounded border font-bold flex items-center gap-1 transition-colors"
                         style={{ borderColor: theme.border, color: theme.accent, backgroundColor: theme.cardBg }}
                       >
                         <GiCycle className="w-3 h-3" />
@@ -1402,7 +1402,7 @@ export default function CharacterPlayHUD({
                         modifier: mainCheck.mod,
                         label: `${mainWeapon.name} 命中判定 [${mainCheck.attr1} + ${mainCheck.attr2}]`
                       })}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-ui font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all hover:scale-[1.02] active:scale-[0.98]"
                       title="點擊直接擲骰命中檢定"
                     >
                       <GiRollingDices className="w-3.5 h-3.5 text-[#8b5e34]" />
@@ -1413,7 +1413,7 @@ export default function CharacterPlayHUD({
                     </button>
 
                     {/* Damage Formula Pill */}
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-ui font-mono font-bold text-xs bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
                       <span>[HR + {mainDamage.hrBonus}]</span>
                       <FUIcon name={mainDamage.damageType} className="text-sm shrink-0" />
                       <span className="text-t12 font-sans text-[#6b5a4b]">{mainDamage.damageType}</span>
@@ -1442,7 +1442,7 @@ export default function CharacterPlayHUD({
                       modifier: mainCheck.mod,
                       label: `${mainWeapon.name} 命中檢定`
                     })}
-                    className="px-3 py-1.5 rounded-ui text-white font-bold text-xs flex items-center gap-1.5 shrink-0"
+                    className="px-3 py-1.5 rounded text-white font-bold text-xs flex items-center gap-1.5 shrink-0"
                     style={{ backgroundColor: theme.accent }}
                   >
                     <GiRollingDices className="w-4 h-4" />
@@ -1454,7 +1454,7 @@ export default function CharacterPlayHUD({
               {/* Off Hand Weapon or Shield Pill Card */}
               {offWeapon && (
                 <div
- className="p-3.5 rounded-ui border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdf9]"
+ className="p-3.5 rounded border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdf9]"
                   style={{ borderColor: theme.border }}
                 >
                   <div>
@@ -1475,7 +1475,7 @@ export default function CharacterPlayHUD({
                           modifier: offCheck.mod,
                           label: `${offWeapon.name} 命中判定 [${offCheck.attr1} + ${offCheck.attr2}]`
                         })}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-ui font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all hover:scale-[1.02] active:scale-[0.98]"
                         title="點擊直接擲骰命中檢定"
                       >
                         <GiRollingDices className="w-3.5 h-3.5 text-[#8b5e34]" />
@@ -1485,7 +1485,7 @@ export default function CharacterPlayHUD({
                         </span>
                       </button>
 
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-ui font-mono font-bold text-xs bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
                         <span>[HR + {offDamage.hrBonus}]</span>
                         <FUIcon name={offDamage.damageType} className="text-sm shrink-0" />
                         <span className="text-t12 font-sans text-[#6b5a4b]">{offDamage.damageType}</span>
@@ -1502,7 +1502,7 @@ export default function CharacterPlayHUD({
                         modifier: offCheck.mod,
                         label: `${offWeapon.name} 命中檢定`
                       })}
-                      className="px-3 py-1.5 rounded-ui text-white font-bold text-xs flex items-center gap-1.5 shrink-0"
+                      className="px-3 py-1.5 rounded text-white font-bold text-xs flex items-center gap-1.5 shrink-0"
                       style={{ backgroundColor: theme.accent }}
                     >
                       <GiRollingDices className="w-4 h-4" />
@@ -1513,7 +1513,7 @@ export default function CharacterPlayHUD({
               )}
 
               {/* Free Unarmed Strike Shortcut */}
-              <div className="p-2.5 rounded-ui border border-dashed border-[#d6c7ab] bg-[#fbf7ee] flex items-center justify-between gap-2">
+              <div className="p-2.5 rounded border border-dashed border-[#d6c7ab] bg-[#fbf7ee] flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 flex-wrap font-mono text-t12">
                   <span className="font-bold text-[#3c2415] font-sans">徒手/自由打擊:</span>
                   <button
@@ -1534,15 +1534,15 @@ export default function CharacterPlayHUD({
 
               {/* Equipment Breakdown */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-t12 pt-2 border-t">
-                <div className="p-2 rounded-ui bg-[#fbf7ee] border border-[#e8dcc4]">
+                <div className="p-2 rounded bg-[#fbf7ee] border border-[#e8dcc4]">
                   <span className="text-[#6b5a4b] block font-sans">副手/盾牌:</span>
                   <strong className="text-[#3c2415]">{character.equipment?.offHand || '無'}</strong>
                 </div>
-                <div className="p-2 rounded-ui bg-[#fbf7ee] border border-[#e8dcc4]">
+                <div className="p-2 rounded bg-[#fbf7ee] border border-[#e8dcc4]">
                   <span className="text-[#6b5a4b] block font-sans">防具裝甲:</span>
                   <strong className="text-[#3c2415]">{character.equipment?.armor || '無'}</strong>
                 </div>
-                <div className="p-2 rounded-ui bg-[#fbf7ee] border border-[#e8dcc4]">
+                <div className="p-2 rounded bg-[#fbf7ee] border border-[#e8dcc4]">
                   <span className="text-[#6b5a4b] block font-sans">佩戴飾品:</span>
                   <strong className="text-[#3c2415]">{character.equipment?.accessory || '無'}</strong>
                 </div>
@@ -1603,7 +1603,7 @@ export default function CharacterPlayHUD({
                   <button
                     type="button"
                     onClick={() => setIsSpellModalOpen(true)}
-                    className="px-3 py-1.5 rounded-ui bg-[#8b5e34] hover:bg-[#78350f] text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                    className="px-3 py-1.5 rounded bg-[#8b5e34] hover:bg-[#78350f] text-white font-bold text-xs flex items-center gap-1 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>學習新咒語</span>
@@ -1624,13 +1624,13 @@ export default function CharacterPlayHUD({
                     return (
                       <div
                         key={idx}
-                        className="p-3.5 rounded-ui border bg-white space-y-2 transition-all hover:border-[#8b5e34]"
+                        className="p-3.5 rounded border bg-white space-y-2 transition-all hover:border-[#8b5e34]"
                         style={{ borderColor: theme.border }}
                       >
                         {/* Spell Header */}
                         <div className="flex items-start justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <div className="w-6 h-6 rounded-ui bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-center shrink-0">
+                            <div className="w-6 h-6 rounded bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-center shrink-0">
                               <FUIcon name={isOffensive ? 'offensive' : 'spell'} className="text-sm" />
                             </div>
                             <h4 className="font-serif font-black text-sm text-[#3c2415] flex items-center gap-1.5">
@@ -1647,14 +1647,14 @@ export default function CharacterPlayHUD({
                             <button
                               type="button"
                               onClick={() => handleCastSpell(sp)}
-                              className="px-2.5 py-1 rounded-ui bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-xs transition-colors flex items-center gap-1"
+                              className="px-2.5 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-xs transition-colors flex items-center gap-1"
                             >
                               <span>施放 (-{sp.mp})</span>
                             </button>
                             <button
                               type="button"
                               onClick={() => handleForgetSpell(sp.name)}
-                              className="p-1 rounded-ui text-[#7c6a58] hover:text-[#8c3235] transition-colors"
+                              className="p-1 rounded text-[#7c6a58] hover:text-[#8c3235] transition-colors"
                               title="遺忘咒語"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1664,13 +1664,13 @@ export default function CharacterPlayHUD({
 
                         {/* Formula Pills Row */}
                         <div className="flex items-center gap-2 flex-wrap font-mono text-t12">
-                          <span className="px-2 py-0.5 rounded-ui bg-[#f4ebd9] text-[#6b5a4b] border border-[#e8dcc4] font-bold">
+                          <span className="px-2 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#e8dcc4] font-bold">
                             {sp.mp} MP
                           </span>
-                          <span className="px-2 py-0.5 rounded-ui bg-[#fbf7ee] text-[#3c2415] border border-[#e8dcc4] font-sans">
+                          <span className="px-2 py-0.5 rounded bg-[#fbf7ee] text-[#3c2415] border border-[#e8dcc4] font-sans">
                             {sp.target || '單體'}
                           </span>
-                          <span className="px-2 py-0.5 rounded-ui bg-[#fbf7ee] text-[#3c2415] border border-[#e8dcc4] font-sans">
+                          <span className="px-2 py-0.5 rounded bg-[#fbf7ee] text-[#3c2415] border border-[#e8dcc4] font-sans">
                             {sp.duration || '瞬發'}
                           </span>
 
@@ -1684,7 +1684,7 @@ export default function CharacterPlayHUD({
                                 modifier: spellCheck.mod,
                                 label: `${sp.name} 魔法判定 [INS + WLP]`
                               })}
-                              className="px-2.5 py-0.5 rounded-ui bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1 transition-colors"
+                              className="px-2.5 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1 transition-colors"
                               title="點擊直接擲骰魔法判定"
                             >
                               <GiRollingDices className="w-3.5 h-3.5 text-[#8b5e34]" />
@@ -1694,7 +1694,7 @@ export default function CharacterPlayHUD({
                           )}
 
                           {isOffensive && spellDamage.damageType && (
-                            <span className="px-2 py-0.5 rounded-ui bg-[#f4ebd9] text-[#8c3235] border border-[#e8dcc4] font-bold flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded bg-[#f4ebd9] text-[#8c3235] border border-[#e8dcc4] font-bold flex items-center gap-1">
                               <span>[HR + {spellDamage.hrBonus}]</span>
                               <FUIcon name={spellDamage.damageType} className="text-xs" />
                             </span>
@@ -1713,7 +1713,7 @@ export default function CharacterPlayHUD({
                               <span>{isExpanded ? '收合效果詳情' : '展開效果詳情'}</span>
                             </button>
                             {isExpanded && (
-                              <p className="text-t12 text-[#6b5a4b] bg-[#fbf7ee] p-2.5 rounded-ui border border-[#e8dcc4] leading-relaxed whitespace-pre-wrap">
+                              <p className="text-t12 text-[#6b5a4b] bg-[#fbf7ee] p-2.5 rounded border border-[#e8dcc4] leading-relaxed whitespace-pre-wrap">
                                 {renderTextWithAffinities(sp.effect)}
                               </p>
                             )}
@@ -1724,7 +1724,7 @@ export default function CharacterPlayHUD({
                   })}
                 </div>
               ) : (
-                <div className="p-8 text-center bg-[#fbf7ee] rounded-ui border border-dashed border-[#d6c7ab] flex flex-col items-center justify-center">
+                <div className="p-8 text-center bg-[#fbf7ee] rounded border border-dashed border-[#d6c7ab] flex flex-col items-center justify-center">
                   <GiSpellBook className="w-9 h-9 text-[#6b5a4b]" />
                   <p className="mt-2.5 font-bold text-[#3c2415] text-sm tracking-wide">尚未掌握任何咒語</p>
                   <p className="mt-1 text-[#6b5a4b] text-xs leading-relaxed max-w-md">
@@ -1733,7 +1733,7 @@ export default function CharacterPlayHUD({
                   <button
                     type="button"
                     onClick={() => setIsSpellModalOpen(true)}
-                    className="mt-4 px-3.5 py-1.5 rounded-ui bg-[#8b5e34] hover:bg-[#78350f] active:bg-[#78350f] text-white font-bold text-xs shadow-e1 transition-colors"
+                    className="mt-4 px-3.5 py-1.5 rounded bg-[#8b5e34] hover:bg-[#78350f] active:bg-[#78350f] text-white font-bold text-xs shadow-e1 transition-colors"
                   >
                     從規則庫選擇習得咒語
                   </button>
@@ -1771,7 +1771,7 @@ export default function CharacterPlayHUD({
                       const isExpanded = !!expandedSkills[`${cl.className}_${sk.name}`];
 
                       return (
-                        <div key={sIdx} className="p-3 bg-white rounded-ui border transition-all hover:border-[#8b5e34]" style={{ borderColor: theme.border }}>
+                        <div key={sIdx} className="p-3 bg-white rounded border transition-all hover:border-[#8b5e34]" style={{ borderColor: theme.border }}>
                           <div className="flex items-center justify-between font-bold mb-1">
                             <span className="flex items-center gap-1.5" style={{ color: theme.textDark }}>
                               <span style={{ color: theme.accent }}>✦</span>
@@ -1785,14 +1785,14 @@ export default function CharacterPlayHUD({
                                     e.stopPropagation();
                                     openRuleCodex('小工具');
                                   }}
-                                  className="px-2 py-0.5 rounded-ui border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8b5e34] font-bold text-t12 flex items-center gap-1 transition-all cursor-pointer hover:scale-105 active:scale-95"
+                                  className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8b5e34] font-bold text-t12 flex items-center gap-1 transition-all cursor-pointer hover:scale-105 active:scale-95"
                                   title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
                                 >
                                   <GiSpellBook className="text-[#8b5e34] text-xs" />
                                   <span>規則概念速查</span>
                                 </button>
                               )}
-                              <span className="font-mono text-xs px-2 py-0.5 rounded-ui bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]">
+                              <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]">
                                 SL {sk.sl} / {skillDef?.maxSL || 5}
                               </span>
                             </div>
@@ -1868,7 +1868,7 @@ export default function CharacterPlayHUD({
                                           setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
                                         }}
                                         title="點擊展開查看效果"
-                                        className="text-t12 px-2 py-0.5 rounded-ui bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                        className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                                       >
                                         <span className="text-[#8b5e34]">✦</span>
                                         <span>{optName}</span>
@@ -1884,7 +1884,7 @@ export default function CharacterPlayHUD({
                                             setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
                                           }}
                                           title="點擊展開查看效果"
-                                          className="text-t12 px-2 py-0.5 rounded-ui bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                          className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                                         >
                                           <span className="text-[#8b5e34] text-t12">音調</span>
                                           <span>{k}</span>
@@ -1898,7 +1898,7 @@ export default function CharacterPlayHUD({
                                             setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
                                           }}
                                           title="點擊展開查看效果"
-                                          className="text-t12 px-2 py-0.5 rounded-ui bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                          className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                                         >
                                           <span className="text-[#6b5a4b] text-t12">曲風</span>
                                           <span>{t}</span>
@@ -1920,7 +1920,7 @@ export default function CharacterPlayHUD({
 
                               {/* 靈能者專屬靈刻時鐘 */}
                               {cl.className === '靈能者' && sk.name === '心靈天賦' && (
-                                <div className="mt-2 p-2.5 bg-[#f4ebd9] rounded-ui border border-[#d6c7ab] flex items-center justify-between gap-3 flex-wrap">
+                                <div className="mt-2 p-2.5 bg-[#f4ebd9] rounded border border-[#d6c7ab] flex items-center justify-between gap-3 flex-wrap">
                                   <div className="flex items-center gap-3">
                                     <ClockTracker
                                       title=""
@@ -1951,7 +1951,7 @@ export default function CharacterPlayHUD({
                                         updateField('brainwaveClock', Math.max(0, cur - 1));
                                       }}
                                       disabled={(character.brainwaveClock || 0) <= 0}
-                                      className="px-2 py-1 text-xs rounded-ui bg-white hover:bg-[#e8dcc4] disabled:opacity-30 border border-[#d6c7ab] text-[#3c2415] font-bold transition-colors cursor-pointer"
+                                      className="px-2 py-1 text-xs rounded bg-white hover:bg-[#e8dcc4] disabled:opacity-30 border border-[#d6c7ab] text-[#3c2415] font-bold transition-colors cursor-pointer"
                                       title="靈刻 -1"
                                     >
                                       -1
@@ -1963,7 +1963,7 @@ export default function CharacterPlayHUD({
                                         updateField('brainwaveClock', Math.min(4, cur + 1));
                                       }}
                                       disabled={(character.brainwaveClock || 0) >= 4}
-                                      className="px-2.5 py-1 text-xs rounded-ui bg-[#8b5e34] hover:bg-[#78350f] disabled:opacity-30 text-white font-bold transition-colors cursor-pointer"
+                                      className="px-2.5 py-1 text-xs rounded bg-[#8b5e34] hover:bg-[#78350f] disabled:opacity-30 text-white font-bold transition-colors cursor-pointer"
                                       title="靈刻 +1"
                                     >
                                       +1 格
@@ -1975,7 +1975,7 @@ export default function CharacterPlayHUD({
                                         showToast('已清空靈刻時鐘');
                                       }}
                                       disabled={(character.brainwaveClock || 0) === 0}
-                                      className="px-2 py-1 text-xs rounded-ui bg-white hover:bg-[#f4ebd9] disabled:opacity-30 border border-[#d6c7ab] text-[#6b5a4b] hover:text-[#8c3235] font-medium transition-colors cursor-pointer"
+                                      className="px-2 py-1 text-xs rounded bg-white hover:bg-[#f4ebd9] disabled:opacity-30 border border-[#d6c7ab] text-[#6b5a4b] hover:text-[#8c3235] font-medium transition-colors cursor-pointer"
                                       title="重設靈刻"
                                     >
                                       重設
@@ -2124,7 +2124,7 @@ export default function CharacterPlayHUD({
                   <button
                     type="button"
                     onClick={() => setIsBondModalOpen(true)}
-                    className="px-3 py-1.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors"
+                    className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>新增羈絆</span>
@@ -2133,7 +2133,7 @@ export default function CharacterPlayHUD({
               </div>
 
               {(character.bonds || []).map((bond, bIdx) => (
-                <div key={bIdx} className="p-3.5 bg-white rounded-ui border flex items-center justify-between gap-3" style={{ borderColor: theme.border }}>
+                <div key={bIdx} className="p-3.5 bg-white rounded border flex items-center justify-between gap-3" style={{ borderColor: theme.border }}>
                   <div>
                     <div className="font-bold text-sm text-[#2c221e]">{bond.target}</div>
                     <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
@@ -2160,13 +2160,13 @@ export default function CharacterPlayHUD({
                         adjustFp(-1);
                         showToast(`消耗 1 FP 激活對【${bond.target}】之羈絆！檢定獲得 +${bond.feelings?.length || 1} 點加值！`);
                       }}
-                      className="px-3 py-1.5 rounded-ui bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#8c3235] font-bold text-xs shrink-0"
+                      className="px-3 py-1.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#8c3235] font-bold text-xs shrink-0"
                     >
                       激勵 (+{bond.feelings?.length || 1})
                     </button>
                     <button
                       onClick={() => handleDeleteBond(bond.id)}
-                      className="p-1 rounded-ui text-[#7c6a58] hover:text-[#8c3235] transition-colors"
+                      className="p-1 rounded text-[#7c6a58] hover:text-[#8c3235] transition-colors"
                       title="刪除羈絆"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -2228,7 +2228,7 @@ export default function CharacterPlayHUD({
                 <button
                   type="button"
                   onClick={() => setIsClockModalOpen(true)}
-                  className="px-3 py-1.5 rounded-ui bg-[#8b5e34] hover:bg-[#78350f] text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                  className="px-3 py-1.5 rounded bg-[#8b5e34] hover:bg-[#78350f] text-white font-bold text-xs flex items-center gap-1 transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>新增命刻</span>
@@ -2252,7 +2252,7 @@ export default function CharacterPlayHUD({
                     />
                     <button
                       onClick={() => handleDeleteClock(clk.id)}
-                      className="absolute top-2 right-2 p-1 rounded-ui bg-white/80 hover:bg-[#f4ebd9] text-[#7c6a58] hover:text-[#8c3235] opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 p-1 rounded bg-white/80 hover:bg-[#f4ebd9] text-[#7c6a58] hover:text-[#8c3235] opacity-0 group-hover:opacity-100 transition-opacity"
                       title="刪除命刻"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -2278,7 +2278,7 @@ export default function CharacterPlayHUD({
           {/* TAB 6: 行囊日誌 (Notes & Inventory) */}
           {activeTab === 'notes' && (
             <div className="space-y-4 animate-fade-in text-xs">
-              <div className="p-3.5 rounded-ui bg-[#fbf7ee] border border-[#e8dcc4] space-y-2">
+              <div className="p-3.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-2">
                 <span className="font-bold text-[#3c2415] block">冒險者行囊物品與武裝</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[#3c2415] font-mono">
                   <div>主手武器: <strong>{character.equipment?.mainHand || '空手'}</strong></div>
@@ -2295,7 +2295,7 @@ export default function CharacterPlayHUD({
                   onChange={e => updateField('backpackNotes', e.target.value)}
                   placeholder="在此記錄冒險日記、行囊物品、NPC 線索或秘密契約..."
                   rows={6}
-                  className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-ui p-3 text-xs text-[#3c2415] outline-none focus:border-[#8b5e34] leading-relaxed shadow-inner"
+                  className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded p-3 text-xs text-[#3c2415] outline-none focus:border-[#8b5e34] leading-relaxed shadow-inner"
                 />
               </div>
             </div>
@@ -2321,13 +2321,13 @@ export default function CharacterPlayHUD({
                 value={spellSearchQuery}
                 onChange={e => setSpellSearchQuery(e.target.value)}
                 placeholder="搜尋法術名稱、效果描述..."
-                className="w-full pl-9 pr-3 py-1.5 rounded-ui border border-[#e8dcc4] bg-[#fbf7ee] text-xs focus:outline-none focus:ring-2 focus:ring-[#8b5e34]"
+                className="w-full pl-9 pr-3 py-1.5 rounded border border-[#e8dcc4] bg-[#fbf7ee] text-xs focus:outline-none focus:ring-2 focus:ring-[#8b5e34]"
               />
             </div>
             <select
               value={selectedSpellSchool}
               onChange={e => setSelectedSpellSchool(e.target.value)}
-              className="px-2.5 py-1.5 rounded-ui border border-[#e8dcc4] bg-[#fbf7ee] text-xs text-[#3c2415] focus:outline-none"
+              className="px-2.5 py-1.5 rounded border border-[#e8dcc4] bg-[#fbf7ee] text-xs text-[#3c2415] focus:outline-none"
             >
               <option value="all">全部學派</option>
               {spellSchools.map(sch => (
@@ -2345,7 +2345,7 @@ export default function CharacterPlayHUD({
               return (
                 <div
                   key={idx}
-                  className="p-3 rounded-ui border bg-white flex items-start justify-between gap-3 hover:border-[#8b5e34] transition-colors"
+                  className="p-3 rounded border bg-white flex items-start justify-between gap-3 hover:border-[#8b5e34] transition-colors"
                 >
                   <div className="space-y-1 flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -2373,7 +2373,7 @@ export default function CharacterPlayHUD({
                     type="button"
                     onClick={() => handleLearnSpell(sp)}
                     disabled={isLearned}
-                    className="px-3 py-1.5 rounded-ui text-white font-bold text-xs shrink-0 disabled:opacity-40 disabled:bg-[#e8dcc4]"
+                    className="px-3 py-1.5 rounded text-white font-bold text-xs shrink-0 disabled:opacity-40 disabled:bg-[#e8dcc4]"
                     style={{ backgroundColor: isLearned ? '#94a3b8' : theme.accent }}
                   >
                     {isLearned ? '已習得' : '習得'}
@@ -2403,7 +2403,7 @@ export default function CharacterPlayHUD({
               <select
                 value={freeRollAttr1}
                 onChange={e => setFreeRollAttr1(e.target.value)}
-                className="w-full p-2 rounded-ui border border-[#e8dcc4] bg-white font-mono font-bold"
+                className="w-full p-2 rounded border border-[#e8dcc4] bg-white font-mono font-bold"
               >
                 <option value="dex">DEX ({ATTRIBUTE_NAMES.dex} d{stats.currentDex})</option>
                 <option value="ins">INS (洞察 d{stats.currentIns})</option>
@@ -2417,7 +2417,7 @@ export default function CharacterPlayHUD({
               <select
                 value={freeRollAttr2}
                 onChange={e => setFreeRollAttr2(e.target.value)}
-                className="w-full p-2 rounded-ui border border-[#e8dcc4] bg-white font-mono font-bold"
+                className="w-full p-2 rounded border border-[#e8dcc4] bg-white font-mono font-bold"
               >
                 <option value="dex">DEX ({ATTRIBUTE_NAMES.dex} d{stats.currentDex})</option>
                 <option value="ins">INS (洞察 d{stats.currentIns})</option>
@@ -2470,7 +2470,7 @@ export default function CharacterPlayHUD({
                 });
               }
             }}
-            className="w-full py-2.5 rounded-ui text-white font-bold text-xs flex items-center justify-center gap-1.5 mt-2"
+            className="w-full py-2.5 rounded text-white font-bold text-xs flex items-center justify-center gap-1.5 mt-2"
             style={{ backgroundColor: theme.accent }}
           >
             <GiRollingDices className="w-4 h-4" />
@@ -2526,7 +2526,7 @@ export default function CharacterPlayHUD({
                       setLevelUpTarget('class');
                       setSelectedSkillForLevelUp('');
                     }}
-                    className="text-left rounded-ui border p-2 transition-all cursor-pointer hover:border-[#8b5e34]"
+                    className="text-left rounded border p-2 transition-all cursor-pointer hover:border-[#8b5e34]"
                     style={{
                       backgroundColor: levelUpTarget === 'class' ? '#f4ebd9' : '#fffdf9',
                       borderColor: levelUpTarget === 'class' ? '#3c2415' : '#d6c7ab'
@@ -2544,7 +2544,7 @@ export default function CharacterPlayHUD({
                       setLevelUpTarget('mnemosphere');
                       setSelectedSkillForLevelUp('');
                     }}
-                    className={`text-left rounded-ui border p-2 transition-all ${
+                    className={`text-left rounded border p-2 transition-all ${
                       levelUpMnemospheres.length === 0
                         ? 'opacity-50 cursor-not-allowed'
                         : 'cursor-pointer hover:border-[#8b5e34]'
@@ -2570,7 +2570,7 @@ export default function CharacterPlayHUD({
                       setSelectedMnemosphereForLevelUp(e.target.value);
                       setSelectedSkillForLevelUp('');
                     }}
-                    className="w-full mt-2 bg-[#fffdf9] border border-[#d6c7ab] rounded-ui px-3 py-2 text-xs text-[#3c2415] outline-none focus:border-[#8b5e34]"
+                    className="w-full mt-2 bg-[#fffdf9] border border-[#d6c7ab] rounded px-3 py-2 text-xs text-[#3c2415] outline-none focus:border-[#8b5e34]"
                   >
                     <option value="" disabled>-- 選擇魔石 --</option>
                     {levelUpMnemospheres.map(m => (
@@ -2594,7 +2594,7 @@ export default function CharacterPlayHUD({
                     setSelectedClassForLevelUp(e.target.value);
                     setSelectedSkillForLevelUp('');
                   }}
-                  className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded-ui px-3 py-2 text-xs text-[#3c2415] outline-none focus:border-[#8b5e34]"
+                  className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded px-3 py-2 text-xs text-[#3c2415] outline-none focus:border-[#8b5e34]"
                 >
                   <option value="" disabled>-- 選擇職業 --</option>
                   <optgroup label="既有職業">
@@ -2642,7 +2642,7 @@ export default function CharacterPlayHUD({
                         type="button"
                         disabled={maxed}
                         onClick={() => setSelectedSkillForLevelUp(sk.name)}
-                        className={`w-full text-left rounded-ui border p-2.5 transition-all ${
+                        className={`w-full text-left rounded border p-2.5 transition-all ${
                           maxed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-[#8b5e34]'
                         } ${isSel ? 'ring-2 ring-[#a63d40]' : ''}`}
                         style={{
@@ -2704,7 +2704,7 @@ export default function CharacterPlayHUD({
               value={newBondTarget}
               onChange={e => setNewBondTarget(e.target.value)}
               placeholder="例如：王國騎士長、幼時好友、仇敵宿敵..."
-              className="w-full p-2 rounded-ui border border-[#e8dcc4] bg-white"
+              className="w-full p-2 rounded border border-[#e8dcc4] bg-white"
             />
           </div>
 
@@ -2735,7 +2735,7 @@ export default function CharacterPlayHUD({
                         setNewBondFeelings(prev => [...prev, f.id]);
                       }
                     }}
-                    className={`p-2 rounded-ui border text-xs font-bold transition-all text-left ${
+                    className={`p-2 rounded border text-xs font-bold transition-all text-left ${
                       isSelected ? 'bg-[#f4ebd9] border-[#a63d40] text-[#8c3235]' : 'bg-[#fbf7ee] border-[#e8dcc4] text-[#6b5a4b]'
                     }`}
                   >
@@ -2749,7 +2749,7 @@ export default function CharacterPlayHUD({
           <button
             type="button"
             onClick={handleAddBond}
-            className="w-full py-2.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs mt-2"
+            className="w-full py-2.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs mt-2"
           >
             確認建立羈絆
           </button>
@@ -2771,7 +2771,7 @@ export default function CharacterPlayHUD({
               value={newClockTitle}
               onChange={e => setNewClockTitle(e.target.value)}
               placeholder="例如：復仇的倒計時、解開封印進度..."
-              className="w-full p-2 rounded-ui border border-[#e8dcc4] bg-white"
+              className="w-full p-2 rounded border border-[#e8dcc4] bg-white"
             />
           </div>
 
@@ -2783,7 +2783,7 @@ export default function CharacterPlayHUD({
                   key={seg}
                   type="button"
                   onClick={() => setNewClockSegments(seg)}
-                  className={`flex-1 py-1.5 rounded-ui border font-mono font-bold ${
+                  className={`flex-1 py-1.5 rounded border font-mono font-bold ${
                     newClockSegments === seg ? 'bg-[#8b5e34] border-[#78350f] text-white' : 'bg-[#fbf7ee] border-[#e8dcc4] text-[#3c2415]'
                   }`}
                 >
@@ -2796,7 +2796,7 @@ export default function CharacterPlayHUD({
           <button
             type="button"
             onClick={handleAddClock}
-            className="w-full py-2.5 rounded-ui bg-[#8b5e34] hover:bg-[#78350f] text-white font-bold text-xs mt-2"
+            className="w-full py-2.5 rounded bg-[#8b5e34] hover:bg-[#78350f] text-white font-bold text-xs mt-2"
           >
             確認建立命刻
           </button>

@@ -29,7 +29,7 @@ export default function EquipmentSlotCard({
 }) {
   return (
     <div
-      className="rounded-xl border p-3 flex flex-col sm:flex-row items-stretch gap-3 h-full transition-colors"
+      className="rounded border p-3 flex flex-col sm:flex-row items-stretch gap-3 h-full transition-colors"
       style={{
         backgroundColor: theme.cardBg,
         borderColor: warning ? '#8c2d36' : theme.border
@@ -39,7 +39,7 @@ export default function EquipmentSlotCard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             <span
-              className="w-6 h-6 rounded-lg border flex items-center justify-center shrink-0"
+              className="w-6 h-6 rounded border flex items-center justify-center shrink-0"
               style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.accent }}
             >
               <GameIcon name={slotDef.icon} size={14} />
@@ -51,7 +51,7 @@ export default function EquipmentSlotCard({
           <button
             type="button"
             onClick={onOpen}
-            className="text-t11 px-2 py-1 rounded-lg border font-bold flex items-center gap-1 shrink-0 cursor-pointer active:scale-95 transition-all"
+            className="text-t11 px-2 py-1 rounded border font-bold flex items-center gap-1 shrink-0 cursor-pointer active:scale-95 transition-all"
             style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
           >
             <GiPencil size={11} />
@@ -88,7 +88,7 @@ export default function EquipmentSlotCard({
             {metrics.map((m) => (
               <div
                 key={m.label}
-                className="rounded-lg border px-2 py-1 flex flex-col items-center justify-center min-w-[58px]"
+                className="rounded border px-2 py-1 flex flex-col items-center justify-center min-w-[58px]"
                 style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
               >
                 <span className="text-t12 leading-tight text-center" style={{ color: theme.textMuted }}>
@@ -119,7 +119,7 @@ export default function EquipmentSlotCard({
       {/* 被主手佔用的副手格：以虛線區塊直接佔位，視覺上就是「這一格沒了」 */}
       {mergedNote && (
         <div
-          className="w-full sm:w-32 shrink-0 rounded-lg border border-dashed flex sm:flex-col items-center justify-center gap-1.5 px-2 py-2 text-center animate-fade-in"
+          className="w-full sm:w-32 shrink-0 rounded border border-dashed flex sm:flex-col items-center justify-center gap-1.5 px-2 py-2 text-center animate-fade-in"
           style={{ borderColor: theme.border, backgroundColor: theme.panelBg }}
         >
           <GameIcon name="slot_offhand" size={16} style={{ color: theme.textMuted }} />

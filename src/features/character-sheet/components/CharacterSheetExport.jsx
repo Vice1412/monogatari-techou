@@ -1065,7 +1065,7 @@ export function CharacterSheetExportBody({ character, stats = null, theme = null
 
       <div className="space-y-3">
         {SHEET_PAGE_COMPONENTS.map((Page, i) => (
-          <div key={i} className="rounded-lg border overflow-hidden" style={{ borderColor: theme?.border || '#d6c7ab' }}>
+          <div key={i} className="rounded border overflow-hidden" style={{ borderColor: theme?.border || '#d6c7ab' }}>
             <div
               className="flex items-center gap-1.5 px-2 py-1 text-t11 font-bold"
               style={{ backgroundColor: theme?.accentDark || theme?.accent || '#8a6a45', color: '#fffdf9' }}

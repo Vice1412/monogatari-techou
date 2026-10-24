@@ -126,12 +126,12 @@ export default function PilotVehicleCombatSheet({
   };
 
   return (
-    <div className="p-4 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-3 text-xs">
+    <div className="p-4 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-3 text-xs">
       
       {/* 頂部標題列與搭乘切換開關 */}
       <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
-          <div className="p-1.5 rounded-lg bg-[#27527a]/10 text-[#27527a]">
+          <div className="p-1.5 rounded bg-[#27527a]/10 text-[#27527a]">
             <GiSteeringWheel className="text-xl" />
           </div>
           <div>
@@ -151,7 +151,7 @@ export default function PilotVehicleCombatSheet({
         <button
           type="button"
           onClick={toggleMounted}
- className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer ${ isMounted ? 'bg-[#27527a] hover:bg-[#214365] text-white ring-2 ring-[#27527a]/40' : 'bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] ' }`}
+ className={`px-3 py-1.5 rounded font-bold text-xs flex items-center gap-1.5 transition cursor-pointer ${ isMounted ? 'bg-[#27527a] hover:bg-[#214365] text-white ring-2 ring-[#27527a]/40' : 'bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] ' }`}
         >
           <GiSteeringWheel className="text-sm" />
           <span>{isMounted ? '駕駛中（點擊離開）' : '步行中（點擊搭乘）'}</span>
@@ -160,7 +160,7 @@ export default function PilotVehicleCombatSheet({
 
       {/* 駕駛狀態橫幅提示 */}
       {isMounted ? (
-        <div className="p-2.5 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-between flex-wrap gap-2 text-xs">
+        <div className="p-2.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-between flex-wrap gap-2 text-xs">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#27527a]" />
             <strong className="text-[#27527a]">
@@ -196,7 +196,7 @@ export default function PilotVehicleCombatSheet({
           </div>
         </div>
       ) : (
-        <div className="p-2 rounded-lg bg-[#f4ebd9]/80 border border-[#d6c7ab] text-t11 text-[#6b5a4b] flex items-center justify-between">
+        <div className="p-2 rounded bg-[#f4ebd9]/80 border border-[#d6c7ab] text-t11 text-[#6b5a4b] flex items-center justify-between">
           <span>目前處於步行狀態。戰鬥中可執行「目標」動作搭乘載具。</span>
           <span className="font-mono">{renderTextWithAffinities(frame.specialRule)}</span>
         </div>
@@ -217,7 +217,7 @@ export default function PilotVehicleCombatSheet({
         </div>
 
         {activeWeapons.length === 0 ? (
-          <div className="p-3 rounded-lg border border-dashed border-[#d6c7ab] text-center text-[#7c6a58]">
+          <div className="p-3 rounded border border-dashed border-[#d6c7ab] text-center text-[#7c6a58]">
             載具目前未裝備任何啟用的武裝模組
           </div>
         ) : (
@@ -227,7 +227,7 @@ export default function PilotVehicleCombatSheet({
                 return (
                   <div
                     key={w.id}
-                    className="p-2.5 rounded-xl bg-white border border-[#d6c7ab] flex items-center justify-between"
+                    className="p-2.5 rounded bg-white border border-[#d6c7ab] flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2">
                       <GiShield className="text-base text-[#27527a]" />
@@ -243,7 +243,7 @@ export default function PilotVehicleCombatSheet({
               return (
                 <div
                   key={w.id}
-                  className="p-2.5 rounded-xl bg-white border border-[#d6c7ab] space-y-1.5"
+                  className="p-2.5 rounded bg-white border border-[#d6c7ab] space-y-1.5"
                 >
                   <div className="flex items-center justify-between">
                     <strong className="text-[#2c221e] font-bold">{w.name}</strong>

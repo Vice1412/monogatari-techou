@@ -13,10 +13,10 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#fffdf9] border-2 border-[#a63d40] rounded-2xl max-w-md w-full p-6 shadow-xl relative overflow-hidden animate-in zoom-in-95 duration-200 text-[#2c221e]">
+      <div className="bg-[#fffdf9] border-2 border-[#a63d40] rounded max-w-md w-full p-6 shadow-xl relative overflow-hidden animate-in zoom-in-95 duration-200 text-[#2c221e]">
 
         <div className="flex items-center gap-3 font-black text-lg mb-4">
-          <div className="p-2.5 bg-[#f4ebd9] rounded-xl border border-[#d6c7ab]">
+          <div className="p-2.5 bg-[#f4ebd9] rounded border border-[#d6c7ab]">
             <Unlock size={24} className="text-[#a63d40]" />
           </div>
           <div>
@@ -26,7 +26,7 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
         </div>
 
         <div className="text-xs md:text-sm text-[#3c2415] space-y-3 leading-relaxed mb-6">
-          <div className="bg-[#f9f5eb] border border-[#d6c7ab] p-3 rounded-xl text-[#3c2415] text-xs flex items-start gap-2.5">
+          <div className="bg-[#f9f5eb] border border-[#d6c7ab] p-3 rounded text-[#3c2415] text-xs flex items-start gap-2.5">
             <AlertTriangle size={18} className="shrink-0 text-[#6b5a4b] mt-0.5" />
             <div>
               <span className="font-bold text-[#3c2415]">警示：</span>
@@ -38,7 +38,7 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
             解鎖後，您將獲得以下權限：
           </p>
 
-          <ul className="list-disc list-inside text-xs text-[#574c43] space-y-1.5 pl-1 bg-[#f4ebd9] p-3 rounded-xl border border-[#d6c7ab]">
+          <ul className="list-disc list-inside text-xs text-[#574c43] space-y-1.5 pl-1 bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab]">
             <li>自由調整 NPC 的 <strong className="text-[#3c2415]">體質骰子大小</strong>。</li>
             <li><strong className="text-[#3c2415]">HP, MP, 物防, 魔防</strong> 將依據 Fabula Ultima 體質公式自動連動重算。</li>
             <li>無視等級、職能與技能額度上限限制，自由組合技能與能力。</li>
@@ -53,14 +53,14 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg font-bold text-xs md:text-sm bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-colors"
+            className="px-4 py-2 rounded font-bold text-xs md:text-sm bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-colors"
           >
             取消
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="px-5 py-2 rounded-lg font-bold text-xs md:text-sm bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] transition-colors flex items-center gap-1.5"
+            className="px-5 py-2 rounded font-bold text-xs md:text-sm bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] transition-colors flex items-center gap-1.5"
           >
             <Check size={16} /> 確認開啟自定義
           </button>

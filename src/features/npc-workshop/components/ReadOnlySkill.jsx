@@ -101,7 +101,7 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
   return (
     <div
       onClick={handleCardClick}
-      className={`mb-4 break-inside-avoid p-2.5 rounded-lg border transition-all ${onInspectorClick ? 'cursor-pointer hover:border-[#3c2415] hover:shadow-md hover:ring-1 hover:ring-[#3c2415]/40 group/inspector' : ''} ${skill.isSecretArt ? 'border-[#3c2415]/40 bg-[#fffdf9]' : skill.category === 'boss' ? 'border-[#d6c7ab] bg-[#f9f5eb]' : 'border-[#d6c7ab] bg-[#fbf7ee]/40'}`}
+      className={`mb-4 break-inside-avoid p-2.5 rounded border transition-all ${onInspectorClick ? 'cursor-pointer hover:border-[#3c2415] hover:shadow-md hover:ring-1 hover:ring-[#3c2415]/40 group/inspector' : ''} ${skill.isSecretArt ? 'border-[#3c2415]/40 bg-[#fffdf9]' : skill.category === 'boss' ? 'border-[#d6c7ab] bg-[#f9f5eb]' : 'border-[#d6c7ab] bg-[#fbf7ee]/40'}`}
       title={onInspectorClick ? "點擊反向定位至編輯表單" : ""}
     >
       <div className={`font-bold text-t14 mb-1 flex flex-wrap items-center gap-2 ${skill.isSecretArt || skill.category === 'boss' ? 'text-[#3c2415]' : 'text-[#2c221e]'}`}>

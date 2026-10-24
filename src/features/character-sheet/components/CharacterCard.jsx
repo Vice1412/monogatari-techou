@@ -55,7 +55,7 @@ export default function CharacterCard({
 
   return (
     <div
-      className={`bg-[#fffdf9] rounded-xl border-2 shadow-md overflow-hidden text-[#2c221e] flex flex-col relative transition-colors duration-200 ${isCrisis ? 'crisis-pulse-active border-[#8c2d36]' : ''} ${className}`}
+      className={`bg-[#fffdf9] rounded border-2 shadow-md overflow-hidden text-[#2c221e] flex flex-col relative transition-colors duration-200 ${isCrisis ? 'crisis-pulse-active border-[#8c2d36]' : ''} ${className}`}
       style={{ borderColor: isCrisis ? '#8c2d36' : theme.border }}
     >
       {/* Top Banner（第十五輪：實心 accent，不再是漸層） */}
@@ -69,7 +69,7 @@ export default function CharacterCard({
         {/* Avatar - Game-Icons.net or Custom Photo */}
         <div
           onClick={onAvatarClick || undefined}
-          className={`w-16 h-16 rounded-xl bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-2xl font-bold shadow-inner ${
+          className={`w-16 h-16 rounded bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-2xl font-bold shadow-inner ${
             onAvatarClick ? 'cursor-pointer hover:ring-2 hover:ring-[#3c2415]/40 hover:scale-105 transition-all' : ''
           }`}
           style={{ borderColor: theme.border, color: theme.accent }}
@@ -170,7 +170,7 @@ export default function CharacterCard({
           {/* Classes pill tags with Game-Icons */}
           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
             {(!character.classes || character.classes.length === 0) ? (
-              <span className="text-t11 px-2 py-0.5 rounded-md border border-dashed border-[#d6c7ab] bg-[#f4ebd9] text-[#2c221e] font-mono italic">
+              <span className="text-t11 px-2 py-0.5 rounded border border-dashed border-[#d6c7ab] bg-[#f4ebd9] text-[#2c221e] font-mono italic">
                 【 尚未配置職業 (起始需配置 2~3 個職業) 】
               </span>
             ) : (
@@ -178,7 +178,7 @@ export default function CharacterCard({
                 {character.classes.map((cl, idx) => (
                   <span
                     key={idx}
-                    className="text-t11 px-2 py-0.5 rounded-md border font-mono font-bold flex items-center gap-1"
+                    className="text-t11 px-2 py-0.5 rounded border font-mono font-bold flex items-center gap-1"
                     style={{
                       backgroundColor: '#fffdf9',
                       borderColor: theme.border,
@@ -195,7 +195,7 @@ export default function CharacterCard({
                   const reqSL = getCharacterLevel(character);
                   if (totalSL < reqSL) {
                     return (
-                      <span className="text-t10 px-2 py-0.5 rounded-md border border-dashed border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] font-mono font-bold">
+                      <span className="text-t10 px-2 py-0.5 rounded border border-dashed border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] font-mono font-bold">
                         尚餘 {reqSL - totalSL} 點特技未分配
                       </span>
                     );
@@ -209,7 +209,7 @@ export default function CharacterCard({
           {/* 角色背景：只在填過之後才顯示——空白時不佔卡片版面 */}
           {character.background && character.background.trim() ? (
             <div
-              className="mt-2 p-2 rounded-lg border text-t11 leading-relaxed whitespace-pre-wrap"
+              className="mt-2 p-2 rounded border text-t11 leading-relaxed whitespace-pre-wrap"
               style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
             >
               {character.background}
@@ -221,7 +221,7 @@ export default function CharacterCard({
           <button
             type="button"
             onClick={onEdit}
-            className="p-2 text-[#7c6a58] hover:bg-black/5 rounded-lg transition-colors shrink-0"
+            className="p-2 text-[#7c6a58] hover:bg-black/5 rounded transition-colors shrink-0"
             title="編輯角色卡"
           >
             <GiQuillInk className="w-4 h-4" style={{ color: theme.accent }} />
@@ -233,7 +233,7 @@ export default function CharacterCard({
       <div className="space-y-2 p-3.5 border-b transition-colors duration-200" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {/* HP */}
-          <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
+          <div className="bg-[#f9f5eb] rounded p-2.5 border border-[#d6c7ab]">
             <div className="text-t10 text-[#3c2415] font-mono font-bold flex items-center gap-1">
               <GiHealthNormal className="w-3.5 h-3.5 text-[#6b5a4b]" /> HP 生命值
             </div>
@@ -248,7 +248,7 @@ export default function CharacterCard({
           </div>
 
           {/* MP */}
-          <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
+          <div className="bg-[#f9f5eb] rounded p-2.5 border border-[#d6c7ab]">
             <div className="text-t10 text-[#3c2415] font-mono font-bold flex items-center gap-1">
               <GiLightningTear className="w-3.5 h-3.5 text-[#6b5a4b]" /> MP 魔力值
             </div>
@@ -263,7 +263,7 @@ export default function CharacterCard({
           </div>
 
           {/* IP */}
-          <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
+          <div className="bg-[#f9f5eb] rounded p-2.5 border border-[#d6c7ab]">
             <div className="text-t10 text-[#3c2415] font-mono font-bold flex items-center gap-1">
               <GiBackpack className="w-3.5 h-3.5 text-[#6b5a4b]" /> IP 庫存點
             </div>
@@ -278,7 +278,7 @@ export default function CharacterCard({
           </div>
 
           {/* FP */}
-          <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
+          <div className="bg-[#f9f5eb] rounded p-2.5 border border-[#d6c7ab]">
             <div className="text-t10 text-[#3c2415] font-mono font-bold flex items-center gap-1">
               <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" /> 物語點
             </div>
@@ -387,7 +387,7 @@ export default function CharacterCard({
           <GiCrossedSwords className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 裝備配置
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[#3c2415] font-mono">
-          <div className="p-2 rounded-lg border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
+          <div className="p-2 rounded border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
             <span className="text-[#7c6a58]">主手: </span>
             {character.equipment?.mainHand && character.equipment.mainHand !== '無' ? (
               <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.mainHand}</span>
@@ -395,7 +395,7 @@ export default function CharacterCard({
               <span className="text-[#a08f7f] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
             )}
           </div>
-          <div className="p-2 rounded-lg border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
+          <div className="p-2 rounded border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
             <span className="text-[#7c6a58]">副手/盾: </span>
             {character.equipment?.offHand && character.equipment.offHand !== '無' && character.equipment.offHand !== '無盾牌' ? (
               <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.offHand}</span>
@@ -403,7 +403,7 @@ export default function CharacterCard({
               <span className="text-[#a08f7f] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
             )}
           </div>
-          <div className="p-2 rounded-lg border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
+          <div className="p-2 rounded border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
             <span className="text-[#7c6a58]">防具: </span>
             {character.equipment?.armor && character.equipment.armor !== '無' ? (
               <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.armor}</span>
@@ -411,7 +411,7 @@ export default function CharacterCard({
               <span className="text-[#a08f7f] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
             )}
           </div>
-          <div className="p-2 rounded-lg border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
+          <div className="p-2 rounded border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
             <span className="text-[#7c6a58]">飾品: </span>
             {character.equipment?.accessory && character.equipment.accessory !== '無' ? (
               <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.accessory}</span>
@@ -432,7 +432,7 @@ export default function CharacterCard({
             <GiSpellBook className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 職業特技清單
           </h4>
           {(!character.classes || character.classes.flatMap(c => c.skills || []).length === 0) ? (
-            <div className="p-3.5 rounded-lg border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs text-center font-mono">
+            <div className="p-3.5 rounded border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs text-center font-mono">
               【 尚未配置任何職業特技 】（起始 5 級請於步驟 3 分配特技點數）
             </div>
           ) : (
@@ -445,7 +445,7 @@ export default function CharacterCard({
                     return (
                       <div
                         key={sIdx}
-                        className="rounded-lg p-2.5 border text-xs"
+                        className="rounded p-2.5 border text-xs"
                         style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
                       >
                         <div className="flex items-center justify-between font-bold mb-1" style={{ color: theme.textDark }}>
@@ -482,7 +482,7 @@ export default function CharacterCard({
               {character.heroicSkills.map((hs, idx) => (
                 <div
                   key={idx}
-                  className="rounded-lg p-2.5 border text-xs"
+                  className="rounded p-2.5 border text-xs"
                   style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
                 >
                   <div className="font-bold mb-1 flex items-center gap-1.5" style={{ color: theme.textDark }}>
@@ -518,7 +518,7 @@ export default function CharacterCard({
             <GiHeartPlus className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 情感羈絆
           </h4>
           {(!character.bonds || character.bonds.length === 0) ? (
-            <div className="p-3 rounded-lg border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs flex items-center justify-between">
+            <div className="p-3 rounded border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs flex items-center justify-between">
               <span>【 尚未締結任何情感羈絆 】（可建立最多 6 組羈絆）</span>
               <span className="font-mono text-t10 text-[#a08f7f]">0 / 6</span>
             </div>
@@ -527,7 +527,7 @@ export default function CharacterCard({
               {character.bonds.map((bond, idx) => (
                 <div
                   key={idx}
-                  className="rounded-lg p-2.5 border text-xs flex items-center justify-between gap-2"
+                  className="rounded p-2.5 border text-xs flex items-center justify-between gap-2"
                   style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
                 >
                   <div className="font-bold" style={{ color: theme.textDark }}>{bond.target}</div>
@@ -560,7 +560,7 @@ export default function CharacterCard({
             <GiPocketWatch className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 個人命刻
           </h4>
           {(!character.clocks || character.clocks.length === 0) ? (
-            <div className="p-3 rounded-lg border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs">
+            <div className="p-3 rounded border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs">
               <span>【 尚未添加個人命刻 】（可在特質與命刻步驟添加時鐘推進個人目標）</span>
             </div>
           ) : (

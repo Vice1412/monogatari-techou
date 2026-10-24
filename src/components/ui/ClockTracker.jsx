@@ -141,7 +141,7 @@ export default function ClockTracker({
           <span className="text-[#3c2415] font-bold">{title || '進度命刻'}</span>
           <span style={{ color: t.fill }} className="font-black">{filledSegments} / {totalSegments}</span>
         </div>
-        <div className="flex gap-1.5 w-full h-4 bg-[#f4ebd9] p-0.5 rounded-lg border border-[#d6c7ab]">
+        <div className="flex gap-1.5 w-full h-4 bg-[#f4ebd9] p-0.5 rounded border border-[#d6c7ab]">
           {Array.from({ length: totalSegments }).map((_, idx) => (
             <div
               key={idx}
@@ -172,7 +172,7 @@ export default function ClockTracker({
   }
 
   return (
-    <div className={clsx("bg-[#fffdf9] border border-[#d6c7ab] rounded-xl p-4 flex flex-col items-center gap-3 relative text-[#2c221e]", className)}>
+    <div className={clsx("bg-[#fffdf9] border border-[#d6c7ab] rounded p-4 flex flex-col items-center gap-3 relative text-[#2c221e]", className)}>
       {title && (
         <h4 className="font-bold text-sm text-[#3c2415] text-center tracking-wide line-clamp-1">
           {title}
@@ -187,7 +187,7 @@ export default function ClockTracker({
             type="button"
             onClick={() => handleStep(-1)}
             disabled={filledSegments <= 0}
-            className="p-1 rounded-md bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
+            className="p-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
             title="減 1"
           >
             <Minus className="w-3.5 h-3.5" />
@@ -196,7 +196,7 @@ export default function ClockTracker({
             type="button"
             onClick={handleReset}
             disabled={filledSegments === 0}
-            className="p-1 rounded-md bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] hover:text-[#2c221e] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
+            className="p-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] hover:text-[#2c221e] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
             title="重置"
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@ export default function ClockTracker({
             type="button"
             onClick={() => handleStep(1)}
             disabled={filledSegments >= totalSegments}
-            className="p-1 rounded-md bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
+            className="p-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] disabled:opacity-30 transition-colors"
             title="加 1"
           >
             <Plus className="w-3.5 h-3.5" />

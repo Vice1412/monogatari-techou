@@ -96,7 +96,7 @@ export function QuirkPickerBody({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={`搜尋金手指名稱（共 ${quirks.length} 個）...`}
-          className="w-full pl-9 pr-3 py-2 rounded-xl text-xs border outline-none font-sans shadow-inner"
+          className="w-full pl-9 pr-3 py-2 rounded text-xs border outline-none font-sans shadow-inner"
           style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
         />
       </div>
@@ -129,7 +129,7 @@ export function QuirkPickerBody({
                       // 點回**目前已經選定**的那一個時，還原已存的選擇。
                       setChoice(q.name === selectedName ? (selectedChoice || '') : '');
                     }}
-                    className="w-full text-left px-2.5 py-2 rounded-lg border text-xs font-bold transition-all cursor-pointer active:scale-98 flex items-center justify-between gap-1.5"
+                    className="w-full text-left px-2.5 py-2 rounded border text-xs font-bold transition-all cursor-pointer active:scale-98 flex items-center justify-between gap-1.5"
                     style={
                       isOpen
                         ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -166,7 +166,7 @@ export function QuirkPickerBody({
                     使用者要求「適當的情況下，讓效果內容分段方便閱讀」。 */}
                 {opened.flavor && (
                   <p
-                    className="text-t11 italic leading-relaxed p-2.5 rounded-lg border"
+                    className="text-t11 italic leading-relaxed p-2.5 rounded border"
                     style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textMuted }}
                   >
                     <SkillDescription desc={opened.flavor} linkCodex={false} />
@@ -190,7 +190,7 @@ export function QuirkPickerBody({
                     所以這裡不區分「重要／不重要」，一律同一個介面。 */}
                 {quirkOptionGroups.length > 0 && (
                   <div
-                    className="rounded-lg border p-2.5 space-y-2"
+                    className="rounded border p-2.5 space-y-2"
                     style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}
                     data-testid="quirk-options"
                   >

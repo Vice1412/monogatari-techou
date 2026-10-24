@@ -78,7 +78,7 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
     const d = draft || createDefaultMinion();
     const set = (k, v) => setDraft({ ...d, [k]: v });
     return (
-      <div className="rounded-xl border border-[#d6c7ab] bg-[#f4ebd9] p-3 space-y-2.5">
+      <div className="rounded border border-[#d6c7ab] bg-[#f4ebd9] p-3 space-y-2.5">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <span className="text-xs font-bold text-[#3c2415] flex items-center gap-1.5">
             <GiDeathSkull className="w-4 h-4 text-[#5e387c]" />
@@ -113,7 +113,7 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
                 <input
                   type="text" value={d.name} onChange={(e) => set('name', e.target.value)}
                   placeholder="例：白骨侍從"
-                  className="w-full mt-0.5 rounded-lg border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none"
+                  className="w-full mt-0.5 rounded border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none"
                 />
               </label>
               <label className="block">
@@ -121,14 +121,14 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
                 <input
                   type="text" value={d.originName} onChange={(e) => set('originName', e.target.value)}
                   placeholder="例：峽谷巨狼"
-                  className="w-full mt-0.5 rounded-lg border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none"
+                  className="w-full mt-0.5 rounded border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none"
                 />
               </label>
               <label className="block">
                 <span className="text-t10 font-bold text-[#6b5a4b]">原生物物種（官方限定四種）</span>
                 <select
                   value={d.originSpecies} onChange={(e) => set('originSpecies', e.target.value)}
-                  className="w-full mt-0.5 rounded-lg border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none cursor-pointer"
+                  className="w-full mt-0.5 rounded border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none cursor-pointer"
                 >
                   <option value="">—</option>
                   {CONVERTIBLE_SPECIES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -138,7 +138,7 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
                 <span className="text-t10 font-bold text-[#6b5a4b]">原生物定位</span>
                 <select
                   value={d.originRank} onChange={(e) => set('originRank', e.target.value)}
-                  className="w-full mt-0.5 rounded-lg border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none cursor-pointer"
+                  className="w-full mt-0.5 rounded border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none cursor-pointer"
                 >
                   {['士兵', '菁英', '冠名'].map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -150,7 +150,7 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
                 <input
                   type="number" min={0} max={50} value={d.npcLevel}
                   onChange={(e) => set('npcLevel', Math.max(0, parseInt(e.target.value, 10) || 0))}
-                  className="w-full mt-0.5 rounded-lg border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none font-mono"
+                  className="w-full mt-0.5 rounded border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none font-mono"
                 />
               </label>
               <label className="block">
@@ -158,7 +158,7 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
                 <input
                   type="text" value={d.equipment} onChange={(e) => set('equipment', e.target.value)}
                   placeholder="原生物的所有裝備"
-                  className="w-full mt-0.5 rounded-lg border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none"
+                  className="w-full mt-0.5 rounded border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none"
                 />
               </label>
             </div>
@@ -187,7 +187,7 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
 
   // ── 已經有僕從 ──────────────────────────────────────────────
   return (
-    <div className="rounded-xl border border-[#5e387c] bg-[#f4ebd9] p-3 space-y-2.5">
+    <div className="rounded border border-[#5e387c] bg-[#f4ebd9] p-3 space-y-2.5">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <span className="text-xs font-bold text-[#3c2415] flex items-center gap-1.5">
           <GiDeathSkull className="w-4 h-4 text-[#5e387c]" />
@@ -211,7 +211,7 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
 
       {/* 上限懲罰：這一條由 characterEngine 自動套用，不是只寫在這裡 */}
       {cost > 0 && (
-        <div className="rounded-lg border border-[#8c2d36] bg-[#f4ebd9] px-2.5 py-1.5 flex items-center gap-2">
+        <div className="rounded border border-[#8c2d36] bg-[#f4ebd9] px-2.5 py-1.5 flex items-center gap-2">
           <GiHazardSign className="w-3.5 h-3.5 text-[#8c2d36] shrink-0" />
           <span className="text-t11 font-bold text-[#8c2d36]">
             你的 HP／MP 上限各 −{cost}（原生物 {cost} 級）——已自動計入角色數值，
@@ -226,7 +226,7 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
           { key: 'currentHp', label: 'HP', value: hp, set: (v) => update({ currentHp: Math.max(0, v) }) },
           { key: 'currentMp', label: 'MP', value: mp, set: (v) => update({ currentMp: Math.max(0, v) }) }
         ].map((row) => (
-          <div key={row.key} className="flex items-center justify-between gap-2 rounded-lg border border-[#d6c7ab] bg-white px-2.5 py-1.5">
+          <div key={row.key} className="flex items-center justify-between gap-2 rounded border border-[#d6c7ab] bg-white px-2.5 py-1.5">
             <span className="text-t11 font-bold text-[#3c2415]">{row.label}</span>
             <div className="flex items-center gap-1 font-mono">
               <button
@@ -254,7 +254,7 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
       </div>
 
       {hpZero && (
-        <div className="rounded-lg border border-[#8c2d36] bg-[#f4ebd9] px-2.5 py-1.5 text-t11 text-[#8c2d36] leading-relaxed">
+        <div className="rounded border border-[#8c2d36] bg-[#f4ebd9] px-2.5 py-1.5 text-t11 text-[#8c2d36] leading-relaxed">
           <strong>HP 已歸零。</strong>若你距離牠超過 <strong>{MINION_LEASH_DAYS} 個旅行日</strong>，
           或者你死亡／失去知覺，牠會<strong>立即被摧毀</strong>。請確認距離後再決定。
         </div>
@@ -283,7 +283,7 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
       </div>
 
       {(minion.equipment || minion.notes) && (
-        <div className="rounded-lg border border-[#d6c7ab] bg-white px-2.5 py-1.5 text-t11 text-[#3c2415] space-y-0.5">
+        <div className="rounded border border-[#d6c7ab] bg-white px-2.5 py-1.5 text-t11 text-[#3c2415] space-y-0.5">
           {minion.equipment && <div>裝備：{minion.equipment}</div>}
           {minion.notes && <div>備註：{minion.notes}</div>}
         </div>
@@ -293,7 +293,7 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
         <span className="text-t10 font-bold text-[#6b5a4b]">備註（心靈感應命令之類）</span>
         <input
           type="text" value={minion.notes} onChange={(e) => update({ notes: e.target.value })}
-          className="w-full mt-0.5 rounded-lg border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none"
+          className="w-full mt-0.5 rounded border border-[#d6c7ab] bg-white px-2 py-1 text-xs outline-none"
         />
       </label>
     </div>

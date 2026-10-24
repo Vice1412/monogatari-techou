@@ -50,7 +50,7 @@ export default function SuboptionDetailsList({
     <div className={`space-y-2.5 ${classNameCustom}`}>
       {/* 1. 魔奏者專屬：基礎 3 大音量常駐外顯卡片 */}
       {isChanter && showVolumeBlock && (
-        <div className="p-2.5 rounded-xl bg-[#f9f5eb] border border-[#d6c7ab] space-y-2">
+        <div className="p-2.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] space-y-2">
           <div className="flex items-center justify-between text-xs font-bold text-[#3c2415] border-b border-[#e8dcc4] pb-1.5">
             <span className="flex items-center gap-1.5">
               <GiMusicalNotes className="w-3.5 h-3.5 text-[#3c2415]" />
@@ -65,7 +65,7 @@ export default function SuboptionDetailsList({
             {CHANTER_DATA.volumes.map(vol => (
               <div
                 key={vol.id}
-                className="p-2 bg-white rounded-lg border border-[#e8dcc4] space-y-1"
+                className="p-2 bg-white rounded border border-[#e8dcc4] space-y-1"
               >
                 <div className="flex items-center justify-between font-bold text-xs">
                   <span className="text-[#3c2415] font-serif">{vol.name}</span>
@@ -89,7 +89,7 @@ export default function SuboptionDetailsList({
       {isTherioform && (
         <div
           data-testid="therioform-usage"
-          className="p-2.5 rounded-xl bg-[#f9f5eb] border border-[#8c2d36]/30 space-y-1"
+          className="p-2.5 rounded bg-[#f9f5eb] border border-[#8c2d36]/30 space-y-1"
         >
           <div className="flex items-center justify-between text-xs font-bold text-[#8c2d36] border-b border-[#8c2d36]/30 pb-1.5 gap-2 flex-wrap">
             <span className="flex items-center gap-1.5">
@@ -124,7 +124,7 @@ export default function SuboptionDetailsList({
             return (
               <div
                 key={`${detail.name || rawName}_${idx}`}
-                className="p-2.5 rounded-xl border border-[#e8dcc4] bg-white/95 hover:border-[#7c6a58] transition-all space-y-1.5 text-xs"
+                className="p-2.5 rounded border border-[#e8dcc4] bg-white/95 hover:border-[#7c6a58] transition-all space-y-1.5 text-xs"
               >
                 {/* 卡片標題與標籤列 */}
                 <div className="flex items-center justify-between gap-1.5 flex-wrap">
@@ -221,7 +221,7 @@ export default function SuboptionDetailsList({
           })}
         </div>
       ) : (
-        <div className="p-3 text-center bg-[#fbf7ee]/80 rounded-lg border border-dashed border-[#d6c7ab] text-[#6b5a4b] text-xs italic">
+        <div className="p-3 text-center bg-[#fbf7ee]/80 rounded border border-dashed border-[#d6c7ab] text-[#6b5a4b] text-xs italic">
           尚未配置任何項目。請點擊上方按鈕展開清單完成角色構築。
         </div>
       )}

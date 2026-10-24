@@ -225,7 +225,7 @@ export default function SkillSuboptionModal({
           <button
             type="button"
             onClick={handleClear}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] border border-[#d6c7ab] transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] border border-[#d6c7ab] transition-colors cursor-pointer"
           >
             <GiTrashCan className="w-4 h-4" />
             <span>清空已選項目</span>
@@ -235,7 +235,7 @@ export default function SkillSuboptionModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 rounded-lg border border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9] font-medium transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 rounded border border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9] font-medium transition-colors cursor-pointer"
             >
               取消返回
             </button>
@@ -254,7 +254,7 @@ export default function SkillSuboptionModal({
     >
       <div className="p-4 sm:p-5 space-y-4 max-h-[72vh] overflow-y-auto">
         {/* ================= 頂部狀態與配額指示列 ================= */}
-        <div className="p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white" style={{ borderColor: theme?.border || '#e2e8f0' }}>
+        <div className="p-3 rounded border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white" style={{ borderColor: theme?.border || '#e2e8f0' }}>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-bold text-sm text-[#2c221e]">
@@ -276,7 +276,7 @@ export default function SkillSuboptionModal({
                   type="button"
                   onClick={() => openRuleCodex(skillName)}
                   title={`開啟規則速查「${codexRule.title}」（${codexRule.page}）`}
-                  className="text-t11 font-bold px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] hover:bg-[#f4ebd9] transition-colors cursor-pointer flex items-center gap-1"
+                  className="text-t11 font-bold px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] hover:bg-[#f4ebd9] transition-colors cursor-pointer flex items-center gap-1"
                 >
                   <GiBookCover className="w-3.5 h-3.5" />
                   <span>規則速查：{codexRule.title}</span>
@@ -320,7 +320,7 @@ export default function SkillSuboptionModal({
 
         {/* 魔奏者專屬規則提醒（至少 1 音調 + 1 曲風） */}
         {!chanterValidation.valid && (
-          <div className="p-2.5 rounded-lg bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] text-xs flex items-center gap-2">
+          <div className="p-2.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] text-xs flex items-center gap-2">
             <GiHazardSign className="w-4 h-4 shrink-0 text-[#6b5a4b]" />
             <span>{chanterValidation.message}</span>
           </div>
@@ -328,14 +328,14 @@ export default function SkillSuboptionModal({
 
         {/* 魔奏者音量全掌握說明條 */}
         {config.type === 'chanter' && (
-          <div className="p-3 rounded-xl bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] text-xs space-y-1.5">
+          <div className="p-3 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] text-xs space-y-1.5">
             <div className="font-bold flex items-center gap-1.5 text-[#3c2415]">
               <GiMusicalNotes className="w-4 h-4" />
               <span>音量體系（習得本技能自動全數掌握，無須消耗配額）：</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-t11">
               {CHANTER_DATA.volumes.map(vol => (
-                <div key={vol.id} className="p-2 bg-white rounded-lg border border-[#e8dcc4]">
+                <div key={vol.id} className="p-2 bg-white rounded border border-[#e8dcc4]">
                   <div className="font-bold text-[#3c2415] flex items-center justify-between">
                     <span>{vol.name}</span>
                     <span className="font-mono text-[#6b5a4b]">{vol.mp} MP</span>
@@ -351,7 +351,7 @@ export default function SkillSuboptionModal({
         {isMutantForms && (
           <div
             data-testid="therioform-rules"
-            className="p-3 rounded-xl bg-[#f9f5eb] border border-[#8c2d36]/30 text-xs space-y-1"
+            className="p-3 rounded bg-[#f9f5eb] border border-[#8c2d36]/30 text-xs space-y-1"
           >
             <div className="font-bold flex items-center gap-1.5 flex-wrap text-[#8c2d36]">
               <GiDna2 className="w-4 h-4" />
@@ -383,17 +383,17 @@ export default function SkillSuboptionModal({
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="搜尋項目名稱或效果描述..."
-              className="w-full pl-9 pr-3 py-1.5 bg-white border border-[#d6c7ab] rounded-lg text-xs placeholder:text-[#6b5a4b] focus:outline-none focus:ring-1 focus:ring-[#3c2415]"
+              className="w-full pl-9 pr-3 py-1.5 bg-white border border-[#d6c7ab] rounded text-xs placeholder:text-[#6b5a4b] focus:outline-none focus:ring-1 focus:ring-[#3c2415]"
             />
           </div>
 
           {/* 魔奏者分類切換 */}
           {config.type === 'chanter' && (
-            <div className="flex items-center gap-1 bg-[#f4ebd9] p-1 rounded-lg border border-[#d6c7ab] text-xs">
+            <div className="flex items-center gap-1 bg-[#f4ebd9] p-1 rounded border border-[#d6c7ab] text-xs">
               <button
                 type="button"
                 onClick={() => setActiveCategory('all')}
-                className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                className={`px-2.5 py-1 rounded font-medium transition-colors ${
                   activeCategory === 'all' ? 'bg-white shadow-2xs text-[#2c221e] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
                 }`}
               >
@@ -402,7 +402,7 @@ export default function SkillSuboptionModal({
               <button
                 type="button"
                 onClick={() => setActiveCategory('keys')}
-                className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                className={`px-2.5 py-1 rounded font-medium transition-colors ${
                   activeCategory === 'keys' ? 'bg-white shadow-2xs text-[#3c2415] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
                 }`}
               >
@@ -411,7 +411,7 @@ export default function SkillSuboptionModal({
               <button
                 type="button"
                 onClick={() => setActiveCategory('tones')}
-                className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                className={`px-2.5 py-1 rounded font-medium transition-colors ${
                   activeCategory === 'tones' ? 'bg-white shadow-2xs text-[#2c221e] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
                 }`}
               >
@@ -423,7 +423,7 @@ export default function SkillSuboptionModal({
 
         {/* ================= 項目卡片清單網格 ================= */}
         {filteredItems.length === 0 ? (
-          <div className="p-8 text-center bg-[#fbf7ee] rounded-xl border border-dashed border-[#d6c7ab] text-[#6b5a4b] text-xs">
+          <div className="p-8 text-center bg-[#fbf7ee] rounded border border-dashed border-[#d6c7ab] text-[#6b5a4b] text-xs">
             查無符合關鍵字「{searchQuery}」的項目。請嘗試其他搜尋詞。
           </div>
         ) : (
@@ -436,7 +436,7 @@ export default function SkillSuboptionModal({
                 <div
                   key={item.id || item.name}
                   onClick={() => !isDisabled && handleToggleOption(item.name)}
-                  className={`p-3 rounded-xl border text-xs space-y-1.5 transition-all select-none cursor-pointer ${
+                  className={`p-3 rounded border text-xs space-y-1.5 transition-all select-none cursor-pointer ${
                     isSelected
                       ? 'bg-[#f9f5eb] border-[#d6c7ab] ring-1 ring-[#3c2415]/40'
                       : isDisabled

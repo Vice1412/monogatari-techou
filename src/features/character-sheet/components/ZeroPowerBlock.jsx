@@ -71,7 +71,7 @@ function ChoiceChip({ active, title, subtitle, onClick, theme }) {
       type="button"
       title={title}
       onClick={onClick}
-      className="text-left rounded-lg border px-2.5 py-1.5 transition-all cursor-pointer"
+      className="text-left rounded border px-2.5 py-1.5 transition-all cursor-pointer"
       style={{
         backgroundColor: active ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
         borderColor: active ? theme.accent : theme.border,
@@ -123,7 +123,7 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
 
   return (
     <div
-      className="relative rounded-2xl animate-fade-in"
+      className="relative rounded animate-fade-in"
       data-testid="zero-power-showcase"
       style={{
         padding: '3px',
@@ -132,7 +132,7 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
       }}
     >
       <div
-        className="relative rounded-[13px] px-4 py-5 space-y-3"
+        className="relative rounded px-4 py-5 space-y-3"
         style={{
           background: `radial-gradient(ellipse at 50% -32%, ${accent}26 0%, transparent 58%), radial-gradient(circle at 50% -12%, ${accentLight} 0%, ${cardBg} 62%)`,
           border: `1px solid ${border}`
@@ -192,7 +192,7 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
           【愛】要換成綁定對象的名字、【零之元素】／【零之天災】要把已選的類型寫進去。
         */}
         <div
-          className="rounded-lg px-3 py-2 text-center space-y-0.5"
+          className="rounded px-3 py-2 text-center space-y-0.5"
           style={{ backgroundColor: accentLight, border: `1px solid ${border}` }}
         >
           <span className="block text-t10 font-bold" style={{ color: accent, letterSpacing: '0.2em' }}>觸發</span>
@@ -209,7 +209,7 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
         </div>
 
         <div
-          className="flex items-center justify-center gap-1.5 flex-wrap text-t10 font-bold rounded-lg px-2 py-1.5"
+          className="flex items-center justify-center gap-1.5 flex-wrap text-t10 font-bold rounded px-2 py-1.5"
           style={{ color: textMuted, backgroundColor: accentLight, border: `1px solid ${border}` }}
         >
           <GiPocketWatch className="w-3 h-3" style={{ color: accent }} />
@@ -238,7 +238,7 @@ function ShowcasePlaceholder({ theme, missing }) {
 
   return (
     <div
-      className="rounded-2xl border-2 border-dashed px-4 py-4 text-center space-y-1"
+      className="rounded border-2 border-dashed px-4 py-4 text-center space-y-1"
       style={{ borderColor: border, backgroundColor: panelBg }}
       data-testid="zero-power-showcase-placeholder"
     >
@@ -329,7 +329,7 @@ export default function ZeroPowerBlock({
   const partnerState = partnerChar ? normalizeZeroPower(partnerChar.zeroPower) : null;
   const partnerClockFull = partnerState ? isZeroClockFull(partnerState) : undefined;
 
-  const inputClass = 'w-full rounded-lg px-2.5 py-1.5 text-xs outline-none border font-mono font-bold';
+  const inputClass = 'w-full rounded px-2.5 py-1.5 text-xs outline-none border font-mono font-bold';
   const inputStyle = { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark };
 
   /** 覺醒：一次做完「回復 HP、選定觸發、（衝突中）填滿命刻」。 */
@@ -347,7 +347,7 @@ export default function ZeroPowerBlock({
   const awakenArea = () => {
     if (state.variant !== 'awakened' || state.awakened) return null;
     return (
-      <div className="rounded-lg border p-2.5 space-y-1.5" style={{ borderColor: theme.accent, backgroundColor: theme.cardBg }}>
+      <div className="rounded border p-2.5 space-y-1.5" style={{ borderColor: theme.accent, backgroundColor: theme.cardBg }}>
         <span className="block text-t11 font-bold" style={{ color: theme.textDark }}>
           覺醒之力：尚未覺醒
         </span>
@@ -408,7 +408,7 @@ export default function ZeroPowerBlock({
       }
     };
     return (
-      <div className="rounded-xl border p-3 space-y-2.5" style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }} data-testid="zero-power-play">
+      <div className="rounded border p-3 space-y-2.5" style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }} data-testid="zero-power-play">
         <div className="flex items-center justify-between flex-wrap gap-1">
           <span className="font-serif font-black text-sm flex items-center gap-1.5" style={{ color: theme.textDark }}>
             <GiPocketWatch className="w-4 h-4" style={{ color: theme.accent }} />
@@ -593,7 +593,7 @@ export default function ZeroPowerBlock({
 
       {/* 觸發 */}
       {state.variant === 'awakened' && !state.awakened ? (
-        <div className="rounded-lg border px-2.5 py-2 space-y-1" style={{ borderColor: theme.border, backgroundColor: theme.cardBg }}>
+        <div className="rounded border px-2.5 py-2 space-y-1" style={{ borderColor: theme.border, backgroundColor: theme.cardBg }}>
           <span className="block text-t11 font-bold" style={{ color: theme.textDark }}>觸發</span>
           <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
             覺醒之力建角時不選觸發——觸發在覺醒當下才選定，所以這裡留白是正確狀態，不是漏填。
@@ -625,7 +625,7 @@ export default function ZeroPowerBlock({
             ))}
           </div>
           {trigger ? (
-            <p className="text-t11 leading-relaxed rounded-lg border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
+            <p className="text-t11 leading-relaxed rounded border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
               {renderTextWithAffinities(trigger.desc)}
             </p>
           ) : null}
@@ -842,7 +842,7 @@ export default function ZeroPowerBlock({
       ) : null}
 
       {effect ? (
-        <p className="text-t11 leading-relaxed rounded-lg border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
+        <p className="text-t11 leading-relaxed rounded border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
           {renderTextWithAffinities(effect.desc)}
         </p>
       ) : null}

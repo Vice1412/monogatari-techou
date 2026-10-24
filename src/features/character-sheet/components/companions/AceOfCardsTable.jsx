@@ -134,9 +134,9 @@ const JOKER_TEXT = 'text-[#6b5a4b]';
  * 護欄改成一對一檢查三階（不再釘死單一數字）。
  */
 const CARD_SIZE = {
-  md: { box: 'min-w-[44px] px-1.5 py-1 rounded-[5px]', glyph: 'text-t16', icon: 'w-4 h-4' },
-  sm: { box: 'min-w-[38px] px-1.5 py-1 rounded-[5px]', glyph: 'text-t14', icon: 'w-3.5 h-3.5' },
-  xs: { box: 'min-w-[30px] px-1 py-0.5 rounded-[4px]', glyph: 'text-t12', icon: 'w-3 h-3' }
+  md: { box: 'min-w-[44px] px-1.5 py-1 rounded', glyph: 'text-t16', icon: 'w-4 h-4' },
+  sm: { box: 'min-w-[38px] px-1.5 py-1 rounded', glyph: 'text-t14', icon: 'w-3.5 h-3.5' },
+  xs: { box: 'min-w-[30px] px-1 py-0.5 rounded', glyph: 'text-t12', icon: 'w-3 h-3' }
 };
 
 /** 小顆的區塊標題。 */
@@ -532,11 +532,11 @@ export default function AceOfCardsTable({
       ok: 'bg-[#f4ebd9] border-[#d6c7ab] text-[#2c221e]',
       bad: 'bg-[#f9f5eb] border-[#8c2d36]/50 text-[#8c2d36]'
     };
-    return <span className={`px-2 py-1 rounded-lg border text-xs font-bold ${tones[tone]}`}>{text}</span>;
+    return <span className={`px-2 py-1 rounded border text-xs font-bold ${tones[tone]}`}>{text}</span>;
   };
 
   return (
-    <div className="rounded-2xl bg-white border border-[#d6c7ab] overflow-hidden">
+    <div className="rounded bg-white border border-[#d6c7ab] overflow-hidden">
       {/* 標題列 */}
       <div className={`px-3.5 py-2.5 ${T.bg} border-b ${T.border} flex items-center justify-between flex-wrap gap-2`}>
         <span className={`font-bold text-sm ${T.text} flex items-center gap-1.5`}>
@@ -566,7 +566,7 @@ export default function AceOfCardsTable({
 
       <div className="p-3.5 space-y-3">
         {/* 花色對應 */}
-        <div className={`p-2.5 rounded-xl ${suitOk ? T.bg : 'bg-[#f9f5eb]'} border ${suitOk ? T.border : 'border-[#8c2d36]/50'}`}>
+        <div className={`p-2.5 rounded ${suitOk ? T.bg : 'bg-[#f9f5eb]'} border ${suitOk ? T.border : 'border-[#8c2d36]/50'}`}>
           <SectionTitle
             icon={GiSpades}
             right={
@@ -574,7 +574,7 @@ export default function AceOfCardsTable({
                 <button
                   type="button"
                   onClick={applyRecommendedSuits}
-                  className="px-2 py-0.5 rounded-lg border border-[#8c2d36]/50 bg-white text-t10 font-bold text-[#8c2d36] cursor-pointer"
+                  className="px-2 py-0.5 rounded border border-[#8c2d36]/50 bg-white text-t10 font-bold text-[#8c2d36] cursor-pointer"
                 >
                   套用建議對應
                 </button>
@@ -616,7 +616,7 @@ export default function AceOfCardsTable({
           <button
             type="button"
             onClick={startConflict}
-            className="w-full px-3 py-2.5 rounded-xl bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] text-xs font-bold shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+            className="w-full px-3 py-2.5 rounded bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] text-xs font-bold shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5"
           >
             <GiCardRandom className="w-4 h-4" />
             <span>衝突開始：洗牌 30 張並抽 {STARTING_HAND} 張</span>
@@ -638,7 +638,7 @@ export default function AceOfCardsTable({
               {hand.length === 0 ? (
                 /* 空手牌：原本是 `text-[#6b5a4b]` 的一行「手牌已空」（白底 2.56:1）。
                    這裡說兩件事——牌去哪了、怎麼拿回來；否則玩家只會看到一個空白區塊。 */
-                <div className="py-5 px-4 text-center bg-[#fbf7ee] rounded-xl border border-dashed border-[#d6c7ab] flex flex-col items-center justify-center">
+                <div className="py-5 px-4 text-center bg-[#fbf7ee] rounded border border-dashed border-[#d6c7ab] flex flex-col items-center justify-center">
                   <GiCardPickup className="w-7 h-7 text-[#7c6a58]" />
                   <p className="mt-2 font-bold text-[#3c2415] text-xs tracking-wide">手牌已空</p>
                   <p className="mt-1 text-[#6b5a4b] text-t12 leading-relaxed max-w-xs">
@@ -659,7 +659,7 @@ export default function AceOfCardsTable({
 
             {/* 小丑牌指定 */}
             {pickedJokers.length > 0 && (
-              <div className="p-2.5 rounded-xl bg-[#f9f5eb] border border-[#d6c7ab]">
+              <div className="p-2.5 rounded bg-[#f9f5eb] border border-[#d6c7ab]">
                 <SectionTitle
                   icon={GiCardJoker}
                   right={
@@ -667,14 +667,14 @@ export default function AceOfCardsTable({
                       <button
                         type="button"
                         onClick={applySuggestedJokers}
-                        className="px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-white text-t10 font-bold text-[#3c2415] cursor-pointer"
+                        className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-white text-t10 font-bold text-[#3c2415] cursor-pointer"
                       >
                         套用建議
                       </button>
                       <button
                         type="button"
                         onClick={clearJokerAssign}
-                        className="px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-white text-t10 font-bold text-[#3c2415] cursor-pointer"
+                        className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-white text-t10 font-bold text-[#3c2415] cursor-pointer"
                       >
                         清除指定
                       </button>
@@ -736,7 +736,7 @@ export default function AceOfCardsTable({
 
             {/* 符合的效果 */}
             {pickedCards.length >= 2 && (
-              <div className={`p-2.5 rounded-xl border ${matches.length > 0 ? 'bg-[#fffdf9] border-[#3c2415]' : 'bg-[#fbf7ee] border-[#d6c7ab]'}`}>
+              <div className={`p-2.5 rounded border ${matches.length > 0 ? 'bg-[#fffdf9] border-[#3c2415]' : 'bg-[#fbf7ee] border-[#d6c7ab]'}`}>
                 <div className="flex items-center gap-1.5 text-t11 font-bold mb-1.5">
                   {matches.length > 0 ? (
                     <GiCheckMark className="w-3.5 h-3.5 text-[#3c2415]" />
@@ -765,7 +765,7 @@ export default function AceOfCardsTable({
                           setChosenEffect(m.id);
                           setStatusPicked([]);
                         }}
-                        className={`w-full text-left px-2 py-1.5 rounded-lg border text-t11 transition-all cursor-pointer ${
+                        className={`w-full text-left px-2 py-1.5 rounded border text-t11 transition-all cursor-pointer ${
                           isMonarch
                             ? on
                               ? 'bg-[#f4ebd9] border-[#3c2415] ring-2 ring-[#3c2415]'
@@ -817,7 +817,7 @@ export default function AceOfCardsTable({
                             key={k}
                             type="button"
                             onClick={() => toggleStatusPick(k)}
-                            className={`px-2 py-1 rounded-lg border text-t11 font-bold cursor-pointer transition-all ${
+                            className={`px-2 py-1 rounded border text-t11 font-bold cursor-pointer transition-all ${
                               on ? 'bg-white border-[#3c2415] ring-2 ring-[#3c2415] text-[#2c221e]' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
                             }`}
                           >
@@ -837,7 +837,7 @@ export default function AceOfCardsTable({
               type="button"
               disabled={!canResolve}
               onClick={resolveSet}
-              className={`w-full px-3 py-2 rounded-xl text-xs font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5 ${
+              className={`w-full px-3 py-2 rounded text-xs font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5 ${
                 canResolve
                   ? 'bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] cursor-pointer'
                   : 'bg-[#f4ebd9] text-[#7c6a58] border border-[#e8dcc4] cursor-not-allowed'
@@ -861,7 +861,7 @@ export default function AceOfCardsTable({
 
             {/* 牌運亨通目前狀態 */}
             {hasHighOrLowState(highOrLow) && (
-              <div className="p-2.5 rounded-xl bg-[#f9f5eb] border border-[#d6c7ab]">
+              <div className="p-2.5 rounded bg-[#f9f5eb] border border-[#d6c7ab]">
                 <SectionTitle icon={GiRollingDices}>牌運亨通（生效至你的下個回合開始）</SectionTitle>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {highOrLow.extraDamage > 0 && chip(`+${highOrLow.extraDamage} 傷害`, 'ok')}
@@ -871,7 +871,7 @@ export default function AceOfCardsTable({
             )}
 
             {/* 每回合限制（只有【陷阱卡】有；【再調度】原書沒有次數限制） */}
-            <div className={`p-2.5 rounded-xl ${T.bg} border ${T.border} flex items-center justify-between flex-wrap gap-2`}>
+            <div className={`p-2.5 rounded ${T.bg} border ${T.border} flex items-center justify-between flex-wrap gap-2`}>
               <span className={`text-t11 font-bold ${T.text}`}>
                 本回合：陷阱卡 {usedThisTurn.trap ? '已使用' : '未使用'}
                 <span className={`font-normal ${T.sub}`}>（再調度沒有次數限制）</span>
@@ -879,7 +879,7 @@ export default function AceOfCardsTable({
               <button
                 type="button"
                 onClick={startTurn}
-                className={`px-2.5 py-1 rounded-lg border ${T.border} bg-white hover:bg-[#e8dcc4] text-t11 font-bold ${T.sub} cursor-pointer`}
+                className={`px-2.5 py-1 rounded border ${T.border} bg-white hover:bg-[#e8dcc4] text-t11 font-bold ${T.sub} cursor-pointer`}
               >
                 推進到下個回合
               </button>
@@ -887,7 +887,7 @@ export default function AceOfCardsTable({
 
             {/* 再調度 */}
             {mulliganSL > 0 && (
-              <details className={`p-2.5 rounded-xl bg-white border ${T.border}`} open={mulliganPicked.length > 0}>
+              <details className={`p-2.5 rounded bg-white border ${T.border}`} open={mulliganPicked.length > 0}>
                 <summary className={`text-t11 font-bold ${T.text} cursor-pointer flex items-center gap-1.5`}>
                   <GiCardRandom className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   <span>再調度（SL {mulliganSL}：命中敵人後，自選至多 {mulliganLimit(mulliganSL)} 張棄掉並補抽）</span>
@@ -906,7 +906,7 @@ export default function AceOfCardsTable({
                     type="button"
                     disabled={mulliganPicked.length === 0}
                     onClick={doMulligan}
-                    className={`w-full px-3 py-1.5 rounded-lg text-t11 font-bold transition-colors ${
+                    className={`w-full px-3 py-1.5 rounded text-t11 font-bold transition-colors ${
                       mulliganPicked.length === 0
                         ? 'bg-[#f4ebd9] text-[#7c6a58] border border-[#e8dcc4] cursor-not-allowed'
                         : 'bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] cursor-pointer'
@@ -920,7 +920,7 @@ export default function AceOfCardsTable({
 
             {/* 陷阱卡 */}
             {trapSL > 0 && (
-              <details className={`p-2.5 rounded-xl bg-white border ${T.border}`}>
+              <details className={`p-2.5 rounded bg-white border ${T.border}`}>
                 <summary className={`text-t11 font-bold ${T.text} cursor-pointer flex items-center gap-1.5`}>
                   <GiTrapMask className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   <span>陷阱卡（SL {trapSL}：敵人結算動作後，棄至多 {trapDiscardLimit(trapSL)} 張換免費施法）</span>
@@ -941,7 +941,7 @@ export default function AceOfCardsTable({
                               setTrapActionKey(a.key);
                               setTrapPicked([]);
                             }}
-                            className={`px-2 py-1 rounded-lg border text-t11 font-bold cursor-pointer transition-all ${
+                            className={`px-2 py-1 rounded border text-t11 font-bold cursor-pointer transition-all ${
                               on ? 'bg-white border-[#3c2415] ring-2 ring-[#3c2415] text-[#3c2415]' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
                             }`}
                           >
@@ -976,7 +976,7 @@ export default function AceOfCardsTable({
                         type="button"
                         disabled={trapPicked.length === 0 || usedThisTurn.trap}
                         onClick={confirmTrapDiscard}
-                        className={`mt-2 w-full px-3 py-1.5 rounded-lg text-t11 font-bold transition-colors ${
+                        className={`mt-2 w-full px-3 py-1.5 rounded text-t11 font-bold transition-colors ${
                           trapPicked.length === 0 || usedThisTurn.trap
                             ? 'bg-[#f4ebd9] text-[#7c6a58] border border-[#e8dcc4] cursor-not-allowed'
                             : 'bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] cursor-pointer'
@@ -990,7 +990,7 @@ export default function AceOfCardsTable({
                   )}
 
                   {trapDiscarded && (
-                    <div className="p-2 rounded-lg bg-[#f9f5eb] border border-[#d6c7ab]">
+                    <div className="p-2 rounded bg-[#f9f5eb] border border-[#d6c7ab]">
                       <div className="flex items-center gap-1.5 text-t11 font-bold text-[#2c221e] mb-1">
                         <GiCardDraw className="w-3.5 h-3.5" />
                         <span>免費咒語動作：總 MP ≤ {trapCap}（MP 仍須自付）</span>
@@ -1010,7 +1010,7 @@ export default function AceOfCardsTable({
                                 type="button"
                                 disabled={!affordable}
                                 onClick={() => castTrapSpell(sp)}
-                                className={`w-full text-left px-2 py-1 rounded-lg border text-t11 ${
+                                className={`w-full text-left px-2 py-1 rounded border text-t11 ${
                                   affordable
                                     ? 'bg-white border-[#3c2415] cursor-pointer hover:bg-[#f4ebd9]'
                                     : 'bg-[#fffdf9] border-[#e8dcc4] text-[#7c6a58] cursor-not-allowed'
@@ -1036,7 +1036,7 @@ export default function AceOfCardsTable({
               <button
                 type="button"
                 onClick={endConflict}
-                className={`px-2.5 py-1.5 rounded-lg border ${T.border} bg-white hover:bg-[#e8dcc4] text-t11 font-bold ${T.sub} cursor-pointer`}
+                className={`px-2.5 py-1.5 rounded border ${T.border} bg-white hover:bg-[#e8dcc4] text-t11 font-bold ${T.sub} cursor-pointer`}
               >
                 衝突結束（全部洗回）
               </button>
@@ -1057,7 +1057,7 @@ export default function AceOfCardsTable({
         )}
 
         {/* 組合效果速查 */}
-        <details className={`p-2.5 rounded-xl bg-white border ${T.border}`}>
+        <details className={`p-2.5 rounded bg-white border ${T.border}`}>
           <summary className={`text-t11 font-bold ${T.text} cursor-pointer flex items-center gap-1.5`}>
             <GiScrollUnfurled className="w-3.5 h-3.5 text-[#6b5a4b]" />
             <span>組合效果速查（{SET_EFFECTS.length} 種）</span>

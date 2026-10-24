@@ -69,7 +69,7 @@ export default function TinkererGadgetsQuickRef({
     return (
       <span
         key={name}
-        className={`px-2 py-0.5 rounded-md font-bold text-t11 border flex items-center gap-1 ${ isUnlocked ? 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ' : 'bg-[#f4ebd9] text-[#7c6a58] border-[#d6c7ab] ' }`}
+        className={`px-2 py-0.5 rounded font-bold text-t11 border flex items-center gap-1 ${ isUnlocked ? 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ' : 'bg-[#f4ebd9] text-[#7c6a58] border-[#d6c7ab] ' }`}
       >
         <span>{name}</span>
         <span className="font-mono text-t10 px-1 py-0.2 rounded bg-black/10">
@@ -97,7 +97,7 @@ export default function TinkererGadgetsQuickRef({
           <button
             type="button"
             onClick={onOpenCodex}
-            className="px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t11 flex items-center gap-1 transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t11 flex items-center gap-1 transition-all cursor-pointer hover:scale-105 active:scale-95"
             title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
           >
             <GiSpellBook className="text-[#6b5a4b] text-xs" />
@@ -135,7 +135,7 @@ export default function TinkererGadgetsQuickRef({
 
       {/* 未配置節點之提示 */}
       {totalAllocated === 0 ? (
-        <div className="p-3 rounded-xl border border-dashed border-[#d6c7ab] bg-[#f9f5eb] text-center space-y-1">
+        <div className="p-3 rounded border border-dashed border-[#d6c7ab] bg-[#f9f5eb] text-center space-y-1">
           <p className="font-bold text-[#2c221e] text-xs">
             尚未配置小工具科技樹節點（可分配 {sl} 點）
           </p>
@@ -224,7 +224,7 @@ export default function TinkererGadgetsQuickRef({
         <div className="space-y-2.5 pt-1">
           {/* ① 灌注術效果速查 */}
           {infusion > 0 && (
-            <div className="p-3 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-2">
+            <div className="p-3 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-2">
               <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-1.5 flex-wrap gap-1">
                 <div className="flex items-center gap-1.5 text-[#2c221e] font-bold text-xs">
                   <GiBroadsword className="text-[#6b5a4b]" />
@@ -240,7 +240,7 @@ export default function TinkererGadgetsQuickRef({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
                 {/* 基礎灌注 */}
-                <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
+                <div className="p-2 rounded bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
                   <div className="font-bold text-[#2c221e] flex items-center justify-between">
                     <span>低溫</span>
                     <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
@@ -250,7 +250,7 @@ export default function TinkererGadgetsQuickRef({
                   </div>
                 </div>
 
-                <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
+                <div className="p-2 rounded bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
                   <div className="font-bold text-[#2c221e] flex items-center justify-between">
                     <span>焦火</span>
                     <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
@@ -260,7 +260,7 @@ export default function TinkererGadgetsQuickRef({
                   </div>
                 </div>
 
-                <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
+                <div className="p-2 rounded bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
                   <div className="font-bold text-[#2c221e] flex items-center justify-between">
                     <span>電壓</span>
                     <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
@@ -273,7 +273,7 @@ export default function TinkererGadgetsQuickRef({
                 {/* 高級灌注 (Tier 2+) */}
                 {infusion >= 2 && (
                   <>
-                    <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
+                    <div className="p-2 rounded bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
                       <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>疾風</span>
                         <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
@@ -283,7 +283,7 @@ export default function TinkererGadgetsQuickRef({
                       </div>
                     </div>
 
-                    <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
+                    <div className="p-2 rounded bg-white/90 border border-[#e8dcc4] space-y-0.5">
                       <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>驅邪</span>
                         <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
@@ -293,7 +293,7 @@ export default function TinkererGadgetsQuickRef({
                       </div>
                     </div>
 
-                    <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
+                    <div className="p-2 rounded bg-white/90 border border-[#e8dcc4] space-y-0.5">
                       <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>地震</span>
                         <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
@@ -303,7 +303,7 @@ export default function TinkererGadgetsQuickRef({
                       </div>
                     </div>
 
-                    <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
+                    <div className="p-2 rounded bg-white/90 border border-[#e8dcc4] space-y-0.5">
                       <div className="font-bold text-[#3c2415] flex items-center justify-between">
                         <span>暗影</span>
                         <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
@@ -318,7 +318,7 @@ export default function TinkererGadgetsQuickRef({
                 {/* 最高灌注 (Tier 3) */}
                 {infusion >= 3 && (
                   <>
-                    <div className="p-2 rounded-lg bg-white/90 border border-[#8c2d36]/30 space-y-0.5">
+                    <div className="p-2 rounded bg-white/90 border border-[#8c2d36]/30 space-y-0.5">
                       <div className="font-bold text-[#8c2d36] flex items-center justify-between">
                         <span>吸血（限單一目標）</span>
                         <span className="text-t10 font-mono text-[#8c2d36] font-bold">2 IP</span>
@@ -328,7 +328,7 @@ export default function TinkererGadgetsQuickRef({
                       </p>
                     </div>
 
-                    <div className="p-2 rounded-lg bg-white/90 border border-[#d6c7ab] space-y-0.5">
+                    <div className="p-2 rounded bg-white/90 border border-[#d6c7ab] space-y-0.5">
                       <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>毒液</span>
                         <span className="text-t10 font-mono text-[#3c2415] font-bold">2 IP</span>
@@ -345,7 +345,7 @@ export default function TinkererGadgetsQuickRef({
 
           {/* ② 魔導科技效果速查 */}
           {magitech > 0 && (
-            <div className="p-3 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-2">
+            <div className="p-3 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-2">
               <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-1.5 flex-wrap gap-1">
                 <div className="flex items-center gap-1.5 text-[#3c2415] font-bold text-xs">
                   <GiGears className="text-[#3c2415]" />
@@ -359,7 +359,7 @@ export default function TinkererGadgetsQuickRef({
               <div className="space-y-1.5 text-xs">
                 {/* 公測分支（p.38）：第三軌的節點與核心完全不同，選了分支就不再顯示核心三節點 */}
                 {branch && branchNodes.map((n) => (
-                  <div key={n.tier} className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
+                  <div key={n.tier} className="p-2 rounded bg-white/90 border border-[#e8dcc4] space-y-0.5">
                     <div className="flex justify-between items-center font-bold">
                       <span className="text-[#3c2415]">
                         {n.tierName.replace('益處', '')}【{n.name}】
@@ -377,7 +377,7 @@ export default function TinkererGadgetsQuickRef({
                 {!branch && (
                   <>
                 {/* 基礎：魔科技篡奪 */}
-                <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
+                <div className="p-2 rounded bg-white/90 border border-[#e8dcc4] space-y-0.5">
                   <div className="flex justify-between items-center font-bold">
                     <span className="text-[#3c2415]">基礎【魔科技篡奪】</span>
                     <span className="font-mono text-[#6b5a4b] font-bold text-t10">10 MP</span>
@@ -389,7 +389,7 @@ export default function TinkererGadgetsQuickRef({
 
                 {/* 高級：魔加農 —— 魔晶石制下整檔不存在（p.133 removing the magicannon completely） */}
                 {magitech >= 2 && !technoRestrictsEquipment && (
-                  <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-1">
+                  <div className="p-2 rounded bg-white/90 border border-[#e8dcc4]/70 space-y-1">
                     <div className="flex justify-between items-center font-bold">
                       <span className="text-[#2c221e]">高級【魔加農】</span>
                       <span className="font-mono text-[#6b5a4b] font-bold text-t10">2 IP</span>
@@ -402,7 +402,7 @@ export default function TinkererGadgetsQuickRef({
 
                 {/* 魔法球原型：核心在最高檔；魔晶石制下往下兼容成進階檔（p.133） */}
                 {magitech >= magisphereTier && (
-                  <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
+                  <div className="p-2 rounded bg-white/90 border border-[#e8dcc4] space-y-0.5">
                     <div className="flex justify-between items-center font-bold">
                       <span className="text-[#3c2415]">
                         {technoRestrictsEquipment ? '高級【魔法球原型】' : '最高【魔法球原型】'}
@@ -427,7 +427,7 @@ export default function TinkererGadgetsQuickRef({
 
           {/* ③ 煉金術規格速查 */}
           {alchemy > 0 && (
-            <div className="p-3 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-2">
+            <div className="p-3 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-2">
               <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-1.5 flex-wrap gap-1">
                 <div className="flex items-center gap-1.5 text-[#2c221e] font-bold text-xs">
                   <GiRoundBottomFlask className="text-[#6b5a4b]" />
@@ -441,7 +441,7 @@ export default function TinkererGadgetsQuickRef({
                 </span>
               </div>
 
-              <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-1 text-xs">
+              <div className="p-2 rounded bg-white/90 border border-[#e8dcc4] space-y-1 text-xs">
                 <div className="flex items-center justify-between text-t11 font-bold text-[#2c221e]">
                   <span>常駐任意保底選項（任何出目皆可選）：</span>
                   <span className="text-[#6b5a4b] font-normal">手冊 p.213</span>

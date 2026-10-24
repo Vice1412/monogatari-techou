@@ -270,12 +270,12 @@ export default function WayfarerCompanionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl bg-white border border-[#d6c7ab] shadow-e3 overflow-hidden text-[#3c2415] text-xs">
+      <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded bg-white border border-[#d6c7ab] shadow-e3 overflow-hidden text-[#3c2415] text-xs">
         
         {/* 頂部 Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#d6c7ab] bg-[#fbf7ee] flex-wrap gap-2">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 rounded-xl bg-[#f4ebd9] text-[#6b5a4b]">
+            <div className="p-2 rounded bg-[#f4ebd9] text-[#6b5a4b]">
               <GiPawPrint className="text-xl" />
             </div>
             <div>
@@ -299,12 +299,12 @@ export default function WayfarerCompanionModal({
               value={formData.name}
               onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="夥伴自訂名稱"
-              className="px-2.5 py-1 text-xs rounded-lg border border-[#d6c7ab] bg-white font-bold outline-none focus:border-[#3c2415] w-32"
+              className="px-2.5 py-1 text-xs rounded border border-[#d6c7ab] bg-white font-bold outline-none focus:border-[#3c2415] w-32"
             />
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg text-[#7c6a58] hover:text-[#3c2415] hover:bg-[#e8dcc4] transition"
+              className="p-1.5 rounded text-[#7c6a58] hover:text-[#3c2415] hover:bg-[#e8dcc4] transition"
               title="關閉"
             >
               <GiCancel className="text-base" />
@@ -337,7 +337,7 @@ export default function WayfarerCompanionModal({
                     key={sp.id}
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, species: sp.name }))}
-                    className={`py-2 px-3 rounded-xl border text-center font-bold transition ${ isSelected ? 'border-[#3c2415] bg-[#f9f5eb] text-[#3c2415] ring-1 ring-[#3c2415]' : 'border-[#d6c7ab] hover:border-[#a63d40] text-[#3c2415] ' }`}
+                    className={`py-2 px-3 rounded border text-center font-bold transition ${ isSelected ? 'border-[#3c2415] bg-[#f9f5eb] text-[#3c2415] ring-1 ring-[#3c2415]' : 'border-[#d6c7ab] hover:border-[#a63d40] text-[#3c2415] ' }`}
                   >
                     {sp.name}
                   </button>
@@ -368,7 +368,7 @@ export default function WayfarerCompanionModal({
                     key={arr.id}
                     type="button"
                     onClick={() => handleSelectArrayType(arr.id)}
-                    className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${ isSelected ? 'border-[#3c2415] bg-[#f9f5eb] ring-1 ring-[#3c2415]' : 'border-[#d6c7ab] bg-white hover:border-[#d6c7ab]' }`}
+                    className={`p-2.5 rounded border text-left transition flex flex-col justify-between ${ isSelected ? 'border-[#3c2415] bg-[#f9f5eb] ring-1 ring-[#3c2415]' : 'border-[#d6c7ab] bg-white hover:border-[#d6c7ab]' }`}
                   >
                     <span className="font-bold text-[#2c221e]">{arr.name}</span>
                     <span className="text-t11 font-mono text-[#3c2415] font-bold mt-1">
@@ -380,7 +380,7 @@ export default function WayfarerCompanionModal({
             </div>
 
             {/* 四維屬性骰下拉分配 */}
-            <div className="p-3 rounded-xl bg-[#fbf7ee] border border-[#d6c7ab] grid grid-cols-4 gap-2 text-center">
+            <div className="p-3 rounded bg-[#fbf7ee] border border-[#d6c7ab] grid grid-cols-4 gap-2 text-center">
               <div>
                 <span className={`block text-t10 font-bold mb-1 ${ATTRIBUTE_COLORS.dex}`}>{ATTRIBUTE_NAMES.dex} DEX</span>
                 <select
@@ -436,7 +436,7 @@ export default function WayfarerCompanionModal({
           </div>
 
           {/* 三、衍生戰鬥數值即時看板 */}
-          <div className="p-3 rounded-xl bg-[#f9f5eb] border border-[#d6c7ab] grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+          <div className="p-3 rounded bg-[#f9f5eb] border border-[#d6c7ab] grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
             <div>
               <span className="text-t10 text-[#6b5a4b] block">最大生命 (HP)</span>
               <strong className="text-sm font-mono text-[#3c2415] font-black">{maxHp}</strong>
@@ -472,7 +472,7 @@ export default function WayfarerCompanionModal({
               <button
                 type="button"
                 onClick={handleAddAttack}
-                className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#f9f5eb] text-[#3c2415] border border-[#d6c7ab] hover:bg-[#f4ebd9] transition flex items-center gap-1"
+                className="px-2.5 py-1 rounded text-xs font-bold bg-[#f9f5eb] text-[#3c2415] border border-[#d6c7ab] hover:bg-[#f4ebd9] transition flex items-center gap-1"
               >
                 <span>+ 新增攻擊</span>
               </button>
@@ -482,7 +482,7 @@ export default function WayfarerCompanionModal({
               {formData.attacks.map((atk, idx) => (
                 <div
                   key={atk.id || idx}
-                  className="p-3 rounded-xl border border-[#d6c7ab] bg-white space-y-2"
+                  className="p-3 rounded border border-[#d6c7ab] bg-white space-y-2"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-bold text-[#3c2415]">基礎攻擊 #{idx + 1}</span>
@@ -616,7 +616,7 @@ export default function WayfarerCompanionModal({
                 <button
                   type="button"
                   onClick={() => handleAddSpell(false)}
-                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] hover:bg-[#e8dcc4] transition flex items-center gap-1"
+                  className="px-2.5 py-1 rounded text-xs font-bold bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] hover:bg-[#e8dcc4] transition flex items-center gap-1"
                 >
                   <span className="fu-icon text-xs">c</span>
                   <span>+ 咒語</span>
@@ -624,7 +624,7 @@ export default function WayfarerCompanionModal({
                 <button
                   type="button"
                   onClick={handleAddOtherAction}
-                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#f9f5eb] text-[#3c2415] border border-[#d6c7ab] hover:bg-[#f4ebd9] transition flex items-center gap-1"
+                  className="px-2.5 py-1 rounded text-xs font-bold bg-[#f9f5eb] text-[#3c2415] border border-[#d6c7ab] hover:bg-[#f4ebd9] transition flex items-center gap-1"
                 >
                   <span className="fu-icon text-xs">s</span>
                   <span>+ 其餘行動</span>
@@ -632,7 +632,7 @@ export default function WayfarerCompanionModal({
                 <button
                   type="button"
                   onClick={handleAddSpecialRule}
-                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] hover:bg-[#e8dcc4] transition flex items-center gap-1"
+                  className="px-2.5 py-1 rounded text-xs font-bold bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] hover:bg-[#e8dcc4] transition flex items-center gap-1"
                 >
                   <span>+ 特殊規則</span>
                 </button>
@@ -641,7 +641,7 @@ export default function WayfarerCompanionModal({
 
             {/* 空狀態提示 */}
             {formData.spells.length === 0 && formData.otherActions.length === 0 && formData.specialRules.length === 0 && (
-              <div className="p-4 rounded-xl border border-dashed border-[#d6c7ab] text-center text-[#7c6a58] text-xs">
+              <div className="p-4 rounded border border-dashed border-[#d6c7ab] text-center text-[#7c6a58] text-xs">
                 目前尚未配置自訂咒語、行動或特殊規則。請點擊上方按鈕自訂新增（查閱 Core 手冊 p. 306-317）。
               </div>
             )}
@@ -655,7 +655,7 @@ export default function WayfarerCompanionModal({
                 </span>
                 <div className="space-y-2">
                   {formData.spells.map((sp, idx) => (
-                    <div key={sp.id || idx} className="p-3 rounded-xl border border-[#d6c7ab] bg-white space-y-2">
+                    <div key={sp.id || idx} className="p-3 rounded border border-[#d6c7ab] bg-white space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-1">
                           <span className={`fu-icon text-sm font-bold ${sp.isOffensive ? 'text-[#8c2d36]' : 'text-[#3c2415]'}`}>
@@ -745,7 +745,7 @@ export default function WayfarerCompanionModal({
                 </span>
                 <div className="space-y-2">
                   {formData.otherActions.map((act, idx) => (
-                    <div key={act.id || idx} className="p-3 rounded-xl border border-[#e8dcc4] bg-white space-y-2">
+                    <div key={act.id || idx} className="p-3 rounded border border-[#e8dcc4] bg-white space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 flex-1">
                           <span className="fu-icon text-sm font-bold text-[#3c2415]">s</span>
@@ -789,7 +789,7 @@ export default function WayfarerCompanionModal({
                 </span>
                 <div className="space-y-2">
                   {formData.specialRules.map((rule, idx) => (
-                    <div key={rule.id || idx} className="p-3 rounded-xl border border-[#d6c7ab] bg-white space-y-2">
+                    <div key={rule.id || idx} className="p-3 rounded border border-[#d6c7ab] bg-white space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <input
                           type="text"
@@ -828,14 +828,14 @@ export default function WayfarerCompanionModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-lg text-xs font-bold border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] transition"
+            className="px-4 py-1.5 rounded text-xs font-bold border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] transition"
           >
             取消返回
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="px-5 py-1.5 rounded-lg text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-xs flex items-center gap-1.5 transition"
+            className="px-5 py-1.5 rounded text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-xs flex items-center gap-1.5 transition"
           >
             <GiCheckMark className="text-xs" />
             <span>確認並儲存夥伴設定</span>

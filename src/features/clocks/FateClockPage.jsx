@@ -103,7 +103,7 @@ export default function FateClockPage({ initialClocks } = {}) {
           {clocks.map(clk => (
           <div
             key={clk.id}
-            className="bg-[#fffdf9] rounded-xl border border-[#d6c7ab] hover:border-[#3c2415] p-5 hover:shadow-md transition-all flex flex-col items-center gap-4 relative group"
+            className="bg-[#fffdf9] rounded border border-[#d6c7ab] hover:border-[#3c2415] p-5 hover:shadow-md transition-all flex flex-col items-center gap-4 relative group"
           >
             {/* Top Toolbar */}
             <div className="w-full flex items-center justify-between border-b border-[#d6c7ab]/80 pb-2">
@@ -187,7 +187,7 @@ export default function FateClockPage({ initialClocks } = {}) {
       )}
 
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#fffdf9] border border-[#3c2415] text-[#2c221e] px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 font-medium text-xs animate-fade-in">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#fffdf9] border border-[#3c2415] text-[#2c221e] px-4 py-2.5 rounded shadow-xl flex items-center gap-2 font-medium text-xs animate-fade-in">
           <GiCheckMark className="w-4 h-4 text-[#6b5a4b] shrink-0" />
           <span>{toastMessage}</span>
         </div>

@@ -221,7 +221,7 @@ export default function ArcanistManager({
     : (charLevel >= 40 ? 20 : charLevel >= 20 ? 10 : 0);
 
   return (
-    <div className="p-4 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-4">
+    <div className="p-4 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-4">
       {/* 標題與當前召喚狀態 */}
       <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
@@ -238,7 +238,7 @@ export default function ArcanistManager({
         <button
           type="button"
           onClick={() => setIsCustomModalOpen(true)}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#9c4d16] hover:bg-[#833f12] text-white shadow-2xs flex items-center gap-1 transition-colors"
+          className="px-2.5 py-1 rounded text-xs font-bold bg-[#9c4d16] hover:bg-[#833f12] text-white shadow-2xs flex items-center gap-1 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>自訂阿爾卡納</span>
@@ -283,7 +283,7 @@ export default function ArcanistManager({
 
       {/* 開局自選的額度提示：綁定和召喚在創角時就該選好一個（Core p.133） */}
       {boundArcanaIds.length === 0 && startingQuota > 0 && (
-        <div className="p-2.5 rounded-lg bg-[#f4ebd9]/70 border border-[#9c4d16] text-t11 text-[#9c4d16]">
+        <div className="p-2.5 rounded bg-[#f4ebd9]/70 border border-[#9c4d16] text-t11 text-[#9c4d16]">
           尚未綁定任何阿爾卡納。【綁定和召喚】讓你在開始遊戲前自選 {startingQuota} 個——
           勾選下方清單中的一項即可完成開局綁定，之後只能透過探索與故事推進取得新的阿爾卡納。
         </div>
@@ -293,7 +293,7 @@ export default function ArcanistManager({
           v5：全程淺色。這張卡片說的是「狀態」（召喚中），所以用資訊色
           `#27527a` 承擔身份，面與字全部回到登記色；內凹槽只放二級墨。 */}
       {activeArcana ? (
-        <div className="p-3.5 rounded-xl bg-[#fffdf9] border border-[#27527a] space-y-2 animate-fadeIn">
+        <div className="p-3.5 rounded bg-[#fffdf9] border border-[#27527a] space-y-2 animate-fadeIn">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 flex-wrap min-w-0">
               <span className="w-2.5 h-2.5 rounded-full bg-[#27527a]" />
@@ -310,13 +310,13 @@ export default function ArcanistManager({
             <button
               type="button"
               onClick={handleDismiss}
-              className="px-3 py-1 bg-[#8c2d36] hover:bg-[#76252d] text-[#fffdf9] font-bold text-xs rounded-lg transition-colors flex items-center gap-1"
+              className="px-3 py-1 bg-[#8c2d36] hover:bg-[#76252d] text-[#fffdf9] font-bold text-xs rounded transition-colors flex items-center gap-1"
             >
               <span>自願解除</span>
             </button>
           </div>
 
-          <div className="text-xs space-y-1 bg-[#f4ebd9] p-2.5 rounded-lg border border-[#e8dcc4]">
+          <div className="text-xs space-y-1 bg-[#f4ebd9] p-2.5 rounded border border-[#e8dcc4]">
             <div>
               <span className="text-[#3c2415] font-bold">連攜常駐增益：</span>
               <span className="text-[#3c2415]">{renderTextWithAffinities(activeArcana.merge)}</span>
@@ -348,7 +348,7 @@ export default function ArcanistManager({
           </div>
         </div>
       ) : (
-        <div className="p-3 rounded-lg bg-[#f4ebd9]/60 border border-dashed border-[#9c4d16] text-center text-xs text-[#9c4d16]/80">
+        <div className="p-3 rounded bg-[#f4ebd9]/60 border border-dashed border-[#9c4d16] text-center text-xs text-[#9c4d16]/80">
           尚未召喚阿爾卡納。點擊下方已契約阿爾卡納進行「召喚」！
         </div>
       )}
@@ -366,7 +366,7 @@ export default function ArcanistManager({
             return (
               <div
                 key={arcana.id}
-                className={`p-3 rounded-xl border transition-all text-xs space-y-1.5 ${ isActive ? 'bg-[#f4ebd9]/80 border-[#27527a]' : isBound ? 'bg-white border-[#9c4d16] ' : 'bg-[#fbf7ee]/60 border-[#d6c7ab] opacity-60' }`}
+                className={`p-3 rounded border transition-all text-xs space-y-1.5 ${ isActive ? 'bg-[#f4ebd9]/80 border-[#27527a]' : isBound ? 'bg-white border-[#9c4d16] ' : 'bg-[#fbf7ee]/60 border-[#d6c7ab] opacity-60' }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
@@ -433,7 +433,7 @@ export default function ArcanistManager({
       {/* 自訂阿爾卡納 Modal */}
       {isCustomModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-[#fffdf9] border border-[#9c4d16] rounded-2xl p-5 w-full max-w-md shadow-e3 space-y-4">
+          <div className="bg-[#fffdf9] border border-[#9c4d16] rounded p-5 w-full max-w-md shadow-e3 space-y-4">
             <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2">
               <h3 className="text-sm font-bold text-[#9c4d16] flex items-center gap-2">
                 <GiSparkles className="text-[#9c4d16]" />
@@ -457,7 +457,7 @@ export default function ArcanistManager({
                   value={customName}
                   onChange={e => setCustomName(e.target.value)}
                   placeholder="例如：日輪之阿爾卡納、海潮之阿爾卡納..."
-                  className="w-full p-2 rounded-lg border border-[#9c4d16] bg-white text-[#2c221e] outline-none focus:border-[#9c4d16]"
+                  className="w-full p-2 rounded border border-[#9c4d16] bg-white text-[#2c221e] outline-none focus:border-[#9c4d16]"
                 />
               </div>
 
@@ -470,7 +470,7 @@ export default function ArcanistManager({
                   value={customDomains}
                   onChange={e => setCustomDomains(e.target.value)}
                   placeholder="例如：太陽、光明、生命、耀斑..."
-                  className="w-full p-2 rounded-lg border border-[#9c4d16] bg-white text-[#2c221e] outline-none focus:border-[#9c4d16]"
+                  className="w-full p-2 rounded border border-[#9c4d16] bg-white text-[#2c221e] outline-none focus:border-[#9c4d16]"
                 />
               </div>
 
@@ -483,7 +483,7 @@ export default function ArcanistManager({
                   value={customMerge}
                   onChange={e => setCustomMerge(e.target.value)}
                   placeholder="例如：對光屬性傷害擁有抗性。物防與魔防各獲得 +1 加值..."
-                  className="w-full p-2 rounded-lg border border-[#9c4d16] bg-white text-[#2c221e] outline-none focus:border-[#9c4d16]"
+                  className="w-full p-2 rounded border border-[#9c4d16] bg-white text-[#2c221e] outline-none focus:border-[#9c4d16]"
                 />
               </div>
 
@@ -499,7 +499,7 @@ export default function ArcanistManager({
                     value={customPulse}
                     onChange={e => setCustomPulse(e.target.value)}
                     placeholder="例如：【日輪灼燒】對一個可見敵人造成 15 點光屬性傷害..."
-                    className="w-full p-2 rounded-lg border border-[#27527a] bg-white text-[#2c221e] outline-none focus:border-[#27527a]"
+                    className="w-full p-2 rounded border border-[#27527a] bg-white text-[#2c221e] outline-none focus:border-[#27527a]"
                   />
                 </div>
               )}
@@ -513,7 +513,7 @@ export default function ArcanistManager({
                   value={customDismiss}
                   onChange={e => setCustomDismiss(e.target.value)}
                   placeholder="例如：【日耀天頂】對所有可見敵對生物造成 30 點光屬性傷害（無視抗性）..."
-                  className="w-full p-2 rounded-lg border border-[#9c4d16] bg-white text-[#2c221e] outline-none focus:border-[#9c4d16]"
+                  className="w-full p-2 rounded border border-[#9c4d16] bg-white text-[#2c221e] outline-none focus:border-[#9c4d16]"
                 />
               </div>
 
@@ -522,13 +522,13 @@ export default function ArcanistManager({
                 <button
                   type="button"
                   onClick={() => setIsCustomModalOpen(false)}
-                  className="px-3 py-1.5 rounded-lg border border-[#d6c7ab] text-[#6b5a4b] font-bold"
+                  className="px-3 py-1.5 rounded border border-[#d6c7ab] text-[#6b5a4b] font-bold"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-[#9c4d16] hover:bg-[#833f12] text-white font-bold shadow-sm"
+                  className="px-4 py-1.5 rounded bg-[#9c4d16] hover:bg-[#833f12] text-white font-bold shadow-sm"
                 >
                   完成並綁定
                 </button>
@@ -541,7 +541,7 @@ export default function ArcanistManager({
       {/* 解除結算確認 Modal */}
       {isDismissModalOpen && activeArcana && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-[#fffdf9] border border-[#8c2d36] rounded-2xl p-5 w-full max-w-md shadow-e3 space-y-4">
+          <div className="bg-[#fffdf9] border border-[#8c2d36] rounded p-5 w-full max-w-md shadow-e3 space-y-4">
             <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2">
               <h3 className="text-sm font-bold text-[#8c2d36] flex items-center gap-2">
                 <GiFlame className="text-[#8c2d36]" />
@@ -560,7 +560,7 @@ export default function ArcanistManager({
                 你即將在衝突中自願解除與【{activeArcana.name}】的連攜。此舉將釋放其爆發威力：
               </p>
 
-              <div className="p-3 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-[#8c2d36] space-y-1">
+              <div className="p-3 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#8c2d36] space-y-1">
                 <div className="font-bold">解除效果：</div>
                 <div>{renderTextWithAffinities(activeArcana.dismiss)}</div>
                 {levelDamageBonus > 0 && (
@@ -573,11 +573,11 @@ export default function ArcanistManager({
               {/* 變體版沒有《阿爾卡納圓環》這個特技（它的技能表是另一份），
                   所以那條提示在變體角色身上是錯的，必須換成變體版自己的重點。 */}
               {usesVariantArcanist ? (
-                <div className="p-2.5 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-t11 text-[#9c4d16]">
+                <div className="p-2.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-t11 text-[#9c4d16]">
                   變體版規則：解除效果只在「自願解除」時觸發。場景結束、昏迷或死亡、離開場景造成的自動解除，一律不會觸發解除效果。
                 </div>
               ) : (
-                <div className="p-2.5 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-t11 text-[#9c4d16]">
+                <div className="p-2.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-t11 text-[#9c4d16]">
                   若你擁有《阿爾卡納圓環》特技且裝備奧術武器，你在同一回合解除時可立即免費執行咒語動作！
                 </div>
               )}
@@ -587,14 +587,14 @@ export default function ArcanistManager({
               <button
                 type="button"
                 onClick={() => setIsDismissModalOpen(false)}
-                className="px-3 py-1.5 rounded-lg border border-[#d6c7ab] text-[#6b5a4b] font-bold text-xs"
+                className="px-3 py-1.5 rounded border border-[#d6c7ab] text-[#6b5a4b] font-bold text-xs"
               >
                 保留召喚
               </button>
               <button
                 type="button"
                 onClick={confirmDismiss}
-                className="px-4 py-1.5 rounded-lg bg-[#8c2d36] hover:bg-[#76252d] text-[#fffdf9] font-bold text-xs shadow-sm"
+                className="px-4 py-1.5 rounded bg-[#8c2d36] hover:bg-[#76252d] text-[#fffdf9] font-bold text-xs shadow-sm"
               >
                 確認解除並發動
               </button>

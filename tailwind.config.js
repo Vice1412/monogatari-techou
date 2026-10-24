@@ -27,6 +27,26 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    /* ── 圓角：一個值，一個名字（第三十六輪 §CI44）────────────────────
+       為什麼放在 `theme` 而不是 `theme.extend`：extend 只能「覆蓋」預設鍵，
+       刪不掉它。而這輪要做的事是**讓 `rounded-lg` 這個名字不存在**——
+       留著它、把它設成 2px，就等於留一個可以各自漂移的第二份定義。
+
+       舊設定宣告了四個值：2px（`rounded`／`sm`／`ui`）、3px（`md`／`lg`／`xl`）、
+       4px（`2xl`／`book`）、6px（`3xl`）。那不是四級階梯，是**一個值四個名字**，
+       外加兩個從沒被任何設計裁決允許過的 3px／4px。實測渲染層有 21 個元素
+       的角半徑落在 3–4px（兩個畫面共 344 個元素）。
+
+       現在只剩兩個鍵：
+         - `DEFAULT: '2px'` → `rounded`（全站唯一名字，982 處已收斂）
+         - `full: '9999px'` → `rounded-full`（圓形與膠囊，2px 上限不適用，見 §CI21）
+       寫 `rounded-lg` 不會得到 8px（Tailwind 預設值），也不會得到 3px——
+       它**什麼都不會得到**，角落是方的。這是刻意的：錯得看得見，比錯得剛好
+       看起來像設計過，容易修。 */
+    borderRadius: {
+      DEFAULT: '2px',
+      full: '9999px',
+    },
     extend: {
       colors: {
         /* ── v5 冷區：操作型畫面（戰鬥輪次、建角流程、擲骰結算）───────── */
@@ -137,22 +157,6 @@ export default {
         e1: '0 1px 1px rgba(42, 50, 64, 0.05), 0 2px 4px -1px rgba(42, 50, 64, 0.06)',
         e2: '0 2px 4px -1px rgba(42, 50, 64, 0.07), 0 8px 16px -4px rgba(42, 50, 64, 0.10)',
         e3: '0 4px 8px -2px rgba(42, 50, 64, 0.08), 0 18px 36px -12px rgba(42, 50, 64, 0.16)',
-      },
-      /* v5：硬邊為主。2026-10-23 把階梯收斂成 2/3/4 三級——
-         原本 `rounded-xl` 是 12px、`rounded-2xl` 是 16px，與 v5 的「圓角上限 2px」
-         直接矛盾，而全站有 341 處 `rounded-xl`、41 處 `rounded-2xl`。
-         這裡用**設定層**一次收斂（圓角不影響版面尺寸，不會爆版），
-         而不是逐檔手改 380 處。 */
-      borderRadius: {
-        DEFAULT: '2px',
-        sm: '2px',
-        md: '3px',
-        lg: '3px',
-        xl: '3px',
-        '2xl': '4px',
-        '3xl': '6px',
-        ui: '2px',
-        book: '4px',
       },
       /* v5：操作回饋 120–200ms，不用彈性曲線 */
       transitionDuration: {

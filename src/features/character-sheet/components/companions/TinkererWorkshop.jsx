@@ -739,12 +739,12 @@ export default function TinkererWorkshop({
   };
 
   return (
-    <div className="p-4 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] space-y-4 text-xs font-sans text-[#2c221e]">
+    <div className="p-4 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-4 text-xs font-sans text-[#2c221e]">
       
       {/* 標頭切換列 */}
       <div className="flex items-center justify-between gap-2 flex-wrap border-b border-[#d6c7ab] pb-3">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-ui bg-[#a63d40] text-[#fffdf9]">
+          <div className="p-1.5 rounded bg-[#a63d40] text-[#fffdf9]">
             <GiGearHammer className="w-5 h-5" />
           </div>
           <div>
@@ -765,7 +765,7 @@ export default function TinkererWorkshop({
           <button
             type="button"
             onClick={() => openRuleCodex(activeTab === 'projects' ? '造物專案' : '小工具')}
-            className="px-2.5 py-1.5 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#78350f] font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-2.5 py-1.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#78350f] font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
             title={activeTab === 'projects' ? '開啟造物專案官方手冊完整速查 (手冊 p.134~139)' : '開啟小工具官方手冊完整速查大表 (手冊 p.212~216)'}
           >
             <GiSpellBook className="w-4 h-4 text-[#8b5e34]" />
@@ -773,12 +773,12 @@ export default function TinkererWorkshop({
           </button>
 
           {/* 標籤按鈕組 */}
-          <div className="flex items-center gap-1.5 bg-[#f4ebd9] p-1 rounded-ui border border-[#d6c7ab]">
+          <div className="flex items-center gap-1.5 bg-[#f4ebd9] p-1 rounded border border-[#d6c7ab]">
             {hasGadgets && (
               <button
                 type="button"
                 onClick={() => setActiveTab('gadgets')}
-                className={`px-3 py-1.5 rounded-ui font-bold transition-all cursor-pointer flex items-center gap-1.5 ${ activeTab === 'gadgets' ? 'bg-[#a63d40] text-[#fffdf9]' : 'text-[#6b5a4b] hover:bg-[#e8dcc4]' }`}
+                className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${ activeTab === 'gadgets' ? 'bg-[#a63d40] text-[#fffdf9]' : 'text-[#6b5a4b] hover:bg-[#e8dcc4]' }`}
               >
                 <GiGears className="w-4 h-4" />
                 <span>小工具工坊</span>
@@ -788,7 +788,7 @@ export default function TinkererWorkshop({
             <button
               type="button"
               onClick={() => setActiveTab('projects')}
-              className={`px-3 py-1.5 rounded-ui font-bold transition-all cursor-pointer flex items-center gap-1.5 ${ activeTab === 'projects' ? 'bg-[#a63d40] text-[#fffdf9]' : 'text-[#6b5a4b] hover:bg-[#e8dcc4]' }`}
+              className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${ activeTab === 'projects' ? 'bg-[#a63d40] text-[#fffdf9]' : 'text-[#6b5a4b] hover:bg-[#e8dcc4]' }`}
             >
               <GiGearHammer className="w-4 h-4" />
               <span>造物專案 ({projects.length})</span>
@@ -808,11 +808,11 @@ export default function TinkererWorkshop({
             <button
               type="button"
               onClick={() => setActiveGadgetSubTab('alchemy')}
-              className={`p-2.5 rounded-ui border font-bold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all cursor-pointer whitespace-nowrap ${ activeGadgetSubTab === 'alchemy' ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] text-[#3c2415] hover:border-[#d6c7ab]' }`}
+              className={`p-2.5 rounded border font-bold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all cursor-pointer whitespace-nowrap ${ activeGadgetSubTab === 'alchemy' ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] text-[#3c2415] hover:border-[#d6c7ab]' }`}
             >
               <GiRoundBottomFlask className="w-4 h-4" />
               <span>煉金術</span>
-              <span className="text-t12 px-1.5 py-0.2 rounded-ui bg-[#2c221e]/10 font-mono">
+              <span className="text-t12 px-1.5 py-0.2 rounded bg-[#2c221e]/10 font-mono">
                 Tier {gadgets.alchemy || 0}
               </span>
             </button>
@@ -820,11 +820,11 @@ export default function TinkererWorkshop({
             <button
               type="button"
               onClick={() => setActiveGadgetSubTab('infusion')}
-              className={`p-2.5 rounded-ui border font-bold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all cursor-pointer whitespace-nowrap ${ activeGadgetSubTab === 'infusion' ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] text-[#3c2415] hover:border-[#d6c7ab]' }`}
+              className={`p-2.5 rounded border font-bold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all cursor-pointer whitespace-nowrap ${ activeGadgetSubTab === 'infusion' ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] text-[#3c2415] hover:border-[#d6c7ab]' }`}
             >
               <GiBroadsword className="w-4 h-4" />
               <span>灌注術</span>
-              <span className="text-t12 px-1.5 py-0.2 rounded-ui bg-[#2c221e]/10 font-mono">
+              <span className="text-t12 px-1.5 py-0.2 rounded bg-[#2c221e]/10 font-mono">
                 Tier {gadgets.infusion || 0}
               </span>
             </button>
@@ -832,11 +832,11 @@ export default function TinkererWorkshop({
             <button
               type="button"
               onClick={() => setActiveGadgetSubTab('magitech')}
-              className={`p-2.5 rounded-ui border font-bold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all cursor-pointer whitespace-nowrap ${ activeGadgetSubTab === 'magitech' ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] text-[#3c2415] hover:border-[#d6c7ab]' }`}
+              className={`p-2.5 rounded border font-bold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 transition-all cursor-pointer whitespace-nowrap ${ activeGadgetSubTab === 'magitech' ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] text-[#3c2415] hover:border-[#d6c7ab]' }`}
             >
               <GiGears className="w-4 h-4" />
               <span>魔導科技</span>
-              <span className="text-t12 px-1.5 py-0.2 rounded-ui bg-[#2c221e]/10 font-mono">
+              <span className="text-t12 px-1.5 py-0.2 rounded bg-[#2c221e]/10 font-mono">
                 Tier {gadgets.magitech || 0}
               </span>
             </button>
@@ -844,13 +844,13 @@ export default function TinkererWorkshop({
 
           {/* ① 煉金術調配台 */}
           {activeGadgetSubTab === 'alchemy' && (
-            <div className="p-4 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] space-y-4">
+            <div className="p-4 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-4">
               <div className="flex items-center justify-between gap-2 flex-wrap border-b border-[#d6c7ab] pb-2.5">
                 <div>
                   <h4 className="font-bold text-sm text-[#2c221e] flex items-center gap-2">
                     <GiRoundBottomFlask className="w-5 h-5 text-[#8b5e34]" />
                     <span>煉金術混合調配台</span>
-                    <span className="font-mono text-xs px-2 py-0.5 rounded-ui bg-[#f4ebd9] text-[#78350f] font-bold">
+                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#78350f] font-bold">
                       {alchemyTier === 0 ? '尚未研發' : alchemyTier === 1 ? '基礎混合 (2d20 · 3 IP)' : alchemyTier === 2 ? '進階混合 (3d20 · 4 IP)' : '最高混合 (4d20 · 5 IP)'}
                     </span>
                   </h4>
@@ -862,7 +862,7 @@ export default function TinkererWorkshop({
                 <button
                   type="button"
                   onClick={() => openRuleCodex('小工具')}
-                  className="px-2 py-1 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#78350f] font-bold text-xs flex items-center gap-1 transition-all cursor-pointer"
+                  className="px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#78350f] font-bold text-xs flex items-center gap-1 transition-all cursor-pointer"
                   title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
                 >
                   <GiSpellBook className="text-[#8b5e34] text-xs" />
@@ -871,14 +871,14 @@ export default function TinkererWorkshop({
               </div>
 
               {alchemyTier === 0 ? (
-                <div className="p-4 rounded-ui border border-dashed border-[#d6c7ab] text-center text-[#6b5a4b] space-y-1">
+                <div className="p-4 rounded border border-dashed border-[#d6c7ab] text-center text-[#6b5a4b] space-y-1">
                   <p className="font-bold">尚未解鎖煉金術派系</p>
                   <p className="text-t12">請在角色卡技能配置中將【小工具】投入煉金術分支。</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {/* ① 投擲與外部填寫雙軌控制台 */}
-                  <div className="p-3.5 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] space-y-3">
+                  <div className="p-3.5 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-3">
                     <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div className="space-y-0.5">
                         <div className="text-xs font-bold text-[#78350f] flex items-center gap-1.5">
@@ -903,7 +903,7 @@ export default function TinkererWorkshop({
                         <button
                           type="button"
                           onClick={() => handleApplyManualDice(true)}
-                          className="px-3 py-1.5 rounded-ui bg-[#f4ebd9] hover:bg-[#a63d40] text-[#fffdf9] font-bold text-xs cursor-pointer transition-all flex items-center gap-1"
+                          className="px-3 py-1.5 rounded bg-[#f4ebd9] hover:bg-[#a63d40] text-[#fffdf9] font-bold text-xs cursor-pointer transition-all flex items-center gap-1"
                           title="套用當前輸入框中的數值並扣除 IP"
                         >
                           <span>扣 {alchemyIpCost} IP 並套用</span>
@@ -934,12 +934,12 @@ export default function TinkererWorkshop({
                               }
                             }}
                             placeholder="直接貼上 Discord / CCFOLIA 訊息，如：(4D20) ＞ 46[14,17,7,8] ＞ 46 或純出目"
-                            className="flex-1 px-2.5 py-1 rounded-ui border border-[#d6c7ab] bg-[#fffdf9] text-xs text-[#2c221e] placeholder:text-[#7c6a58] focus:border-[#a63d40] outline-none font-mono"
+                            className="flex-1 px-2.5 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs text-[#2c221e] placeholder:text-[#7c6a58] focus:border-[#a63d40] outline-none font-mono"
                           />
                           <button
                             type="button"
                             onClick={() => handleParseExternalDice(pasteInputText)}
-                            className="px-2.5 py-1 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs cursor-pointer transition-all shrink-0"
+                            className="px-2.5 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs cursor-pointer transition-all shrink-0"
                           >
                             智慧解析
                           </button>
@@ -953,7 +953,7 @@ export default function TinkererWorkshop({
                             個別出目微調：
                           </span>
                           {Array.from({ length: alchemyDiceCount }).map((_, idx) => (
-                            <div key={idx} className="flex items-center gap-1 bg-[#fffdf9] px-2 py-1 rounded-ui border border-[#d6c7ab]">
+                            <div key={idx} className="flex items-center gap-1 bg-[#fffdf9] px-2 py-1 rounded border border-[#d6c7ab]">
                               <span className="font-mono text-t12 text-[#78350f] font-bold">#{idx + 1}:</span>
                               <input
                                 type="number"
@@ -962,14 +962,14 @@ export default function TinkererWorkshop({
                                 value={manualValues[`die${idx}`] ?? ''}
                                 onChange={(e) => handleManualDieChange(idx, e.target.value)}
                                 placeholder="1~20"
-                                className="w-12 px-1 py-0.5 rounded-ui border border-[#d6c7ab] font-mono text-center text-xs font-bold text-[#2c221e] outline-none focus:border-[#a63d40]"
+                                className="w-12 px-1 py-0.5 rounded border border-[#d6c7ab] font-mono text-center text-xs font-bold text-[#2c221e] outline-none focus:border-[#a63d40]"
                               />
                             </div>
                           ))}
                           <button
                             type="button"
                             onClick={() => handleApplyManualDice(false)}
-                            className="px-2.5 py-1 rounded-ui bg-[#e8dcc4] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-xs cursor-pointer transition-colors"
+                            className="px-2.5 py-1 rounded bg-[#e8dcc4] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-xs cursor-pointer transition-colors"
                           >
                             即時套用
                           </button>
@@ -987,7 +987,7 @@ export default function TinkererWorkshop({
                               return (
                                 <div
                                   key={idx}
-                                  className={`px-2 py-0.5 rounded-ui font-mono text-xs font-bold border flex items-center gap-1 transition-all ${ isTarget ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : isEffect ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#f4ebd9] text-[#6b5a4b] border-[#d6c7ab] opacity-60' }`}
+                                  className={`px-2 py-0.5 rounded font-mono text-xs font-bold border flex items-center gap-1 transition-all ${ isTarget ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : isEffect ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#f4ebd9] text-[#6b5a4b] border-[#d6c7ab] opacity-60' }`}
                                 >
                                   <span>#{idx + 1}: {val}</span>
                                   <span className="text-t12 font-sans font-normal opacity-90">
@@ -1033,20 +1033,20 @@ export default function TinkererWorkshop({
                                   handleSelectTarget(matchingDice[0].idx);
                                 }
                               }}
-                              className={`p-2.5 rounded-ui border transition-all text-xs space-y-1.5 ${ isSelected ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40] text-[#3c2415] cursor-pointer' : isHit ? 'bg-[#fbf7ee] border-[#d6c7ab] text-[#2c221e] hover:bg-[#f4ebd9] cursor-pointer' : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#7c6a58] opacity-60' }`}
+                              className={`p-2.5 rounded border transition-all text-xs space-y-1.5 ${ isSelected ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40] text-[#3c2415] cursor-pointer' : isHit ? 'bg-[#fbf7ee] border-[#d6c7ab] text-[#2c221e] hover:bg-[#f4ebd9] cursor-pointer' : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#7c6a58] opacity-60' }`}
                             >
                               <div className="flex items-center justify-between gap-1">
                                 <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className={`font-mono text-xs font-black px-1.5 py-0.5 rounded-ui ${ isSelected ? 'bg-[#a63d40] text-[#fffdf9]' : isHit ? 'bg-[#e8dcc4] text-[#3c2415] font-bold' : 'bg-[#e8dcc4] text-[#6b5a4b]' }`}>
+                                  <span className={`font-mono text-xs font-black px-1.5 py-0.5 rounded ${ isSelected ? 'bg-[#a63d40] text-[#fffdf9]' : isHit ? 'bg-[#e8dcc4] text-[#3c2415] font-bold' : 'bg-[#e8dcc4] text-[#6b5a4b]' }`}>
                                     {row.range}
                                   </span>
-                                  <span className="font-bold text-t12 px-1.5 py-0.2 rounded-ui bg-[#fffdf9] border border-current">
+                                  <span className="font-bold text-t12 px-1.5 py-0.2 rounded bg-[#fffdf9] border border-current">
                                     {row.label}
                                   </span>
                                 </div>
 
                                 {isSelected ? (
-                                  <span className="px-2 py-0.5 rounded-ui bg-[#a63d40] text-[#fffdf9] font-bold text-t12 flex items-center gap-1 shrink-0">
+                                  <span className="px-2 py-0.5 rounded bg-[#a63d40] text-[#fffdf9] font-bold text-t12 flex items-center gap-1 shrink-0">
                                     <GiCheckMark className="text-xs" /> 已選為目標
                                   </span>
                                 ) : isHit ? (
@@ -1056,7 +1056,7 @@ export default function TinkererWorkshop({
                                         key={m.idx}
                                         type="button"
                                         onClick={() => handleSelectTarget(m.idx)}
-                                        className="px-2 py-0.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-mono font-bold text-t12 transition-all cursor-pointer"
+                                        className="px-2 py-0.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-mono font-bold text-t12 transition-all cursor-pointer"
                                         title={`指派骰子 #${m.idx + 1} (出目 ${m.val}) 作為目標`}
                                       >
                                         指派 #{m.idx + 1} ({m.val})
@@ -1095,13 +1095,13 @@ export default function TinkererWorkshop({
                         {/* 2 項「任意」保底條目 */}
                         <div
                           onClick={() => handleSelectFallbackEffect('poison')}
-                          className={`p-2 rounded-ui border transition-all text-xs flex items-center justify-between gap-2 cursor-pointer ${ useFallbackEffect === 'poison' ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40] text-[#3c2415]' : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#2c221e] hover:bg-[#f4ebd9]' }`}
+                          className={`p-2 rounded border transition-all text-xs flex items-center justify-between gap-2 cursor-pointer ${ useFallbackEffect === 'poison' ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40] text-[#3c2415]' : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#2c221e] hover:bg-[#f4ebd9]' }`}
                         >
                           <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                            <span className="font-mono text-xs font-black px-1.5 py-0.5 rounded-ui bg-[#a63d40] text-[#fffdf9]">
+                            <span className="font-mono text-xs font-black px-1.5 py-0.5 rounded bg-[#a63d40] text-[#fffdf9]">
                               任意
                             </span>
-                            <span className="font-bold text-t12 px-1.5 py-0.2 rounded-ui bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] shrink-0">
+                            <span className="font-bold text-t12 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] shrink-0">
                               保底備選
                             </span>
                             <div className="font-medium text-xs">
@@ -1109,14 +1109,14 @@ export default function TinkererWorkshop({
                             </div>
                           </div>
                           {useFallbackEffect === 'poison' ? (
-                            <span className="px-2 py-0.5 rounded-ui bg-[#a63d40] text-[#fffdf9] font-bold text-t12 flex items-center gap-1 shrink-0">
+                            <span className="px-2 py-0.5 rounded bg-[#a63d40] text-[#fffdf9] font-bold text-t12 flex items-center gap-1 shrink-0">
                               <GiCheckMark className="text-xs" /> 已選為效果
                             </span>
                           ) : (
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handleSelectFallbackEffect('poison'); }}
-                              className="px-2 py-0.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 transition-all shrink-0 cursor-pointer"
+                              className="px-2 py-0.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 transition-all shrink-0 cursor-pointer"
                             >
                               指派備選
                             </button>
@@ -1125,13 +1125,13 @@ export default function TinkererWorkshop({
 
                         <div
                           onClick={() => handleSelectFallbackEffect('heal')}
-                          className={`p-2 rounded-ui border transition-all text-xs flex items-center justify-between gap-2 cursor-pointer ${ useFallbackEffect === 'heal' ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40] text-[#3c2415]' : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#2c221e] hover:bg-[#f4ebd9]' }`}
+                          className={`p-2 rounded border transition-all text-xs flex items-center justify-between gap-2 cursor-pointer ${ useFallbackEffect === 'heal' ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40] text-[#3c2415]' : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#2c221e] hover:bg-[#f4ebd9]' }`}
                         >
                           <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                            <span className="font-mono text-xs font-black px-1.5 py-0.5 rounded-ui bg-[#a63d40] text-[#fffdf9]">
+                            <span className="font-mono text-xs font-black px-1.5 py-0.5 rounded bg-[#a63d40] text-[#fffdf9]">
                               任意
                             </span>
-                            <span className="font-bold text-t12 px-1.5 py-0.2 rounded-ui bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] shrink-0">
+                            <span className="font-bold text-t12 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] shrink-0">
                               保底備選
                             </span>
                             <div className="font-medium text-xs">
@@ -1139,14 +1139,14 @@ export default function TinkererWorkshop({
                             </div>
                           </div>
                           {useFallbackEffect === 'heal' ? (
-                            <span className="px-2 py-0.5 rounded-ui bg-[#a63d40] text-[#fffdf9] font-bold text-t12 flex items-center gap-1 shrink-0">
+                            <span className="px-2 py-0.5 rounded bg-[#a63d40] text-[#fffdf9] font-bold text-t12 flex items-center gap-1 shrink-0">
                               <GiCheckMark className="text-xs" /> 已選為效果
                             </span>
                           ) : (
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); handleSelectFallbackEffect('heal'); }}
-                              className="px-2 py-0.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 transition-all shrink-0 cursor-pointer"
+                              className="px-2 py-0.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 transition-all shrink-0 cursor-pointer"
                             >
                               指派備選
                             </button>
@@ -1169,13 +1169,13 @@ export default function TinkererWorkshop({
                                   handleSelectEffect(matchingDice[0].idx);
                                 }
                               }}
-                              className={`p-2 rounded-ui border transition-all text-xs flex items-center justify-between gap-2 ${ isSelected ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40] text-[#3c2415] cursor-pointer' : isHit ? 'bg-[#fbf7ee] border-[#d6c7ab] text-[#2c221e] hover:bg-[#f4ebd9] cursor-pointer' : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#7c6a58] opacity-60' }`}
+                              className={`p-2 rounded border transition-all text-xs flex items-center justify-between gap-2 ${ isSelected ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40] text-[#3c2415] cursor-pointer' : isHit ? 'bg-[#fbf7ee] border-[#d6c7ab] text-[#2c221e] hover:bg-[#f4ebd9] cursor-pointer' : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#7c6a58] opacity-60' }`}
                             >
                               <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                                <span className={`font-mono text-xs font-black px-1.5 py-0.5 rounded-ui ${ isSelected ? 'bg-[#a63d40] text-[#fffdf9]' : isHit ? 'bg-[#e8dcc4] text-[#3c2415] font-bold' : 'bg-[#e8dcc4] text-[#6b5a4b]' }`}>
+                                <span className={`font-mono text-xs font-black px-1.5 py-0.5 rounded ${ isSelected ? 'bg-[#a63d40] text-[#fffdf9]' : isHit ? 'bg-[#e8dcc4] text-[#3c2415] font-bold' : 'bg-[#e8dcc4] text-[#6b5a4b]' }`}>
                                   {row.diceLabel}
                                 </span>
-                                <span className="font-bold text-t12 px-1.5 py-0.2 rounded-ui bg-[#fffdf9] border border-current shrink-0">
+                                <span className="font-bold text-t12 px-1.5 py-0.2 rounded bg-[#fffdf9] border border-current shrink-0">
                                   {row.category}
                                 </span>
                                 <div className="text-xs leading-relaxed font-medium min-w-0">
@@ -1184,7 +1184,7 @@ export default function TinkererWorkshop({
                               </div>
 
                               {isSelected ? (
-                                <span className="px-2 py-0.5 rounded-ui bg-[#a63d40] text-[#fffdf9] font-bold text-t12 flex items-center gap-1 shrink-0">
+                                <span className="px-2 py-0.5 rounded bg-[#a63d40] text-[#fffdf9] font-bold text-t12 flex items-center gap-1 shrink-0">
                                   <GiCheckMark className="text-xs" /> 已選為效果
                                 </span>
                               ) : isHit ? (
@@ -1194,7 +1194,7 @@ export default function TinkererWorkshop({
                                       key={m.idx}
                                       type="button"
                                       onClick={() => handleSelectEffect(m.idx)}
-                                      className="px-2 py-0.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-mono font-bold text-t12 transition-all cursor-pointer"
+                                      className="px-2 py-0.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-mono font-bold text-t12 transition-all cursor-pointer"
                                       title={`指派骰子 #${m.idx + 1} (出目 ${m.val}) 作為效果`}
                                     >
                                       指派 #{m.idx + 1} ({m.val})
@@ -1213,15 +1213,15 @@ export default function TinkererWorkshop({
                   </div>
 
                   {/* ③ 調配成果匯總卡片 */}
-                  <div className="p-3.5 rounded-ui border border-[#d6c7ab] bg-[#fffdf9] space-y-3">
+                  <div className="p-3.5 rounded border border-[#d6c7ab] bg-[#fffdf9] space-y-3">
                     <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2 flex-wrap gap-2">
                       <div className="flex items-center gap-2">
-                        <div className="p-1 rounded-ui bg-[#a63d40] text-[#fffdf9]">
+                        <div className="p-1 rounded bg-[#a63d40] text-[#fffdf9]">
                           <GiRoundBottomFlask className="text-base" />
                         </div>
                         <h5 className="font-bold text-sm text-[#2c221e] flex items-center gap-1.5">
                           <span>即席混合藥劑調配成果</span>
-                          <span className="text-t12 font-mono px-1.5 py-0.5 rounded-ui bg-[#f4ebd9] text-[#78350f] border border-[#d6c7ab]">
+                          <span className="text-t12 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#78350f] border border-[#d6c7ab]">
                             消耗 {alchemyIpCost} 道具點
                           </span>
                         </h5>
@@ -1231,7 +1231,7 @@ export default function TinkererWorkshop({
                         <button
                           type="button"
                           onClick={handleCopyPotion}
-                          className="px-3 py-1 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                          className="px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors"
                         >
                           <GiSparkles className="text-xs" />
                           <span>複製藥劑效果</span>
@@ -1240,7 +1240,7 @@ export default function TinkererWorkshop({
                           <button
                             type="button"
                             onClick={handleResetAlchemy}
-                            className="px-2.5 py-1 rounded-ui border border-[#d6c7ab] hover:bg-[#f4ebd9] text-[#6b5a4b] font-bold text-xs cursor-pointer transition-colors"
+                            className="px-2.5 py-1 rounded border border-[#d6c7ab] hover:bg-[#f4ebd9] text-[#6b5a4b] font-bold text-xs cursor-pointer transition-colors"
                           >
                             重置
                           </button>
@@ -1264,7 +1264,7 @@ export default function TinkererWorkshop({
                           dense
                         />
                       ) : (
-                      <div className="p-3 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] space-y-1">
+                      <div className="p-3 rounded border border-[#d6c7ab] bg-[#fbf7ee] space-y-1">
                         <div className="flex items-center justify-between text-[#3c2415] font-bold">
                           <span className="flex items-center gap-1"><GiRoundBottomFlask className="text-[#6b5a4b] text-sm" /> 藥劑目標</span>
                           <span className="font-mono text-t12">
@@ -1288,7 +1288,7 @@ export default function TinkererWorkshop({
                           dense
                         />
                       ) : (
-                      <div className="p-3 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] space-y-1">
+                      <div className="p-3 rounded border border-[#d6c7ab] bg-[#fbf7ee] space-y-1">
                         <div className="flex items-center justify-between text-[#3c2415] font-bold">
                           <span className="flex items-center gap-1"><GiSparkles className="text-[#a63d40] text-sm" /> 藥劑效果</span>
                           <span className="font-mono text-t12">
@@ -1325,13 +1325,13 @@ export default function TinkererWorkshop({
 
           {/* ② 武器灌注選單 */}
           {activeGadgetSubTab === 'infusion' && (
-            <div className="p-4 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] space-y-4">
+            <div className="p-4 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-4">
               <div className="flex items-center justify-between gap-2 flex-wrap border-b border-[#d6c7ab] pb-2.5">
                 <div>
                   <h4 className="font-bold text-sm text-[#2c221e] flex items-center gap-2">
                     <GiBroadsword className="w-5 h-5 text-[#6b5a4b]" />
                     <span>武器灌注工藝</span>
-                    <span className="font-mono text-xs px-2 py-0.5 rounded-ui bg-[#f4ebd9] text-[#3c2415] font-bold">
+                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] font-bold">
                       {gadgets.infusion === 0 ? '尚未研發' : gadgets.infusion === 1 ? '基礎灌注' : gadgets.infusion === 2 ? '進階灌注' : '最高灌注'}
                     </span>
                   </h4>
@@ -1344,7 +1344,7 @@ export default function TinkererWorkshop({
                   <button
                     type="button"
                     onClick={() => openRuleCodex('小工具')}
-                    className="px-2 py-1 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-xs flex items-center gap-1 transition-all cursor-pointer"
+                    className="px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-xs flex items-center gap-1 transition-all cursor-pointer"
                     title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
                   >
                     <GiSpellBook className="text-[#6b5a4b] text-xs" />
@@ -1352,7 +1352,7 @@ export default function TinkererWorkshop({
                   </button>
 
                   {activeInfusion && (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-ui bg-[#f4ebd9] text-[#3c2415] font-bold text-xs border border-[#d6c7ab]">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#f4ebd9] text-[#3c2415] font-bold text-xs border border-[#d6c7ab]">
                       <GiCheckMark className="w-3.5 h-3.5" />
                       <span>已套用【{activeInfusion.name}】</span>
                       <button
@@ -1369,7 +1369,7 @@ export default function TinkererWorkshop({
               </div>
 
               {gadgets.infusion === 0 ? (
-                <div className="p-4 rounded-ui border border-dashed border-[#d6c7ab] text-center text-[#6b5a4b] space-y-1">
+                <div className="p-4 rounded border border-dashed border-[#d6c7ab] text-center text-[#6b5a4b] space-y-1">
                   <p className="font-bold">尚未解鎖灌注術派系</p>
                   <p className="text-t12">請在角色卡技能配置中將【小工具】投入灌注術分支。</p>
                 </div>
@@ -1383,7 +1383,7 @@ export default function TinkererWorkshop({
                   ].map((inf) => (
                     <div
                       key={inf.name}
-                      className="p-3 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] flex flex-col justify-between space-y-2"
+                      className="p-3 rounded border border-[#d6c7ab] bg-[#fbf7ee] flex flex-col justify-between space-y-2"
                     >
                       <div>
                         <div className="flex items-center justify-between font-bold text-xs sm:text-sm text-[#2c221e]">
@@ -1391,7 +1391,7 @@ export default function TinkererWorkshop({
                             <GiBroadsword className="w-3.5 h-3.5 text-[#6b5a4b]" />
                             {inf.name}
                           </span>
-                          <span className="font-mono text-t12 text-[#6b5a4b] font-bold bg-[#fbf7ee] px-1.5 py-0.5 rounded-ui">
+                          <span className="font-mono text-t12 text-[#6b5a4b] font-bold bg-[#fbf7ee] px-1.5 py-0.5 rounded">
                             2 IP
                           </span>
                         </div>
@@ -1403,7 +1403,7 @@ export default function TinkererWorkshop({
                       <button
                         type="button"
                         onClick={() => handleApplyInfusion(inf)}
-                        className="w-full mt-2 py-1 px-2 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs transition-colors cursor-pointer"
+                        className="w-full mt-2 py-1 px-2 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs transition-colors cursor-pointer"
                       >
                         套用此灌注 (2 IP)
                       </button>
@@ -1419,7 +1419,7 @@ export default function TinkererWorkshop({
                   ].map((inf) => (
                     <div
                       key={inf.name}
-                      className="p-3 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] flex flex-col justify-between space-y-2"
+                      className="p-3 rounded border border-[#d6c7ab] bg-[#fbf7ee] flex flex-col justify-between space-y-2"
                     >
                       <div>
                         <div className="flex items-center justify-between font-bold text-xs sm:text-sm text-[#2c221e]">
@@ -1427,7 +1427,7 @@ export default function TinkererWorkshop({
                             <GiBroadsword className="w-3.5 h-3.5 text-[#6b5a4b]" />
                             {inf.name}
                           </span>
-                          <span className="font-mono text-t12 text-[#6b5a4b] font-bold bg-[#fbf7ee] px-1.5 py-0.5 rounded-ui">
+                          <span className="font-mono text-t12 text-[#6b5a4b] font-bold bg-[#fbf7ee] px-1.5 py-0.5 rounded">
                             2 IP
                           </span>
                         </div>
@@ -1439,7 +1439,7 @@ export default function TinkererWorkshop({
                       <button
                         type="button"
                         onClick={() => handleApplyInfusion(inf)}
-                        className="w-full mt-2 py-1 px-2 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs transition-colors cursor-pointer"
+                        className="w-full mt-2 py-1 px-2 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs transition-colors cursor-pointer"
                       >
                         套用此灌注 (2 IP)
                       </button>
@@ -1453,7 +1453,7 @@ export default function TinkererWorkshop({
                   ].map((inf) => (
                     <div
                       key={inf.name}
-                      className="p-3 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] flex flex-col justify-between space-y-2"
+                      className="p-3 rounded border border-[#d6c7ab] bg-[#fbf7ee] flex flex-col justify-between space-y-2"
                     >
                       <div>
                         <div className="flex items-center justify-between font-bold text-xs sm:text-sm text-[#2c221e]">
@@ -1461,7 +1461,7 @@ export default function TinkererWorkshop({
                             <GiBroadsword className="w-3.5 h-3.5 text-[#6b5a4b]" />
                             {inf.name} (最高)
                           </span>
-                          <span className="font-mono text-t12 text-[#6b5a4b] font-bold bg-[#f4ebd9] px-1.5 py-0.5 rounded-ui">
+                          <span className="font-mono text-t12 text-[#6b5a4b] font-bold bg-[#f4ebd9] px-1.5 py-0.5 rounded">
                             2 IP
                           </span>
                         </div>
@@ -1473,7 +1473,7 @@ export default function TinkererWorkshop({
                       <button
                         type="button"
                         onClick={() => handleApplyInfusion(inf)}
-                        className="w-full mt-2 py-1 px-2 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs transition-colors cursor-pointer"
+                        className="w-full mt-2 py-1 px-2 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs transition-colors cursor-pointer"
                       >
                         套用此灌注 (2 IP)
                       </button>
@@ -1486,13 +1486,13 @@ export default function TinkererWorkshop({
 
           {/* ③ 魔導科技工坊 */}
           {activeGadgetSubTab === 'magitech' && (
-            <div className="p-4 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] space-y-4">
+            <div className="p-4 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-4">
               <div className="flex items-center justify-between gap-2 flex-wrap border-b border-[#d6c7ab] pb-2.5">
                 <div>
                   <h4 className="font-bold text-sm text-[#2c221e] flex items-center gap-2">
                     <GiGears className="w-5 h-5 text-[#6b5a4b]" />
                     <span>魔導科技工坊</span>
-                    <span className="font-mono text-xs px-2 py-0.5 rounded-ui bg-[#f4ebd9] text-[#3c2415] font-bold">
+                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] font-bold">
                       {gadgets.magitech === 0
                         ? '尚未研發'
                         : technoRestrictsEquipment
@@ -1510,7 +1510,7 @@ export default function TinkererWorkshop({
                 <button
                   type="button"
                   onClick={() => openRuleCodex('小工具')}
-                  className="px-2 py-1 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-xs flex items-center gap-1 transition-all cursor-pointer"
+                  className="px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-xs flex items-center gap-1 transition-all cursor-pointer"
                   title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
                 >
                   <GiSpellBook className="text-[#6b5a4b] text-xs" />
@@ -1519,14 +1519,14 @@ export default function TinkererWorkshop({
               </div>
 
               {gadgets.magitech === 0 ? (
-                <div className="p-4 rounded-ui border border-dashed border-[#d6c7ab] text-center text-[#6b5a4b] space-y-1">
+                <div className="p-4 rounded border border-dashed border-[#d6c7ab] text-center text-[#6b5a4b] space-y-1">
                   <p className="font-bold">尚未解鎖魔導科技派系</p>
                   <p className="text-t12">請在角色卡技能配置中將【小工具】投入魔導科技分支。</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {/* 基礎：魔科技篡奪 */}
-                  <div className="p-3.5 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] space-y-2">
+                  <div className="p-3.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] space-y-2">
                     <div className="flex items-center justify-between font-bold text-xs sm:text-sm text-[#2c221e]">
                       <span className="flex items-center gap-1.5">
                         <GiGears className="w-4 h-4 text-[#6b5a4b]" />
@@ -1553,7 +1553,7 @@ export default function TinkererWorkshop({
 
                   {/* 進階：魔加農火器 —— 魔晶石制下整檔不存在（p.133 removing the magicannon completely） */}
                   {gadgets.magitech >= 2 && !technoRestrictsEquipment && (
-                    <div className="p-3.5 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] space-y-2.5">
+                    <div className="p-3.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] space-y-2.5">
                       <div className="flex items-center justify-between font-bold text-xs sm:text-sm text-[#2c221e]">
                         <span className="flex items-center gap-1.5">
                           <GiCrossedSwords className="w-4 h-4 text-[#6b5a4b]" />
@@ -1564,7 +1564,7 @@ export default function TinkererWorkshop({
                         </span>
                       </div>
 
-                      <div className="p-2.5 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] text-xs flex items-center justify-between flex-wrap gap-2">
+                      <div className="p-2.5 rounded bg-[#fffdf9] border border-[#d6c7ab] text-xs flex items-center justify-between flex-wrap gap-2">
                         <div>
                           <div className="font-bold text-[#2c221e]">
                             魔加農【雙手 · 遠程 · 無特性】
@@ -1582,7 +1582,7 @@ export default function TinkererWorkshop({
                               key={aff}
                               type="button"
                               onClick={() => setMagcannonAffinity(aff)}
-                              className={`px-1.5 py-0.5 rounded-ui text-t12 font-bold cursor-pointer transition-all ${ magcannonAffinity === aff ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b] hover:bg-[#e8dcc4]' }`}
+                              className={`px-1.5 py-0.5 rounded text-t12 font-bold cursor-pointer transition-all ${ magcannonAffinity === aff ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b] hover:bg-[#e8dcc4]' }`}
                             >
                               {aff}
                             </button>
@@ -1606,7 +1606,7 @@ export default function TinkererWorkshop({
 
                   {/* 魔法球原型：核心在最高檔；魔晶石制下往下兼容成進階檔（p.133） */}
                   {gadgets.magitech >= magisphereTier && (
-                    <div className="p-3.5 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] space-y-3">
+                    <div className="p-3.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] space-y-3">
                       <div className="flex items-center justify-between font-bold text-xs sm:text-sm text-[#2c221e]">
                         <span className="flex items-center gap-1.5">
                           <GiCrystalBall className="w-4 h-4 text-[#6b5a4b]" />
@@ -1618,7 +1618,7 @@ export default function TinkererWorkshop({
                       </div>
 
                       {(!gadgets.magitechSpells || gadgets.magitechSpells.length === 0) ? (
-                        <div className="p-3 rounded-ui border border-dashed border-[#d6c7ab] text-center text-t12 text-[#3c2415]">
+                        <div className="p-3 rounded border border-dashed border-[#d6c7ab] text-center text-t12 text-[#3c2415]">
                           尚未配置原型咒語，請在角色卡技能頁點擊「配置小工具科技樹」進行挑選。
                         </div>
                       ) : (
@@ -1630,7 +1630,7 @@ export default function TinkererWorkshop({
                             return (
                               <div
                                 key={spName}
-                                className="p-2.5 rounded-ui border border-[#d6c7ab] bg-[#fffdf9] flex flex-col justify-between space-y-2"
+                                className="p-2.5 rounded border border-[#d6c7ab] bg-[#fffdf9] flex flex-col justify-between space-y-2"
                               >
                                 <div>
                                   <div className="flex items-center justify-between font-bold text-xs text-[#2c221e]">
@@ -1652,7 +1652,7 @@ export default function TinkererWorkshop({
                                 <button
                                   type="button"
                                   onClick={() => handleCastSpellOrb(spName)}
-                                  className="w-full py-1 px-2 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1"
+                                  className="w-full py-1 px-2 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1"
                                 >
                                   <GiCrystalBall className="w-3.5 h-3.5" />
                                   <span>施放魔法球 (2 IP + {spDef.mp} MP)</span>
@@ -1679,7 +1679,7 @@ export default function TinkererWorkshop({
         <div className="space-y-4 animate-fade-in">
           {/* 特技加成提示列 */}
           {visionarySL > 0 && (
-            <div className="p-3 rounded-ui bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div className="p-3 rounded bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-between flex-wrap gap-2 text-xs">
               <span className="font-bold text-[#78350f] flex items-center gap-1.5">
                 <GiSparkles className="w-4 h-4 text-[#8b5e34]" />
                 <span>特技【高瞻遠矚】生效中 (SL {visionarySL})</span>
@@ -1701,7 +1701,7 @@ export default function TinkererWorkshop({
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="px-3 py-1.5 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>發起新專案</span>
@@ -1724,7 +1724,7 @@ export default function TinkererWorkshop({
                 return (
                   <div
                     key={proj.id}
-                    className={`p-3.5 rounded-ui border transition-all flex flex-col justify-between space-y-3 ${ isDone ? 'bg-[#fbf7ee] border-[#d6c7ab]' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#a63d40]' }`}
+                    className={`p-3.5 rounded border transition-all flex flex-col justify-between space-y-3 ${ isDone ? 'bg-[#fbf7ee] border-[#d6c7ab]' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#a63d40]' }`}
                   >
                     <div className="space-y-2">
                       <div className="flex items-center justify-between gap-2">
@@ -1756,7 +1756,7 @@ export default function TinkererWorkshop({
                       )}
 
                       {proj.specialIngredient && (
-                        <div className="p-1.5 rounded-ui bg-[#fbf7ee] border border-[#d6c7ab] text-t12 text-[#3c2415] flex items-center gap-1.5">
+                        <div className="p-1.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] text-t12 text-[#3c2415] flex items-center gap-1.5">
                           <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b] shrink-0" />
                           <span className="font-bold">特殊材料：</span>
                           <span className="truncate">{proj.specialIngredient}</span>
@@ -1764,7 +1764,7 @@ export default function TinkererWorkshop({
                       )}
 
                       {proj.hasFlaw && (
-                        <div className="p-1.5 rounded-ui bg-[#fbf7ee] border border-[#d6c7ab] text-t12 text-[#3c2415] flex items-center gap-1.5">
+                        <div className="p-1.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] text-t12 text-[#3c2415] flex items-center gap-1.5">
                           <GiHazardSign className="w-3.5 h-3.5 text-[#a63d40] shrink-0" />
                           <span className="font-bold">致命缺陷 (-25%)：</span>
                           <span className="truncate">{proj.flaw || '已協商缺陷'}</span>
@@ -1823,7 +1823,7 @@ export default function TinkererWorkshop({
 
                       {/* 每日推進面板（官方 Core p.134 / p.211 / p.137） */}
                       {advancingId === proj.id && !isDone && (
-                        <div className="mt-2 p-2.5 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] space-y-2">
+                        <div className="mt-2 p-2.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] space-y-2">
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-t12 font-bold text-[#78350f]">推進一天</span>
                             <span className="text-t12 font-mono font-bold text-[#78350f]">
@@ -1843,7 +1843,7 @@ export default function TinkererWorkshop({
                                   <button
                                     type="button"
                                     onClick={() => setAdvanceInput(v => ({ ...v, [key]: Math.max(0, v[key] - 1) }))}
-                                    className="w-5 h-5 rounded-ui border border-[#d6c7ab] text-[#78350f] text-xs leading-none cursor-pointer hover:bg-[#f4ebd9]"
+                                    className="w-5 h-5 rounded border border-[#d6c7ab] text-[#78350f] text-xs leading-none cursor-pointer hover:bg-[#f4ebd9]"
                                   >
                                     -
                                   </button>
@@ -1853,7 +1853,7 @@ export default function TinkererWorkshop({
                                   <button
                                     type="button"
                                     onClick={() => setAdvanceInput(v => ({ ...v, [key]: v[key] + 1 }))}
-                                    className="w-5 h-5 rounded-ui border border-[#d6c7ab] text-[#78350f] text-xs leading-none cursor-pointer hover:bg-[#f4ebd9]"
+                                    className="w-5 h-5 rounded border border-[#d6c7ab] text-[#78350f] text-xs leading-none cursor-pointer hover:bg-[#f4ebd9]"
                                   >
                                     +
                                   </button>
@@ -1877,14 +1877,14 @@ export default function TinkererWorkshop({
                             <button
                               type="button"
                               onClick={() => handleConfirmAdvance(proj)}
-                              className="px-3 py-1 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] text-t12 font-bold cursor-pointer transition-colors"
+                              className="px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] text-t12 font-bold cursor-pointer transition-colors"
                             >
                               確認推進
                             </button>
                             <button
                               type="button"
                               onClick={() => setAdvancingId(null)}
-                              className="px-3 py-1 rounded-ui border border-[#d6c7ab] text-[#78350f] text-t12 font-bold cursor-pointer hover:bg-[#f4ebd9] transition-colors"
+                              className="px-3 py-1 rounded border border-[#d6c7ab] text-[#78350f] text-t12 font-bold cursor-pointer hover:bg-[#f4ebd9] transition-colors"
                             >
                               取消
                             </button>
@@ -1912,7 +1912,7 @@ export default function TinkererWorkshop({
           <div className="fixed inset-0 -z-10" onClick={() => setIsAddModalOpen(false)} />
 
           <div
-            className="relative w-full max-w-xl bg-[#fffdf9] border-2 border-[#d6c7ab] rounded-ui shadow-e3 overflow-hidden my-auto flex flex-col max-h-[92vh] text-[#2c221e] text-xs font-sans"
+            className="relative w-full max-w-xl bg-[#fffdf9] border-2 border-[#d6c7ab] rounded shadow-e3 overflow-hidden my-auto flex flex-col max-h-[92vh] text-[#2c221e] text-xs font-sans"
             onClick={(e) => e.stopPropagation()}
           >
             {/* 頂部裝飾條 */}
@@ -1924,7 +1924,7 @@ export default function TinkererWorkshop({
                 <GiGearHammer className="w-5 h-5 text-[#e8dcc4]" />
                 <h3 className="font-bold text-sm sm:text-base tracking-wide flex items-center gap-2">
                   <span>發起新造物專案</span>
-                  <span className="text-t12 font-normal text-[#e8dcc4] font-mono bg-[#2c221e] px-2 py-0.5 rounded-ui border border-[#6b5a4b]">
+                  <span className="text-t12 font-normal text-[#e8dcc4] font-mono bg-[#2c221e] px-2 py-0.5 rounded border border-[#6b5a4b]">
                     核心手冊 134~139 頁
                   </span>
                 </h3>
@@ -1932,7 +1932,7 @@ export default function TinkererWorkshop({
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1 rounded-ui text-[#e8dcc4] hover:text-[#fffdf9] hover:bg-[#2c221e] transition-colors cursor-pointer"
+                className="p-1 rounded text-[#e8dcc4] hover:text-[#fffdf9] hover:bg-[#2c221e] transition-colors cursor-pointer"
                 title="關閉 (ESC)"
               >
                 <GiCancel className="w-4 h-4" />
@@ -1942,7 +1942,7 @@ export default function TinkererWorkshop({
             {/* 表單主滾動容器 */}
             <form onSubmit={handleAddProject} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
               {/* 步驟 1：名稱與描述 */}
-              <div className="space-y-3 p-3.5 rounded-ui bg-[#fffdf9] border border-[#d6c7ab]">
+              <div className="space-y-3 p-3.5 rounded bg-[#fffdf9] border border-[#d6c7ab]">
                 <div>
                   <label className="block text-t12 font-bold text-[#3c2415] mb-1">
                     發明專案名稱 <span className="text-[#a63d40]">*</span>
@@ -1952,7 +1952,7 @@ export default function TinkererWorkshop({
                     value={newProjectName}
                     onChange={(e) => setNewProjectName(e.target.value)}
                     placeholder="例如：磁力靴、探索者號飛空艇、加特林魔像"
-                    className="w-full px-3 py-2 rounded-ui border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
+                    className="w-full px-3 py-2 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
                     required
                   />
                 </div>
@@ -1966,13 +1966,13 @@ export default function TinkererWorkshop({
                     onChange={(e) => setNewDescription(e.target.value)}
                     placeholder="描述發明效果、如何運作、所需能源與具體益處。"
                     rows={2}
-                    className="w-full px-3 py-1.5 rounded-ui border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
+                    className="w-full px-3 py-1.5 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
                   />
                 </div>
               </div>
 
               {/* 步驟 2~3：官方三乘數計算器 */}
-              <div className="space-y-3.5 p-3.5 rounded-ui bg-[#fbf7ee] border border-[#d6c7ab]">
+              <div className="space-y-3.5 p-3.5 rounded bg-[#fbf7ee] border border-[#d6c7ab]">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-[#78350f] flex items-center gap-1.5">
                     <GiGearHammer className="w-4 h-4 text-[#8b5e34]" />
@@ -1994,7 +1994,7 @@ export default function TinkererWorkshop({
                         key={opt.key}
                         type="button"
                         onClick={() => setNewPotency(opt.key)}
-                        className={`p-2 rounded-ui border text-left transition-all cursor-pointer flex flex-col justify-between ${ newPotency === opt.key ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#a63d40] text-[#3c2415]' }`}
+                        className={`p-2 rounded border text-left transition-all cursor-pointer flex flex-col justify-between ${ newPotency === opt.key ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#a63d40] text-[#3c2415]' }`}
                       >
                         <span className="font-bold text-xs">{opt.label}</span>
                         <span className={`text-t12 font-mono mt-0.5 ${newPotency === opt.key ? 'text-[#a63d40]' : 'text-[#6b5a4b]'}`}>
@@ -2003,7 +2003,7 @@ export default function TinkererWorkshop({
                       </button>
                     ))}
                   </div>
-                  <p className="text-t12 text-[#6b5a4b] bg-[#fffdf9] p-2 rounded-ui border border-[#d6c7ab] leading-relaxed">
+                  <p className="text-t12 text-[#6b5a4b] bg-[#fffdf9] p-2 rounded border border-[#d6c7ab] leading-relaxed">
                     <strong>{selectedPotencyObj.label}：</strong>{selectedPotencyObj.desc}
                   </p>
                 </div>
@@ -2019,13 +2019,13 @@ export default function TinkererWorkshop({
                         key={opt.key}
                         type="button"
                         onClick={() => setNewArea(opt.key)}
-                        className={`p-2 rounded-ui border text-center transition-all cursor-pointer ${ newArea === opt.key ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#a63d40] text-[#3c2415]' }`}
+                        className={`p-2 rounded border text-center transition-all cursor-pointer ${ newArea === opt.key ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#a63d40] text-[#3c2415]' }`}
                       >
                         <span className="font-bold text-xs block">{opt.label}</span>
                       </button>
                     ))}
                   </div>
-                  <p className="text-t12 text-[#6b5a4b] bg-[#fffdf9] p-2 rounded-ui border border-[#d6c7ab] leading-relaxed">
+                  <p className="text-t12 text-[#6b5a4b] bg-[#fffdf9] p-2 rounded border border-[#d6c7ab] leading-relaxed">
                     <strong>{selectedAreaObj.label}：</strong>{selectedAreaObj.desc}
                   </p>
                 </div>
@@ -2041,26 +2041,26 @@ export default function TinkererWorkshop({
                         key={opt.key}
                         type="button"
                         onClick={() => setNewUses(opt.key)}
-                        className={`p-2 rounded-ui border text-center transition-all cursor-pointer ${ newUses === opt.key ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#a63d40] text-[#3c2415]' }`}
+                        className={`p-2 rounded border text-center transition-all cursor-pointer ${ newUses === opt.key ? 'bg-[#a63d40] text-[#fffdf9] border-[#a63d40]' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#a63d40] text-[#3c2415]' }`}
                       >
                         <span className="font-bold text-xs block">{opt.label}</span>
                       </button>
                     ))}
                   </div>
-                  <p className="text-t12 text-[#6b5a4b] bg-[#fffdf9] p-2 rounded-ui border border-[#d6c7ab] leading-relaxed">
+                  <p className="text-t12 text-[#6b5a4b] bg-[#fffdf9] p-2 rounded border border-[#d6c7ab] leading-relaxed">
                     <strong>{selectedUsesObj.label}：</strong>{selectedUsesObj.desc}
                   </p>
                 </div>
               </div>
 
               {/* 步驟 4：致命缺陷協商 */}
-              <div className="p-3.5 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] space-y-2">
+              <div className="p-3.5 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-[#2c221e] select-none">
                   <input
                     type="checkbox"
                     checked={newHasFlaw}
                     onChange={(e) => setNewHasFlaw(e.target.checked)}
-                    className="w-4 h-4 rounded-ui text-[#8b5e34] focus:ring-[#a63d40] cursor-pointer"
+                    className="w-4 h-4 rounded text-[#8b5e34] focus:ring-[#a63d40] cursor-pointer"
                   />
                   <span className="flex items-center gap-1.5">
                     <GiHazardSign className="w-4 h-4 text-[#8b5e34]" />
@@ -2078,7 +2078,7 @@ export default function TinkererWorkshop({
                       value={newFlawDesc}
                       onChange={(e) => setNewFlawDesc(e.target.value)}
                       placeholder="例如：需定期回充能源、極不可靠、體積笨重噪音巨大、或具電屬性弱點。"
-                      className="w-full px-3 py-1.5 rounded-ui border border-[#d6c7ab] bg-[#fbf7ee] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
+                      className="w-full px-3 py-1.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
                     />
                   </div>
                 )}
@@ -2086,7 +2086,7 @@ export default function TinkererWorkshop({
 
               {/* 步驟 5：特殊成分材料備忘 (中等以上效力必填) */}
               {isSpecialRequired && (
-                <div className="p-3.5 rounded-ui bg-[#fbf7ee] border border-[#d6c7ab] space-y-2 animate-fade-in">
+                <div className="p-3.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-2 animate-fade-in">
                   <div className="flex items-center gap-1.5 text-[#3c2415] font-bold text-xs">
                     <GiSparkles className="w-4 h-4 text-[#6b5a4b]" />
                     <span>冒險焦點：特殊材料 (中等以上效力必備)</span>
@@ -2103,7 +2103,7 @@ export default function TinkererWorkshop({
                       value={newSpecialIngredient}
                       onChange={(e) => setNewSpecialIngredient(e.target.value)}
                       placeholder="例如：元素史萊姆的黏性核心、上古空艇浮空石、火山結晶火精髓。"
-                      className="w-full px-3 py-1.5 rounded-ui border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
+                      className="w-full px-3 py-1.5 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
                       required={isSpecialRequired}
                     />
                   </div>
@@ -2111,7 +2111,7 @@ export default function TinkererWorkshop({
               )}
 
               {/* 步驟 6：成本結算與進度命刻即時儀表板 */}
-              <div className="p-4 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] space-y-2.5">
+              <div className="p-4 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-2.5">
                 <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2">
                   <span className="font-bold text-[#78350f] flex items-center gap-1.5 text-xs">
                     <GiCoins className="w-4 h-4 text-[#8b5e34]" />
@@ -2165,13 +2165,13 @@ export default function TinkererWorkshop({
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-ui border border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9] font-bold cursor-pointer transition-colors"
+                  className="px-4 py-2 rounded border border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9] font-bold cursor-pointer transition-colors"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-ui bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold cursor-pointer transition-colors flex items-center gap-1.5"
+                  className="px-5 py-2 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold cursor-pointer transition-colors flex items-center gap-1.5"
                 >
                   <GiGearHammer className="w-4 h-4" />
                   <span>確認發起專案</span>

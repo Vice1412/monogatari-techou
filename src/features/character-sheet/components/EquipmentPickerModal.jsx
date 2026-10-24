@@ -266,7 +266,7 @@ export function EquipmentPickerBody({
       key={label}
       type="button"
       onClick={onClick}
-      className="text-t11 px-2 py-1 rounded-lg border font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
+      className="text-t11 px-2 py-1 rounded border font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
       style={
         active
           ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -566,7 +566,7 @@ export function EquipmentPickerBody({
             key={acc.name}
             type="button"
             onClick={() => commit(acc.name)}
-            className="text-left p-2.5 rounded-xl border transition-all cursor-pointer active:scale-98"
+            className="text-left p-2.5 rounded border transition-all cursor-pointer active:scale-98"
             style={{
               backgroundColor: isCurrent ? theme.subpanelBg : theme.cardBg,
               borderColor: isCurrent ? theme.accent : theme.border
@@ -600,7 +600,7 @@ export function EquipmentPickerBody({
           <button
             type="button"
             onClick={() => setOffHandMode('shield')}
-            className="text-xs px-3 py-1.5 rounded-lg border font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+            className="text-xs px-3 py-1.5 rounded border font-bold flex items-center gap-1.5 cursor-pointer transition-all"
             style={offHandMode === 'shield'
               ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
               : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
@@ -611,7 +611,7 @@ export function EquipmentPickerBody({
           <button
             type="button"
             onClick={() => setOffHandMode('weapon')}
-            className="text-xs px-3 py-1.5 rounded-lg border font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+            className="text-xs px-3 py-1.5 rounded border font-bold flex items-center gap-1.5 cursor-pointer transition-all"
             style={offHandMode === 'weapon'
               ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
               : { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
@@ -625,7 +625,7 @@ export function EquipmentPickerBody({
       {/* 雙重盾牌狀態提示（只有學會該技能時才出現） */}
       {slot === 'mainHand' && dualShield.learned && (
         <div
-          className="px-3 py-2 rounded-xl border mb-2 shrink-0 text-t11 leading-relaxed"
+          className="px-3 py-2 rounded border mb-2 shrink-0 text-t11 leading-relaxed"
           style={{ backgroundColor: theme.subpanelBg, borderColor: theme.accent, color: theme.textDark }}
         >
           <span className="font-bold">守護者【雙重盾牌】已習得</span>
@@ -637,7 +637,7 @@ export function EquipmentPickerBody({
 
       {/* 篩選與搜尋 */}
       <div
-        className="px-3 py-2 rounded-xl border space-y-2 mb-2.5 shrink-0"
+        className="px-3 py-2 rounded border space-y-2 mb-2.5 shrink-0"
         style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
       >
         <div className="flex items-center gap-2 flex-wrap">
@@ -648,7 +648,7 @@ export function EquipmentPickerBody({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={`搜尋${slotDef.label}名稱或說明...`}
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg text-xs border outline-none"
+              className="w-full pl-8 pr-3 py-1.5 rounded text-xs border outline-none"
               style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
             />
           </div>
@@ -675,7 +675,7 @@ export function EquipmentPickerBody({
                 setSortKey(e.target.value);
                 setSortDir(next?.direction || 'desc');
               }}
-              className="text-t11 px-2 py-1 rounded-lg border font-bold outline-none cursor-pointer"
+              className="text-t11 px-2 py-1 rounded border font-bold outline-none cursor-pointer"
               style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
             >
               {sortOptions.map((o) => (
@@ -685,7 +685,7 @@ export function EquipmentPickerBody({
             <button
               type="button"
               onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
-              className="text-t11 px-2 py-1 rounded-lg border font-bold cursor-pointer"
+              className="text-t11 px-2 py-1 rounded border font-bold cursor-pointer"
               style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
               title={sortDir === 'asc' ? '目前遞增，點擊改為遞減' : '目前遞減，點擊改為遞增'}
             >
