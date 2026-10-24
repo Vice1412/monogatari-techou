@@ -216,7 +216,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
   const pendingFree = Math.max(0, initialLevels.length - held.length);
 
   const inputStyle = { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark };
-  const smallBtn = 'px-2 py-0.5 rounded border text-[11px] font-bold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
+  const smallBtn = 'px-2 py-0.5 rounded border text-t11 font-bold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
 
   return (
     <div
@@ -231,11 +231,11 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
         <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: theme.textDark }}>
           <GiOrbWand className="w-4 h-4 shrink-0" style={{ color: theme.accent }} />
           職業魔石
-          <span className="text-[10px] font-normal" style={{ color: theme.textMuted }}>
+          <span className="text-t10 font-normal" style={{ color: theme.textMuted }}>
             投等級與技能（p.134）
           </span>
         </span>
-        <span className="font-mono text-[11px] font-bold" style={{ color: theme.accent }}>
+        <span className="font-mono text-t11 font-bold" style={{ color: theme.accent }}>
           {held.length} 顆，合計 {heldLevelTotal} 級
           {pendingFree > 0 && (
             <span className="ml-1.5 font-normal" style={{ color: theme.textMuted }}>
@@ -253,7 +253,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
         </p>
 
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
+          <span className="text-t11 font-bold" style={{ color: theme.textDark }}>
             {pendingFree > 0 ? '開局免費魔石' : '取得魔石'}
             <span className="font-normal ml-1.5" style={{ color: theme.textMuted }}>
               {pendingFree > 0
@@ -274,7 +274,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
                       setPendingClass(e.target.value);
                       addMnemosphere(e.target.value);
                     }}
-                    className="rounded-lg px-2 py-1 text-[11px] outline-none border font-bold"
+                    className="rounded-lg px-2 py-1 text-t11 outline-none border font-bold"
                     style={inputStyle}
                     data-testid="mnemosphere-class-picker"
                   >
@@ -327,12 +327,12 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
                   data-slot-level={grantLevel}
                 >
                   <EmptyBeadSocket size={36} />
-                  <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
+                  <span className="text-t11 font-bold" style={{ color: theme.textDark }}>
                     {isFirst
                       ? '開局會免費獲得一顆 1 級魔石'
                       : '高階角色額外獲得一顆 0 級魔石'}
                   </span>
-                  <span className="text-[10px]" style={{ color: theme.textMuted }}>
+                  <span className="text-t10" style={{ color: theme.textMuted }}>
                     {isFirst
                       ? '（p.134）選好職業，它就變成你的第一顆'
                       : '（p.140）起始等級超過 5，每 10 級一顆'}
@@ -344,7 +344,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
                       setPendingClass(e.target.value);
                       addMnemosphere(e.target.value, index);
                     }}
-                    className="ml-auto rounded-lg px-2 py-1 text-[11px] outline-none border font-bold"
+                    className="ml-auto rounded-lg px-2 py-1 text-t11 outline-none border font-bold"
                     style={inputStyle}
                     data-testid="mnemosphere-class-picker"
                   >
@@ -385,17 +385,17 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
                         title={`${m.className}　${m.level} / ${MNEMOSPHERE_MAX_LEVEL} 級`}
                         testId={`bead-mnemosphere-${m.id}`}
                       />
-                      <span className="text-[11px] font-bold flex flex-wrap items-center gap-x-1.5" style={{ color: theme.textDark }}>
+                      <span className="text-t11 font-bold flex flex-wrap items-center gap-x-1.5" style={{ color: theme.textDark }}>
                         {m.className}
                         <span className="font-mono" style={{ color: theme.accent }}>
                           {m.level} / {MNEMOSPHERE_MAX_LEVEL} 級
                         </span>
                         {mastered && (
-                          <span className="text-[10px] font-bold" style={{ color: theme.accent }}>
+                          <span className="text-t10 font-bold" style={{ color: theme.accent }}>
                             精通
                           </span>
                         )}
-                        <span className="text-[10px] font-normal" style={{ color: theme.textMuted }}>
+                        <span className="text-t10 font-normal" style={{ color: theme.textMuted }}>
                           {slotted ? '已裝入插槽' : '未裝入插槽（第 4 步）'}
                         </span>
                       </span>
@@ -433,13 +433,13 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
 
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] font-bold" style={{ color: theme.textDark }}>
+                      <span className="text-t10 font-bold" style={{ color: theme.textDark }}>
                         技能
                         <span className="font-mono ml-1" style={{ color: spent > m.level ? '#8c2d36' : theme.textMuted }}>
                           {spent} / {m.level}
                         </span>
                       </span>
-                      <span className="text-[10px]" style={{ color: theme.textMuted }}>
+                      <span className="text-t10" style={{ color: theme.textMuted }}>
                         每一級給該職業的一個技能等級，單一技能上限 5 級（p.135）
                       </span>
                     </div>
@@ -457,12 +457,12 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
 
                   {mastered && (
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] shrink-0" style={{ color: theme.textMuted }}>英雄技能</span>
+                      <span className="text-t10 shrink-0" style={{ color: theme.textMuted }}>英雄技能</span>
                       <select
                         value={m.heroicSkill || ''}
                         disabled={disabled}
                         onChange={(e) => setHeroicSkill(m.id, e.target.value)}
-                        className="flex-1 min-w-0 rounded-lg px-2 py-0.5 text-[10px] outline-none border font-bold"
+                        className="flex-1 min-w-0 rounded-lg px-2 py-0.5 text-t10 outline-none border font-bold"
                         style={inputStyle}
                         data-testid={`heroic-picker-${m.id}`}
                       >
@@ -481,7 +481,7 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
 
         {held.length > 0 && (
           <p
-            className="text-[10px] leading-relaxed pt-1 border-t"
+            className="text-t10 leading-relaxed pt-1 border-t"
             style={{ color: theme.textMuted, borderColor: theme.border }}
             data-testid="held-skill-ceiling"
           >

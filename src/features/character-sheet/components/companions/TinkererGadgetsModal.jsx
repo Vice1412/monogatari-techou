@@ -328,12 +328,12 @@ export default function TinkererGadgetsModal({
             <span className="font-mono text-sm font-bold text-[#3c2415]">
               {allocatedPoints} / {tinkererSL}
             </span>
-            <span className={`px-2 py-0.5 rounded-md font-bold text-[11px] ${ remainingPoints === 0 ? 'bg-[#fffdf9] text-[#3c2415] border border-[#3c2415] ' : 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] ' }`}>
+            <span className={`px-2 py-0.5 rounded-md font-bold text-t11 ${ remainingPoints === 0 ? 'bg-[#fffdf9] text-[#3c2415] border border-[#3c2415] ' : 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] ' }`}>
               {remainingPoints === 0 ? '✓ 點數已滿額' : `尚有 ${remainingPoints} 點可分配`}
             </span>
           </div>
 
-          <span className="text-[#6b5a4b] text-[11px]">
+          <span className="text-[#6b5a4b] text-t11">
             點擊可解鎖節點，點擊最末端的已解鎖節點可取消
           </span>
         </div>
@@ -366,17 +366,17 @@ export default function TinkererGadgetsModal({
                           <span className="font-bold text-sm text-[#3c2415] font-serif">
                             {track.name}
                           </span>
-                          <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#e8dcc4] text-[#3c2415] font-bold">
+                          <span className="text-t11 font-mono px-2 py-0.5 rounded bg-[#e8dcc4] text-[#3c2415] font-bold">
                             {currentTier === 0 ? '未研發' : currentTier === 1 ? '基礎益處' : currentTier === 2 ? '進階益處' : '最高益處'}
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#6b5a4b]">
+                        <p className="text-t11 text-[#6b5a4b]">
                           {track.subtitle}
                         </p>
                       </div>
                     </div>
 
-                    <div className="text-right text-[11px] font-mono text-[#6b5a4b]">
+                    <div className="text-right text-t11 font-mono text-[#6b5a4b]">
                       當前階級：<strong className="text-[#6b5a4b] text-xs">Tier {currentTier} / 3</strong>
                     </div>
                   </div>
@@ -411,7 +411,7 @@ export default function TinkererGadgetsModal({
                           >
                             {/* 節點頂部狀態 */}
                             <div className="flex items-center justify-between gap-1 mb-2">
-                              <span className="text-[10px] font-bold uppercase tracking-wider font-mono px-1.5 py-0.5 rounded bg-[#e8dcc4]/80 text-[#3c2415]">
+                              <span className="text-t10 font-bold uppercase tracking-wider font-mono px-1.5 py-0.5 rounded bg-[#e8dcc4]/80 text-[#3c2415]">
                                 {node.tierName}
                               </span>
 
@@ -421,11 +421,11 @@ export default function TinkererGadgetsModal({
                                     <GiCheckMark className="w-3 h-3" />
                                   </span>
                                 ) : canUnlock ? (
-                                  <span className="text-[10px] font-bold text-[#6b5a4b] bg-[#f4ebd9] px-1.5 py-0.5 rounded">
+                                  <span className="text-t10 font-bold text-[#6b5a4b] bg-[#f4ebd9] px-1.5 py-0.5 rounded">
                                     可點擊解鎖
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] text-[#6b5a4b]">
+                                  <span className="text-t10 text-[#6b5a4b]">
                                     未滿足前置
                                   </span>
                                 )}
@@ -436,17 +436,17 @@ export default function TinkererGadgetsModal({
                             <div className="space-y-1 mb-2">
                               <div className="font-bold text-xs sm:text-sm text-[#2c221e] flex items-center justify-between">
                                 <span>{node.name}</span>
-                                <span className="font-mono text-[11px] text-[#6b5a4b] font-semibold">
+                                <span className="font-mono text-t11 text-[#6b5a4b] font-semibold">
                                   {node.cost}
                                 </span>
                               </div>
-                              <p className="text-[11px] text-[#6b5a4b] leading-relaxed">
+                              <p className="text-t11 text-[#6b5a4b] leading-relaxed">
                                 {renderTextWithAffinities(node.summary)}
                               </p>
                             </div>
 
                             {/* 操作指示標籤 */}
-                            <div className="pt-2 border-t border-[#d6c7ab]/60 flex items-center justify-between text-[10px] font-bold">
+                            <div className="pt-2 border-t border-[#d6c7ab]/60 flex items-center justify-between text-t10 font-bold">
                               <span className="text-[#6b5a4b] font-mono">
                                 檢定: {node.dice}
                               </span>
@@ -501,7 +501,7 @@ export default function TinkererGadgetsModal({
                       key={sc}
                       type="button"
                       onClick={() => setSpellSchoolFilter(sc)}
-                      className={`px-2.5 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${ spellSchoolFilter === sc ? 'bg-[#3c2415] text-[#fffdf9] shadow-2xs' : 'text-[#6b5a4b] hover:bg-[#f4ebd9] ' }`}
+                      className={`px-2.5 py-1 rounded text-t11 font-bold transition-all cursor-pointer ${ spellSchoolFilter === sc ? 'bg-[#3c2415] text-[#fffdf9] shadow-2xs' : 'text-[#6b5a4b] hover:bg-[#f4ebd9] ' }`}
                     >
                       {sc}
                     </button>
@@ -527,16 +527,16 @@ export default function TinkererGadgetsModal({
                             <span className="font-normal text-[#7c6a58]">{sp.school}</span>
                             {sp.name}
                           </span>
-                          <span className="font-mono text-[10px] text-[#6b5a4b] font-bold bg-[#f4ebd9] border border-[#d6c7ab] px-1.5 py-0.5 rounded">
+                          <span className="font-mono text-t10 text-[#6b5a4b] font-bold bg-[#f4ebd9] border border-[#d6c7ab] px-1.5 py-0.5 rounded">
                             {sp.mp} MP
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#6b5a4b] line-clamp-2 leading-relaxed">
+                        <p className="text-t11 text-[#6b5a4b] line-clamp-2 leading-relaxed">
                           {renderTextWithAffinities(sp.effect || sp.desc)}
                         </p>
                       </div>
 
-                      <div className="pt-2 mt-2 border-t border-[#d6c7ab]/60 flex items-center justify-between text-[10px] text-[#6b5a4b]">
+                      <div className="pt-2 mt-2 border-t border-[#d6c7ab]/60 flex items-center justify-between text-t10 text-[#6b5a4b]">
                         <span>
                           {sp.source === 'npc'
                             ? `NPC 咒語 · 需自訂化${sp.isOffensive && offensiveBonus ? ` · 攻擊性 +${offensiveBonus}` : ''}`
@@ -557,7 +557,7 @@ export default function TinkererGadgetsModal({
 
         {/* 底部按鈕列 */}
         <div className="px-5 py-3.5 bg-[#fbf7ee] border-t border-[#d6c7ab] flex items-center justify-between gap-3">
-          <div className="text-[11px] text-[#6b5a4b]">
+          <div className="text-t11 text-[#6b5a4b]">
             {allocatedPoints < tinkererSL ? (
               <span className="text-[#6b5a4b] flex items-center gap-1">
                 <GiHazardSign className="w-3.5 h-3.5" />

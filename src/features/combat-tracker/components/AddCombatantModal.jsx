@@ -202,7 +202,7 @@ export default function AddCombatantModal({
                           <JRPGBadge variant="ink" size="xs">Lv {npc.level}</JRPGBadge>
                           <JRPGBadge variant="slate" size="xs">{npc.rank}</JRPGBadge>
                         </div>
-                        <div className="text-[11px] text-[#6b5a4b] font-mono mt-0.5">
+                        <div className="text-t11 text-[#6b5a4b] font-mono mt-0.5">
                           <span>{withEn(npc.role)}</span>
                           {npc.faction && (
                             <span className="ml-2 text-[#3c2415] font-sans font-bold inline-flex items-center gap-0.5">
@@ -257,7 +257,7 @@ export default function AddCombatantModal({
                         <span className="font-bold text-xs text-[#2c221e] truncate">{char.name}</span>
                         <JRPGBadge variant="zinc" size="xs">Lv {char.level || 5}</JRPGBadge>
                       </div>
-                      <div className="text-[11px] text-[#6b5a4b] truncate mt-0.5">
+                      <div className="text-t11 text-[#6b5a4b] truncate mt-0.5">
                         {char.identity}
                       </div>
                     </div>

@@ -104,9 +104,9 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
       className={`mb-4 break-inside-avoid p-2.5 rounded-lg border transition-all ${onInspectorClick ? 'cursor-pointer hover:border-[#3c2415] hover:shadow-md hover:ring-1 hover:ring-[#3c2415]/40 group/inspector' : ''} ${skill.isSecretArt ? 'border-[#3c2415]/40 bg-[#fffdf9]' : skill.category === 'boss' ? 'border-[#d6c7ab] bg-[#f9f5eb]' : 'border-[#d6c7ab] bg-[#fbf7ee]/40'}`}
       title={onInspectorClick ? "點擊反向定位至編輯表單" : ""}
     >
-      <div className={`font-bold text-[15px] mb-1 flex flex-wrap items-center gap-2 ${skill.isSecretArt || skill.category === 'boss' ? 'text-[#3c2415]' : 'text-[#2c221e]'}`}>
+      <div className={`font-bold text-t14 mb-1 flex flex-wrap items-center gap-2 ${skill.isSecretArt || skill.category === 'boss' ? 'text-[#3c2415]' : 'text-[#2c221e]'}`}>
         <span className={`w-2 h-2 rounded-full inline-block shrink-0 ${skill.isSecretArt || isSpellCategory ? 'bg-[#3c2415]' : 'bg-[#7c6a58]'}`}></span>{showOffensiveIcon && <span className="fu-icon text-xl text-[#8c2d36] drop-shadow-sm mr-1 shrink-0" title="攻擊性咒語">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{normalizeSpellName(displaySkillName)}{skill.isSecretArt && (
-          <span className="text-[10px] text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
+          <span className="text-t10 text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
         )}
         <CopyButton text={textToCopy} />
       </div>
@@ -122,7 +122,7 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
       )}
 
       {showOffensiveIcon && (
-        <div className="text-[#8c2d36] text-[13px] font-bold mb-1.5 ml-2 md:ml-4 flex items-center gap-1.5">
+        <div className="text-[#8c2d36] text-t12 font-bold mb-1.5 ml-2 md:ml-4 flex items-center gap-1.5">
           <span className="text-[#2c221e] tracking-widest">{finalStats.magicFormula || '[INS + WLP]'}</span> {totalMagicAcc !== 0 && <span className="text-[#3c2415]">{totalMagicAcc > 0 ? `+ ${totalMagicAcc}` : `- ${Math.abs(totalMagicAcc)}`}</span>} ✦ 魔法攻擊
         </div>
       )}

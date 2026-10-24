@@ -2008,7 +2008,7 @@ export default function App({
           <div className="bg-[#f4ebd9] border border-[#d6c7ab] p-2.5 flex flex-wrap gap-2 items-center justify-center relative overflow-hidden rounded text-[#2c221e]">
             <span className="text-xs text-[#8b4513] font-bold mr-2 tracking-wider flex items-center z-10"><Link size={14} className="mr-1" />關聯實體快速跳轉：</span>
             {validLinks.map(link => (
-              <button key={link.id} onClick={() => handleJumpToNPC(link.id)} className="bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#8b4513] text-[11px] font-bold px-3 py-1 rounded-full border border-[#d6c7ab] hover:border-[#3c2415] transition-all flex items-center z-10">
+              <button key={link.id} onClick={() => handleJumpToNPC(link.id)} className="bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#8b4513] text-t11 font-bold px-3 py-1 rounded-full border border-[#d6c7ab] hover:border-[#3c2415] transition-all flex items-center z-10">
                 {link.name || "未知"}
               </button>
             ))}
@@ -2065,11 +2065,11 @@ export default function App({
                       <button
                         type="button"
                         onClick={handleReCrop}
-                        className="px-2 py-1 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] rounded text-[10px] font-bold transition flex items-center gap-1 shadow"
+                        className="px-2 py-1 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] rounded text-t10 font-bold transition flex items-center gap-1 shadow"
                       >
                         <Crop size={11} /> 調整大小
                       </button>
-                      <label className="cursor-pointer px-2 py-1 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] rounded text-[10px] font-bold transition flex items-center gap-1 border border-[#d6c7ab]">
+                      <label className="cursor-pointer px-2 py-1 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] rounded text-t10 font-bold transition flex items-center gap-1 border border-[#d6c7ab]">
                         <Upload size={11} /> 更換
                         <input
                           type="file"
@@ -2231,7 +2231,7 @@ export default function App({
               <>
                 {groupedSkills.attack.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-bold border-b-2 mb-3 flex items-center gap-2 tracking-widest" style={{ borderBottomColor: currentTheme.accent, color: currentTheme.accentDark }}><span className="fu-icon text-[22px] drop-shadow-sm translate-y-[1px]">m</span> 基本攻擊</h3>
+                    <h3 className="text-lg font-bold border-b-2 mb-3 flex items-center gap-2 tracking-widest" style={{ borderBottomColor: currentTheme.accent, color: currentTheme.accentDark }}><span className="fu-icon text-t20 drop-shadow-sm translate-y-[1px]">m</span> 基本攻擊</h3>
                     <div className="flex flex-col gap-3 mb-4 ml-2">
                       {groupedSkills.attack.map(skill => (
                         <ReadOnlySkill key={skill.id} skill={skill} finalStats={finalStats} npcName={validNpcName} npcLevel={state.level} partyLevel={state.partyLevel} onInspectorClick={handleInspectorClick} />
@@ -2241,7 +2241,7 @@ export default function App({
                 )}
                 {(finalStats.spellList.length > 0 || groupedSkills.spell.length > 0) && (
                     <div>
-                      <h3 className="text-lg font-bold border-b-2 mb-3 flex items-center gap-2 tracking-widest" style={{ borderBottomColor: currentTheme.accent, color: currentTheme.accentDark }}><span className="fu-icon text-[22px] drop-shadow-sm translate-y-[1px]">c</span> 咒語</h3>
+                      <h3 className="text-lg font-bold border-b-2 mb-3 flex items-center gap-2 tracking-widest" style={{ borderBottomColor: currentTheme.accent, color: currentTheme.accentDark }}><span className="fu-icon text-t20 drop-shadow-sm translate-y-[1px]">c</span> 咒語</h3>
                       {finalStats.spellList.length > 0 && (
                         <div className="flex flex-col gap-3 mb-4 ml-2">
                           {finalStats.spellList.map((spellObj, i) => {
@@ -2295,10 +2295,10 @@ export default function App({
                             return (
                               <div key={i} className={`bg-[#f9f5eb] border-l-4 p-3 text-sm break-inside-avoid rounded-r-md border border-[#e8dcc4] ${isSecretArtForSpell ? 'border-l-[#3c2415] bg-[#fffdf9] ring-1 ring-[#d6c7ab]' : 'border-l-[#7c6a58]'}`}>
                                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#e8dcc4] pb-2 mb-2">
-                                  <span className="font-bold text-[16px] flex flex-wrap items-center gap-1 text-[#3c2415]">
+                                  <span className="font-bold text-t16 flex flex-wrap items-center gap-1 text-[#3c2415]">
                                     <span className="fu-icon text-xl drop-shadow-sm shrink-0">{CATEGORIES.find(c => c.id === 'spell')?.fuIcon || 'c'}</span> {isOffensive && <span className="fu-icon text-xl text-[#8c2d36] drop-shadow-sm mr-0.5 shrink-0" title="攻擊性咒語">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}<span className={selections.customName !== undefined ? 'text-[#3c2415] font-bold' : ''}>{renderFormattedText(normalizeSpellName(effectiveName), selections, state.level, state.partyLevel)}</span>
                                     {isSecretArtForSpell && (
-                                      <span className="text-[10px] text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
+                                      <span className="text-t10 text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
                                     )}
                                     <CopyButton text={spellTextToCopy} />
                                   </span>
@@ -2314,7 +2314,7 @@ export default function App({
                                   </div>
                                 )}
 
-                                {isOffensive && <div className="text-[#8c2d36] text-[13px] font-bold mb-1.5 flex items-center gap-1.5"><span className="text-[#2c221e] tracking-widest">{state.magicFormula || '[INS + WLP]'}</span> {totalMagicAcc !== 0 && <span className="text-[#3c2415]">{totalMagicAcc > 0 ? `+ ${totalMagicAcc}` : `- ${Math.abs(totalMagicAcc)}`}</span>} ✦ 魔法攻擊</div>}
+                                {isOffensive && <div className="text-[#8c2d36] text-t12 font-bold mb-1.5 flex items-center gap-1.5"><span className="text-[#2c221e] tracking-widest">{state.magicFormula || '[INS + WLP]'}</span> {totalMagicAcc !== 0 && <span className="text-[#3c2415]">{totalMagicAcc > 0 ? `+ ${totalMagicAcc}` : `- ${Math.abs(totalMagicAcc)}`}</span>} ✦ 魔法攻擊</div>}
 
                                 <div className={`text-sm leading-relaxed ${selections.customDesc !== undefined ? 'text-[#3c2415] font-medium' : 'text-[#3c2415]'}`}>
                                   {spellData ? renderFormattedText(replacedEffect, selections, state.level, state.partyLevel) : "無詳細資料。"}
@@ -2337,7 +2337,7 @@ export default function App({
                 <>
                   {groupedSkills.action.length > 0 && (
                     <div>
-                      <h3 className="text-lg font-bold border-b-2 mb-3 flex items-center gap-2 tracking-widest" style={{ borderBottomColor: currentTheme.accent, color: currentTheme.accentDark }}><span className="fu-icon text-[22px] drop-shadow-sm translate-y-[1px]">s</span> 其餘行動</h3>
+                      <h3 className="text-lg font-bold border-b-2 mb-3 flex items-center gap-2 tracking-widest" style={{ borderBottomColor: currentTheme.accent, color: currentTheme.accentDark }}><span className="fu-icon text-t20 drop-shadow-sm translate-y-[1px]">s</span> 其餘行動</h3>
                       {groupedSkills.action.map(skill => (
                         <ReadOnlySkill key={skill.id} skill={skill} finalStats={finalStats} npcName={validNpcName} npcLevel={state.level} partyLevel={state.partyLevel} onInspectorClick={handleInspectorClick} />
                       ))}
@@ -2555,7 +2555,7 @@ export default function App({
                           </div>
                           <div>
                             <h2 className="text-3xl sm:text-4xl font-black text-[#3c2415] tracking-[0.15em] mb-1">{roleName}</h2>
-                            <div className={`inline-block px-3 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase ${isActive ? 'bg-[#e8dcc4] text-[#2c221e] border border-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#6b5a4b]'}`}>
+                            <div className={`inline-block px-3 py-0.5 rounded-full text-t10 font-bold tracking-widest uppercase ${isActive ? 'bg-[#e8dcc4] text-[#2c221e] border border-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#6b5a4b]'}`}>
                               {ROLE_DESCRIPTIONS[roleName].subtitle}
                             </div>
                           </div>
@@ -2605,7 +2605,7 @@ export default function App({
                         <QuickIcon className="w-6 h-6 sm:w-7 sm:h-7" />
                       ) : null}
                     </div>
-                    <div className={`text-[9px] sm:text-[11px] font-black tracking-widest ${isCurrent ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>{r}</div>
+                    <div className={`text-t10 sm:text-t11 font-black tracking-widest ${isCurrent ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>{r}</div>
                   </button>
                 );
               })}
@@ -2634,27 +2634,27 @@ export default function App({
 
               <div className="bg-[#fffdf9] p-5 rounded-xl border border-[#d6c7ab]">
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="text-[11px] font-bold text-[#3c2415] tracking-widest bg-[#f4ebd9] px-2 py-0.5 rounded border border-[#d6c7ab]">即時體質監控</span>
+                  <span className="text-t11 font-bold text-[#3c2415] tracking-widest bg-[#f4ebd9] px-2 py-0.5 rounded border border-[#d6c7ab]">即時體質監控</span>
                   <div className="h-px bg-[#d6c7ab] flex-1"></div>
                 </div>
                 <div className="flex flex-col gap-3">
                   <div className="grid grid-cols-4 gap-2">
                     {[{ label: 'DEX', val: finalStats.DEX, c: ATTRIBUTE_COLORS.dex }, { label: 'INS', val: finalStats.INS, c: ATTRIBUTE_COLORS.ins }, { label: 'MIG', val: finalStats.MIG, c: ATTRIBUTE_COLORS.mig }, { label: 'WLP', val: finalStats.WLP, c: ATTRIBUTE_COLORS.wlp }].map(s => (
-                      <div key={s.label} className="bg-[#f7f3e8] border border-[#e8dcc4] p-2 text-center rounded-lg"><div className="text-[10px] text-[#7c6a58] font-bold tracking-widest">{s.label}</div><div className={`text-lg md:text-xl font-bold ${s.c} drop- leading-none mt-1`}>{s.val}</div></div>
+                      <div key={s.label} className="bg-[#f7f3e8] border border-[#e8dcc4] p-2 text-center rounded-lg"><div className="text-t10 text-[#7c6a58] font-bold tracking-widest">{s.label}</div><div className={`text-lg md:text-xl font-bold ${s.c} drop- leading-none mt-1`}>{s.val}</div></div>
                     ))}
                   </div>
                   <div className="flex justify-between items-center bg-[#f7f3e8] border border-[#e8dcc4] p-3 rounded-lg">
                     <div className="flex gap-4 md:gap-8 px-2 md:px-4">
-                      <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">HP</span><span className="text-sm md:text-base font-bold text-[#8c2d36] leading-none mt-1">{finalStats.HP}</span></div>
+                      <div className="flex flex-col items-center"><span className="text-t10 text-[#7c6a58] font-bold tracking-widest">HP</span><span className="text-sm md:text-base font-bold text-[#8c2d36] leading-none mt-1">{finalStats.HP}</span></div>
                       <div className="w-px bg-[#d6c7ab]"></div>
-                      <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">MP</span><span className="text-sm md:text-base font-bold text-[#3c2415] leading-none mt-1">{finalStats.MP}</span></div>
+                      <div className="flex flex-col items-center"><span className="text-t10 text-[#7c6a58] font-bold tracking-widest">MP</span><span className="text-sm md:text-base font-bold text-[#3c2415] leading-none mt-1">{finalStats.MP}</span></div>
                     </div>
                     <div className="flex gap-4 md:gap-8 px-2 md:px-4">
-                      <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">先攻</span><span className="text-sm md:text-base font-bold text-[#6b5a4b] leading-none mt-1">{finalStats.Init}</span></div>
+                      <div className="flex flex-col items-center"><span className="text-t10 text-[#7c6a58] font-bold tracking-widest">先攻</span><span className="text-sm md:text-base font-bold text-[#6b5a4b] leading-none mt-1">{finalStats.Init}</span></div>
                       <div className="w-px bg-[#d6c7ab]"></div>
-                      <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">物防</span><span className="text-sm md:text-base font-bold text-[#2c221e] leading-none mt-1">{finalStats.Def}</span></div>
+                      <div className="flex flex-col items-center"><span className="text-t10 text-[#7c6a58] font-bold tracking-widest">物防</span><span className="text-sm md:text-base font-bold text-[#2c221e] leading-none mt-1">{finalStats.Def}</span></div>
                       <div className="w-px bg-[#d6c7ab]"></div>
-                      <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">魔防</span><span className="text-sm md:text-base font-bold text-[#2c221e] leading-none mt-1">{finalStats.MDef}</span></div>
+                      <div className="flex flex-col items-center"><span className="text-t10 text-[#7c6a58] font-bold tracking-widest">魔防</span><span className="text-sm md:text-base font-bold text-[#2c221e] leading-none mt-1">{finalStats.MDef}</span></div>
                     </div>
                   </div>
                 </div>
@@ -2667,8 +2667,8 @@ export default function App({
                         <div key={skill.id} className={`bg-[#f9f5eb] border border-[#d6c7ab] rounded-lg p-4 flex flex-col gap-2 relative overflow-hidden group hover:bg-[#f4ebd9] transition-colors`}>
                           <div className={`absolute left-0 top-0 bottom-0 w-1 ${skill.isSystem ? 'bg-[#7c6a58]' : 'bg-[#3c2415]'}`}></div>
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 pl-2">
-                            <span className="bg-[#3c2415] text-[#fbf7ee] text-[11px] font-extrabold px-2 py-0.5 rounded shadow-sm w-fit shrink-0">Lv. {skill.unlockLevel}</span>
-                            <span className="font-bold text-[#3c2415] text-[15px]">{skill.originalName.replace(/Lv\.\d+\s解鎖天賦：/, '')}</span>
+                            <span className="bg-[#3c2415] text-[#fbf7ee] text-t11 font-extrabold px-2 py-0.5 rounded shadow-sm w-fit shrink-0">Lv. {skill.unlockLevel}</span>
+                            <span className="font-bold text-[#3c2415] text-t14">{skill.originalName.replace(/Lv\.\d+\s解鎖天賦：/, '')}</span>
                           </div>
                           <div className="text-sm text-[#3c2415] leading-relaxed pl-2 mt-1">{renderFormattedText(skill.originalDesc, skill.selections, state.level, state.partyLevel)}</div>
 
@@ -2678,7 +2678,7 @@ export default function App({
                                 if (cfg.showIfKey && (!skill.selections || !skill.selections[cfg.showIfKey] || !skill.selections[cfg.showIfKey].includes(cfg.showIfValue))) return null;
                                 return (
                                   <div key={cfg.key} className="flex items-center gap-2 bg-[#fffdf9] rounded-lg pr-2 border border-[#d6c7ab] overflow-hidden">
-                                    <span className="text-[10px] font-bold text-[#3c2415] tracking-widest uppercase bg-[#f4ebd9] px-2 py-1.5 h-full flex items-center border-r border-[#d6c7ab]">{cfg.label}</span>
+                                    <span className="text-t10 font-bold text-[#3c2415] tracking-widest uppercase bg-[#f4ebd9] px-2 py-1.5 h-full flex items-center border-r border-[#d6c7ab]">{cfg.label}</span>
                                     <select
                                       className="bg-transparent border-none text-xs text-[#2c221e] focus:outline-none cursor-pointer py-1"
                                       value={skill.selections?.[cfg.key] || ""}
@@ -2723,7 +2723,7 @@ export default function App({
                         <button
                           key={r}
                           onClick={() => handleRankChange(r)}
-                          className={`flex-1 py-3 px-2 rounded-lg text-[11px] font-black transition-all duration-300 tracking-widest relative z-10 ${state.rank === r
+                          className={`flex-1 py-3 px-2 rounded-lg text-t11 font-black transition-all duration-300 tracking-widest relative z-10 ${state.rank === r
                             ? 'bg-[#a63d40] text-[#fffdf9] shadow-md scale-[1.02]'
                             : 'text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9]'
                             }`}
@@ -2743,7 +2743,7 @@ export default function App({
                                 第六輪截圖時順手清掉：這一行是標籤，不是檢索欄位，英文沒有保留理由。
                                 `flex-1 min-w-0 pr-3` 是 9px→12px 之後補的：句子在 12px 會折成兩行，
                                 沒有這三個類別就會貼到右邊的 HP 倍率圓標上。 */}
-                            <span className="text-[10px] font-black text-[#3c2415] tracking-[0.2em] uppercase">冠位等級</span>
+                            <span className="text-t10 font-black text-[#3c2415] tracking-[0.2em] uppercase">冠位等級</span>
                             <span className="text-t12 text-[#6b5a4b] font-bold mt-0.5">此級別將倍增 HP 並增加可配置技能數</span>
                           </div>
                           <div className="shrink-0 bg-[#fffdf9] px-3 py-1 rounded-full border border-[#d6c7ab]">
@@ -2813,7 +2813,7 @@ export default function App({
                       <div className={`p-2.5 rounded-full mb-2 transition-all ${isSelected ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b]'}`}>
                         {theme.icon}
                       </div>
-                      <span className={`text-[12px] font-bold tracking-tight text-center leading-tight ${isSelected ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>
+                      <span className={`text-t12 font-bold tracking-tight text-center leading-tight ${isSelected ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>
                         {sp.name}
                       </span>
                     </button>
@@ -2851,7 +2851,7 @@ export default function App({
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {sp.mandatorySelections.map(cfg => (
                               <div key={cfg.key} className="flex flex-col gap-2">
-                                <label className="text-[11px] font-bold text-[#6b5a4b] tracking-wider flex items-center gap-1.5 uppercase">
+                                <label className="text-t11 font-bold text-[#6b5a4b] tracking-wider flex items-center gap-1.5 uppercase">
                                   <GiSparkles size={12} className="text-[#6b5a4b]" /> {cfg.label}
                                 </label>
                                 {(cfg.type === 'multiselect_2' || cfg.type === 'multiselect') ? (
@@ -2889,7 +2889,7 @@ export default function App({
 
                         {sp.optionalDrawback && (
                           <div className="bg-[#f9f5eb] border border-[#8c2d36]/30 p-4 rounded-lg">
-                            <label className="text-[11px] font-bold text-[#8c2d36] tracking-wider flex items-center gap-1.5 uppercase mb-3 text-center">
+                            <label className="text-t11 font-bold text-[#8c2d36] tracking-wider flex items-center gap-1.5 uppercase mb-3 text-center">
                               △ 額外代償選項
                             </label>
                             <p className="text-xs text-[#574c43] mb-3 text-center italic">{sp.optionalDrawback.desc}</p>
@@ -2925,10 +2925,10 @@ export default function App({
                           return (
                             <div className="space-y-4">
                               <div className="flex justify-between items-center border-b border-[#d6c7ab] pb-2">
-                                <label className="text-[11px] font-black text-[#3c2415] tracking-widest uppercase flex items-center gap-2">
+                                <label className="text-t11 font-black text-[#3c2415] tracking-widest uppercase flex items-center gap-2">
                                   <GiStarSwirl size={14} /> 物種增益選擇 (Pick {maxPicks})
                                 </label>
-                                <span className={`text-[11px] font-black tracking-widest px-2 py-0.5 rounded ${selectedCount >= maxPicks ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b]'}`}>
+                                <span className={`text-t11 font-black tracking-widest px-2 py-0.5 rounded ${selectedCount >= maxPicks ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b]'}`}>
                                   {selectedCount} / {maxPicks}
                                 </span>
                               </div>
@@ -2977,9 +2977,9 @@ export default function App({
                                           )}
                                           <div className="flex-1">
                                             <div className="flex items-center justify-between">
-                                              <p className={`text-[13px] font-bold leading-relaxed ${isChecked ? 'text-[#3c2415]' : 'text-[#574c43]'}`}>{renderFormattedText(opt.text, state.speciesConfig, state.level, state.partyLevel)}</p>
+                                              <p className={`text-t12 font-bold leading-relaxed ${isChecked ? 'text-[#3c2415]' : 'text-[#574c43]'}`}>{renderFormattedText(opt.text, state.speciesConfig, state.level, state.partyLevel)}</p>
                                               {opt.canPickTwice && isChecked && (
-                                                <span className="text-[10px] font-black bg-[#f4ebd9] text-[#3c2415] px-2 py-0.5 rounded border border-[#d6c7ab] ml-2">累計: {count}/2</span>
+                                                <span className="text-t10 font-black bg-[#f4ebd9] text-[#3c2415] px-2 py-0.5 rounded border border-[#d6c7ab] ml-2">累計: {count}/2</span>
                                               )}
                                             </div>
                                           </div>
@@ -3189,11 +3189,11 @@ export default function App({
                         <div className="flex justify-between items-center">
                           <span className={`text-xs font-black tracking-wider uppercase ${attr.color}`}>{attr.label}</span>
                           {isCustomized ? (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded text-[#3c2415]">
+                            <span className="text-t10 font-bold px-1.5 py-0.5 rounded text-[#3c2415]">
                               已自定義
                             </span>
                           ) : (
-                            <span className="text-[10px] font-bold opacity-70">
+                            <span className="text-t10 font-bold opacity-70">
                               預設 {attr.defaultDie}
                             </span>
                           )}
@@ -3232,7 +3232,7 @@ export default function App({
                           })}
                         </div>
 
-                        <div className="text-[11px] font-bold opacity-80 text-center tracking-tight pt-1.5 border-t border-black/10">
+                        <div className="text-t11 font-bold opacity-80 text-center tracking-tight pt-1.5 border-t border-black/10">
                           {impactText}
                         </div>
                       </div>
@@ -3255,12 +3255,12 @@ export default function App({
                     className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-colors duration-200 ${state.villainTier === key ? 'border-[#3c2415] bg-[#fffdf9] text-[#2c221e]' : 'border-[#d6c7ab] bg-[#fffdf9] text-[#6b5a4b] hover:border-[#3c2415] hover:text-[#2c221e]'}`}
                   >
                     <span className="text-xs font-black tracking-widest mb-1">{tier.label}</span>
-                    <span className="text-[10px] font-bold opacity-80">{tier.up} UP</span>
+                    <span className="text-t10 font-bold opacity-80">{tier.up} UP</span>
                   </button>
                 ))}
               </div>
               {state.villainTier !== 'none' && (
-                <div className={`mt-4 text-[11px] font-bold ${VILLAIN_TIERS[state.villainTier].ink} flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2`}>
+                <div className={`mt-4 text-t11 font-bold ${VILLAIN_TIERS[state.villainTier].ink} flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2`}>
                   <AlertCircle size={12} /> 已賦予 {VILLAIN_TIERS[state.villainTier].up} 點終極點數，可用於發動反派能力。
                 </div>
               )}
@@ -3271,7 +3271,7 @@ export default function App({
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 border-b border-[#d6c7ab] pb-2">
                 <h2 className="text-sm font-bold text-[#3c2415]">屬性相性配置</h2>
                 {bonusSkillFromNegative > 0 && (
-                  <div className="text-[10px] bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-2 py-0.5 rounded-full font-bold">
+                  <div className="text-t10 bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-2 py-0.5 rounded-full font-bold">
                     (包含負面技能獎勵 +{bonusSkillFromNegative})
                   </div>
                 )}
@@ -3292,7 +3292,7 @@ export default function App({
                   };
                   return (
                     <button key={st} onClick={() => !isDisabled && setActiveAffinityTab(st)} disabled={isDisabled} className={`flex-1 flex flex-col items-center justify-center p-2 rounded-t-lg border-b-4 transition-all duration-200 ${isDisabled ? 'opacity-40 cursor-not-allowed border-[#d6c7ab] bg-[#f4ebd9] grayscale' : isActive ? `${conf[st].activeBorder} ${conf[st].activeBg} scale-105 z-10` : 'border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9]'}`}>
-                      <span className={`text-[10px] sm:text-xs font-bold mb-1 ${isDisabled ? 'text-[#7c6a58]' : conf[st].c}`}>{conf[st].l}</span>
+                      <span className={`text-t10 sm:text-xs font-bold mb-1 ${isDisabled ? 'text-[#7c6a58]' : conf[st].c}`}>{conf[st].l}</span>
                       <span className={`text-sm font-extrabold ${!isDisabled && isFull && max > 0 && !state.isFreeModeEnabled ? 'text-[#3c2415] font-black' : isDisabled ? 'text-[#7c6a58]' : 'text-[#2c221e]'}`}>{curr} <span className="text-[#7c6a58] font-normal mx-0.5">/</span> {state.isFreeModeEnabled ? '∞' : max}</span>
                     </button>
                   );
@@ -3336,7 +3336,7 @@ export default function App({
                         <span className={`text-xl sm:text-2xl drop-shadow-sm ${isDisabled && !isSpeciesLocked && playerState === 'normal' ? 'text-[#7c6a58]' : typeStyle.color}`}><span className="fu-icon">{typeStyle.fuIcon}</span></span>
                         <span className={`text-lg sm:text-xl font-extrabold tracking-widest ${isDisabled && !isSpeciesLocked && playerState === 'normal' ? 'text-[#7c6a58]' : typeStyle.color}`}>{type}</span>
                       </div>
-                      <span className={`px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold tracking-widest border ${style.chip}`}>{style.label}</span>
+                      <span className={`px-2 py-0.5 rounded text-t10 sm:text-xs font-bold tracking-widest border ${style.chip}`}>{style.label}</span>
                     </button>
                   )
                 })}
@@ -3367,7 +3367,7 @@ export default function App({
                           }`}
                       >
                         <span className="text-xs font-black tracking-widest mb-1">{opt.value}</span>
-                        <span className="text-[10px] font-bold opacity-80">{opt.label}</span>
+                        <span className="text-t10 font-bold opacity-80">{opt.label}</span>
                       </button>
                     );
                   })}
@@ -3455,7 +3455,7 @@ export default function App({
 
             <SectionAccordion title="定位技能" icon={<GiCheckedShield size={16} />} current={usedRoleSkills} max={maxRoleSkills} hideIfZeroMax={true} titleColor="text-[#2c221e]" borderColor="border-[#d6c7ab]" isFreeMode={state.isFreeModeEnabled}>
               {usedRoleSkillForBoss > 0 && !state.isFreeModeEnabled && (
-                <div className="mb-4 bg-[#f9f5eb] border border-[#d6c7ab] p-3 rounded text-[11px] text-[#3c2415] flex items-center gap-2">
+                <div className="mb-4 bg-[#f9f5eb] border border-[#d6c7ab] p-3 rounded text-t11 text-[#3c2415] flex items-center gap-2">
                   <AlertTriangle size={14} className="text-[#6b5a4b]" />
                   <span>注意：您已將 {usedRoleSkillForBoss} 個定位技能額度轉換為額外的 Boss 技能。</span>
                 </div>
@@ -3831,7 +3831,7 @@ export default function App({
                         className="flex flex-col items-center justify-center py-3 bg-[#f4ebd9] border border-[#d6c7ab] rounded-xl hover:bg-[#f4ebd9] hover:border-[#3c2415] hover:scale-105 transition-all"
                       >
                         <span className="text-xl font-black text-[#3c2415] transition-colors drop-shadow-sm">{mult}</span>
-                        <span className="text-[10px] text-[#3c2415] font-bold">倍率</span>
+                        <span className="text-t10 text-[#3c2415] font-bold">倍率</span>
                       </button>
                     ))}
                   </div>
@@ -3869,7 +3869,7 @@ export default function App({
                             >
                               <span>{cat}</span>
                               {selectedCount > 0 && (
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full shadow-inner ${isActive ? 'bg-[#fffdf9] text-[#3c2415] font-bold' : 'bg-[#f4ebd9] text-[#3c2415]'}`}>{selectedCount}</span>
+                                <span className={`text-t10 px-1.5 py-0.5 rounded-full shadow-inner ${isActive ? 'bg-[#fffdf9] text-[#3c2415] font-bold' : 'bg-[#f4ebd9] text-[#3c2415]'}`}>{selectedCount}</span>
                               )}
                             </button>
                           );
@@ -4035,7 +4035,7 @@ export default function App({
                       ) : (
                         <div className="flex flex-col items-center justify-center text-[#7c6a58] gap-1 p-2 text-center">
                           <ImageIcon size={28} />
-                          <span className="text-[10px] text-[#7c6a58]">可拖曳圖片至此</span>
+                          <span className="text-t10 text-[#7c6a58]">可拖曳圖片至此</span>
                         </div>
                       )}
                     </div>
@@ -4077,7 +4077,7 @@ export default function App({
                           </>
                         )}
 
-                        <span className="text-[11px] text-[#7c6a58] hidden sm:inline font-bold">
+                        <span className="text-t11 text-[#7c6a58] hidden sm:inline font-bold">
                           或拖曳圖片檔案至此
                         </span>
                       </div>
@@ -4128,7 +4128,7 @@ export default function App({
                 <label className="text-sm text-[#3c2415] font-bold tracking-widest flex items-center gap-2 uppercase">
                   <Link size={16} className="text-[#6b5a4b]" /> 關聯實體設置
                 </label>
-                <span className="text-[10px] text-[#3c2415] font-bold bg-[#f4ebd9] px-2 py-0.5 rounded border border-[#d6c7ab]">
+                <span className="text-t10 text-[#3c2415] font-bold bg-[#f4ebd9] px-2 py-0.5 rounded border border-[#d6c7ab]">
                   雙向自動關聯
                 </span>
               </div>
@@ -4181,7 +4181,7 @@ export default function App({
                           >
                             <div className="flex flex-col gap-0.5 overflow-hidden">
                               <span className="text-sm font-bold truncate">{npc.name || "未知"}</span>
-                              <span className="text-[10px] opacity-70 tracking-tight">Lv. {npc.level} | {npc.role}</span>
+                              <span className="text-t10 opacity-70 tracking-tight">Lv. {npc.level} | {npc.role}</span>
                             </div>
                             {isLinked ? (
                               <div className="bg-[#a63d40] text-[#fffdf9] rounded-full p-1 shadow-sm">
@@ -4479,7 +4479,7 @@ export default function App({
                         <ImageIcon size={32} className="text-[#a8987e]" />
                       )}
                       <div className="absolute top-2 right-2 flex gap-1">
-                        <span className="bg-[#fffdf9]/90 text-[#a63d40] text-[10px] font-bold px-2 py-0.5 rounded border border-[#d6c7ab]">Lv. {npc.level}</span>
+                        <span className="bg-[#fffdf9]/90 text-[#a63d40] text-t10 font-bold px-2 py-0.5 rounded border border-[#d6c7ab]">Lv. {npc.level}</span>
                       </div>
                     </div>
                     <div className="p-4 flex-1 flex flex-col">
@@ -4529,7 +4529,7 @@ export default function App({
             {maxRoleSkills > 0 && (
               <button
                 onClick={() => { setCurrentStep(4); setStep4SubTab('skills'); }}
-                className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all hover:scale-105 ${
+                className={`flex items-center gap-1.5 text-t10 font-bold px-2.5 py-1 rounded-full border transition-all hover:scale-105 ${
                   usedRoleSkills > maxRoleSkills
                     ? 'bg-[#f4ebd9] text-[#8c2d36] border-[#8c2d36]'
                     : usedRoleSkills >= maxRoleSkills
@@ -4548,7 +4548,7 @@ export default function App({
               return (
                 <button
                   onClick={() => { setCurrentStep(4); setStep4SubTab('skills'); }}
-                  className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all hover:scale-105 ${
+                  className={`flex items-center gap-1.5 text-t10 font-bold px-2.5 py-1 rounded-full border transition-all hover:scale-105 ${
                     usedSpells > maxSpells
                       ? 'bg-[#f4ebd9] text-[#8c2d36] border-[#8c2d36]'
                       : usedSpells >= maxSpells
@@ -4564,7 +4564,7 @@ export default function App({
             {/* 屬性相性 (弱點 / 抗性 / 免疫) */}
             <button
               onClick={() => { setCurrentStep(4); setStep4SubTab('stats'); }}
-              className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] transition-all hover:scale-105 ml-auto md:ml-0"
+              className="flex items-center gap-1.5 text-t10 font-bold px-2.5 py-1 rounded-full border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] transition-all hover:scale-105 ml-auto md:ml-0"
               title="數字只計算你手動分配的額度；物種自帶的抗性另計、不佔額度。點擊前往相性配置"
             >
               <span className="text-t12 font-normal opacity-70">手動</span>
@@ -4643,7 +4643,7 @@ export default function App({
                   <div className="sticky top-0 z-10 backdrop-blur border-b px-4 py-2 flex items-center gap-2 bg-[#f4ebd9] border-[#d6c7ab]">
                     <Eye size={14} className="text-[#6b5a4b]" />
                     <span className="text-xs font-black tracking-widest text-[#3c2415]">即時預覽</span>
-                    <span className="text-[10px] ml-auto border px-2 py-0.5 rounded bg-[#fffdf9] border-[#d6c7ab] text-[#3c2415]">修改左側數值，預覽即時同步</span>
+                    <span className="text-t10 ml-auto border px-2 py-0.5 rounded bg-[#fffdf9] border-[#d6c7ab] text-[#3c2415]">修改左側數值，預覽即時同步</span>
                   </div>
                   <div className="px-4 py-4">
                     {renderCharacterCard()}
@@ -4737,7 +4737,7 @@ export default function App({
                       <button
                         key={lv}
                         onClick={() => setRevealLevel(lv)}
-                        className={`px-3 py-1 rounded text-[11px] font-black transition-all ${revealLevel === lv
+                        className={`px-3 py-1 rounded text-t11 font-black transition-all ${revealLevel === lv
                           ? 'bg-[#a63d40] text-[#fffdf9] shadow-sm'
                           : 'text-[#6b5a4b] hover:text-[#2c221e]'
                           }`}
@@ -4765,9 +4765,9 @@ export default function App({
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setIsPaletteOpen(false)} />
                       <div className="absolute left-0 top-full mt-1.5 bg-[#fffdf9] border-2 border-[#d6c7ab] rounded-xl shadow-e3 p-2.5 z-50 min-w-[220px] animate-in fade-in slide-in-from-top-2 duration-150">
-                        <div className="text-[11px] font-bold text-[#6b5a4b] mb-2 px-1 flex items-center justify-between border-b border-[#d6c7ab]/60 pb-1.5">
+                        <div className="text-t11 font-bold text-[#6b5a4b] mb-2 px-1 flex items-center justify-between border-b border-[#d6c7ab]/60 pb-1.5">
                           <span className="flex items-center gap-1"><Palette size={12} /> 選擇角色卡風格</span>
-                          <span className="text-[10px] text-[#3c2415] font-mono">6 種經典主題</span>
+                          <span className="text-t10 text-[#3c2415] font-mono">6 種經典主題</span>
                         </div>
                         <div className="grid grid-cols-2 gap-1.5">
                           {Object.keys(THEMES).map(t => {
@@ -4853,7 +4853,7 @@ export default function App({
                 只在「完整」才渲染。少了這條提示，GM 切過 10+ 之後再回來改故事，
                 會以為自己寫的東西被吃掉了；`??` 也會被讀成資料缺失而不是刻意遮蔽。 */}
             {revealLevel !== 'full' && (
-              <div className="w-full mb-3 flex items-start gap-2 rounded-lg border border-[#3c2415] bg-[#f9f5eb] px-3 py-2 text-[12px] leading-relaxed text-[#2c221e]">
+              <div className="w-full mb-3 flex items-start gap-2 rounded-lg border border-[#3c2415] bg-[#f9f5eb] px-3 py-2 text-t12 leading-relaxed text-[#2c221e]">
                 <Eye size={14} className="mt-0.5 shrink-0 text-[#6b5a4b]" />
                 <span>
                   目前是研究檢定視角（<span className="font-black">{revealLevel}+</span>）：背景故事與戰術不會顯示

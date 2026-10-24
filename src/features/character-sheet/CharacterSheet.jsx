@@ -604,7 +604,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         ) : (
                           <GameIcon name={char.classes?.[0]?.className || 'GiSparkles'} className="w-7 h-7" style={{ color: charTheme.accent }} />
                         )}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[8px] font-bold">
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-t10 font-bold">
                           編輯
                         </div>
                       </div>
@@ -638,7 +638,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                           {(char.classes || []).map((c, i) => (
                             <span
                               key={i}
-                              className="text-[10px] px-1.5 py-0.5 rounded border font-mono font-medium"
+                              className="text-t10 px-1.5 py-0.5 rounded border font-mono font-medium"
                               style={{ backgroundColor: '#fffdf9', borderColor: charTheme.border, color: charTheme.textDark }}
                             >
                               {c.className} Lv{c.level}
@@ -711,11 +711,11 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                             className="p-1 rounded-lg border bg-[#f4ebd9] flex flex-col items-center"
                             style={{ borderColor: charTheme.border }}
                           >
-                            <span className="text-[10px] font-bold text-[#7c6a58]">{attr.label}</span>
+                            <span className="text-t10 font-bold text-[#7c6a58]">{attr.label}</span>
                             <span className="font-black text-[#3c2415] flex items-center gap-0.5">
                               <span>d{attr.cur}</span>
                               {attr.cur < attr.base && (
-                                <span className="text-[9px] text-[#8c2d36] line-through">d{attr.base}</span>
+                                <span className="text-t10 text-[#8c2d36] line-through">d{attr.base}</span>
                               )}
                             </span>
                           </div>
@@ -723,7 +723,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                       </div>
 
                       {/* Defense & Initiative Row */}
-                      <div className="flex items-center justify-between px-2 py-1 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-[11px] font-mono">
+                      <div className="flex items-center justify-between px-2 py-1 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-t11 font-mono">
                         <span className="text-[#6b5a4b]">DEF <strong className="text-[#3c2415]">{statsUnset ? '—' : stats.def}</strong></span>
                         <span className="text-[#d6c7ab]">|</span>
                         <span className="text-[#2c221e]">M.DEF <strong className="text-[#2c221e]">{stats.mdef}</strong></span>
@@ -761,7 +761,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         </button>
                         <button
                           onClick={() => handleExportSingleCharacter(char, 'fultimator')}
-                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors font-mono text-[10px] font-bold"
+                          className="p-1.5 rounded-lg text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors font-mono text-t10 font-bold"
                           title="匯出為 Fultimator 相容格式"
                         >
                           <FileCode className="w-4 h-4" />

@@ -51,7 +51,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
           <GiGraveFlowers className="w-3.5 h-3.5 text-[#6b5a4b]" />
           <span>職業資源</span>
         </span>
-        <span className="text-[10px] text-[#6b5a4b] font-mono">依職業自動出現</span>
+        <span className="text-t10 text-[#6b5a4b] font-mono">依職業自動出現</span>
       </div>
 
       <div className="space-y-2">
@@ -91,7 +91,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
               {isPool ? (
                 <span className="font-mono text-sm font-black text-[#3c2415] min-w-[3rem] text-center">
                   {value}
-                  <span className="text-[11px] font-bold text-[#6b5a4b]"> / {resource.max}</span>
+                  <span className="text-t11 font-bold text-[#6b5a4b]"> / {resource.max}</span>
                 </span>
               ) : (
                 <input
@@ -125,14 +125,14 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                     writeValue(resource, resource.resetTo);
                     showToast(`【${resource.label}】已重置為 ${resource.resetTo}`, 'info');
                   }}
-                  className="px-2 py-1 rounded-lg border border-[#d6c7ab] bg-white text-[11px] font-bold text-[#6b5a4b] hover:bg-[#e8dcc4] transition-colors cursor-pointer"
+                  className="px-2 py-1 rounded-lg border border-[#d6c7ab] bg-white text-t11 font-bold text-[#6b5a4b] hover:bg-[#e8dcc4] transition-colors cursor-pointer"
                 >
                   {resource.resetLabel}
                 </button>
               )}
 
               {resource.hint && (
-                <span className="text-[10px] text-[#6b5a4b] font-mono ml-auto">{resource.hint}</span>
+                <span className="text-t10 text-[#6b5a4b] font-mono ml-auto">{resource.hint}</span>
               )}
             </div>
           );

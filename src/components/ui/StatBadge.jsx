@@ -62,7 +62,7 @@ export default function StatBadge({
       {showName && (
         <span className={clsx("font-bold tracking-wider mr-2 font-mono text-xs flex items-center", cfg.color)}>
           {cfg.en}
-          <span className="text-[10px] text-[#6b5a4b] ml-1 font-sans hidden sm:inline">{cfg.name}</span>
+          <span className="text-t10 text-[#6b5a4b] ml-1 font-sans hidden sm:inline">{cfg.name}</span>
         </span>
       )}
 

@@ -103,21 +103,21 @@ function SkillSuboptionBar({
         {/* 配額狀態指示徽章 */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {selectedCount === 0 ? (
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
+            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
               尚未配置任何項目
             </span>
           ) : isComplete ? (
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1">
+            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1">
               <GiCheckMark className="w-3 h-3 text-[#3c2415]" />
               <span>已掌握 {selectedCount} / {maxQuota}（已完成構築）</span>
             </span>
           ) : isOver ? (
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 font-bold flex items-center gap-1">
+            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 font-bold flex items-center gap-1">
               <GiHazardSign className="w-3 h-3 text-[#8c2d36]" />
               <span>已掌握 {selectedCount} / {maxQuota}（超出 {selectedCount - maxQuota} 個，請刪減）</span>
             </span>
           ) : (
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1">
+            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1">
               <GiSparkles className="w-3 h-3 text-[#6b5a4b]" />
               <span>已掌握 {selectedCount} / {maxQuota}（尚餘 {maxQuota - selectedCount} 個名額）</span>
             </span>
@@ -127,7 +127,7 @@ function SkillSuboptionBar({
           {isMutantForms && isTheriomorphosisVariant(variantId) && (
             <span
               data-testid="therioform-variant-chip"
-              className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 font-bold flex items-center gap-1"
+              className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 font-bold flex items-center gap-1"
             >
               <GiDna2 className="w-3 h-3 text-[#8c2d36]" />
               <span>【公測】變體：消耗 {therioRules.hpCostLabel}・顯現至多 {therioCap} 個</span>
@@ -193,7 +193,7 @@ function SkillSuboptionBar({
                     setIsExpanded(true);
                   }}
                   title="點擊展開查看效果詳情"
-                  className="text-[11px] px-2 py-0.5 rounded-md bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#2c221e] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                  className="text-t11 px-2 py-0.5 rounded-md bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#2c221e] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                 >
                   {isOffensiveSpell ? (
                     <span className="fu-icon text-[#8c2d36] font-bold" title="攻擊性咒語">o</span>
@@ -236,19 +236,19 @@ function PilotVehicleSkillBar({
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 flex-wrap">
           {!isConfigured ? (
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
+            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
               尚未配置個人載具
             </span>
           ) : (
             <>
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
+              <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
                 {frame.name} · {vehicleData?.name || '個人載具'}
               </span>
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold">
+              <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold">
                 解鎖 {unlockedCount}/{unlockedQuota} · 啟用 {activeCount}/{activeCapacity} 槽
               </span>
               {vehicleData?.isMounted && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#3c2415] text-[#fffdf9] font-bold">
+                <span className="text-t10 px-1.5 py-0.5 rounded bg-[#3c2415] text-[#fffdf9] font-bold">
                   駕駛中
                 </span>
               )}
@@ -290,10 +290,10 @@ function WayfarerCompanionSkillBar({
     <div className="mt-2 pt-2 border-t border-[#d6c7ab]/80 space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
+          <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
             {comp.species || '野獸'} · {comp.name || '忠實夥伴'}
           </span>
-          <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold">
+          <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold">
             HP {maxHp} · DEF d{comp.dex || 8} | M.DEF d{comp.ins || 8}
           </span>
         </div>
@@ -338,15 +338,15 @@ function TinkererGadgetsSkillBar({
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 flex-wrap">
           {!isConfigured ? (
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
+            <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#6b5a4b] border border-dashed border-[#d6c7ab] font-bold">
               尚未配置{branch ? `【${branch.name}】` : '科技樹'}節點 (可分配 {sl} 點)
             </span>
           ) : (
             <>
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
+              <span className="text-t11 px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
                 煉金 {getTierText(alchemy)} · 灌注 {getTierText(infusion)} · {branch ? branch.name : '魔導'} {getTierText(magitech)}
               </span>
-              <span className={`text-[11px] px-2 py-0.5 rounded-md font-mono font-bold ${
+              <span className={`text-t11 px-2 py-0.5 rounded-md font-mono font-bold ${
                 allocated >= sl
                   ? 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]'
                   : 'bg-[#f9f5eb] text-[#3c2415] border border-[#e8dcc4]'
@@ -644,14 +644,14 @@ export default function ClassSkillCard({
               {/* 免費增益二選一：僅「最大 HP 或 最大 MP」的職業需要指定，選了才會反映在角色體質上 */}
               {isHpMpChoice && (
                 <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-                  <span className="text-[10px] font-bold text-[#6b5a4b]">二選一</span>
+                  <span className="text-t10 font-bold text-[#6b5a4b]">二選一</span>
                   {['HP', 'MP'].map(opt => (
                     <button
                       key={opt}
                       type="button"
                       onClick={() => onUpdateClassBenefit && onUpdateClassBenefit(classIndex, opt)}
                       title={`將此職業的免費增益設為 ${opt} +5`}
-                      className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border transition-colors cursor-pointer ${
+                      className={`text-t10 font-mono font-bold px-2 py-0.5 rounded border transition-colors cursor-pointer ${
                         chosenBenefit === opt
                           ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
                           : 'bg-white border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9]'
@@ -756,7 +756,7 @@ export default function ClassSkillCard({
                         <span style={{ color: theme.accent }}>✦</span>
                         {disp.name}
                         {disp.isVariant && (
-                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded border"
+                          <span className="text-t10 font-black px-1.5 py-0.5 rounded border"
                             style={{ borderColor: theme.accent, color: theme.accent }}>
                             公測
                           </span>
@@ -773,7 +773,7 @@ export default function ClassSkillCard({
                     </div>
 
                     {/* 自動算好數值的動態公式 */}
-                    <div className="text-xs sm:text-[13px] text-[#3c2415] leading-relaxed font-sans pt-0.5">
+                    <div className="text-xs sm:text-t12 text-[#3c2415] leading-relaxed font-sans pt-0.5">
                       <SkillDescription desc={disp.desc} sl={sk.sl} />
                     </div>
 
@@ -922,17 +922,17 @@ export default function ClassSkillCard({
                       </span>
                       {/* 選用變體時：顯示【公測】徽章（沿用舊徽章；預覽時不顯示徽章，只靠 desc 切換） */}
                       {disp.isVariant && !isPreviewing && (
-                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
+                        <span className="text-t10 font-black px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
                           △ 公測
                         </span>
                       )}
                       {disp.isVariant && !isPreviewing && (
-                        <span className="text-[10px] text-[#6b5a4b] font-bold">
+                        <span className="text-t10 text-[#6b5a4b] font-bold">
                           取代【{sk.name}】
                         </span>
                       )}
                       {!disp.isVariant && isLearned && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#e8dcc4] text-[#3c2415] font-mono">
+                        <span className="text-t10 font-bold px-1.5 py-0.5 rounded bg-[#e8dcc4] text-[#3c2415] font-mono">
                           已學習
                         </span>
                       )}
@@ -958,7 +958,7 @@ export default function ClassSkillCard({
                                 return next;
                               });
                             }}
-                            className="text-[10px] font-black px-1.5 py-0.5 rounded border bg-[#f4ebd9] text-[#6b5a4b] border-[#d6c7ab] transition-all hover:scale-105 active:scale-95 hover:bg-[#e8dcc4]"
+                            className="text-t10 font-black px-1.5 py-0.5 rounded border bg-[#f4ebd9] text-[#6b5a4b] border-[#d6c7ab] transition-all hover:scale-105 active:scale-95 hover:bg-[#e8dcc4]"
                             title={`已選用公測變體【${activeVariant.name}】—— 點此改回原版【${sk.name}】`}
                           >
                             改回原版
@@ -984,7 +984,7 @@ export default function ClassSkillCard({
                                 setPreviewVariantBySkill({ [sk.name]: previewVariantBySkill[sk.name] || null });
                               }
                             }}
-                            className={`text-[10px] font-black px-1.5 py-0.5 rounded border transition-all hover:scale-105 active:scale-95 ${
+                            className={`text-t10 font-black px-1.5 py-0.5 rounded border transition-all hover:scale-105 active:scale-95 ${
                               expandedSkillName === sk.name
                                 ? 'bg-[#f4ebd9] text-[#2c221e] border-[#3c2415]'
                                 : 'bg-white text-[#3c2415] border-[#d6c7ab] hover:bg-[#f4ebd9]'
@@ -1031,7 +1031,7 @@ export default function ClassSkillCard({
 
                   {/* 動態公式求值 (未點時展示公式，點亮後展示精算結果)
                       ※ 選用變體後顯示變體描述；原版描述收起來（GM 裁定：選用之後原版要收起來）。 */}
-                  <div className="text-xs sm:text-[13px] text-[#3c2415] leading-relaxed font-sans pl-4 border-l border-[#d6c7ab]">
+                  <div className="text-xs sm:text-t12 text-[#3c2415] leading-relaxed font-sans pl-4 border-l border-[#d6c7ab]">
                     <div
                       key={disp.name /* 變體切換時重新觸發 transition */}
                       className="transition-opacity duration-200"
@@ -1039,7 +1039,7 @@ export default function ClassSkillCard({
                       <SkillDescription desc={disp.desc} sl={currentSL} />
                     </div>
                     {disp.isVariant && !isPreviewing && (
-                      <div className="mt-1 text-[10px] text-[#6b5a4b] font-bold">
+                      <div className="mt-1 text-t10 text-[#6b5a4b] font-bold">
                         原版〈{sk.name}〉暫不適用（已由【{disp.name}】取代）
                       </div>
                     )}
@@ -1056,7 +1056,7 @@ export default function ClassSkillCard({
                       style={{ borderColor: theme.border, backgroundColor: '#f9f5eb' }}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="text-[10px] text-[#6b5a4b] font-bold flex items-center gap-1.5">
+                      <div className="text-t10 text-[#6b5a4b] font-bold flex items-center gap-1.5">
                         <span className="font-black px-1 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
                           △ 公測
                         </span>
@@ -1080,11 +1080,11 @@ export default function ClassSkillCard({
                             title={`預覽公測變體【${v.name}】`}
                           >
                             <span className="font-bold">{v.name}</span>
-                            <span className="text-[10px] text-[#6b5a4b] font-mono ml-1.5">
+                            <span className="text-t10 text-[#6b5a4b] font-mono ml-1.5">
                               {v.en} · 上限 {v.maxSL}
                             </span>
                             {isPreviewing && previewVariantId === v.id && (
-                              <span className="ml-2 text-[10px] text-[#6b5a4b] font-bold">（預覽中）</span>
+                              <span className="ml-2 text-t10 text-[#6b5a4b] font-bold">（預覽中）</span>
                             )}
                           </button>
                         ))}

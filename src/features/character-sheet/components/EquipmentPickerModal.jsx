@@ -266,7 +266,7 @@ export function EquipmentPickerBody({
       key={label}
       type="button"
       onClick={onClick}
-      className="text-[11px] px-2 py-1 rounded-lg border font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
+      className="text-t11 px-2 py-1 rounded-lg border font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
       style={
         active
           ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -279,7 +279,7 @@ export function EquipmentPickerBody({
   );
 
   const cellText = 'px-2 py-1.5 align-middle';
-  const headText = 'px-2 py-1.5 text-[10px] font-bold tracking-wide text-left whitespace-nowrap';
+  const headText = 'px-2 py-1.5 text-t10 font-bold tracking-wide text-left whitespace-nowrap';
 
   const renderWeaponTable = () => (
     <div className="overflow-x-auto">
@@ -335,42 +335,42 @@ export function EquipmentPickerBody({
                     {isCurrent ? <JRPGBadge variant={theme.badgeVariant} size="xs">已裝備</JRPGBadge> : null}
                   </div>
                   {blocked ? (
-                    <div className="flex items-center gap-1 text-[10px] text-[#8c2d36] font-bold mt-0.5">
+                    <div className="flex items-center gap-1 text-t10 text-[#8c2d36] font-bold mt-0.5">
                       <GiHazardSign size={11} />
                       {row.equippable.reason}
                     </div>
                   ) : null}
                   {row.isShieldRow ? (
-                    <div className="text-[10px] text-[#7b4720] mt-0.5">
+                    <div className="text-t10 text-[#7b4720] mt-0.5">
                       兩手皆盾時合併為「雙盾」：命中【MIG + MIG】、傷害【HR + 5】物理
                       {dualShield.defenseMasterySL > 0 ? `，額外 +${dualShield.defenseMasterySL}（防守掌握 SL）` : ''}
                     </div>
                   ) : null}
                   {w.note ? (
-                    <div className="text-[10px] text-[#7c6a58] mt-0.5">{w.note}</div>
+                    <div className="text-t10 text-[#7c6a58] mt-0.5">{w.note}</div>
                   ) : null}
                 </td>
                 <td className={cellText}>
-                  <span className="text-[11px] text-[#5b4a3a]">{w.category}</span>
+                  <span className="text-t11 text-[#5b4a3a]">{w.category}</span>
                 </td>
                 <td className={cellText}>
                   <span className={`font-mono font-bold ${overBudget ? 'text-[#8c2d36]' : ''}`}>
                     {w.cost}z
                   </span>
                   {overBudget ? (
-                    <div className="text-[10px] text-[#8c2d36]">超出預算</div>
+                    <div className="text-t10 text-[#8c2d36]">超出預算</div>
                   ) : null}
                 </td>
                 <td className={cellText}>
-                  <div className="font-mono text-[11px]">{row.eval.accuracyLabel}</div>
-                  <div className="text-[10px] text-[#7c6a58]">{row.eval.accuracyFormula}</div>
+                  <div className="font-mono text-t11">{row.eval.accuracyLabel}</div>
+                  <div className="text-t10 text-[#7c6a58]">{row.eval.accuracyFormula}</div>
                 </td>
                 <td className={cellText}>
-                  <div className="font-mono text-[11px]">{row.eval.damageFormula}</div>
-                  <div className="text-[10px] text-[#7c6a58]">{row.eval.damageType}</div>
+                  <div className="font-mono text-t11">{row.eval.damageFormula}</div>
+                  <div className="text-t10 text-[#7c6a58]">{row.eval.damageType}</div>
                 </td>
                 <td className={cellText}>
-                  <div className="text-[11px] whitespace-nowrap">
+                  <div className="text-t11 whitespace-nowrap">
                     {row.isShieldRow ? '盾牌' : (w.hands === 2 ? '雙手' : '單手')} · {w.range}
                   </div>
                 </td>
@@ -433,7 +433,7 @@ export function EquipmentPickerBody({
                     {isCurrent ? <JRPGBadge variant={theme.badgeVariant} size="xs">已裝備</JRPGBadge> : null}
                   </div>
                   {blocked ? (
-                    <div className="flex items-center gap-1 text-[10px] text-[#8c2d36] font-bold mt-0.5">
+                    <div className="flex items-center gap-1 text-t10 text-[#8c2d36] font-bold mt-0.5">
                       <GiHazardSign size={11} />
                       {row.equippable.reason}
                     </div>
@@ -444,17 +444,17 @@ export function EquipmentPickerBody({
                 </td>
                 <td className={cellText}>
                   <span className="font-mono font-black text-sm" style={{ color: theme.accent }}>{row.totalDef}</span>
-                  <span className="text-[10px] text-[#7c6a58] ml-1">（盾 +{row.outcome.defBonus}）</span>
+                  <span className="text-t10 text-[#7c6a58] ml-1">（盾 +{row.outcome.defBonus}）</span>
                 </td>
                 <td className={cellText}>
                   <span className="font-mono font-black text-sm" style={{ color: theme.accent }}>{row.totalMdef}</span>
-                  <span className="text-[10px] text-[#7c6a58] ml-1">（盾 +{row.outcome.mdefBonus}）</span>
+                  <span className="text-t10 text-[#7c6a58] ml-1">（盾 +{row.outcome.mdefBonus}）</span>
                 </td>
                 <td className={cellText}>
-                  <span className="font-mono text-[11px]">{row.outcome.initMod === 0 ? '±0' : row.outcome.initMod}</span>
+                  <span className="font-mono text-t11">{row.outcome.initMod === 0 ? '±0' : row.outcome.initMod}</span>
                 </td>
                 <td className={cellText}>
-                  <span className="text-[11px] text-[#5b4a3a]">{row.shield.desc || '—'}</span>
+                  <span className="text-t11 text-[#5b4a3a]">{row.shield.desc || '—'}</span>
                 </td>
               </tr>
             );
@@ -513,7 +513,7 @@ export function EquipmentPickerBody({
                     {isCurrent ? <JRPGBadge variant={theme.badgeVariant} size="xs">已裝備</JRPGBadge> : null}
                   </div>
                   {blocked ? (
-                    <div className="flex items-center gap-1 text-[10px] text-[#8c2d36] font-bold mt-0.5">
+                    <div className="flex items-center gap-1 text-t10 text-[#8c2d36] font-bold mt-0.5">
                       <GiHazardSign size={11} />
                       {row.equippable.reason}
                     </div>
@@ -525,7 +525,7 @@ export function EquipmentPickerBody({
                 <td className={cellText}>
                   <span className="font-mono font-black text-sm" style={{ color: theme.accent }}>{row.outcome.def}</span>
                   {row.deltaDef !== 0 ? (
-                    <span className={`text-[10px] ml-1 font-mono ${row.deltaDef > 0 ? 'text-[#3c2415]' : 'text-[#8c2d36]'}`}>
+                    <span className={`text-t10 ml-1 font-mono ${row.deltaDef > 0 ? 'text-[#3c2415]' : 'text-[#8c2d36]'}`}>
                       {row.deltaDef > 0 ? `+${row.deltaDef}` : row.deltaDef}
                     </span>
                   ) : null}
@@ -533,18 +533,18 @@ export function EquipmentPickerBody({
                 <td className={cellText}>
                   <span className="font-mono font-black text-sm" style={{ color: theme.accent }}>{row.outcome.mdef}</span>
                   {row.deltaMdef !== 0 ? (
-                    <span className={`text-[10px] ml-1 font-mono ${row.deltaMdef > 0 ? 'text-[#3c2415]' : 'text-[#8c2d36]'}`}>
+                    <span className={`text-t10 ml-1 font-mono ${row.deltaMdef > 0 ? 'text-[#3c2415]' : 'text-[#8c2d36]'}`}>
                       {row.deltaMdef > 0 ? `+${row.deltaMdef}` : row.deltaMdef}
                     </span>
                   ) : null}
                 </td>
                 <td className={cellText}>
-                  <span className="font-mono text-[11px]">
+                  <span className="font-mono text-t11">
                     {initiativeVariant ? '不計' : (row.outcome.initMod === 0 ? '±0' : row.outcome.initMod)}
                   </span>
                 </td>
                 <td className={cellText}>
-                  <span className="text-[11px] text-[#5b4a3a]">{row.desc || '—'}</span>
+                  <span className="text-t11 text-[#5b4a3a]">{row.desc || '—'}</span>
                 </td>
               </tr>
             );
@@ -577,7 +577,7 @@ export function EquipmentPickerBody({
               <span className="font-bold text-xs" style={{ color: theme.textDark }}>{acc.name}</span>
               {isCurrent ? <JRPGBadge variant={theme.badgeVariant} size="xs">已裝備</JRPGBadge> : null}
             </div>
-            <p className="text-[11px] text-[#5b4a3a] mt-1 leading-relaxed">{acc.desc}</p>
+            <p className="text-t11 text-[#5b4a3a] mt-1 leading-relaxed">{acc.desc}</p>
           </button>
         );
       })}
@@ -625,7 +625,7 @@ export function EquipmentPickerBody({
       {/* 雙重盾牌狀態提示（只有學會該技能時才出現） */}
       {slot === 'mainHand' && dualShield.learned && (
         <div
-          className="px-3 py-2 rounded-xl border mb-2 shrink-0 text-[11px] leading-relaxed"
+          className="px-3 py-2 rounded-xl border mb-2 shrink-0 text-t11 leading-relaxed"
           style={{ backgroundColor: theme.subpanelBg, borderColor: theme.accent, color: theme.textDark }}
         >
           <span className="font-bold">守護者【雙重盾牌】已習得</span>
@@ -653,21 +653,21 @@ export function EquipmentPickerBody({
             />
           </div>
 
-          <label className="text-[11px] flex items-center gap-1.5 cursor-pointer font-bold" style={{ color: theme.textDark }}>
+          <label className="text-t11 flex items-center gap-1.5 cursor-pointer font-bold" style={{ color: theme.textDark }}>
             <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
             顯示目前無法裝備的
-            {hiddenCount > 0 ? <span className="font-mono text-[10px] text-[#7c6a58]">（隱藏 {hiddenCount} 項）</span> : null}
+            {hiddenCount > 0 ? <span className="font-mono text-t10 text-[#7c6a58]">（隱藏 {hiddenCount} 項）</span> : null}
           </label>
 
           {slot !== 'accessory' && (
-            <label className="text-[11px] flex items-center gap-1.5 cursor-pointer font-bold" style={{ color: theme.textDark }}>
+            <label className="text-t11 flex items-center gap-1.5 cursor-pointer font-bold" style={{ color: theme.textDark }}>
               <input type="checkbox" checked={affordableOnly} onChange={(e) => setAffordableOnly(e.target.checked)} />
               只看買得起的
             </label>
           )}
 
           <div className="flex items-center gap-1.5 ml-auto">
-            <span className="text-[11px] font-bold" style={{ color: theme.textMuted }}>排序</span>
+            <span className="text-t11 font-bold" style={{ color: theme.textMuted }}>排序</span>
             <select
               value={sortKey}
               onChange={(e) => {
@@ -675,7 +675,7 @@ export function EquipmentPickerBody({
                 setSortKey(e.target.value);
                 setSortDir(next?.direction || 'desc');
               }}
-              className="text-[11px] px-2 py-1 rounded-lg border font-bold outline-none cursor-pointer"
+              className="text-t11 px-2 py-1 rounded-lg border font-bold outline-none cursor-pointer"
               style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
             >
               {sortOptions.map((o) => (
@@ -685,7 +685,7 @@ export function EquipmentPickerBody({
             <button
               type="button"
               onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
-              className="text-[11px] px-2 py-1 rounded-lg border font-bold cursor-pointer"
+              className="text-t11 px-2 py-1 rounded-lg border font-bold cursor-pointer"
               style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
               title={sortDir === 'asc' ? '目前遞增，點擊改為遞減' : '目前遞減，點擊改為遞增'}
             >
@@ -697,14 +697,14 @@ export function EquipmentPickerBody({
         {showWeaponFilters && (
           <div className="space-y-1.5">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[11px] font-bold w-8" style={{ color: theme.textMuted }}>類別</span>
+              <span className="text-t11 font-bold w-8" style={{ color: theme.textMuted }}>類別</span>
               {chip(category === FILTER_ALL, '全部', () => setCategory(FILTER_ALL))}
               {WEAPON_CATEGORIES.map((c) => chip(category === c.key, c.key, () => setCategory(c.key), c.icon))}
             </div>
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[11px] font-bold w-8" style={{ color: theme.textMuted }}>距離</span>
+              <span className="text-t11 font-bold w-8" style={{ color: theme.textMuted }}>距離</span>
               {['全部', '近戰', '遠程'].map((r) => chip(range === r, r, () => setRange(r)))}
-              <span className="text-[11px] font-bold ml-2" style={{ color: theme.textMuted }}>持握</span>
+              <span className="text-t11 font-bold ml-2" style={{ color: theme.textMuted }}>持握</span>
               {['全部', '1', '2'].map((h) => chip(hands === h, h === '1' ? '單手' : h === '2' ? '雙手' : '全部', () => setHands(h)))}
             </div>
           </div>
@@ -736,7 +736,7 @@ export function EquipmentPickerBody({
         className="pt-2.5 mt-2 border-t flex items-center justify-between gap-2 shrink-0 flex-wrap"
         style={{ borderColor: theme.border }}
       >
-        <div className="text-[11px] flex items-center gap-1.5" style={{ color: theme.textMuted }}>
+        <div className="text-t11 flex items-center gap-1.5" style={{ color: theme.textMuted }}>
           {showWeaponFilters ? (
             <>
               <GiSparkles size={13} />

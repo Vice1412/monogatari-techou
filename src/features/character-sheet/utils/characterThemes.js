@@ -57,6 +57,13 @@ const SHARED = Object.freeze({
   subpanelBg: '#f4ebd9',
   headerBg: '#e8dcc4',
 
+  /* 匯出底色（第三十五輪 §CI43 補上）。
+     為什麼它是一個獨立欄位而不是「呼叫端自己寫 sheetBg」：
+     NPC 工坊匯出 JPG 時要的是**紙**，而「紙是哪一個」這件事只能有一個答案。
+     它與 `sheetBg` 同值（#fbf7ee），但語意不同——一個是畫面、一個是輸出的畫布。
+     沒有新增任何 hex：它就是既有的紙。 */
+  exportBg: '#fbf7ee',
+
   // 邊界
   border: '#d6c7ab',
   cardBorder: 'border-[#d6c7ab]',

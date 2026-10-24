@@ -198,7 +198,7 @@ export default function AvatarCropperModal({
             </div>
 
             {/* 提示徽章 */}
-            <div className="absolute top-2 left-2 bg-[#fffdf9]/90 backdrop-blur-sm border border-[#d6c7ab] rounded px-2 py-0.5 text-[10px] text-[#3c2415] font-bold flex items-center gap-1 pointer-events-none">
+            <div className="absolute top-2 left-2 bg-[#fffdf9]/90 backdrop-blur-sm border border-[#d6c7ab] rounded px-2 py-0.5 text-t10 text-[#3c2415] font-bold flex items-center gap-1 pointer-events-none">
               <Move size={11} /> 拖曳移動
             </div>
           </div>
@@ -217,14 +217,14 @@ export default function AvatarCropperModal({
             <button
               type="button"
               onClick={() => { setZoom(1.0); setOffset({ x: 0, y: 0 }); }}
-              className="text-[11px] text-[#6b5a4b] hover:text-[#2c221e] flex items-center gap-1 transition font-bold"
+              className="text-t11 text-[#6b5a4b] hover:text-[#2c221e] flex items-center gap-1 transition font-bold"
             >
               <RefreshCw size={12} /> 居中重設
             </button>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-[#7c6a58] font-mono">20%</span>
+            <span className="text-t10 text-[#7c6a58] font-mono">20%</span>
             <input
               type="range"
               min="0.2"
@@ -235,11 +235,11 @@ export default function AvatarCropperModal({
               className="flex-1 h-1.5 bg-[#d6c7ab] rounded-lg appearance-none cursor-pointer"
               style={{ accentColor }}
             />
-            <span className="text-[10px] text-[#7c6a58] font-mono">500%</span>
+            <span className="text-t10 text-[#7c6a58] font-mono">500%</span>
           </div>
 
           <div className="flex items-center justify-between gap-1 pt-1">
-            <span className="text-[10px] text-[#7c6a58] font-bold">快速倍率：</span>
+            <span className="text-t10 text-[#7c6a58] font-bold">快速倍率：</span>
             <div className="flex gap-1 flex-wrap">
               {[0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0].map((sVal) => {
                 const isActive = Math.abs(zoom - sVal) < 0.05;
@@ -248,7 +248,7 @@ export default function AvatarCropperModal({
                     key={sVal}
                     type="button"
                     onClick={() => setZoom(sVal)}
-                    className={`px-2 py-0.5 rounded text-[11px] font-mono transition ${
+                    className={`px-2 py-0.5 rounded text-t11 font-mono transition ${
                       isActive
                         ? 'text-white font-bold shadow-xs'
                         : 'bg-[#f4ebd9] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#e8dcc4]'

@@ -52,14 +52,14 @@ export default function StatFormulaPanel({
   return (
     <div className="mt-2.5 rounded-xl border border-[#d6c7ab] bg-[#fffdf9] p-2.5 shadow-inner animate-fade-in text-left">
       <div className="flex items-center justify-between gap-2 mb-2">
-        <span className="text-[10px] font-bold tracking-wider text-[#7c6a58]">
+        <span className="text-t10 font-bold tracking-wider text-[#7c6a58]">
           數值構成{title ? ` · ${title}` : ''}
         </span>
         {onClose && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="text-[10px] font-bold text-[#7c6a58] hover:text-[#3c2415] transition-colors"
+            className="text-t10 font-bold text-[#7c6a58] hover:text-[#3c2415] transition-colors"
           >
             收起
           </button>
@@ -68,7 +68,7 @@ export default function StatFormulaPanel({
 
       <div className="flex items-stretch gap-1.5 flex-wrap">
         {terms.length === 0 ? (
-          <span className="text-[10px] font-bold text-[#7c6a58] px-2 py-1 rounded-lg bg-[#f4ebd9] border border-dashed border-[#d6c7ab] self-center">
+          <span className="text-t10 font-bold text-[#7c6a58] px-2 py-1 rounded-lg bg-[#f4ebd9] border border-dashed border-[#d6c7ab] self-center">
             無額外加成
           </span>
         ) : (

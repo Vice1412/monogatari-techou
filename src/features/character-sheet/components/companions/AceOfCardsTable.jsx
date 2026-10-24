@@ -124,17 +124,25 @@ const SUIT_TEXT = {
 /** 小丑牌未指定花色與數值時的顏色。 */
 const JOKER_TEXT = 'text-[#6b5a4b]';
 
-/** 牌面尺寸：`md` 手牌、`sm` 其他小區塊、`xs` 棄牌堆。 */
+/**
+ * 牌面尺寸：`md` 手牌、`sm` 其他小區塊、`xs` 棄牌堆。
+ *
+ * 第三十五輪（§CI43）：數字與花色圖示**必須同尺寸**——它們是同一張牌面上的
+ * 同一個資訊層級。原本三階寫成 17／15／12px 的任意值，數字改成型階梯令牌
+ * （16／14／12）之後，圖示若不跟著走就會差 1px，看起來像沒對齊。
+ * 所以圖示改成與令牌同值：`w-4`＝16px、`w-3.5`＝14px、`w-3`＝12px。
+ * 護欄改成一對一檢查三階（不再釘死單一數字）。
+ */
 const CARD_SIZE = {
-  md: { box: 'min-w-[44px] px-1.5 py-1 rounded-[5px]', glyph: 'text-[17px]', icon: 'w-[17px] h-[17px]' },
-  sm: { box: 'min-w-[38px] px-1.5 py-1 rounded-[5px]', glyph: 'text-[15px]', icon: 'w-[15px] h-[15px]' },
-  xs: { box: 'min-w-[30px] px-1 py-0.5 rounded-[4px]', glyph: 'text-[12px]', icon: 'w-[12px] h-[12px]' }
+  md: { box: 'min-w-[44px] px-1.5 py-1 rounded-[5px]', glyph: 'text-t16', icon: 'w-4 h-4' },
+  sm: { box: 'min-w-[38px] px-1.5 py-1 rounded-[5px]', glyph: 'text-t14', icon: 'w-3.5 h-3.5' },
+  xs: { box: 'min-w-[30px] px-1 py-0.5 rounded-[4px]', glyph: 'text-t12', icon: 'w-3 h-3' }
 };
 
 /** 小顆的區塊標題。 */
 const SectionTitle = ({ icon: Icon, children, right = null }) => (
   <div className="flex items-center justify-between gap-2 mb-1.5">
-    <span className={`text-[11px] font-bold ${T.text} flex items-center gap-1.5`}>
+    <span className={`text-t11 font-bold ${T.text} flex items-center gap-1.5`}>
       {Icon && <Icon className="w-3.5 h-3.5 text-[#6b5a4b]" />}
       <span>{children}</span>
     </span>
@@ -566,7 +574,7 @@ export default function AceOfCardsTable({
                 <button
                   type="button"
                   onClick={applyRecommendedSuits}
-                  className="px-2 py-0.5 rounded-lg border border-[#8c2d36]/50 bg-white text-[10px] font-bold text-[#8c2d36] cursor-pointer"
+                  className="px-2 py-0.5 rounded-lg border border-[#8c2d36]/50 bg-white text-t10 font-bold text-[#8c2d36] cursor-pointer"
                 >
                   套用建議對應
                 </button>
@@ -579,13 +587,13 @@ export default function AceOfCardsTable({
             {SUITS.map((s) => {
               const SuitIcon = SUIT_ICON[s.key];
               return (
-                <label key={s.key} className="flex items-center gap-1.5 text-[11px] font-bold">
+                <label key={s.key} className="flex items-center gap-1.5 text-t11 font-bold">
                   {SuitIcon && <SuitIcon className="w-3.5 h-3.5 shrink-0" />}
                   <span className={T.text}>{s.name}</span>
                   <select
                     value={suitTypes[s.key] || s.defaultType}
                     onChange={(e) => write({ suitTypes: { ...suitTypes, [s.key]: e.target.value } })}
-                    className={`flex-1 px-1 py-0.5 rounded border ${T.border} bg-white text-[11px] ${T.text} cursor-pointer`}
+                    className={`flex-1 px-1 py-0.5 rounded border ${T.border} bg-white text-t11 ${T.text} cursor-pointer`}
                   >
                     {DAMAGE_TYPES.map((t) => (
                       <option key={t} value={t}>{t}</option>
@@ -620,7 +628,7 @@ export default function AceOfCardsTable({
               <SectionTitle
                 icon={GiCardPickup}
                 right={
-                  <span className={`text-[10px] font-mono ${T.sub}`}>
+                  <span className={`text-t10 font-mono ${T.sub}`}>
                     已選 {pickedCards.length} 張 / 需 {mpCost} MP（上限 {mpCap}）
                   </span>
                 }
@@ -659,14 +667,14 @@ export default function AceOfCardsTable({
                       <button
                         type="button"
                         onClick={applySuggestedJokers}
-                        className="px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-white text-[10px] font-bold text-[#3c2415] cursor-pointer"
+                        className="px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-white text-t10 font-bold text-[#3c2415] cursor-pointer"
                       >
                         套用建議
                       </button>
                       <button
                         type="button"
                         onClick={clearJokerAssign}
-                        className="px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-white text-[10px] font-bold text-[#3c2415] cursor-pointer"
+                        className="px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-white text-t10 font-bold text-[#3c2415] cursor-pointer"
                       >
                         清除指定
                       </button>
@@ -680,11 +688,11 @@ export default function AceOfCardsTable({
                     const a = jokerAssign[c.id];
                     return (
                       <div key={c.id} className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[11px] font-bold text-[#3c2415]">小丑牌</span>
+                        <span className="text-t11 font-bold text-[#3c2415]">小丑牌</span>
                         <select
                           value={a?.suit || ''}
                           onChange={(e) => e.target.value && setJokerSuit(c.id, e.target.value)}
-                          className="px-1 py-0.5 rounded border border-[#d6c7ab] bg-white text-[11px] text-[#3c2415] cursor-pointer"
+                          className="px-1 py-0.5 rounded border border-[#d6c7ab] bg-white text-t11 text-[#3c2415] cursor-pointer"
                         >
                           <option value="">花色…</option>
                           {SUITS.map((s) => (
@@ -694,7 +702,7 @@ export default function AceOfCardsTable({
                         <select
                           value={a?.value ?? ''}
                           onChange={(e) => e.target.value && setJokerValue(c.id, Number(e.target.value))}
-                          className="px-1 py-0.5 rounded border border-[#d6c7ab] bg-white text-[11px] text-[#3c2415] cursor-pointer"
+                          className="px-1 py-0.5 rounded border border-[#d6c7ab] bg-white text-t11 text-[#3c2415] cursor-pointer"
                         >
                           <option value="">數值…</option>
                           {Array.from({ length: CARDS_PER_SUIT }, (_, i) => i + 1).map((v) => (
@@ -702,7 +710,7 @@ export default function AceOfCardsTable({
                           ))}
                         </select>
                         {a && (
-                          <span className="text-[10px] font-mono text-[#3c2415]">
+                          <span className="text-t10 font-mono text-[#3c2415]">
                             → {suitName(a.suit)} {a.value}
                             {suitTypes[a.suit] ? `（${suitTypes[a.suit]}屬性）` : ''}
                           </span>
@@ -711,7 +719,7 @@ export default function AceOfCardsTable({
                     );
                   })}
                 </div>
-                <p className="mt-1.5 text-[10px] font-bold text-[#3c2415] flex items-start gap-1">
+                <p className="mt-1.5 text-t10 font-bold text-[#3c2415] flex items-start gap-1">
                   {jokersAssigned ? (
                     <GiCheckMark className="w-3 h-3 mt-0.5 shrink-0" />
                   ) : (
@@ -729,7 +737,7 @@ export default function AceOfCardsTable({
             {/* 符合的效果 */}
             {pickedCards.length >= 2 && (
               <div className={`p-2.5 rounded-xl border ${matches.length > 0 ? 'bg-[#fffdf9] border-[#3c2415]' : 'bg-[#fbf7ee] border-[#d6c7ab]'}`}>
-                <div className="flex items-center gap-1.5 text-[11px] font-bold mb-1.5">
+                <div className="flex items-center gap-1.5 text-t11 font-bold mb-1.5">
                   {matches.length > 0 ? (
                     <GiCheckMark className="w-3.5 h-3.5 text-[#3c2415]" />
                   ) : (
@@ -757,7 +765,7 @@ export default function AceOfCardsTable({
                           setChosenEffect(m.id);
                           setStatusPicked([]);
                         }}
-                        className={`w-full text-left px-2 py-1.5 rounded-lg border text-[11px] transition-all cursor-pointer ${
+                        className={`w-full text-left px-2 py-1.5 rounded-lg border text-t11 transition-all cursor-pointer ${
                           isMonarch
                             ? on
                               ? 'bg-[#f4ebd9] border-[#3c2415] ring-2 ring-[#3c2415]'
@@ -776,7 +784,7 @@ export default function AceOfCardsTable({
                           <span className={`font-bold ${isMonarch ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}>
                             {m.name}
                           </span>
-                          <span className={`font-mono text-[10px] ${T.sub}`}>（{m.requirement}）</span>
+                          <span className={`font-mono text-t10 ${T.sub}`}>（{m.requirement}）</span>
                           {isMonarch && (
                             <span className="text-t12 font-bold px-1.5 py-0.5 rounded border border-[#3c2415] bg-[#f4ebd9] text-[#3c2415]">
                               禁忌
@@ -796,7 +804,7 @@ export default function AceOfCardsTable({
                 {/* 狀態滿貫：選兩種狀態 */}
                 {effective?.id === 'fullStatus' && (
                   <div className="mt-2 pt-2 border-t border-[#d6c7ab]">
-                    <div className={`text-[11px] font-bold ${T.text} mb-1`}>
+                    <div className={`text-t11 font-bold ${T.text} mb-1`}>
                       {effective.highest % 2 === 0
                         ? '選兩種狀態：你與每個可見盟友從這兩種狀態恢復（需已選 2 種）'
                         : '選兩種狀態：每個可見敵人陷入這兩種狀態（需已選 2 種）'}
@@ -809,7 +817,7 @@ export default function AceOfCardsTable({
                             key={k}
                             type="button"
                             onClick={() => toggleStatusPick(k)}
-                            className={`px-2 py-1 rounded-lg border text-[11px] font-bold cursor-pointer transition-all ${
+                            className={`px-2 py-1 rounded-lg border text-t11 font-bold cursor-pointer transition-all ${
                               on ? 'bg-white border-[#3c2415] ring-2 ring-[#3c2415] text-[#2c221e]' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
                             }`}
                           >
@@ -817,7 +825,7 @@ export default function AceOfCardsTable({
                           </button>
                         );
                       })}
-                      <span className={`text-[10px] font-mono ${T.sub}`}>已選 {statusPicked.length} / 2</span>
+                      <span className={`text-t10 font-mono ${T.sub}`}>已選 {statusPicked.length} / 2</span>
                     </div>
                   </div>
                 )}
@@ -864,14 +872,14 @@ export default function AceOfCardsTable({
 
             {/* 每回合限制（只有【陷阱卡】有；【再調度】原書沒有次數限制） */}
             <div className={`p-2.5 rounded-xl ${T.bg} border ${T.border} flex items-center justify-between flex-wrap gap-2`}>
-              <span className={`text-[11px] font-bold ${T.text}`}>
+              <span className={`text-t11 font-bold ${T.text}`}>
                 本回合：陷阱卡 {usedThisTurn.trap ? '已使用' : '未使用'}
                 <span className={`font-normal ${T.sub}`}>（再調度沒有次數限制）</span>
               </span>
               <button
                 type="button"
                 onClick={startTurn}
-                className={`px-2.5 py-1 rounded-lg border ${T.border} bg-white hover:bg-[#e8dcc4] text-[11px] font-bold ${T.sub} cursor-pointer`}
+                className={`px-2.5 py-1 rounded-lg border ${T.border} bg-white hover:bg-[#e8dcc4] text-t11 font-bold ${T.sub} cursor-pointer`}
               >
                 推進到下個回合
               </button>
@@ -880,13 +888,13 @@ export default function AceOfCardsTable({
             {/* 再調度 */}
             {mulliganSL > 0 && (
               <details className={`p-2.5 rounded-xl bg-white border ${T.border}`} open={mulliganPicked.length > 0}>
-                <summary className={`text-[11px] font-bold ${T.text} cursor-pointer flex items-center gap-1.5`}>
+                <summary className={`text-t11 font-bold ${T.text} cursor-pointer flex items-center gap-1.5`}>
                   <GiCardRandom className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   <span>再調度（SL {mulliganSL}：命中敵人後，自選至多 {mulliganLimit(mulliganSL)} 張棄掉並補抽）</span>
                 </summary>
                 <div className="mt-2 space-y-2">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className={`text-[10px] font-mono ${T.sub}`}>已選 {mulliganPicked.length} / {mulliganLimit(mulliganSL)}</span>
+                    <span className={`text-t10 font-mono ${T.sub}`}>已選 {mulliganPicked.length} / {mulliganLimit(mulliganSL)}</span>
                     {hand.map((c) =>
                       renderCard(c, {
                         selected: mulliganPicked.includes(c.id),
@@ -898,7 +906,7 @@ export default function AceOfCardsTable({
                     type="button"
                     disabled={mulliganPicked.length === 0}
                     onClick={doMulligan}
-                    className={`w-full px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
+                    className={`w-full px-3 py-1.5 rounded-lg text-t11 font-bold transition-colors ${
                       mulliganPicked.length === 0
                         ? 'bg-[#f4ebd9] text-[#7c6a58] border border-[#e8dcc4] cursor-not-allowed'
                         : 'bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] cursor-pointer'
@@ -913,13 +921,13 @@ export default function AceOfCardsTable({
             {/* 陷阱卡 */}
             {trapSL > 0 && (
               <details className={`p-2.5 rounded-xl bg-white border ${T.border}`}>
-                <summary className={`text-[11px] font-bold ${T.text} cursor-pointer flex items-center gap-1.5`}>
+                <summary className={`text-t11 font-bold ${T.text} cursor-pointer flex items-center gap-1.5`}>
                   <GiTrapMask className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   <span>陷阱卡（SL {trapSL}：敵人結算動作後，棄至多 {trapDiscardLimit(trapSL)} 張換免費施法）</span>
                 </summary>
                 <div className="mt-2 space-y-2">
                   <div>
-                    <div className={`text-[10px] font-bold ${T.text} mb-1`}>
+                    <div className={`text-t10 font-bold ${T.text} mb-1`}>
                       敵人剛結算的動作（花色需對應其傷害類型）
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -933,12 +941,12 @@ export default function AceOfCardsTable({
                               setTrapActionKey(a.key);
                               setTrapPicked([]);
                             }}
-                            className={`px-2 py-1 rounded-lg border text-[11px] font-bold cursor-pointer transition-all ${
+                            className={`px-2 py-1 rounded-lg border text-t11 font-bold cursor-pointer transition-all ${
                               on ? 'bg-white border-[#3c2415] ring-2 ring-[#3c2415] text-[#3c2415]' : 'bg-white/60 border-[#d6c7ab] text-[#6b5a4b]'
                             }`}
                           >
                             {a.name}
-                            <span className={`ml-1 text-[9px] font-mono ${T.sub}`}>{a.type}</span>
+                            <span className={`ml-1 text-t10 font-mono ${T.sub}`}>{a.type}</span>
                           </button>
                         );
                       })}
@@ -947,7 +955,7 @@ export default function AceOfCardsTable({
 
                   {trapAction && (
                     <div>
-                      <div className={`text-[10px] font-mono ${T.sub} mb-1`}>
+                      <div className={`text-t10 font-mono ${T.sub} mb-1`}>
                         符合的牌 {trapEligible.length} 張（小丑牌，或花色為{trapAction.type}）／已選 {trapPicked.length} / {trapDiscardLimit(trapSL)}
                       </div>
                       {trapEligible.length === 0 ? (
@@ -968,7 +976,7 @@ export default function AceOfCardsTable({
                         type="button"
                         disabled={trapPicked.length === 0 || usedThisTurn.trap}
                         onClick={confirmTrapDiscard}
-                        className={`mt-2 w-full px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
+                        className={`mt-2 w-full px-3 py-1.5 rounded-lg text-t11 font-bold transition-colors ${
                           trapPicked.length === 0 || usedThisTurn.trap
                             ? 'bg-[#f4ebd9] text-[#7c6a58] border border-[#e8dcc4] cursor-not-allowed'
                             : 'bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] cursor-pointer'
@@ -983,7 +991,7 @@ export default function AceOfCardsTable({
 
                   {trapDiscarded && (
                     <div className="p-2 rounded-lg bg-[#f9f5eb] border border-[#d6c7ab]">
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#2c221e] mb-1">
+                      <div className="flex items-center gap-1.5 text-t11 font-bold text-[#2c221e] mb-1">
                         <GiCardDraw className="w-3.5 h-3.5" />
                         <span>免費咒語動作：總 MP ≤ {trapCap}（MP 仍須自付）</span>
                       </div>
@@ -1002,14 +1010,14 @@ export default function AceOfCardsTable({
                                 type="button"
                                 disabled={!affordable}
                                 onClick={() => castTrapSpell(sp)}
-                                className={`w-full text-left px-2 py-1 rounded-lg border text-[11px] ${
+                                className={`w-full text-left px-2 py-1 rounded-lg border text-t11 ${
                                   affordable
                                     ? 'bg-white border-[#3c2415] cursor-pointer hover:bg-[#f4ebd9]'
                                     : 'bg-[#fffdf9] border-[#e8dcc4] text-[#7c6a58] cursor-not-allowed'
                                 }`}
                               >
                                 <span className="font-bold text-[#3c2415]">{sp.name}</span>
-                                <span className={`font-mono text-[10px] ${T.sub} ml-1`}>
+                                <span className={`font-mono text-t10 ${T.sub} ml-1`}>
                                   {cost} MP{sp.mp && String(sp.mp) !== String(cost) ? `（${sp.mp}）` : ''}
                                 </span>
                               </button>
@@ -1028,7 +1036,7 @@ export default function AceOfCardsTable({
               <button
                 type="button"
                 onClick={endConflict}
-                className={`px-2.5 py-1.5 rounded-lg border ${T.border} bg-white hover:bg-[#e8dcc4] text-[11px] font-bold ${T.sub} cursor-pointer`}
+                className={`px-2.5 py-1.5 rounded-lg border ${T.border} bg-white hover:bg-[#e8dcc4] text-t11 font-bold ${T.sub} cursor-pointer`}
               >
                 衝突結束（全部洗回）
               </button>
@@ -1050,12 +1058,12 @@ export default function AceOfCardsTable({
 
         {/* 組合效果速查 */}
         <details className={`p-2.5 rounded-xl bg-white border ${T.border}`}>
-          <summary className={`text-[11px] font-bold ${T.text} cursor-pointer flex items-center gap-1.5`}>
+          <summary className={`text-t11 font-bold ${T.text} cursor-pointer flex items-center gap-1.5`}>
             <GiScrollUnfurled className="w-3.5 h-3.5 text-[#6b5a4b]" />
             <span>組合效果速查（{SET_EFFECTS.length} 種）</span>
           </summary>
           <div className="mt-2 space-y-2">
-            <table className="w-full text-[10px] border-collapse">
+            <table className="w-full text-t10 border-collapse">
               <thead>
                 <tr className={T.sub}>
                   <th className="text-left font-bold pb-1 pr-1 w-20">效果</th>

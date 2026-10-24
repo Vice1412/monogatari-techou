@@ -52,7 +52,7 @@ const ORIGIN_GROUPS = zeroNameTableGroups('origin');
 function DieBadge({ die, count, theme }) {
   return (
     <span
-      className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border"
+      className="text-t10 font-mono font-bold px-1.5 py-0.5 rounded border"
       style={{
         backgroundColor: theme?.subpanelBg || '#f4ebd9',
         borderColor: theme?.border || '#d6c7ab',
@@ -70,7 +70,7 @@ function ColumnChip({ active, label, onClick, theme }) {
     <button
       type="button"
       onClick={onClick}
-      className="text-[10px] px-1.5 py-0.5 rounded border cursor-pointer"
+      className="text-t10 px-1.5 py-0.5 rounded border cursor-pointer"
       style={{
         backgroundColor: active ? theme?.accentSoft || theme?.subpanelBg || '#f4ebd9' : 'transparent',
         borderColor: active ? theme?.accent || '#a63d40' : theme?.border || '#d6c7ab',
@@ -169,7 +169,7 @@ export function ZeroPowerNameTablesBody({
               >
                 <div className="flex items-center gap-1.5 truncate">
                   <span
-                    className={`font-mono text-[10px] w-5 text-right font-bold ${picked ? 'text-white/80' : 'text-[#6b5a4b]'}`}
+                    className={`font-mono text-t10 w-5 text-right font-bold ${picked ? 'text-white/80' : 'text-[#6b5a4b]'}`}
                   >
                     {`#${row.id}`}
                   </span>
@@ -222,7 +222,7 @@ export function ZeroPowerNameTablesBody({
 
         {/* 欄位選擇：兩張表各自「先選一欄」 */}
         <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          <span className="text-[10px]" style={{ color: theme?.textMuted || '#7c6a58' }}>動作欄</span>
+          <span className="text-t10" style={{ color: theme?.textMuted || '#7c6a58' }}>動作欄</span>
           {ZERO_NAME_ACTIONS.columns.map((col, i) => (
             <ColumnChip
               key={`action-col-${col}`}
@@ -232,7 +232,7 @@ export function ZeroPowerNameTablesBody({
               theme={theme}
             />
           ))}
-          <span className="text-[10px] ml-1" style={{ color: theme?.textMuted || '#7c6a58' }}>由來欄</span>
+          <span className="text-t10 ml-1" style={{ color: theme?.textMuted || '#7c6a58' }}>由來欄</span>
           {ZERO_NAME_ORIGINS.columns.map((col, i) => (
             <ColumnChip
               key={`origin-col-${col}`}
@@ -276,7 +276,7 @@ export function ZeroPowerNameTablesBody({
             </div>
 
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-1 border-t"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-t11 pt-1 border-t"
               style={{ borderColor: theme?.border || '#f4ebd9' }}
             >
               <div
@@ -339,7 +339,7 @@ export function ZeroPowerNameTablesBody({
             <button
               type="button"
               onClick={onClearPicks}
-              className="text-[10px] text-[#6b5a4b] hover:text-[#3c2415] underline cursor-pointer"
+              className="text-t10 text-[#6b5a4b] hover:text-[#3c2415] underline cursor-pointer"
             >
               重置清空
             </button>

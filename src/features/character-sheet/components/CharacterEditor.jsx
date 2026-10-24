@@ -796,7 +796,7 @@ export default function CharacterEditor({
               <span className="text-xs font-black">經典職業搭配</span>
             </div>
             <span
-              className="text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 transition-colors"
+              className="text-t10 font-bold px-1.5 py-0.5 rounded border shrink-0 transition-colors"
               style={{ borderColor: theme.border, color: theme.accent, backgroundColor: theme.cardBg }}
             >
               一鍵套用
@@ -814,12 +814,12 @@ export default function CharacterEditor({
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 min-w-0">
                 <GameIcon name="GiPadlock" size={13} style={{ color: locked ? theme.accent : theme.textMuted }} />
-                <span className="text-[11px] font-black" style={{ color: theme.textDark }}>
+                <span className="text-t11 font-black" style={{ color: theme.textDark }}>
                   {locked ? '已定稿' : '創角中'}
                 </span>
               </div>
               {locked && character.lockedAt && (
-                <span className="text-[9px] font-mono shrink-0" style={{ color: theme.textMuted }}>
+                <span className="text-t10 font-mono shrink-0" style={{ color: theme.textMuted }}>
                   {formatLogTime(character.lockedAt)}
                 </span>
               )}
@@ -837,7 +837,7 @@ export default function CharacterEditor({
               type="button"
               onClick={locked ? handleUnlock : handleLock}
               disabled={!locked && !canLock}
-              className={`w-full text-[11px] font-bold px-2.5 py-2 rounded-lg border transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
+              className={`w-full text-t11 font-bold px-2.5 py-2 rounded-lg border transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
                 locked ? 'hover:bg-[#f9f5eb]' : 'hover:scale-101'
               }`}
               style={{
@@ -857,7 +857,7 @@ export default function CharacterEditor({
             className="rounded-xl border shadow-xs p-2 flex flex-col gap-1 transition-colors"
             style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
           >
-            <div className="px-2 py-1 text-[10px] font-mono font-bold text-[#6b5a4b] uppercase tracking-wider">
+            <div className="px-2 py-1 text-t10 font-mono font-bold text-[#6b5a4b] uppercase tracking-wider">
               創角流程
             </div>
 
@@ -880,7 +880,7 @@ export default function CharacterEditor({
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-mono font-black shrink-0 transition-colors ${
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-t11 font-mono font-black shrink-0 transition-colors ${
                         isTabActive
                           ? 'bg-white/20 text-white'
                           : 'bg-[#f4ebd9] text-[#6b5a4b] group-hover:bg-[#e8dcc4]'
@@ -894,7 +894,7 @@ export default function CharacterEditor({
                         {isFrozen && <GameIcon name="GiPadlock" size={10} className="shrink-0" />}
                       </div>
                       {/* 這一行以前是標籤的重複；改成「這一格還缺什麼」，導航列就變成進度表 */}
-                      <div className={`text-[10px] leading-tight mt-0.5 truncate ${
+                      <div className={`text-t10 leading-tight mt-0.5 truncate ${
                         isTabActive ? 'text-white/80' : 'text-[#6b5a4b]'
                       }`}>
                         {step.message}
@@ -947,7 +947,7 @@ export default function CharacterEditor({
                   規則自檢
                 </span>
               </div>
-              <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+              <span className={`text-t10 font-mono font-bold px-1.5 py-0.5 rounded ${
                 validation.errors.length > 0
                   ? 'bg-[#e8dcc4] text-[#8c2d36]'
                   : validation.hasWarnings
@@ -961,7 +961,7 @@ export default function CharacterEditor({
                     : '100% 合規'}
               </span>
             </div>
-            <p className={`text-[11px] leading-tight ${
+            <p className={`text-t11 leading-tight ${
               validation.errors.length > 0
                 ? 'text-[#8c2d36]'
                 : validation.hasWarnings
@@ -995,13 +995,13 @@ export default function CharacterEditor({
                 <GiScrollUnfurled className="w-3.5 h-3.5 shrink-0" style={{ color: theme.accent }} />
                 <span>卡片預覽</span>
                 <span
-                  className="ml-auto text-[9px] font-mono px-1 py-0.5 rounded border shrink-0"
+                  className="ml-auto text-t10 font-mono px-1 py-0.5 rounded border shrink-0"
                   style={{ borderColor: theme.border, color: theme.textMuted }}
                 >
                   唯讀
                 </span>
               </span>
-              <span className="block text-[10px] leading-tight mt-0.5" style={{ color: theme.textMuted }}>
+              <span className="block text-t10 leading-tight mt-0.5" style={{ color: theme.textMuted }}>
                 看整張卡目前填得怎樣、列印或截圖存檔
               </span>
             </button>
@@ -1044,7 +1044,7 @@ export default function CharacterEditor({
               <button
                 type="button"
                 onClick={() => setIsPresetsModalOpen(true)}
-                className="px-2 py-1 rounded-md border text-[11px] font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                className="px-2 py-1 rounded-md border text-t11 font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
                 style={{ borderColor: theme.border, color: theme.textDark, backgroundColor: theme.cardBg }}
                 title="經典職業搭配"
               >
@@ -1054,7 +1054,7 @@ export default function CharacterEditor({
               <button
                 type="button"
                 onClick={() => setIsValidationModalOpen(true)}
-                className={`px-2 py-1 rounded-md border text-[11px] font-bold flex items-center gap-1 shadow-2xs cursor-pointer ${
+                className={`px-2 py-1 rounded-md border text-t11 font-bold flex items-center gap-1 shadow-2xs cursor-pointer ${
                   validation.errors.length > 0
                     ? 'bg-[#f9f5eb] text-[#8c2d36] border-[#8c2d36]/50'
                     : validation.hasWarnings
@@ -1081,7 +1081,7 @@ export default function CharacterEditor({
               <button
                 type="button"
                 onClick={() => setIsCardPreviewModalOpen(true)}
-                className="px-2 py-1 rounded-md border text-[11px] font-bold shadow-2xs cursor-pointer"
+                className="px-2 py-1 rounded-md border text-t11 font-bold shadow-2xs cursor-pointer"
                 style={{ borderColor: theme.border, color: theme.textDark, backgroundColor: theme.cardBg }}
               >
                 卡片預覽
@@ -1090,7 +1090,7 @@ export default function CharacterEditor({
                 <button
                   type="button"
                   onClick={onEnterPlayMode}
-                  className="px-2 py-1 rounded-md text-white text-[11px] font-bold shadow-2xs cursor-pointer"
+                  className="px-2 py-1 rounded-md text-white text-t11 font-bold shadow-2xs cursor-pointer"
                   style={{ backgroundColor: theme.accent }}
                 >
                   跑團面板
@@ -1100,7 +1100,7 @@ export default function CharacterEditor({
           </div>
 
           <div className="flex items-center gap-2 pt-1 border-t" style={{ borderColor: theme.border }}>
-            <span className="text-[11px] font-bold text-[#6b5a4b] shrink-0">步驟 {activeTab}/{TABS.length}:</span>
+            <span className="text-t11 font-bold text-[#6b5a4b] shrink-0">步驟 {activeTab}/{TABS.length}:</span>
             <select
               value={activeTab}
               onChange={e => setActiveTab(Number(e.target.value))}
@@ -1183,7 +1183,7 @@ export default function CharacterEditor({
                     角色等級
                   </label>
                   <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded border transition-colors"
+                    className="text-t10 font-bold px-2 py-0.5 rounded border transition-colors"
                     style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark }}
                   >
                     由開卡規則決定
@@ -1194,7 +1194,7 @@ export default function CharacterEditor({
                   style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark }}
                 >
                   <span>{character.level || rules.startingLevel} 級</span>
-                  <span className="text-[10px] font-sans font-normal" style={{ color: theme.textMuted }}>
+                  <span className="text-t10 font-sans font-normal" style={{ color: theme.textMuted }}>
                     升級請用跑團面板的「經驗升級」
                   </span>
                 </div>
@@ -1209,7 +1209,7 @@ export default function CharacterEditor({
                     <button
                       type="button"
                       onClick={() => setIsIdentityModalOpen(true)}
-                      className="text-[11px] px-2.5 py-1 rounded border font-bold transition-colors flex items-center gap-1.5 shadow-2xs hover:opacity-90 cursor-pointer"
+                      className="text-t11 px-2.5 py-1 rounded border font-bold transition-colors flex items-center gap-1.5 shadow-2xs hover:opacity-90 cursor-pointer"
                       style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark }}
                       title="點開查看官方 60 種身分、40 種特質與 20 種細節對照表 (d6+d20)"
                     >
@@ -1222,7 +1222,7 @@ export default function CharacterEditor({
                         const newId = generateRandomIdentity();
                         updateField('identity', newId);
                       }}
-                      className="text-[11px] px-2 py-1 rounded border font-bold transition-colors flex items-center gap-1 shadow-2xs hover:opacity-90 cursor-pointer"
+                      className="text-t11 px-2 py-1 rounded border font-bold transition-colors flex items-center gap-1 shadow-2xs hover:opacity-90 cursor-pointer"
                       style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark }}
                       title="投擲 1d6+1d20 隨機生成身份"
                     >
@@ -1244,7 +1244,7 @@ export default function CharacterEditor({
                       <label className="text-xs font-bold" style={{ color: theme.textDark }}>
                         主題
                       </label>
-                      <label className="flex items-center gap-1 text-[11px] cursor-pointer font-medium select-none" style={{ color: theme.textMuted }}>
+                      <label className="flex items-center gap-1 text-t11 cursor-pointer font-medium select-none" style={{ color: theme.textMuted }}>
                         <input
                           type="checkbox"
                           checked={isCustomTheme}
@@ -1305,7 +1305,7 @@ export default function CharacterEditor({
                       <label className="text-xs font-bold" style={{ color: theme.textDark }}>
                         初始持有金幣
                       </label>
-                      <span className="text-[10px] font-bold" style={{ color: theme.textMuted }}>
+                      <span className="text-t10 font-bold" style={{ color: theme.textMuted }}>
                         由開卡規則決定
                       </span>
                     </div>
@@ -1446,7 +1446,7 @@ export default function CharacterEditor({
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-[#3c2415]">
                     目前已選擇 <strong className="font-mono text-sm" style={{ color: theme.accent }}>{(character.classes || []).length}</strong> 個職業
-                    {character.level <= rules.startingLevel && <span className="text-[11px] text-[#6b5a4b] ml-1">（創角規定：{rules.classCountMin}~{rules.classCountMax} 個職業）</span>}
+                    {character.level <= rules.startingLevel && <span className="text-t11 text-[#6b5a4b] ml-1">（創角規定：{rules.classCountMin}~{rules.classCountMax} 個職業）</span>}
                   </span>
                 </div>
 
@@ -1575,7 +1575,7 @@ export default function CharacterEditor({
                         <TileIcon size={17} />
                       </span>
                       <div className="min-w-0">
-                        <div className="text-[10px] font-bold truncate" style={{ color: theme.textMuted }}>
+                        <div className="text-t10 font-bold truncate" style={{ color: theme.textMuted }}>
                           {tile.label}
                         </div>
                         <div className="font-mono font-black text-lg leading-tight" style={{ color: theme.textDark }}>
@@ -1615,7 +1615,7 @@ export default function CharacterEditor({
                       {fx.unarmedDamageBonus ? `　徒手傷害 +${fx.unarmedDamageBonus}` : ''}
                     </div>
                     {rows.map((row) => (
-                      <div key={row.label} className="flex items-baseline gap-2 text-[11px]">
+                      <div key={row.label} className="flex items-baseline gap-2 text-t11">
                         <span className="font-bold shrink-0" style={{ color: theme.textMuted }}>{row.label}</span>
                         <span style={{ color: row.tone }}>{renderTextWithAffinities(row.values.join('、'))}</span>
                       </div>
@@ -1632,25 +1632,25 @@ export default function CharacterEditor({
                 <span className="font-bold" style={{ color: theme.textDark }}>職業裝備熟練度:</span>
                 <div className="flex items-center gap-2">
                   <span
-                    className="px-2 py-0.5 rounded text-[11px] font-bold border"
+                    className="px-2 py-0.5 rounded text-t11 font-bold border"
                     style={stats.profs.martialMelee ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#e2e8f0', borderColor: '#cbd5e1', color: '#64748b' }}
                   >
                     職業近戰 {stats.profs.martialMelee ? '✓' : '✗'}
                   </span>
                   <span
-                    className="px-2 py-0.5 rounded text-[11px] font-bold border"
+                    className="px-2 py-0.5 rounded text-t11 font-bold border"
                     style={stats.profs.martialRanged ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#e2e8f0', borderColor: '#cbd5e1', color: '#64748b' }}
                   >
                     職業遠程 {stats.profs.martialRanged ? '✓' : '✗'}
                   </span>
                   <span
-                    className="px-2 py-0.5 rounded text-[11px] font-bold border"
+                    className="px-2 py-0.5 rounded text-t11 font-bold border"
                     style={stats.profs.martialArmor ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#e2e8f0', borderColor: '#cbd5e1', color: '#64748b' }}
                   >
                     職業防具 {stats.profs.martialArmor ? '✓' : '✗'}
                   </span>
                   <span
-                    className="px-2 py-0.5 rounded text-[11px] font-bold border"
+                    className="px-2 py-0.5 rounded text-t11 font-bold border"
                     style={stats.profs.martialShields ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#e2e8f0', borderColor: '#cbd5e1', color: '#64748b' }}
                   >
                     職業盾牌 {stats.profs.martialShields ? '✓' : '✗'}
@@ -1819,7 +1819,7 @@ export default function CharacterEditor({
                   <div className="flex items-center gap-1.5">
                     <GameIcon name="cat_sword" size={16} />
                     <span className="text-xs font-bold" style={{ color: theme.textDark }}>{CUSTOM_WEAPON_BASE.label}</span>
-                    <span className="text-[11px] text-[#6b5a4b]">
+                    <span className="text-t11 text-[#6b5a4b]">
                       {customWeaponGroups.length > 0 ? `${customWeaponGroups.length} 把` : '尚未鍛造'}
                     </span>
                   </div>
@@ -1834,7 +1834,7 @@ export default function CharacterEditor({
                       <span>鍛造{CUSTOM_WEAPON_BASE.label}</span>
                     </button>
                   ) : (
-                    <span className="text-[11px] text-[#6b5a4b]">
+                    <span className="text-t11 text-[#6b5a4b]">
                       此團未開放——請在第 1 步的「此團開卡規則」打開
                     </span>
                   )}
@@ -1861,17 +1861,17 @@ export default function CharacterEditor({
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="font-bold" style={{ color: theme.textDark }}>{group.name}</span>
                               {group.isTransforming && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.textDark }}>
+                                <span className="text-t10 px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.textDark }}>
                                   可變形
                                 </span>
                               )}
                               {shown.martial && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
+                                <span className="text-t10 px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
                                   職業武器
                                 </span>
                               )}
                               {isEquipped && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
+                                <span className="text-t10 px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
                                   已裝備主手
                                 </span>
                               )}
@@ -1889,7 +1889,7 @@ export default function CharacterEditor({
                               type="button"
                               onClick={() => handleEquipCustomWeapon(other.name)}
                               title="衝突場景中只能在你的回合、且每回合一次（HF p.107）"
-                              className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
+                              className="px-2 py-1 rounded border text-t11 font-bold shrink-0 cursor-pointer"
                               style={{ borderColor: theme.border, color: theme.accent }}
                             >
                               切換形態
@@ -1898,7 +1898,7 @@ export default function CharacterEditor({
                             <button
                               type="button"
                               onClick={() => handleEquipCustomWeapon(shown.name)}
-                              className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
+                              className="px-2 py-1 rounded border text-t11 font-bold shrink-0 cursor-pointer"
                               style={{ borderColor: theme.border, color: theme.textDark }}
                             >
                               裝到主手
@@ -1907,7 +1907,7 @@ export default function CharacterEditor({
                           <button
                             type="button"
                             onClick={() => { setForgeEditingId(group.id); setIsForgeOpen(true); }}
-                            className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
+                            className="px-2 py-1 rounded border text-t11 font-bold shrink-0 cursor-pointer"
                             style={{ borderColor: theme.border, color: theme.textDark }}
                           >
                             編輯
@@ -1915,7 +1915,7 @@ export default function CharacterEditor({
                           <button
                             type="button"
                             onClick={() => handleRemoveCustomWeapon(group.id)}
-                            className="px-2 py-1 rounded border text-[11px] font-bold shrink-0 cursor-pointer"
+                            className="px-2 py-1 rounded border text-t11 font-bold shrink-0 cursor-pointer"
                             style={{ borderColor: theme.border, color: '#76252d' }}
                           >
                             刪除
@@ -2054,7 +2054,7 @@ export default function CharacterEditor({
                         <button
                           type="button"
                           onClick={() => updateField('quirk', '無')}
-                          className="text-[11px] text-[#6b5a4b] hover:text-[#76252d] cursor-pointer"
+                          className="text-t11 text-[#6b5a4b] hover:text-[#76252d] cursor-pointer"
                         >
                           移除
                         </button>
@@ -2063,7 +2063,7 @@ export default function CharacterEditor({
                         {splitParagraphs(rulesData.quirks.find(q => q.name === character.quirk)?.desc).map((block, bi) => (
                           <div key={bi} className="space-y-0.5">
                             {block.map((line, li) => (
-                              <p key={li} className="text-[11px] leading-relaxed" style={{ color: theme.textDark }}>
+                              <p key={li} className="text-t11 leading-relaxed" style={{ color: theme.textDark }}>
                                 {renderTextWithAffinities(line)}
                               </p>
                             ))}
@@ -2128,13 +2128,13 @@ export default function CharacterEditor({
                         已精通職業: {stats.masteredClasses.join('、')} 【具備英雄技能資格】
                       </span>
                     ) : (
-                      <span className="text-[11px] font-bold" style={{ color: '#a63d40' }}>
+                      <span className="text-t11 font-bold" style={{ color: '#a63d40' }}>
                         需先精通一個職業（單一職業達 10 級）
                       </span>
                     )}
                     {rules.startingHeroicSkill && (
                       <span
-                        className="text-[11px] font-bold"
+                        className="text-t11 font-bold"
                         style={{ color: creationSlotFull ? '#a63d40' : theme.accent }}
                       >
                         開局名額：{creationSlotFull ? '已使用' : '還有一個'}
@@ -2168,7 +2168,7 @@ export default function CharacterEditor({
                       >
                         選擇英雄技能
                       </JRPGButton>
-                      <span className="text-[11px]" style={{ color: theme.textMuted }}>
+                      <span className="text-t11" style={{ color: theme.textMuted }}>
                         表格列出每一條的條件與效果，預設只顯示與你的職業有關的
                       </span>
                     </>
@@ -2188,14 +2188,14 @@ export default function CharacterEditor({
                           <span>{hs.name}</span>
                           {heroicSourceOf(hs) && (
                             <span
-                              className="text-[9px] px-1.5 py-0.5 rounded border font-bold shrink-0"
+                              className="text-t10 px-1.5 py-0.5 rounded border font-bold shrink-0"
                               style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textMuted }}
                             >
                               {heroicSourceOf(hs)}
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-[#6b5a4b] mt-0.5">{renderTextWithAffinities(resolveHeroicSkillEffect(hs.name, hs.effect, character))}</p>
+                        <p className="text-t11 text-[#6b5a4b] mt-0.5">{renderTextWithAffinities(resolveHeroicSkillEffect(hs.name, hs.effect, character))}</p>
                       </div>
                       <button
                         type="button"
@@ -2420,7 +2420,7 @@ export default function CharacterEditor({
                   )}
                   <span>{w.message}</span>
                 </div>
-                <span className="font-bold underline shrink-0 text-[11px]">跳轉至步驟 {w.step} ➔</span>
+                <span className="font-bold underline shrink-0 text-t11">跳轉至步驟 {w.step} ➔</span>
               </div>
             ))}
 

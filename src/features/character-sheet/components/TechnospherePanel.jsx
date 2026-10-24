@@ -175,8 +175,8 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
 
   const inputClass = 'w-full rounded-lg px-2.5 py-1.5 text-xs outline-none border font-bold';
   const inputStyle = { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark };
-  const smallBtn = 'px-2 py-0.5 rounded border text-[11px] font-bold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
-  const miniSelect = 'rounded-lg px-1.5 py-0.5 text-[10px] outline-none border font-bold max-w-[13rem]';
+  const smallBtn = 'px-2 py-0.5 rounded border text-t11 font-bold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed';
+  const miniSelect = 'rounded-lg px-1.5 py-0.5 text-t10 outline-none border font-bold max-w-[13rem]';
 
   return (
     <div
@@ -191,17 +191,17 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
         <span className="flex items-center gap-1.5 text-xs font-bold" style={{ color: theme.textDark }}>
           <GiCrystalShine className="w-4 h-4 shrink-0" style={{ color: theme.accent }} />
           魔晶石
-          <span className="text-[10px] font-normal" style={{ color: theme.textMuted }}>
+          <span className="text-t10 font-normal" style={{ color: theme.textMuted }}>
             {modeDef.label}　{modeDef.short}
           </span>
         </span>
-        <span className="font-mono text-[11px] font-bold" style={{ color: theme.accent }}>
+        <span className="font-mono text-t11 font-bold" style={{ color: theme.accent }}>
           插槽與附魔魔石花費 {spend}z
         </span>
       </div>
 
       <div className="px-3 py-2.5 space-y-3">
-        <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+        <p className="text-t10 leading-relaxed" style={{ color: theme.textMuted }}>
           {modeDef.desc}
           {modeRestrictsEquipment(mode)
             ? '　官方武器表與盾牌整份不可用，只能裝備自訂武器、自訂防具與飾品（p.133）。'
@@ -220,7 +220,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
             style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
             data-testid="mnemosphere-summary"
           >
-            <span className="flex items-center gap-1.5 text-[11px] font-bold flex-wrap" style={{ color: theme.textDark }}>
+            <span className="flex items-center gap-1.5 text-t11 font-bold flex-wrap" style={{ color: theme.textDark }}>
               <GiOrbWand className="w-3.5 h-3.5" style={{ color: theme.accent }} />
               職業魔石
               <span className="font-normal" style={{ color: theme.textMuted }}>
@@ -239,7 +239,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                     title={`${m.className}　${m.level} / ${MNEMOSPHERE_MAX_LEVEL} 級`}
                     testId={`bead-summary-${m.id}`}
                   />
-                  <span className="text-[10px] font-bold" style={{ color: theme.textDark }}>
+                  <span className="text-t10 font-bold" style={{ color: theme.textDark }}>
                     {m.className} {m.level} 級
                   </span>
                 </span>
@@ -270,7 +270,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
             style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
             data-testid="integrated-carrier"
           >
-            <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
+            <span className="text-t11 font-bold" style={{ color: theme.textDark }}>
               內嵌裝置
               <span className="font-normal ml-1.5" style={{ color: theme.textMuted }}>
                 可容納 {integratedCap} 顆職業魔石（1 ＋ 每 15 級 1 顆；目前 {state.integrated.length} 顆）
@@ -296,7 +296,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                       type="button"
                       disabled={disabled}
                       onClick={() => unembedIntegrated(id)}
-                      className="cursor-pointer text-[10px] disabled:opacity-40"
+                      className="cursor-pointer text-t10 disabled:opacity-40"
                       style={{ color: '#8c2d36' }}
                       title="從內嵌裝置取下"
                     >
@@ -340,7 +340,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
 
         {/* ── 插槽 ─────────────────────────────────────────── */}
         <div className="space-y-1.5">
-          <span className="flex items-center gap-1.5 text-[11px] font-bold" style={{ color: theme.textDark }}>
+          <span className="flex items-center gap-1.5 text-t11 font-bold" style={{ color: theme.textDark }}>
             <GiCutDiamond className="w-3.5 h-3.5" style={{ color: theme.accent }} />
             裝備插槽
             <span className="font-normal" style={{ color: theme.textMuted }}>
@@ -367,7 +367,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                   data-testid={`slot-${slotId}`}
                 >
                   <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
+                    <span className="text-t11 font-bold" style={{ color: theme.textDark }}>
                       {label}
                       <span className="font-normal ml-1.5" style={{ color: theme.textMuted }}>
                         {hasItem ? itemName : '未裝備'}
@@ -381,7 +381,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                           kind: 'technosphere',
                           title: `插槽品級：${label} → ${e.target.value}`
                         })}
-                        className="rounded-lg px-1.5 py-0.5 text-[10px] outline-none border font-bold"
+                        className="rounded-lg px-1.5 py-0.5 text-t10 outline-none border font-bold"
                         style={inputStyle}
                         data-testid={`quality-${slotId}`}
                       >
@@ -391,7 +391,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                           </option>
                         ))}
                       </select>
-                      <span className="font-mono text-[10px]" style={{ color: theme.textMuted }}>
+                      <span className="font-mono text-t10" style={{ color: theme.textMuted }}>
                         {usage.used} / {usage.capacity} 格
                       </span>
                     </span>
@@ -408,7 +408,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                       {/* 珠座：一排凹槽，已鑲的珠子躺在裡面，沒鑲的是虛線空位 */}
                       <div className="flex items-center gap-1.5 flex-wrap" data-testid={`sockets-${slotId}`}>
                         {slot.contents.length === 0 && emptySockets === 0 ? (
-                          <span className="text-[10px] italic" style={{ color: theme.textMuted }}>插槽是空的</span>
+                          <span className="text-t10 italic" style={{ color: theme.textMuted }}>插槽是空的</span>
                         ) : null}
                         {slot.contents.map((entry, index) => {
                           const mnemosphere = entry.kind === 'mnemosphere'
@@ -462,7 +462,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                       {/* 逐筆效果：原書 p.139 的寫法就是逐顆、逐凝聚各算一筆 */}
                       {effectEntries.length > 0 && (
                         <ul
-                          className="text-[10px] leading-relaxed space-y-0.5 pl-1"
+                          className="text-t10 leading-relaxed space-y-0.5 pl-1"
                           style={{ color: theme.textMuted }}
                           data-testid={`hoplosphere-effects-${slotId}`}
                         >
@@ -550,7 +550,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
               );
             })}
           </div>
-          <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+          <p className="text-t10 leading-relaxed" style={{ color: theme.textMuted }}>
             {[
               withMnemospheres
                 ? '同一件物品不能裝兩顆共享技能的職業魔石；角色也不能裝備「自己已經會那些技能」的魔石（p.135）。'

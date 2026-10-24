@@ -138,7 +138,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
             此團開卡規則
           </span>
           <span
-            className="text-[10px] px-1.5 py-0.5 rounded border font-bold shrink-0"
+            className="text-t10 px-1.5 py-0.5 rounded border font-bold shrink-0"
             style={{
               backgroundColor: isDefault ? theme.cardBg : theme.subpanelBg,
               borderColor: theme.border,
@@ -148,7 +148,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
             {isDefault ? '官方標準' : '自訂'}
           </span>
         </span>
-        <span className="text-[11px] shrink-0" style={{ color: theme.textMuted }}>
+        <span className="text-t11 shrink-0" style={{ color: theme.textMuted }}>
           {open ? '收起' : '展開'}
         </span>
       </button>
@@ -173,7 +173,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
                 />
                 <span className="text-xs" style={{ color: theme.textDark }}>
                   {f.label}
-                  <span className="text-[10px] ml-1.5" style={{ color: theme.textMuted }}>
+                  <span className="text-t10 ml-1.5" style={{ color: theme.textMuted }}>
                     {derivedToggle(f.key)
                       ? '魔晶石制強制開啟——官方武器表整份不存在（p.133）'
                       : f.hint}
@@ -185,9 +185,9 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
 
           {/* 魔晶石：五態下拉（完整規則 ＋ 三個變體） */}
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold block" style={{ color: theme.textDark }}>
+            <label className="text-t11 font-bold block" style={{ color: theme.textDark }}>
               {TECHNOSPHERE_FIELD.label}
-              <span className="text-[10px] font-normal ml-1" style={{ color: theme.textMuted }}>
+              <span className="text-t10 font-normal ml-1" style={{ color: theme.textMuted }}>
                 {TECHNOSPHERE_FIELD.hint}
               </span>
             </label>
@@ -204,7 +204,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
                 </option>
               ))}
             </select>
-            <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+            <p className="text-t10 leading-relaxed" style={{ color: theme.textMuted }}>
               {(TECHNOSPHERE_MODE_OPTIONS.find((m) => m.key === (rules.technospheres || 'off')) || {}).desc}
             </p>
             {techOn && (
@@ -224,9 +224,9 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {NUMBER_FIELDS.map((f) => (
               <div key={f.key} className="space-y-1">
-                <label className="text-[11px] font-bold block" style={{ color: theme.textDark }}>
+                <label className="text-t11 font-bold block" style={{ color: theme.textDark }}>
                   {f.label}
-                  <span className="text-[10px] font-normal ml-1" style={{ color: theme.textMuted }}>
+                  <span className="text-t10 font-normal ml-1" style={{ color: theme.textMuted }}>
                     {derivedClassCount(f.key) ? '魔晶石制固定 3' : f.hint}
                   </span>
                 </label>
@@ -249,7 +249,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
 
           {/* 開放的手冊（公測修訂不在這裡——它是上面的選用規則開關） */}
           <div className="space-y-1.5">
-            <span className="text-[11px] font-bold block" style={{ color: theme.textDark }}>
+            <span className="text-t11 font-bold block" style={{ color: theme.textDark }}>
               開放的手冊
             </span>
             <div className="flex flex-wrap gap-x-4 gap-y-1.5">
@@ -271,7 +271,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
           {/* 必修職業 */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
+              <span className="text-t11 font-bold" style={{ color: theme.textDark }}>
                 必修職業
                 {rules.requiredClasses?.length > 0 && (
                   <span className="ml-1.5 font-normal" style={{ color: theme.accent }}>
@@ -282,7 +282,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
               <button
                 type="button"
                 onClick={() => setClassPickerOpen((v) => !v)}
-                className="text-[11px] font-bold px-2 py-1 rounded border cursor-pointer"
+                className="text-t11 font-bold px-2 py-1 rounded border cursor-pointer"
                 style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
               >
                 {classPickerOpen ? '收起' : '指定'}
@@ -302,7 +302,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
                       onChange={() => toggleInArray('requiredClasses', name, rules.requiredClasses)}
                       className="cursor-pointer shrink-0"
                     />
-                    <span className="text-[11px] truncate" style={{ color: theme.textDark }}>{name}</span>
+                    <span className="text-t11 truncate" style={{ color: theme.textDark }}>{name}</span>
                   </label>
                 ))}
               </div>
@@ -315,12 +315,12 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
               type="button"
               disabled={disabled || isDefault}
               onClick={() => onChange({})}
-              className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+              className="text-t11 font-bold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
               style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
             >
               重設為官方標準
             </button>
-            <span className="text-[10px]" style={{ color: theme.textMuted }}>
+            <span className="text-t10" style={{ color: theme.textMuted }}>
               官方標準：{DEFAULT_CREATION_RULES.startingLevel} 級、
               {DEFAULT_CREATION_RULES.classCountMin}~{DEFAULT_CREATION_RULES.classCountMax} 職業、
               {DEFAULT_CREATION_RULES.startingZenit}z

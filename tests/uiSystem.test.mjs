@@ -40,6 +40,8 @@ import {
   CHARACTER_THEMES,
   getCharacterTheme,
 } from '../src/features/character-sheet/utils/characterThemes.js';
+// 第三十五輪（§CI43）：NPC 工坊的卡片風格表——現在是 `CHARACTER_THEMES` 的投影。
+import { THEMES as THEMES_WORKSHOP } from '../src/features/npc-workshop/data/workshopThemes.js';
 
 const ROOT = process.cwd();
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -406,15 +408,16 @@ const BUDGET = [
   // 第十二輪：426 → 424、491 → 480、12 → 10。屬性矩陣 15 處任意字級抬到型階梯
   // （托盤標頭、骰面、已分配計數、幽靈插槽標籤、說明模態）——全部在 12px 以上仍然讀得懂，
   // 而 176px 的窄欄正是「任意值」最容易失控的地方。
-  ['text-[10px]', 424],
-  ['text-[11px]', 480],
+  // 第三十五輪：424 → **0**、480 → **0**、10 → **0**。三條任意字級預算到此結束，
+  // 改成 H33「全站零任意字級」的硬零——預算的意義是「只減不增」，減到 0 就該換形狀。
+  //
   // 第六輪：34 → 18 → 13。21 處已抬到型階梯地板 `text-t12`（12px）：
   //   前 16 處是「原始碼看得到中文」的標籤／句子；
   //   後 5 處是 `{term.label}` 這種**中文在資料層**的標籤（原始碼裡一個中文字都沒有，
   //   所以任何以「原始碼含中文」為判準的掃描都抓不到，只能逐條列名——見 §10.4）。
   // 剩下的 13 處全是等寬拉丁／數字晶片（`d6`、`+3`、`≤70`、屬性英文名），
   // 密度是刻意的，且改動會擠壞 `max-w-[54px]` 這類固定寬度——留待逐處量。天花板跟著降到 13，不准回填。
-  ['text-[9px]', 10],
+  // 第三十五輪：13 → 0。9px 這個階級**整個消失**（9px 收斂到 t10）。
   // 第九輪：26 → 4。判準不是「這個狀態重不重要」，而是「**它會不會自己停**」——
   // Tailwind 的 animate-pulse 永遠 infinite，所以常駐狀態（危機徽章、待行動、連線中、
   // 狀態圓點、超額警告、空白插槽）上的脈動最後都變成背景雜訊。
@@ -704,58 +707,81 @@ for (const abs of walk(path.join(ROOT, 'src'))) {
 check('每次呼叫 EmptyState 都給齊 icon／title／teach', badCalls.length === 0, badCalls.join('；') || '全部齊備');
 
 // 新階梯要真的被用：全部沿用舊寫法的話，型階梯只是 config 裡的一段裝飾
-const scaleUses = ['text-t12', 'text-t14', 'text-t16', 'text-t20', 'text-t25', 'text-t31', 'text-t39']
-  .reduce((sum, c) => sum + count(allSrc, c), 0);
+const SCALE_TOKENS = ['text-t10', 'text-t11', 'text-t12', 'text-t14', 'text-t16', 'text-t20', 'text-t25', 'text-t31', 'text-t39'];
+const scaleUses = SCALE_TOKENS.reduce((sum, c) => sum + count(allSrc, c), 0);
 check('型階梯實際被採用（≥ 20 處）', scaleUses >= 20, `${scaleUses} 處`);
 
+/* ────────────────────────────────────────────────────────────────
+   H33 家族：任意字級歸零（2026-10-24 第三十五輪 §CI43）
+   ────────────────────────────────────────────────────────────────
+
+   背景：全站 814 處 `text-[10px]`／`text-[11px]`／`text-[9px]`。
+   前幾輪的做法是「天花板只減不增」——424／480／10 三個預算，一輪削一點。
+   這一輪一次削到 0，方法是**承認微字階是真的**：10px 與 11px 共 775 處，
+   它們用在屬性矩陣欄頭、骰面、`d6`／`+3` 晶片、密集表格列標籤——七級裡最接近的
+   t12 會擠壞 `max-w-[54px]` 這種固定寬度。所以登記成 `t10`／`t11` 兩階，
+   其餘 26 處（8／9／13／15／17／22px）收斂到最近的階。
+
+   ⚠️ 這一輪最該記住的不是「814 → 0」，是**舊護欄全部變成假綠**：
+   `text-[9px]` 與 `text-[10px]`／`text-[11px]` 這三條都是**字面字串比對**，
+   改寫成令牌之後它們掃不到任何東西，於是**全部繼續綠燈**。
+   換語法＝換掉護欄的視野，而它不會告訴你。下面三條因此改成：
+   ① 掃「任意值語法」而不是特定字面值；② 斷言令牌的**地板**；③ 反向控制令牌真的在用。
+   ──────────────────────────────────────────────────────────────── */
+
+// H33：任意字級語法歸零（硬零）。掃的是 `text-[Npx]` 這個**形狀**，不是某個值。
+const arbFont = (allSrc.match(/text-\[\d+px\]/g) || []).length;
+check(
+  'H33 全站零任意字級（一律走型階梯令牌）',
+  arbFont === 0,
+  arbFont === 0 ? '0 處／9 級令牌' : `${arbFont} 處：${[...new Set(allSrc.match(/text-\[\d+px\]/g))].join('、')}`
+);
+
+// H33-a：型階梯的**地板**是 10px。這條取代舊的「9px 不得用於中文」與
+// 「資料層中文的那幾支檔案不得再出現 9px」——那兩條的對象（9px 這個階級）
+// 已經不存在了。不是規則被取消，是它守的東西被消滅了；
+// 但「地板」本身要有人守，否則下一個人會發明 t8。
+const scaleSrc = stripComments(read('tailwind.config.js'));
+const scaleBlock = scaleSrc.slice(scaleSrc.indexOf('fontSize: {'), scaleSrc.indexOf('},', scaleSrc.indexOf('fontSize: {')));
+const scaleDefs = [...scaleBlock.matchAll(/(t\d+):\s*\['(\d+)px'/g)].map((m) => ({ token: m[1], px: Number(m[2]) }));
+const floorPx = Math.min(...scaleDefs.map((d) => d.px));
+check(
+  'H33-a 型階梯地板是 10px（不得再往下發明）',
+  scaleDefs.length >= 9 && floorPx === 10,
+  `${scaleDefs.length} 級，地板 ${floorPx}px（${scaleDefs.map((d) => `${d.token}=${d.px}`).join('／')}）`
+);
+
+// H33-b：反向控制——微字階**真的還在使用**。
+// 沒有這一條，「把 t10／t11 全部抬到 t12」也會讓 H33 綠燈，
+// 而那正是這輪刻意**不做**的事（會擠壞 54px 寬的格子）。
+const t10Uses = count(allSrc, 'text-t10');
+const t11Uses = count(allSrc, 'text-t11');
+check(
+  'H33-b 微字階仍在服役（反向控制）',
+  t10Uses >= 300 && t11Uses >= 300,
+  `t10 ${t10Uses} 處／t11 ${t11Uses} 處（下限各 300）`
+);
+
 /**
- * 9px 不得用於中文（第六輪）。
+ * 9px 這個階級已經消失（第六輪立的兩條護欄在此退役）。
  *
- * 為什麼要單獨一條：`text-[9px]` 的**數量**天花板擋不住「9px 用在中文上」——
- * 只要有人把一個拉丁晶片改成中文、或新增一個 9px 中文標籤，總數可能還在天花板之下。
- * 而 9px 中文在 12px 的階梯地板之外，是**真的看不清楚**（CJK 沒有 x-height 可以借）。
+ * 為什麼退役而不是改寫：那兩條守的是「9px 用在中文上」與「資料層中文的那幾支檔案」。
+ * 9px 收斂到 t10 之後，前者沒有對象；後者的盲點（`{term.label}` 的中文在資料層）
+ * 依然存在，但現在由 H33-a 的「地板 10px」全域守住——任何低於 10px 的階級都過不了，
+ * 不需要逐檔列名。
  *
- * 判準與預算相同：看該行與接下來兩行（JSX 的 className 與它顯示的字通常不同行）。
+ * 這一條留著，是為了讓「為什麼這裡少兩條護欄」有答案，而不是讓人以為被刪掉了。
  */
 const CJK_9 = /[\u4e00-\u9fff]/;
 // 逐行去掉「同一行內」的註解：`{/* … */}` 與 `/* … */`。
 // 不做全域 stripComments，因為它會把跨行區塊註解壓成一個空白、行號就對不上了。
 const stripInlineComments = (s) => s.replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
-const nineCjk = [];
-for (const f of walk(path.join(ROOT, 'src')).filter((p) => p.endsWith('.jsx'))) {
-  const lines = fs.readFileSync(f, 'utf8').split('\n').map(stripInlineComments);
-  lines.forEach((line, i) => {
-    if (!line.includes('text-[9px]')) return;
-    if (!CJK_9.test(`${line}\n${lines[i + 1] ?? ''}\n${lines[i + 2] ?? ''}`)) return;
-    nineCjk.push(`${path.relative(ROOT, f)}:${i + 1}`);
-  });
-}
-check('9px 不得用於中文（型階梯地板是 12px）', nineCjk.length === 0, nineCjk.join('、') || '0 處');
-
-/**
- * 上面那條規則有一個**它自己承認不了的盲點**：`{term.label}` 這種寫法，
- * 中文在資料層，原始碼裡一個中文字都沒有——掃描永遠說「0 處」，而畫面上確實是 9px 中文。
- *
- * 這四支檔案在第六輪逐條人工判定過：**它們的 9px 全部是中文**（標籤或整句說明）。
- * 所以對這四支改用「整檔零 9px」——比逐條列字串耐改動，也比字串比對誠實。
- */
-const NINE_FREE = [
-  'src/features/character-sheet/components/StatFormulaPanel.jsx',
-  'src/features/character-sheet/components/EquipmentSlotCard.jsx',
-  'src/features/character-sheet/components/CharacterLogModal.jsx',
-  'src/features/character-sheet/components/companions/TinkererWorkshop.jsx',
-  // 第七輪加入：`CombatantCard` 的狀態異常晶片副標是 `STATUS_EFFECTS[].desc`，
-  // **中文在資料層**（「靈巧·洞察降階·限普攻」），原始碼裡一個中文字都沒有——
-  // 所以第六輪「剩下的 13 處 9px 全是拉丁晶片」這個結論對這一處是錯的，
-  // 掃描永遠說 0 處，只有截圖看得到（`scratch/ui-audit/shot_combat.mjs`）。
-  // 現在標籤與說明都是 12px，靠 `font-bold` 與 `opacity-80` 分層；不准再回到 9px。
-  'src/features/combat-tracker/components/CombatantCard.jsx',
-];
-const stillNine = NINE_FREE.filter((rel) => {
-  const abs = path.join(ROOT, rel);
-  return fs.existsSync(abs) && fs.readFileSync(abs, 'utf8').includes('text-[9px]');
-});
-check('資料層中文的那幾支檔案不得再出現 9px', stillNine.length === 0, stillNine.join('、') || '0 檔');
+const retiredNine = (allSrc.match(/text-\[[0-9]px\]/g) || []).length;
+check(
+  'H33-c 小於 10px 的任意字級不得回歸（退役的 9px 護欄的替代）',
+  retiredNine === 0,
+  retiredNine === 0 ? '0 處' : `${retiredNine} 處`
+);
 
 /**
  * 第七輪：**句子**不得低於 12px（比 9px 那條更寬的網）。
@@ -772,7 +798,9 @@ const sentencesLow = [];
 for (const f of walk(path.join(ROOT, 'src')).filter((p) => p.endsWith('.jsx'))) {
   const lines = fs.readFileSync(f, 'utf8').split('\n').map(stripInlineComments);
   lines.forEach((line, i) => {
-    if (!/text-\[(?:10|11)px\]/.test(line)) return;
+    // 第三十五輪：這條原本比對 `text-[10px]`／`text-[11px]` 的字面值。
+    // 改成令牌之後**它會靜默掃不到任何東西**（假綠），所以改掃令牌。
+    if (!/text-t(?:10|11)\b/.test(line)) return;
     if (!/<p[\s>]/.test(line)) return;
     if (!CJK_9.test(`${line}\n${lines[i + 1] ?? ''}\n${lines[i + 2] ?? ''}`)) return;
     sentencesLow.push(`${path.relative(ROOT, f)}:${i + 1}`);
@@ -943,7 +971,7 @@ check(
 //   2. 身份色**必須兩兩不同**（一對一，否則「選哪個都一樣」）。
 const THEME_IDS = Object.keys(CHARACTER_THEMES);
 const SURFACE_KEYS = [
-  'appBg', 'sheetBg', 'cardBg', 'panelBg', 'subpanelBg', 'headerBg',
+  'appBg', 'sheetBg', 'cardBg', 'panelBg', 'subpanelBg', 'headerBg', 'exportBg',
   'border', 'cardBorder', 'cardBorderHover', 'textDark', 'textMuted', 'chipBg',
 ];
 const surfaceDrift = SURFACE_KEYS
@@ -3097,10 +3125,12 @@ for (const abs of walkSrc(path.join(ROOT, 'src'))) {
 const h31Unreg = [...h31Map.entries()].filter(([h]) => !REGISTERED_HEX.has(h));
 const h31UnregTotal = h31Unreg.reduce((s, x) => s + x[1].n, 0);
 
-// H31：預算（只減不增）。形狀選「預算」而不是「硬零」，因為還有 340 次
-// 未登記的 hex 分佈在書頁棕、工坊六套紙、一次性色碼裡——那些要逐項裁決，
+// H31：預算（只減不增）。形狀選「預算」而不是「硬零」，因為還有 283 次
+// 未登記的 hex 分佈在書頁棕、一次性色碼裡——那些要逐項裁決，
 // 不是機械替換。預算擋的是「繼續增加」，不是「一次清零」。
-const H31_BUDGET = 340;
+// 第三十五輪：340 → 283。`workshopThemes` 的 58 個 hex 隨投影一起消失
+// （29 個是它獨有的、從未在其他檔案出現過的顏色）。
+const H31_BUDGET = 283;
 check(
   `H31 全站未登記 hex 只減不增（預算 ${H31_BUDGET}）`,
   h31UnregTotal <= H31_BUDGET,
@@ -3218,6 +3248,81 @@ check(
   'H31-c 全站零「近似漂移」未登記 hex（Δ≤12 且色相接近）',
   h31Drift.length === 0,
   h31Drift.length ? `${h31Drift.length} 個：${h31Drift.slice(0, 4).join('、')}` : `0 個／${REGISTERED_HEX.size} 個登記色`
+);
+
+/* ────────────────────────────────────────────────────────────────
+   H32 家族：NPC 工坊的第二套紙系統（2026-10-24 第三十五輪 §CI43）
+   ────────────────────────────────────────────────────────────────
+
+   背景：`workshopThemes.js` 原本是**六套完整顏色系統**（每主題 15 欄位），
+   而其中四個身份色與 `characterThemes` 一字不差——同一份身份表被抄了兩份，
+   另外附上一份多出來的紙（藍主題的卡片是藍灰紙，周圍工坊是奶油紙）。
+
+   判準沿用 H7：**面不是身份，墨不是身份；身份是 accent。**
+   修法不是「把第二套紙收斂」，是**投影**：紙與身份都從 `CHARACTER_THEMES` 取，
+   所以兩張表在定義上不可能不同。
+
+   ⚠️ 這裡刻意**不用**「比對字串」的形狀（例如斷言某個 hex 出現幾次）：
+   那種護欄只能證明「我上次寫的值還在」，不能證明「兩張表沒有分家」。
+   下面四條全部比對**兩個物件的關係**。
+   ──────────────────────────────────────────────────────────────── */
+
+const WORKSHOP_THEMES_SRC = 'src/features/npc-workshop/data/workshopThemes.js';
+const workshopProjectionSrc = stripComments(read(WORKSHOP_THEMES_SRC));
+
+// H32：投影檔本身零 hex（硬零）。
+// 有 hex 就代表有人在裡面「就地改了一個顏色」——那正是漂移的起點。
+const workshopHexes = [...new Set(workshopProjectionSrc.match(/#[0-9a-fA-F]{6}\b/g) || [])];
+check(
+  'H32 NPC 工坊主題表零 hex（紙與身份都來自 characterThemes）',
+  workshopHexes.length === 0,
+  workshopHexes.length ? `出現 ${workshopHexes.length} 個：${workshopHexes.slice(0, 5).join('、')}` : '0 個（純投影）'
+);
+
+// H32-a：六個鍵的身份色與 `CHARACTER_THEMES` 逐項相同（一對一，不是「數量對」）。
+const WORKSHOP_IDS = Object.keys(THEMES_WORKSHOP);
+const workshopIdentityDrift = WORKSHOP_IDS.filter(
+  (id) => !CHARACTER_THEMES[id] || THEMES_WORKSHOP[id].accent !== CHARACTER_THEMES[id].accent || THEMES_WORKSHOP[id].accentDark !== CHARACTER_THEMES[id].accentDark
+);
+check(
+  'H32-a NPC 卡片六個身份色與角色卡逐項相同（不是抄一份）',
+  WORKSHOP_IDS.length === 6 && workshopIdentityDrift.length === 0,
+  workshopIdentityDrift.length
+    ? `${workshopIdentityDrift.join('、')} 分家了`
+    : `${WORKSHOP_IDS.length} 個鍵全部對得上`
+);
+
+// H32-b：六個紙欄位與 `CHARACTER_THEMES` 相同——**同一本書只有一張紙**。
+const WORKSHOP_PAPER_KEYS = ['cardBg', 'sheetBg', 'subpanelBg', 'exportBg', 'border', 'textDark'];
+const workshopPaperDrift = [];
+for (const id of WORKSHOP_IDS) {
+  for (const k of WORKSHOP_PAPER_KEYS) {
+    if (THEMES_WORKSHOP[id][k] !== CHARACTER_THEMES[id][k]) workshopPaperDrift.push(`${id}.${k}`);
+  }
+}
+check(
+  'H32-b NPC 卡片的紙與角色卡是同一張（面不是身份）',
+  workshopPaperDrift.length === 0,
+  workshopPaperDrift.length ? `${workshopPaperDrift.length} 處不同：${workshopPaperDrift.slice(0, 4).join('、')}` : `${WORKSHOP_IDS.length}×${WORKSHOP_PAPER_KEYS.length} 欄全部一致`
+);
+
+// H32-c：反向控制——六個鍵一個都不能少，而且每個都要有名字。
+// 「收斂」最容易發生的意外是把選項也收掉了：畫面上只剩一個色票，功能就消失了。
+const workshopMissing = WORKSHOP_IDS.filter((id) => !THEMES_WORKSHOP[id].name || !THEMES_WORKSHOP[id].accent);
+check(
+  'H32-c 六個卡片風格仍在、且都有名字（反向控制）',
+  WORKSHOP_IDS.length === 6 && workshopMissing.length === 0,
+  workshopMissing.length ? `缺 ${workshopMissing.join('、')}` : `${WORKSHOP_IDS.length} 個：${WORKSHOP_IDS.map((id) => THEMES_WORKSHOP[id].name).join('／')}`
+);
+
+// H32-d：`NPCWorkshop` 讀的每一個欄位都必須被投影出來。
+// 少投影一個欄位 → 畫面上一塊 `undefined` 色的空白，而所有顏色護欄都不會紅。
+const WORKSHOP_USED_KEYS = ['accent', 'accentDark', 'border', 'subpanelBg', 'textDark', 'sheetBg', 'cardBg', 'exportBg', 'name', 'id'];
+const workshopMissingKeys = WORKSHOP_USED_KEYS.filter((k) => THEMES_WORKSHOP[WORKSHOP_IDS[0]][k] === undefined);
+check(
+  'H32-d 工坊會讀的欄位全部投影出來了（不缺欄位）',
+  workshopMissingKeys.length === 0,
+  workshopMissingKeys.length ? `缺 ${workshopMissingKeys.join('、')}（會渲染成 undefined 色）` : `${WORKSHOP_USED_KEYS.length} 個欄位齊備`
 );
 
 const failed = results.filter((r) => !r.ok);

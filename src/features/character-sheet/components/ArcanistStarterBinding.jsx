@@ -60,7 +60,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
         <h4 className="text-sm font-bold text-[#3c2415] flex items-center gap-2">
           <GiSparkles className="text-[#6b5a4b]" />
           <span>開局自選阿爾卡納</span>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
+          <span className="text-t10 font-mono px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
             已選 {boundIds.length} / {quota}
           </span>
         </h4>
@@ -69,7 +69,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
             type="button"
             onClick={() => writeBound('')}
             disabled={locked}
-            className={`text-[11px] px-2 py-0.5 rounded border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] ${
+            className={`text-t11 px-2 py-0.5 rounded border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] ${
               locked ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
@@ -101,7 +101,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
               } ${locked ? 'opacity-70' : ''}`}
             >
               <label
-                className={`flex items-start gap-2 text-[11px] ${
+                className={`flex items-start gap-2 text-t11 ${
                   locked ? 'cursor-not-allowed' : 'cursor-pointer'
                 }`}
               >
@@ -117,7 +117,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
                   <span className="flex items-baseline justify-between gap-2">
                     <span className="font-bold text-[#2c221e]">{arcana.name}</span>
                     {arcana.pulse && (
-                      <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
+                      <span className="shrink-0 text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
                         脈衝
                       </span>
                     )}
@@ -127,7 +127,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
               </label>
 
               {preview && (
-                <p className="mt-1 pl-6 text-[11px] leading-relaxed text-[#3c2415] line-clamp-3">
+                <p className="mt-1 pl-6 text-t11 leading-relaxed text-[#3c2415] line-clamp-3">
                   <span className="font-bold text-[#3c2415]">{preview.label}：</span>
                   {renderTextWithAffinities(preview.text)}
                 </p>
@@ -142,12 +142,12 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
           className="rounded-lg border border-[#d6c7ab] bg-white p-3 space-y-1"
           data-testid="arcanist-starter-detail"
         >
-          <div className="text-[11px] font-bold text-[#3c2415] flex items-center gap-2 flex-wrap">
+          <div className="text-t11 font-bold text-[#3c2415] flex items-center gap-2 flex-wrap">
             <span>已選：{selectedArcana.name}</span>
-            <span className="text-[10px] font-normal text-[#6b5a4b]">領域：{selectedArcana.domains}</span>
+            <span className="text-t10 font-normal text-[#6b5a4b]">領域：{selectedArcana.domains}</span>
           </div>
           {buildArcanaEffectSections(selectedArcana, { variant }).map((section) => (
-            <p key={section.key} className="text-[11px] leading-relaxed text-[#3c2415]">
+            <p key={section.key} className="text-t11 leading-relaxed text-[#3c2415]">
               <span className="font-bold text-[#3c2415]">{section.label}：</span>
               {renderTextWithAffinities(section.text)}
             </p>

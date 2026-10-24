@@ -54,11 +54,11 @@ function ActivityChip({ activity, active, theme, onClick }) {
         <span className="font-serif font-black text-xs">
           {active ? '✓ ' : ''}{activity.name}
         </span>
-        <span className="text-[10px] shrink-0" style={{ color: theme.textMuted }}>
+        <span className="text-t10 shrink-0" style={{ color: theme.textMuted }}>
           {campActivityTargetLabel(activity)}
         </span>
       </span>
-      <span className="block text-[10px] leading-tight" style={{ color: theme.textMuted }}>
+      <span className="block text-t10 leading-tight" style={{ color: theme.textMuted }}>
         {activity.summary}
       </span>
     </button>
@@ -77,7 +77,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
           <span className="font-serif font-black text-sm" style={{ color: theme.textDark }}>
             {activity.name}
           </span>
-          <span className="text-[10px] ml-1.5" style={{ color: theme.textMuted }}>
+          <span className="text-t10 ml-1.5" style={{ color: theme.textMuted }}>
             {campActivityTargetLabel(activity)}・{activity.page}
           </span>
         </span>
@@ -86,7 +86,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
             <button
               type="button"
               onClick={onToggleUsed}
-              className="text-[11px] px-2 py-0.5 rounded-md border cursor-pointer"
+              className="text-t11 px-2 py-0.5 rounded-md border cursor-pointer"
               style={{
                 backgroundColor: used ? (theme.accentSoft || theme.cardBg) : theme.cardBg,
                 borderColor: used ? theme.accent : theme.border,
@@ -100,7 +100,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
             <button
               type="button"
               onClick={onRemove}
-              className="text-[11px] cursor-pointer"
+              className="text-t11 cursor-pointer"
               style={{ color: theme.textMuted }}
             >
               移除
@@ -109,7 +109,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
         </span>
       </div>
 
-      <p className="text-[11px] leading-relaxed" style={{ color: theme.textDark }}>
+      <p className="text-t11 leading-relaxed" style={{ color: theme.textDark }}>
         {activity.desc}
       </p>
 
@@ -118,12 +118,12 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
           {activity.table.map((row) => (
             <div key={row.roll} className="flex items-start gap-1.5">
               <span
-                className="text-[10px] font-mono font-bold shrink-0 px-1 rounded border"
+                className="text-t10 font-mono font-bold shrink-0 px-1 rounded border"
                 style={{ borderColor: theme.border, color: theme.textMuted, backgroundColor: theme.cardBg }}
               >
                 {row.roll}
               </span>
-              <span className="text-[11px] leading-relaxed" style={{ color: theme.textDark }}>
+              <span className="text-t11 leading-relaxed" style={{ color: theme.textDark }}>
                 {row.text}
               </span>
             </div>
@@ -179,7 +179,7 @@ export default function CampActivitiesBlock({
             <GiCampfire className="w-4 h-4" style={{ color: theme.accent }} />
             營地活動
           </span>
-          <span className="text-[10px]" style={{ color: theme.textMuted }}>{CAMP_ACTIVITY_SOURCE}</span>
+          <span className="text-t10" style={{ color: theme.textMuted }}>{CAMP_ACTIVITY_SOURCE}</span>
         </div>
 
         {picked.length === 0 ? (
@@ -207,7 +207,7 @@ export default function CampActivitiesBlock({
               type="button"
               onClick={() => commit(resetCampActivityUses(state))}
               disabled={state.used.length === 0}
-              className="text-[11px] px-2.5 py-1 rounded-lg border cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+              className="text-t11 px-2.5 py-1 rounded-lg border cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
               style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
             >
               下一次休息（清空已使用）
@@ -226,7 +226,7 @@ export default function CampActivitiesBlock({
           <GiCampfire className="w-4 h-4" style={{ color: theme.accent }} />
           營地活動
         </label>
-        <span className="text-[10px]" style={{ color: theme.textMuted }}>
+        <span className="text-t10" style={{ color: theme.textMuted }}>
           已選 {state.picked.length}／{allowance} 種・{CAMP_ACTIVITY_SOURCE}
         </span>
       </div>

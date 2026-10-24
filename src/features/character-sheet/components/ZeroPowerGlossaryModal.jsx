@@ -84,7 +84,7 @@ export function ZeroPowerGlossaryBody({
               建角時各選一個。命刻填滿後，在衝突場景中執行技能動作施展，施展完命刻清空。
             </p>
           </div>
-          <span className="text-[10px] whitespace-nowrap" style={{ color: textMuted }}>
+          <span className="text-t10 whitespace-nowrap" style={{ color: textMuted }}>
             {ZERO_POWER_SOURCE}
           </span>
         </div>
@@ -130,20 +130,20 @@ export function ZeroPowerGlossaryBody({
                   {item.name}
                 </span>
                 <span
-                  className="text-[10px] px-1.5 py-0.5 rounded-full border font-bold"
+                  className="text-t10 px-1.5 py-0.5 rounded-full border font-bold"
                   style={{ borderColor: border, color: textMuted, backgroundColor: panelBg }}
                 >
                   {showTriggers ? zeroTriggerFillLabel(item) : '底力效果'}
                 </span>
               </div>
-              <p className="text-[11px] leading-relaxed" style={{ color: textMuted }}>
+              <p className="text-t11 leading-relaxed" style={{ color: textMuted }}>
                 {renderTextWithAffinities(item.desc)}
               </p>
               {typeof onPick === 'function' ? (
                 <button
                   type="button"
                   onClick={() => onPick(item.id)}
-                  className="text-[11px] px-2 py-0.5 rounded border cursor-pointer font-bold"
+                  className="text-t11 px-2 py-0.5 rounded border cursor-pointer font-bold"
                   style={{
                     borderColor: isPicked ? accent : border,
                     backgroundColor: isPicked ? accent : cardBg,

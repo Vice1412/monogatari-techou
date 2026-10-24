@@ -170,12 +170,12 @@ export default function DiceRollerModal({
             {/* Dice Values */}
             <div className="flex items-center gap-4 my-1">
               <div className="w-14 h-14 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
-                <span className="text-[10px] text-[#7c6a58]">d{die1Type}</span>
+                <span className="text-t10 text-[#7c6a58]">d{die1Type}</span>
                 <span className="text-2xl font-bold text-[#2c221e]">{rollResult.die1}</span>
               </div>
               <span className="text-[#7c6a58] font-mono text-xl font-bold">+</span>
               <div className="w-14 h-14 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
-                <span className="text-[10px] text-[#7c6a58]">d{die2Type}</span>
+                <span className="text-t10 text-[#7c6a58]">d{die2Type}</span>
                 <span className="text-2xl font-bold text-[#2c221e]">{rollResult.die2}</span>
               </div>
               {rollResult.modifier !== 0 && (

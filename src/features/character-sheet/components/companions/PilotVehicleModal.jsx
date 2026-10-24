@@ -252,7 +252,7 @@ export default function PilotVehicleModal({
                 <h2 className="text-base font-bold text-[#2c221e]">
                   個人載具工程機庫
                 </h2>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#27527a] border border-[#27527a]">
+                <span className="text-t11 font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#27527a] border border-[#27527a]">
                   機師 SL {pilotSl}
                 </span>
               </div>
@@ -290,7 +290,7 @@ export default function PilotVehicleModal({
               <span className={`font-mono font-bold ${ formData.unlockedModules.length > unlockedQuota ? 'text-[#8c2d36]' : formData.unlockedModules.length === unlockedQuota ? 'text-[#245c45] ' : 'text-[#9c4d16] ' }`}>
                 {formData.unlockedModules.length} / {unlockedQuota} 種
               </span>
-              <span className="text-[10px] text-[#7c6a58]">
+              <span className="text-t10 text-[#7c6a58]">
                 （尚可解鎖 {Math.max(0, unlockedQuota - formData.unlockedModules.length)} 種）
               </span>
             </div>
@@ -301,7 +301,7 @@ export default function PilotVehicleModal({
               <span className={`font-mono font-bold ${ activeSlotsCost > activeCapacity ? 'text-[#8c2d36]' : activeSlotsCost === activeCapacity ? 'text-[#245c45] ' : 'text-[#27527a] ' }`}>
                 {activeSlotsCost} / {activeCapacity} 槽
               </span>
-              <span className="text-[10px] text-[#7c6a58]">
+              <span className="text-t10 text-[#7c6a58]">
                 （剩餘 {Math.max(0, activeCapacity - activeSlotsCost)} 槽）
               </span>
             </div>
@@ -352,7 +352,7 @@ export default function PilotVehicleModal({
                 <GiRobotLeg className="text-[#27527a]" />
                 <span>1. 選擇載具框架</span>
               </h3>
-              <span className="text-[11px] text-[#7c6a58]">框架決定載具移動距離、武裝槽位與專屬機制</span>
+              <span className="text-t11 text-[#7c6a58]">框架決定載具移動距離、武裝槽位與專屬機制</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -376,7 +376,7 @@ export default function PilotVehicleModal({
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] font-mono text-[#6b5a4b] space-x-2">
+                      <div className="text-t11 font-mono text-[#6b5a4b] space-x-2">
                         <span>乘客：{f.passengers} 名</span>
                         <span>距離：{f.distanceModifier}</span>
                         <span>武裝：至多 {f.maxWeapons} 個</span>
@@ -444,16 +444,16 @@ export default function PilotVehicleModal({
                             <strong className="text-xs font-bold text-[#2c221e]">
                               {w.name}
                             </strong>
-                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b]">
+                            <span className="text-t10 font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b]">
                               {w.category} · {w.range === 'melee' ? '近戰' : '遠程'}
                             </span>
                             {w.isBulky && (
-                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#9c4d16]">
+                              <span className="text-t10 font-bold px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#9c4d16]">
                                 雙手佔槽
                               </span>
                             )}
                           </div>
-                          <div className="text-[11px] font-mono text-[#27527a] mt-1">
+                          <div className="text-t11 font-mono text-[#27527a] mt-1">
                             {w.damage ? (
                               <span>
                                 檢定：【{w.attr1} + {w.attr2}】{w.modifier > 0 ? `+${w.modifier}` : ''} | 傷害：{renderTextWithAffinities(w.damage)}
@@ -467,7 +467,7 @@ export default function PilotVehicleModal({
                         {/* 操作按鈕組 */}
                         <div className="flex items-center gap-2 shrink-0">
                           {/* 解鎖核取方塊 */}
-                          <label className="flex items-center gap-1 text-[11px] cursor-pointer">
+                          <label className="flex items-center gap-1 text-t11 cursor-pointer">
                             <input
                               type="checkbox"
                               checked={isUnlocked}
@@ -482,7 +482,7 @@ export default function PilotVehicleModal({
                             type="button"
                             disabled={!isUnlocked || isRestricted}
                             onClick={() => handleToggleActive(w.id)}
-                            className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked && !isRestricted ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
+                            className={`px-2.5 py-1 rounded-md text-t11 font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked && !isRestricted ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
                           >
                             {isActive ? '已啟用' : '啟用'}
                           </button>
@@ -491,7 +491,7 @@ export default function PilotVehicleModal({
 
                       {/* 特殊規則 */}
                       {w.specialRule !== '無' && (
-                        <p className="text-[11px] text-[#6b5a4b] border-t border-[#d6c7ab] pt-1 leading-relaxed">
+                        <p className="text-t11 text-[#6b5a4b] border-t border-[#d6c7ab] pt-1 leading-relaxed">
                           {renderTextWithAffinities(w.specialRule)}
                         </p>
                       )}
@@ -524,7 +524,7 @@ export default function PilotVehicleModal({
 
                       {/* 操作按鈕組 */}
                       <div className="flex items-center gap-2 shrink-0">
-                        <label className="flex items-center gap-1 text-[11px] cursor-pointer">
+                        <label className="flex items-center gap-1 text-t11 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={isUnlocked}
@@ -538,7 +538,7 @@ export default function PilotVehicleModal({
                           type="button"
                           disabled={!isUnlocked}
                           onClick={() => handleToggleActive(a.id)}
-                          className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
+                          className={`px-2.5 py-1 rounded-md text-t11 font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
                         >
                           {isActive ? '已啟用' : '啟用'}
                         </button>
@@ -569,12 +569,12 @@ export default function PilotVehicleModal({
                               {s.name}
                             </strong>
                             {s.slotsCost > 1 && (
-                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#9c4d16]">
+                              <span className="text-t10 font-bold px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#9c4d16]">
                                 佔 {s.slotsCost} 槽
                               </span>
                             )}
                             {s.frameRestrictions && (
-                              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b]">
+                              <span className="text-t10 font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b]">
                                 僅限 {s.frameRestrictions.map(fid => findFrameById(fid).name).join('/')}
                               </span>
                             )}
@@ -583,7 +583,7 @@ export default function PilotVehicleModal({
 
                         {/* 操作按鈕組 */}
                         <div className="flex items-center gap-2 shrink-0">
-                          <label className="flex items-center gap-1 text-[11px] cursor-pointer">
+                          <label className="flex items-center gap-1 text-t11 cursor-pointer">
                             <input
                               type="checkbox"
                               checked={isUnlocked}
@@ -597,7 +597,7 @@ export default function PilotVehicleModal({
                             type="button"
                             disabled={!isUnlocked || isRestricted}
                             onClick={() => handleToggleActive(s.id)}
-                            className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked && !isRestricted ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
+                            className={`px-2.5 py-1 rounded-md text-t11 font-bold transition ${ isActive ? 'bg-[#27527a] text-white' : isUnlocked && !isRestricted ? 'bg-[#e8dcc4] text-[#3c2415] hover:bg-[#d6c7ab]' : 'bg-[#f4ebd9] text-[#7c6a58] cursor-not-allowed' }`}
                           >
                             {isActive ? '已啟用' : '啟用'}
                           </button>
@@ -643,7 +643,7 @@ export default function PilotVehicleModal({
                         </div>
                       )}
 
-                      <p className="text-[11px] text-[#6b5a4b] border-t border-[#d6c7ab] pt-1 leading-relaxed">
+                      <p className="text-t11 text-[#6b5a4b] border-t border-[#d6c7ab] pt-1 leading-relaxed">
                         {renderTextWithAffinities(s.description)}
                       </p>
                     </div>

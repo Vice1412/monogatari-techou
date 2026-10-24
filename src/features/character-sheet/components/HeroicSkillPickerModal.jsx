@@ -147,7 +147,7 @@ export function HeroicSkillPickerBody({
         </div>
 
         <div
-          className="flex items-center justify-between gap-2 flex-wrap text-[11px]"
+          className="flex items-center justify-between gap-2 flex-wrap text-t11"
           style={{ color: theme.textMuted || '#78716c' }}
         >
           <span>
@@ -187,7 +187,7 @@ export function HeroicSkillPickerBody({
                 <td className="px-3 py-2 font-bold" style={{ color: theme.textDark || '#3c2415' }}>
                   {h.name}
                   {owned > 0 && (
-                    <span className="ml-1.5 text-[10px] font-normal" style={{ color: theme.accent || '#a63d40' }}>
+                    <span className="ml-1.5 text-t10 font-normal" style={{ color: theme.accent || '#a63d40' }}>
                       已持有 {owned}{max > 1 ? `/${max}` : ''}
                     </span>
                   )}
@@ -209,7 +209,7 @@ export function HeroicSkillPickerBody({
                     type="button"
                     disabled={!canPick}
                     onClick={() => onPick(h)}
-                    className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1"
+                    className="text-t11 font-bold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1"
                     style={{
                       backgroundColor: canPick ? (theme.accent || '#a63d40') : (theme.cardBg || '#fffdf9'),
                       borderColor: theme.border || '#d6c7ab',
@@ -219,7 +219,7 @@ export function HeroicSkillPickerBody({
                     {canPick ? <><GiCheckMark className="w-3 h-3" />選用</> : '不可選'}
                   </button>
                   {reason && (
-                    <div className="text-[10px] mt-1 leading-snug" style={{ color: theme.textMuted || '#78716c' }}>
+                    <div className="text-t10 mt-1 leading-snug" style={{ color: theme.textMuted || '#78716c' }}>
                       {reason}
                     </div>
                   )}
@@ -231,7 +231,7 @@ export function HeroicSkillPickerBody({
       </div>
 
       <div className="shrink-0 flex items-center justify-between gap-3 pt-2">
-        <span className="text-[11px] flex items-center gap-1.5" style={{ color: theme.textMuted || '#78716c' }}>
+        <span className="text-t11 flex items-center gap-1.5" style={{ color: theme.textMuted || '#78716c' }}>
           <GiLaurelCrown className="w-3.5 h-3.5" />
           出處與條件以官方規則書／Playtest 為準；繁中譯名取自角色卡 Excel V2.17。
         </span>

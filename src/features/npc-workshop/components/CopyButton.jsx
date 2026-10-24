@@ -24,7 +24,7 @@ const CopyButton = ({ text }) => {
   return (
     <button onClick={handleCopy} className="ml-auto text-[#6b5a4b] hover:text-[#2c221e] transition-colors flex items-center gap-1 bg-[#f4ebd9] px-2 py-0.5 rounded border border-[#d6c7ab] hover:border-[#3c2415] hide-on-export" title="複製為 Markdown">
       {copied ? <CheckCircle2 size={14} className="text-[#6b5a4b]" /> : <Copy size={14} />}
-      {copied ? <span className="text-[10px] text-[#3c2415]">已複製</span> : <span className="text-[10px]">複製文本</span>}
+      {copied ? <span className="text-t10 text-[#3c2415]">已複製</span> : <span className="text-t10">複製文本</span>}
     </button>
   );
 };

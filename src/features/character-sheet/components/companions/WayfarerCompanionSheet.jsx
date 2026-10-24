@@ -91,7 +91,7 @@ export default function WayfarerCompanionSheet({
           <div>
             <h3 className="text-sm font-bold text-[#2c221e] flex items-center gap-2">
               <span>{comp.name || '忠實夥伴'}</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
+              <span className="text-t10 font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
                 5 級 {comp.species || '野獸'} · SL {companionSL}
               </span>
             </h3>
@@ -120,7 +120,7 @@ export default function WayfarerCompanionSheet({
               {currentHp} / {maxHp}
             </span>
             {isCrisis && (
-              <span className="px-1.5 py-0.5 rounded font-bold text-[10px] bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 flex items-center gap-1">
+              <span className="px-1.5 py-0.5 rounded font-bold text-t10 bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50 flex items-center gap-1">
                 <GiHazardSign className="text-xs" />
                 <span>危機 (≤{crisisHp})</span>
               </span>
@@ -177,7 +177,7 @@ export default function WayfarerCompanionSheet({
             style={{ width: `${Math.min(100, Math.max(0, (currentHp / maxHp) * 100))}%` }}
           />
         </div>
-        <div className="text-[10px] font-mono text-[#7c6a58] flex justify-between">
+        <div className="text-t10 font-mono text-[#7c6a58] flex justify-between">
           <span>公式：(SL {companionSL} × MIG d{migDie}) + 等級({charLevel})/2 = {maxHp}</span>
           <span>防禦：DEF d{dexDie} | M.DEF d{insDie}</span>
         </div>
@@ -186,19 +186,19 @@ export default function WayfarerCompanionSheet({
       {/* 四維屬性骰展示 */}
       <div className="grid grid-cols-4 gap-2">
         <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
-          <span className="text-[10px] text-[#7c6a58] block font-bold">DEX</span>
+          <span className="text-t10 text-[#7c6a58] block font-bold">DEX</span>
           <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.dex}`}>d{dexDie}</span>
         </div>
         <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
-          <span className="text-[10px] text-[#7c6a58] block font-bold">INS</span>
+          <span className="text-t10 text-[#7c6a58] block font-bold">INS</span>
           <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.ins}`}>d{insDie}</span>
         </div>
         <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
-          <span className="text-[10px] text-[#7c6a58] block font-bold">MIG</span>
+          <span className="text-t10 text-[#7c6a58] block font-bold">MIG</span>
           <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.mig}`}>d{migDie}</span>
         </div>
         <div className="p-2 rounded-lg bg-white border border-[#d6c7ab] text-center space-y-0.5">
-          <span className="text-[10px] text-[#7c6a58] block font-bold">WLP</span>
+          <span className="text-t10 text-[#7c6a58] block font-bold">WLP</span>
           <span className={`font-mono font-bold text-sm ${ATTRIBUTE_COLORS.wlp}`}>d{wlpDie}</span>
         </div>
       </div>
@@ -214,12 +214,12 @@ export default function WayfarerCompanionSheet({
             >
               <div className="flex items-center justify-between">
                 <strong className="text-[#2c221e] font-bold">{atk.name}</strong>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b]">
+                <span className="text-t10 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b]">
                   {atk.range === 'melee' || atk.type === 'melee' ? '近戰' : '遠程'}
                 </span>
               </div>
               <div className="flex items-center justify-between pt-1">
-                <span className="font-mono text-[11px] text-[#6b5a4b]">
+                <span className="font-mono text-t11 text-[#6b5a4b]">
                   【{atk.attr1} + {atk.attr2}】+{companionSL} | {renderTextWithAffinities(atk.damageText || atk.damage || '【HR + 5】物理')}
                 </span>
                 <button
@@ -232,7 +232,7 @@ export default function WayfarerCompanionSheet({
                 </button>
               </div>
               {atk.specialEffect && (
-                <p className="text-[10px] text-[#6b5a4b] border-t border-[#e8dcc4] pt-1 leading-relaxed">
+                <p className="text-t10 text-[#6b5a4b] border-t border-[#e8dcc4] pt-1 leading-relaxed">
                   {renderTextWithAffinities(atk.specialEffect)}
                 </p>
               )}
@@ -261,12 +261,12 @@ export default function WayfarerCompanionSheet({
                     </span>
                     <strong className="text-[#2c221e] font-bold">{sp.name || '未命名咒語'}</strong>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
+                  <span className="text-t10 font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
                     MP {sp.mp || 10} · {sp.target || '一個生物'} · {sp.duration || '瞬發'}
                   </span>
                 </div>
                 {sp.effect && (
-                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-[#e8dcc4] pt-1">
+                  <p className="text-t11 text-[#6b5a4b] leading-relaxed border-t border-[#e8dcc4] pt-1">
                     {renderTextWithAffinities(sp.effect)}
                   </p>
                 )}
@@ -294,12 +294,12 @@ export default function WayfarerCompanionSheet({
                     <span className="fu-icon text-sm font-bold text-[#3c2415]">s</span>
                     <strong className="text-[#2c221e] font-bold">{act.name || '未命名行動'}</strong>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f9f5eb] text-[#3c2415] border border-[#e8dcc4]">
+                  <span className="text-t10 font-mono px-2 py-0.5 rounded bg-[#f9f5eb] text-[#3c2415] border border-[#e8dcc4]">
                     行動
                   </span>
                 </div>
                 {act.effect && (
-                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-[#e8dcc4] pt-1">
+                  <p className="text-t11 text-[#6b5a4b] leading-relaxed border-t border-[#e8dcc4] pt-1">
                     {renderTextWithAffinities(act.effect)}
                   </p>
                 )}
@@ -324,12 +324,12 @@ export default function WayfarerCompanionSheet({
               >
                 <div className="flex items-center justify-between">
                   <strong className="text-[#2c221e] font-bold">{rule.name || '未命名規則'}</strong>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f9f5eb] text-[#3c2415] border border-[#d6c7ab]">
+                  <span className="text-t10 font-mono px-2 py-0.5 rounded bg-[#f9f5eb] text-[#3c2415] border border-[#d6c7ab]">
                     特殊規則
                   </span>
                 </div>
                 {rule.effect && (
-                  <p className="text-[11px] text-[#6b5a4b] leading-relaxed border-t border-[#e8dcc4] pt-1">
+                  <p className="text-t11 text-[#6b5a4b] leading-relaxed border-t border-[#e8dcc4] pt-1">
                     {renderTextWithAffinities(rule.effect)}
                   </p>
                 )}

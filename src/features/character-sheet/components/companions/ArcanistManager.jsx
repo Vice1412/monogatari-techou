@@ -229,7 +229,7 @@ export default function ArcanistManager({
           <div>
             <h3 className="text-sm font-bold text-[#9c4d16] flex items-center gap-2">
               <span>阿爾卡納契約法典與召喚面板</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#9c4d16] border border-[#9c4d16]">
+              <span className="text-t10 font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#9c4d16] border border-[#9c4d16]">
                 已契約: {boundArcanaIds.length} 種
               </span>
             </h3>
@@ -246,7 +246,7 @@ export default function ArcanistManager({
       </div>
 
       {/* 召喚費明細：把規則算給玩家看，而不是只在召喚中的卡片上寫一句「40 點」 */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] px-1">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-t11 px-1">
         <span className="font-mono font-bold text-[#27527a]">
           本次召喚消耗 {costInfo.cost} 點 MP
         </span>
@@ -283,7 +283,7 @@ export default function ArcanistManager({
 
       {/* 開局自選的額度提示：綁定和召喚在創角時就該選好一個（Core p.133） */}
       {boundArcanaIds.length === 0 && startingQuota > 0 && (
-        <div className="p-2.5 rounded-lg bg-[#f4ebd9]/70 border border-[#9c4d16] text-[11px] text-[#9c4d16]">
+        <div className="p-2.5 rounded-lg bg-[#f4ebd9]/70 border border-[#9c4d16] text-t11 text-[#9c4d16]">
           尚未綁定任何阿爾卡納。【綁定和召喚】讓你在開始遊戲前自選 {startingQuota} 個——
           勾選下方清單中的一項即可完成開局綁定，之後只能透過探索與故事推進取得新的阿爾卡納。
         </div>
@@ -300,10 +300,10 @@ export default function ArcanistManager({
               <span className="font-bold text-sm tracking-wide text-[#27527a]">
                 當前召喚中：{activeArcana.name}
               </span>
-              <span className="text-[11px] text-[#6b5a4b] font-mono">
+              <span className="text-t11 text-[#6b5a4b] font-mono">
                 領域：{activeArcana.domains}
               </span>
-              <span className="text-[11px] text-[#6b5a4b] font-mono">
+              <span className="text-t11 text-[#6b5a4b] font-mono">
                 召喚費 {costInfo.base} 點 MP
               </span>
             </div>
@@ -381,7 +381,7 @@ export default function ArcanistManager({
                       {arcana.name}
                     </strong>
                     {arcana.isCustom && (
-                      <span className="text-[10px] bg-[#f4ebd9] text-[#5e387c] px-1 rounded">
+                      <span className="text-t10 bg-[#f4ebd9] text-[#5e387c] px-1 rounded">
                         自訂
                       </span>
                     )}
@@ -396,7 +396,7 @@ export default function ArcanistManager({
                         title={!costInfo.affordable
                           ? `MP 不足：需要 ${costInfo.cost} 點，目前 ${costInfo.curMp} 點`
                           : `消耗 ${costInfo.cost} 點 MP`}
-                        className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all ${ isActive ? 'bg-[#27527a] text-white cursor-default' : !costInfo.affordable ? 'bg-[#e8dcc4] text-[#6b5a4b] cursor-not-allowed' : 'bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#9c4d16] ' }`}
+                        className={`px-2 py-0.5 rounded text-t11 font-bold transition-all ${ isActive ? 'bg-[#27527a] text-white cursor-default' : !costInfo.affordable ? 'bg-[#e8dcc4] text-[#6b5a4b] cursor-not-allowed' : 'bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#9c4d16] ' }`}
                       >
                         {isActive ? '召喚中' : `召喚（${costInfo.cost} MP）`}
                       </button>
@@ -414,13 +414,13 @@ export default function ArcanistManager({
                   </div>
                 </div>
 
-                <div className="text-[11px] text-[#6b5a4b]">
+                <div className="text-t11 text-[#6b5a4b]">
                   領域：{arcana.domains}
                   {arcana.pulse && (
                     <span className="ml-1 text-[#27527a] font-bold">· 有脈衝</span>
                   )}
                 </div>
-                <div className="text-[11px] text-[#3c2415] line-clamp-2">
+                <div className="text-t11 text-[#3c2415] line-clamp-2">
                   <span className="font-bold text-[#27527a]">連攜：</span>
                   {renderTextWithAffinities(arcana.merge)}
                 </div>
@@ -573,11 +573,11 @@ export default function ArcanistManager({
               {/* 變體版沒有《阿爾卡納圓環》這個特技（它的技能表是另一份），
                   所以那條提示在變體角色身上是錯的，必須換成變體版自己的重點。 */}
               {usesVariantArcanist ? (
-                <div className="p-2.5 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-[11px] text-[#9c4d16]">
+                <div className="p-2.5 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-t11 text-[#9c4d16]">
                   變體版規則：解除效果只在「自願解除」時觸發。場景結束、昏迷或死亡、離開場景造成的自動解除，一律不會觸發解除效果。
                 </div>
               ) : (
-                <div className="p-2.5 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-[11px] text-[#9c4d16]">
+                <div className="p-2.5 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] text-t11 text-[#9c4d16]">
                   若你擁有《阿爾卡納圓環》特技且裝備奧術武器，你在同一回合解除時可立即免費執行咒語動作！
                 </div>
               )}

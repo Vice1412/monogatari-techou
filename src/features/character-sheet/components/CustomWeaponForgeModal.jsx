@@ -164,29 +164,29 @@ export default function CustomWeaponForgeModal({
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-xs font-bold" style={{ color: theme.textDark }}>{def.name}</span>
           {def.martial && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
+            <span className="text-t10 px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
               職業武器
             </span>
           )}
           {def.slots === 2 && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.textDark }}>
+            <span className="text-t10 px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.textDark }}>
               佔 2 個名額
             </span>
           )}
           {def.costDelta > 0 && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.textDark }}>
+            <span className="text-t10 px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.textDark }}>
               +{def.costDelta}z
             </span>
           )}
           {picked && (
-            <span className="text-[10px] font-bold ml-auto" style={{ color: theme.accent }}>已選</span>
+            <span className="text-t10 font-bold ml-auto" style={{ color: theme.accent }}>已選</span>
           )}
         </div>
-        <p className="text-[11px] mt-1 leading-relaxed" style={{ color: theme.textDark }}>
+        <p className="text-t11 mt-1 leading-relaxed" style={{ color: theme.textDark }}>
           {def.effect}
         </p>
         {reason && (
-          <p className="text-[10px] mt-0.5 text-[#3c2415]">{reason}</p>
+          <p className="text-t10 mt-0.5 text-[#3c2415]">{reason}</p>
         )}
       </button>
     );
@@ -253,7 +253,7 @@ export default function CustomWeaponForgeModal({
         )}
 
         {/* 類別 */}
-        {label('武器類別', <span className="text-[11px] text-[#6b5a4b]">十選一（Core p.129）</span>)}
+        {label('武器類別', <span className="text-t11 text-[#6b5a4b]">十選一（Core p.129）</span>)}
         <div className="flex items-center gap-1.5 flex-wrap">
           {CUSTOM_WEAPON_CATEGORIES.map((cat) => {
             const on = spec.category === cat;
@@ -277,7 +277,7 @@ export default function CustomWeaponForgeModal({
         </div>
 
         {/* 名稱 */}
-        {label('自定義名字', issueFor('name') ? <span className="text-[11px] text-[#3c2415]">{issueFor('name')}</span> : null)}
+        {label('自定義名字', issueFor('name') ? <span className="text-t11 text-[#3c2415]">{issueFor('name')}</span> : null)}
         <input
           type="text"
           value={spec.name}
@@ -290,7 +290,7 @@ export default function CustomWeaponForgeModal({
         {/* 攻擊類型與命中檢定 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            {label('攻擊類型', <span className="text-[11px] text-[#6b5a4b]">與類別無關</span>)}
+            {label('攻擊類型', <span className="text-t11 text-[#6b5a4b]">與類別無關</span>)}
             <div className="flex items-center gap-1.5">
               {CUSTOM_WEAPON_RANGES.map((r) => (
                 <button
@@ -333,7 +333,7 @@ export default function CustomWeaponForgeModal({
 
         {/* 訂製能力 */}
         {label('訂製能力', (
-          <span className="text-[11px] font-bold" style={{ color: remainingSlots(spec) === 0 ? theme.accent : '#a63d40' }}>
+          <span className="text-t11 font-bold" style={{ color: remainingSlots(spec) === 0 ? theme.accent : '#a63d40' }}>
             已用 {usedSlots(spec)} / {CUSTOM_WEAPON_SLOTS} 個名額
           </span>
         ))}
@@ -341,13 +341,13 @@ export default function CustomWeaponForgeModal({
           {CUSTOMIZATIONS.map(renderCustomizationRow)}
         </div>
         {issueFor('customizations') && (
-          <p className="text-[11px] text-[#3c2415]">{issueFor('customizations')}</p>
+          <p className="text-t11 text-[#3c2415]">{issueFor('customizations')}</p>
         )}
 
         {/* 元素屬性 */}
         {has('elemental') && (
           <div className="space-y-1.5">
-            {label('元素屬性', <span className="text-[11px] text-[#6b5a4b]">八選一</span>)}
+            {label('元素屬性', <span className="text-t11 text-[#6b5a4b]">八選一</span>)}
             <div className="flex items-center gap-1.5 flex-wrap">
               {CUSTOM_WEAPON_ELEMENTS.map((el) => (
                 <button
@@ -365,7 +365,7 @@ export default function CustomWeaponForgeModal({
                 </button>
               ))}
             </div>
-            {issueFor('element') && <p className="text-[11px] text-[#3c2415]">{issueFor('element')}</p>}
+            {issueFor('element') && <p className="text-t11 text-[#3c2415]">{issueFor('element')}</p>}
           </div>
         )}
 
@@ -377,7 +377,7 @@ export default function CustomWeaponForgeModal({
               {spec.name || '（尚未命名）'}
             </span>
             {entry.martial && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
+              <span className="text-t10 px-1.5 py-0.5 rounded border" style={{ borderColor: theme.border, color: theme.accent }}>
                 職業武器
               </span>
             )}
@@ -388,7 +388,7 @@ export default function CustomWeaponForgeModal({
             <span>{entry.range}</span>
             <span>{entry.cost}z</span>
           </div>
-          <p className="text-[11px]" style={{ color: theme.textDark }}>{entry.note}</p>
+          <p className="text-t11" style={{ color: theme.textDark }}>{entry.note}</p>
         </div>
 
         {!ok && (

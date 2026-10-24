@@ -211,7 +211,7 @@ export default function ChimeristManager({
           <div>
             <h3 className="text-sm font-bold text-[#2c221e] flex items-center gap-2">
               <span>嵌合魔典與怪物咒語記憶本</span>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${ spells.length >= maxSlots ? 'bg-[#f4ebd9] text-[#8c2d36] border-[#8c2d36]/50' : 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ' }`}>
+              <span className={`text-t10 font-mono px-2 py-0.5 rounded border ${ spells.length >= maxSlots ? 'bg-[#f4ebd9] text-[#8c2d36] border-[#8c2d36]/50' : 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ' }`}>
                 記憶容量: {spells.length} / {maxSlots} 格
               </span>
             </h3>
@@ -292,7 +292,7 @@ export default function ChimeristManager({
                   <span className="text-[#6b5a4b] font-bold">✦</span>
                 )}
                 <strong className="text-sm text-[#2c221e]">{sp.name}</strong>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
+                <span className="text-t10 font-bold px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
                   源頭: {sp.species}
                 </span>
                 <span className="text-xs font-mono font-bold text-[#3c2415]">
@@ -320,7 +320,7 @@ export default function ChimeristManager({
               </div>
             </div>
 
-            <div className="text-[11px] text-[#6b5a4b] font-mono flex items-center gap-3">
+            <div className="text-t11 text-[#6b5a4b] font-mono flex items-center gap-3">
               <span>目標: {sp.target}</span>
               <span>持續: {sp.duration}</span>
               {sp.isOffensive && <span>檢定公式: 【{currentFormula}】</span>}
@@ -477,7 +477,7 @@ export default function ChimeristManager({
                 />
                 <label htmlFor="chk-offensive" className="font-bold text-[#3c2415] cursor-pointer flex items-center gap-1">
                   <span>這是一個攻擊性咒語（o）</span>
-                  <span className="text-[11px] text-[#7c6a58] font-normal">（將使用【{currentFormula}】檢定）</span>
+                  <span className="text-t11 text-[#7c6a58] font-normal">（將使用【{currentFormula}】檢定）</span>
                 </label>
               </div>
 

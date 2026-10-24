@@ -119,7 +119,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
             type="datetime-local"
             value={draftAt}
             onChange={(e) => setDraftAt(e.target.value)}
-            className="rounded-lg px-2 py-2 text-[11px] outline-none border font-mono"
+            className="rounded-lg px-2 py-2 text-t11 outline-none border font-mono"
             style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textMuted }}
           />
           <JRPGButton
@@ -145,7 +145,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
                 key={k}
                 type="button"
                 onClick={() => setKindFilter(k)}
-                className="text-[11px] px-2 py-1 rounded-lg border font-bold cursor-pointer active:scale-95 transition-all"
+                className="text-t11 px-2 py-1 rounded-lg border font-bold cursor-pointer active:scale-95 transition-all"
                 style={{
                   backgroundColor: active ? theme.accent : theme.panelBg,
                   borderColor: theme.border,
@@ -195,7 +195,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
                       {entry.changes.map((c) => (
                         <span
                           key={c.field}
-                          className="text-[10px] font-mono px-1.5 py-0.5 rounded border"
+                          className="text-t10 font-mono px-1.5 py-0.5 rounded border"
                           style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
                         >
                           {formatChange(c)}
@@ -204,12 +204,12 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
                     </div>
                   )}
                   {entry.note && (
-                    <p className="text-[10px] mt-1 leading-relaxed" style={{ color: theme.textMuted }}>
+                    <p className="text-t10 mt-1 leading-relaxed" style={{ color: theme.textMuted }}>
                       {entry.note}
                     </p>
                   )}
                 </div>
-                <span className="text-[10px] font-mono shrink-0 mt-0.5" style={{ color: theme.textMuted }}>
+                <span className="text-t10 font-mono shrink-0 mt-0.5" style={{ color: theme.textMuted }}>
                   {formatLogTime(entry.at)}
                 </span>
               </div>

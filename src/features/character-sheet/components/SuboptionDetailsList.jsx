@@ -56,7 +56,7 @@ export default function SuboptionDetailsList({
               <GiMusicalNotes className="w-3.5 h-3.5 text-[#3c2415]" />
               <span>基礎音量體系（自動掌握全部 3 種音量）</span>
             </span>
-            <span className="text-[10px] text-[#6b5a4b] font-normal">
+            <span className="text-t10 text-[#6b5a4b] font-normal">
               無須消耗配額
             </span>
           </div>
@@ -69,14 +69,14 @@ export default function SuboptionDetailsList({
               >
                 <div className="flex items-center justify-between font-bold text-xs">
                   <span className="text-[#3c2415] font-serif">{vol.name}</span>
-                  <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] font-mono text-[10px] font-bold">
+                  <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] font-mono text-t10 font-bold">
                     {vol.mp} MP
                   </span>
                 </div>
-                <div className="text-[10px] text-[#6b5a4b] font-medium">
+                <div className="text-t10 text-[#6b5a4b] font-medium">
                   目標：{vol.target}
                 </div>
-                <p className="text-[11px] text-[#3c2415] leading-snug">
+                <p className="text-t11 text-[#3c2415] leading-snug">
                   {renderTextWithAffinities(vol.desc)}
                 </p>
               </div>
@@ -97,13 +97,13 @@ export default function SuboptionDetailsList({
               <span>{therioRules.label}：使用方式</span>
             </span>
             {isTheriomorphosisVariant(variantId) && (
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-white text-[#8c2d36] border border-[#8c2d36]/50 font-bold">
+              <span className="text-t10 px-1.5 py-0.2 rounded bg-white text-[#8c2d36] border border-[#8c2d36]/50 font-bold">
                 【公測】變體
               </span>
             )}
           </div>
           {therioLines.map((line) => (
-            <div key={line} className="text-[11px] leading-snug text-[#3c2415]">
+            <div key={line} className="text-t11 leading-snug text-[#3c2415]">
               {line}
             </div>
           ))}
@@ -135,25 +135,25 @@ export default function SuboptionDetailsList({
                         o
                       </span>
                     )}
-                    <span className="font-bold text-[#2c221e] font-serif text-[13px] tracking-wide truncate">
+                    <span className="font-bold text-[#2c221e] font-serif text-t12 tracking-wide truncate">
                       {detail.name}
                     </span>
 
                     {/* 分類標籤 (如 音調 / 曲風) */}
                     {isChanterKey && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
+                      <span className="text-t10 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                         音調
                       </span>
                     )}
                     {isChanterTone && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
+                      <span className="text-t10 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                         曲風
                       </span>
                     )}
                   </div>
 
                   {/* 右側數值標籤群 */}
-                  <div className="flex items-center gap-1 shrink-0 text-[10px] font-mono flex-wrap">
+                  <div className="flex items-center gap-1 shrink-0 text-t10 font-mono flex-wrap">
                     {detail.mp && (
                       <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                         {detail.mp} MP
@@ -179,24 +179,24 @@ export default function SuboptionDetailsList({
 
                 {/* 寓意 / 語錄 */}
                 {detail.quote && (
-                  <div className="text-[11px] text-[#3c2415] italic">
+                  <div className="text-t11 text-[#3c2415] italic">
                     「{detail.quote}」
                   </div>
                 )}
                 {detail.examples && (
-                  <div className="text-[10px] text-[#6b5a4b]">
+                  <div className="text-t10 text-[#6b5a4b]">
                     象徵範例：{detail.examples}
                   </div>
                 )}
 
                 {/* 核心效果描述（透過 renderTextWithAffinities 內聯渲染官方符號與色彩） */}
                 {detail.effect && (
-                  <p className="text-[11px] text-[#3c2415] leading-relaxed font-sans">
+                  <p className="text-t11 text-[#3c2415] leading-relaxed font-sans">
                     {renderTextWithAffinities(detail.effect)}
                   </p>
                 )}
                 {detail.desc && !detail.effect && (
-                  <p className="text-[11px] text-[#3c2415] leading-relaxed font-sans">
+                  <p className="text-t11 text-[#3c2415] leading-relaxed font-sans">
                     {renderTextWithAffinities(detail.desc)}
                   </p>
                 )}
@@ -205,8 +205,8 @@ export default function SuboptionDetailsList({
                 {detail.effects && Array.isArray(detail.effects) && (
                   <div className="mt-1.5 pt-1.5 border-t border-[#e8dcc4] space-y-1.5">
                     {detail.effects.map((ef, eIdx) => (
-                      <div key={eIdx} className="text-[11px] flex items-start gap-1.5">
-                        <span className="font-mono font-bold text-[#2c221e] bg-[#f4ebd9] px-1.5 py-0.5 rounded text-[10px] shrink-0 border border-[#d6c7ab]">
+                      <div key={eIdx} className="text-t11 flex items-start gap-1.5">
+                        <span className="font-mono font-bold text-[#2c221e] bg-[#f4ebd9] px-1.5 py-0.5 rounded text-t10 shrink-0 border border-[#d6c7ab]">
                           {ef.clock}
                         </span>
                         <span className="text-[#3c2415] leading-relaxed font-sans">

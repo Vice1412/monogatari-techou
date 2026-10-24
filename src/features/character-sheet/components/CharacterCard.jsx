@@ -170,7 +170,7 @@ export default function CharacterCard({
           {/* Classes pill tags with Game-Icons */}
           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
             {(!character.classes || character.classes.length === 0) ? (
-              <span className="text-[11px] px-2 py-0.5 rounded-md border border-dashed border-[#d6c7ab] bg-[#f4ebd9] text-[#2c221e] font-mono italic">
+              <span className="text-t11 px-2 py-0.5 rounded-md border border-dashed border-[#d6c7ab] bg-[#f4ebd9] text-[#2c221e] font-mono italic">
                 【 尚未配置職業 (起始需配置 2~3 個職業) 】
               </span>
             ) : (
@@ -178,7 +178,7 @@ export default function CharacterCard({
                 {character.classes.map((cl, idx) => (
                   <span
                     key={idx}
-                    className="text-[11px] px-2 py-0.5 rounded-md border font-mono font-bold flex items-center gap-1"
+                    className="text-t11 px-2 py-0.5 rounded-md border font-mono font-bold flex items-center gap-1"
                     style={{
                       backgroundColor: '#fffdf9',
                       borderColor: theme.border,
@@ -195,7 +195,7 @@ export default function CharacterCard({
                   const reqSL = getCharacterLevel(character);
                   if (totalSL < reqSL) {
                     return (
-                      <span className="text-[10px] px-2 py-0.5 rounded-md border border-dashed border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] font-mono font-bold">
+                      <span className="text-t10 px-2 py-0.5 rounded-md border border-dashed border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] font-mono font-bold">
                         尚餘 {reqSL - totalSL} 點特技未分配
                       </span>
                     );
@@ -209,7 +209,7 @@ export default function CharacterCard({
           {/* 角色背景：只在填過之後才顯示——空白時不佔卡片版面 */}
           {character.background && character.background.trim() ? (
             <div
-              className="mt-2 p-2 rounded-lg border text-[11px] leading-relaxed whitespace-pre-wrap"
+              className="mt-2 p-2 rounded-lg border text-t11 leading-relaxed whitespace-pre-wrap"
               style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
             >
               {character.background}
@@ -234,7 +234,7 @@ export default function CharacterCard({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {/* HP */}
           <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
-            <div className="text-[10px] text-[#3c2415] font-mono font-bold flex items-center gap-1">
+            <div className="text-t10 text-[#3c2415] font-mono font-bold flex items-center gap-1">
               <GiHealthNormal className="w-3.5 h-3.5 text-[#6b5a4b]" /> HP 生命值
             </div>
             <button
@@ -249,7 +249,7 @@ export default function CharacterCard({
 
           {/* MP */}
           <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
-            <div className="text-[10px] text-[#3c2415] font-mono font-bold flex items-center gap-1">
+            <div className="text-t10 text-[#3c2415] font-mono font-bold flex items-center gap-1">
               <GiLightningTear className="w-3.5 h-3.5 text-[#6b5a4b]" /> MP 魔力值
             </div>
             <button
@@ -264,7 +264,7 @@ export default function CharacterCard({
 
           {/* IP */}
           <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
-            <div className="text-[10px] text-[#3c2415] font-mono font-bold flex items-center gap-1">
+            <div className="text-t10 text-[#3c2415] font-mono font-bold flex items-center gap-1">
               <GiBackpack className="w-3.5 h-3.5 text-[#6b5a4b]" /> IP 庫存點
             </div>
             <button
@@ -279,7 +279,7 @@ export default function CharacterCard({
 
           {/* FP */}
           <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
-            <div className="text-[10px] text-[#3c2415] font-mono font-bold flex items-center gap-1">
+            <div className="text-t10 text-[#3c2415] font-mono font-bold flex items-center gap-1">
               <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" /> 物語點
             </div>
             <div className="text-base font-mono font-black text-[#2c221e] mt-0.5">
@@ -381,7 +381,7 @@ export default function CharacterCard({
       {/* Equipment List */}
       <div className="p-4 border-b bg-[#fffdf9] text-xs" style={{ borderColor: theme.border }}>
         <h4
-          className="text-[11px] font-mono font-bold tracking-wider mb-2 flex items-center gap-1.5 border-b pb-1"
+          className="text-t11 font-mono font-bold tracking-wider mb-2 flex items-center gap-1.5 border-b pb-1"
           style={{ color: theme.textDark, borderColor: theme.border }}
         >
           <GiCrossedSwords className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 裝備配置
@@ -453,11 +453,11 @@ export default function CharacterCard({
                             <GameIcon name={cl.className} size={14} style={{ color: theme.accent }} />
                             {sk.name}
                           </span>
-                          <span className="font-mono text-[#7c6a58] text-[11px]">
+                          <span className="font-mono text-[#7c6a58] text-t11">
                             SL {sk.sl} / {skillDef?.maxSL || 5}
                           </span>
                         </div>
-                        <div className="text-[#574c43] leading-relaxed font-sans text-[11px]">
+                        <div className="text-[#574c43] leading-relaxed font-sans text-t11">
                           <SkillDescription desc={skillDef?.desc || '暫無說明'} sl={sk.sl} />
                         </div>
                       </div>
@@ -494,7 +494,7 @@ export default function CharacterCard({
                       const label = HEROIC_SKILL_SOURCE_LABELS[hs.source || found?.source];
                       return label ? (
                         <span
-                          className="text-[9px] px-1.5 py-0.5 rounded border font-bold shrink-0"
+                          className="text-t10 px-1.5 py-0.5 rounded border font-bold shrink-0"
                           style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.accent }}
                         >
                           {label}
@@ -502,7 +502,7 @@ export default function CharacterCard({
                       ) : null;
                     })()}
                   </div>
-                  <p className="text-[#574c43] leading-relaxed font-sans text-[11px]">{resolveHeroicSkillEffect(hs.name, hs.effect, character)}</p>
+                  <p className="text-[#574c43] leading-relaxed font-sans text-t11">{resolveHeroicSkillEffect(hs.name, hs.effect, character)}</p>
                 </div>
               ))}
             </div>
@@ -520,7 +520,7 @@ export default function CharacterCard({
           {(!character.bonds || character.bonds.length === 0) ? (
             <div className="p-3 rounded-lg border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs flex items-center justify-between">
               <span>【 尚未締結任何情感羈絆 】（可建立最多 6 組羈絆）</span>
-              <span className="font-mono text-[10px] text-[#a08f7f]">0 / 6</span>
+              <span className="font-mono text-t10 text-[#a08f7f]">0 / 6</span>
             </div>
           ) : (
             <div className="space-y-1.5">
@@ -535,13 +535,13 @@ export default function CharacterCard({
                     {(bond.feelings || []).map(f => (
                       <span
                         key={f}
-                        className="px-1.5 py-0.5 rounded border text-[10px] font-bold"
+                        className="px-1.5 py-0.5 rounded border text-t10 font-bold"
                         style={{ backgroundColor: '#fffdf9', borderColor: theme.border, color: theme.textDark }}
                       >
                         {f}
                       </span>
                     ))}
-                    <span className="text-[10px] font-mono font-bold" style={{ color: theme.accent }}>
+                    <span className="text-t10 font-mono font-bold" style={{ color: theme.accent }}>
                       (+{bond.feelings?.length || 0})
                     </span>
                   </div>

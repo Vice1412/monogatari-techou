@@ -283,7 +283,7 @@ export default function WayfarerCompanionModal({
                 <h2 className="text-base font-bold text-[#2c221e]">
                   忠實夥伴隨從檔案
                 </h2>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
+                <span className="text-t11 font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
                   5 級生物 NPC · 旅人 SL {wayfarerSl}
                 </span>
               </div>
@@ -354,7 +354,7 @@ export default function WayfarerCompanionModal({
                 <span>2. 官方 NPC 四大體質方案（Core p. 302）</span>
               </label>
               {!isAttributesValid && (
-                <span className="text-[11px] font-bold text-[#8c2d36]">
+                <span className="text-t11 font-bold text-[#8c2d36]">
                   屬性骰分配與方案不合！
                 </span>
               )}
@@ -371,7 +371,7 @@ export default function WayfarerCompanionModal({
                     className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between ${ isSelected ? 'border-[#3c2415] bg-[#f9f5eb] ring-1 ring-[#3c2415]' : 'border-[#d6c7ab] bg-white hover:border-[#d6c7ab]' }`}
                   >
                     <span className="font-bold text-[#2c221e]">{arr.name}</span>
-                    <span className="text-[11px] font-mono text-[#3c2415] font-bold mt-1">
+                    <span className="text-t11 font-mono text-[#3c2415] font-bold mt-1">
                       {arr.dice.map(d => `d${d}`).join(', ')}
                     </span>
                   </button>
@@ -382,7 +382,7 @@ export default function WayfarerCompanionModal({
             {/* 四維屬性骰下拉分配 */}
             <div className="p-3 rounded-xl bg-[#fbf7ee] border border-[#d6c7ab] grid grid-cols-4 gap-2 text-center">
               <div>
-                <span className={`block text-[10px] font-bold mb-1 ${ATTRIBUTE_COLORS.dex}`}>{ATTRIBUTE_NAMES.dex} DEX</span>
+                <span className={`block text-t10 font-bold mb-1 ${ATTRIBUTE_COLORS.dex}`}>{ATTRIBUTE_NAMES.dex} DEX</span>
                 <select
                   value={formData.dex}
                   onChange={e => setFormData(prev => ({ ...prev, dex: Number(e.target.value) }))}
@@ -395,7 +395,7 @@ export default function WayfarerCompanionModal({
               </div>
 
               <div>
-                <span className={`block text-[10px] font-bold mb-1 ${ATTRIBUTE_COLORS.ins}`}>{ATTRIBUTE_NAMES.ins} INS</span>
+                <span className={`block text-t10 font-bold mb-1 ${ATTRIBUTE_COLORS.ins}`}>{ATTRIBUTE_NAMES.ins} INS</span>
                 <select
                   value={formData.ins}
                   onChange={e => setFormData(prev => ({ ...prev, ins: Number(e.target.value) }))}
@@ -408,7 +408,7 @@ export default function WayfarerCompanionModal({
               </div>
 
               <div>
-                <span className={`block text-[10px] font-bold mb-1 ${ATTRIBUTE_COLORS.mig}`}>{ATTRIBUTE_NAMES.mig} MIG</span>
+                <span className={`block text-t10 font-bold mb-1 ${ATTRIBUTE_COLORS.mig}`}>{ATTRIBUTE_NAMES.mig} MIG</span>
                 <select
                   value={formData.mig}
                   onChange={e => setFormData(prev => ({ ...prev, mig: Number(e.target.value) }))}
@@ -421,7 +421,7 @@ export default function WayfarerCompanionModal({
               </div>
 
               <div>
-                <span className={`block text-[10px] font-bold mb-1 ${ATTRIBUTE_COLORS.wlp}`}>{ATTRIBUTE_NAMES.wlp} WLP</span>
+                <span className={`block text-t10 font-bold mb-1 ${ATTRIBUTE_COLORS.wlp}`}>{ATTRIBUTE_NAMES.wlp} WLP</span>
                 <select
                   value={formData.wlp}
                   onChange={e => setFormData(prev => ({ ...prev, wlp: Number(e.target.value) }))}
@@ -438,22 +438,22 @@ export default function WayfarerCompanionModal({
           {/* 三、衍生戰鬥數值即時看板 */}
           <div className="p-3 rounded-xl bg-[#f9f5eb] border border-[#d6c7ab] grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
             <div>
-              <span className="text-[10px] text-[#6b5a4b] block">最大生命 (HP)</span>
+              <span className="text-t10 text-[#6b5a4b] block">最大生命 (HP)</span>
               <strong className="text-sm font-mono text-[#3c2415] font-black">{maxHp}</strong>
-              <span className="text-[9px] text-[#7c6a58] block font-mono">({wayfarerSl}×{formData.mig})+{Math.floor(characterLevel/2)}</span>
+              <span className="text-t10 text-[#7c6a58] block font-mono">({wayfarerSl}×{formData.mig})+{Math.floor(characterLevel/2)}</span>
             </div>
             <div>
-              <span className="text-[10px] text-[#6b5a4b] block">危機值</span>
+              <span className="text-t10 text-[#6b5a4b] block">危機值</span>
               <strong className="text-sm font-mono text-[#8c2d36] font-black">{crisisHp}</strong>
-              <span className="text-[9px] text-[#7c6a58] block font-mono">≤{crisisHp}</span>
+              <span className="text-t10 text-[#7c6a58] block font-mono">≤{crisisHp}</span>
             </div>
             <div>
-              <span className="text-[10px] text-[#6b5a4b] block">物理防禦 (DEF)</span>
+              <span className="text-t10 text-[#6b5a4b] block">物理防禦 (DEF)</span>
               <strong className="text-sm font-mono text-[#3c2415] font-bold">{formData.dex}</strong>
               <span className="text-t12 text-[#6b5a4b] block font-mono">DEX 骰面</span>
             </div>
             <div>
-              <span className="text-[10px] text-[#6b5a4b] block">魔法防禦 (M.DEF)</span>
+              <span className="text-t10 text-[#6b5a4b] block">魔法防禦 (M.DEF)</span>
               <strong className="text-sm font-mono text-[#3c2415] font-bold">{formData.ins}</strong>
               <span className="text-t12 text-[#6b5a4b] block font-mono">INS 骰面</span>
             </div>
@@ -467,7 +467,7 @@ export default function WayfarerCompanionModal({
                   <GiCrossedSwords className="text-[#6b5a4b]" />
                   <span>3. 基礎攻擊配置（Core p. 303：命中加成 +{wayfarerSl}）</span>
                 </label>
-                <span className="text-[10px] text-[#7c6a58]">官方建議至多 2 種，可自由調整公式與傷害</span>
+                <span className="text-t10 text-[#7c6a58]">官方建議至多 2 種，可自由調整公式與傷害</span>
               </div>
               <button
                 type="button"
@@ -490,7 +490,7 @@ export default function WayfarerCompanionModal({
                       <select
                         value={atk.range}
                         onChange={e => handleUpdateAttack(idx, { range: e.target.value })}
-                        className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-[11px] font-bold"
+                        className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-t11 font-bold"
                       >
                         <option value="melee">近戰</option>
                         <option value="ranged">遠程</option>
@@ -520,7 +520,7 @@ export default function WayfarerCompanionModal({
                   {/* 屬性組合選擇 */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="block text-[10px] text-[#7c6a58]">判定屬性一</span>
+                      <span className="block text-t10 text-[#7c6a58]">判定屬性一</span>
                       <select
                         value={atk.attr1}
                         onChange={e => handleUpdateAttack(idx, { attr1: e.target.value })}
@@ -532,7 +532,7 @@ export default function WayfarerCompanionModal({
                       </select>
                     </div>
                     <div>
-                      <span className="block text-[10px] text-[#7c6a58]">判定屬性二</span>
+                      <span className="block text-t10 text-[#7c6a58]">判定屬性二</span>
                       <select
                         value={atk.attr2}
                         onChange={e => handleUpdateAttack(idx, { attr2: e.target.value })}
@@ -548,7 +548,7 @@ export default function WayfarerCompanionModal({
                   {/* 傷害類型快速填寫與手動自訂 */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <span className="block text-[10px] text-[#7c6a58]">快速填入傷害屬性</span>
+                      <span className="block text-t10 text-[#7c6a58]">快速填入傷害屬性</span>
                       <select
                         value={atk.damageType || 'physical'}
                         onChange={e => {
@@ -565,7 +565,7 @@ export default function WayfarerCompanionModal({
                     </div>
 
                     <div>
-                      <span className="block text-[10px] text-[#7c6a58]">傷害公式手寫</span>
+                      <span className="block text-t10 text-[#7c6a58]">傷害公式手寫</span>
                       <input
                         type="text"
                         value={atk.damageText}
@@ -578,7 +578,7 @@ export default function WayfarerCompanionModal({
 
                   {/* 額外特殊效果 */}
                   <div>
-                    <span className="block text-[10px] text-[#7c6a58]">額外機制效果（選填）</span>
+                    <span className="block text-t10 text-[#7c6a58]">額外機制效果（選填）</span>
                     <input
                       type="text"
                       value={atk.specialEffect || ''}
@@ -589,7 +589,7 @@ export default function WayfarerCompanionModal({
                   </div>
 
                   {/* 即時檢定公式預覽 */}
-                  <div className="pt-1.5 border-t border-[#d6c7ab] text-[11px] font-mono text-[#3c2415] flex justify-between">
+                  <div className="pt-1.5 border-t border-[#d6c7ab] text-t11 font-mono text-[#3c2415] flex justify-between">
                     <span>命中：【{atk.attr1} + {atk.attr2}】+{wayfarerSl}</span>
                     <span>傷害：{renderTextWithAffinities(atk.damageText)}</span>
                   </div>
@@ -649,7 +649,7 @@ export default function WayfarerCompanionModal({
             {/* 咒語清單 */}
             {formData.spells.length > 0 && (
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-[#6b5a4b] flex items-center gap-1">
+                <span className="text-t11 font-bold text-[#6b5a4b] flex items-center gap-1">
                   <span className="fu-icon text-xs">c</span>
                   <span>隨從咒語（{formData.spells.length}）</span>
                 </span>
@@ -670,7 +670,7 @@ export default function WayfarerCompanionModal({
                           />
                         </div>
 
-                        <label className="flex items-center gap-1 text-[11px] cursor-pointer shrink-0">
+                        <label className="flex items-center gap-1 text-t11 cursor-pointer shrink-0">
                           <input
                             type="checkbox"
                             checked={sp.isOffensive}
@@ -692,7 +692,7 @@ export default function WayfarerCompanionModal({
 
                       <div className="grid grid-cols-3 gap-2">
                         <div>
-                          <span className="block text-[10px] text-[#7c6a58]">MP 消耗</span>
+                          <span className="block text-t10 text-[#7c6a58]">MP 消耗</span>
                           <input
                             type="text"
                             value={sp.mp}
@@ -702,7 +702,7 @@ export default function WayfarerCompanionModal({
                           />
                         </div>
                         <div>
-                          <span className="block text-[10px] text-[#7c6a58]">目標</span>
+                          <span className="block text-t10 text-[#7c6a58]">目標</span>
                           <input
                             type="text"
                             value={sp.target}
@@ -712,7 +712,7 @@ export default function WayfarerCompanionModal({
                           />
                         </div>
                         <div>
-                          <span className="block text-[10px] text-[#7c6a58]">持續時間</span>
+                          <span className="block text-t10 text-[#7c6a58]">持續時間</span>
                           <input
                             type="text"
                             value={sp.duration}
@@ -739,7 +739,7 @@ export default function WayfarerCompanionModal({
             {/* 其餘行動清單 */}
             {formData.otherActions.length > 0 && (
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-[#3c2415] flex items-center gap-1">
+                <span className="text-t11 font-bold text-[#3c2415] flex items-center gap-1">
                   <span className="fu-icon text-xs">s</span>
                   <span>其餘行動（{formData.otherActions.length}）</span>
                 </span>
@@ -783,7 +783,7 @@ export default function WayfarerCompanionModal({
             {/* 特殊規則清單 */}
             {formData.specialRules.length > 0 && (
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-[#3c2415] flex items-center gap-1">
+                <span className="text-t11 font-bold text-[#3c2415] flex items-center gap-1">
                   <GiSparkles className="text-xs" />
                   <span>特殊規則（{formData.specialRules.length}）</span>
                 </span>

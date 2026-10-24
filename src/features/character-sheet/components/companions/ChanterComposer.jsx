@@ -103,13 +103,13 @@ export default function ChanterComposer({
             <div className="font-bold text-xs text-[#5e387c] tracking-wide font-serif">
               魔法演奏即時合成器
             </div>
-            <div className="text-[10px] text-[#5e387c]/80">
+            <div className="text-t10 text-[#5e387c]/80">
               選擇音量、音調與曲風，實時動態合成歌曲與消耗
             </div>
           </div>
         </div>
 
-        <div className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-[#f4ebd9] text-[#5e387c] border border-[#d6c7ab]">
+        <div className="text-t11 font-mono font-bold px-2 py-0.5 rounded-lg bg-[#f4ebd9] text-[#5e387c] border border-[#d6c7ab]">
           當前 MP: {currentMp}
         </div>
       </div>
@@ -118,9 +118,9 @@ export default function ChanterComposer({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
         {/* ① 選擇音量 */}
         <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-[#d6c7ab]">
-          <div className="font-bold text-[11px] text-[#5e387c] flex items-center justify-between">
+          <div className="font-bold text-t11 text-[#5e387c] flex items-center justify-between">
             <span>① 選擇音量</span>
-            <span className="text-[10px] text-[#6b5a4b]">消耗與目標</span>
+            <span className="text-t10 text-[#6b5a4b]">消耗與目標</span>
           </div>
           <div className="flex flex-col gap-1">
             {CHANTER_DATA.volumes.map(vol => {
@@ -137,7 +137,7 @@ export default function ChanterComposer({
                   }`}
                 >
                   <span className="font-serif">{vol.name}</span>
-                  <span className={`font-mono text-[10px] px-1.5 py-0.2 rounded ${isSelected ? 'bg-[#5e387c]/90 text-white' : 'bg-white text-[#5e387c]'}`}>
+                  <span className={`font-mono text-t10 px-1.5 py-0.2 rounded ${isSelected ? 'bg-[#5e387c]/90 text-white' : 'bg-white text-[#5e387c]'}`}>
                     {vol.mp} MP
                   </span>
                 </button>
@@ -148,9 +148,9 @@ export default function ChanterComposer({
 
         {/* ② 選擇音調 */}
         <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-[#d6c7ab]">
-          <div className="font-bold text-[11px] text-[#9c4d16] flex items-center justify-between">
+          <div className="font-bold text-t11 text-[#9c4d16] flex items-center justify-between">
             <span>② 選擇音調</span>
-            <span className="text-[10px] text-[#6b5a4b]">已掌握</span>
+            <span className="text-t10 text-[#6b5a4b]">已掌握</span>
           </div>
           <div className="flex flex-col gap-1 max-h-[140px] overflow-y-auto pr-0.5">
             {availableKeys.map(kName => {
@@ -169,7 +169,7 @@ export default function ChanterComposer({
                 >
                   <span className="font-serif truncate">{kName}</span>
                   {keyData && (
-                    <span className={`text-[10px] px-1 rounded ${isSelected ? 'bg-[#9c4d16]/90 text-white' : 'bg-white text-[#9c4d16]'}`}>
+                    <span className={`text-t10 px-1 rounded ${isSelected ? 'bg-[#9c4d16]/90 text-white' : 'bg-white text-[#9c4d16]'}`}>
                       {keyData.damageType}
                     </span>
                   )}
@@ -181,9 +181,9 @@ export default function ChanterComposer({
 
         {/* ③ 選擇曲風 */}
         <div className="space-y-1.5 bg-white/80 p-2 rounded-xl border border-[#d6c7ab]">
-          <div className="font-bold text-[11px] text-[#5e387c] flex items-center justify-between">
+          <div className="font-bold text-t11 text-[#5e387c] flex items-center justify-between">
             <span>③ 選擇曲風</span>
-            <span className="text-[10px] text-[#6b5a4b]">已掌握</span>
+            <span className="text-t10 text-[#6b5a4b]">已掌握</span>
           </div>
           <div className="flex flex-col gap-1 max-h-[140px] overflow-y-auto pr-0.5">
             {availableTones.map(tName => {
@@ -232,7 +232,7 @@ export default function ChanterComposer({
 
           {/* 音調特性輔助標籤 */}
           {currentSong.key && (
-            <div className="flex flex-wrap gap-1.5 text-[10px]">
+            <div className="flex flex-wrap gap-1.5 text-t10">
               <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#9c4d16] border border-[#d6c7ab]">
                 傷害【{currentSong.key.damageType}】
               </span>

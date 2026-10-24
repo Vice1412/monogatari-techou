@@ -44,14 +44,14 @@ export default function EquipmentSlotCard({
             >
               <GameIcon name={slotDef.icon} size={14} />
             </span>
-            <span className="text-[11px] font-bold tracking-wide truncate" style={{ color: theme.textMuted }}>
+            <span className="text-t11 font-bold tracking-wide truncate" style={{ color: theme.textMuted }}>
               {slotDef.label}
             </span>
           </div>
           <button
             type="button"
             onClick={onOpen}
-            className="text-[11px] px-2 py-1 rounded-lg border font-bold flex items-center gap-1 shrink-0 cursor-pointer active:scale-95 transition-all"
+            className="text-t11 px-2 py-1 rounded-lg border font-bold flex items-center gap-1 shrink-0 cursor-pointer active:scale-95 transition-all"
             style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
           >
             <GiPencil size={11} />
@@ -103,13 +103,13 @@ export default function EquipmentSlotCard({
         )}
 
         {note && (
-          <p className="text-[10px] leading-relaxed" style={{ color: theme.textMuted }}>
+          <p className="text-t10 leading-relaxed" style={{ color: theme.textMuted }}>
             {note}
           </p>
         )}
 
         {warning && (
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#8c2d36]">
+          <div className="flex items-center gap-1.5 text-t10 font-bold text-[#8c2d36]">
             <GiHazardSign size={12} className="shrink-0" />
             <span>{warning}</span>
           </div>
@@ -124,10 +124,10 @@ export default function EquipmentSlotCard({
         >
           <GameIcon name="slot_offhand" size={16} style={{ color: theme.textMuted }} />
           <div className="flex sm:flex-col items-center gap-1.5">
-            <span className="text-[10px] font-bold tracking-wide" style={{ color: theme.textMuted }}>
+            <span className="text-t10 font-bold tracking-wide" style={{ color: theme.textMuted }}>
               副手武裝
             </span>
-            <span className="text-[10px] leading-tight" style={{ color: theme.textMuted }}>
+            <span className="text-t10 leading-tight" style={{ color: theme.textMuted }}>
               {mergedNote}
             </span>
           </div>

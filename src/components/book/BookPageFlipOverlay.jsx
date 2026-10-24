@@ -65,7 +65,7 @@ export default function BookPageFlipOverlay({ direction, targetChapter, onAnimat
             </p>
           </div>
 
-          <div className={`border-t ${theme.headerBorder} pt-4 flex justify-between text-[11px] ${theme.tag} font-mono font-medium`}>
+          <div className={`border-t ${theme.headerBorder} pt-4 flex justify-between text-t11 ${theme.tag} font-mono font-medium`}>
             <span>《物語手帳》一體化套件</span>
             <span>PAGE TURNING...</span>
           </div>

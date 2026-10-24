@@ -145,7 +145,7 @@ export default function IdentityTablesModal({
                   <span className="font-serif text-sm underline" style={{ color: theme?.textDark || '#3c2415', textDecorationColor: theme?.accent || '#a63d40' }}>
                     {rolledResult.fullZh}
                   </span>
-                  <span className="text-[11px] text-[#6b5a4b] font-normal">
+                  <span className="text-t11 text-[#6b5a4b] font-normal">
                     / {rolledResult.fullEn}
                   </span>
                 </div>
@@ -161,7 +161,7 @@ export default function IdentityTablesModal({
               </div>
 
               {/* Dice roll details breakdown (細節 - 特質 - 核心概念) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] pt-1 border-t" style={{ borderColor: theme?.border || '#f4ebd9' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-t11 pt-1 border-t" style={{ borderColor: theme?.border || '#f4ebd9' }}>
                 <div className="p-1.5 rounded border" style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}>
                   <span className="text-[#6b5a4b] block">1. 身世細節:</span>
                   <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
@@ -214,7 +214,7 @@ export default function IdentityTablesModal({
                   setPickedAdj(null);
                   setPickedConcept(null);
                 }}
-                className="text-[10px] text-[#6b5a4b] hover:text-[#3c2415] underline cursor-pointer"
+                className="text-t10 text-[#6b5a4b] hover:text-[#3c2415] underline cursor-pointer"
               >
                 重置清空
               </button>
@@ -348,7 +348,7 @@ export default function IdentityTablesModal({
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#a63d40' }} />
                   {OFFICIAL_IDENTITY_TABLES.coreConcepts.title}
                 </h5>
-                <span className="text-[11px] text-[#6b5a4b] font-mono">
+                <span className="text-t11 text-[#6b5a4b] font-mono">
                   {OFFICIAL_IDENTITY_TABLES.coreConcepts.rollDesc}
                 </span>
               </div>
@@ -369,7 +369,7 @@ export default function IdentityTablesModal({
                           {grp.title}
                         </span>
                         <span
-                          className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border"
+                          className="text-t10 font-mono font-bold px-1.5 py-0.5 rounded border"
                           style={{ backgroundColor: theme?.subpanelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab', color: theme?.accent || '#78350f' }}
                         >
                           d6: {grp.d6Range}
@@ -391,7 +391,7 @@ export default function IdentityTablesModal({
                               }
                             >
                               <div className="flex items-center gap-1.5 truncate">
-                                <span className={`font-mono text-[10px] w-5 text-right font-bold ${
+                                <span className={`font-mono text-t10 w-5 text-right font-bold ${
                                   isPicked ? 'text-white/80' : 'text-[#6b5a4b]'
                                 }`}>
                                   #{item.id}
@@ -417,7 +417,7 @@ export default function IdentityTablesModal({
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#a63d40' }} />
                   {OFFICIAL_IDENTITY_TABLES.adjectives.title}
                 </h5>
-                <span className="text-[11px] text-[#6b5a4b] font-mono">
+                <span className="text-t11 text-[#6b5a4b] font-mono">
                   {OFFICIAL_IDENTITY_TABLES.adjectives.rollDesc}
                 </span>
               </div>
@@ -438,7 +438,7 @@ export default function IdentityTablesModal({
                           {grp.title}
                         </span>
                         <span
-                          className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border"
+                          className="text-t10 font-mono font-bold px-1.5 py-0.5 rounded border"
                           style={{ backgroundColor: theme?.subpanelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab', color: theme?.accent || '#78350f' }}
                         >
                           d6: {grp.d6Range}
@@ -460,7 +460,7 @@ export default function IdentityTablesModal({
                               }
                             >
                               <div className="flex items-center gap-1.5 truncate">
-                                <span className={`font-mono text-[10px] w-5 text-right font-bold ${
+                                <span className={`font-mono text-t10 w-5 text-right font-bold ${
                                   isPicked ? 'text-white/80' : 'text-[#6b5a4b]'
                                 }`}>
                                   #{item.id}
@@ -486,7 +486,7 @@ export default function IdentityTablesModal({
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.accent || '#a63d40' }} />
                   {OFFICIAL_IDENTITY_TABLES.details.title}
                 </h5>
-                <span className="text-[11px] text-[#6b5a4b] font-mono">
+                <span className="text-t11 text-[#6b5a4b] font-mono">
                   {OFFICIAL_IDENTITY_TABLES.details.rollDesc}
                 </span>
               </div>
@@ -510,7 +510,7 @@ export default function IdentityTablesModal({
                         }
                       >
                         <div className="flex items-center gap-1.5 truncate">
-                          <span className={`font-mono text-[10px] w-5 text-right font-bold ${
+                          <span className={`font-mono text-t10 w-5 text-right font-bold ${
                             isPicked ? 'text-white/80' : 'text-[#6b5a4b]'
                           }`}>
                             #{item.id}

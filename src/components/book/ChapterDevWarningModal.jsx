@@ -78,7 +78,7 @@ export default function ChapterDevWarningModal({
               <h4 className="font-serif font-black text-sm text-[#2c221e]">
                 本章節功能仍在開發與完善中
               </h4>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab]">
+              <span className="text-t10 font-mono font-bold px-1.5 py-0.5 rounded bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab]">
                 WIP 預覽版
               </span>
             </div>
@@ -101,7 +101,7 @@ export default function ChapterDevWarningModal({
                 <span className="font-serif font-bold text-base text-[#3c2415]">
                   {chapter.title}
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
+                <span className="text-t10 px-2 py-0.5 rounded-full font-bold bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
                   未完善使用
                 </span>
               </div>

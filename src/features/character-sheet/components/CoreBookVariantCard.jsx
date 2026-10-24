@@ -62,12 +62,12 @@ export default function CoreBookVariantCard({
       }}
     >
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[10px] font-black px-1.5 py-0.5 rounded border shrink-0"
+        <span className="text-t10 font-black px-1.5 py-0.5 rounded border shrink-0"
           style={{ borderColor: theme?.accent || '#c9a227', color: theme?.accent || '#a16207' }}>
           公測
         </span>
         {isSelected && (
-          <span className="text-[10px] font-black px-1.5 py-0.5 rounded shrink-0 flex items-center gap-0.5 text-white"
+          <span className="text-t10 font-black px-1.5 py-0.5 rounded shrink-0 flex items-center gap-0.5 text-white"
             style={{ backgroundColor: theme?.accent || '#a16207' }}>
             <GiCheckMark className="w-2.5 h-2.5" />
             使用中
@@ -77,23 +77,23 @@ export default function CoreBookVariantCard({
           style={{ color: theme?.textDark || '#3c2415' }}>
           {variant.name}
         </span>
-        <span className="text-[10px] font-mono shrink-0" style={{ color: theme?.textMuted || '#8a7a63' }}>
+        <span className="text-t10 font-mono shrink-0" style={{ color: theme?.textMuted || '#8a7a63' }}>
           {variant.en}
         </span>
-        <span className="text-[10px] font-mono shrink-0" style={{ color: theme?.textMuted || '#8a7a63' }}>
+        <span className="text-t10 font-mono shrink-0" style={{ color: theme?.textMuted || '#8a7a63' }}>
           SL 上限 {variant.maxSL}
         </span>
-        <span className="text-[10px] shrink-0" style={{ color: theme?.textMuted || '#8a7a63' }}>
+        <span className="text-t10 shrink-0" style={{ color: theme?.textMuted || '#8a7a63' }}>
           取代【{variant.replaces}】
         </span>
       </div>
 
-      <div className="text-xs sm:text-[13px] leading-relaxed" style={{ color: theme?.textDark || '#3c2415' }}>
+      <div className="text-xs sm:text-t12 leading-relaxed" style={{ color: theme?.textDark || '#3c2415' }}>
         <SkillDescription desc={variant.desc} sl={0} linkCodex={false} />
       </div>
 
       <div className="flex items-center justify-between gap-2 flex-wrap pt-0.5">
-        <div className="flex items-start gap-1 text-[10px] flex-1 min-w-[180px]" style={{ color: theme?.textMuted || '#8a7a63' }}>
+        <div className="flex items-start gap-1 text-t10 flex-1 min-w-[180px]" style={{ color: theme?.textMuted || '#8a7a63' }}>
           <GiScrollUnfurled className="w-3 h-3 mt-0.5 shrink-0" />
           <span>{variant.origin}。粗體＝與原版不同的機制。</span>
         </div>
@@ -110,7 +110,7 @@ export default function CoreBookVariantCard({
                   ? `改回原版【${variant.replaces}】`
                   : `用【${variant.name}】取代原版【${variant.replaces}】`
             }
-            className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all shrink-0 ${
+            className={`text-t11 font-bold px-2.5 py-1 rounded-lg border transition-all shrink-0 ${
               canPress ? 'cursor-pointer active:scale-95' : 'cursor-not-allowed opacity-45'
             }`}
             style={isSelected
@@ -123,7 +123,7 @@ export default function CoreBookVariantCard({
       </div>
 
       {interactive && disabled && disabledHint && (
-        <p className="text-[10px] italic" style={{ color: theme?.textMuted || '#8a7a63' }}>
+        <p className="text-t10 italic" style={{ color: theme?.textMuted || '#8a7a63' }}>
           {disabledHint}
         </p>
       )}

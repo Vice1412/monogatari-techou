@@ -138,12 +138,12 @@ export default function NPCCardPreview({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 bg-[#fbf7ee] border-b border-[#d6c7ab]">
         {/* HP */}
         <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
-          <div className="text-[10px] text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
+          <div className="text-t10 text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
             <GiHealthNormal className="w-3 h-3 text-[#6b5a4b]" /> HP 生命值
           </div>
           <div className="text-base font-mono font-black text-[#2c221e] mt-0.5">
             {maxHp}
-            <span className="text-[10px] text-[#6b5a4b] ml-1.5 font-bold inline-flex items-center gap-0.5" title={`危機值 ≤${crisisHp}`}>
+            <span className="text-t10 text-[#6b5a4b] ml-1.5 font-bold inline-flex items-center gap-0.5" title={`危機值 ≤${crisisHp}`}>
               <span className="fu-icon text-xs leading-none translate-y-[1.5px]">w</span> {crisisHp}
             </span>
           </div>
@@ -151,7 +151,7 @@ export default function NPCCardPreview({
 
         {/* MP */}
         <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
-          <div className="text-[10px] text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
+          <div className="text-t10 text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
             <GiLightningTear className="w-3 h-3 text-[#6b5a4b]" /> MP 魔力值
           </div>
           <div className="text-base font-mono font-black text-[#2c221e] mt-0.5">
@@ -161,7 +161,7 @@ export default function NPCCardPreview({
 
         {/* Def */}
         <div className="bg-[#f9f5eb] rounded-lg p-2.5 border border-[#d6c7ab]">
-          <div className="text-[10px] text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
+          <div className="text-t10 text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
             <GiCheckedShield className="w-3 h-3 text-[#6b5a4b]" /> 物防 DEF
           </div>
           <div className="text-base font-mono font-black text-[#2c221e] mt-0.5">
@@ -171,7 +171,7 @@ export default function NPCCardPreview({
 
         {/* Magic Def & Initiative */}
         <div className="bg-[#ede9fe] rounded-lg p-2.5 border border-[#ddd6fe]">
-          <div className="text-[10px] text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
+          <div className="text-t10 text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
             <GiCrystalBall className="w-3 h-3 text-[#6b5a4b]" /> 魔防 M.DEF / 先攻 INIT
           </div>
           <div className="text-base font-mono font-black text-[#2c221e] mt-0.5">
@@ -196,7 +196,7 @@ export default function NPCCardPreview({
         <div className="text-xs font-bold text-[#3c2415] mb-2 flex items-center justify-between">
           <span>屬性抗性矩陣</span>
           {stats.statusImmunities?.length > 0 && (
-            <span className="text-[11px] text-[#6b5a4b] font-medium">
+            <span className="text-t11 text-[#6b5a4b] font-medium">
               免疫: {stats.statusImmunities.join(', ')}
             </span>
           )}
@@ -213,11 +213,11 @@ export default function NPCCardPreview({
 
             return (
               <div key={type} className={`rounded-md border p-1 flex flex-col items-center justify-center ${badgeClass}`}>
-                <span className="text-[11px] font-sans font-bold flex items-center gap-0.5">
+                <span className="text-t11 font-sans font-bold flex items-center gap-0.5">
                   <span className={`fu-icon text-xs ${style.color || ''}`}>{style.fuIcon}</span>
                   <span>{type}</span>
                 </span>
-                <span className="text-[11px] mt-0.5">{stateCfg.label}</span>
+                <span className="text-t11 mt-0.5">{stateCfg.label}</span>
               </div>
             );
           })}
@@ -241,7 +241,7 @@ export default function NPCCardPreview({
                     <div className="flex items-center justify-between font-bold text-[#3c2415] mb-1">
                       <span>{att.name || att.skillName || '普通攻擊'}</span>
                       <span className="inline-flex items-center gap-1.5 font-mono text-[#6b5a4b]">
-                        <span className="inline-flex items-center gap-1 text-[#3c2415] bg-[#e8dcc4] px-1.5 py-0.5 rounded text-[11px] font-bold leading-none shrink-0 shadow-2xs">
+                        <span className="inline-flex items-center gap-1 text-[#3c2415] bg-[#e8dcc4] px-1.5 py-0.5 rounded text-t11 font-bold leading-none shrink-0 shadow-2xs">
                           <span className="fu-icon text-xs leading-none translate-y-[0.5px]">{(att.selections?.distance || '').includes('遠程') ? 'r' : 'm'}</span>
                           <span>{att.selections?.distance || '近戰'}</span>
                         </span>
@@ -281,7 +281,7 @@ export default function NPCCardPreview({
                         {isOffensive && <span className="fu-icon text-[#8c2d36] font-bold" title="攻擊性咒語">o</span>}
                         <span>{rawName}</span>
                       </span>
-                      <span className="text-[11px] font-mono text-[#6b5a4b]">
+                      <span className="text-t11 font-mono text-[#6b5a4b]">
                         MP {sp.selections?.mpCost || 10} · {sp.selections?.target || '單體'}
                       </span>
                     </div>
@@ -309,7 +309,7 @@ export default function NPCCardPreview({
                   <div key={idx} className="bg-[#fbf7ee] rounded-lg p-2.5 border border-[#d6c7ab] text-xs">
                     <div className="flex items-center justify-between font-bold text-[#3c2415] mb-1">
                       <span>{nameText}</span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded border bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]">
+                      <span className="text-t10 font-mono px-1.5 py-0.5 rounded border bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]">
                         行動
                       </span>
                     </div>
@@ -360,7 +360,7 @@ export default function NPCCardPreview({
                   <div key={idx} className="bg-[#fbf7ee] rounded-lg p-2.5 border border-[#d6c7ab] text-xs">
                     <div className="flex items-center justify-between font-bold text-[#3c2415] mb-1">
                       <span>{icon} {nameText}</span>
-                      <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${badgeClass}`}>
+                      <span className={`text-t10 font-mono px-1.5 py-0.5 rounded border ${badgeClass}`}>
                         {badgeLabel}
                       </span>
                     </div>

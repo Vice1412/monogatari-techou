@@ -322,12 +322,12 @@ export default function RuleCodexDrawer({
                           <div className="flex items-center justify-between gap-2 border-b border-[#e8dcc4] pb-1">
                             <strong className="text-[#2c221e]">{it.name}</strong>
                             {it.meta && (
-                              <span className="text-[10px] font-mono text-[#3c2415] font-bold whitespace-nowrap">
+                              <span className="text-t10 font-mono text-[#3c2415] font-bold whitespace-nowrap">
                                 {it.meta}
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-[#6b5a4b] leading-relaxed">
+                          <p className="text-t11 text-[#6b5a4b] leading-relaxed">
                             {renderTextWithAffinities(it.body)}
                           </p>
                         </div>
@@ -373,7 +373,7 @@ export default function RuleCodexDrawer({
                         <span className="font-bold text-sm text-[#2c221e]">
                           {arcana.name}
                         </span>
-                        <span className="text-[11px] font-mono text-[#6b5a4b]">{arcana.domains}</span>
+                        <span className="text-t11 font-mono text-[#6b5a4b]">{arcana.domains}</span>
                       </div>
                       <div className="space-y-1 text-xs">
                         <div>
@@ -569,7 +569,7 @@ export default function RuleCodexDrawer({
                             <span className="text-[#2c221e]">{m.tier}</span>
                             <span className="font-mono text-[#3c2415]">{m.cost}</span>
                           </div>
-                          <p className="text-[11px] text-[#6b5a4b] leading-relaxed">{m.desc}</p>
+                          <p className="text-t11 text-[#6b5a4b] leading-relaxed">{m.desc}</p>
                         </div>
                       ))}
                     </div>
@@ -588,7 +588,7 @@ export default function RuleCodexDrawer({
                               <th className="p-2">影響目標</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[#e8dcc4] bg-white text-[11px]">
+                          <tbody className="divide-y divide-[#e8dcc4] bg-white text-t11">
                             {currentRule.alchemy.targets.map((t, tIdx) => (
                               <tr key={tIdx}>
                                 <td className="p-1.5 text-center font-mono font-bold text-[#3c2415]">{t.roll}</td>
@@ -611,7 +611,7 @@ export default function RuleCodexDrawer({
                               <th className="p-2">藥劑效果</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[#e8dcc4] bg-white text-[11px]">
+                          <tbody className="divide-y divide-[#e8dcc4] bg-white text-t11">
                             {currentRule.alchemy.effects.map((e, eIdx) => (
                               <tr key={eIdx}>
                                 <td className="p-1.5 text-center font-mono font-bold text-[#3c2415]">{e.roll}</td>
@@ -652,7 +652,7 @@ export default function RuleCodexDrawer({
                         {currentRule.infusions.basic.map((item, idx) => (
                           <div key={idx} className="p-2 rounded-lg bg-[#fbf7ee] border border-[#d6c7ab]">
                             <span className="font-bold text-[#3c2415] block mb-0.5">{item.name} ({item.cost})</span>
-                            <span className="text-[11px] text-[#6b5a4b]">{renderTextWithAffinities(item.desc)}</span>
+                            <span className="text-t11 text-[#6b5a4b]">{renderTextWithAffinities(item.desc)}</span>
                           </div>
                         ))}
                       </div>
@@ -664,7 +664,7 @@ export default function RuleCodexDrawer({
                         {currentRule.infusions.advanced.map((item, idx) => (
                           <div key={idx} className="p-2 rounded-lg bg-[#fbf7ee] border border-[#d6c7ab]">
                             <span className="font-bold text-[#3c2415] block mb-0.5">{item.name} ({item.cost})</span>
-                            <span className="text-[11px] text-[#6b5a4b]">{renderTextWithAffinities(item.desc)}</span>
+                            <span className="text-t11 text-[#6b5a4b]">{renderTextWithAffinities(item.desc)}</span>
                           </div>
                         ))}
                       </div>
@@ -676,7 +676,7 @@ export default function RuleCodexDrawer({
                         {currentRule.infusions.superior.map((item, idx) => (
                           <div key={idx} className="p-2 rounded-lg bg-[#fbf7ee] border border-[#d6c7ab]">
                             <span className="font-bold text-[#3c2415] block mb-0.5">{item.name} ({item.cost})</span>
-                            <span className="text-[11px] text-[#6b5a4b] leading-relaxed">{renderTextWithAffinities(item.desc)}</span>
+                            <span className="text-t11 text-[#6b5a4b] leading-relaxed">{renderTextWithAffinities(item.desc)}</span>
                           </div>
                         ))}
                       </div>
@@ -703,7 +703,7 @@ export default function RuleCodexDrawer({
                         <span className="text-[#2c221e]">{currentRule.magitech.basic.name}</span>
                         <span className="font-mono text-[#3c2415]">{currentRule.magitech.basic.cost}</span>
                       </div>
-                      <p className="text-[#3c2415] leading-relaxed text-[11px]">
+                      <p className="text-[#3c2415] leading-relaxed text-t11">
                         {currentRule.magitech.basic.desc}
                       </p>
                     </div>
@@ -714,11 +714,11 @@ export default function RuleCodexDrawer({
                         <span className="text-[#2c221e]">{currentRule.magitech.advanced.name}</span>
                         <span className="font-mono text-[#3c2415]">{currentRule.magitech.advanced.cost}</span>
                       </div>
-                      <p className="text-[#3c2415] leading-relaxed text-[11px]">
+                      <p className="text-[#3c2415] leading-relaxed text-t11">
                         {renderTextWithAffinities(currentRule.magitech.advanced.desc)}
                       </p>
                       {/* 武器數據表 */}
-                      <div className="grid grid-cols-2 sm:grid-cols-6 gap-1.5 p-2 bg-white/80 rounded border border-[#e8dcc4]/60 text-[11px]">
+                      <div className="grid grid-cols-2 sm:grid-cols-6 gap-1.5 p-2 bg-white/80 rounded border border-[#e8dcc4]/60 text-t11">
                         <div><span className="text-[#6b5a4b] block">類別</span><span className="font-bold text-[#3c2415]">{currentRule.magitech.advanced.weaponStats.category}</span></div>
                         <div><span className="text-[#6b5a4b] block">持握</span><span className="font-bold text-[#3c2415]">{currentRule.magitech.advanced.weaponStats.hands}</span></div>
                         <div><span className="text-[#6b5a4b] block">射程</span><span className="font-bold text-[#3c2415]">{currentRule.magitech.advanced.weaponStats.range}</span></div>
@@ -734,7 +734,7 @@ export default function RuleCodexDrawer({
                         <span className="text-[#3c2415]">{currentRule.magitech.superior.name}</span>
                         <span className="font-mono text-[#6b5a4b]">{currentRule.magitech.superior.cost}</span>
                       </div>
-                      <p className="text-[#3c2415] leading-relaxed text-[11px]">
+                      <p className="text-[#3c2415] leading-relaxed text-t11">
                         {currentRule.magitech.superior.desc}
                       </p>
                     </div>
@@ -761,7 +761,7 @@ export default function RuleCodexDrawer({
                   {currentRule.steps.map((st, stIdx) => (
                     <div key={stIdx} className="p-2.5 rounded-lg bg-[#fbf7ee] border border-[#d6c7ab] space-y-1">
                       <span className="font-bold text-[#3c2415] block">{st.step}</span>
-                      <p className="text-[11px] text-[#6b5a4b] leading-relaxed">{st.desc}</p>
+                      <p className="text-t11 text-[#6b5a4b] leading-relaxed">{st.desc}</p>
                     </div>
                   ))}
                 </div>
@@ -792,7 +792,7 @@ export default function RuleCodexDrawer({
                             <th className="p-2">效果範例</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#e8dcc4] bg-white text-[11px]">
+                        <tbody className="divide-y divide-[#e8dcc4] bg-white text-t11">
                           {currentRule.potencyTable.map((p, pIdx) => (
                             <tr key={pIdx}>
                               <td className="p-1.5 text-center font-bold text-[#2c221e]">{p.tier}</td>
@@ -817,7 +817,7 @@ export default function RuleCodexDrawer({
                             <th className="p-2">影響範例</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#e8dcc4] bg-white text-[11px]">
+                        <tbody className="divide-y divide-[#e8dcc4] bg-white text-t11">
                           {currentRule.areaTable.map((a, aIdx) => (
                             <tr key={aIdx}>
                               <td className="p-1.5 text-center font-bold text-[#2c221e]">{a.area}</td>
@@ -842,7 +842,7 @@ export default function RuleCodexDrawer({
                             <th className="p-2">持續性說明</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#e8dcc4] bg-white text-[11px]">
+                        <tbody className="divide-y divide-[#e8dcc4] bg-white text-t11">
                           {currentRule.usesTable.map((u, uIdx) => (
                             <tr key={uIdx}>
                               <td className="p-1.5 text-center font-bold text-[#2c221e]">{u.use}</td>
@@ -863,7 +863,7 @@ export default function RuleCodexDrawer({
                   <span>進度計算與每日自動累積</span>
                   <span className="font-mono text-xs text-[#6b5a4b] font-normal">所需進度 = 最終總成本 / 100z</span>
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-1 text-[11px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-1 text-t11">
                   <div className="p-2 rounded bg-[#fbf7ee] border border-[#d6c7ab]">
                     <strong className="text-[#2c221e] block mb-0.5">每位參與 PC</strong>
                     <span className="text-[#6b5a4b]">每日結束時自動 +1 進度</span>
@@ -915,7 +915,7 @@ export default function RuleCodexDrawer({
                 <span className="font-bold text-[#3c2415] block border-b border-[#e8dcc4] pb-1">
                   行動指揮與基礎攻擊
                 </span>
-                <ul className="list-disc list-inside space-y-1.5 text-[#3c2415] text-[11px] leading-relaxed pl-1">
+                <ul className="list-disc list-inside space-y-1.5 text-[#3c2415] text-t11 leading-relaxed pl-1">
                   <li>夥伴最多擁有 2 種基礎攻擊（傷害為【HR + 5】），其命中檢定與魔法檢定獲得等於【SL】的加值。</li>
                   <li>夥伴在衝突中沒有獨立回合；在旅人回合中，旅人可花費一個動作讓夥伴執行動作（每回合限一次）。</li>
                   <li>當 HP 降至 0 時夥伴逃離戰場；在旅人登場的下一場景以危機 HP 重新歸隊。</li>
@@ -971,11 +971,11 @@ export default function RuleCodexDrawer({
                                 )}
                                 <span>{sp.name}</span>
                               </span>
-                              <span className="text-[11px] font-mono text-[#6b5a4b]">
+                              <span className="text-t11 font-mono text-[#6b5a4b]">
                                 MP: {sp.mp} | 目標: {sp.target} | 持續: {sp.duration}
                               </span>
                             </div>
-                            <p className="text-[#6b5a4b] text-[11px] leading-relaxed">{renderTextWithAffinities(sp.desc)}</p>
+                            <p className="text-[#6b5a4b] text-t11 leading-relaxed">{renderTextWithAffinities(sp.desc)}</p>
                           </div>
                         ))}
                       </div>
@@ -989,7 +989,7 @@ export default function RuleCodexDrawer({
 
         {/* 底部 Footer */}
         <div className="p-3 bg-[#f4ebd9] border-t border-[#e8dcc4] flex justify-between items-center text-xs text-[#6b5a4b] shrink-0">
-          <span className="text-[11px] text-[#6b5a4b]">
+          <span className="text-t11 text-[#6b5a4b]">
             提示：按 ESC 或點擊視窗外空白處即可關閉並返回
           </span>
           <button

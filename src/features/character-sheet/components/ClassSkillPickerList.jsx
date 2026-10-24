@@ -135,7 +135,7 @@ export default function ClassSkillPickerList({
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
               <span
-                className="font-bold flex items-center gap-1.5 text-[11px] flex-wrap"
+                className="font-bold flex items-center gap-1.5 text-t11 flex-wrap"
                 style={{ color: theme.textDark }}
               >
                 <span style={{ color: theme.accent }}>✦</span>
@@ -180,7 +180,7 @@ export default function ClassSkillPickerList({
               </span>
             </div>
             <div
-              className="text-[10px] leading-relaxed font-sans"
+              className="text-t10 leading-relaxed font-sans"
               style={{ color: theme.textDark }}
             >
               {row.orphan

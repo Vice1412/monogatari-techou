@@ -197,7 +197,7 @@ export default function CombatTracker() {
         {/* Round Counter */}
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl bg-[#f4ebd9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono shadow-inner">
-            <span className="text-[10px] text-[#7c6a58] uppercase tracking-widest font-bold">ROUND</span>
+            <span className="text-t10 text-[#7c6a58] uppercase tracking-widest font-bold">ROUND</span>
             <span className="text-2xl font-bold text-[#3c2415] leading-none">{round}</span>
           </div>
 
@@ -257,7 +257,7 @@ export default function CombatTracker() {
                 {isHost ? 'GM 房間建立完成' : '已連線房間'}: <strong className="text-[#3c2415] bg-[#f4ebd9] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{roomCode}</strong>
               </span>
               {isHost && (
-                <span className="text-[11px] text-[#6b5a4b] font-normal">
+                <span className="text-t11 text-[#6b5a4b] font-normal">
                   ({connectedPeersCount} 人同步中)
                 </span>
               )}

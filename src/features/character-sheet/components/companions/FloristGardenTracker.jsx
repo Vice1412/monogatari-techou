@@ -119,11 +119,11 @@ export default function FloristGardenTracker({
           <div>
             <div className="font-bold text-xs text-[#245c45] tracking-wide font-serif flex items-center gap-1.5">
               <span>花園生長盤</span>
-              <span className="font-mono text-[10px] text-[#245c45] bg-[#f4ebd9] px-1.5 py-0.2 rounded border border-[#d6c7ab]">
+              <span className="font-mono text-t10 text-[#245c45] bg-[#f4ebd9] px-1.5 py-0.2 rounded border border-[#d6c7ab]">
                 容量: {gardenList.length}/{maxCapacity}
               </span>
             </div>
-            <div className="text-[10px] text-[#245c45]/80">
+            <div className="text-t10 text-[#245c45]/80">
               每回合結束推進 1 格生長命刻（滿 4 格離園）
             </div>
           </div>
@@ -189,7 +189,7 @@ export default function FloristGardenTracker({
                     <span className="font-serif font-black text-sm text-[#245c45]">
                       {item.seedName}
                     </span>
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#245c45] border border-[#d6c7ab] font-bold">
+                    <span className="text-t10 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#245c45] border border-[#d6c7ab] font-bold">
                       {clock === 0 ? '剛播種 (0格)' : clock < 4 ? `第 ${clock === 1 ? '1' : clock} 回合 (${clock}/4 格)` : '滿 4 格（即將離園）'}
                     </span>
                   </div>
@@ -200,7 +200,7 @@ export default function FloristGardenTracker({
                       type="button"
                       onClick={() => handleStepClock(item.instanceId, -1)}
                       disabled={clock <= 0}
-                      className="px-1.5 py-0.5 rounded text-[11px] bg-[#f4ebd9] hover:bg-[#e8dcc4] disabled:opacity-30 text-[#3c2415] font-mono font-bold cursor-pointer"
+                      className="px-1.5 py-0.5 rounded text-t11 bg-[#f4ebd9] hover:bg-[#e8dcc4] disabled:opacity-30 text-[#3c2415] font-mono font-bold cursor-pointer"
                       title="後退 1 格"
                     >
                       -1
@@ -209,7 +209,7 @@ export default function FloristGardenTracker({
                       type="button"
                       onClick={() => handleStepClock(item.instanceId, 1)}
                       disabled={clock >= 4}
-                      className="px-2 py-0.5 rounded text-[11px] bg-[#245c45] hover:bg-[#1e4b39] disabled:opacity-30 text-white font-mono font-bold transition-colors cursor-pointer flex items-center gap-0.5 shadow-2xs"
+                      className="px-2 py-0.5 rounded text-t11 bg-[#245c45] hover:bg-[#1e4b39] disabled:opacity-30 text-white font-mono font-bold transition-colors cursor-pointer flex items-center gap-0.5 shadow-2xs"
                       title="前進 1 回合 (+1 格)"
                     >
                       <span>+1 格</span>
@@ -264,13 +264,13 @@ export default function FloristGardenTracker({
                       return (
                         <div
                           key={efIdx}
-                          className={`p-1.5 rounded-lg transition-all flex items-start gap-1.5 text-[11px] leading-relaxed ${
+                          className={`p-1.5 rounded-lg transition-all flex items-start gap-1.5 text-t11 leading-relaxed ${
                             isActive
                               ? 'bg-[#f4ebd9] border border-[#245c45] text-[#245c45] font-medium'
                               : 'text-[#6b5a4b] opacity-60'
                           }`}
                         >
-                          <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono shrink-0 font-bold ${
+                          <span className={`px-1.5 py-0.2 rounded text-t10 font-mono shrink-0 font-bold ${
                             isActive
                               ? 'bg-[#245c45] text-white'
                               : 'bg-[#f4ebd9] text-[#6b5a4b]'
@@ -281,7 +281,7 @@ export default function FloristGardenTracker({
                             {renderTextWithAffinities(ef.text)}
                           </span>
                           {isActive && (
-                            <span className="text-[10px] text-[#245c45] font-bold shrink-0">
+                            <span className="text-t10 text-[#245c45] font-bold shrink-0">
                               [生效中]
                             </span>
                           )}

@@ -73,7 +73,7 @@ export default function CharacterPreviewModal({
                 key={key}
                 type="button"
                 onClick={() => setTab(key)}
-                className="text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer"
+                className="text-t11 font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer"
                 style={{
                   backgroundColor: active ? theme?.accent : theme?.panelBg,
                   borderColor: theme?.border,
@@ -97,7 +97,7 @@ export default function CharacterPreviewModal({
           <>
             <div className="text-xs text-[#6b5a4b] flex items-center justify-between px-1 flex-wrap gap-1">
               <span>隨時檢視角色卡排版與構築進度</span>
-              <span className="font-mono text-[11px]" style={{ color: theme?.accent }}>
+              <span className="font-mono text-t11" style={{ color: theme?.accent }}>
                 （填寫中未完成欄位均以空格標註）
               </span>
             </div>

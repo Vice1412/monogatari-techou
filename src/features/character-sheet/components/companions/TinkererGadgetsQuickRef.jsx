@@ -69,10 +69,10 @@ export default function TinkererGadgetsQuickRef({
     return (
       <span
         key={name}
-        className={`px-2 py-0.5 rounded-md font-bold text-[11px] border flex items-center gap-1 ${ isUnlocked ? 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ' : 'bg-[#f4ebd9] text-[#7c6a58] border-[#d6c7ab] ' }`}
+        className={`px-2 py-0.5 rounded-md font-bold text-t11 border flex items-center gap-1 ${ isUnlocked ? 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ' : 'bg-[#f4ebd9] text-[#7c6a58] border-[#d6c7ab] ' }`}
       >
         <span>{name}</span>
-        <span className="font-mono text-[10px] px-1 py-0.2 rounded bg-black/10">
+        <span className="font-mono text-t10 px-1 py-0.2 rounded bg-black/10">
           {tierLabels[tier] || `Tier ${tier}`}
         </span>
       </span>
@@ -87,7 +87,7 @@ export default function TinkererGadgetsQuickRef({
           <GiGears className="text-[#6b5a4b] text-sm" />
           <span>已掌握小工具戰鬥速查</span>
           {totalAllocated > 0 && (
-            <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415] font-bold border border-[#d6c7ab]">
+            <span className="font-mono text-t10 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415] font-bold border border-[#d6c7ab]">
               {totalAllocated} / {sl} 節點
             </span>
           )}
@@ -97,7 +97,7 @@ export default function TinkererGadgetsQuickRef({
           <button
             type="button"
             onClick={onOpenCodex}
-            className="px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-[11px] flex items-center gap-1 transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t11 flex items-center gap-1 transition-all cursor-pointer hover:scale-105 active:scale-95"
             title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
           >
             <GiSpellBook className="text-[#6b5a4b] text-xs" />
@@ -108,7 +108,7 @@ export default function TinkererGadgetsQuickRef({
             <button
               type="button"
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="text-[10px] px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] font-medium transition-colors cursor-pointer flex items-center gap-0.5"
+              className="text-t10 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] font-medium transition-colors cursor-pointer flex items-center gap-0.5"
             >
               {isCollapsed ? (
                 <>
@@ -145,7 +145,7 @@ export default function TinkererGadgetsQuickRef({
         </div>
       ) : isCollapsed ? (
         /* 收合為摘要標籤視圖 */
-        <div className="flex flex-wrap gap-1.5 pt-1 text-[11px]">
+        <div className="flex flex-wrap gap-1.5 pt-1 text-t11">
           {infusion >= 1 && (
             <>
               <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] font-medium">
@@ -229,11 +229,11 @@ export default function TinkererGadgetsQuickRef({
                 <div className="flex items-center gap-1.5 text-[#2c221e] font-bold text-xs">
                   <GiBroadsword className="text-[#6b5a4b]" />
                   <span>灌注術工藝</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415]">
+                  <span className="text-t10 font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415]">
                     Tier {infusion}
                   </span>
                 </div>
-                <span className="text-[11px] text-[#6b5a4b]">
+                <span className="text-t11 text-[#6b5a4b]">
                   武器攻擊命中後花費 <strong>2 道具點</strong> 注入特殊效果
                 </span>
               </div>
@@ -243,9 +243,9 @@ export default function TinkererGadgetsQuickRef({
                 <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
                   <div className="font-bold text-[#2c221e] flex items-center justify-between">
                     <span>低溫</span>
-                    <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
+                    <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
                   </div>
-                  <div className="text-[11px] leading-relaxed">
+                  <div className="text-t11 leading-relaxed">
                     {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【冰】屬性。')}
                   </div>
                 </div>
@@ -253,9 +253,9 @@ export default function TinkererGadgetsQuickRef({
                 <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
                   <div className="font-bold text-[#2c221e] flex items-center justify-between">
                     <span>焦火</span>
-                    <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
+                    <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
                   </div>
-                  <div className="text-[11px] leading-relaxed">
+                  <div className="text-t11 leading-relaxed">
                     {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【火】屬性。')}
                   </div>
                 </div>
@@ -263,9 +263,9 @@ export default function TinkererGadgetsQuickRef({
                 <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
                   <div className="font-bold text-[#2c221e] flex items-center justify-between">
                     <span>電壓</span>
-                    <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
+                    <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
                   </div>
-                  <div className="text-[11px] leading-relaxed">
+                  <div className="text-t11 leading-relaxed">
                     {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【電】屬性。')}
                   </div>
                 </div>
@@ -276,9 +276,9 @@ export default function TinkererGadgetsQuickRef({
                     <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
                       <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>疾風</span>
-                        <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
+                        <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
                       </div>
-                      <div className="text-[11px] leading-relaxed">
+                      <div className="text-t11 leading-relaxed">
                         {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【風】屬性。')}
                       </div>
                     </div>
@@ -286,9 +286,9 @@ export default function TinkererGadgetsQuickRef({
                     <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
                       <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>驅邪</span>
-                        <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
+                        <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
                       </div>
-                      <div className="text-[11px] leading-relaxed">
+                      <div className="text-t11 leading-relaxed">
                         {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【光】屬性。')}
                       </div>
                     </div>
@@ -296,9 +296,9 @@ export default function TinkererGadgetsQuickRef({
                     <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
                       <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>地震</span>
-                        <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
+                        <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
                       </div>
-                      <div className="text-[11px] leading-relaxed">
+                      <div className="text-t11 leading-relaxed">
                         {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【土】屬性。')}
                       </div>
                     </div>
@@ -306,9 +306,9 @@ export default function TinkererGadgetsQuickRef({
                     <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
                       <div className="font-bold text-[#3c2415] flex items-center justify-between">
                         <span>暗影</span>
-                        <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
+                        <span className="text-t10 font-mono text-[#6b5a4b] font-bold">2 IP</span>
                       </div>
-                      <div className="text-[11px] leading-relaxed">
+                      <div className="text-t11 leading-relaxed">
                         {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【暗】屬性。')}
                       </div>
                     </div>
@@ -321,7 +321,7 @@ export default function TinkererGadgetsQuickRef({
                     <div className="p-2 rounded-lg bg-white/90 border border-[#8c2d36]/30 space-y-0.5">
                       <div className="font-bold text-[#8c2d36] flex items-center justify-between">
                         <span>吸血（限單一目標）</span>
-                        <span className="text-[10px] font-mono text-[#8c2d36] font-bold">2 IP</span>
+                        <span className="text-t10 font-mono text-[#8c2d36] font-bold">2 IP</span>
                       </div>
                       <p className="text-t12 leading-relaxed text-[#3c2415]">
                         恢復相當於目標所受傷害總量一半的 HP 或 MP。
@@ -331,9 +331,9 @@ export default function TinkererGadgetsQuickRef({
                     <div className="p-2 rounded-lg bg-white/90 border border-[#d6c7ab] space-y-0.5">
                       <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>毒液</span>
-                        <span className="text-[10px] font-mono text-[#3c2415] font-bold">2 IP</span>
+                        <span className="text-t10 font-mono text-[#3c2415] font-bold">2 IP</span>
                       </div>
-                      <div className="text-[11px] leading-relaxed">
+                      <div className="text-t11 leading-relaxed">
                         {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【毒】屬性，且目標陷入中毒狀態。')}
                       </div>
                     </div>
@@ -350,7 +350,7 @@ export default function TinkererGadgetsQuickRef({
                 <div className="flex items-center gap-1.5 text-[#3c2415] font-bold text-xs">
                   <GiGears className="text-[#3c2415]" />
                   <span>{branch ? `${branch.name}工藝` : '魔導科技工藝'}</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
+                  <span className="text-t10 font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
                     {technoRestrictsEquipment ? `Tier ${magitech}/${magitechCeiling}` : `Tier ${magitech}`}
                   </span>
                 </div>
@@ -364,11 +364,11 @@ export default function TinkererGadgetsQuickRef({
                       <span className="text-[#3c2415]">
                         {n.tierName.replace('益處', '')}【{n.name}】
                       </span>
-                      <span className="font-mono text-[#6b5a4b] font-bold text-[10px]">
+                      <span className="font-mono text-[#6b5a4b] font-bold text-t10">
                         {n.cost}
                       </span>
                     </div>
-                    <p className="text-[11px] text-[#6b5a4b] leading-relaxed">
+                    <p className="text-t11 text-[#6b5a4b] leading-relaxed">
                       {renderTextWithAffinities(n.summary)}
                     </p>
                   </div>
@@ -380,7 +380,7 @@ export default function TinkererGadgetsQuickRef({
                 <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-0.5">
                   <div className="flex justify-between items-center font-bold">
                     <span className="text-[#3c2415]">基礎【魔科技篡奪】</span>
-                    <span className="font-mono text-[#6b5a4b] font-bold text-[10px]">10 MP</span>
+                    <span className="font-mono text-[#6b5a4b] font-bold text-t10">10 MP</span>
                   </div>
                   <p className="text-t12 text-[#6b5a4b] leading-relaxed">
                     花費 10 MP 選擇一名處於狀態效果下的構裝體或元素體敵人，解除其所有異常狀態，揭露其完整數據，並強制其作為盟友立即執行一項自選動作。
@@ -392,9 +392,9 @@ export default function TinkererGadgetsQuickRef({
                   <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-1">
                     <div className="flex justify-between items-center font-bold">
                       <span className="text-[#2c221e]">高級【魔加農】</span>
-                      <span className="font-mono text-[#6b5a4b] font-bold text-[10px]">2 IP</span>
+                      <span className="font-mono text-[#6b5a4b] font-bold text-t10">2 IP</span>
                     </div>
-                    <div className="text-[11px] text-[#6b5a4b] leading-relaxed">
+                    <div className="text-t11 text-[#6b5a4b] leading-relaxed">
                       {renderTextWithAffinities('花費 2 IP 製造一把魔加農火器。若兩手為空，可立即裝備並進行一次自由攻擊。命中【DEX + INS】+1，傷害【HR + 10】自選屬性傷害。')}
                     </div>
                   </div>
@@ -407,7 +407,7 @@ export default function TinkererGadgetsQuickRef({
                       <span className="text-[#3c2415]">
                         {technoRestrictsEquipment ? '高級【魔法球原型】' : '最高【魔法球原型】'}
                       </span>
-                      <span className="font-mono text-[#6b5a4b] font-bold text-[10px]">2 IP</span>
+                      <span className="font-mono text-[#6b5a4b] font-bold text-t10">2 IP</span>
                     </div>
                     <p className="text-t12 text-[#6b5a4b] leading-relaxed">
                       花費 2 點 IP 免費執行咒語動作，施展已開發出原型的元素、熵系或靈魂學派咒語（遵循正常 MP 與檢定，使用後摧毀）。
@@ -432,21 +432,21 @@ export default function TinkererGadgetsQuickRef({
                 <div className="flex items-center gap-1.5 text-[#2c221e] font-bold text-xs">
                   <GiRoundBottomFlask className="text-[#6b5a4b]" />
                   <span>即席煉金術</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415]">
+                  <span className="text-t10 font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415]">
                     Tier {alchemy}
                   </span>
                 </div>
-                <span className="text-[11px] text-[#6b5a4b]">
+                <span className="text-t11 text-[#6b5a4b]">
                   {alchemy === 1 ? '基礎混合：擲 2d20 · 消耗 3 IP' : alchemy === 2 ? '高級混合：擲 3d20 · 消耗 4 IP' : '最高混合：擲 4d20 · 消耗 5 IP'}
                 </span>
               </div>
 
               <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4] space-y-1 text-xs">
-                <div className="flex items-center justify-between text-[11px] font-bold text-[#2c221e]">
+                <div className="flex items-center justify-between text-t11 font-bold text-[#2c221e]">
                   <span>常駐任意保底選項（任何出目皆可選）：</span>
                   <span className="text-[#6b5a4b] font-normal">手冊 p.213</span>
                 </div>
-                <div className="text-[11px] leading-relaxed text-[#3c2415] space-y-0.5">
+                <div className="text-t11 leading-relaxed text-[#3c2415] space-y-0.5">
                   <div>• {renderTextWithAffinities(`受到 ${dmg} 點毒屬性傷害`)}</div>
                   <div>• 恢復 30 點 HP</div>
                 </div>

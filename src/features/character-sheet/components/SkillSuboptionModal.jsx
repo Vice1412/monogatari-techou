@@ -276,7 +276,7 @@ export default function SkillSuboptionModal({
                   type="button"
                   onClick={() => openRuleCodex(skillName)}
                   title={`開啟規則速查「${codexRule.title}」（${codexRule.page}）`}
-                  className="text-[11px] font-bold px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] hover:bg-[#f4ebd9] transition-colors cursor-pointer flex items-center gap-1"
+                  className="text-t11 font-bold px-2 py-0.5 rounded-lg border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] hover:bg-[#f4ebd9] transition-colors cursor-pointer flex items-center gap-1"
                 >
                   <GiBookCover className="w-3.5 h-3.5" />
                   <span>規則速查：{codexRule.title}</span>
@@ -333,7 +333,7 @@ export default function SkillSuboptionModal({
               <GiMusicalNotes className="w-4 h-4" />
               <span>音量體系（習得本技能自動全數掌握，無須消耗配額）：</span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-t11">
               {CHANTER_DATA.volumes.map(vol => (
                 <div key={vol.id} className="p-2 bg-white rounded-lg border border-[#e8dcc4]">
                   <div className="font-bold text-[#3c2415] flex items-center justify-between">
@@ -363,11 +363,11 @@ export default function SkillSuboptionModal({
               )}
             </div>
             {therioLines.map((line) => (
-              <div key={line} className="text-[11px] leading-relaxed text-[#3c2415]">
+              <div key={line} className="text-t11 leading-relaxed text-[#3c2415]">
                 {line}
               </div>
             ))}
-            <div className="text-[11px] leading-relaxed text-[#6b5a4b]">
+            <div className="text-t11 leading-relaxed text-[#6b5a4b]">
               形態庫與配額不受變體影響：每取得一級學一個形態（目前 SL {sl} → 上限 {maxQuota} 個）。
             </div>
           </div>
@@ -468,7 +468,7 @@ export default function SkillSuboptionModal({
 
                       {/* 類型標籤 */}
                       {item.typeLabel && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
+                        <span className="text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                           {item.typeLabel}
                         </span>
                       )}
@@ -477,21 +477,21 @@ export default function SkillSuboptionModal({
                       {!['dances', 'chanter'].includes(config.type) && (
                         <>
                           {item.affinity && (
-                            <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab]">
+                            <span className="flex items-center gap-0.5 text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab]">
                               <FUIcon name={item.affinity} className="text-xs" />
                               <span>{item.affinity}</span>
                             </span>
                           )}
 
                           {item.affinities && item.affinities.map(aff => (
-                            <span key={aff} className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab]">
+                            <span key={aff} className="flex items-center gap-0.5 text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab]">
                               <FUIcon name={aff} className="text-xs" />
                               <span>{aff}</span>
                             </span>
                           ))}
 
                           {item.damageType && (
-                            <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded bg-[#f9f5eb] text-[#8c2d36] border border-[#8c2d36]/30">
+                            <span className="flex items-center gap-0.5 text-t10 px-1.5 py-0.5 rounded bg-[#f9f5eb] text-[#8c2d36] border border-[#8c2d36]/30">
                               <FUIcon name={item.damageType} className="text-xs" />
                               <span>{item.damageType}</span>
                             </span>
@@ -501,7 +501,7 @@ export default function SkillSuboptionModal({
                     </div>
 
                     {/* 右側附加數據 (MP, 持續時間等) */}
-                    <div className="flex items-center gap-1.5 shrink-0 text-[11px] font-mono">
+                    <div className="flex items-center gap-1.5 shrink-0 text-t11 font-mono">
                       {item.mp && (
                         <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                           {item.mp} MP
@@ -513,7 +513,7 @@ export default function SkillSuboptionModal({
                         </span>
                       )}
                       {item.event && (
-                        <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] text-[10px]">
+                        <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] text-t10">
                           {item.event}
                         </span>
                       )}
@@ -522,24 +522,24 @@ export default function SkillSuboptionModal({
 
                   {/* 寓意 / 範例 */}
                   {item.quote && (
-                    <div className="text-[11px] text-[#3c2415] italic">
+                    <div className="text-t11 text-[#3c2415] italic">
                       「{item.quote}」
                     </div>
                   )}
                   {item.examples && (
-                    <div className="text-[11px] text-[#6b5a4b]">
+                    <div className="text-t11 text-[#6b5a4b]">
                       象徵範例：{item.examples}
                     </div>
                   )}
 
                   {/* 核心效果描述 */}
                   {item.effect && (
-                    <p className="text-[11px] text-[#3c2415] leading-relaxed">
+                    <p className="text-t11 text-[#3c2415] leading-relaxed">
                       {renderTextWithAffinities(item.effect)}
                     </p>
                   )}
                   {item.desc && (
-                    <p className="text-[11px] text-[#3c2415] leading-relaxed">
+                    <p className="text-t11 text-[#3c2415] leading-relaxed">
                       {renderTextWithAffinities(item.desc)}
                     </p>
                   )}
@@ -548,8 +548,8 @@ export default function SkillSuboptionModal({
                   {item.effects && (
                     <div className="space-y-1 pt-1 border-t border-[#e8dcc4]">
                       {item.effects.map((eff, eIdx) => (
-                        <div key={eIdx} className="text-[11px] flex items-start gap-1.5">
-                          <span className="font-mono font-bold text-[#2c221e] bg-[#f4ebd9] px-1 py-0.2 rounded text-[10px] shrink-0">
+                        <div key={eIdx} className="text-t11 flex items-start gap-1.5">
+                          <span className="font-mono font-bold text-[#2c221e] bg-[#f4ebd9] px-1 py-0.2 rounded text-t10 shrink-0">
                             {eff.clock}
                           </span>
                           <span className="text-[#3c2415] leading-relaxed">{renderTextWithAffinities(eff.text)}</span>

@@ -71,7 +71,7 @@ export default class ErrorBoundary extends React.Component {
               已為您安全隔離此區塊異常。其餘跑團功能、生命資源（HP/MP/IP）、行囊與擲骰判定仍可正常使用。
             </p>
             {errorMsg && (
-              <details className="text-[10px] text-[#6b5a4b]">
+              <details className="text-t10 text-[#6b5a4b]">
                 <summary className="cursor-pointer hover:underline">查看技術錯誤代碼</summary>
                 <div className="mt-1 p-2 rounded-ui bg-[#fffdf9] border border-[#d6c7ab] font-mono text-[#8c2d36] break-all leading-tight">
                   {errorMsg}
@@ -100,7 +100,7 @@ export default class ErrorBoundary extends React.Component {
 
             {/* Error Message Snippet */}
             <div className="p-3 rounded-ui bg-[#f9f5eb] border border-[#d6c7ab] text-left font-mono text-xs text-[#8c2d36] break-words">
-              <span className="font-bold block text-[11px] text-[#8c2d36] font-sans mb-0.5">錯誤資訊：</span>
+              <span className="font-bold block text-t11 text-[#8c2d36] font-sans mb-0.5">錯誤資訊：</span>
               <span>{errorMsg}</span>
             </div>
 
@@ -128,10 +128,10 @@ export default class ErrorBoundary extends React.Component {
             {/* Collapsible Stack Trace */}
             {errorStack && (
               <details className="text-left pt-2 border-t border-[#d6c7ab]">
-                <summary className="text-[11px] text-[#6b5a4b] font-mono cursor-pointer hover:text-[#3c2415] transition-colors">
+                <summary className="text-t11 text-[#6b5a4b] font-mono cursor-pointer hover:text-[#3c2415] transition-colors">
                   展開技術調試追蹤
                 </summary>
-                <pre className="mt-2 p-2.5 rounded-ui bg-[#f4ebd9] text-[#2c221e] text-[10px] font-mono overflow-x-auto max-h-48 leading-relaxed">
+                <pre className="mt-2 p-2.5 rounded-ui bg-[#f4ebd9] text-[#2c221e] text-t10 font-mono overflow-x-auto max-h-48 leading-relaxed">
                   {errorStack}
                 </pre>
               </details>

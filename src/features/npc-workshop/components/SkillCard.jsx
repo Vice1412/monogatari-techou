@@ -78,7 +78,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
           </div>
         )}
       </div>
-      <div className={`font-bold text-[15px] mb-2 pr-6 leading-tight flex flex-col sm:flex-row sm:items-center gap-2 ${lockedMsg ? 'text-[#6b5a4b]' : isOverBudget && isActive ? 'text-[#8c2d36]' : isActive ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}>
+      <div className={`font-bold text-t14 mb-2 pr-6 leading-tight flex flex-col sm:flex-row sm:items-center gap-2 ${lockedMsg ? 'text-[#6b5a4b]' : isOverBudget && isActive ? 'text-[#8c2d36]' : isActive ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}>
         {isEditing ? (
           <div className="flex-1 relative group/input">
             <input
@@ -89,15 +89,15 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
               onBlur={(e) => { if (!e.target.value.trim()) onUpdateSkill(skill.id, { customName: undefined }); }}
               onClick={(e) => e.stopPropagation()}
             />
-            <div className="absolute -bottom-4 left-0 text-[10px] text-[#6b5a4b] font-bold opacity-0 group-focus-within/input:opacity-100 transition-opacity pointer-events-none">正在編輯自定義名稱</div>
+            <div className="absolute -bottom-4 left-0 text-t10 text-[#6b5a4b] font-bold opacity-0 group-focus-within/input:opacity-100 transition-opacity pointer-events-none">正在編輯自定義名稱</div>
           </div>
         ) : (
           <span className={skill.customName !== undefined ? 'text-[#3c2415] font-bold' : ''}>{skill.customName || skill.originalName}</span>
         )}
         {lockedMsg ? (
-          <span className="text-[10px] bg-[#e8dcc4] text-[#3c2415] border border-[#7c6a58] px-2 py-0.5 rounded flex items-center gap-1 shrink-0 w-fit font-bold"><Lock size={10} /> {lockedMsg}</span>
+          <span className="text-t10 bg-[#e8dcc4] text-[#3c2415] border border-[#7c6a58] px-2 py-0.5 rounded flex items-center gap-1 shrink-0 w-fit font-bold"><Lock size={10} /> {lockedMsg}</span>
         ) : (
-          isOverBudget && isActive && <span className="text-[10px] bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36] px-2 py-0.5 rounded flex items-center gap-1 shrink-0 w-fit"><AlertCircle size={10} /> 額度溢出失效</span>
+          isOverBudget && isActive && <span className="text-t10 bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36] px-2 py-0.5 rounded flex items-center gap-1 shrink-0 w-fit"><AlertCircle size={10} /> 額度溢出失效</span>
         )}
       </div>
       {skill.flavorText && (
@@ -130,7 +130,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
       {/* 模板裡的 `{key}` 未填時畫成空虛線框，但那框沒有文字標籤——不點下去不知道要填什麼。
           這裡先講「有幾個欄位要填」，讓使用者知道那條虛線不是壞掉。 */}
       {!isActive && skill.category !== 'attack' && Array.isArray(skill.selectionsConfig) && skill.selectionsConfig.length > 0 && (
-        <div className="mt-2 text-[10px] text-[#3c2415] font-bold">選取後可填 {skill.selectionsConfig.length} 個欄位</div>
+        <div className="mt-2 text-t10 text-[#3c2415] font-bold">選取後可填 {skill.selectionsConfig.length} 個欄位</div>
       )}
       {isActive && skill.selectionsConfig && skill.category !== 'attack' && (
         <div className={`mt-4 pt-3 border-t flex flex-col gap-2 animate-in slide-in-from-top-2 ${isOverBudget ? 'border-[#8c2d36]/50' : 'border-[#d6c7ab]/60'}`}>
@@ -144,7 +144,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
                   <div key={cfg.key} className={`p-2 rounded border ${isOverBudget ? 'bg-[#f9f5eb] border-[#8c2d36]/50' : 'bg-[#f4ebd9]/60 border-[#d6c7ab]'}`} onClick={e => e.stopPropagation()}>
                     <div className={`flex justify-between items-center mb-2 text-xs font-bold ${isOverBudget ? 'text-[#8c2d36]' : 'text-[#3c2415]'}`}>
                       <span>{cfg.label}</span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] ${selected.length < (cfg.min || 0) ? 'bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50' : maxReached ? 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]' : 'bg-[#fffdf9] text-[#3c2415] border border-[#d6c7ab]'}`}>已選: {selected.length}/{cfg.max || '∞'}</span>
+                      <span className={`px-2 py-0.5 rounded text-t10 ${selected.length < (cfg.min || 0) ? 'bg-[#f4ebd9] text-[#8c2d36] border border-[#8c2d36]/50' : maxReached ? 'bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]' : 'bg-[#fffdf9] text-[#3c2415] border border-[#d6c7ab]'}`}>已選: {selected.length}/{cfg.max || '∞'}</span>
                     </div>
                     <div className="grid grid-cols-1 gap-1">
                       {cfg.options.map(opt => {
@@ -184,7 +184,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
                   <label key={cfg.key} className={`flex items-center gap-2 p-2 rounded border bg-[#f4ebd9]/60 cursor-pointer select-none transition-all ${isChecked ? (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36] bg-[#f4ebd9]' : 'text-[#3c2415] border-[#3c2415] bg-[#f4ebd9]') : (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36]/50' : 'text-[#3c2415] border-[#d6c7ab] hover:border-[#b4a383]')}`} onClick={e => e.stopPropagation()}>
                     <input type="checkbox" className="accent-[#a63d40] w-3.5 h-3.5 shrink-0" checked={isChecked} onChange={() => onSelectionChange(skill.id, cfg.key, !isChecked)} />
                     <span className="text-xs font-bold">{cfg.label}</span>
-                    {isChecked && <span className="text-[10px] bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-1.5 py-0.5 rounded ml-auto">已啟用</span>}
+                    {isChecked && <span className="text-t10 bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-1.5 py-0.5 rounded ml-auto">已啟用</span>}
                   </label>
                 );
               }
@@ -213,7 +213,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
             })}
         </div>
       )}
-      {isActive && skill.category === 'attack' && <div className={`mt-3 pt-2 border-t text-[11px] font-bold flex items-center gap-1 ${isOverBudget ? 'border-[#8c2d36]/50 text-[#8c2d36]' : 'border-[#d6c7ab]/50 text-[#3c2415]'}`}><GiBroadsword size={12} /> {isOverBudget ? '因額度溢出，此技能已從上方【基礎攻擊與核心能力】中移除。' : '已加入上方【基礎攻擊與核心能力】，請至該區塊配置詳細數值。'}</div>}
+      {isActive && skill.category === 'attack' && <div className={`mt-3 pt-2 border-t text-t11 font-bold flex items-center gap-1 ${isOverBudget ? 'border-[#8c2d36]/50 text-[#8c2d36]' : 'border-[#d6c7ab]/50 text-[#3c2415]'}`}><GiBroadsword size={12} /> {isOverBudget ? '因額度溢出，此技能已從上方【基礎攻擊與核心能力】中移除。' : '已加入上方【基礎攻擊與核心能力】，請至該區塊配置詳細數值。'}</div>}
     </div>
   );
 };

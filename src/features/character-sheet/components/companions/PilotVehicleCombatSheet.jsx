@@ -137,7 +137,7 @@ export default function PilotVehicleCombatSheet({
           <div>
             <h3 className="text-sm font-bold text-[#27527a] flex items-center gap-2">
               <span>{vehicle.name || '個人載具'}</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#27527a] border border-[#27527a]">
+              <span className="text-t10 font-mono px-2 py-0.5 rounded bg-[#f4ebd9] text-[#27527a] border border-[#27527a]">
                 {frame.name} · 機師 SL {pilotSl}
               </span>
             </h3>
@@ -196,7 +196,7 @@ export default function PilotVehicleCombatSheet({
           </div>
         </div>
       ) : (
-        <div className="p-2 rounded-lg bg-[#f4ebd9]/80 border border-[#d6c7ab] text-[11px] text-[#6b5a4b] flex items-center justify-between">
+        <div className="p-2 rounded-lg bg-[#f4ebd9]/80 border border-[#d6c7ab] text-t11 text-[#6b5a4b] flex items-center justify-between">
           <span>目前處於步行狀態。戰鬥中可執行「目標」動作搭乘載具。</span>
           <span className="font-mono">{renderTextWithAffinities(frame.specialRule)}</span>
         </div>
@@ -210,7 +210,7 @@ export default function PilotVehicleCombatSheet({
             <span>載具武裝（{activeWeapons.length} / {frame.maxWeapons}）</span>
           </span>
           {hasStrongGrip && (
-            <span className="text-[10px] text-[#9c4d16] font-bold">
+            <span className="text-t10 text-[#9c4d16] font-bold">
               ✦ 強力握持：可用體質 (MIG) 替換其中一項命中屬性
             </span>
           )}
@@ -233,7 +233,7 @@ export default function PilotVehicleCombatSheet({
                       <GiShield className="text-base text-[#27527a]" />
                       <div>
                         <strong className="text-[#2c221e] font-bold block">{w.name}</strong>
-                        <span className="text-[10px] text-[#7c6a58] font-mono">DEF +2 | M.DEF +2（盾牌）</span>
+                        <span className="text-t10 text-[#7c6a58] font-mono">DEF +2 | M.DEF +2（盾牌）</span>
                       </div>
                     </div>
                   </div>
@@ -247,13 +247,13 @@ export default function PilotVehicleCombatSheet({
                 >
                   <div className="flex items-center justify-between">
                     <strong className="text-[#2c221e] font-bold">{w.name}</strong>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b]">
+                    <span className="text-t10 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b]">
                       {w.category} · {w.range === 'melee' ? '近戰' : '遠程'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className="font-mono text-[11px] text-[#6b5a4b]">
+                    <span className="font-mono text-t11 text-[#6b5a4b]">
                       【{w.attr1} + {w.attr2}】{w.modifier > 0 ? `+${w.modifier}` : ''} | {renderTextWithAffinities(w.damage)}
                     </span>
 
@@ -262,7 +262,7 @@ export default function PilotVehicleCombatSheet({
                         <button
                           type="button"
                           onClick={() => handleRollWeapon(w, true)}
-                          className="px-2 py-0.5 rounded bg-[#9c4d16] hover:bg-[#833f12] text-white font-bold text-[10px] shadow-2xs"
+                          className="px-2 py-0.5 rounded bg-[#9c4d16] hover:bg-[#833f12] text-white font-bold text-t10 shadow-2xs"
                           title="使用強力握持：MIG 替換屬性檢定"
                         >
                           MIG檢定
@@ -288,12 +288,12 @@ export default function PilotVehicleCombatSheet({
       {/* 支援模組與反元素抗性展示 */}
       {activeSupport.length > 0 && (
         <div className="pt-2 border-t border-[#d6c7ab] flex flex-wrap gap-1.5 items-center">
-          <span className="text-[11px] text-[#7c6a58] font-bold">已啟用支援模組：</span>
+          <span className="text-t11 text-[#7c6a58] font-bold">已啟用支援模組：</span>
           {activeSupport.map(s => (
             <span
               key={s.id}
               title={s.description}
-              className="text-[10px] font-mono px-2 py-0.5 rounded bg-white text-[#27527a] border border-[#d6c7ab]"
+              className="text-t10 font-mono px-2 py-0.5 rounded bg-white text-[#27527a] border border-[#d6c7ab]"
             >
               {s.name}
               {s.id === 'anti_element_module' && (

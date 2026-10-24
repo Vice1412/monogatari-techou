@@ -80,7 +80,7 @@ function ChoiceChip({ active, title, subtitle, onClick, theme }) {
     >
       <span className="block font-serif font-black text-xs">{title}</span>
       {subtitle ? (
-        <span className="block text-[10px] leading-tight" style={{ color: theme.textMuted }}>
+        <span className="block text-t10 leading-tight" style={{ color: theme.textMuted }}>
           {subtitle}
         </span>
       ) : null}
@@ -143,7 +143,7 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
           刻意不帶四角角標那組定位字串——護欄用那組字數「四角各一個」，這裡多一個就多數一個。
         */}
         <span
-          className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-[10px] font-bold whitespace-nowrap"
+          className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-t10 font-bold whitespace-nowrap"
           style={{
             backgroundColor: accent,
             color: '#fffdf9',
@@ -161,7 +161,7 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
 
         {/* 右邊留給角標——用 inline style 而不是 pr-*，這是避讓契約不是樣式偏好 */}
         <div className="flex items-center justify-end gap-2" style={{ paddingRight: '2.5rem' }}>
-          <span className="text-[10px]" style={{ color: textMuted }}>{ZERO_POWER_SOURCE}</span>
+          <span className="text-t10" style={{ color: textMuted }}>{ZERO_POWER_SOURCE}</span>
         </div>
 
         <div className="text-center space-y-1.5">
@@ -171,11 +171,11 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
           >
             {name || '（尚未命名）'}
           </div>
-          <div className="text-[11px] font-bold" style={{ color: textMuted }}>
+          <div className="text-t11 font-bold" style={{ color: textMuted }}>
             【{effect.name}】· 觸發【{trigger.name}】
           </div>
           {label ? (
-            <div className="text-[10px]" style={{ color: textMuted }}>{label}</div>
+            <div className="text-t10" style={{ color: textMuted }}>{label}</div>
           ) : null}
         </div>
 
@@ -195,21 +195,21 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
           className="rounded-lg px-3 py-2 text-center space-y-0.5"
           style={{ backgroundColor: accentLight, border: `1px solid ${border}` }}
         >
-          <span className="block text-[10px] font-bold" style={{ color: accent, letterSpacing: '0.2em' }}>觸發</span>
+          <span className="block text-t10 font-bold" style={{ color: accent, letterSpacing: '0.2em' }}>觸發</span>
           <p className="text-xs leading-6" style={{ color: textMuted }}>
             {renderTextWithAffinities(triggerText || trigger.desc)}
           </p>
         </div>
 
         <div className="space-y-0.5">
-          <span className="block text-center text-[10px] font-bold" style={{ color: accent, letterSpacing: '0.2em' }}>效果</span>
+          <span className="block text-center text-t10 font-bold" style={{ color: accent, letterSpacing: '0.2em' }}>效果</span>
           <p className="text-sm leading-7 text-center" style={{ color: textDark }}>
             {renderTextWithAffinities(effectText || effect.desc)}
           </p>
         </div>
 
         <div
-          className="flex items-center justify-center gap-1.5 flex-wrap text-[10px] font-bold rounded-lg px-2 py-1.5"
+          className="flex items-center justify-center gap-1.5 flex-wrap text-t10 font-bold rounded-lg px-2 py-1.5"
           style={{ color: textMuted, backgroundColor: accentLight, border: `1px solid ${border}` }}
         >
           <GiPocketWatch className="w-3 h-3" style={{ color: accent }} />
@@ -242,7 +242,7 @@ function ShowcasePlaceholder({ theme, missing }) {
       style={{ borderColor: border, backgroundColor: panelBg }}
       data-testid="zero-power-showcase-placeholder"
     >
-      <span className="block text-[11px] font-bold" style={{ color: textMuted }}>
+      <span className="block text-t11 font-bold" style={{ color: textMuted }}>
         選好觸發與效果後，這裡會出現這一招的完整卡片
       </span>
       <p className="text-t12" style={{ color: textMuted }}>{`還缺：${missing}`}</p>
@@ -271,7 +271,7 @@ function ClockStrip({ filled, max, onSet, theme, readonly = false }) {
           />
         );
       })}
-      <span className="text-[11px] font-mono font-bold ml-1" style={{ color: theme.textMuted }}>
+      <span className="text-t11 font-mono font-bold ml-1" style={{ color: theme.textMuted }}>
         {filled}／{max}
       </span>
     </div>
@@ -348,7 +348,7 @@ export default function ZeroPowerBlock({
     if (state.variant !== 'awakened' || state.awakened) return null;
     return (
       <div className="rounded-lg border p-2.5 space-y-1.5" style={{ borderColor: theme.accent, backgroundColor: theme.cardBg }}>
-        <span className="block text-[11px] font-bold" style={{ color: theme.textDark }}>
+        <span className="block text-t11 font-bold" style={{ color: theme.textDark }}>
           覺醒之力：尚未覺醒
         </span>
         <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
@@ -362,7 +362,7 @@ export default function ZeroPowerBlock({
               type="button"
               title={t.desc}
               onClick={() => setAwakenTriggerId(awakenTriggerId === t.id ? '' : t.id)}
-              className="text-[11px] px-2 py-0.5 rounded border cursor-pointer"
+              className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
               style={{
                 backgroundColor: awakenTriggerId === t.id ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
                 borderColor: awakenTriggerId === t.id ? theme.accent : theme.border,
@@ -373,7 +373,7 @@ export default function ZeroPowerBlock({
             </button>
           ))}
         </div>
-        <label className="flex items-center gap-1.5 text-[10px]" style={{ color: theme.textDark }}>
+        <label className="flex items-center gap-1.5 text-t10" style={{ color: theme.textDark }}>
           <input
             type="checkbox"
             checked={awakenInConflict}
@@ -414,7 +414,7 @@ export default function ZeroPowerBlock({
             <GiPocketWatch className="w-4 h-4" style={{ color: theme.accent }} />
             底力命刻
           </span>
-          <span className="text-[10px]" style={{ color: theme.textMuted }}>{ZERO_POWER_SOURCE}</span>
+          <span className="text-t10" style={{ color: theme.textMuted }}>{ZERO_POWER_SOURCE}</span>
         </div>
 
         <ClockStrip
@@ -434,7 +434,7 @@ export default function ZeroPowerBlock({
 
         {combined ? (
           <div className="space-y-1">
-            <label className="text-[11px] font-bold" style={{ color: theme.textDark }}>要施展哪一組配對</label>
+            <label className="text-t11 font-bold" style={{ color: theme.textDark }}>要施展哪一組配對</label>
             <select
               className={inputClass}
               style={inputStyle}
@@ -545,7 +545,7 @@ export default function ZeroPowerBlock({
         <label className="text-xs font-bold" style={{ color: theme.textDark }}>
           底力技
         </label>
-        <span className="text-[10px]" style={{ color: theme.textMuted }}>
+        <span className="text-t10" style={{ color: theme.textMuted }}>
           {ZERO_POWER_SOURCE}　選用規則
         </span>
       </div>
@@ -594,7 +594,7 @@ export default function ZeroPowerBlock({
       {/* 觸發 */}
       {state.variant === 'awakened' && !state.awakened ? (
         <div className="rounded-lg border px-2.5 py-2 space-y-1" style={{ borderColor: theme.border, backgroundColor: theme.cardBg }}>
-          <span className="block text-[11px] font-bold" style={{ color: theme.textDark }}>觸發</span>
+          <span className="block text-t11 font-bold" style={{ color: theme.textDark }}>觸發</span>
           <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
             覺醒之力建角時不選觸發——觸發在覺醒當下才選定，所以這裡留白是正確狀態，不是漏填。
           </p>
@@ -602,7 +602,7 @@ export default function ZeroPowerBlock({
       ) : (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between gap-1.5 flex-wrap">
-            <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>觸發</span>
+            <span className="text-t11 font-bold" style={{ color: theme.textDark }}>觸發</span>
             <JRPGButton
               variant={theme.outlineButtonVariant || 'outline'}
               size="xs"
@@ -625,7 +625,7 @@ export default function ZeroPowerBlock({
             ))}
           </div>
           {trigger ? (
-            <p className="text-[11px] leading-relaxed rounded-lg border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
+            <p className="text-t11 leading-relaxed rounded-lg border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
               {renderTextWithAffinities(trigger.desc)}
             </p>
           ) : null}
@@ -635,7 +635,7 @@ export default function ZeroPowerBlock({
       {/* 觸發．愛的綁定 */}
       {state.triggerId === 'love' ? (
         <div className="space-y-1">
-          <label className="text-[11px] font-bold" style={{ color: theme.textDark }}>你所愛的玩家角色</label>
+          <label className="text-t11 font-bold" style={{ color: theme.textDark }}>你所愛的玩家角色</label>
           <select
             className={inputClass}
             style={inputStyle}
@@ -656,7 +656,7 @@ export default function ZeroPowerBlock({
       {combined ? (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between gap-1.5 flex-wrap">
-            <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
+            <span className="text-t11 font-bold" style={{ color: theme.textDark }}>
               合體配對（每個其他玩家角色各一組）
             </span>
             <JRPGButton
@@ -705,7 +705,7 @@ export default function ZeroPowerBlock({
               <button
                 type="button"
                 onClick={() => removePair(index)}
-                className="text-[11px] px-2 py-0.5 rounded border cursor-pointer"
+                className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
                 style={{ borderColor: theme.border, color: theme.textMuted, backgroundColor: theme.cardBg }}
               >
                 移除
@@ -728,7 +728,7 @@ export default function ZeroPowerBlock({
       ) : (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between gap-1.5 flex-wrap">
-            <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>效果</span>
+            <span className="text-t11 font-bold" style={{ color: theme.textDark }}>效果</span>
             <JRPGButton
               variant={theme.outlineButtonVariant || 'outline'}
               size="xs"
@@ -756,7 +756,7 @@ export default function ZeroPowerBlock({
       {/* 效果的必要選擇（合體之力的選擇在施展當下確認，故不在此列） */}
       {!combined && state.effectId === 'elements' ? (
         <div className="space-y-1">
-          <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>
+          <span className="text-t11 font-bold" style={{ color: theme.textDark }}>
             選定兩種傷害類型（施展時再從這兩種中選一種）
           </span>
           <div className="flex flex-wrap gap-1">
@@ -771,7 +771,7 @@ export default function ZeroPowerBlock({
                     const next = picked ? cur.filter((x) => x !== type) : [...cur, type].slice(-2);
                     patch({ choices: { ...state.choices, damagePair: next } });
                   }}
-                  className="text-[11px] px-2 py-0.5 rounded border cursor-pointer"
+                  className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
                   style={{
                     backgroundColor: picked ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
                     borderColor: picked ? theme.accent : theme.border,
@@ -789,7 +789,7 @@ export default function ZeroPowerBlock({
       {!combined && state.effectId === 'scourge' ? (
         <div className="space-y-1.5">
           <div className="space-y-1">
-            <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>選定一種傷害類型</span>
+            <span className="text-t11 font-bold" style={{ color: theme.textDark }}>選定一種傷害類型</span>
             <div className="flex flex-wrap gap-1">
               {ZERO_DAMAGE_TYPES.map((type) => {
                 const picked = state.choices.damageType === type;
@@ -798,7 +798,7 @@ export default function ZeroPowerBlock({
                     key={type}
                     type="button"
                     onClick={() => patch({ choices: { ...state.choices, damageType: picked ? '' : type } })}
-                    className="text-[11px] px-2 py-0.5 rounded border cursor-pointer"
+                    className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
                     style={{
                       backgroundColor: picked ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
                       borderColor: picked ? theme.accent : theme.border,
@@ -812,7 +812,7 @@ export default function ZeroPowerBlock({
             </div>
           </div>
           <div className="space-y-1">
-            <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>選定兩種狀態效果</span>
+            <span className="text-t11 font-bold" style={{ color: theme.textDark }}>選定兩種狀態效果</span>
             <div className="flex flex-wrap gap-1">
               {ZERO_STATUS_EFFECTS.map((status) => {
                 const picked = state.choices.statuses.includes(status);
@@ -825,7 +825,7 @@ export default function ZeroPowerBlock({
                       const next = picked ? cur.filter((x) => x !== status) : [...cur, status].slice(-2);
                       patch({ choices: { ...state.choices, statuses: next } });
                     }}
-                    className="text-[11px] px-2 py-0.5 rounded border cursor-pointer"
+                    className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
                     style={{
                       backgroundColor: picked ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
                       borderColor: picked ? theme.accent : theme.border,
@@ -842,19 +842,19 @@ export default function ZeroPowerBlock({
       ) : null}
 
       {effect ? (
-        <p className="text-[11px] leading-relaxed rounded-lg border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
+        <p className="text-t11 leading-relaxed rounded-lg border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
           {renderTextWithAffinities(effect.desc)}
         </p>
       ) : null}
 
       {/* 變體規則 */}
       <div className="space-y-1.5">
-        <span className="text-[11px] font-bold" style={{ color: theme.textDark }}>變體規則</span>
+        <span className="text-t11 font-bold" style={{ color: theme.textDark }}>變體規則</span>
         <div className="flex flex-wrap gap-1">
           <button
             type="button"
             onClick={() => patch({ variant: '', awakened: false, combinedPairs: [] })}
-            className="text-[11px] px-2 py-0.5 rounded border cursor-pointer"
+            className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
             style={{
               backgroundColor: state.variant === '' ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
               borderColor: state.variant === '' ? theme.accent : theme.border,
@@ -868,7 +868,7 @@ export default function ZeroPowerBlock({
               key={v.id}
               type="button"
               onClick={() => patch({ variant: v.id })}
-              className="text-[11px] px-2 py-0.5 rounded border cursor-pointer"
+              className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
               style={{
                 backgroundColor: state.variant === v.id ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
                 borderColor: state.variant === v.id ? theme.accent : theme.border,
@@ -880,7 +880,7 @@ export default function ZeroPowerBlock({
           ))}
         </div>
         {state.variant ? (
-          <p className="text-[11px] leading-relaxed" style={{ color: theme.textMuted }}>
+          <p className="text-t11 leading-relaxed" style={{ color: theme.textMuted }}>
             {ZERO_VARIANTS.find((v) => v.id === state.variant)?.desc}
           </p>
         ) : null}

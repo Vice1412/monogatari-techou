@@ -529,7 +529,23 @@ checkTrue('衝突開始會寫 active: true', tableSource.includes('active: true'
 checkTrue('衝突結束會寫 idleDeckState()', tableSource.includes('idleDeckState()'));
 checkTrue('結算把小丑牌指定傳進 detectSets', tableSource.includes('jokerAssignment: jokerAssign'));
 checkTrue('有小丑牌指定面板', tableSource.includes('小丑牌指定'));
-checkTrue('牌面數字與花色同尺寸', tableSource.includes("glyph: 'text-[17px]'") && tableSource.includes("icon: 'w-[17px] h-[17px]'"));
+/**
+ * 牌面數字與花色圖示同尺寸——三階逐一檢查（第三十五輪 §CI43 改成對照組）。
+ *
+ * 原本釘死單一數字（`text-[17px]` ＋ `w-[17px]`），所以任意字級改成型階梯令牌時
+ * 這條會紅，而它紅的理由不是「壞了」，是「字面值變了」。
+ * 改成三階各自比對「字級令牌 ↔ 圖示寬度」是否同值：
+ * 這是那條規則**真正的意思**，也對排版與令牌重構免疫。
+ */
+const CARD_SIZE_PAIRS = [
+  ["glyph: 'text-t16'", "icon: 'w-4 h-4'"],
+  ["glyph: 'text-t14'", "icon: 'w-3.5 h-3.5'"],
+  ["glyph: 'text-t12'", "icon: 'w-3 h-3'"],
+];
+checkTrue(
+  '牌面數字與花色同尺寸（三階）',
+  CARD_SIZE_PAIRS.every(([g, i]) => tableSource.includes(g) && tableSource.includes(i))
+);
 check('已無舊的彩色底牌面（SUIT_STYLE）', tableSource.includes('SUIT_STYLE'), false);
 
 // ─────────────────────────────────────────────────────────── 結果

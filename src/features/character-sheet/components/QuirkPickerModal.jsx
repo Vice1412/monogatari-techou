@@ -107,7 +107,7 @@ export function QuirkPickerBody({
           className="w-full md:w-64 lg:w-72 shrink-0 flex flex-col border-b md:border-b-0 md:border-r pb-2 md:pb-0 md:pr-3 overflow-hidden"
           style={{ borderColor: theme.border }}
         >
-          <span className="text-[11px] font-bold mb-2 shrink-0" style={{ color: theme.textMuted }}>
+          <span className="text-t11 font-bold mb-2 shrink-0" style={{ color: theme.textMuted }}>
             點名稱看詳細內容（{filtered.length} 個）
           </span>
           <div className="flex-1 overflow-y-auto space-y-1 pr-1 min-h-0">
@@ -166,13 +166,13 @@ export function QuirkPickerBody({
                     使用者要求「適當的情況下，讓效果內容分段方便閱讀」。 */}
                 {opened.flavor && (
                   <p
-                    className="text-[11px] italic leading-relaxed p-2.5 rounded-lg border"
+                    className="text-t11 italic leading-relaxed p-2.5 rounded-lg border"
                     style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textMuted }}
                   >
                     <SkillDescription desc={opened.flavor} linkCodex={false} />
                   </p>
                 )}
-                <div className="text-xs sm:text-[13px] leading-relaxed space-y-2.5" style={{ color: theme.textDark }}>
+                <div className="text-xs sm:text-t12 leading-relaxed space-y-2.5" style={{ color: theme.textDark }}>
                   {/* 兩層分段：空行＝段落、單一換行＝同一段內的行（清單項目）。
                       見 utils/paragraphs.js 的說明。 */}
                   {splitParagraphs(opened.desc).map((block, bi) => (
@@ -194,7 +194,7 @@ export function QuirkPickerBody({
                     style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}
                     data-testid="quirk-options"
                   >
-                    <span className="text-[11px] font-bold" style={{ color: theme.textMuted }}>
+                    <span className="text-t11 font-bold" style={{ color: theme.textMuted }}>
                       {isMultiGroup
                         ? `這個金手指要選 ${quirkOptionGroups.length} 件事（原書：選擇選項）`
                         : '這個金手指要選一個選項（原書：選擇一個選項）'}
@@ -202,7 +202,7 @@ export function QuirkPickerBody({
                     {quirkOptionGroups.map((group) => (
                       <div key={group.id} className="space-y-1.5" data-testid={`quirk-group-${group.id}`}>
                         {isMultiGroup && group.label && (
-                          <span className="block text-[10px] font-semibold" style={{ color: theme.textMuted }}>
+                          <span className="block text-t10 font-semibold" style={{ color: theme.textMuted }}>
                             {group.label}
                           </span>
                         )}
@@ -222,7 +222,7 @@ export function QuirkPickerBody({
                             <span>
                               {opt.label}
                               {opt.effects && (
-                                <span className="text-[10px] ml-1" style={{ color: theme.textMuted }}>
+                                <span className="text-t10 ml-1" style={{ color: theme.textMuted }}>
                                   （會寫進角色數值）
                                 </span>
                               )}
@@ -240,7 +240,7 @@ export function QuirkPickerBody({
                 className="pt-3 mt-3 border-t flex items-center justify-between gap-3 shrink-0"
                 style={{ borderColor: theme.border }}
               >
-                <span className="text-[11px]" style={{ color: theme.textMuted }}>
+                <span className="text-t11" style={{ color: theme.textMuted }}>
                   一個角色只能擁有一個金手指；同一團不得有兩人選同一個。
                 </span>
                 <div className="flex items-center gap-2">
@@ -248,7 +248,7 @@ export function QuirkPickerBody({
                     <button
                       type="button"
                       onClick={() => { onClear && onClear(); onClose && onClose(); }}
-                      className="text-[11px] text-[#6b5a4b] hover:text-[#76252d] px-2 py-1 cursor-pointer"
+                      className="text-t11 text-[#6b5a4b] hover:text-[#76252d] px-2 py-1 cursor-pointer"
                     >
                       移除目前的金手指
                     </button>

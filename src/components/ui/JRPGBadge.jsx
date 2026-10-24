@@ -40,7 +40,7 @@ export default function JRPGBadge({
   };
 
   const sizeStyles = {
-    xs: "text-[10px] px-1.5 py-0.5 gap-1",
+    xs: "text-t10 px-1.5 py-0.5 gap-1",
     sm: "text-xs px-2 py-0.5 gap-1.5",
     md: "text-xs px-2.5 py-1 gap-1.5 font-semibold"
   };

@@ -299,7 +299,7 @@ export default function CharacterAvatarUploader({
             <button
               type="button"
               onClick={handleClearAvatar}
-              className="text-[11px] text-[#8c2d36] hover:text-[#76252d] flex items-center gap-1 font-bold transition-colors cursor-pointer"
+              className="text-t11 text-[#8c2d36] hover:text-[#76252d] flex items-center gap-1 font-bold transition-colors cursor-pointer"
             >
               <Trash2 size={12} />
               <span>移除照片</span>
@@ -308,7 +308,7 @@ export default function CharacterAvatarUploader({
           <button
             type="button"
             onClick={() => setShowClassIconPicker(!showClassIconPicker)}
-            className="text-[11px] px-2 py-0.5 rounded border font-bold transition-colors flex items-center gap-1 cursor-pointer"
+            className="text-t11 px-2 py-0.5 rounded border font-bold transition-colors flex items-center gap-1 cursor-pointer"
             style={{
               backgroundColor: theme.subpanelBg,
               borderColor: theme.border,
@@ -369,7 +369,7 @@ export default function CharacterAvatarUploader({
                 />
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 text-white p-1 backdrop-blur-xs">
                   <Crop size={14} />
-                  <span className="text-[10px] font-bold">調整大小</span>
+                  <span className="text-t10 font-bold">調整大小</span>
                 </div>
               </>
             ) : (
@@ -430,7 +430,7 @@ export default function CharacterAvatarUploader({
                 </>
               )}
 
-              <span className="text-[11px] text-[#6b5a4b] hidden lg:inline font-bold">
+              <span className="text-t11 text-[#6b5a4b] hidden lg:inline font-bold">
                 或直接拖曳圖片至此
               </span>
             </div>
@@ -482,12 +482,12 @@ export default function CharacterAvatarUploader({
         {/* 快速選用經典職業圖標庫面板 */}
         {showClassIconPicker && (
           <div className="mt-3 pt-3 border-t space-y-2 animate-in fade-in duration-150" style={{ borderColor: theme.border }}>
-            <div className="text-[11px] font-bold text-[#6b5a4b] flex items-center justify-between">
+            <div className="text-t11 font-bold text-[#6b5a4b] flex items-center justify-between">
               <span>經典職業符號（無照片時可作為卡面標誌）：</span>
               <button
                 type="button"
                 onClick={() => setShowClassIconPicker(false)}
-                className="text-[10px] text-[#6b5a4b] hover:text-[#3c2415] cursor-pointer"
+                className="text-t10 text-[#6b5a4b] hover:text-[#3c2415] cursor-pointer"
               >
                 收起
               </button>
@@ -503,7 +503,7 @@ export default function CharacterAvatarUploader({
                       key={cls.name}
                       type="button"
                       onClick={() => handleSelectClassIcon(cls.name)}
-                      className={`px-2 py-1 rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
+                      className={`px-2 py-1 rounded-md text-t11 font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
                         isSelected
                           ? 'text-white shadow-xs'
                           : 'bg-white hover:bg-[#f4ebd9] text-[#3c2415]'

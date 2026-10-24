@@ -40,7 +40,7 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
             {open ? '收起英雄技能' : '顯示英雄技能'}
           </span>
           <span
-            className="text-[10px] px-1.5 py-0.5 rounded border font-mono font-bold shrink-0"
+            className="text-t10 px-1.5 py-0.5 rounded border font-mono font-bold shrink-0"
             style={{
               backgroundColor: theme.cardBg || '#fffdf9',
               borderColor: theme.border || '#d6c7ab',
@@ -50,7 +50,7 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
             {list.length}
           </span>
         </span>
-        <span className="text-[11px] shrink-0" style={{ color: theme.textMuted || '#78716c' }}>
+        <span className="text-t11 shrink-0" style={{ color: theme.textMuted || '#78716c' }}>
           {open ? '收起' : '展開'}
         </span>
       </button>
@@ -68,7 +68,7 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
                   {h.name}
                 </span>
                 <span
-                  className="text-[10px] px-1.5 py-0.5 rounded border font-bold"
+                  className="text-t10 px-1.5 py-0.5 rounded border font-bold"
                   style={{
                     backgroundColor: theme.subpanelBg || '#f4ebd9',
                     borderColor: theme.border || '#d6c7ab',
@@ -81,7 +81,7 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
               <p className="text-t12 leading-snug" style={{ color: theme.textMuted || '#78716c' }}>
                 <strong>條件：</strong>{h.requirement}
               </p>
-              <p className="text-[11px] leading-relaxed whitespace-pre-line" style={{ color: theme.textDark || '#3c2415' }}>
+              <p className="text-t11 leading-relaxed whitespace-pre-line" style={{ color: theme.textDark || '#3c2415' }}>
                 {h.effect}
               </p>
             </div>

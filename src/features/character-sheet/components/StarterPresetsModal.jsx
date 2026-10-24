@@ -95,7 +95,7 @@ export function StarterPresetsPanel({
               key={sb.id}
               type="button"
               onClick={() => setSourcebook(sb.id)}
-              className="text-[11px] px-2.5 py-1 rounded-lg border font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
+              className="text-t11 px-2.5 py-1 rounded-lg border font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
               style={
                 isActive
                   ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -106,7 +106,7 @@ export function StarterPresetsPanel({
             </button>
           );
         })}
-        <span className="text-[10px] text-[#6b5a4b] font-mono ml-auto">{count} 組</span>
+        <span className="text-t10 text-[#6b5a4b] font-mono ml-auto">{count} 組</span>
       </div>
 
       {/* 關鍵字搜尋 */}
@@ -143,7 +143,7 @@ export function StarterPresetsPanel({
                 <span className="font-serif font-black text-sm" style={{ color: theme.textDark }}>
                   {section.title}
                 </span>
-                <span className="text-[10px] text-[#6b5a4b] font-mono">{section.items.length} 名成員</span>
+                <span className="text-t10 text-[#6b5a4b] font-mono">{section.items.length} 名成員</span>
               </div>
             )}
             {section.items.map((preset) => {
@@ -172,14 +172,14 @@ export function StarterPresetsPanel({
                       {preset.title}
                     </span>
                     <span
-                      className="text-[10px] font-bold px-1.5 py-0.5 rounded border shadow-2xs shrink-0"
+                      className="text-t10 font-bold px-1.5 py-0.5 rounded border shadow-2xs shrink-0"
                       style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.accent }}
                     >
                       {SOURCEBOOKS[preset.sourcebook || 'core'].shortName}
                     </span>
                   </span>
                   <span className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] font-mono" style={{ color: theme.textMuted }}>
+                    <span className="text-t10 font-mono" style={{ color: theme.textMuted }}>
                       {preset.zenit}z
                     </span>
                     {/* 折疊指示：規則一允許的封閉詞彙（△ ▽ ▼ ◆ 那一組） */}
@@ -192,7 +192,7 @@ export function StarterPresetsPanel({
                 {isOpen && (
                 <div className="px-3 pb-3 space-y-2">
                   {/* 職業徽章與四維陣列 */}
-                  <div className="flex items-center gap-1.5 flex-wrap font-mono text-[11px]">
+                  <div className="flex items-center gap-1.5 flex-wrap font-mono text-t11">
                     {preset.classes.map((c, i) => (
                       <span
                         key={i}
@@ -203,21 +203,21 @@ export function StarterPresetsPanel({
                         {c.className} Lv{c.level}
                       </span>
                     ))}
-                    <span className="text-[#6b5a4b] text-[10px]">
+                    <span className="text-[#6b5a4b] text-t10">
                       [DEX d{preset.attributes.dex}, INS d{preset.attributes.ins}, MIG d{preset.attributes.mig}, WLP d{preset.attributes.wlp}]
                     </span>
                   </div>
 
                   {/* 習得技能 */}
                   <div
- className="text-[11px] text-[#3c2415] bg-white/90 rounded-lg p-2.5 border space-y-1 "
+ className="text-t11 text-[#3c2415] bg-white/90 rounded-lg p-2.5 border space-y-1 "
                     style={{ borderColor: theme.border }}
                   >
-                    <div className="font-bold text-[10px] uppercase tracking-wider" style={{ color: theme.accent }}>
+                    <div className="font-bold text-t10 uppercase tracking-wider" style={{ color: theme.accent }}>
                       習得技能
                     </div>
                     {preset.classes.map((c, i) => (
-                      <div key={i} className="text-[11px] leading-tight">
+                      <div key={i} className="text-t11 leading-tight">
                         <span className="font-bold" style={{ color: theme.textDark }}>{c.className}:</span>{' '}
                         {c.skills.map((s) => `${s.name}${s.sl > 1 ? ` SL${s.sl}` : ''}`).join('、')}
                       </div>
@@ -226,7 +226,7 @@ export function StarterPresetsPanel({
 
                   {/* 起始裝備 */}
                   <div
- className="text-[11px] text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border flex items-center gap-1.5 "
+ className="text-t11 text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border flex items-center gap-1.5 "
                     style={{ borderColor: theme.border }}
                   >
                     <span className="font-bold text-[#3c2415]">裝備:</span>{' '}
@@ -241,7 +241,7 @@ export function StarterPresetsPanel({
                       有結構化規格時由規格推導（單一來源）；只有出處的（如科技奇幻樣本）才印原文。 */}
                   {(preset.customWeapons?.length > 0 || preset.customWeapon) && (
                     <div
- className="text-[11px] text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
+ className="text-t11 text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
                       style={{ borderColor: theme.border }}
                     >
                       <span className="font-bold text-[#3c2415]">定制武器:</span>{' '}
@@ -252,7 +252,7 @@ export function StarterPresetsPanel({
                   )}
                   {preset.mnemosphere && (
                     <div
- className="text-[11px] text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
+ className="text-t11 text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
                       style={{ borderColor: theme.border }}
                     >
                       {/* 結構化欄位（§CF）：`{ className, level, label }`。
@@ -263,7 +263,7 @@ export function StarterPresetsPanel({
                   )}
                   {preset.quirk && (
                     <div
- className="text-[11px] text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
+ className="text-t11 text-[#6b5a4b] bg-white/70 rounded-lg px-2.5 py-1.5 border leading-relaxed "
                       style={{ borderColor: theme.border }}
                     >
                       <span className="font-bold text-[#3c2415]">金手指:</span> {preset.quirk}

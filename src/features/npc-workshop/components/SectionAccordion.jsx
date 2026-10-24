@@ -24,18 +24,18 @@ const SectionAccordion = ({ title, icon, current, max, hideIfZeroMax = false, de
   const isOverflow = isFreeMode ? false : (forceOverflow || (max > 0 && current > max)); const isComplete = alwaysComplete || (current >= max) || isFreeMode;
   let statusBadge = null;
   if (isFreeMode) {
-    statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><GiSparkles size={12} /> <span className="hidden md:inline">解鎖限制</span> ({current}/∞)</span>;
+    statusBadge = <span className="flex items-center gap-1 text-t10 text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><GiSparkles size={12} /> <span className="hidden md:inline">解鎖限制</span> ({current}/∞)</span>;
   } else if (!alwaysComplete) {
-    if (isOverflow) statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#8c2d36] bg-[#f4ebd9] border border-[#8c2d36]/50 px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><AlertCircle size={12} /> <span className="hidden md:inline">超額失效</span> ({current}/{max})</span>;
-    else if (isComplete) statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#3c2415] bg-[#f4ebd9] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><CheckCircle2 size={12} /> <span className="hidden md:inline">已完成</span> ({current}/{max})</span>;
-    else statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#3c2415] bg-[#f4ebd9] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><AlertCircle size={12} /> <span className="hidden md:inline">待配置</span> ({current}/{max})</span>;
-  } else statusBadge = <span className="flex items-center gap-1 text-[10px] text-[#574c43] bg-[#e8dcc4] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><GiSparkles size={12} /> {current > 0 ? `已加入 ${current} 項` : '選用區塊'}</span>;
+    if (isOverflow) statusBadge = <span className="flex items-center gap-1 text-t10 text-[#8c2d36] bg-[#f4ebd9] border border-[#8c2d36]/50 px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><AlertCircle size={12} /> <span className="hidden md:inline">超額失效</span> ({current}/{max})</span>;
+    else if (isComplete) statusBadge = <span className="flex items-center gap-1 text-t10 text-[#3c2415] bg-[#f4ebd9] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><CheckCircle2 size={12} /> <span className="hidden md:inline">已完成</span> ({current}/{max})</span>;
+    else statusBadge = <span className="flex items-center gap-1 text-t10 text-[#3c2415] bg-[#f4ebd9] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><AlertCircle size={12} /> <span className="hidden md:inline">待配置</span> ({current}/{max})</span>;
+  } else statusBadge = <span className="flex items-center gap-1 text-t10 text-[#574c43] bg-[#e8dcc4] border border-[#d6c7ab] px-2 py-0.5 rounded-full ml-1 md:ml-2 font-bold"><GiSparkles size={12} /> {current > 0 ? `已加入 ${current} 項` : '選用區塊'}</span>;
 
   return (
     <div className={`bg-[#fffdf9] border ${isOverflow ? 'border-[#8c2d36]' : 'border-[#d6c7ab]'} rounded-lg mb-4 transition-all duration-300 relative ${!isComplete && !alwaysComplete && !isOverflow ? 'ring-1 ring-[#3c2415]/40 shadow-md' : isOverflow ? 'ring-1 ring-[#8c2d36]/50 shadow-md' : ''}`}>
       <button className={`w-full flex justify-between items-center p-4 hover:bg-[#f4ebd9] transition-colors outline-none sticky ${stickyTop} z-20 bg-[#fffdf9]/95 backdrop-blur ${isExpanded ? 'border-b border-[#d6c7ab] rounded-t-lg' : 'rounded-lg'}`} onClick={handleToggle}>
         <div className="flex items-center gap-3"><span className={isOverflow ? 'text-[#8c2d36]' : titleColor}>{icon}</span><h2 className={`text-sm font-bold ${isOverflow ? 'text-[#8c2d36]' : titleColor} text-left`}>{title}</h2>{statusBadge}</div>
-        <div className="flex items-center gap-2">{!isExpanded && !isComplete && !alwaysComplete && <span className="text-[10px] text-[#6b5a4b] font-bold hidden md:block">點擊展開</span>}{isExpanded ? <ChevronUp size={18} className="text-[#6b5a4b]" /> : <ChevronDown size={18} className="text-[#6b5a4b]" />}</div>
+        <div className="flex items-center gap-2">{!isExpanded && !isComplete && !alwaysComplete && <span className="text-t10 text-[#6b5a4b] font-bold hidden md:block">點擊展開</span>}{isExpanded ? <ChevronUp size={18} className="text-[#6b5a4b]" /> : <ChevronDown size={18} className="text-[#6b5a4b]" />}</div>
       </button>
       {isExpanded && (
         <div className="p-4 bg-[#fbf7ee]/60 animate-in slide-in-from-top-2 rounded-b-lg">

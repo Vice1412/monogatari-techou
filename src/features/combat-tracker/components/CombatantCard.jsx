@@ -149,7 +149,7 @@ export default function CombatantCard({
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-[11px] text-ink-2 mt-0.5 font-mono">
+          <div className="flex items-center gap-2 text-t11 text-ink-2 mt-0.5 font-mono">
             <span>{combatant.species || combatant.role}</span>
             <span className="text-ink-3">·</span>
             <span>物防 {combatant.defense}</span>
@@ -184,7 +184,7 @@ export default function CombatantCard({
             <GiHealthNormal className="w-3.5 h-3.5" />
             <span>HP</span>
             {isCrisis && (
-              <span className="text-[10px] text-signal-hp font-sans font-bold flex items-center gap-0.5">
+              <span className="text-t10 text-signal-hp font-sans font-bold flex items-center gap-0.5">
                 <AlertTriangle className="w-3 h-3" /> 危機
               </span>
             )}
@@ -209,7 +209,7 @@ export default function CombatantCard({
               <button
                 key={d}
                 onClick={() => handleAdjustHp(d)}
-                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-hp text-[11px] font-mono text-ink hover:text-signal-hp transition-colors duration-120"
+                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-hp text-t11 font-mono text-ink hover:text-signal-hp transition-colors duration-120"
               >
                 {d}
               </button>
@@ -220,7 +220,7 @@ export default function CombatantCard({
               <button
                 key={d}
                 onClick={() => handleAdjustHp(d)}
-                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-ok text-[11px] font-mono text-ink hover:text-signal-ok transition-colors duration-120"
+                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-ok text-t11 font-mono text-ink hover:text-signal-ok transition-colors duration-120"
               >
                 +{d}
               </button>
@@ -255,7 +255,7 @@ export default function CombatantCard({
               <button
                 key={d}
                 onClick={() => handleAdjustMp(d)}
-                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-mp text-[11px] font-mono text-ink hover:text-signal-mp transition-colors duration-120"
+                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-mp text-t11 font-mono text-ink hover:text-signal-mp transition-colors duration-120"
               >
                 {d}
               </button>
@@ -266,7 +266,7 @@ export default function CombatantCard({
               <button
                 key={d}
                 onClick={() => handleAdjustMp(d)}
-                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-mp text-[11px] font-mono text-ink hover:text-signal-mp transition-colors duration-120"
+                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-mp text-t11 font-mono text-ink hover:text-signal-mp transition-colors duration-120"
               >
                 +{d}
               </button>
@@ -277,7 +277,7 @@ export default function CombatantCard({
 
       {/* 狀態異常 */}
       <div className="p-3 border-b border-warm-line/70 bg-warm-1/30">
-        <div className="text-[10px] font-mono text-ink-3 uppercase tracking-wider mb-1.5 font-bold">
+        <div className="text-t10 font-mono text-ink-3 uppercase tracking-wider mb-1.5 font-bold">
           狀態異常
         </div>
         <div className="grid grid-cols-3 gap-1">
@@ -306,11 +306,11 @@ export default function CombatantCard({
       {/* 技能逐格揭露（僅 NPC） */}
       {!isPlayer && combatant.skills && combatant.skills.length > 0 && (
         <div className="p-3 border-b border-warm-line/70 bg-warm-1/50 space-y-1.5">
-          <div className="text-[10px] font-mono text-ink-2 flex items-center justify-between font-bold">
+          <div className="text-t10 font-mono text-ink-2 flex items-center justify-between font-bold">
             <span className="inline-flex items-center gap-1">
               技能組（點擊 <Eye className="w-3 h-3 text-ink-2" /> 向全員揭露）
             </span>
-            <span className="text-signal-ip text-[10px]">
+            <span className="text-signal-ip text-t10">
               已揭露: {combatant.skills.filter(s => s.isRevealed).length} / {combatant.skills.length}
             </span>
           </div>
@@ -328,10 +328,10 @@ export default function CombatantCard({
                 <div className="flex-1 min-w-0">
                   <div className="font-bold flex items-center gap-1.5 truncate">
                     <span>{sk.name}</span>
-                    {!sk.isRevealed && <span className="text-[10px] text-ink-3 font-mono">(未公開)</span>}
+                    {!sk.isRevealed && <span className="text-t10 text-ink-3 font-mono">(未公開)</span>}
                   </div>
                   {sk.desc && sk.isRevealed && (
-                    <p className="text-[10px] text-ink-2 font-sans line-clamp-1 mt-0.5">{sk.desc}</p>
+                    <p className="text-t10 text-ink-2 font-sans line-clamp-1 mt-0.5">{sk.desc}</p>
                   )}
                 </div>
 
