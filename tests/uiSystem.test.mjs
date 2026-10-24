@@ -47,12 +47,54 @@ const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 /**
  * 剝掉 `//` 行註解與 `/* *\/` 區塊註解（本專案大量用註解記錄設計理由，
  * 不剝掉的話「解釋某條規則」會被當成「違反某條規則」）。
- * 字串裡的 `//`（如 URL）會被誤剝——對本測試無害，因為被剝掉的內容不會被斷言。
+ *
+ * 2026-10-24 第三十二輪（§CI40）修正三個假綠，全部來自舊版「對全文跑正則」：
+ * 1. `accept="image/*"` 裡的 `/*` 被當成區塊註解開頭，一路吃到下一個 `*\/`，
+ *    把整段真實 JSX 塗白——H20 因此看不見 NPCWorkshop 魔防的 `text-purple-800`。
+ * 2. 舊版把區塊註解換成單一空白，其後所有行號整體位移；現在保留換行。
+ * 3. 「先保護字串、再剝註解」的順序同樣錯：JSDoc 裡的 ```js 圍欄會被誤認為
+ *    字串而丟掉換行。改為單趟狀態機——遇到註解就整段吃掉，遇到引號就整段跳過，
+ *    兩者互不干擾，行號恆等於原始行號。
  */
-const stripComments = (src) =>
-  src
-    .replace(/\/\*[\s\S]*?\*\//g, ' ')
-    .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
+const stripComments = (src) => {
+  let out = '';
+  let i = 0;
+  const n = src.length;
+  let quote = null;
+  while (i < n) {
+    const c = src[i];
+    const d = src[i + 1];
+    if (quote) {
+      out += c;
+      if (c === '\\') {
+        out += d === undefined ? '' : d;
+        i += 2;
+        continue;
+      }
+      if (c === quote) quote = null;
+      i += 1;
+      continue;
+    }
+    if (c === '/' && d === '*') {
+      const end = src.indexOf('*/', i + 2);
+      const stop = end === -1 ? n : end + 2;
+      out += src.slice(i, stop).replace(/[^\n]/g, ' ');
+      i = stop;
+      continue;
+    }
+    if (c === '/' && d === '/') {
+      const end = src.indexOf('\n', i);
+      const stop = end === -1 ? n : end;
+      out += ' '.repeat(stop - i);
+      i = stop;
+      continue;
+    }
+    if (c === "'" || c === '"' || c === '`') quote = c;
+    out += c;
+    i += 1;
+  }
+  return out;
+};
 
 const count = (hay, needle) => hay.split(needle).length - 1;
 
@@ -2822,6 +2864,121 @@ check(
   'H28-a 味覺表酸／甜兩項仍在（反向控制）',
   hasSour && hasSweet,
   `酸=${hasSour} 甜=${hasSweet}`
+);
+
+/* ────────────────────────────────────────────────────────────────
+   H29 家族：剝註解器本身也要有護欄（2026-10-24 第三十二輪 §CI40）
+   ────────────────────────────────────────────────────────────────
+
+   背景：H20 檢查「全站不得有 purple 令牌」，但 NPCWorkshop 魔防明明寫著
+   `text-purple-800` 卻一路綠燈。原因是 stripComments 把 `accept="image/*"`
+   裡的 `/*` 當成區塊註解開頭，一路吃到下一個 `*\/`，把整段真實 JSX 塗白——
+   護欄看不見被塗白的程式碼，於是「假綠」。
+
+   教訓：**檢查工具的缺陷，會讓所有依賴它的斷言一起失效**。所以護欄不能只
+   檢查被測物，還要檢查「檢查本身」。
+   ──────────────────────────────────────────────────────────────── */
+
+// H29：剝註解器自檢（合成樣本——註解要剝掉、真程式要留下）。
+const H29_SAMPLE = [
+  'const A = () => (',
+  '  <input accept="image/*" onChange={(e) => setFile(e.target.files[0])} />',
+  ');',
+  '// 舊版會把下面這行的 text-purple-800 當成違規，其實它在註解裡',
+  'const B = () => <span className="text-purple-800">魔防</span>;',
+  '/* 這個區塊註解的結尾，正是舊版誤配對的對象 */',
+].join('\n');
+const h29Stripped = stripComments(H29_SAMPLE);
+const h29Raw = count(H29_SAMPLE, 'text-purple-800');
+const h29Kept = count(h29Stripped, 'text-purple-800');
+const h29Glob = h29Stripped.includes('accept="image/*"');
+check(
+  'H29 剝註解器自檢：註解剝掉、真程式留下',
+  h29Raw === 2 && h29Kept === 1 && h29Glob,
+  `原始 ${h29Raw} 處 → 剝除後 ${h29Kept} 處（應為 1）；image/* 保留=${h29Glob}`
+);
+
+// H29-a：剝註解不得位移行號（否則所有錯誤訊息都指錯行）。
+const h29Drift = walkSrc(path.join(ROOT, 'src')).filter((abs) => {
+  const raw = fs.readFileSync(abs, 'utf8');
+  return raw.split('\n').length !== stripComments(raw).split('\n').length;
+});
+check(
+  'H29-a 剝註解不位移行號（全 src 逐檔）',
+  h29Drift.length === 0,
+  h29Drift.length
+    ? `位移 ${h29Drift.length} 檔：${h29Drift.slice(0, 3).map((f) => path.relative(ROOT, f)).join('、')}`
+    : `${walkSrc(path.join(ROOT, 'src')).length} 檔行號全部一致`
+);
+
+// H29-b：剝註解不得塗白真實 JSX（原始行有 className=" 者，剝除後該行仍要有）。
+const h29Blanked = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rawText = fs.readFileSync(abs, 'utf8');
+  const rawLines = rawText.split('\n');
+  const stLines = stripComments(rawText).split('\n');
+  for (let i = 0; i < rawLines.length; i += 1) {
+    if (rawLines[i].includes('className="') && !(stLines[i] || '').includes('className="')) {
+      h29Blanked.push(`${path.relative(ROOT, abs).replace(/\\/g, '/')}:${i + 1}`);
+    }
+  }
+}
+check(
+  'H29-b 剝註解不塗白真實 JSX（className 行逐行比對）',
+  h29Blanked.length === 0,
+  h29Blanked.length ? `被塗白 ${h29Blanked.length} 行：${h29Blanked.slice(0, 3).join('、')}` : '0 行被塗白'
+);
+
+// H29-c：反向控制——自檢樣本必須仍存在於真實原始碼，否則 H29 是空轉。
+const h29GlobReal = walkSrc(path.join(ROOT, 'src')).reduce(
+  (n, abs) => n + count(fs.readFileSync(abs, 'utf8'), 'image/*'),
+  0
+);
+check(
+  'H29-c 自檢樣本仍存在於真實原始碼（反向控制）',
+  h29GlobReal >= 3,
+  `${h29GlobReal} 處 accept="image/*"`
+);
+
+// H29-d：魔防 M.DEF 屬性列無色相令牌（逐項——本輪真正修掉的那一行）。
+const H29_HUE =
+  /(?:[a-z-]+:)*(?:text|bg|border|ring|from|via|to|fill|stroke)-(?:red|rose|pink|amber|orange|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia)-\d{2,3}/;
+const h29NpcSrc = stripComments(
+  fs.readFileSync(path.join(ROOT, 'src/features/npc-workshop/NPCWorkshop.jsx'), 'utf8')
+);
+const h29StatLine = h29NpcSrc.split('\n').find((l) => l.includes('M.DEF')) || '';
+const h29StatHit = h29StatLine.match(H29_HUE);
+check(
+  'H29-d 魔防 M.DEF 屬性列無色相令牌（逐項）',
+  h29StatLine !== '' && !h29StatHit,
+  h29StatLine === '' ? '找不到 M.DEF 行' : h29StatHit ? `命中 ${h29StatHit[0]}` : '墨色，乾淨'
+);
+
+// H28-b：味覺表五項皆無色相令牌（逐項——第三十二輪補完苦味，味覺 5/5 去色）。
+// 為什麼是逐項而不是總數：總數可以被「這裡加一個、那裡減一個」抵掉，
+// 逐項擋的是「任何一味回頭借色」這件事本身。
+const TASTE_KEYS = ['苦味', '鹹味', '酸味', '甜味', '鮮味'];
+const H28_HUE =
+  /(?:[a-z-]+:)*(?:text|bg|border|ring|from|via|to|fill|stroke|placeholder|shadow|outline|decoration|accent|caret)-(?:red|rose|pink|amber|orange|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia)-\d{2,3}/;
+const tasteColorBlock = (tasteSrc.match(/const TASTE_COLOR = \{([\s\S]*?)\};/) || [])[1] || '';
+const tasteDotBlock = (tasteSrc.match(/const TASTE_DOT = \{([\s\S]*?)\};/) || [])[1] || '';
+const tasteDirty = TASTE_KEYS.filter((k) => {
+  const c = new RegExp(`${k}:\\s*'([^']*)'`).exec(tasteColorBlock);
+  const d = new RegExp(`${k}:\\s*'([^']*)'`).exec(tasteDotBlock);
+  return Boolean((c && H28_HUE.test(c[1])) || (d && H28_HUE.test(d[1])));
+});
+check(
+  'H28-b 味覺表五項皆無色相令牌（逐項）',
+  tasteDirty.length === 0,
+  tasteDirty.length ? `仍帶色：${tasteDirty.join('、')}` : '5 項皆紙／墨'
+);
+
+// H28-c：反向控制——五項必須都還在（去色不等於把味道刪掉）。
+const tasteMissing = TASTE_KEYS.filter((k) => !tasteColorBlock.includes(`${k}:`));
+check(
+  'H28-c 味覺表五項仍在（反向控制）',
+  tasteMissing.length === 0,
+  tasteMissing.length ? `缺：${tasteMissing.join('、')}` : '5 項都在'
 );
 
 const failed = results.filter((r) => !r.ok);

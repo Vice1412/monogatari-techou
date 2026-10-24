@@ -2122,7 +2122,7 @@ export default function App({
               <div className="flex gap-4 sm:gap-6 justify-center lg:justify-end flex-wrap">
                 <div className="flex flex-col items-center"><span className="text-xs text-[#7c6a58] font-bold mb-1 tracking-widest">先攻 INIT</span><span className="text-2xl font-bold text-[#6b5a4b] drop-shadow-sm">{isRevealed('stats') ? finalStats.Init : '??'}</span></div><div className="w-px bg-[#d6c7ab]"></div>
                 <div className="flex flex-col items-center"><span className="text-xs text-[#7c6a58] font-bold mb-1 tracking-widest">物防 DEF</span><span className="text-xl sm:text-2xl font-bold text-[#2c221e] drop-shadow-sm mt-auto">{isRevealed('stats') ? finalStats.Def : '??'}</span></div><div className="w-px bg-[#d6c7ab]"></div>
-                <div className="flex flex-col items-center"><span className="text-xs text-[#7c6a58] font-bold mb-1 tracking-widest">魔防 M.DEF</span><span className="text-xl sm:text-2xl font-bold text-purple-800 drop-shadow-sm mt-auto">{isRevealed('stats') ? finalStats.MDef : '??'}</span></div>
+                <div className="flex flex-col items-center"><span className="text-xs text-[#7c6a58] font-bold mb-1 tracking-widest">魔防 M.DEF</span><span className="text-xl sm:text-2xl font-bold text-[#2c221e] drop-shadow-sm mt-auto">{isRevealed('stats') ? finalStats.MDef : '??'}</span></div>
               </div>
             </div>
 

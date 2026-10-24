@@ -65,7 +65,7 @@ import {
  */
 
 const TASTE_COLOR = {
-  苦味: 'bg-emerald-50 border-emerald-300 text-emerald-900',
+  苦味: 'bg-[#f9f5eb] border-[#d6c7ab] text-[#3c2415]',
   鹹味: 'bg-[#f9f5eb] border-[#d6c7ab] text-[#3c2415]',
   酸味: 'bg-[#f9f5eb] border-[#d6c7ab] text-[#3c2415]',
   甜味: 'bg-[#f9f5eb] border-[#d6c7ab] text-[#3c2415]',
@@ -74,7 +74,7 @@ const TASTE_COLOR = {
 
 /** 群組標題用的小圓點色（與 TASTE_COLOR 同色系）。 */
 const TASTE_DOT = {
-  苦味: 'bg-emerald-500',
+  苦味: 'bg-[#3c2415]',
   鹹味: 'bg-[#3c2415]',
   酸味: 'bg-[#3c2415]',
   甜味: 'bg-[#3c2415]',
