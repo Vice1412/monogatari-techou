@@ -241,14 +241,14 @@ function PilotVehicleSkillBar({
             </span>
           ) : (
             <>
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-cyan-100 text-cyan-800 border border-cyan-300 font-bold">
+              <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-bold">
                 {frame.name} · {vehicleData?.name || '個人載具'}
               </span>
               <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] font-mono font-bold">
                 解鎖 {unlockedCount}/{unlockedQuota} · 啟用 {activeCount}/{activeCapacity} 槽
               </span>
               {vehicleData?.isMounted && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-cyan-600 text-white font-bold">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#3c2415] text-[#fffdf9] font-bold">
                   駕駛中
                 </span>
               )}
@@ -262,7 +262,7 @@ function PilotVehicleSkillBar({
             e.stopPropagation();
             onOpenModal();
           }}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-cyan-600 hover:bg-cyan-700 text-white shadow-2xs"
+          className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
         >
           <GiSteeringWheel className="w-3.5 h-3.5" />
           <span>{isConfigured ? '管理個人載具' : '配置個人載具'}</span>

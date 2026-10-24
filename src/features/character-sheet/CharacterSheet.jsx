@@ -726,7 +726,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                       <div className="flex items-center justify-between px-2 py-1 rounded-lg bg-[#f5efdf] border border-[#d6c7ab] text-[11px] font-mono">
                         <span className="text-[#6b5a4b]">DEF <strong className="text-[#3c2415]">{statsUnset ? '—' : stats.def}</strong></span>
                         <span className="text-[#d6c7ab]">|</span>
-                        <span className="text-blue-900">M.DEF <strong className="text-blue-950">{stats.mdef}</strong></span>
+                        <span className="text-[#2c221e]">M.DEF <strong className="text-[#2c221e]">{stats.mdef}</strong></span>
                         <span className="text-[#d6c7ab]">|</span>
                         <span className="text-[#6b5a4b]">INIT <strong className="text-[#3c2415]">{formatInitiative(stats.init, initiativeVariant)}</strong></span>
                       </div>

@@ -2040,7 +2040,7 @@ export default function App({
 
                 {state.traits && isRevealed('stats') && <div className="text-sm font-bold italic mb-2" style={{ color: currentTheme.accentDark }}>特質: <span className="font-normal text-[#2c221e]">{state.traits}</span></div>}
                 {state.story && revealLevel === 'full' && <div className="text-xs text-[#574c43] leading-relaxed border-l-2 pl-3 italic mb-2" style={{ borderLeftColor: currentTheme.accent }}>{state.story}</div>}
-                {state.tactics && revealLevel === 'full' && <div className="text-xs text-[#1e3a8a] leading-relaxed bg-[#f0f4ff] border border-[#bfdbfe] p-2 rounded mt-2"><span className="font-bold">戰術：</span>{state.tactics}</div>}
+                {state.tactics && revealLevel === 'full' && <div className="text-xs text-[#3c2415] leading-relaxed bg-[#f9f5eb] border border-[#d6c7ab] p-2 rounded mt-2"><span className="font-bold">戰術：</span>{state.tactics}</div>}
               </div>
               <div
                 onDragEnter={handleAvatarDragEnter}
@@ -2116,7 +2116,7 @@ export default function App({
                 <div className="w-px bg-[#d6c7ab]"></div>
                 <div className="flex flex-col items-center">
                   <span className="text-xs text-[#7c6a58] font-bold mb-1 tracking-widest">MP</span>
-                  <span className="text-2xl font-bold text-blue-700 drop-shadow-sm">{finalStats.MP}</span>
+                  <span className="text-2xl font-bold text-[#3c2415] drop-shadow-sm">{finalStats.MP}</span>
                 </div>
               </div>
               <div className="flex gap-4 sm:gap-6 justify-center lg:justify-end flex-wrap">
@@ -2306,7 +2306,7 @@ export default function App({
 
                                 {spellData && (
                                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#6b5a4b] font-bold tracking-wider bg-[#fffdf9] px-2.5 py-1 mb-2 rounded border border-[#d6c7ab] w-fit">
-                                    <span>MP: <span className="text-blue-700 font-bold">{spellData.mp}</span></span>
+                                    <span>MP: <span className="text-[#3c2415] font-bold">{spellData.mp}</span></span>
                                     <span className="text-[#d6c7ab]">|</span>
                                     <span>目標: <span className="text-[#2c221e]">{renderFormattedText(replacedTarget, selections, state.level, state.partyLevel)}</span></span>
                                     <span className="text-[#d6c7ab]">|</span>
@@ -2647,7 +2647,7 @@ export default function App({
                     <div className="flex gap-4 md:gap-8 px-2 md:px-4">
                       <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">HP</span><span className="text-sm md:text-base font-bold text-[#8c2d36] leading-none mt-1">{finalStats.HP}</span></div>
                       <div className="w-px bg-[#d6c7ab]"></div>
-                      <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">MP</span><span className="text-sm md:text-base font-bold text-blue-700 leading-none mt-1">{finalStats.MP}</span></div>
+                      <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">MP</span><span className="text-sm md:text-base font-bold text-[#3c2415] leading-none mt-1">{finalStats.MP}</span></div>
                     </div>
                     <div className="flex gap-4 md:gap-8 px-2 md:px-4">
                       <div className="flex flex-col items-center"><span className="text-[10px] text-[#7c6a58] font-bold tracking-widest">先攻</span><span className="text-sm md:text-base font-bold text-[#6b5a4b] leading-none mt-1">{finalStats.Init}</span></div>
@@ -2767,9 +2767,9 @@ export default function App({
                         </div>
 
                         <div className="mt-4 flex items-center gap-2 px-1">
-                          <div className="h-px bg-cyan-900/50 flex-1"></div>
-                          <p className="text-t12 text-cyan-600/80 font-bold italic tracking-tight">冠位 ({state.championMultiplier})：當前可額外配置 {state.championMultiplier} 個定位技能</p>
-                          <div className="h-px bg-cyan-900/50 flex-1"></div>
+                          <div className="h-px bg-[#d6c7ab] flex-1"></div>
+                          <p className="text-t12 text-[#7c6a58] font-bold italic tracking-tight">冠位 ({state.championMultiplier})：當前可額外配置 {state.championMultiplier} 個定位技能</p>
+                          <div className="h-px bg-[#d6c7ab] flex-1"></div>
                         </div>
                       </div>
                     )}
@@ -3453,7 +3453,7 @@ export default function App({
               </div>
             </SectionAccordion>
 
-            <SectionAccordion title="定位技能" icon={<GiCheckedShield size={16} />} current={usedRoleSkills} max={maxRoleSkills} hideIfZeroMax={true} titleColor="text-blue-900" borderColor="border-[#d6c7ab]" isFreeMode={state.isFreeModeEnabled}>
+            <SectionAccordion title="定位技能" icon={<GiCheckedShield size={16} />} current={usedRoleSkills} max={maxRoleSkills} hideIfZeroMax={true} titleColor="text-[#2c221e]" borderColor="border-[#d6c7ab]" isFreeMode={state.isFreeModeEnabled}>
               {usedRoleSkillForBoss > 0 && !state.isFreeModeEnabled && (
                 <div className="mb-4 bg-[#f9f5eb] border border-[#d6c7ab] p-3 rounded text-[11px] text-[#3c2415] flex items-center gap-2">
                   <AlertTriangle size={14} className="text-[#6b5a4b]" />
@@ -3466,7 +3466,7 @@ export default function App({
                 <input
                   type="text"
                   placeholder="搜尋定位技能..."
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#fffdf9] border border-[#d6c7ab] rounded-lg outline-none focus:border-blue-400 text-[#2c221e] placeholder-[#a8987e] transition-colors"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#fffdf9] border border-[#d6c7ab] rounded-lg outline-none focus:border-[#a63d40] text-[#2c221e] placeholder-[#a8987e] transition-colors"
                   value={roleSkillSearch}
                   onChange={e => setRoleSkillSearch(e.target.value)}
                 />

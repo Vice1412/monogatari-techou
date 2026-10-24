@@ -2327,3 +2327,56 @@ H23-d 破例用預算，因為退化模式是「**替代**」而不是「多一�
 - `REGISTERED_HEX` 護欄盲點（只掃 7 個同伴檔）
 - `theme?.accent ||`、`text-[Npx]` 371、半徑、`hover:scale-`、`body` 的 radial-gradient——未動
 - 全站「長得像警示」的普查（第二十八輪債，本輪未動）
+
+#### 8.31 第三十輪（2026-10-24）：cyan／teal／blue／sky 91 → 6
+
+#### 8.31.1 判準
+
+只有 `speciesThemes` 的 `sp_element`（cyan）與 `sp_humanoid`（blue）是身份，其餘 85 個全是借色。沒有統一替代符號——靠紙／墨階與 accent `#a63d40` 分頭接管。
+
+#### 8.31.2 修法
+
+- **批量映射**：50 組 MAP（最長優先）＋ dry-run → 81 處自動替換／14 檔。
+- **手動修復**：
+  - `JRPGBadge.jsx` 刪除 `cyan` 死變體。
+  - `AddCombatantModal.jsx`：3 處 `variant="cyan"` 改 `zinc`/`primary` + `bg-[#dbeafe]` 改 `bg-[#f4ebd9]`。
+  - `EquipmentPickerModal.jsx`：`variant="cyan"`（盾牌）改 `marker`。
+  - `CombatantCard.jsx`：`isPlayer ? 'cyan' : 'gold'` 改 `zinc`。
+  - `NPCWorkshop.jsx`：戰術區塊 `#bfdbfe`/`#1e3a8a` 改紙墨。
+- **味道系統**：`GourmetCookbook` 的 `鹹味`（sky）被引擎自動換成紙墨；四種味道現在都是同一套紙墨階。
+
+#### 8.31.3 新增七條護欄
+
+| 編號 | 形狀 | 內容 |
+|---|---|---|
+| H27 | 硬零＋白名單 | 冷色只准在 `speciesThemes` |
+| H27-a | 逐項 | 白名單檔裡每個令牌都在登記行 |
+| H27-b | 硬零 | 40 個藍綠原階 hex 全站為 0 |
+| H27-c | 硬零 | 藍綠 rgba 發光全站為 0 |
+| H27-d | 反向控制 | 身份表兩行都在 |
+| H27-e | 存在性 | `cyan` 死變體不准回歸 |
+| H27-f | 預算 | 總數只減不增（預算 6） |
+
+#### 8.31.4 驗證
+
+- `npm test` 全部通過（`test:uisystem` 196/196）
+- `npm run build` exit 0
+- 故意破壞 **8/8**
+
+#### 8.31.5 收尾數字
+
+| 指標 | 開場 → 收場 |
+|---|---|
+| `cyan`/`teal`/`blue`/`sky` 令牌 | 91／15 檔 → **6**／1 檔 |
+| 全站色相令牌 | 133／27 檔 → **48**／3 檔 |
+| 護欄 | 189 → **196** |
+| 新增 hex | **0** |
+
+#### 8.31.6 剩餘債
+
+- `lime` 4／`pink` 4（味道系統的酸味／甜味，跟本輪 sky 同病）
+- `JRPGBadge` 仍有 6 個色相變體（amber／rose／green／purple／indigo／slate）
+- 書頁棕 141；珠色身份表 11 格未登記
+- `REGISTERED_HEX` 護欄盲點（只掃 7 個同伴檔）
+- `theme?.accent ||`、`text-[Npx]` 371、半徑、`hover:scale-`、`body` 的 radial-gradient——未動
+- 全站「長得像警示」的普查（第二十八輪債，本輪未動）

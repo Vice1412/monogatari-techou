@@ -382,7 +382,7 @@ export default function RuleCodexDrawer({
                         </div>
                         {arcana.pulse && (
                           <div>
-                            <strong className="text-sky-800 font-bold">【脈衝】：</strong>
+                            <strong className="text-[#3c2415] font-bold">【脈衝】：</strong>
                             <span className="text-[#3c2415]">{renderTextWithAffinities(arcana.pulse)}</span>
                           </div>
                         )}
@@ -709,16 +709,16 @@ export default function RuleCodexDrawer({
                     </div>
 
                     {/* 高級：魔加農 */}
-                    <div className="p-3 rounded-lg bg-teal-50/70 border border-teal-200 space-y-2">
+                    <div className="p-3 rounded-lg bg-[#f9f5eb]/70 border border-[#e8dcc4] space-y-2">
                       <div className="flex justify-between items-center font-bold">
-                        <span className="text-teal-950">{currentRule.magitech.advanced.name}</span>
-                        <span className="font-mono text-teal-800">{currentRule.magitech.advanced.cost}</span>
+                        <span className="text-[#2c221e]">{currentRule.magitech.advanced.name}</span>
+                        <span className="font-mono text-[#3c2415]">{currentRule.magitech.advanced.cost}</span>
                       </div>
                       <p className="text-[#3c2415] leading-relaxed text-[11px]">
                         {renderTextWithAffinities(currentRule.magitech.advanced.desc)}
                       </p>
                       {/* 武器數據表 */}
-                      <div className="grid grid-cols-2 sm:grid-cols-6 gap-1.5 p-2 bg-white/80 rounded border border-teal-200/60 text-[11px]">
+                      <div className="grid grid-cols-2 sm:grid-cols-6 gap-1.5 p-2 bg-white/80 rounded border border-[#e8dcc4]/60 text-[11px]">
                         <div><span className="text-[#6b5a4b] block">類別</span><span className="font-bold text-[#3c2415]">{currentRule.magitech.advanced.weaponStats.category}</span></div>
                         <div><span className="text-[#6b5a4b] block">持握</span><span className="font-bold text-[#3c2415]">{currentRule.magitech.advanced.weaponStats.hands}</span></div>
                         <div><span className="text-[#6b5a4b] block">射程</span><span className="font-bold text-[#3c2415]">{currentRule.magitech.advanced.weaponStats.range}</span></div>

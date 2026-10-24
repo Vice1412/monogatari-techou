@@ -113,7 +113,7 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
 
       {isSpellCategory && (
         <div className="flex flex-wrap items-center gap-2 text-[#6b5a4b] text-xs font-bold tracking-wider bg-[#fffdf9] px-2 py-1 my-1 ml-2 md:ml-4 rounded border border-[#d6c7ab] w-fit">
-          <span>MP: <span className="text-blue-700 font-bold">{skill.spellData?.mp || '10'}</span></span>
+          <span>MP: <span className="text-[#3c2415] font-bold">{skill.spellData?.mp || '10'}</span></span>
           <span className="text-[#d6c7ab] hidden sm:inline">|</span>
           <span>目標: <span className="text-[#2c221e]">{renderFormattedText(replaceNPC(skill.spellData?.target || '一個生物'), skill.selections, npcLevel, partyLevel, true)}</span></span>
           <span className="text-[#d6c7ab] hidden sm:inline">|</span>
@@ -140,7 +140,7 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
                 <span className="fu-icon text-sm leading-none translate-y-[0.5px]">{isRanged ? 'r' : 'm'}</span>
                 <span>{renderFormattedText(atk.distance, skill.selections, npcLevel, partyLevel, true)}</span>
               </span>
-              <span className="text-blue-900 font-bold inline-flex items-center gap-1">
+              <span className="text-[#2c221e] font-bold inline-flex items-center gap-1">
                 <span>{renderFormattedText(atk.formula, skill.selections, npcLevel, partyLevel, true)}</span>
                 {finalStats.Acc !== 0 && (
                   <span className="text-[#6b5a4b] font-bold">

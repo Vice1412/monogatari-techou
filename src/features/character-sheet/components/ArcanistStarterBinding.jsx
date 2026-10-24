@@ -117,7 +117,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
                   <span className="flex items-baseline justify-between gap-2">
                     <span className="font-bold text-[#2c221e]">{arcana.name}</span>
                     {arcana.pulse && (
-                      <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-sky-100 border border-sky-300 text-sky-800">
+                      <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
                         脈衝
                       </span>
                     )}
@@ -128,7 +128,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
 
               {preview && (
                 <p className="mt-1 pl-6 text-[11px] leading-relaxed text-[#3c2415] line-clamp-3">
-                  <span className="font-bold text-blue-800">{preview.label}：</span>
+                  <span className="font-bold text-[#3c2415]">{preview.label}：</span>
                   {renderTextWithAffinities(preview.text)}
                 </p>
               )}
@@ -148,7 +148,7 @@ export default function ArcanistStarterBinding({ character, onChange, locked = f
           </div>
           {buildArcanaEffectSections(selectedArcana, { variant }).map((section) => (
             <p key={section.key} className="text-[11px] leading-relaxed text-[#3c2415]">
-              <span className="font-bold text-blue-800">{section.label}：</span>
+              <span className="font-bold text-[#3c2415]">{section.label}：</span>
               {renderTextWithAffinities(section.text)}
             </p>
           ))}

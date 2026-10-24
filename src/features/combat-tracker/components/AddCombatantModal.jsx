@@ -246,16 +246,16 @@ export default function AddCombatantModal({
               {filteredChars.map(char => (
                 <div
                   key={char.id}
-                  className="p-3 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] hover:border-sky-500 flex items-center justify-between gap-3 transition-colors"
+                  className="p-3 rounded-lg bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#a63d40] flex items-center justify-between gap-3 transition-colors"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-[#dbeafe] border border-blue-200 flex items-center justify-center font-bold text-blue-900 text-sm shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-center font-bold text-[#3c2415] text-sm shrink-0">
                       {char.name?.[0] || '勇'}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
                         <span className="font-bold text-xs text-[#2c221e] truncate">{char.name}</span>
-                        <JRPGBadge variant="cyan" size="xs">Lv {char.level || 5}</JRPGBadge>
+                        <JRPGBadge variant="zinc" size="xs">Lv {char.level || 5}</JRPGBadge>
                       </div>
                       <div className="text-[11px] text-[#6b5a4b] truncate mt-0.5">
                         {char.identity}
@@ -264,7 +264,7 @@ export default function AddCombatantModal({
                   </div>
 
                   <JRPGButton
-                    variant="cyan"
+                    variant="primary"
                     size="xs"
                     onClick={() => handleAddChar(char)}
                   >

@@ -330,7 +330,7 @@ export function EquipmentPickerBody({
                       style={{ color: theme.accent }}
                     />
                     <span className="font-bold" style={{ color: theme.textDark }}>{w.name}</span>
-                    {row.isShieldRow ? <JRPGBadge variant="cyan" size="xs">盾牌</JRPGBadge> : null}
+                    {row.isShieldRow ? <JRPGBadge variant="marker" size="xs">盾牌</JRPGBadge> : null}
                     {w.martial ? <JRPGBadge variant="marker" size="xs">職業</JRPGBadge> : null}
                     {isCurrent ? <JRPGBadge variant={theme.badgeVariant} size="xs">已裝備</JRPGBadge> : null}
                   </div>

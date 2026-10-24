@@ -16,7 +16,6 @@ export default function JRPGBadge({
     // ── 身份（色相）：由 characterThemes 的 badgeVariant 指向，一個主題一個 ──
     gold: "bg-[#f4ebd9] text-[#9c4d16] border border-[#9c4d16]/40 font-bold",
     amber: "bg-amber-50 text-amber-900 border border-amber-300 font-bold",
-    cyan: "bg-blue-50 text-blue-900 border border-blue-300 font-bold",
     rose: "bg-red-50 text-red-900 border border-red-300 font-bold",
     green: "bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold",
     purple: "bg-purple-50 text-purple-900 border border-purple-300 font-bold",

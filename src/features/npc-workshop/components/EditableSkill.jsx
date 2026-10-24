@@ -273,7 +273,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
 
       {(skill.category === 'spell' || skill.spellData) && (
         <div className="bg-[#f8f3e6] border border-[#e2d6c1] p-1.5 my-1 rounded text-xs text-[#6b5a4b] font-bold flex flex-wrap gap-2 items-center w-fit">
-          <span>MP: <span className="text-blue-800">{skill.spellData?.mp || '10'}</span></span>
+          <span>MP: <span className="text-[#3c2415]">{skill.spellData?.mp || '10'}</span></span>
           <span className="text-[#d6c7ab]">|</span>
           <span>目標: <span className="text-[#2c221e]">{skill.spellData?.target || '一個生物'}</span></span>
           <span className="text-[#d6c7ab]">|</span>
@@ -311,7 +311,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                       <span className="fu-icon text-sm leading-none translate-y-[0.5px]">{isRanged ? 'r' : 'm'}</span>
                       <span>{renderFormattedText(atk.distance, skill.selections, npcLevel, partyLevel)}</span>
                     </span>
-                    <span className="text-blue-900 font-bold">
+                    <span className="text-[#2c221e] font-bold">
                       {renderFormattedText(atk.formula, skill.selections, npcLevel, partyLevel)}
                     </span>
                     <span className="text-[#7c6a58] text-xs select-none">✦</span>

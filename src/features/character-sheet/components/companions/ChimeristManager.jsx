@@ -253,7 +253,7 @@ export default function ChimeristManager({
           <button
             type="button"
             onClick={() => setIsPasteModalOpen(true)}
-            className="px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white shadow-2xs flex items-center gap-1 transition-colors"
+            className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs flex items-center gap-1 transition-colors"
             title="貼上從 NPC 工坊複製的文字一鍵導入"
           >
             <ClipboardPaste className="w-3.5 h-3.5" />
@@ -289,13 +289,13 @@ export default function ChimeristManager({
                     o
                   </span>
                 ) : (
-                  <span className="text-blue-600 font-bold">✦</span>
+                  <span className="text-[#6b5a4b] font-bold">✦</span>
                 )}
                 <strong className="text-sm text-[#2c221e]">{sp.name}</strong>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
                   源頭: {sp.species}
                 </span>
-                <span className="text-xs font-mono font-bold text-blue-700">
+                <span className="text-xs font-mono font-bold text-[#3c2415]">
                   MP: {sp.mp}
                 </span>
               </div>
@@ -350,10 +350,10 @@ export default function ChimeristManager({
       {/* 貼上 NPC 工坊文本 Modal */}
       {isPasteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-[#fffdf9] border border-teal-400 rounded-2xl p-5 w-full max-w-lg shadow-e3 space-y-4">
-            <div className="flex items-center justify-between border-b border-teal-200 pb-2">
-              <h3 className="text-sm font-bold text-teal-950 flex items-center gap-2">
-                <GiClipboard className="text-teal-600" />
+          <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded-2xl p-5 w-full max-w-lg shadow-e3 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-2">
+              <h3 className="text-sm font-bold text-[#2c221e] flex items-center gap-2">
+                <GiClipboard className="text-[#6b5a4b]" />
                 <span>NPC工坊文本一鍵導入</span>
               </h3>
               <button onClick={() => setIsPasteModalOpen(false)} className="text-[#7c6a58] hover:text-[#6b5a4b]">
@@ -370,10 +370,10 @@ export default function ChimeristManager({
               value={pasteContent}
               onChange={e => setPasteContent(e.target.value)}
               placeholder="例如：&#10;> **劇毒吐息** (MP: 10 | 目標: 一個生物 | 持續: 瞬發)&#10;> 對目標造成【HR + 15】毒屬性傷害，並使其陷入中毒狀態。"
-              className="w-full p-2.5 rounded-lg border border-teal-300 bg-white text-[#2c221e] text-xs font-mono outline-none focus:border-teal-500"
+              className="w-full p-2.5 rounded-lg border border-[#d6c7ab] bg-white text-[#2c221e] text-xs font-mono outline-none focus:border-[#a63d40]"
             />
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-teal-200">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#e8dcc4]">
               <button
                 type="button"
                 onClick={() => setIsPasteModalOpen(false)}
@@ -384,7 +384,7 @@ export default function ChimeristManager({
               <button
                 type="button"
                 onClick={handleParsePastedText}
-                className="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-sm"
+                className="px-4 py-1.5 rounded-lg bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs shadow-sm"
               >
                 自動解析並導入
               </button>

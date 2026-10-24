@@ -196,7 +196,7 @@ export default function DiceRollerModal({
               </div>
               <div>
                 <span className="text-[#6b5a4b]">高點 HR: </span>
-                <strong className="text-lg text-sky-800 font-bold">{rollResult.hr}</strong>
+                <strong className="text-lg text-[#3c2415] font-bold">{rollResult.hr}</strong>
               </div>
             </div>
           </div>

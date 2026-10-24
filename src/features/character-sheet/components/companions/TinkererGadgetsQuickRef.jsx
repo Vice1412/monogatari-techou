@@ -148,7 +148,7 @@ export default function TinkererGadgetsQuickRef({
         <div className="flex flex-wrap gap-1.5 pt-1 text-[11px]">
           {infusion >= 1 && (
             <>
-              <span className="px-1.5 py-0.5 rounded bg-cyan-50 border border-cyan-300 text-cyan-900 font-medium">
+              <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] font-medium">
                 低溫【冰】
               </span>
               <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#8c2d36]/50 text-[#8c2d36] font-medium">
@@ -161,7 +161,7 @@ export default function TinkererGadgetsQuickRef({
           )}
           {infusion >= 2 && (
             <>
-              <span className="px-1.5 py-0.5 rounded bg-teal-50 border border-teal-300 text-teal-900 font-medium">
+              <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] font-medium">
                 疾風【風】
               </span>
               <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] font-medium">
@@ -202,7 +202,7 @@ export default function TinkererGadgetsQuickRef({
                 </span>
               )}
               {magitech >= 2 && !technoRestrictsEquipment && (
-                <span className="px-1.5 py-0.5 rounded bg-teal-50 border border-teal-300 text-teal-900 font-medium">
+                <span className="px-1.5 py-0.5 rounded bg-[#f9f5eb] border border-[#d6c7ab] text-[#3c2415] font-medium">
                   魔加農【HR + 10】
                 </span>
               )}
@@ -225,11 +225,11 @@ export default function TinkererGadgetsQuickRef({
           {/* ① 灌注術效果速查 */}
           {infusion > 0 && (
             <div className="p-3 rounded-xl bg-[#fffdf9] border border-[#d6c7ab] space-y-2">
-              <div className="flex items-center justify-between border-b border-cyan-100 pb-1.5 flex-wrap gap-1">
-                <div className="flex items-center gap-1.5 text-cyan-950 font-bold text-xs">
-                  <GiBroadsword className="text-cyan-600" />
+              <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-1.5 flex-wrap gap-1">
+                <div className="flex items-center gap-1.5 text-[#2c221e] font-bold text-xs">
+                  <GiBroadsword className="text-[#6b5a4b]" />
                   <span>灌注術工藝</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-100 text-cyan-800">
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415]">
                     Tier {infusion}
                   </span>
                 </div>
@@ -240,30 +240,30 @@ export default function TinkererGadgetsQuickRef({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
                 {/* 基礎灌注 */}
-                <div className="p-2 rounded-lg bg-white/90 border border-cyan-200/70 space-y-0.5">
-                  <div className="font-bold text-cyan-950 flex items-center justify-between">
+                <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
+                  <div className="font-bold text-[#2c221e] flex items-center justify-between">
                     <span>低溫</span>
-                    <span className="text-[10px] font-mono text-cyan-700 font-bold">2 IP</span>
+                    <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
                   </div>
                   <div className="text-[11px] leading-relaxed">
                     {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【冰】屬性。')}
                   </div>
                 </div>
 
-                <div className="p-2 rounded-lg bg-white/90 border border-cyan-200/70 space-y-0.5">
-                  <div className="font-bold text-cyan-950 flex items-center justify-between">
+                <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
+                  <div className="font-bold text-[#2c221e] flex items-center justify-between">
                     <span>焦火</span>
-                    <span className="text-[10px] font-mono text-cyan-700 font-bold">2 IP</span>
+                    <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
                   </div>
                   <div className="text-[11px] leading-relaxed">
                     {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【火】屬性。')}
                   </div>
                 </div>
 
-                <div className="p-2 rounded-lg bg-white/90 border border-cyan-200/70 space-y-0.5">
-                  <div className="font-bold text-cyan-950 flex items-center justify-between">
+                <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
+                  <div className="font-bold text-[#2c221e] flex items-center justify-between">
                     <span>電壓</span>
-                    <span className="text-[10px] font-mono text-cyan-700 font-bold">2 IP</span>
+                    <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
                   </div>
                   <div className="text-[11px] leading-relaxed">
                     {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【電】屬性。')}
@@ -273,10 +273,10 @@ export default function TinkererGadgetsQuickRef({
                 {/* 高級灌注 (Tier 2+) */}
                 {infusion >= 2 && (
                   <>
-                    <div className="p-2 rounded-lg bg-white/90 border border-teal-200/70 space-y-0.5">
-                      <div className="font-bold text-teal-950 flex items-center justify-between">
+                    <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-0.5">
+                      <div className="font-bold text-[#2c221e] flex items-center justify-between">
                         <span>疾風</span>
-                        <span className="text-[10px] font-mono text-teal-700 font-bold">2 IP</span>
+                        <span className="text-[10px] font-mono text-[#6b5a4b] font-bold">2 IP</span>
                       </div>
                       <div className="text-[11px] leading-relaxed">
                         {renderTextWithAffinities('額外造成 5 點傷害，傷害類型轉為【風】屬性。')}
@@ -389,10 +389,10 @@ export default function TinkererGadgetsQuickRef({
 
                 {/* 高級：魔加農 —— 魔晶石制下整檔不存在（p.133 removing the magicannon completely） */}
                 {magitech >= 2 && !technoRestrictsEquipment && (
-                  <div className="p-2 rounded-lg bg-white/90 border border-teal-200/70 space-y-1">
+                  <div className="p-2 rounded-lg bg-white/90 border border-[#e8dcc4]/70 space-y-1">
                     <div className="flex justify-between items-center font-bold">
-                      <span className="text-teal-950">高級【魔加農】</span>
-                      <span className="font-mono text-teal-700 font-bold text-[10px]">2 IP</span>
+                      <span className="text-[#2c221e]">高級【魔加農】</span>
+                      <span className="font-mono text-[#6b5a4b] font-bold text-[10px]">2 IP</span>
                     </div>
                     <div className="text-[11px] text-[#6b5a4b] leading-relaxed">
                       {renderTextWithAffinities('花費 2 IP 製造一把魔加農火器。若兩手為空，可立即裝備並進行一次自由攻擊。命中【DEX + INS】+1，傷害【HR + 10】自選屬性傷害。')}

@@ -139,7 +139,7 @@ export default function CombatantCard({
             <h4 className="font-serif font-bold text-base text-ink truncate">
               {combatant.name}
             </h4>
-            <JRPGBadge variant={isPlayer ? 'cyan' : 'gold'} size="xs">
+            <JRPGBadge variant={isPlayer ? 'zinc' : 'gold'} size="xs">
               Lv {combatant.level}
             </JRPGBadge>
             {combatant.rank && (

@@ -2676,6 +2676,115 @@ check(
         : '不借翠玉色／墨階＋危險紅兩端都在'
 );
 
+// H27：cyan／teal／blue／sky 家族（第三十輪）。
+//
+// 開場實測 91 個令牌／15 檔。`speciesThemes` 登記了兩個身份：
+// `sp_element`（元素體）= cyan、`sp_humanoid`（人形）= blue。
+// 其餘 85 個全部是借色——職業主題、元素效果標籤、MP 數值、冠位裝飾、
+// 味道（鹹味）、按鈕、輸入框 focus 等，全部改走紙／墨階或 accent。
+const COOL_FAMS = /(?:[a-z-]+:)*(?:text|bg|border|border-[lrtbxy]|ring|ring-offset|divide|from|via|to|fill|stroke|placeholder|shadow|outline|decoration|accent|caret)-(?:cyan|teal|blue|sky)-\d{2,3}(?:\/\d+)?/g;
+
+const COOL_ALLOWED = [
+  { file: 'src/features/npc-workshop/data/speciesThemes.jsx', re: /^\s*sp_element: /, why: '物種 ELEMENTAL（身份）' },
+  { file: 'src/features/npc-workshop/data/speciesThemes.jsx', re: /^\s*sp_humanoid: /, why: '物種 HUMANOID（身份）' },
+];
+
+const coolStray = [];
+let coolTotal = 0;
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  stripComments(fs.readFileSync(abs, 'utf8')).split('\n').forEach((line, i) => {
+    const hits = line.match(COOL_FAMS);
+    if (!hits) return;
+    coolTotal += hits.length;
+    const ok = COOL_ALLOWED.some((w) => w.file === rel && w.re.test(line));
+    if (!ok) coolStray.push(`${rel}:${i + 1} → ${hits.join(' ')}`);
+  });
+}
+check(
+  'H27 cyan／teal／blue／sky 只准出現在 speciesThemes 身份表（硬零＋白名單）',
+  coolStray.length === 0,
+  coolStray.length
+    ? `${coolStray.length} 處：${coolStray.slice(0, 3).join('、')}`
+    : `0 處外洩／全站 ${coolTotal} 個令牌，全部在 ${COOL_ALLOWED.length} 張身份表`
+);
+
+// H27-a：白名單檔裡每個冷色令牌都必須在登記行（逐項）。
+const coolWhitelistStray = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  if (!COOL_ALLOWED.some((w) => w.file === rel)) continue;
+  stripComments(fs.readFileSync(abs, 'utf8')).split('\n').forEach((line, i) => {
+    if (!COOL_FAMS.test(line)) return;
+    COOL_FAMS.lastIndex = 0;
+    const ok = COOL_ALLOWED.some((w) => w.file === rel && w.re.test(line));
+    if (!ok) coolWhitelistStray.push(`${rel}:${i + 1} → ${line.trim().slice(0, 48)}`);
+  });
+}
+check(
+  'H27-a 白名單檔裡每個冷色令牌都在登記行（逐項）',
+  coolWhitelistStray.length === 0,
+  coolWhitelistStray.length ? `${coolWhitelistStray.length} 行：${coolWhitelistStray.slice(0, 3).join('、')}` : `${COOL_ALLOWED.length} 張表、逐行乾淨`
+);
+
+// H27-b：冷色原階 hex 全站硬零。
+const COOL_HEXES = [
+  '#ecfeff','#cffafe','#a5f3fc','#67e8f9','#22d3ee','#06b6d4','#0891b2','#0e7490','#155e75','#164e63',
+  '#f0f9ff','#e0f2fe','#bae6fd','#7dd3fc','#38bdf8','#0ea5e9','#0284c7','#0369a1','#075985','#0c4a6e',
+  '#f0fdfa','#ccfbf1','#99f6e4','#5eead4','#2dd4bf','#14b8a6','#0d9488','#0f766e','#115e59','#134e4a',
+  '#eff6ff','#dbeafe','#bfdbfe','#93c5fd','#60a5fa','#3b82f6','#2563eb','#1d4ed8','#1e40af','#1e3a8a',
+];
+const coolHexStray = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  if (rel === BEAD_TABLE) continue;
+  const body = stripComments(fs.readFileSync(abs, 'utf8')).toLowerCase();
+  for (const h of COOL_HEXES) {
+    const n = body.split(h).length - 1;
+    if (n) coolHexStray.push(`${rel}：${h}×${n}`);
+  }
+}
+check(
+  `H27-b 藍綠色原階 hex 全站硬零（檢查 ${COOL_HEXES.length} 個 hex）`,
+  coolHexStray.length === 0,
+  coolHexStray.length ? coolHexStray.slice(0, 3).join('、') : `0 處／${COOL_HEXES.length} 個 hex`
+);
+
+// H27-c：冷色 rgba 發光硬零。
+const coolGlow = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const m = stripComments(fs.readFileSync(abs, 'utf8')).match(
+    /rgba?\(\s*(?:6\s*,\s*182\s*,\s*212|14\s*,\s*165\s*,\s*233|37\s*,\s*99\s*,\s*235|59\s*,\s*130\s*,\s*246|20\s*,\s*184\s*,\s*166)\s*,[^)]*\)/g
+  );
+  if (m) coolGlow.push(`${rel}（${m.length}）`);
+}
+check('H27-c 藍綠色光暈（rgba）全站硬零', coolGlow.length === 0, coolGlow.length ? coolGlow.join('、') : '0 處');
+
+// H27-d：身份表兩行都在（反向控制）。
+const spElement = speciesSrc.match(/sp_element:/g)?.length || 0;
+const spHumanoid = speciesSrc.match(/sp_humanoid:/g)?.length || 0;
+check(
+  'H27-d 身份表兩行都在（反向控制）',
+  spElement === 1 && spHumanoid === 1,
+  `sp_element ${spElement} 處、sp_humanoid ${spHumanoid} 處`
+);
+
+// H27-e：JRPGBadge 不准保留 cyan 死變體。
+check(
+  'H27-e 徽章沒有 cyan 死變體',
+  !KNOWN_VARIANTS.has('cyan'),
+  KNOWN_VARIANTS.has('cyan') ? '`cyan` 死變體仍在' : 'cyan 已刪'
+);
+
+// H27-f：令牌總數只減不增（預算 6）。
+const COOL_BUDGET = 6;
+check(
+  `H27-f 冷色家族總數只減不增（預算 ${COOL_BUDGET}）`,
+  coolTotal <= COOL_BUDGET,
+  `${coolTotal} / 預算 ${COOL_BUDGET}`
+);
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${'='.repeat(56)}`);
 console.log(`  通過 ${results.length - failed.length} / ${results.length}${failed.length ? `　失敗 ${failed.length}` : '　（全部通過）'}`);

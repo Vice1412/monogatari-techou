@@ -13179,3 +13179,109 @@ H26-d 的 13 處大於 10，是反向控制算過的：需要打掉 4 個勾勾�
 - **`MNEMOSPHERE_BEAD_TINTS` 11 個未登記身份色**、**`theme?.accent ||` 默認暖色**、**`text-[Npx]` 371 處**、**半徑**、**`hover:scale-`**——都沒動。
 - **`REGISTERED_HEX` 護欄的掃描範圍只有 7 個同伴檔**（`HUE_CONVERGED`），所以 `#f9f5eb` 全站 121 處、本輪的 `WarningNote` 也用，卻從未登記。第二十八輪補進去，但**盲點仍在**——全站其他檔案裡的未登記 hex 靠這條護欄抓不到。
 - **全站「長得像警示」的普查還沒做**（第二十八輪債，本輪未動）。
+
+## §CI38 冷色家族收斂——cyan／teal／blue／sky 91 → 6
+
+### CI38.1 起點與債務
+
+第二十九輪結束時的殘債第一條：`cyan` 29／`teal` 28／`blue` 24／`sky` 10，共 **91 個令牌／15 檔**。它們同時背著：
+- **身份**：`speciesThemes` 登記了 `sp_element`（cyan）與 `sp_humanoid`（blue）。
+- **職業主題**：機師（cyan）、嵌合師（teal）。
+- **元素效果標籤**：灌注術的冰（cyan）、風（teal）。
+- **量**：MP 數值（blue-700）、冠位裝飾（cyan-900/50）。
+- **味道身份**：美食家的「鹹味」（sky）。
+- **互動**：按鈕（teal-600）、focus 邊框（blue-400）、hover 邊框（sky-500）。
+
+比綠更難：綠有「成功」這個明確的替代語意（`✓`＋墨階），而冷色家族沒有統一的替代符號——它們的「功能」是分散的。
+
+### CI38.2 判準：誰是身份、誰是借色
+
+跟 §CI33～§CI35 同一套判準：先問「這個色相被哪張身份表登記走了」。
+- `cyan` → `sp_element`（元素體）。
+- `blue` → `sp_humanoid`（人形）。
+- `teal`／`sky` → **沒有身份表登記**。它們是純粹的借色。
+
+所以策略是：
+1. `speciesThemes` 的兩行保留（6 個令牌）。
+2. 其餘 85 個全部改走紙／墨階或 accent `#a63d40`。
+
+### CI38.3 批量映射引擎
+
+跟第二十九輪同樣的引擎：50 組 MAP（最長優先）＋ dry-run（預期殘留 6）。
+映射原則：
+- **按鈕**（bg-*-600 hover:bg-*-700 text-white）→ `bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9]`。
+- **標籤／徽章**（bg-*-50/100 border-*-300 text-*-800/900）→ `bg-[#f9f5eb]/[#f4ebd9] border-[#d6c7ab] text-[#3c2415]`。
+- **卡片邊框**（border-*-200/100）→ `border-[#e8dcc4]`。
+- **標題文字**（text-*-950/900）→ `text-[#2c221e]`。
+- **輔助文字**（text-*-700/800/600）→ `text-[#6b5a4b]` 或 `text-[#3c2415]`。
+- **分隔線**（bg-*-900/50）→ `bg-[#d6c7ab]`。
+- **focus／hover 邊框**（focus:border-*-400、hover:border-*-500）→ `focus:border-[#a63d40]`、`hover:border-[#a63d40]`。
+- **arbitrary 藍底**（`bg-[#dbeafe]`）→ `bg-[#f4ebd9]`。
+
+自動替換 **81 處／14 檔**，殘留 0（不含身份表）。
+
+### CI38.4 手動修復的邊緣案例
+
+自動引擎沒抓到的（因為不是 Tailwind 預設類，或不在 className 裡）：
+
+| 檔案 | 問題 | 修復 |
+|---|---|---|
+| `JRPGBadge.jsx` | `cyan` 變體（值本身是 blue 家族，名字卻叫 cyan） | **刪除** `cyan` 變體 |
+| `AddCombatantModal.jsx` | `JRPGBadge variant="cyan"` ×2、`JRPGButton variant="cyan"`、`bg-[#dbeafe]` | 改 `zinc`、`primary`、`bg-[#f4ebd9]` |
+| `EquipmentPickerModal.jsx` | `JRPGBadge variant="cyan"`（盾牌） | 改 `marker` |
+| `CombatantCard.jsx` | `JRPGBadge variant={isPlayer ? 'cyan' : 'gold'}` | 改 `isPlayer ? 'zinc' : 'gold'` |
+| `NPCWorkshop.jsx` | `#bfdbfe`／`#1e3a8a` 戰術區塊（H27-b 掃到） | 改 `bg-[#f9f5eb] border-[#d6c7ab] text-[#3c2415]` |
+
+`GourmetCookbook` 的 `TASTE_COLOR`／`TASTE_DOT` 裡的 `sky`（鹹味）被引擎自動換成紙／墨——這是對稱的：四種味道現在都是 `bg-[#f4ebd9] border-[#d6c7ab] text-[#3c2415]`，圓點都是 `bg-[#3c2415]`。味道系統不再需要色相。
+
+### CI38.5 截圖與像素驗證
+
+本輪改動分散在 14 個檔案，沒有單一面板的「before／after」可以截。但 `NPCWorkshop` 的戰術區塊是一個具體的樣本：從「藍底藍字藍框」變成「紙底墨字墨框」——資訊完全保留，裝飾色移除。
+
+### CI38.6 新增七條護欄（H27 家族）
+
+| 編號 | 形狀 | 內容 |
+|---|---|---|
+| H27 | 硬零＋白名單 | `cyan`／`teal`／`blue`／`sky` 只准在 `speciesThemes` 身份表 |
+| H27-a | 逐項 | 白名單檔裡每個冷色令牌都在登記行 |
+| H27-b | 硬零 | 40 個藍綠色原階 hex 全站為 0（`BEAD_TABLE` 除外） |
+| H27-c | 硬零 | 藍綠色 rgba 發光全站為 0 |
+| H27-d | 反向控制 | 身份表兩行（`sp_element`／`sp_humanoid`）都要在 |
+| H27-e | 存在性 | `JRPGBadge` 不准保留 `cyan` 死變體 |
+| H27-f | 預算 | 總數只減不增（預算 6） |
+
+### CI38.7 故意破壞：8/8
+
+| 案例 | 護欄 | 結果 |
+|---|---|---|
+| ① NPCWorkshop 偷加 `text-blue-700` | H27 | ✓ FAIL |
+| ② ClassSkillCard 偷加 `bg-cyan-100` | H27 | ✓ FAIL |
+| ③ `speciesThemes` 夾帶 `text-blue-900` | H27-a | ✓ FAIL |
+| ④ 刪掉 `sp_element` | H27-d | ✓ FAIL |
+| ⑤ 刪掉 `sp_humanoid` | H27-d | ✓ FAIL |
+| ⑥ JRPGBadge 加回 `cyan` | H27-e | ✓ FAIL |
+| ⑦ TinkererGadgetsQuickRef 加 `#0891b2` | H27-b | ✓ FAIL |
+| ⑧ TinkererGadgetsQuickRef 加 rgba 光暈 | H27-c | ✓ FAIL |
+
+### CI38.8 收尾數字與對帳
+
+| 指標 | 開場 → 收場 |
+|---|---|
+| `cyan`／`teal`／`blue`／`sky` 令牌 | 91／15 檔 → **6**／1 檔 |
+| 全站色相令牌 | 133／27 檔 → **48**／3 檔 |
+| 護欄 | 189 → **196** |
+| 新增 hex | **0** |
+
+### CI38.9 驗證
+
+- `npm test` 全部通過（`test:uisystem` **196**/196，其餘 30 支全綠）
+- `npm run build` exit 0
+- 故意破壞 **8/8**
+
+### CI38.10 殘債（下一輪的起點）
+
+- **`lime` 4／`pink` 4**——味道系統的「酸味」與「甜味」，跟本輪的 sky 同病。但本輪只動了 sky，沒動 lime／pink。
+- **`JRPGBadge` 仍有 6 個色相變體**（amber／rose／green／purple／indigo／slate），其中 `green` 是身份、`slate` 是墨階變體，其餘 4 個是未收斂的色相出口。
+- **書頁棕 141**、**珠色身份表 11 格未登記**、**`theme?.accent ||`**、**`text-[Npx]` 371**、**半徑**、**`hover:scale-`**、**`body` 的 radial-gradient**——都沒動。
+- **`REGISTERED_HEX` 護欄盲點**（只掃 7 個同伴檔）——第二十九輪債，本輪未動。
+- **全站「長得像警示」的普查**——第二十八輪債，本輪未動。
