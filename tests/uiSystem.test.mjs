@@ -2785,6 +2785,45 @@ check(
   `${coolTotal} / 預算 ${COOL_BUDGET}`
 );
 
+// H28：lime／pink 家族（第三十一輪）。
+//
+// 開場實測 8 個 class 令牌／1 檔（GourmetCookbook 的 TASTE_COLOR／TASTE_DOT）。
+// 它們背的是味覺系統的酸（lime）與甜（pink）——與 sky 同病：借色無語意，
+// 味道已由文字標籤（酸／甜）辨識，顏色是重複編碼。本輪改走紙／墨階。
+// 珠表 hex（#65a30d/#db2777/#84cc16 等）屬 R38 範圍，不在此硬零。
+const LIME_PINK_FAMS = /(?:[a-z-]+:)*(?:text|bg|border|border-[lrtbxy]|ring|ring-offset|divide|from|via|to|fill|stroke|placeholder|shadow|outline|decoration|accent|caret)-(?:lime|pink)-\d{2,3}(?:\/\d+)?/g;
+
+const limePinkStray = [];
+let limePinkTotal = 0;
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  stripComments(fs.readFileSync(abs, 'utf8')).split('\n').forEach((line, i) => {
+    const hits = line.match(LIME_PINK_FAMS);
+    if (!hits) return;
+    limePinkTotal += hits.length;
+    limePinkStray.push(`${rel}:${i + 1} → ${hits.join(' ')}`);
+  });
+}
+check(
+  'H28 lime／pink class 令牌全站硬零（味覺去色）',
+  limePinkStray.length === 0,
+  limePinkStray.length
+    ? `${limePinkStray.length} 處：${limePinkStray.slice(0, 3).join('、')}`
+    : `0 處外洩（全站 ${limePinkTotal} 個 class 令牌已去色）`
+);
+
+// H28-a：味覺表酸／甜兩項仍在（反向控制：去色不代表砍掉味道）。
+const tasteSrc = stripComments(
+  fs.readFileSync(path.join(ROOT, 'src/features/character-sheet/components/companions/GourmetCookbook.jsx'), 'utf8')
+);
+const hasSour = /酸味:\s*'[^']*'/.test(tasteSrc);
+const hasSweet = /甜味:\s*'[^']*'/.test(tasteSrc);
+check(
+  'H28-a 味覺表酸／甜兩項仍在（反向控制）',
+  hasSour && hasSweet,
+  `酸=${hasSour} 甜=${hasSweet}`
+);
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${'='.repeat(56)}`);
 console.log(`  通過 ${results.length - failed.length} / ${results.length}${failed.length ? `　失敗 ${failed.length}` : '　（全部通過）'}`);

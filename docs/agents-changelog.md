@@ -2237,3 +2237,31 @@ H25 第一版掃「含『步驟 N：』的那一行」。第②案把 `className
 - `REGISTERED_HEX` 護欄盲點沒修（只掃 7 個同伴檔）。
 - 全站「長得像警示」的普查（第二十八輪債）沒做。
 - `theme?.accent ||` 默認暖色、`text-[Npx]` 371、半徑、`hover:scale-`、`body` 的 radial-gradient——都沒動。
+
+## 第三十一輪（UI Designer，2026-10-24）——味覺去色收尾：lime／pink 8 → 0
+
+**起點**：第二十九輪殘債第一條，`lime` 4／`pink` 4。開場實測 **8 個 class 令牌／1 檔**（`GourmetCookbook` 酸味/甜味）。
+
+**校正**：第三十輪說「四味皆紙墨」不實——當時只去色 鹹/鮮，酸(lime)/甜(pink)/苦(emerald) 仍帶色。本輪補酸/甜。
+
+**判準**：酸/甜借色無語意，文字已辨味 → 去色走紙墨。
+
+**修法**：
+- `TASTE_COLOR` 酸/甜 → `bg-[#f9f5eb] border-[#d6c7ab] text-[#3c2415]`
+- `TASTE_DOT` 酸/甜 → `bg-[#3c2415]`（墨）
+- 8 處／1 檔，殘留 0。`technospheres` 珠表 hex 不屬本輪。
+
+**護欄**：新增 H28 家族 2 條（196 → 198）。
+
+**驗證**：`npm test` 全部通過（`test:uisystem` **198**/198）、`npm run build` exit 0、故意破壞 **1/1**（sha256 還原一致）。
+
+| 指標 | 開場 → 收場 |
+|---|---|
+| `lime`/`pink` class 令牌 | 8／1 檔 → **0**／0 檔 |
+| 全站色相令牌 | 48／3 檔 → **40**／3 檔 |
+| 護欄 | 196 → **198** |
+| 新增 hex | **0** |
+
+### 這一輪沒做的事
+- 苦味(emerald) 仍在 `GourmetCookbook` + `JRPGBadge` 5 個色相變體（amber/rose/green/purple/indigo）→ 併入 R32。
+- 書頁棕、珠色身份表 11 格未登記（含 3 個 lime/pink hex）、`REGISTERED_HEX` 盲點、`text-[Npx]` 814、半徑 835、`hover:scale-` 45、`body` radial-gradient 3——都沒動（R33–R38）。

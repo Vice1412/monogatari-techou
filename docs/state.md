@@ -2380,3 +2380,35 @@ H23-d 破例用預算，因為退化模式是「**替代**」而不是「多一�
 - `REGISTERED_HEX` 護欄盲點（只掃 7 個同伴檔）
 - `theme?.accent ||`、`text-[Npx]` 371、半徑、`hover:scale-`、`body` 的 radial-gradient——未動
 - 全站「長得像警示」的普查（第二十八輪債，本輪未動）
+
+#### 8.32 第三十一輪（2026-10-24）：lime／pink 8 → 0（味覺去色收尾）
+
+#### 8.32.1 起點
+第二十九輪殘債。實測 8 個 class 令牌／1 檔（GourmetCookbook 酸味/甜味，TASTE_COLOR+TASTE_DOT）。校正：第三十輪「四味皆紙墨」不實，本輪只補酸/甜；苦(emerald) 留 R32。
+
+#### 8.32.2 判準
+酸(lime)/甜(pink) 借色無語意，文字已辨味 → 去色走紙墨。
+
+#### 8.32.3 修法
+- `TASTE_COLOR` 酸/甜 → `bg-[#f9f5eb] border-[#d6c7ab] text-[#3c2415]`
+- `TASTE_DOT` 酸/甜 → `bg-[#3c2415]`（墨）
+- 8 處／1 檔，殘留 0。`technospheres` 珠表 hex 不屬本輪。
+
+#### 8.32.4 護欄 H28 家族（196 → 198）
+| 條號 | 形狀 | 內容 |
+|---|---|---|
+| H28 | 硬零 | lime/pink class 令牌全站 0 |
+| H28-a | 反向控制 | 味覺表 酸/甜 兩項仍在 |
+
+#### 8.32.5 驗證
+- `npm test` 198/198，`npm run build` exit 0，破壞 1/1。
+
+#### 8.32.6 收尾數字
+| 指標 | 開場 → 收場 |
+|---|---|
+| lime/pink class 令牌 | 8／1 檔 → **0**／0 檔 |
+| 全站色相令牌 | 48／3 檔 → **40**／3 檔 |
+| 護欄 | 196 → **198** |
+
+#### 8.32.7 剩餘債
+苦味(emerald) + JRPGBadge 5 色相變體 → R32；書頁棕、珠表 11 未登記、REGISTERED_HEX 盲點、text-[Npx] 814、半徑 835、hover:scale- 45、radial-gradient 3 → R33–R38。

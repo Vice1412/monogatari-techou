@@ -13285,3 +13285,48 @@ H26-d 的 13 處大於 10，是反向控制算過的：需要打掉 4 個勾勾�
 - **書頁棕 141**、**珠色身份表 11 格未登記**、**`theme?.accent ||`**、**`text-[Npx]` 371**、**半徑**、**`hover:scale-`**、**`body` 的 radial-gradient**——都沒動。
 - **`REGISTERED_HEX` 護欄盲點**（只掃 7 個同伴檔）——第二十九輪債，本輪未動。
 - **全站「長得像警示」的普查**——第二十八輪債，本輪未動。
+
+## §CI39 第三十一輪：味覺去色收尾——lime／pink 8 → 0
+
+### CI39.1 起點（開場實測）
+第二十九輪殘債第一條丟的 `lime` 4／`pink` 4。本輪開場實測：**8 個 class 令牌／1 檔**（`GourmetCookbook.jsx` 的 `TASTE_COLOR` 酸味/甜味 各 3 ＋ `TASTE_DOT` 酸味/甜味 各 1）。
+
+> 校正：第三十輪紀錄寫「四種味道現在都是同一套紙墨階」，實測發現不實——當時只去色了 鹹味(sky) 與 鮮味，苦味(emerald) 與 酸味(lime)/甜味(pink) 仍帶色相。本輪補完酸/甜；苦(emerald) 留待 R32 一併處理。
+
+### CI39.2 設計問題
+味覺系統的酸（lime）與甜（pink）跟 sky 同病：借色無語意，味道已由文字標籤（酸／甜）辨識，顏色是重複編碼。解法＝去色，改走紙／墨階。
+
+### CI39.3 修法
+- `GourmetCookbook.jsx` `TASTE_COLOR`：酸味 `bg-lime-50 border-lime-300 text-lime-900` → `bg-[#f9f5eb] border-[#d6c7ab] text-[#3c2415]`；甜味 `bg-pink-50 ...` → 同上紙墨。
+- `TASTE_DOT`：酸味 `bg-lime-500` → `bg-[#3c2415]`（墨）；甜味 `bg-pink-500` → `bg-[#3c2415]`。
+- 共 **8 處替換／1 檔**，殘留 0。數量小且集中一檔，無需映射引擎。
+- `technospheres.js` 的 `#65a30d`(嵌合師)/`#db2777`(舞者)/`#84cc16`(毒) 是珠色身份表 hex，**不屬本輪**——留 R38。
+
+### CI39.4 護欄：H28 家族（196 → 198）
+| 條號 | 形狀 | 內容 |
+|---|---|---|
+| H28 | 硬零 | lime／pink class 令牌全站為 0 |
+| H28-a | 反向控制 | 味覺表 酸／甜 兩項仍在（去色不代表砍味道） |
+
+### CI39.5 故意破壞：1/1（H28 家族）
+| 案例 | 護欄 | 結果 |
+|---|---|---|
+| 把 酸味 TASTE_COLOR 還原成 `bg-lime-50 border-lime-300 text-lime-900` | H28 | ✓ FAIL（指出 GourmetCookbook.jsx:46） |
+| 還原（sha256 一致） | H28 | ✓ PASS |
+
+### CI39.6 收尾數字與對帳
+| 指標 | 開場 → 收場 |
+|---|---|
+| `lime`／`pink` class 令牌 | 8／1 檔 → **0**／0 檔 |
+| 全站色相令牌 | 48／3 檔 → **40**／3 檔 |
+| 護欄 | 196 → **198** |
+| 新增 hex | **0** |
+
+### CI39.7 驗證
+- `npm test` 全部通過（`test:uisystem` **198**/198，其餘 30 支全綠）
+- `npm run build` exit 0
+- 故意破壞 **1/1**（sha256 還原一致）
+
+### CI39.8 殘債（下一輪起點）
+- **苦味(emerald) 仍在 `GourmetCookbook`** ＋ `JRPGBadge` 5 個色相變體（amber/rose/green/purple/indigo）——併入 R32（徽章與味覺剩餘色相出口）。
+- 書頁棕（舊債 141，實測 ~335）、珠色身份表 11 格未登記（含 3 個 lime/pink hex）、`REGISTERED_HEX` 護欄盲點（只掃 7 個同伴檔）、`theme?.accent ||`、`text-[Npx]`（實測 814）、半徑（835）、`hover:scale-`（45）、`body` radial-gradient（3）——全留待 R33–R38。
