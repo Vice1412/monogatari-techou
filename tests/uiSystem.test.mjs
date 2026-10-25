@@ -55,6 +55,9 @@ import { IDENTITY } from '../src/data/identityPalette.js';
 // 它現編一份 CSS（content 就是 `src`），所以它驗的是**地面真相**，
 // 不是「我上次寫的那個字串還在不在」。
 import { auditDeadClasses } from '../scripts/auditClasses.mjs';
+// 第四十三輪（§CI50.5）：class 合併器。H40 家族要真的跑它，不是讀它的原始碼——
+// 「合併後還剩什麼」只有合併器自己答得出來。
+import { cn } from '../src/utils/cn.js';
 
 const ROOT = process.cwd();
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -4123,6 +4126,99 @@ check(
   deadDelta > 0
     ? `超出 ${deadDelta} 處（${classAudit.dead.length}／${DEAD_CLASS_BUDGET}）`
     : `${classAudit.dead.length}／${DEAD_CLASS_BUDGET}${deadDelta < 0 ? `（已減 ${-deadDelta}，請下調預算）` : ''}`
+);
+
+/* ────────────────────────────────────────────────────────────────
+   H40 家族：class 合併器也會刪 class（2026-10-25 第四十三輪 §CI51）
+   ────────────────────────────────────────────────────────────────
+
+   背景：GM 貼了一張截圖——深紅底的「跑團面板」按鈕上，字是**深墨色**，整個讀不到。
+
+   `JRPGButton` 的 `primary` 變體寫著 `text-[#fffdf9]`，那一行沒有錯。
+   錯的是它後面那個 `text-t12`：`tailwind-merge` 只認識 Tailwind **內建**的
+   字級階梯，專案自訂的 `text-tNN` 它不認得，於是歸類成**文字顏色**。
+   而它的規則是「同一組只留最後一個」——
+
+     twMerge('text-[#fffdf9] text-t12')  →  'text-t12'   ← 顏色不是被覆蓋，是消失
+
+   量到的後果：58 顆按鈕的顏色全部被自己的字級吃掉。36 顆 `primary`
+   （深底淺字）因此變成深底深字；另外 22 顆是淺底深字，繼承來的墨色剛好對，
+   所以**同一個 bug 在四分之三的按鈕上看不出來**。`JRPGBadge` 的
+   `rank-top`（`#2c221e` 底）更徹底——字與底同色，整塊只剩一個深色方塊。
+
+   ⚠️ 這跟 H39 是**兩個不同的問題**，所以是兩條護欄：
+      H39 問「這個 class 名存在嗎」；
+      H40 問「這個 class 名還留著嗎」。
+   中間隔著一個會主動刪東西的函式，而它不在任何既有護欄的視野裡。
+   ──────────────────────────────────────────────────────────────── */
+
+// H40：全站只准 `src/utils/cn.js` 匯入 tailwind-merge（硬零）。
+// 繞過它 = 繞過那份字級登記表 = 同一個 bug 從另一個檔案長回來。
+const MERGE_OWNER = 'src/utils/cn.js';
+const mergeImporters = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  if (rel === MERGE_OWNER) continue;
+  if (/from\s+['"]tailwind-merge['"]/.test(stripComments(fs.readFileSync(abs, 'utf8')))) {
+    mergeImporters.push(rel);
+  }
+}
+check(
+  'H40 tailwind-merge 只准從 src/utils/cn.js 匯入（合併設定不得被繞過）',
+  mergeImporters.length === 0,
+  mergeImporters.length
+    ? `${mergeImporters.length} 個檔案直接匯入：${mergeImporters.join('、')}——請改用 cn()`
+    : '0 個（全部走 cn()）'
+);
+
+// H40-a：真的跑一次合併器，確認顏色與字級**同時**活下來。
+// 順序刻意照元件的寫法（變體在前、字級在後）——那是會出事的那個順序。
+const MERGE_CASES = [
+  ['primary 深紅底＋淺字', 'bg-[#a63d40] text-[#fffdf9]', 'text-t12', 'text-[#fffdf9]'],
+  ['rank-top 墨底＋淺字', 'bg-[#2c221e] text-[#e8dcc4]', 'text-t10', 'text-[#e8dcc4]'],
+  ['rank-mid 褐底＋淺字', 'bg-[#7c6a58] text-[#fbf7ee]', 'text-t10', 'text-[#fbf7ee]'],
+];
+const mergeFailures = [];
+for (const [name, variant, size, color] of MERGE_CASES) {
+  const out = cn(variant, size);
+  const lostColor = !out.includes(color);
+  const lostSize = !out.includes(size);
+  if (lostColor || lostSize) {
+    mergeFailures.push(`${name}：${lostColor ? `顏色 ${color} 消失` : ''}${lostSize ? ` 字級 ${size} 消失` : ''}`.trim());
+  }
+}
+check(
+  'H40-a 合併後顏色與字級都要留著（深底淺字不得被自己的字級吃掉）',
+  mergeFailures.length === 0,
+  mergeFailures.length ? mergeFailures.join('；') : `${MERGE_CASES.length} 組全部保留`
+);
+
+// H40-b：cn.js 登記的字級令牌必須與 tailwind.config 的 fontSize **鍵集合相等**。
+// 少登記 → 新令牌安靜地回到「顏色」組，同一個 bug 再長一次；
+// 多登記 → 設定裡刪掉的階還留在合併器裡，兩份清單開始分家。
+const cnMergeSrc = stripComments(read(MERGE_OWNER));
+const cnSizes = new Set([...cnMergeSrc.matchAll(/'t\d+'/g)].map((m) => m[0].slice(1, -1)));
+const twSizes = Object.keys(twConfig.theme.extend.fontSize);
+const sizesMissing = twSizes.filter((k) => !cnSizes.has(k));
+const sizesExtra = [...cnSizes].filter((k) => !twSizes.includes(k));
+check(
+  'H40-b cn.js 登記的字級令牌與 tailwind.config 的 fontSize 鍵集合相等',
+  sizesMissing.length === 0 && sizesExtra.length === 0,
+  sizesMissing.length || sizesExtra.length
+    ? `漏登記：${sizesMissing.join('、') || '無'}｜多登記：${sizesExtra.join('、') || '無'}`
+    : `${twSizes.length} 個鍵一一對應（${twSizes.join('／')}）`
+);
+
+// H40-c：反向控制——它**仍然會去重**。
+// 沒有這一條，最省事的「修法」是把合併器關掉（什麼都留），
+// 那樣 H40-a 會綠、H40-b 會綠，而 class 衝突全部回到「誰在 CSS 後面誰贏」。
+const dedupColor = cn('text-[#fffdf9]', 'text-[#3c2415]');
+check(
+  'H40-c 反向控制：同一組仍然只留最後一個（合併器沒有被關掉）',
+  dedupColor.trim() === 'text-[#3c2415]',
+  dedupColor.trim() === 'text-[#3c2415]'
+    ? 'text-[#fffdf9] ＋ text-[#3c2415] → 只剩後者（去重仍生效）'
+    : `得到「${dedupColor}」——合併器失去去重能力`
 );
 
 /* ────────────────────────────────────────────────────────────────

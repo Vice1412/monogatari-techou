@@ -1,6 +1,5 @@
 import React from 'react';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../../utils/cn';
 
 export default function JRPGBadge({
   children,
@@ -47,7 +46,7 @@ export default function JRPGBadge({
 
   return (
     <span
-      className={twMerge(clsx(baseStyles, variantStyles[variant] || variantStyles.ink, sizeStyles[size], className))}
+      className={cn(baseStyles, variantStyles[variant] || variantStyles.ink, sizeStyles[size], className)}
       {...props}
     >
       {Icon && <Icon className="w-3 h-3 shrink-0" />}

@@ -1,6 +1,5 @@
 import React from 'react';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../../utils/cn';
 
 /**
  * 按鈕（第十五輪收斂：14 個變體 → 4 個）
@@ -65,7 +64,7 @@ export default function JRPGButton({
       type={type}
       disabled={disabled}
       onClick={onClick}
-      className={twMerge(clsx(baseStyles, variantStyles[variant], sizeStyles[size], className))}
+      className={cn(baseStyles, variantStyles[variant], sizeStyles[size], className)}
       {...props}
     >
       {Icon && <Icon className="w-4 h-4 shrink-0" />}

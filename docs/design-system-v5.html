@@ -81,10 +81,10 @@
 <header class="top">
   <p class="kicker">MONOGATARI TECHOU · DESIGN SYSTEM v5</p>
   <h1>全程淺色 · 冷暖分層</h1>
-  <p class="sub">這份文件是《物語手帳》的設計系統單頁參考：色票、字階、形狀、六種語意各自該走哪條通道，以及<b>讓它不會退化的 271 條護欄</b>。所有數字都是 2026-10-25 第四十二輪結束時的實測值。</p>
+  <p class="sub">這份文件是《物語手帳》的設計系統單頁參考：色票、字階、形狀、六種語意各自該走哪條通道，以及<b>讓它不會退化的 275 條護欄</b>。所有數字都是 2026-10-25 第四十三輪結束時的實測值。</p>
   <div class="meta">
-    <span>第四十輪 · <b>§CI48 紙只有一種，光有兩種</b></span>
-    <span>護欄 <b>271</b> 條</span>
+    <span>第四十三輪 · <b>§CI51 顏色不是被覆蓋，是被刪掉</b></span>
+    <span>護欄 <b>275</b> 條</span>
     <span>未登記 hex <b>0</b> 個</span>
     <span>新增 hex <b>0</b></span>
   </div>
@@ -304,7 +304,7 @@
 </section>
 
 <section>
-  <h2><span class="no">07</span>護欄：讓規則不會退化的 271 條斷言</h2>
+  <h2><span class="no">07</span>護欄：讓規則不會退化的 275 條斷言</h2>
   <p class="lede"><code>tests/uiSystem.test.mjs</code>。每一輪的產出不是「改好了」，是「<b>改壞了會叫</b>」。形狀只有六種：硬零、預算、集合大小、一對一、單調性、反向控制。</p>
   <table>
     <thead><tr><th style="width:90px">區段</th><th>擋的是</th><th style="width:120px">形狀</th></tr></thead>
@@ -411,6 +411,10 @@
       <tr><td><b>H39</b></td><td><b>出現一個沒登記的 class 名，而 Tailwind 編不出它（<code>sat-hiber</code> 那一類）</b></td><td><b>硬零（現編 CSS 比對）</b></td></tr>
       <tr><td><b>H39-a</b></td><td><b>名單上的名字已經不在畫面上（修好了，但紀錄沒更新）／或有人為了讓 H39 變綠而把名字塞回名單</b></td><td><b>清單不得腐爛，也不得長回來（目前為空）</b></td></tr>
       <tr><td>H39-b</td><td>死 class 總數回升</td><td><b>預算（<b>0</b>，第四十二輪由 264 降為 0）</b></td></tr>
+      <tr><td><b>H40</b></td><td><b>有檔案繞過 <code>src/utils/cn.js</code> 直接 import <code>tailwind-merge</code>（合併設定被跳過）</b></td><td><b>硬零</b></td></tr>
+      <tr><td><b>H40-a</b></td><td><b>合併之後字級留下了、顏色卻被吃掉（深底淺字變深底深字）</b></td><td><b>行為測試（真的跑 <code>cn()</code>）</b></td></tr>
+      <tr><td><b>H40-b</b></td><td><b><code>cn.js</code> 登記的字級令牌與 <code>tailwind.config</code> 的 <code>fontSize</code> 鍵不一致（新增階梯卻沒登記 → 靜默吞色）</b></td><td><b>集合相等</b></td></tr>
+      <tr><td><b>H40-c</b></td><td><b>「把合併器關掉」被當成修法（去重整個失效）</b></td><td><b>反向控制</b></td></tr>
       <tr><td><b>漸層</b></td><td><b>漸層出現在未登記的檔案，或條數變多（三種寫法全認，含 <code>.css</code>）</b></td><td><b>封閉白名單（逐檔記條數）</b></td></tr>
       <tr><td><b>漸層吃色</b></td><td><b>漸層裡出現 <code>${…}</code> 插值（＝隨身份色變＝第二套顏色系統）</b></td><td><b>硬零</b></td></tr>
     </tbody>
@@ -420,6 +424,8 @@
   <div class="note"><b>第四十一輪補了第十四個教訓，也是唯一一個「護欄問錯了問題」的教訓：前面三十九條護欄讀得到那個字串，讀不到「它不存在」。</b><code>CombatantCard</code> 用 <code>sat-hiber</code> 表示「已行動」，註解寫著「v5 改為去飽和，這是 v5 最重要的狀態語言之一」——而全站定義 <b>0 次</b>。它不報錯、不影響建置、畫面照樣渲染，<b>只是靜靜地什麼都不做</b>；而那句註解讓它讀起來比壞掉的程式碼更可信，因為它解釋了「為什麼要這樣做」。<br>（一）<b>不存在的 class 不會只是「沒有效果」，它會把原本屬於別的狀態的顏色一起帶走。</b><code>cardState</code> 是唯一提供邊框色的地方，而它是三元式——所以「已行動」不是沒有框，是沒有顏色，掉回 Tailwind preflight 的 <code>#e5e7eb</code>（<b>一個不屬於冷暖兩條階梯的第三種面</b>）；而「危機＋已行動」的紅框<b>整個消失</b>，血量見底的敵人只要動過一次就不再警示。<b>GM 在戰鬥中最需要看到的東西，剛好被最常發生的狀態吃掉。</b><br>（二）<b>最直接的修法是錯的。</b>把 <code>sat-hiber</code> 定義出來，等於 <code>filter: saturate()</code>，而 <code>filter</code> 會連帶壓掉 HP 條的紅——「褪色」變成「全部灰」，包括唯一要讀的那個量。更根本的是：<b>這個 class 之所以不存在，是因為它不該存在</b>——卡片有兩個獨立維度（陣營、這一輪動過沒有），一個 class 只能表達一個。<b>「已行動」的正確表達是「同一個色相往後退一階」，不是換一個濾鏡。</b><br>（三）<b>只有這一個嗎——264 對 1。</b>普查結果 <b>25 種／335 處</b>，全部是同一件事的兩半：Tailwind <b>v4 的命名</b>跑在 v3.4.19 上（175 處），以及 <b><code>tailwindcss-animate</code> 從未安裝</b>（89 處，<code>plugins: []</code>）。<b>它們全部是從別的地方抄來的正確答案，抄到一個版本不對的專案裡</b>——而抄過來的東西不會報錯，所以它長到 264 處：每一次都「照著最新文件寫」，每一次都正確，每一次都什麼都沒發生。順帶一個發現：<code>三層噪音</code> 那條護欄的詞彙表裡有 <code>shadow-xs</code>，它守著一個<b>不可能發生的陰影</b>——<b>護欄的詞彙也會過期，而過期的詞彙讓護欄變成「守著空氣」。</b><br>（四）<b>量尺收緊會讓目標走出畫面。</b>普查改了三代：v1（所有像 class 的字串）113 種／394 處，假陽性滿天飛；v2（只掃 <code>className=</code>）23 種／273 處——<b>而 <code>sat-hiber</code> 從名單上消失了</b>，因為它是先被指派給變數、之後才插進 className 的字串；v3（遞迴進 <code>${}</code> ＋ 一層變數解析 ＋ 標記免責 ＋ 行內 <code>&lt;style&gt;</code>）才對。<b>「精確」與「召回」不是同一件事：分類器追求精確，護欄追求召回——寧可多幾個假陽性（人工看一遍就能排除），也不要漏掉那一個真的（它會活三十九輪）。</b><br>（五）<b>一條會自己編 CSS 的護欄。</b><code>H39</code> 現編一份 CSS（content 就是 <code>src</code>），再從編譯結果反解「這份 CSS 定義了哪些名字」，然後問每一個 <code>className</code> 裡的 token：你在這份名單上嗎？代價 ~2 秒，換來<b>唯一一條不可能被寫死的字串騙過</b>的檢查。<code>H39-a</code>（清單不得腐爛）是為了讓這份名單<b>不能變成化石</b>：修好一個名字，就必須把它拿掉、把預算下調。<br>（六）<b>破壞點本身就是一個設計問題。</b><code>H39-b</code> 的破壞點換過一次：第一版加在書封的 <code>shadow-e3</code> 旁邊，<code>三層噪音</code> 也一起紅了——因為那一行同時有 <code>border</code> 與 <code>bg-</code>。<b>那不是護欄不獨立，是我把兩個違規同時放進同一行。</b>反過來，<code>sat-hiber</code> 那組紅 2 條是<b>正確</b>的（名字沒登記 ＋ 總數變多）：<b>紅兩盞不一定是護欄不夠獨立，有時候是那件事本來就有兩個後果。</b><br><b>這一輪的判準，一句話：</b><b>「讀起來像一個決定」不是一個決定。</b></div>
 
   <div class="note"><b>第四十二輪補了第十五個教訓，也是唯一一個「問題不在程式碼」的教訓：一份「待裁決」清單，有時候只是把沒做完的事換一個語氣。</b>第四十一輪收尾交了「剩下 264 處要不要修」，GM 回的不是答案，是質問——<b>「為什麼每次做完你都會講有新的東西要裁定？什麼時候才能做好」</b>。回頭看 R39／R40／R41：三輪都在動死 class，三輪都沒把它關掉，而每一輪的收尾都長得一樣（一份清單、一句「要不要做」、等下一個人點頭）。<b>那不是嚴謹，是把決定權當成擋箭牌</b>——只要還有一份清單，這一輪就永遠「還沒結束」。所以第四十二輪的題目不是「修掉 264 處」，是「讓這個數字永遠是 0，而且回不去」。<br>（一）<b>264 處只是 18 個名字。</b>一份「264 處」的清單會讓人不敢開始；一份「18 個名字」的表一個下午就做完了。<b>殘債清單的數字越大，它越像一個結論，而不是一個待辦。</b><br>（二）<b>有些地方的答案是刪掉。</b>130 處陰影裡有 8 處是「<code>text-white</code> ＋ 底色來自 inline <code>style</code>」的實色按鈕，<code>e1</code> 的 alpha 是 .05／.06，鋪在飽和強調紅上等於零——遷過去畫面<b>一個像素都不會變</b>，但它們會從死 class 變成活 class，護欄再也不會看它們一眼。<b>那仍然是一種「宣告了卻不會發生」，只是這次它合法了。</b>「換成正確的名字」不等於「修好」：<b>有些宣告本來就不該存在。</b><br>（三）<b>有些「修好」是拿掉一個效果。</b><code>slide-in-from-*</code> 19 處沒有 v3 對應，而它承載的是<b>方向</b>。沒有手寫 19 組 keyframes 把方向留住——那會讓設計系統多出 19 個沒有人登記的動畫名，<b>為了解決一個死名字而製造 19 個新名字，是同一種病的另一種形狀。</b>代價寫清楚：這 19 個元素現在只是淡入，不是滑入。<b>如果一輪整改只有加法，那它一定漏掉了什麼。</b><br>（四）<b>那 20 處「需要視覺決定」的其實不需要。</b>殘債寫「<code>sm:w-18</code> 挑 16 還是 20 是視覺決定」——v4 動態間距是 <code>n × 0.25rem</code>，<code>18 = 4.5rem</code>，改 <code>sm:w-[4.5rem]</code> 像素級一致。這條債在清單上躺了兩輪，不是難，是<b>沒有去算</b>。<b>當一個名字本身帶值，先算它等於多少，再問要不要改。</b><br>（五）<b>量測器第三次騙人。</b>對照圖第一版是<b>一整片空白框</b>：樣本裡有 <code>absolute inset-0</code> 的覆蓋層，而測試頁容器是 <code>static</code>，元素以視窗為定位祖先，10 個樣本疊在一起蓋住整頁。<b>樣本離開它原本的容器，就不再是那個樣本</b>——元件不是靠 class 清單活著的，是靠 class 清單<b>加上它所處的盒子</b>。前兩次是 alpha 沒進算式、<code>.x{</code> 定位錯；三次的共同點：<b>它報的「異常」其實是它自己的問題。</b><br>（六）<b>遷移紀錄不是最終狀態。</b><code>migrate-log.json</code> 記 <code>drop-shadow-e1</code>，檔案實際是 <code>drop-shadow-sm</code>（前一次修正沒回頭更新 log），一度以為自己製造了 5 個新死 class。<b>紀錄一旦落後於檔案，它就會變成第二個答案。</b>本輪表格因此不是從 log 抄的，是從 <code>git diff</code> ＋ 遷移前普查檔重新對出來的。<br>（七）<b>預算不是「現在還剩多少」，是「還可以再錯多少次」。</b><code>DEAD_CLASS_BUDGET</code> 由 264 → <b>0</b>、名單清空。264 那個數字本身就是一個錯誤的承諾，它把一個 bug 寫成了一種額度。<code>H39-a</code> 沒有失業，職責從「清單不能腐爛」變成「<b>清單不能長回來</b>」。<br><b>這一輪的判準，一句話：</b><b>下次回報，我給數字，不給問題。</b></div>
+
+  <div class="note"><b>第四十三輪補了第十六個教訓，也是唯一一個「護欄全部讀原始碼，卻沒有一條看過中間那個函式」的教訓：顏色不是被覆蓋，是被刪掉。</b>起點是 GM 的一張截圖——深紅底（<code>#a63d40</code>）的按鈕，字是深墨色，整個讀不到。<b>而那一行寫的是 <code>text-[#fffdf9]</code>，淺色，完全正確。</b>問題不在那一行。<br>（一）<b>有一類錯誤發生在「寫對」與「畫出來」之間。</b><code>JRPGButton</code> 用 <code>twMerge(clsx(base, variantStyles[v], sizeStyles[size]))</code>。<code>twMerge</code> 的規則是「同一組只留最後一個」，而它只認識 Tailwind <b>內建</b>的字級階梯——專案的字級是自訂令牌 <code>text-t10</code>…<code>text-t39</code>，它不認得，於是歸類成<b>文字顏色</b>。而 <code>sizeStyles</code> 排在 <code>variantStyles</code> 後面：<code>twMerge('… text-[#fffdf9] … text-t12')</code> → <code>'… text-t12'</code>。<b>顏色沒有被覆蓋，是根本沒進 DOM</b>——按鈕因此沒有 <code>color</code>，字繼承父層墨色。<code>H39</code> 問「這個 class 名存在嗎」，它答「存在，編得出 CSS」；<b><code>H40</code> 問的是「它還留著嗎」</b>。275 條護欄全部讀原始碼，中間那個<b>會主動刪東西的函式</b>，從來不在視野裡。<br>（二）<b>四分之三的按鈕「壞掉但看不出來」。</b>58 個呼叫點裡 <code>primary</code> 36 個（深底淺字 → 讀不到）、<code>secondary</code> 6／<code>outline</code> 11／<code>ghost</code> 5——這 22 個的底色本來就淺，<b>繼承來的墨色剛好等於它原本要的顏色</b>。所以它從第十五輪（按鈕收斂成四變體）活到現在：<b>錯的答案剛好等於對的答案，這種 bug 沒有症狀，只有一個畫面會有。</b><br>（三）<b>它不只發生在按鈕上。</b><code>JRPGBadge</code> 的 <code>rank-top</code> 是墨底淺字，<code>text-[#e8dcc4]</code> 被 <code>text-t10</code> 吃掉 → 字色 = 底色 → <b>截圖上那顆徽章只剩一個純深色方塊，連字都不存在</b>。「冠位」是這款遊戲裡最高階的標記，而它渲染成空白。<b>同一個函式、同一個原因，在兩個地方長出兩種症狀：一邊是讀不到，一邊是不存在。</b><br>（四）<b>三個直覺修法都是錯的。</b>把 <code>sizeStyles</code> 排前面 → 換成字級被刪、退回 16px，<b>更難查</b>；加 <code>!important</code> → 問題不是優先權，是 class 不在 DOM；拿掉 <code>twMerge</code> → 去重全部失效，換一個更小的 bug 去修一個更大的。<b>正解是把「這個專案有哪些字級」告訴合併器</b>：<code>extendTailwindMerge</code> 把九個令牌登記進 <code>font-size</code> 組，收斂成 <code>src/utils/cn.js</code> 一個出口。<b>當一個工具不認識你的語言，你要教它，不是繞過它。</b><br>（五）<b>護欄要測「函式做了什麼」，不是「檔案寫了什麼」。</b><code>H40</code>（硬零：只有 <code>cn.js</code> 可以 import <code>tailwind-merge</code>）與 <code>H40-b</code>（<code>cn.js</code> 登記的鍵集合 == <code>tailwind.config</code> 的 <code>fontSize</code>）都是設定檢查；但真正抓住 bug 的是 <code>H40-a</code>——<b>它真的呼叫 <code>cn()</code>，然後問輸出裡顏色還在不在。</b>設定對不代表行為對：日後有人加第十個字級卻忘了登記，<code>H40-b</code> 會紅，但那一天之前，只有行為測試知道。<br>（六）<b>破壞驗證也會「順手把東西修好」。</b><code>H40-a</code> 第一版破壞把 <code>'font-size'</code> 改成不存在的 <code>'font-size-x'</code>，結果 <b>275/275 全綠</b>——不是護欄弱，是<b>那個「破壞」其實是一個可行的修法</b>：組名不存在 → <code>text-t12</code> 不被分類 → 不再衝突 → 兩個 class 都留 → 畫面正確。改用<b>存在的</b> <code>'text-color'</code> 才紅。<b>破壞點要挑「同一個錯誤」，不是「同一個位置」。</b><br>（七）<b>還要防「把工具關掉」。</b><code>H40-c</code> 斷言同一組仍然只留最後一個——否則「刪掉 <code>extendTailwindMerge</code>」會讓所有顏色都活著，測試全綠，而去重整個沒了。<b>每一條「不准這樣」的護欄，都要有一條「那要怎麼做」的反向控制。</b><br><b>這一輪的判準，一句話：</b><b>「寫對了」和「畫出來了」之間，還有一步。</b></div>
 </section>
 
 <section>
@@ -429,11 +435,12 @@
     <div class="card"><div class="stat"><span class="n">0</span><span class="l">未登記 hex／64 色全部登記</span></div></div>
     <div class="card"><div class="stat"><span class="n">0</span><span class="l">任意字級 / 九級令牌</span></div></div>
     <div class="card"><div class="stat"><span class="n">0</span><span class="l">死 class／預算 0（回不去）</span></div></div>
-    <div class="card"><div class="stat"><span class="n">28,795</span><span class="l">掃過的 class token（146 檔）</span></div></div>
-    <div class="card"><div class="stat"><span class="n">271</span><span class="l">護欄斷言</span></div></div>
+    <div class="card"><div class="stat"><span class="n">28,795</span><span class="l">掃過的 class token（147 檔）</span></div></div>
+    <div class="card"><div class="stat"><span class="n">275</span><span class="l">護欄斷言</span></div></div>
   </div>
   <div class="card">
     <div class="ban"><span class="ok">✓</span><div><b>死 class（寫了名字但 Tailwind 編不出它）0 種／0 處</b>——第四十二輪把 264 處（18 個名字／38 檔／166 個字串）全部收完，<code>DEAD_CLASS_BUDGET</code> 由 <b>264 降為 0</b>、<code>DEAD_CLASS_KNOWN</code> 清空。八處是「<code>text-white</code> ＋ 底色來自 inline <code>style</code>」的實色按鈕——<code>e1</code> 的 alpha .05 鋪在飽和紅上等於零，<b>遷過去畫面一 px 都不會變，但它們會從死 class 變成活 class，護欄再也不會看它們一眼</b>，所以是刪掉不是改名。19 處 <code>slide-in-from-*</code> 沒有 v3 對應、拿掉方向只留淡入——<b>如果一輪整改只有加法，那它一定漏掉了什麼。</b></div></div>
+    <div class="ban"><span class="ok">✓</span><div><b>被合併器刪掉的顏色 58 → 0</b>——<code>twMerge</code> 把自訂字級 <code>text-t12</code> 當成<b>文字顏色</b>（它只認得內建階梯），而 <code>sizeStyles</code> 排在 <code>variantStyles</code> 後面，於是 <code>text-[#fffdf9]</code> 被「同一組只留最後一個」直接刪掉、<b>沒進 DOM</b>。58 個按鈕全部失去字色：<b>36 個</b>（<code>primary</code>）深底深字讀不到，<b>22 個</b>（<code>secondary</code>／<code>outline</code>／<code>ghost</code>）繼承來的墨色<b>剛好等於原本要的顏色</b>——錯的答案等於對的答案，所以它從第十五輪活到現在。<code>rank-top</code> 徽章更徹底：字色＝底色，「冠位」渲染成一個純深色方塊。→ 新增 <code>src/utils/cn.js</code>，<code>extendTailwindMerge</code> 把九個字級令牌登記進 <code>font-size</code> 組，四支元件 7 個呼叫點收斂成一個出口。<b>「寫對了」和「畫出來了」之間，還有一步。</b></div></div>
     <div class="ban"><span class="ok">→</span><div><b>Tailwind 預設黑影 148 處／36 檔</b>——<code>shadow-sm</code> 76／<code>shadow-md</code> 43／<code>shadow-inner</code> 19／<code>shadow-xl</code> 5／<code>shadow-lg</code> 5。它們<b>活著</b>，只是用黑色不是用墨（CI48 判準：陰影是量，用墨）。<code>shadow-sm → e1</code>／<code>md → e2</code>／<code>xl → e3</code> 是同一條高度階梯，與第四十二輪做過的 122 處同一個判斷；<code>shadow-inner</code> 是例外（內陰影是凹陷不是高度，沒有對應的 <code>e</code> 令牌）。</div></div>
     <div class="ban"><span class="ok">→</span><div><b><code>emerald</code> 10／<code>green</code> 0</b>——殘留 10 個全部在三張身份表。`green` 歸零。</div></div>
     <div class="ban"><span class="ok">→</span><div><b>成功通道已建立：</b><code>✓</code> ＋ 墨階，13 處，0 色相。</div></div>
@@ -463,7 +470,7 @@
 </section>
 
 <footer>
-  《物語手帳》設計系統 v5 ｜ 第四十二輪（§CI50 把一類東西關掉）結束時的實測快照 ｜
+  《物語手帳》設計系統 v5 ｜ 第四十三輪（§CI51 顏色不是被覆蓋，是被刪掉）結束時的實測快照 ｜
   完整裁決紀錄見 <code>docs/decisions.md</code> §CI1–§CI50，稽核手冊見 <code>docs/ui-review-refactoring-ui.md</code> §1–§46。
 </footer>
 

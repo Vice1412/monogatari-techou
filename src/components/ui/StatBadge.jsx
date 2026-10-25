@@ -1,6 +1,6 @@
 import React from 'react';
 import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../../utils/cn';
 // 四個屬性的名字與顏色都只有一份定義（見 sourcebookConfig 的 ATTRIBUTE_NAMES／ATTRIBUTE_COLORS）。
 // 這裡原本寫「力量」，而編輯器與三頁匯出寫「體魄」——同一組屬性在站上有兩個名字。
 // 顏色也是同一個病、同一個藥：第二十一輪之前有五份拷貝，DEX 在角色卡上是琥珀、
@@ -50,13 +50,11 @@ export default function StatBadge({
 
   return (
     <div
-      className={twMerge(
-        clsx(
-          "inline-flex items-center rounded border border-[#d6c7ab] bg-[#fffdf9] px-2.5 py-1 select-none transition-all",
-          size === 'sm' && "text-xs py-0.5 px-2",
-          size === 'lg' && "text-base py-1.5 px-3",
-          className
-        )
+      className={cn(
+        "inline-flex items-center rounded border border-[#d6c7ab] bg-[#fffdf9] px-2.5 py-1 select-none transition-all",
+        size === 'sm' && "text-xs py-0.5 px-2",
+        size === 'lg' && "text-base py-1.5 px-3",
+        className
       )}
     >
       {showName && (

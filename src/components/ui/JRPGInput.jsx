@@ -1,6 +1,5 @@
 import React from 'react';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../../utils/cn';
 
 export function JRPGInput({
   label,
@@ -14,7 +13,7 @@ export function JRPGInput({
   ...props
 }) {
   return (
-    <div className={twMerge(clsx("flex flex-col gap-1.5", wrapperClassName))}>
+    <div className={cn("flex flex-col gap-1.5", wrapperClassName)}>
       {label && (
         <label
           className="text-xs font-bold text-[#3c2415] flex items-center justify-between"
@@ -31,15 +30,13 @@ export function JRPGInput({
         )}
         <input
           type={type}
-          className={twMerge(
-            clsx(
-              "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded px-3.5 py-2 text-sm text-[#2c221e] placeholder-[#7c6a58] outline-none transition-all duration-150",
-              "focus:border-[#3c2415] focus:ring-1 focus:ring-[#3c2415]/25 focus:bg-white",
-              Icon && "pl-9",
-              error && "border-[#8c2d36] focus:border-[#8c2d36] focus:ring-[#8c2d36]/20",
-              type === 'number' && "font-mono font-bold",
-              className
-            )
+          className={cn(
+            "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded px-3.5 py-2 text-sm text-[#2c221e] placeholder-[#7c6a58] outline-none transition-all duration-150",
+            "focus:border-[#3c2415] focus:ring-1 focus:ring-[#3c2415]/25 focus:bg-white",
+            Icon && "pl-9",
+            error && "border-[#8c2d36] focus:border-[#8c2d36] focus:ring-[#8c2d36]/20",
+            type === 'number' && "font-mono font-bold",
+            className
           )}
           style={theme ? {
             backgroundColor: theme.cardBg,
@@ -68,7 +65,7 @@ export function JRPGSelect({
   ...props
 }) {
   return (
-    <div className={twMerge(clsx("flex flex-col gap-1.5", wrapperClassName))}>
+    <div className={cn("flex flex-col gap-1.5", wrapperClassName)}>
       {label && (
         <label
           className="text-xs font-bold text-[#3c2415]"
@@ -81,12 +78,10 @@ export function JRPGSelect({
         <select
           value={value}
           onChange={onChange}
-          className={twMerge(
-            clsx(
-              "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded px-3.5 py-2 text-sm text-[#2c221e] outline-none transition-all duration-150 appearance-none cursor-pointer",
-              "focus:border-[#3c2415] focus:ring-1 focus:ring-[#3c2415]/25 focus:bg-white font-medium",
-              className
-            )
+          className={cn(
+            "w-full bg-[#fffdf9] border border-[#d6c7ab] rounded px-3.5 py-2 text-sm text-[#2c221e] outline-none transition-all duration-150 appearance-none cursor-pointer",
+            "focus:border-[#3c2415] focus:ring-1 focus:ring-[#3c2415]/25 focus:bg-white font-medium",
+            className
           )}
           style={theme ? {
             backgroundColor: theme.cardBg,
