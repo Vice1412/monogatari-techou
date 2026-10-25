@@ -123,11 +123,11 @@ export default function AddCombatantModal({
     >
       <div className="space-y-4">
         {/* Source Tabs */}
-        <div className="flex items-center gap-2 border-b border-[#d6c7ab]/80 pb-2">
+        <div className="flex items-center gap-2 border-b border-cool-line/80 pb-2">
           <button
             onClick={() => setTab('npc')}
             className={`px-3 py-1.5 rounded text-xs font-bold transition-colors flex items-center gap-1.5 ${
-              tab === 'npc' ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#e8dcc4] border border-[#d6c7ab]'
+              tab === 'npc' ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-cool-panel text-[#6b5a4b] hover:text-[#2c221e] hover:bg-cool-shade border border-cool-line'
             }`}
           >
             <GiDragonHead className="w-3.5 h-3.5" /> 怪物庫選取 ({npcLibrary.length})
@@ -135,7 +135,7 @@ export default function AddCombatantModal({
           <button
             onClick={() => setTab('character')}
             className={`px-3 py-1.5 rounded text-xs font-bold transition-colors flex items-center gap-1.5 ${
-              tab === 'character' ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#e8dcc4] border border-[#d6c7ab]'
+              tab === 'character' ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-cool-panel text-[#6b5a4b] hover:text-[#2c221e] hover:bg-cool-shade border border-cool-line'
             }`}
           >
             <GiVisoredHelm className="w-3.5 h-3.5" /> 玩家名冊選取 ({characterRoster.length})
@@ -143,7 +143,7 @@ export default function AddCombatantModal({
           <button
             onClick={() => setTab('quick')}
             className={`px-3 py-1.5 rounded text-xs font-bold transition-colors flex items-center gap-1.5 ${
-              tab === 'quick' ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#e8dcc4] border border-[#d6c7ab]'
+              tab === 'quick' ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-cool-panel text-[#6b5a4b] hover:text-[#2c221e] hover:bg-cool-shade border border-cool-line'
             }`}
           >
             <Plus className="w-3.5 h-3.5" />
@@ -163,7 +163,7 @@ export default function AddCombatantModal({
                   placeholder="搜尋怪物名稱、定位或標籤..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded pl-8 pr-3 py-1.5 text-xs text-[#2c221e] outline-none focus:border-[#3c2415]"
+                  className="w-full bg-cool-card border border-cool-line rounded pl-8 pr-3 py-1.5 text-xs text-[#2c221e] outline-none focus:border-[#3c2415]"
                 />
               </div>
 
@@ -171,7 +171,7 @@ export default function AddCombatantModal({
               <select
                 value={selectedFaction}
                 onChange={e => setSelectedFaction(e.target.value)}
-                className="bg-[#fffdf9] border border-[#d6c7ab] rounded px-2.5 py-1.5 text-xs text-[#2c221e] outline-none font-medium"
+                className="bg-cool-card border border-cool-line rounded px-2.5 py-1.5 text-xs text-[#2c221e] outline-none font-medium"
               >
                 <option value="ALL">全部陣營 ({npcLibrary.length})</option>
                 {factions.map(f => (
@@ -190,10 +190,10 @@ export default function AddCombatantModal({
                 filteredNpcs.map(npc => (
                   <div
                     key={npc.id}
-                    className="p-3 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415] flex items-center justify-between gap-3 transition-colors"
+                    className="p-3 rounded bg-cool-card border border-cool-line hover:border-[#3c2415] flex items-center justify-between gap-3 transition-colors"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-9 h-9 rounded bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-center font-bold text-[#3c2415] text-sm shrink-0">
+                      <div className="w-9 h-9 rounded bg-cool-panel border border-cool-line flex items-center justify-center font-bold text-[#3c2415] text-sm shrink-0">
                         {npc.name?.[0] || '魔'}
                       </div>
                       <div className="min-w-0">
@@ -238,7 +238,7 @@ export default function AddCombatantModal({
                 placeholder="搜尋角色姓名或身份..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded pl-8 pr-3 py-1.5 text-xs text-[#2c221e] outline-none focus:border-[#3c2415]"
+                className="w-full bg-cool-card border border-cool-line rounded pl-8 pr-3 py-1.5 text-xs text-[#2c221e] outline-none focus:border-[#3c2415]"
               />
             </div>
 
@@ -246,10 +246,10 @@ export default function AddCombatantModal({
               {filteredChars.map(char => (
                 <div
                   key={char.id}
-                  className="p-3 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#a63d40] flex items-center justify-between gap-3 transition-colors"
+                  className="p-3 rounded bg-cool-card border border-cool-line hover:border-[#a63d40] flex items-center justify-between gap-3 transition-colors"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-center font-bold text-[#3c2415] text-sm shrink-0">
+                    <div className="w-9 h-9 rounded bg-cool-panel border border-cool-line flex items-center justify-center font-bold text-[#3c2415] text-sm shrink-0">
                       {char.name?.[0] || '勇'}
                     </div>
                     <div className="min-w-0">

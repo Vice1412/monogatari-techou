@@ -131,18 +131,18 @@ export default function CombatantCard({
       ? 'crisis-pulse-active border-signal-hp bg-signal-hp/5'
       : isPlayer
         ? 'border-signal-mp/45 hover:border-signal-mp'
-        : 'border-warm-line hover:border-ink-3';
+        : 'border-cool-line hover:border-ink-3';
 
   return (
     <div
-      className={`bg-warm-0 rounded border transition-all duration-160 overflow-hidden flex flex-col relative ${cardState}`}
+      className={`bg-cool-card rounded border transition-all duration-160 overflow-hidden flex flex-col relative ${cardState}`}
     >
       {/* 頂部識別條：玩家隊＝藍、敵方＝暖紅。v5 改為實色，不用漸層。 */}
       <div className={`h-1 w-full ${isPlayer ? 'bg-signal-mp' : 'bg-signal-accent'}`} />
 
       {/* 頭像與身分 */}
-      <div className="p-3.5 border-b border-warm-line/70 bg-warm-1/60 flex items-start gap-3">
-        <div className="w-11 h-11 rounded bg-cool-1 border border-warm-line overflow-hidden shrink-0 flex items-center justify-center font-serif text-base text-ink font-bold">
+      <div className="p-3.5 border-b border-cool-line/70 bg-cool-panel-2/60 flex items-start gap-3">
+        <div className="w-11 h-11 rounded bg-cool-panel-2 border border-cool-line overflow-hidden shrink-0 flex items-center justify-center font-serif text-base text-ink font-bold">
           {combatant.avatar ? (
             combatant.avatar.startsWith('http') || combatant.avatar.startsWith('data:') ? (
               <img src={combatant.avatar} alt={combatant.name} className="w-full h-full object-cover" />
@@ -187,7 +187,7 @@ export default function CombatantCard({
           onClick={handleToggleActed}
           className={`px-2.5 py-1.5 rounded text-xs font-mono font-bold transition-colors duration-160 flex items-center gap-1.5 shrink-0 border ${
             combatant.hasActed
-              ? 'bg-warm-2 text-ink-2 border-warm-line'
+              ? 'bg-cool-panel text-ink-2 border-cool-line'
               : 'bg-signal-hp text-white border-transparent hover:bg-[#8c3235]'
           }`}
           title="切換本輪是否已行動"
@@ -198,7 +198,7 @@ export default function CombatantCard({
       </div>
 
       {/* HP */}
-      <div className="px-3.5 py-2.5 border-b border-warm-line/70 bg-warm-0 space-y-1.5">
+      <div className="px-3.5 py-2.5 border-b border-cool-line/70 bg-cool-card space-y-1.5">
         <div className="flex items-center justify-between text-xs font-mono">
           <div className="flex items-center gap-1.5 font-bold text-signal-hp font-sans">
             <GiHealthNormal className="w-3.5 h-3.5" />
@@ -216,7 +216,7 @@ export default function CombatantCard({
         </div>
 
         {/* 進度條。v5 移除漸層（漸層是 v2 黑金的病灶之一），改單色實心。 */}
-        <div className="w-full h-2 rounded-full bg-cool-2 overflow-hidden">
+        <div className="w-full h-2 rounded-full bg-cool-shade overflow-hidden">
           <div
             className="h-full bg-signal-hp transition-all duration-200"
             style={{ width: `${hpPercent}%` }}
@@ -229,7 +229,7 @@ export default function CombatantCard({
               <button
                 key={d}
                 onClick={() => handleAdjustHp(d)}
-                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-hp text-t11 font-mono text-ink hover:text-signal-hp transition-colors duration-120"
+                className="px-2 py-0.5 rounded bg-cool-card border border-cool-line hover:border-signal-hp text-t11 font-mono text-ink hover:text-signal-hp transition-colors duration-120"
               >
                 {d}
               </button>
@@ -240,7 +240,7 @@ export default function CombatantCard({
               <button
                 key={d}
                 onClick={() => handleAdjustHp(d)}
-                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-ok text-t11 font-mono text-ink hover:text-signal-ok transition-colors duration-120"
+                className="px-2 py-0.5 rounded bg-cool-card border border-cool-line hover:border-signal-ok text-t11 font-mono text-ink hover:text-signal-ok transition-colors duration-120"
               >
                 +{d}
               </button>
@@ -250,7 +250,7 @@ export default function CombatantCard({
       </div>
 
       {/* MP */}
-      <div className="px-3.5 py-2.5 border-b border-warm-line/70 bg-warm-1/40 space-y-1.5">
+      <div className="px-3.5 py-2.5 border-b border-cool-line/70 bg-cool-panel-2/40 space-y-1.5">
         <div className="flex items-center justify-between text-xs font-mono">
           <div className="flex items-center gap-1.5 font-bold text-signal-mp font-sans">
             <GiLightningTear className="w-3.5 h-3.5" />
@@ -262,7 +262,7 @@ export default function CombatantCard({
           </div>
         </div>
 
-        <div className="w-full h-1.5 rounded-full bg-cool-2 overflow-hidden">
+        <div className="w-full h-1.5 rounded-full bg-cool-shade overflow-hidden">
           <div
             className="h-full bg-signal-mp transition-all duration-200"
             style={{ width: `${mpPercent}%` }}
@@ -275,7 +275,7 @@ export default function CombatantCard({
               <button
                 key={d}
                 onClick={() => handleAdjustMp(d)}
-                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-mp text-t11 font-mono text-ink hover:text-signal-mp transition-colors duration-120"
+                className="px-2 py-0.5 rounded bg-cool-card border border-cool-line hover:border-signal-mp text-t11 font-mono text-ink hover:text-signal-mp transition-colors duration-120"
               >
                 {d}
               </button>
@@ -286,7 +286,7 @@ export default function CombatantCard({
               <button
                 key={d}
                 onClick={() => handleAdjustMp(d)}
-                className="px-2 py-0.5 rounded bg-warm-0 border border-warm-line hover:border-signal-mp text-t11 font-mono text-ink hover:text-signal-mp transition-colors duration-120"
+                className="px-2 py-0.5 rounded bg-cool-card border border-cool-line hover:border-signal-mp text-t11 font-mono text-ink hover:text-signal-mp transition-colors duration-120"
               >
                 +{d}
               </button>
@@ -296,7 +296,7 @@ export default function CombatantCard({
       </div>
 
       {/* 狀態異常 */}
-      <div className="p-3 border-b border-warm-line/70 bg-warm-1/30">
+      <div className="p-3 border-b border-cool-line/70 bg-cool-panel-2/30">
         <div className="text-t10 font-mono text-ink-3 uppercase tracking-wider mb-1.5 font-bold">
           狀態異常
         </div>
@@ -311,7 +311,7 @@ export default function CombatantCard({
                 className={`px-1.5 py-1 rounded text-t12 font-mono border transition-colors duration-120 text-center flex flex-col items-center ${
                   isActive
                     ? `${st.color} font-bold`
-                    : 'border-warm-line bg-warm-0 text-ink-2 hover:border-ink-3'
+                    : 'border-cool-line bg-cool-card text-ink-2 hover:border-ink-3'
                 }`}
                 title={st.desc}
               >
@@ -325,7 +325,7 @@ export default function CombatantCard({
 
       {/* 技能逐格揭露（僅 NPC） */}
       {!isPlayer && combatant.skills && combatant.skills.length > 0 && (
-        <div className="p-3 border-b border-warm-line/70 bg-warm-1/50 space-y-1.5">
+        <div className="p-3 border-b border-cool-line/70 bg-cool-panel-2/50 space-y-1.5">
           <div className="text-t10 font-mono text-ink-2 flex items-center justify-between font-bold">
             <span className="inline-flex items-center gap-1">
               技能組（點擊 <Eye className="w-3 h-3 text-ink-2" /> 向全員揭露）
@@ -342,7 +342,7 @@ export default function CombatantCard({
                 className={`p-1.5 rounded border text-xs flex items-center justify-between gap-2 transition-colors duration-120 ${
                   sk.isRevealed
                     ? 'border-signal-ip/60 bg-signal-ip/8 text-ink'
-                    : 'border-warm-line bg-warm-0 text-ink-3'
+                    : 'border-cool-line bg-cool-card text-ink-3'
                 }`}
               >
                 <div className="flex-1 min-w-0">
@@ -374,7 +374,7 @@ export default function CombatantCard({
       )}
 
       {/* 卡片底部動作 */}
-      <div className="p-2.5 bg-warm-1/50 flex items-center justify-between gap-2 mt-auto border-t border-warm-line/70">
+      <div className="p-2.5 bg-cool-panel-2/50 flex items-center justify-between gap-2 mt-auto border-t border-cool-line/70">
         <button
           type="button"
           onClick={() => onOpenDrawer(combatant)}

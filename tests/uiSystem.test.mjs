@@ -182,20 +182,27 @@ const AA = 4.5;
 
 /** [標籤, 前景, 背景] —— 只列**真的會發生的組合**。
  *
- *  `ink-2`／`ink-3` 對第 2 階面實測 4.15／4.03，低於 AA——那兩個組合不該
- *  出現在畫面上，所以這裡不斷言它們（列在 §CI46 殘債，不是默默放過）。
+ *  第四十輪（§CI48）改寫：舊階梯只有 `0/1/2` 三階，所以配對表也只測三階。
+ *  新階梯有六階，但**不是六階都能放字**——`shade`／`line` 是凹槽與框，
+ *  實測 `ink-2` 放上去只有 4.17／3.40（兩區同值），不合規。
+ *  所以「可放字的面」是一個**登記過的白名單**（前四階），不是「全部測一測看誰紅」。
+ *
+ *  兩區都測，而且**同一個墨在同一階的對比必須幾乎相同**（實測最大差 0.064）——
+ *  那正是 H38-a 要守的事。
  */
+const TEXT_STEPS = ['card', 'page', 'panel-2', 'panel'];
 const PAIRS = [];
 for (const region of ['cool', 'warm']) {
   const r = TW[region];
-  for (const lvl of ['0', '1', '2']) PAIRS.push([`${region}.${lvl}: ink`, TW.ink.DEFAULT, r[lvl]]);
-  PAIRS.push([`${region}.0: ink-2`, TW.ink['2'], r['0']]);
-  PAIRS.push([`${region}.0: ink-3`, TW.ink['3'], r['0']]);
-  PAIRS.push([`${region}.0: accent`, TW.signal.accent, r['0']]);
-  PAIRS.push([`${region}.1: accent`, TW.signal.accent, r['1']]);
+  for (const step of TEXT_STEPS) {
+    PAIRS.push([`${region}.${step}: ink`, TW.ink.DEFAULT, r[step]]);
+    PAIRS.push([`${region}.${step}: ink-2`, TW.ink['2'], r[step]]);
+    PAIRS.push([`${region}.${step}: ink-3`, TW.ink['3'], r[step]]);
+    PAIRS.push([`${region}.${step}: accent`, TW.signal.accent, r[step]]);
+  }
+  // accent 在 shade 上仍然合規（4.60／4.57），所以凹槽底可以放紅字。
+  PAIRS.push([`${region}.shade: accent`, TW.signal.accent, r.shade]);
 }
-// 實測 4 處把三級墨放在 warm-1 上（4.58:1，剛好過）——所以它是一個真的組合。
-PAIRS.push(['warm.1: ink-3（實測 4 處用在這一階）', TW.ink['3'], TW.warm['1']]);
 
 /* 書的色票：全站絕大多數面積，而舊測試**完全沒有測過它**。
    數字取自 `characterThemes` 的紙與墨（紙三階、墨四階、強調兩階）。 */
@@ -3433,7 +3440,7 @@ check(
      H36   CSS 檔的手寫 hex 也要登記（硬零）——修 `walkSrc` 只收 .js/.jsx 的盲點
      H36-a `rgba()` 的三通道必須是一個登記色（逐項）——hex 換個寫法就繞過了
      H36-b 身份的明度單調：light > accent > dark（逐項六組）
-     H36-c 設定層的死宣告（只減不增，預算 3）——`tailwind.config.js` 是唯一沒量過的一層
+     H36-c 設定層的死宣告（只減不增，預算 1）——`tailwind.config.js` 是唯一沒量過的一層
      H36-d `characterThemes.js` 只有紙與墨（封閉白名單）——第二份拷貝不得再長出來
 
      H37  匯出頁字級一律引用 `T`（封閉白名單）——49 個字面值收成 9 階
@@ -3441,6 +3448,17 @@ check(
      H37-b CSS 層 `font-size` 落在匯出字級階梯上（值域）——H33 的 CSS 對應物
      H37-c 行內圓角只有 2px／50%／0（逐項）——`H34-d` 只掃 `.css` 檔
      H37-d 每個 `var(--x)` 都有定義（硬零）——`--tw-*` 是 Tailwind 命名空間，豁免
+
+     H38  冷暖同階等亮（每階 ≤1%）——「同一個墨在兩區對比一樣」的充分條件
+     H38-a 兩區都是嚴格遞減的六階（單調性）——階梯不能有回頭路
+     H38-b 兩區鍵名集合相同（集合相等）——只加一階等於偷偷拆掉對齊
+     H38-c 冷區（戰鬥模組）的面不得出現暖紙 hex 或 `warm-*`（硬零）
+     H38-d 反向控制：暖區（書本外框）不得出現 `cool-*` 面令牌（硬零）
+
+   第四十輪的判準是：**「兩區都有顏色」不等於「兩區是同一張紙」。**
+   舊的兩條階梯各自挑色，冷區每階暗 5.8–8.0%，於是同一組墨在兩區對比不同——
+   `ink-2` 在暖區第 1 階 4.72:1（過），在冷區第 1 階 4.46:1（不過）。
+   H38 守的是「同階等亮」，H38-c／d 守的是「冷暖各守一邊」。
 
    第三十九輪的判準是：**「把檔案加進掃描範圍」不等於「檔案受到檢查」。**
    第三十八輪把 `.css` 加進 `walkSrc` 之後，239/239 依然全綠、零新增——
@@ -3567,36 +3585,40 @@ check(
   monoBad.length ? `${monoBad.length} 組不單調：${monoBad.join('；')}` : `${identityKeys.length} 組全部單調`
 );
 
-// H36-c：設定層的死宣告（只減不增，預算 4）。
+// H36-c：設定層的死宣告（只減不增，預算 1）。
 //
 // 為什麼要量這個：`tailwind.config.js` 是一份**宣告**，而宣告了沒人用的東西
 // 不會報錯、不會影響畫面、也不會被任何既有護欄看見——它是第三十七輪那個病
 // （宣告了卻不會發生）唯一還沒量過的一層。
 //
-// 本輪實測 17 個死鍵，處置分兩類：
+// 第三十九輪實測 17 個死鍵，處置分兩類：
 //   - `parchment` 的 14 個子鍵 → **刪掉**。它們是 v1 遺留，設定層自己的註解
 //     就寫著「遷移完成後 parchment 整組應移除」，而且其中四個帶著 H23-b 明文
 //     硬零的琥珀值。留著它們有一個具體代價：H36-a 第一版對
 //     `rgba(139, 94, 52, .6)` 是綠的，因為 `#8b5e34` 在設定層還算一個「令牌」。
-//   - `cool-0`／`cool-line`／`cool-line-2`／`warm-line-2` → **留下**，列入預算。
-//     它們是 v5 冷暖兩區的完整階梯（設計文件 §01 定義了四階），實際只用三階。
-//     刪掉會讓階梯缺角，而「階梯完整」本身是設計文件的一部分。
+//   - `cool-0`／`cool-line`／`cool-line-2`／`warm-line-2` → 當時留下，列入預算。
 //
-// 形狀用預算不用硬零：這兩類的差別是「這條線要不要留」，不是「有沒有用」。
-const DEAD_TW_BUDGET = 3;
+// 第四十輪（§CI48）：**這四條全部消失**，但不是被刪掉——是階梯重建之後
+// 每一階都有了角色名，四階不夠用、六階才夠。預算由 3 降到 1。
+//
+// ⚠️ 本輪修掉這條護欄自己的一個漏洞，而且修法是把整段正則刪掉：
+// 舊版用 `^ {10}(?:'([^']+)'|([a-zA-Z]+)):\s*'(#……)'` 逐行讀設定檔，
+// 而這個正則**抓不到數字鍵**——`cool-0` 這種鍵從來沒有被算進 `deadTw`。
+// 上一輪報告的「4 個死鍵」其實是「3 個死鍵 ＋ 1 個看不見的鍵」。
+// 現在直接讀已經 import 進來的 `twConfig`（同一份設定的解析結果），
+// 鍵名由 `Object.keys` 給，數字鍵、引號鍵、連字號鍵一視同仁。
+// **能讀結構就不要讀文字**——正則版本的漏洞不是寫錯，是選錯了介面。
+//
+// 形狀用預算不用硬零：剩下的那一個（`warm-panel-2`）不是「忘了用」，
+// 是暖區目前沒有任何一個容器需要「比面板淺一階、比頁面深一階」——
+// 冷區有（戰鬥畫面的分區帶），暖區沒有。留著是因為階梯要對稱，
+// 不對稱的階梯會讓「同一階在兩區等亮」變成假的。
+const DEAD_TW_BUDGET = 1;
 const twColourKeys = [];
-{
-  const cfgSrc = fs.readFileSync(path.join(ROOT, 'tailwind.config.js'), 'utf8');
-  const block = cfgSrc.slice(cfgSrc.indexOf('colors: {'), cfgSrc.indexOf('fontFamily'));
-  let group = null;
-  for (const line of block.split('\n')) {
-    const g = /^ {8}([a-zA-Z]+):\s*\{/.exec(line);
-    if (g) {
-      group = g[1];
-      continue;
-    }
-    const kv = /^ {10}(?:'([^']+)'|([a-zA-Z]+)):\s*'(#[0-9a-fA-F]{6})'/.exec(line);
-    if (kv && group) twColourKeys.push({ group, key: kv[1] || kv[2] });
+for (const [group, val] of Object.entries(twConfig.theme.extend.colors)) {
+  if (!val || typeof val !== 'object') continue;
+  for (const [key, hex] of Object.entries(val)) {
+    if (typeof hex === 'string' && /^#[0-9a-fA-F]{6}$/.test(hex)) twColourKeys.push({ group, key });
   }
 }
 const twCorpus = walkSrc(path.join(ROOT, 'src'))
@@ -3831,6 +3853,140 @@ check(
   deadVarRefs.length
     ? `${deadVarRefs.length} 處空引用：${deadVarRefs.slice(0, 4).map((r) => `${r.rel}→--${r.name}`).join('、')}`
     : `${varRefs.length} 處引用／${varDefs.size} 個定義，全部對得上`
+);
+
+/* ────────────────────────────────────────────────────────────────
+   H38 家族：一張紙，兩種光（第四十輪 §CI48）
+   ────────────────────────────────────────────────────────────────
+
+   這一族要守的不是「有沒有用到冷色」，而是**冷色有沒有把對比弄壞**。
+
+   背景：原本 `warm` 五階、`cool` 五階是**各自挑的**，而冷區每一階都比暖區
+   暗 5.8–8.0%。後果是同一組墨在兩區的對比不一樣——`ink-2` 在暖區第 1 階是
+   4.72:1（過 AA），在冷區第 1 階是 4.46:1（不過）。也就是說「把畫面換成冷區」
+   會讓二級墨掉出合規範圍，而那不是顏色的錯，是**兩條階梯的明度沒有對齊**。
+
+   修法不是把冷色調亮，是把冷區**從暖區的亮度反推**：先量暖區六階的相對亮度，
+   再挑同亮度、不同色相的藍灰。實測最大偏差 0.726%。
+
+   於是「紙只有一種」這句話升級成：**紙只有一種，光有兩種。**
+   —— 紙的亮度結構是同一條，溫度才是變數。這就是「冷暖分層」的本體。
+
+   下面五條：
+     H38   兩區同階等亮（每階 ≤1%）——這是「同一個墨在兩區對比一樣」的充分條件
+     H38-a 兩區都是嚴格遞減的六階（單調性）——階梯不能有回頭路
+     H38-b 兩區鍵名集合相同（集合相等）——只加一階等於偷偷拆掉對齊
+     H38-c 冷區（戰鬥模組）的面不得出現暖紙 hex 或 `warm-*` 令牌（硬零）
+     H38-d 反向控制：暖區（書本外框）不得出現 `cool-*` 令牌（硬零）
+   ──────────────────────────────────────────────────────────────── */
+const ZONE_STEPS = ['card', 'page', 'panel-2', 'panel', 'shade', 'line'];
+
+// H38：同階等亮。門檻 1% 不是隨手訂的——四階墨在兩區的對比差最大只有 0.064，
+// 換算回亮度就是 1% 以內。放寬到 3% 的話 `ink-2` 會開始在某一區掉到 4.5 以下。
+//
+// 迴圈跑的是**暖區的鍵**，不是寫死的清單：暖區是正本，冷區是它的另一種光。
+// 冷區多出來的鍵 H38 不管（那是 H38-b 的事），冷區缺的鍵 H38 也不管
+// （同樣是 H38-b 的事）——**一條護欄只回答一個問題**，
+// 這樣破壞的時候才知道紅的是哪一個。
+const parityBad = [];
+let parityMax = 0;
+for (const step of Object.keys(TW.warm)) {
+  if (TW.cool[step] === undefined) continue;
+  const w = luminance(TW.warm[step]);
+  const c = luminance(TW.cool[step]);
+  const dev = (Math.abs(w - c) / w) * 100;
+  parityMax = Math.max(parityMax, dev);
+  if (dev > 1) parityBad.push(`${step} ${dev.toFixed(2)}%`);
+}
+check(
+  'H38 冷暖同階等亮（每階相對亮度差 ≤1%）',
+  parityBad.length === 0,
+  parityBad.length
+    ? `${parityBad.length} 階超標：${parityBad.join('、')}`
+    : `${Object.keys(TW.warm).length} 階最大偏差 ${parityMax.toFixed(3)}%`
+);
+
+// H38-a：兩區都必須是嚴格遞減。
+// 這一條抓的是「為了修某個畫面的對比，單獨把某一階調深」——
+// 那樣改完畫面會好，但階梯會出現一段回頭路，而下一個人在那段路上做的判斷會是錯的。
+const ladderBad = [];
+for (const zone of ['warm', 'cool']) {
+  for (let i = 1; i < ZONE_STEPS.length; i += 1) {
+    const prev = luminance(TW[zone][ZONE_STEPS[i - 1]]);
+    const cur = luminance(TW[zone][ZONE_STEPS[i]]);
+    if (!(cur < prev)) ladderBad.push(`${zone}.${ZONE_STEPS[i]}（${prev.toFixed(3)} → ${cur.toFixed(3)}）`);
+  }
+}
+check(
+  'H38-a 冷暖兩區都是嚴格遞減的六階（單調性）',
+  ladderBad.length === 0,
+  ladderBad.length ? `${ladderBad.length} 處不遞減：${ladderBad.join('、')}` : '兩區各 5 個下降段，全部遞減'
+);
+
+// H38-b：兩區的鍵名集合必須完全相同。
+// 只在一區加一階，等於讓另一區「沒有那一階可以對齊」——
+// 而 H38 是用同名對同名比對的，少一個鍵它就不會發現，只會靜靜少測一階。
+const warmKeys = Object.keys(TW.warm).sort().join(',');
+const coolKeys = Object.keys(TW.cool).sort().join(',');
+check(
+  'H38-b 冷暖兩區鍵名集合相同（集合相等）',
+  warmKeys === coolKeys && Object.keys(TW.warm).length === ZONE_STEPS.length,
+  warmKeys === coolKeys
+    ? `${Object.keys(TW.warm).length} 階：${Object.keys(TW.warm).join('／')}`
+    : `暖 ${warmKeys} ≠ 冷 ${coolKeys}`
+);
+
+// H38-c：冷區不得出現暖紙。
+//
+// 只掃**面**（bg／border／ring／divide／from／via／to），不掃文字：
+// 墨是兩區共用的一條階梯（`#2c221e`／`#3c2415`／`#6b5a4b`／`#7c6a58`），
+// 冷區的文字仍然是書墨——這是刻意的，不是漏掉。把墨也一起換掉，
+// 「冷暖」就會變成「同時換底色與字色」兩件事，一次改一件。
+const WARM_PAPER = new Set(Object.values(TW.warm).map((h) => h.toLowerCase()));
+const COMBAT_DIR = path.join(ROOT, 'src/features/combat-tracker');
+const SURFACE_POS = '(bg|border|ring|divide|from|via|to)';
+const combatStray = [];
+let combatSurfaces = 0;
+for (const abs of walkSrc(COMBAT_DIR)) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const src = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const m of src.matchAll(new RegExp(`${SURFACE_POS}-\\[(#[0-9a-fA-F]{6})\\](\\/[0-9]+)?`, 'g'))) {
+    if (WARM_PAPER.has(m[2].toLowerCase())) combatStray.push(`${rel} → ${m[1]}-[${m[2]}]`);
+  }
+  for (const m of src.matchAll(new RegExp(`${SURFACE_POS}-warm-[a-z0-9-]+`, 'g'))) {
+    combatStray.push(`${rel} → ${m[0]}`);
+  }
+  combatSurfaces += (src.match(new RegExp(`${SURFACE_POS}-cool-[a-z0-9-]+`, 'g')) || []).length;
+}
+check(
+  'H38-c 冷區的面不得出現暖紙 hex 或 warm-* 令牌（硬零）',
+  combatStray.length === 0 && combatSurfaces > 0,
+  combatStray.length
+    ? `${combatStray.length} 處：${combatStray.slice(0, 4).join('、')}`
+    : `0 處暖紙／${combatSurfaces} 個冷區面令牌`
+);
+
+// H38-d：反向控制。暖區（書本外框）不得出現冷區令牌。
+//
+// 沒有這一條，H38-c 可以被「兩區都用冷色」滿足——那時冷區確實沒有暖紙，
+// 但暖區也不暖了，而 H38-c 會是綠的。反向控制的作用是**讓「兩邊都改」不能過關**。
+const WARM_ZONE_FILES = [
+  'src/App.jsx',
+  'src/components/book/BookCoverHub.jsx',
+  'src/components/book/ChapterHeader.jsx',
+  'src/components/book/chapterChrome.js',
+];
+const warmZoneStray = [];
+for (const rel of WARM_ZONE_FILES) {
+  const src = stripComments(fs.readFileSync(path.join(ROOT, rel), 'utf8'));
+  for (const m of src.matchAll(new RegExp(`${SURFACE_POS}-cool-[a-z0-9-]+`, 'g'))) {
+    warmZoneStray.push(`${rel} → ${m[0]}`);
+  }
+}
+check(
+  'H38-d 反向控制：暖區不得出現 cool-* 面令牌（硬零）',
+  warmZoneStray.length === 0,
+  warmZoneStray.length ? `${warmZoneStray.length} 處：${warmZoneStray.slice(0, 4).join('、')}` : `${WARM_ZONE_FILES.length} 個暖區檔，0 處冷色`
 );
 
 /* ────────────────────────────────────────────────────────────────

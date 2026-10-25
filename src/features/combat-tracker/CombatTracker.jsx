@@ -191,12 +191,12 @@ export default function CombatTracker() {
   return (
     <div className="space-y-6">
       {/* Top Banner & Round Controller */}
-      <div className="bg-[#fffdf9] rounded border border-[#d6c7ab] p-5 flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
+      <div className="bg-cool-card rounded border border-cool-line p-5 flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#a63d40]" />
 
         {/* Round Counter */}
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded bg-[#f4ebd9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono shadow-inner">
+          <div className="w-14 h-14 rounded bg-cool-panel border border-cool-line flex flex-col items-center justify-center font-mono shadow-inner">
             <span className="text-t10 text-[#7c6a58] uppercase tracking-widest font-bold">ROUND</span>
             <span className="text-2xl font-bold text-[#3c2415] leading-none">{round}</span>
           </div>
@@ -209,7 +209,7 @@ export default function CombatTracker() {
               <span className="text-[#2c221e] font-bold">
                 玩家隊待行動: {playerUnactedCount} / {playerCombatants.length}
               </span>
-              <span className="text-[#d6c7ab]">|</span>
+              <span className="text-cool-line">|</span>
               <span className="text-[#a63d40] font-bold">
                 敵方待行動: {enemyUnactedCount} / {enemyCombatants.length}
               </span>
@@ -239,7 +239,7 @@ export default function CombatTracker() {
 
           <button
             onClick={handleResetCombat}
-            className="p-2 text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f4ebd9] rounded transition-colors border border-transparent hover:border-[#d6c7ab]"
+            className="p-2 text-[#6b5a4b] hover:text-[#76252d] hover:bg-cool-panel rounded transition-colors border border-transparent hover:border-cool-line"
             title="清空重置戰場"
           >
             <RotateCcw className="w-4 h-4" />
@@ -248,13 +248,13 @@ export default function CombatTracker() {
       </div>
 
       {/* Online Room Sync Bar (P2P WebRTC) */}
-      <div className="bg-[#f4ebd9] rounded border border-[#d6c7ab] p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <div className="bg-cool-panel rounded border border-cool-line p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2.5">
           {isConnected ? (
             <div className="flex items-center gap-2 text-[#3c2415] font-mono font-bold">
               <Wifi className="w-4 h-4 text-[#6b5a4b]" />
               <span>
-                {isHost ? 'GM 房間建立完成' : '已連線房間'}: <strong className="text-[#3c2415] bg-[#f4ebd9] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{roomCode}</strong>
+                {isHost ? 'GM 房間建立完成' : '已連線房間'}: <strong className="text-[#3c2415] bg-cool-panel px-1.5 py-0.5 rounded border border-cool-line">{roomCode}</strong>
               </span>
               {isHost && (
                 <span className="text-t11 text-[#6b5a4b] font-normal">
@@ -286,11 +286,11 @@ export default function CombatTracker() {
                   placeholder="輸入房間碼 (如 FU-8821)"
                   value={inputRoomCode}
                   onChange={e => setInputRoomCode(e.target.value)}
-                  className="bg-[#fffdf9] border border-[#d6c7ab] rounded px-2.5 py-1 text-xs text-[#2c221e] uppercase font-mono w-36 focus:border-[#3c2415] outline-none"
+                  className="bg-cool-card border border-cool-line rounded px-2.5 py-1 text-xs text-[#2c221e] uppercase font-mono w-36 focus:border-[#3c2415] outline-none"
                 />
                 <button
                   onClick={handleJoinRoom}
-                  className="px-2.5 py-1 rounded bg-[#f4ebd9] border border-[#d6c7ab] hover:bg-[#e8dcc4] text-[#2c221e] font-bold transition-colors"
+                  className="px-2.5 py-1 rounded bg-cool-panel border border-cool-line hover:bg-cool-shade text-[#2c221e] font-bold transition-colors"
                 >
                   加入
                 </button>
@@ -303,7 +303,7 @@ export default function CombatTracker() {
                 setIsConnected(false);
                 setRoomCode('');
               }}
-              className="px-2.5 py-1 rounded bg-[#fffdf9] border border-[#d6c7ab] text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] font-medium transition-colors"
+              className="px-2.5 py-1 rounded bg-cool-card border border-cool-line text-[#6b5a4b] hover:text-[#76252d] hover:bg-cool-panel-2 font-medium transition-colors"
             >
               斷開連線
             </button>
@@ -312,8 +312,8 @@ export default function CombatTracker() {
       </div>
 
       {/* Scene Clocks (場景命刻) Bar */}
-      <div className="bg-[#fffdf9] rounded border border-[#d6c7ab] p-4 space-y-3">
-        <div className="flex items-center justify-between border-b border-[#d6c7ab]/80 pb-2">
+      <div className="bg-cool-card rounded border border-cool-line p-4 space-y-3">
+        <div className="flex items-center justify-between border-b border-cool-line/80 pb-2">
           <div className="flex items-center gap-2">
             <GiPocketWatch className="w-4 h-4 text-[#8c2d36]" />
             <h3 className="font-serif font-bold text-sm text-[#2c221e]">
@@ -332,7 +332,7 @@ export default function CombatTracker() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           {sceneClocks.map(clk => (
-            <div key={clk.id} className="relative group bg-[#fbf7ee] p-2.5 rounded border border-[#d6c7ab]/80">
+            <div key={clk.id} className="relative group bg-cool-page p-2.5 rounded border border-cool-line/80">
               <ClockTracker
                 title={clk.title}
                 totalSegments={clk.totalSegments || 6}
@@ -359,7 +359,7 @@ export default function CombatTracker() {
       <div className="space-y-6">
         {/* Player Party Column */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2">
+          <div className="flex items-center justify-between border-b border-cool-line pb-2">
             <div className="flex items-center gap-2">
               <GiCheckedShield className="w-4 h-4 text-[#6b5a4b]" />
               <h3 className="font-serif font-bold text-base text-[#2c221e]">

@@ -181,7 +181,7 @@ export default function ChapterHeader({
             誤觸的代價是用一個單卡檔案覆蓋全站資料，所以標題要寫清楚「全站」，
             並且在視覺上**低於**備份：無邊框、三級墨、hover 才浮出。 */}
         <label
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded px-1.5 sm:px-2 py-1.5 text-t12 text-ink-3 transition-colors duration-160 hover:bg-warm-1 hover:text-[#a63d40]"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded px-1.5 sm:px-2 py-1.5 text-t12 text-ink-3 transition-colors duration-160 hover:bg-warm-panel hover:text-[#a63d40]"
           title="還原全站備份（會覆蓋目前的全部資料）"
         >
           <input
