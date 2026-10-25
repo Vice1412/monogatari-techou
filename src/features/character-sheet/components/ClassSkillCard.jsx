@@ -158,7 +158,7 @@ function SkillSuboptionBar({
             }}
             className={`px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
               selectedCount === 0
-                ? 'bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs'
+                ? 'bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-e1'
                 : 'bg-white hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]'
             }`}
           >
@@ -262,7 +262,7 @@ function PilotVehicleSkillBar({
             e.stopPropagation();
             onOpenModal();
           }}
-          className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
+          className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-e1"
         >
           <GiSteeringWheel className="w-3.5 h-3.5" />
           <span>{isConfigured ? '管理個人載具' : '配置個人載具'}</span>
@@ -304,7 +304,7 @@ function WayfarerCompanionSkillBar({
             e.stopPropagation();
             onOpenModal();
           }}
-          className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
+          className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-e1"
         >
           <GiPawPrint className="w-3.5 h-3.5" />
           <span>{isConfigured ? '編輯忠實夥伴' : '配置忠實夥伴'}</span>
@@ -363,7 +363,7 @@ function TinkererGadgetsSkillBar({
             e.stopPropagation();
             onOpenModal();
           }}
-          className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs"
+          className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-e1"
         >
           <GiGears className="w-3.5 h-3.5" />
           <span>{isConfigured ? '管理小工具' : '配置科技樹'}</span>
@@ -599,7 +599,7 @@ export default function ClassSkillCard({
           {/* 中英文名 + 圖標 */}
           <div className="flex items-center gap-2.5 min-w-0">
             <div
-              className="w-9 h-9 rounded border flex items-center justify-center shadow-xs shrink-0"
+              className="w-9 h-9 rounded border flex items-center justify-center shadow-e1 shrink-0"
               style={{
                 backgroundColor: theme.cardBg,
                 borderColor: theme.border,
@@ -738,7 +738,7 @@ export default function ClassSkillCard({
                 return (
                   <div
                     key={sIdx}
-                    className="p-3 rounded border text-xs space-y-1.5 transition-colors shadow-2xs"
+                    className="p-3 rounded border text-xs space-y-1.5 transition-colors shadow-e1"
                     style={{
                       backgroundColor: theme.cardBg,
                       borderColor: disp.isVariant ? theme.accent : theme.border,

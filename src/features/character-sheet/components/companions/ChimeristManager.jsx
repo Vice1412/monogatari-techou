@@ -224,14 +224,14 @@ export default function ChimeristManager({
           <button
             type="button"
             onClick={() => handleSelectFormula('INS + WLP')}
-            className={`px-2 py-0.5 rounded font-mono font-bold transition-all ${ currentFormula === 'INS + WLP' ? 'bg-[#3c2415] text-[#fffdf9] shadow-xs' : 'bg-[#f4ebd9] text-[#6b5a4b] hover:bg-[#fffdf9]' }`}
+            className={`px-2 py-0.5 rounded font-mono font-bold transition-all ${ currentFormula === 'INS + WLP' ? 'bg-[#3c2415] text-[#fffdf9] shadow-e1' : 'bg-[#f4ebd9] text-[#6b5a4b] hover:bg-[#fffdf9]' }`}
           >
             【INS + WLP】
           </button>
           <button
             type="button"
             onClick={() => handleSelectFormula('MIG + WLP')}
-            className={`px-2 py-0.5 rounded font-mono font-bold transition-all ${ currentFormula === 'MIG + WLP' ? 'bg-[#3c2415] text-[#fffdf9] shadow-xs' : 'bg-[#f4ebd9] text-[#6b5a4b] hover:bg-[#fffdf9]' }`}
+            className={`px-2 py-0.5 rounded font-mono font-bold transition-all ${ currentFormula === 'MIG + WLP' ? 'bg-[#3c2415] text-[#fffdf9] shadow-e1' : 'bg-[#f4ebd9] text-[#6b5a4b] hover:bg-[#fffdf9]' }`}
           >
             【MIG + WLP】
           </button>
@@ -253,7 +253,7 @@ export default function ChimeristManager({
           <button
             type="button"
             onClick={() => setIsPasteModalOpen(true)}
-            className="px-2.5 py-1 rounded text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs flex items-center gap-1 transition-colors"
+            className="px-2.5 py-1 rounded text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-e1 flex items-center gap-1 transition-colors"
             title="貼上從 NPC 工坊複製的文字一鍵導入"
           >
             <ClipboardPaste className="w-3.5 h-3.5" />
@@ -266,7 +266,7 @@ export default function ChimeristManager({
             className={`px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1 transition-colors ${
               spells.length >= maxSlots
                 ? 'bg-[#d6c7ab] text-[#6b5a4b] cursor-not-allowed'
-                : 'bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-2xs'
+                : 'bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-e1'
             }`}
           >
             <Plus className="w-3.5 h-3.5" />
@@ -349,7 +349,7 @@ export default function ChimeristManager({
 
       {/* 貼上 NPC 工坊文本 Modal */}
       {isPasteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-5 w-full max-w-lg shadow-e3 space-y-4">
             <div className="flex items-center justify-between border-b border-[#e8dcc4] pb-2">
               <h3 className="text-sm font-bold text-[#2c221e] flex items-center gap-2">
@@ -395,7 +395,7 @@ export default function ChimeristManager({
 
       {/* 手動新增/確認咒語 Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-5 w-full max-w-md shadow-e3 space-y-4">
             <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2">
               <h3 className="text-sm font-bold text-[#2c221e] flex items-center gap-2">

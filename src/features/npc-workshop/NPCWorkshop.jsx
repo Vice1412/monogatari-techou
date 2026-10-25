@@ -463,7 +463,7 @@ export default function App({
                     }}
                     className={`w-5 h-5 rounded-full transition-all relative flex items-center justify-center cursor-pointer ${
                       isSelected
-                        ? 'shadow-xs ring-2 ring-offset-1'
+                        ? 'shadow-e1 ring-2 ring-offset-1'
                         : 'opacity-70 hover:opacity-100'
                     }`}
                     style={{
@@ -473,7 +473,7 @@ export default function App({
                     }}
                     title={`卡片風格：${themeObj.name}`}
                   >
-                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white block shadow-xs" />}
+                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white block shadow-e1" />}
                   </button>
                 );
               })}
@@ -484,7 +484,7 @@ export default function App({
               <button
                 type="button"
                 onClick={handleFreeModeToggleClick}
-                className={`px-2.5 py-1.5 rounded font-bold transition-all flex items-center gap-1 text-xs shadow-2xs border cursor-pointer ${
+                className={`px-2.5 py-1.5 rounded font-bold transition-all flex items-center gap-1 text-xs shadow-e1 border cursor-pointer ${
                   state.isFreeModeEnabled
                     ? 'bg-[#fffdf9] text-[#a63d40] border-[#a63d40] ring-1 ring-[#a63d40]/40 hover:bg-[#f4ebd9]'
                     : 'bg-white text-[#3c2415] border-[#d6c7ab] hover:bg-[#e8dcc4]'
@@ -502,7 +502,7 @@ export default function App({
             <button
               type="button"
               onClick={handleSaveToLibrary}
-              className="text-[#fffdf9] px-3 py-1.5 rounded font-bold transition-all shadow-xs text-xs flex items-center gap-1.5 cursor-pointer bg-[#8c3235] hover:bg-[#a63d40]"
+              className="text-[#fffdf9] px-3 py-1.5 rounded font-bold transition-all shadow-e1 text-xs flex items-center gap-1.5 cursor-pointer bg-[#8c3235] hover:bg-[#a63d40]"
               title="儲存至 NPC 檔案庫 (Ctrl+S)"
             >
               <Save size={13} />
@@ -2144,7 +2144,7 @@ export default function App({
 
               return (
                 <div
-                  className="mb-5 border p-3.5 sm:p-4 rounded shadow-xs transition-colors duration-300 space-y-3.5 overflow-hidden"
+                  className="mb-5 border p-3.5 sm:p-4 rounded shadow-e1 transition-colors duration-300 space-y-3.5 overflow-hidden"
                   style={{ backgroundColor: currentTheme.subpanelBg, borderColor: currentTheme.border }}
                 >
                   {groupedAffs.length > 0 && (
@@ -2466,7 +2466,7 @@ export default function App({
         const unknownRole = !!state.role && !ROLES_DATA[state.role];
 
         return (
-          <div className="flex flex-col h-full space-y-8 animate-in fade-in zoom-in-95 duration-500 max-w-5xl mx-auto relative pb-10 select-none">
+          <div className="flex flex-col h-full space-y-8 duration-500 max-w-5xl mx-auto relative pb-10 select-none animate-modal-pop">
             {unknownRole && (
               <WarningNote title={<>這張卡的定位「{state.role}」不在本版資料裡</>}>
                 存檔會原樣保留這個字，但畫面上的數值與技能是以暴徒的基準算的。選任一個定位就會覆蓋掉原本的值。
@@ -2625,7 +2625,7 @@ export default function App({
         );
       case 2:
         return (
-          <div className="flex flex-col h-full space-y-4 animate-in fade-in duration-300 max-w-3xl relative">
+          <div className="flex flex-col h-full space-y-4 duration-300 max-w-3xl relative animate-fade-in">
             <div className="flex-1 overflow-y-auto pr-1 pb-16 space-y-6 custom-scrollbar">
               <div>
                 <h3 className="font-bold text-t16 text-[#2c221e]">步驟 2：分配等級與階級</h3>
@@ -2734,7 +2734,7 @@ export default function App({
                     </div>
 
                     {state.rank === "冠位" && (
-                      <div className="bg-[#f9f5eb] border border-[#d6c7ab] p-4 rounded animate-in slide-in-from-top-4 fade-in duration-500 relative overflow-hidden">
+                      <div className="bg-[#f9f5eb] border border-[#d6c7ab] p-4 rounded duration-500 relative overflow-hidden animate-fade-in">
                         <div className="absolute -right-4 -top-4 opacity-10 rotate-12 pointer-events-none text-[#3c2415]"><GiLaurelCrown size={80} /></div>
 
                         <div className="flex items-center justify-between mb-4 relative z-10">
@@ -2781,7 +2781,7 @@ export default function App({
         );
       case 3:
         return (
-          <div className="space-y-4 animate-in fade-in duration-300 max-w-3xl pb-10">
+          <div className="space-y-4 duration-300 max-w-3xl pb-10 animate-fade-in">
             <div>
               <h3 className="font-bold text-t16 text-[#2c221e]">步驟 3：設定物種</h3>
               <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">物種決定了 NPC 的基本屬性、抗性加成以及獨特能力。</p>
@@ -2822,7 +2822,7 @@ export default function App({
               </div>
 
               {state.selectedSpeciesId && (
-                <div className="animate-in fade-in slide-in-from-top-4 duration-500 space-y-6">
+                <div className=" duration-500 space-y-6 animate-fade-in">
                   {(() => {
                     const sp = SPECIES_DATA.find(s => s.id === state.selectedSpeciesId);
                     if (!sp) return null;
@@ -2830,7 +2830,7 @@ export default function App({
 
                     return (
                       <>
-                        <div className={`p-5 rounded border-2 animate-in fade-in slide-in-from-top-2 duration-500 shadow-sm ${selectedTheme.bg} ${selectedTheme.border}`}>
+                        <div className={`p-5 rounded border-2 duration-500 shadow-sm animate-fade-in${selectedTheme.bg} ${selectedTheme.border}`}>
                           <div className="flex items-center gap-4 mb-4">
                             <div className={`p-3 rounded bg-[#fffdf9] ${selectedTheme.text} border border-[#d6c7ab]`}>
                               {selectedTheme.icon}
@@ -2988,7 +2988,7 @@ export default function App({
 
                                       {/* Selection Area (Multiselect / Select / Text) */}
                                       {isChecked && opt.needsSelection && opt.selectionConfig?.type !== 'spellbook' && (
-                                        <div className="pl-10 pb-2 space-y-3 animate-in slide-in-from-top-2 duration-300">
+                                        <div className="pl-10 pb-2 space-y-3 duration-300 animate-fade-in">
                                           {opt.selectionConfig.type === 'text' && (
                                             <div className="max-w-md mt-1">
                                               {opt.selectionConfig.label && (
@@ -3052,7 +3052,7 @@ export default function App({
 
                                       {/* Selection Area (Spellbook) */}
                                       {isChecked && opt.needsSelection && opt.selectionConfig?.type === 'spellbook' && (
-                                        <div className="pl-10 grid grid-cols-1 md:grid-cols-2 gap-3 animate-in slide-in-from-top-2 duration-300">
+                                        <div className="pl-10 grid grid-cols-1 md:grid-cols-2 gap-3 duration-300 animate-fade-in">
                                           {opt.selectionConfig.options.map(spellName => {
                                             const isSelected = state.speciesConfig[opt.selectionConfig.key] === spellName;
                                             const isClaimedElsewhere = allLearnedSpells.includes(spellName) && !isSelected;
@@ -3098,7 +3098,7 @@ export default function App({
         );
       case 4:
         return (
-          <div className="space-y-6 animate-in fade-in duration-300 max-w-4xl pb-10">
+          <div className="space-y-6 duration-300 max-w-4xl pb-10 animate-fade-in">
             <div>
               <h3 className="font-bold text-t16 text-[#2c221e]">步驟 4：調整數值與能力</h3>
               <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">系統會根據你的定位與等級自動為你計算可用額度。請展開下方區塊完成配置。</p>
@@ -3132,7 +3132,7 @@ export default function App({
 
             {/* Attribute Dice Customization Card (僅在開啟自定義模式時顯示) */}
             {state.isFreeModeEnabled && (
-              <div className="p-5 md:p-6 rounded border-2 transition-all duration-300 relative overflow-hidden bg-[#fffdf9] border-[#a63d40] animate-in fade-in slide-in-from-top-2">
+              <div className="p-5 md:p-6 rounded border-2 transition-all duration-300 relative overflow-hidden bg-[#fffdf9] border-[#a63d40] animate-fade-in">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 border-b border-[#d6c7ab] pb-4">
                   <div>
                     <h4 className="text-base md:text-lg font-black tracking-widest text-[#3c2415] flex items-center gap-2">
@@ -3260,7 +3260,7 @@ export default function App({
                 ))}
               </div>
               {state.villainTier !== 'none' && (
-                <div className={`mt-4 text-t11 font-bold ${VILLAIN_TIERS[state.villainTier].ink} flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2`}>
+                <div className={`mt-4 text-t11 font-bold ${VILLAIN_TIERS[state.villainTier].ink} flex items-center gap-1.5 animate-fade-in`}>
                   <AlertCircle size={12} /> 已賦予 {VILLAIN_TIERS[state.villainTier].up} 點終極點數，可用於發動反派能力。
                 </div>
               )}
@@ -3345,7 +3345,7 @@ export default function App({
 
             {/* 攻擊性咒語檢定公式選擇區塊 */}
             {hasOffensiveSpells && (
-              <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-5 overflow-hidden relative group animate-in fade-in slide-in-from-top-4 duration-300">
+              <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-5 overflow-hidden relative group duration-300 animate-fade-in">
                 <label className="block text-sm text-[#3c2415] mb-3 font-bold tracking-[0.2em] flex items-center gap-2 uppercase">
                   <span className="fu-icon text-lg">c</span> 攻擊性咒語檢定公式
                 </label>
@@ -3743,7 +3743,7 @@ export default function App({
         );
       case 5:
         return (
-          <div className="space-y-6 animate-in fade-in duration-300 max-w-4xl pb-10 relative">
+          <div className="space-y-6 duration-300 max-w-4xl pb-10 relative animate-fade-in">
             <div>
               <h3 className="font-bold text-t16 text-[#2c221e]">步驟 5：Boss 技能</h3>
               <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">這些強大且顛覆規則的能力，只有「冠位」級別的敵人才有資格獲得。</p>
@@ -3751,7 +3751,7 @@ export default function App({
             </div>
 
             {/* Global Sticky Block for Step 5 */}
-            <div className="sticky top-2 z-40 space-y-3 animate-in slide-in-from-top-4 duration-300">
+            <div className="sticky top-2 z-40 space-y-3 duration-300 animate-fade-in">
 
               {/* Active Boss Skills Global Sticky Nav */}
               {processedSkills.filter(s => s.source === 'bossSkill').length > 0 && (
@@ -3877,7 +3877,7 @@ export default function App({
                       </div>
 
                       {/* Tab Content */}
-                      <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-4 md:p-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-4 md:p-6 duration-300 animate-fade-in">
                         <div className="space-y-4">
                           {bossSkillCategories[currentActiveTab].map(skill => {
                             const activeSkillData = processedSkills.find(s => s.libId === skill.id);
@@ -3923,7 +3923,7 @@ export default function App({
         );
       case 6:
         return (
-          <div className="space-y-6 animate-in fade-in duration-300 max-w-4xl pb-10">
+          <div className="space-y-6 duration-300 max-w-4xl pb-10 animate-fade-in">
             <div>
               <h3 className="font-bold text-t16 text-[#2c221e]">步驟 6：配置負面技能</h3>
               <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">為你的 NPC 配備一個顯著的弱點以換取額外的額度。</p>
@@ -3971,7 +3971,7 @@ export default function App({
         );
       case 7:
         return (
-          <div className="space-y-4 animate-in fade-in duration-300 max-w-3xl pb-10">
+          <div className="space-y-4 duration-300 max-w-3xl pb-10 animate-fade-in">
             <div>
               <h3 className="font-bold text-t16 text-[#2c221e]">步驟 7：設定稱呼與特質</h3>
               <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">為你的 NPC 起個名字，並設定頭像、特質與背景故事。</p>
@@ -4015,7 +4015,7 @@ export default function App({
                   }`}
                 >
                   {isDraggingOver && (
-                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#fffdf9]/90 backdrop-blur-sm rounded border-2 border-dashed border-[#3c2415] text-[#3c2415] pointer-events-none animate-in fade-in duration-150">
+                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#fffdf9]/90 backdrop-blur-sm rounded border-2 border-dashed border-[#3c2415] text-[#3c2415] pointer-events-none duration-150 animate-fade-in">
                       <Upload size={36} className="mb-2 text-[#6b5a4b]" />
                       <span className="font-bold text-sm">釋放滑鼠以上傳圖片或網址</span>
                     </div>
@@ -4201,7 +4201,7 @@ export default function App({
         );
       case 8:
         return (
-          <div className="space-y-4 animate-in fade-in duration-300 max-w-3xl pb-10">
+          <div className="space-y-4 duration-300 max-w-3xl pb-10 animate-fade-in">
             <div>
               <h3 className="font-bold text-t16 text-[#2c221e]">步驟 8：戰術與行動</h3>
               <p className="mt-1 text-t12 text-[#6b5a4b] leading-relaxed">最後決定 NPC 的戰術。</p>
@@ -4235,7 +4235,7 @@ export default function App({
       />
 
       {toast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-5 fade-in duration-300">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] duration-300 animate-fade-in">
           <div className={`backdrop-blur px-6 py-3 rounded-full shadow-md font-bold flex items-center gap-2 border ${
             toast.type === 'error' ? 'bg-[#f9f5eb] text-[#8c2d36] border-[#8c2d36]/50' :
             toast.type === 'warning' ? 'bg-[#f9f5eb] text-[#3c2415] border-[#d6c7ab]' :
@@ -4274,7 +4274,7 @@ export default function App({
 
       {/* 檔案庫 Tab 內容 (Library View) */}
       {activeMainTab === 'library' && (
-        <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar animate-in fade-in bg-[#fbf7ee]">
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar bg-[#fbf7ee] animate-fade-in">
           <div className="max-w-6xl mx-auto flex flex-col min-h-full">
             {/* 接續草稿提示條（2026-10-22，見 `docs/decisions.md` §BS）：
                 使用者從檔案庫離開、下次再進來時，未存進檔案庫的草稿不會自己跳出來搶畫面，
@@ -4690,12 +4690,12 @@ export default function App({
           {isBottomSheetOpen && (
             <div className="fixed inset-0 z-50 flex flex-col justify-end">
               <div
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm duration-200 animate-fade-in"
                 onClick={() => setIsBottomSheetOpen(false)}
               />
               <div
                 ref={bottomSheetRef}
-                className="relative z-10 bg-[#fbf7ee] rounded-t shadow-e3 max-h-[90vh] flex flex-col animate-in slide-in-from-bottom duration-300"
+                className="relative z-10 bg-[#fbf7ee] rounded-t shadow-e3 max-h-[90vh] flex flex-col duration-300 animate-fade-in"
                 onTouchStart={e => { bsDragStartY.current = e.touches[0].clientY; bsDragOffset.current = 0; }}
                 onTouchMove={e => {
                   const dy = e.touches[0].clientY - bsDragStartY.current;
@@ -4726,7 +4726,7 @@ export default function App({
       )}
 
       {activeMainTab === 'preview' && state && (
-        <div className="flex-1 overflow-y-auto bg-[#fbf7ee] custom-scrollbar animate-in fade-in">
+        <div className="flex-1 overflow-y-auto bg-[#fbf7ee] custom-scrollbar animate-fade-in">
           <div className="mx-auto flex flex-col items-center px-4 py-6 md:px-8 md:py-8 min-h-full max-w-4xl">
             <div className="w-full flex flex-wrap justify-between items-center mb-4 bg-[#f4ebd9]/95 backdrop-blur p-3 rounded border border-[#d6c7ab] shadow-md sticky top-0 z-20 gap-2">
               <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
@@ -4764,7 +4764,7 @@ export default function App({
                   {isPaletteOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setIsPaletteOpen(false)} />
-                      <div className="absolute left-0 top-full mt-1.5 bg-[#fffdf9] border-2 border-[#d6c7ab] rounded shadow-e3 p-2.5 z-50 min-w-[220px] animate-in fade-in slide-in-from-top-2 duration-150">
+                      <div className="absolute left-0 top-full mt-1.5 bg-[#fffdf9] border-2 border-[#d6c7ab] rounded shadow-e3 p-2.5 z-50 min-w-[220px] duration-150 animate-fade-in">
                         <div className="text-t11 font-bold text-[#6b5a4b] mb-2 px-1 flex items-center justify-between border-b border-[#d6c7ab]/60 pb-1.5">
                           <span className="flex items-center gap-1"><Palette size={12} /> 選擇角色卡風格</span>
                           <span className="text-t10 text-[#3c2415] font-mono">6 種經典主題</span>
@@ -4788,7 +4788,7 @@ export default function App({
                                 }`}
                               >
                                 <div
-                                  className="w-3.5 h-3.5 rounded-full shrink-0 border shadow-xs"
+                                  className="w-3.5 h-3.5 rounded-full shrink-0 border shadow-e1"
                                   style={{ backgroundColor: theme.accent, borderColor: theme.accentDark }}
                                 />
                                 <span className="truncate">{theme.name}</span>
@@ -4812,7 +4812,7 @@ export default function App({
                     <FileText size={15} /> 複製文本 ▾
                   </button>
                   {copyFormatDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-1 bg-[#fffdf9] border border-[#d6c7ab] rounded shadow-xl z-30 min-w-[170px] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="absolute right-0 top-full mt-1 bg-[#fffdf9] border border-[#d6c7ab] rounded shadow-xl z-30 min-w-[170px] overflow-hidden duration-150 animate-fade-in">
                       <button
                         onClick={() => { handleCopyFullNpc('discord'); setCopyFormatDropdownOpen(false); }}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#2c221e] hover:bg-[#f4ebd9] transition-colors text-left font-bold"

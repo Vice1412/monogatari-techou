@@ -122,18 +122,23 @@ function scan(src, from, to, depth = 0) {
         buf += src[j];
         j += 1;
       }
-      literals.push({ text: buf, line: src.slice(0, i).split('\n').length, start: i, end: j });
+      literals.push({ text: buf, line: src.slice(0, i).split('\n').length, start: i, end: j, cStart: i + 1, cEnd: j });
       i = j + 1;
       continue;
     }
     if (c === '`') {
       let j = i + 1;
       let buf = '';
+      let chunkStart = i + 1;
       const line0 = src.slice(0, i).split('\n').length;
       while (j < to && src[j] !== '`') {
         if (src[j] === '\\') { buf += src[j + 1] ?? ''; j += 2; continue; }
         if (src[j] === '$' && src[j + 1] === '{') {
-          if (buf.trim()) literals.push({ text: buf, line: line0 });
+          if (buf.trim()) {
+            literals.push({
+              text: buf, line: line0, start: i, end: j, cStart: chunkStart, cEnd: j,
+            });
+          }
           buf = '';
           let d = 1;
           const start = j + 2;
@@ -146,12 +151,17 @@ function scan(src, from, to, depth = 0) {
           const inner = scan(src, start, j - 1, depth + 1);
           literals.push(...inner.literals);
           idents.push(...inner.idents);
+          chunkStart = j;
           continue;
         }
         buf += src[j];
         j += 1;
       }
-      if (buf.trim()) literals.push({ text: buf, line: line0 });
+      if (buf.trim()) {
+        literals.push({
+          text: buf, line: line0, start: i, end: j, cStart: chunkStart, cEnd: j,
+        });
+      }
       i = j + 1;
       continue;
     }
@@ -220,6 +230,36 @@ function initializerSpan(src, name) {
     j += 1;
   }
   return [start, j];
+}
+
+/**
+ * 一個檔案裡的所有字串字面值（含模板字串的靜態片段與插值裡的）。
+ *
+ * 遷移時用它：**每一個字串就是一個元素的 class 清單**，
+ * 所以「這個元素有幾層」可以在字串層級判斷，不必依賴行。
+ */
+export function stringLiterals(src) {
+  return scan(src, 0, src.length).literals;
+}
+
+/**
+ * 每個 `className=` 的**值區間**（含 `{…}` 的整個運算式）。
+ *
+ * 這是「元素級」判定的基礎：`三層噪音` 那條護欄按**行**掃，
+ * 而 className 跨行時它會瞎掉（它自己的註解也承認這件事）。
+ * 有了值區間，就可以問「這一個元素的 class 字串裡有幾層」，
+ * 而不是「這一行裡有幾個字」。
+ */
+export function classNameValues(root) {
+  const out = [];
+  for (const file of walk(path.join(root, 'src'))) {
+    const rel = path.relative(root, file).replace(/\\/g, '/');
+    const src = fs.readFileSync(file, 'utf8');
+    for (const [a, b] of classNameSpans(src)) {
+      out.push({ rel, start: a, end: b, text: src.slice(a, b), file });
+    }
+  }
+  return out;
 }
 
 /**

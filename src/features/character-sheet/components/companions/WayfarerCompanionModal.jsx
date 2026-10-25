@@ -269,7 +269,7 @@ export default function WayfarerCompanionModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm duration-200 animate-fade-in">
       <div className="relative w-full max-w-3xl max-h-[92vh] flex flex-col rounded bg-white border border-[#d6c7ab] shadow-e3 overflow-hidden text-[#3c2415] text-xs">
         
         {/* 頂部 Header */}
@@ -835,7 +835,7 @@ export default function WayfarerCompanionModal({
           <button
             type="button"
             onClick={handleSave}
-            className="px-5 py-1.5 rounded text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-xs flex items-center gap-1.5 transition"
+            className="px-5 py-1.5 rounded text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-e1 flex items-center gap-1.5 transition"
           >
             <GiCheckMark className="text-xs" />
             <span>確認並儲存夥伴設定</span>

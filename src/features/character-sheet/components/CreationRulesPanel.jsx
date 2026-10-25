@@ -124,7 +124,7 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
 
   return (
     <div
-      className="rounded border shadow-xs overflow-hidden"
+      className="rounded border shadow-e1 overflow-hidden"
       style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
     >
       <button

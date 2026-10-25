@@ -26,7 +26,7 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
 
   return (
     <div
-      className="rounded border shadow-2xs overflow-hidden"
+      className="rounded border shadow-e1 overflow-hidden"
       style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
     >
       <button

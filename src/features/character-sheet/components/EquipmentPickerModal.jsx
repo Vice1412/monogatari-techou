@@ -266,7 +266,7 @@ export function EquipmentPickerBody({
       key={label}
       type="button"
       onClick={onClick}
-      className="text-t11 px-2 py-1 rounded border font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
+      className="text-t11 px-2 py-1 rounded border font-bold transition-all flex items-center gap-1 shadow-e1 cursor-pointer"
       style={
         active
           ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }

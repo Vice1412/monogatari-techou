@@ -370,7 +370,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
               onClick={() => handleUpdateActiveCharacterTheme(t.id)}
               className={`w-5 h-5 rounded-full transition-all relative flex items-center justify-center cursor-pointer ${
                 isSelected
-                  ? 'shadow-xs'
+                  ? 'shadow-e1'
                   : 'opacity-70 hover:opacity-100'
               }`}
               style={{
@@ -380,7 +380,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
               }}
               title={`切換主題：${t.name}`}
             >
-              {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white block shadow-xs" />}
+              {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white block shadow-e1" />}
             </button>
           );
         })}

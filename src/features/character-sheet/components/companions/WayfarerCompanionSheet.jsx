@@ -225,7 +225,7 @@ export default function WayfarerCompanionSheet({
                 <button
                   type="button"
                   onClick={() => handleRollAttack(atk)}
-                  className="px-2.5 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 shadow-2xs"
+                  className="px-2.5 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 shadow-e1"
                 >
                   <GiRollingDices className="text-xs" />
                   <span>攻擊</span>

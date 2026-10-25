@@ -133,7 +133,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
         <div className="mt-2 text-t10 text-[#3c2415] font-bold">選取後可填 {skill.selectionsConfig.length} 個欄位</div>
       )}
       {isActive && skill.selectionsConfig && skill.category !== 'attack' && (
-        <div className={`mt-4 pt-3 border-t flex flex-col gap-2 animate-in slide-in-from-top-2 ${isOverBudget ? 'border-[#8c2d36]/50' : 'border-[#d6c7ab]/60'}`}>
+        <div className={`mt-4 pt-3 border-t flex flex-col gap-2 animate-fade-in${isOverBudget ? 'border-[#8c2d36]/50' : 'border-[#d6c7ab]/60'}`}>
           {skill.selectionsConfig
             .filter(cfg => (!cfg.showIfKey || (skill.selections?.[cfg.showIfKey] || "").includes(cfg.showIfValue)) && (!cfg.reqLevel || npcLevel >= cfg.reqLevel))
             .map(cfg => {

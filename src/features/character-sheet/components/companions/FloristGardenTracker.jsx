@@ -113,7 +113,7 @@ export default function FloristGardenTracker({
       {/* 頂部標題列 */}
       <div className="flex items-center justify-between border-b border-[#d6c7ab]/60 pb-2 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-[#245c45] text-white flex items-center justify-center shadow-2xs shrink-0">
+          <div className="w-6 h-6 rounded bg-[#245c45] text-white flex items-center justify-center shadow-e1 shrink-0">
             <GiFlowerPot className="w-3.5 h-3.5" />
           </div>
           <div>
@@ -134,7 +134,7 @@ export default function FloristGardenTracker({
           <button
             type="button"
             onClick={handleAdvanceAll}
-            className="px-2.5 py-1 rounded bg-[#245c45] hover:bg-[#1e4b39] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+            className="px-2.5 py-1 rounded bg-[#245c45] hover:bg-[#1e4b39] text-white text-xs font-bold transition-all shadow-e1 flex items-center gap-1 cursor-pointer"
             title="回合結束時，將花園內所有植物命刻推進 1 格"
           >
             <GiSprout className="w-3.5 h-3.5" />
@@ -209,7 +209,7 @@ export default function FloristGardenTracker({
                       type="button"
                       onClick={() => handleStepClock(item.instanceId, 1)}
                       disabled={clock >= 4}
-                      className="px-2 py-0.5 rounded text-t11 bg-[#245c45] hover:bg-[#1e4b39] disabled:opacity-30 text-white font-mono font-bold transition-colors cursor-pointer flex items-center gap-0.5 shadow-2xs"
+                      className="px-2 py-0.5 rounded text-t11 bg-[#245c45] hover:bg-[#1e4b39] disabled:opacity-30 text-white font-mono font-bold transition-colors cursor-pointer flex items-center gap-0.5 shadow-e1"
                       title="前進 1 回合 (+1 格)"
                     >
                       <span>+1 格</span>
@@ -242,7 +242,7 @@ export default function FloristGardenTracker({
                         }}
                         className={`h-2 rounded-full transition-all cursor-pointer ${
                           isFilled
-                            ? 'bg-[#245c45] shadow-2xs'
+                            ? 'bg-[#245c45] shadow-e1'
                             : 'bg-[#f4ebd9] border border-[#d6c7ab] hover:bg-[#f4ebd9]'
                         }`}
                         title={`點擊跳轉至命刻 ${seg} 格`}

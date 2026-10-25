@@ -307,7 +307,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
               return (
                 <div className="bg-[#f7f3e8] border border-[#e8dcc4] p-2 my-1 rounded text-sm">
                   <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mb-1">
-                    <span className="inline-flex items-center gap-1 text-[#3c2415] bg-[#e8dcc4] px-2 py-0.5 rounded text-xs font-bold shrink-0 shadow-2xs">
+                    <span className="inline-flex items-center gap-1 text-[#3c2415] bg-[#e8dcc4] px-2 py-0.5 rounded text-xs font-bold shrink-0 shadow-e1">
                       <span className="fu-icon text-sm leading-none translate-y-[0.5px]">{isRanged ? 'r' : 'm'}</span>
                       <span>{renderFormattedText(atk.distance, skill.selections, npcLevel, partyLevel)}</span>
                     </span>

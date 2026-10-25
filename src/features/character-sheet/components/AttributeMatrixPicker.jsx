@@ -451,7 +451,7 @@ export default function AttributeMatrixPicker({
           }}
         >
           <div
-            className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 flex flex-col items-center justify-center p-1 shadow-e3 ring-4 ring-[#a63d40]/40 ${floatingCol.bgClass} ${floatingCol.borderClass} ${floatingCol.glow}`}
+            className={`w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] lg:w-20 lg:h-20 aspect-square rounded border-2 flex flex-col items-center justify-center p-1 shadow-e3 ring-4 ring-[#a63d40]/40 ${floatingCol.bgClass} ${floatingCol.borderClass} ${floatingCol.glow}`}
           >
             <FloatingDieIcon className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 ${floatingCol.textClass} drop-shadow-md`} />
             <span className={`font-mono text-base sm:text-lg font-black ${floatingCol.textClass} drop-shadow-md mt-1 leading-none`}>
@@ -513,7 +513,7 @@ export default function AttributeMatrixPicker({
                 onClick={() => handleApplyPreset(preset)}
                 className={`text-left p-2.5 rounded border transition-all flex items-center justify-between group ${
                   isMatch
-                    ? 'shadow-xs ring-2'
+                    ? 'shadow-e1 ring-2'
                     : 'bg-[#f4ebd9] hover:bg-[#fbf7ee] border-[#d6c7ab]'
                 }`}
                 style={isMatch ? {
@@ -673,7 +673,7 @@ export default function AttributeMatrixPicker({
                       onClick={(e) => handleGhostSocketClick(die.id, e)}
                       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsTrayDragOver(true); }}
                       onDrop={handleDropToTray}
-                      className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 border-dashed border-[#d6c7ab] bg-[#f4ebd9]/70 p-1 flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
+                      className={`w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] lg:w-20 lg:h-20 aspect-square rounded border-2 border-dashed border-[#d6c7ab] bg-[#f4ebd9]/70 p-1 flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
                         isFloating ? 'ring-2 ring-[#a63d40]/40 border-[#a63d40] opacity-30' : 'hover:border-[#3c2415] hover:bg-[#fbf7ee]'
                       }`}
                       title={`已分配至【${targetDetail?.enName} ${targetDetail?.name}】。點擊可拿起此骰子浮動`}
@@ -696,7 +696,7 @@ export default function AttributeMatrixPicker({
                     draggable
                     onDragStart={(e) => handleDragStart(die.id, e)}
                     onClick={(e) => handleTrayDieClick(die.id, e)}
-                    className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 p-1 flex flex-col items-center justify-center select-none cursor-grab active:cursor-grabbing transition-all ${
+                    className={`w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] lg:w-20 lg:h-20 aspect-square rounded border-2 p-1 flex flex-col items-center justify-center select-none cursor-grab active:cursor-grabbing transition-all ${
                       col.bgClass
                     } ${col.borderClass} ${col.glow} ${
                       isFloating
@@ -705,8 +705,8 @@ export default function AttributeMatrixPicker({
                     }`}
                     title="點擊一下即可跟隨滑鼠浮動，再點擊放入體質；亦支援按住拖曳"
                   >
-                    <DieIcon className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 ${col.textClass} drop-shadow-xs`} />
-                    <span className={`font-mono text-base sm:text-lg font-black ${col.textClass} drop-shadow-xs mt-1 leading-none`}>
+                    <DieIcon className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 ${col.textClass} drop-shadow-sm`} />
+                    <span className={`font-mono text-base sm:text-lg font-black ${col.textClass} drop-shadow-sm mt-1 leading-none`}>
                       d{die.val}
                     </span>
                   </div>
@@ -782,7 +782,7 @@ export default function AttributeMatrixPicker({
                         <div
                           draggable
                           onDragStart={(e) => handleDragStart(slottedDie.id, e)}
-                          className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 flex flex-col items-center justify-center p-1 cursor-grab active:cursor-grabbing relative group transition-transform ${
+                          className={`w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] lg:w-20 lg:h-20 aspect-square rounded border-2 flex flex-col items-center justify-center p-1 cursor-grab active:cursor-grabbing relative group transition-transform ${
                             col.bgClass
                           } ${col.borderClass} ${col.glow} ${
                             isFloatingThis
@@ -791,8 +791,8 @@ export default function AttributeMatrixPicker({
                           }`}
                           title="點擊一下即可拿起跟隨滑鼠，再點擊其他體質對調或點托盤收回；亦可直接拖曳"
                         >
-                          <DieIcon className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 ${col.textClass} drop-shadow-xs`} />
-                          <span className={`font-mono text-base sm:text-lg font-black ${col.textClass} drop-shadow-xs mt-1 leading-none`}>
+                          <DieIcon className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 ${col.textClass} drop-shadow-sm`} />
+                          <span className={`font-mono text-base sm:text-lg font-black ${col.textClass} drop-shadow-sm mt-1 leading-none`}>
                             d{slottedDie.val}
                           </span>
                         </div>
@@ -801,7 +801,7 @@ export default function AttributeMatrixPicker({
                   ) : (
                     // 空白正方形插槽 (Empty Square Socket)
                     <div
-                      className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 border-dashed flex flex-col items-center justify-center transition-all ${
+                      className={`w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] lg:w-20 lg:h-20 aspect-square rounded border-2 border-dashed flex flex-col items-center justify-center transition-all ${
                         floatingDieId
                           ? 'border-[#a63d40] bg-[#a63d40]/10 text-[#6b5a4b]'
                           : 'border-[#d6c7ab] bg-[#f4ebd9] text-[#6b5a4b] hover:border-[#3c2415]'
@@ -824,7 +824,7 @@ export default function AttributeMatrixPicker({
 
       {/* ==================== ⓘ 屬性機制詳情彈窗 (按需查看，不霸佔版面) ==================== */}
       {infoModalKey && (
-        <div className="fixed inset-0 z-50 bg-[#3c2415]/45 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#3c2415]/45 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#fffdf9] rounded border border-[#d6c7ab] shadow-e3 max-w-md w-full p-5 space-y-4 animate-fade-in">
             <div className="flex items-center justify-between border-b pb-3">
               <div className="flex items-baseline gap-2">

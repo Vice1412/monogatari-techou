@@ -498,8 +498,18 @@ check(
  * 第十三輪的教訓：上限停在 17 的那段時間，有 1 個站點是「看不到」而不是「沒有」——
  * `drop_dark` 把跨行的 className 收成一行之後，`shadow-xs` 與 `bg-*` 才落到同一行。
  * **行掃描的預算會低估噪音，因為噪音會躲進換行。**
+ *
+ * 第四十二輪：詞彙表換成專案自己的令牌。原本寫的是 `2xs|xs|sm`——三個名字
+ * 在 v3 全部不存在（v4 的寫法），所以這條護欄**守著空氣**：
+ * 它紅不了，因為那些名字根本編不出 CSS，也就沒有陰影可以疊。
+ * 全站唯一的陰影令牌是 `e1|e2|e3`，所以詞彙表必須是 `e1|e2`（`e3` 是浮層，見上）。
+ *
+ * ⚠️ 它仍然是**行級**的，而 class 片段常常散在好幾個字串裡
+ * （`'shadow-e1'`、`'ring-2'`、`'border …'` 各一段），所以它是**地板不是天花板**。
+ * 第四十二輪實測：換成 `e1|e2` 之後命中 1 處，那 1 處是填色按鈕
+ * （`border + bg-[#a63d40] + shadow-e1`），陰影在實色深底上不可見，已移除。
  */
-const NOISE_LOW = /\bshadow-(2xs|xs|sm)\b/;
+const NOISE_LOW = /\bshadow-(2xs|xs|sm|e1|e2)\b/;
 const NOISE_BORDER = /\bborder\b/;
 const NOISE_BG = /\bbg-(?!gradient|none|transparent|opacity)/;
 const noiseSites = [];
@@ -3461,7 +3471,7 @@ check(
 
      H39  未登記的死 class（硬零）——現編 CSS，問「這個名字真的存在嗎」
      H39-a 已修好的名字要從清單拿掉（清單不得腐爛）
-     H39-b 死 class 總數只減不增（預算 264）——在已登記的名字上繼續加也會紅
+     H39-b 死 class 總數只減不增（預算 0）——第四十二輪之後不允許有任何一個
 
    第四十一輪的判準是：**「讀起來像一個決定」不等於「是一個決定」。**
    `sat-hiber` 有註解、有分支、有位置，只差一樣東西：它不存在。
@@ -4039,7 +4049,8 @@ check(
    - `H39-a`（清單不得腐爛）：名單上的名字若已經不在畫面上了，也紅。
      擋的是「修好了卻沒把名字拿掉」——否則這份名單三年後會變成一份
      誰也不敢動的化石，而它宣稱的東西早就不是真的。
-   - `H39-b`（預算 264，只減不增）：擋的是「在已登記的名字上繼續加」。
+   - `H39-b`（預算 0，只減不增）：擋的是「在已登記的名字上繼續加」。
+     第四十二輪把 264 處全部收乾淨，所以預算是 0——這一條從「預算」變成了硬零。
      沒有它，`shadow-xs` 可以從 54 處長到 154 處，而 `H39` 是綠的。
 
    ⚠️ 這三條的分工刻意做成「一條只回答一個問題」：
@@ -4047,7 +4058,10 @@ check(
    「死 class 有問題」，而那句話不能告訴你該做什麼。
    ──────────────────────────────────────────────────────────────── */
 
-/* 已知的死亡名字（第四十一輪普查結果）。全部是同一件事的兩種寫法：
+/* 已知的死亡名字（第四十一輪普查結果，**第四十二輪已全部歸零**）。
+ *
+ * 這份名單現在是空的，而它必須一直是空的——預算 0。
+ * 留下註解是為了記住那 264 處長什麼樣：全部是同一件事的兩種寫法。
  *
  *   Tailwind v4 的命名   → 這個專案是 v3.4.19
  *     shadow-2xs / shadow-xs / hover:shadow-2xs   陰影階梯在 v4 被重命名
@@ -4063,28 +4077,13 @@ check(
  * 兩者的共同點：它們在 shadcn 的文件裡都是正確寫法。抄過來的時候
  * 專案的 Tailwind 版本不一樣、外掛沒裝——而**抄過來的東西不會報錯**。
  *
- * 數字是第四十一輪實測，不是估計。 */
-const DEAD_CLASS_KNOWN = new Map([
-  ['shadow-2xs', 74],
-  ['shadow-xs', 54],
-  ['animate-in', 39],
-  ['fade-in', 29],
-  ['backdrop-blur-xs', 12],
-  ['slide-in-from-top-2', 12],
-  ['sm:w-18', 10],
-  ['sm:h-18', 10],
-  ['drop-shadow-xs', 6],
-  ['focus:outline-hidden', 6],
-  ['slide-in-from-top-4', 3],
-  ['hover:shadow-2xs', 2],
-  ['zoom-in-95', 2],
-  ['slide-in-from-left-2', 1],
-  ['drop-shadow-2xs', 1],
-  ['slide-in-from-bottom-2', 1],
-  ['slide-in-from-top-5', 1],
-  ['slide-in-from-bottom', 1],
-]);
-const DEAD_CLASS_BUDGET = 264;
+ * 第四十二輪的對映表（每一條都寫在 `scratch/ui-audit/r42_migrate.cjs` 的檔頭）：
+ * 陰影 → `shadow-e1`（元素已有框＋底的一律刪除）、`drop-shadow-*` → `drop-shadow-sm`、
+ * `backdrop-blur-xs` → `backdrop-blur-sm`、`sm:*-18` → `sm:*-[4.5rem]`、
+ * `focus:outline-hidden` → `focus:outline-none`、`animate-in`＋`fade-in` → `animate-fade-in`、
+ * `zoom-in-95` → `animate-modal-pop`、`slide-in-from-*` → 移除（v3 無對應令牌）。 */
+const DEAD_CLASS_KNOWN = new Map([]);
+const DEAD_CLASS_BUDGET = 0;
 
 const classAudit = auditDeadClasses(ROOT);
 
@@ -4107,13 +4106,13 @@ check(
   staleDeadNames.length === 0,
   staleDeadNames.length
     ? `${staleDeadNames.length} 個已不存在：${staleDeadNames.join('、')}——請同步刪除並下調預算`
-    : `18 個登記的名字全部仍在畫面上`
+    : `${DEAD_CLASS_KNOWN.size} 個登記的名字全部仍在畫面上（目前為空，這是對的）`
 );
 
 // H39-b：總數只減不增。
 const deadDelta = classAudit.dead.length - DEAD_CLASS_BUDGET;
 check(
-  'H39-b 死 class 總數只減不增（預算 264）',
+  'H39-b 死 class 總數只減不增（預算 0）',
   deadDelta <= 0,
   deadDelta > 0
     ? `超出 ${deadDelta} 處（${classAudit.dead.length}／${DEAD_CLASS_BUDGET}）`

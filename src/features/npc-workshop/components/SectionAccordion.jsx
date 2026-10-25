@@ -38,7 +38,7 @@ const SectionAccordion = ({ title, icon, current, max, hideIfZeroMax = false, de
         <div className="flex items-center gap-2">{!isExpanded && !isComplete && !alwaysComplete && <span className="text-t10 text-[#6b5a4b] font-bold hidden md:block">點擊展開</span>}{isExpanded ? <ChevronUp size={18} className="text-[#6b5a4b]" /> : <ChevronDown size={18} className="text-[#6b5a4b]" />}</div>
       </button>
       {isExpanded && (
-        <div className="p-4 bg-[#fbf7ee]/60 animate-in slide-in-from-top-2 rounded-b">
+        <div className="p-4 bg-[#fbf7ee]/60 rounded-b animate-fade-in">
           {isOverflow && <WarningNote tone="danger" title="額度溢出警告" className="mb-4">您目前的選擇已超過系統允許的上限或缺少前置技能。所有標記為紅色的技能將<strong>強制失效</strong>。</WarningNote>}
           {children}
         </div>

@@ -133,7 +133,7 @@ export default function AvatarCropperModal({
   const accentColor = theme?.accent;
 
   return (
-    <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 duration-200 animate-fade-in">
       <div className="bg-[#fbf7ee] border border-[#d6c7ab] rounded shadow-e3 max-w-md w-full p-4 sm:p-5 space-y-3.5 sm:space-y-4 text-[#2c221e] max-h-[92vh] overflow-y-auto">
         {/* 標題欄 */}
         <div className="flex items-center justify-between pb-2 border-b border-[#d6c7ab]">
@@ -250,7 +250,7 @@ export default function AvatarCropperModal({
                     onClick={() => setZoom(sVal)}
                     className={`px-2 py-0.5 rounded text-t11 font-mono transition ${
                       isActive
-                        ? 'text-white font-bold shadow-xs'
+                        ? 'text-white font-bold'
                         : 'bg-[#f4ebd9] text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#e8dcc4]'
                     }`}
                     style={isActive ? { backgroundColor: accentColor } : {}}
@@ -275,7 +275,7 @@ export default function AvatarCropperModal({
           <button
             type="button"
             onClick={handleApply}
-            className="px-5 py-2 text-white rounded text-xs font-bold transition shadow-xs flex items-center gap-1.5 hover:opacity-90"
+            className="px-5 py-2 text-white rounded text-xs font-bold transition flex items-center gap-1.5 hover:opacity-90"
             style={{ backgroundColor: accentColor }}
           >
             <Check size={14} /> 完成裁切並套用

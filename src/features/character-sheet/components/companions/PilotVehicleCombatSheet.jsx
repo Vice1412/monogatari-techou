@@ -262,7 +262,7 @@ export default function PilotVehicleCombatSheet({
                         <button
                           type="button"
                           onClick={() => handleRollWeapon(w, true)}
-                          className="px-2 py-0.5 rounded bg-[#9c4d16] hover:bg-[#833f12] text-white font-bold text-t10 shadow-2xs"
+                          className="px-2 py-0.5 rounded bg-[#9c4d16] hover:bg-[#833f12] text-white font-bold text-t10 shadow-e1"
                           title="使用強力握持：MIG 替換屬性檢定"
                         >
                           MIG檢定
@@ -271,7 +271,7 @@ export default function PilotVehicleCombatSheet({
                       <button
                         type="button"
                         onClick={() => handleRollWeapon(w, false)}
-                        className="px-2.5 py-1 rounded bg-[#27527a] hover:bg-[#214365] text-white font-bold text-xs flex items-center gap-1 shadow-2xs"
+                        className="px-2.5 py-1 rounded bg-[#27527a] hover:bg-[#214365] text-white font-bold text-xs flex items-center gap-1 shadow-e1"
                       >
                         <GiRollingDices className="text-xs" />
                         <span>攻擊</span>

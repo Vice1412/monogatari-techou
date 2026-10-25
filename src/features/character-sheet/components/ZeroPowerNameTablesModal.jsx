@@ -267,7 +267,7 @@ export function ZeroPowerNameTablesBody({
               <button
                 type="button"
                 onClick={onApplyRolled}
-                className="px-2.5 py-1 rounded text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 rounded text-white text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
                 style={{ backgroundColor: theme?.accent }}
               >
                 <GiCheckMark className="w-3 h-3" />
@@ -402,7 +402,7 @@ export function ZeroPowerNameTablesBody({
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="搜尋動作或由來的詞..."
-            className="w-full border rounded pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-[#6b5a4b]"
+            className="w-full border rounded pl-7 pr-3 py-1 text-xs outline-none shadow-e1 placeholder:text-[#6b5a4b]"
             style={{
               backgroundColor: theme?.cardBg,
               borderColor: theme?.border,

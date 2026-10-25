@@ -738,7 +738,7 @@ export default function CharacterEditor({
         <div className="hidden md:flex w-60 shrink-0 flex-col gap-3 sticky top-4">
           {/* 角色卡身分小卡 */}
           <div
-            className="rounded p-3.5 border shadow-xs transition-colors"
+            className="rounded p-3.5 border shadow-e1 transition-colors"
             style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
           >
             <div className="flex items-center gap-3">
@@ -783,7 +783,7 @@ export default function CharacterEditor({
             type="button"
             onClick={() => setIsPresetsModalOpen(true)}
             disabled={locked}
-            className="w-full inline-flex items-center justify-between px-3.5 py-2.5 rounded border font-bold transition-all shadow-xs group text-left cursor-pointer hover:brightness-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full inline-flex items-center justify-between px-3.5 py-2.5 rounded border font-bold transition-all shadow-e1 group text-left cursor-pointer hover:brightness-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               borderColor: theme.border,
               backgroundColor: theme.subpanelBg,
@@ -805,7 +805,7 @@ export default function CharacterEditor({
 
           {/* 定稿狀態卡：「還在創角」與「已經在跑」的分界 */}
           <div
-            className="rounded border shadow-xs p-3 flex flex-col gap-2 transition-colors"
+            className="rounded border shadow-e1 p-3 flex flex-col gap-2 transition-colors"
             style={{
               backgroundColor: theme.cardBg,
               borderColor: locked ? theme.accent : theme.border
@@ -854,7 +854,7 @@ export default function CharacterEditor({
 
           {/* 創角流程縱向清單（步驟數＝TABS，不含情感羈絆） */}
           <div
-            className="rounded border shadow-xs p-2 flex flex-col gap-1 transition-colors"
+            className="rounded border shadow-e1 p-2 flex flex-col gap-1 transition-colors"
             style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
           >
             <div className="px-2 py-1 text-t10 font-mono font-bold text-[#6b5a4b] uppercase tracking-wider">
@@ -919,7 +919,7 @@ export default function CharacterEditor({
           <button
             type="button"
             onClick={() => setIsValidationModalOpen(true)}
-            className={`w-full text-left p-3 rounded border transition-all shadow-xs flex flex-col gap-1.5 cursor-pointer ${
+            className={`w-full text-left p-3 rounded border transition-all shadow-e1 flex flex-col gap-1.5 cursor-pointer ${
               validation.errors.length > 0
                 ? 'bg-[#f9f5eb] border-[#8c2d36]/50 hover:border-[#8c2d36]'
                 : validation.hasWarnings
@@ -978,7 +978,7 @@ export default function CharacterEditor({
 
           {/* 快捷操作區 (預覽、跑團) */}
           <div
-            className="rounded border shadow-xs p-2.5 flex flex-col gap-2 transition-colors"
+            className="rounded border shadow-e1 p-2.5 flex flex-col gap-2 transition-colors"
             style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
           >
 
@@ -987,7 +987,7 @@ export default function CharacterEditor({
             <button
               type="button"
               onClick={() => setIsCardPreviewModalOpen(true)}
-              className="w-full text-left px-3 py-2 rounded border transition-all shadow-2xs hover:opacity-90 cursor-pointer"
+              className="w-full text-left px-3 py-2 rounded border transition-all shadow-e1 hover:opacity-90 cursor-pointer"
               style={{ borderColor: theme.border, color: theme.textDark, backgroundColor: theme.cardBg }}
               title="唯讀：看這張卡目前長什麼樣，也可以列印或截圖"
             >
@@ -1028,7 +1028,7 @@ export default function CharacterEditor({
 
         {/* ==================== 手機端頂部步驟條 (Mobile Header - md 以下顯示) ==================== */}
         <div
-          className="md:hidden w-full flex flex-col gap-2 rounded p-3 border shadow-xs transition-colors"
+          className="md:hidden w-full flex flex-col gap-2 rounded p-3 border shadow-e1 transition-colors"
           style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
         >
           <div className="flex items-center justify-between gap-2">
@@ -1044,7 +1044,7 @@ export default function CharacterEditor({
               <button
                 type="button"
                 onClick={() => setIsPresetsModalOpen(true)}
-                className="px-2 py-1 rounded border text-t11 font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                className="px-2 py-1 rounded border text-t11 font-bold flex items-center gap-1 shadow-e1 cursor-pointer"
                 style={{ borderColor: theme.border, color: theme.textDark, backgroundColor: theme.cardBg }}
                 title="經典職業搭配"
               >
@@ -1054,7 +1054,7 @@ export default function CharacterEditor({
               <button
                 type="button"
                 onClick={() => setIsValidationModalOpen(true)}
-                className={`px-2 py-1 rounded border text-t11 font-bold flex items-center gap-1 shadow-2xs cursor-pointer ${
+                className={`px-2 py-1 rounded border text-t11 font-bold flex items-center gap-1 shadow-e1 cursor-pointer ${
                   validation.errors.length > 0
                     ? 'bg-[#f9f5eb] text-[#8c2d36] border-[#8c2d36]/50'
                     : validation.hasWarnings
@@ -1081,7 +1081,7 @@ export default function CharacterEditor({
               <button
                 type="button"
                 onClick={() => setIsCardPreviewModalOpen(true)}
-                className="px-2 py-1 rounded border text-t11 font-bold shadow-2xs cursor-pointer"
+                className="px-2 py-1 rounded border text-t11 font-bold shadow-e1 cursor-pointer"
                 style={{ borderColor: theme.border, color: theme.textDark, backgroundColor: theme.cardBg }}
               >
                 卡片預覽
@@ -1090,7 +1090,7 @@ export default function CharacterEditor({
                 <button
                   type="button"
                   onClick={onEnterPlayMode}
-                  className="px-2 py-1 rounded text-white text-t11 font-bold shadow-2xs cursor-pointer"
+                  className="px-2 py-1 rounded text-white text-t11 font-bold cursor-pointer"
                   style={{ backgroundColor: theme.accent }}
                 >
                   跑團面板
@@ -1120,7 +1120,7 @@ export default function CharacterEditor({
 
         {/* ==================== 主編輯區域 (Right Main Canvas) ==================== */}
         <div
-          className="flex-1 w-full min-w-0 rounded border p-4 sm:p-7 shadow-xs space-y-6 transition-colors"
+          className="flex-1 w-full min-w-0 rounded border p-4 sm:p-7 shadow-e1 space-y-6 transition-colors"
           style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
         >
           <ErrorBoundary inline label={TABS.find(t => t.id === activeTab)?.label || '編輯步驟'}>
@@ -1150,7 +1150,7 @@ export default function CharacterEditor({
                 <button
                   type="button"
                   onClick={() => setIsPresetsModalOpen(true)}
-                  className="text-xs font-bold px-3 py-1.5 rounded border transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  className="text-xs font-bold px-3 py-1.5 rounded border transition-all flex items-center gap-1.5 shadow-e1 cursor-pointer"
                   style={{
                     backgroundColor: theme.subpanelBg,
                     borderColor: theme.border,
@@ -1209,7 +1209,7 @@ export default function CharacterEditor({
                     <button
                       type="button"
                       onClick={() => setIsIdentityModalOpen(true)}
-                      className="text-t11 px-2.5 py-1 rounded border font-bold transition-colors flex items-center gap-1.5 shadow-2xs hover:opacity-90 cursor-pointer"
+                      className="text-t11 px-2.5 py-1 rounded border font-bold transition-colors flex items-center gap-1.5 shadow-e1 hover:opacity-90 cursor-pointer"
                       style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark }}
                       title="點開查看官方 60 種身分、40 種特質與 20 種細節對照表 (d6+d20)"
                     >
@@ -1222,7 +1222,7 @@ export default function CharacterEditor({
                         const newId = generateRandomIdentity();
                         updateField('identity', newId);
                       }}
-                      className="text-t11 px-2 py-1 rounded border font-bold transition-colors flex items-center gap-1 shadow-2xs hover:opacity-90 cursor-pointer"
+                      className="text-t11 px-2 py-1 rounded border font-bold transition-colors flex items-center gap-1 shadow-e1 hover:opacity-90 cursor-pointer"
                       style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark }}
                       title="投擲 1d6+1d20 隨機生成身份"
                     >
@@ -1392,7 +1392,7 @@ export default function CharacterEditor({
                           key={sbKey}
                           type="button"
                           onClick={() => toggleSourcebook(sbKey)}
-                          className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                          className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-e1 cursor-pointer"
                           style={
                             isEnabled
                               ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -1470,7 +1470,7 @@ export default function CharacterEditor({
                     style={{ borderColor: theme.border, backgroundColor: theme.panelBg }}
                   >
                     <div
-                      className="w-12 h-12 rounded mx-auto flex items-center justify-center border shadow-xs"
+                      className="w-12 h-12 rounded mx-auto flex items-center justify-center border shadow-e1"
                       style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.accent }}
                     >
                       <GiBroadsword size={24} />
@@ -1660,7 +1660,7 @@ export default function CharacterEditor({
 
               {/* 500 Zenit Starting Budget Tracker */}
               <div
-                className="p-3 rounded border space-y-2 shadow-2xs"
+                className="p-3 rounded border space-y-2 shadow-e1"
                 style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
               >
                 <div className="flex items-center justify-between text-xs flex-wrap gap-2">
@@ -1683,7 +1683,7 @@ export default function CharacterEditor({
                   <button
                     type="button"
                     onClick={handleRollStartingZenit}
-                    className="px-2.5 py-1 rounded border text-xs font-bold transition-all shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer"
+                    className="px-2.5 py-1 rounded border text-xs font-bold transition-all shadow-e1 flex items-center gap-1 shrink-0 cursor-pointer"
                     style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
                   >
                     <GiRollingDices className="w-3.5 h-3.5" style={{ color: theme.accent }} />
@@ -1827,7 +1827,7 @@ export default function CharacterEditor({
                     <button
                       type="button"
                       onClick={() => { setForgeEditingId(''); setIsForgeOpen(true); }}
-                      className="px-2.5 py-1 rounded border text-xs font-bold transition-all shadow-2xs flex items-center gap-1 shrink-0 cursor-pointer"
+                      className="px-2.5 py-1 rounded border text-xs font-bold transition-all shadow-e1 flex items-center gap-1 shrink-0 cursor-pointer"
                       style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
                     >
                       <GiAnvil className="w-3.5 h-3.5" style={{ color: theme.accent }} />
@@ -2006,7 +2006,7 @@ export default function CharacterEditor({
                   style={{ borderColor: theme.border, backgroundColor: theme.panelBg }}
                 >
                   <div
-                    className="w-12 h-12 rounded mx-auto flex items-center justify-center border shadow-xs"
+                    className="w-12 h-12 rounded mx-auto flex items-center justify-center border shadow-e1"
                     style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.accent }}
                   >
                     <GiScrollUnfurled size={24} />
@@ -2044,7 +2044,7 @@ export default function CharacterEditor({
 
                   {character.quirk && character.quirk !== '無' ? (
                     <div
-                      className="rounded p-3 border space-y-1.5 shadow-2xs"
+                      className="rounded p-3 border space-y-1.5 shadow-e1"
                       style={{ backgroundColor: theme.subpanelBg, borderColor: theme.accent }}
                     >
                       <div className="flex items-center justify-between gap-2">

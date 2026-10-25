@@ -238,7 +238,7 @@ export default function ArcanistManager({
         <button
           type="button"
           onClick={() => setIsCustomModalOpen(true)}
-          className="px-2.5 py-1 rounded text-xs font-bold bg-[#9c4d16] hover:bg-[#833f12] text-white shadow-2xs flex items-center gap-1 transition-colors"
+          className="px-2.5 py-1 rounded text-xs font-bold bg-[#9c4d16] hover:bg-[#833f12] text-white shadow-e1 flex items-center gap-1 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>自訂阿爾卡納</span>
@@ -432,7 +432,7 @@ export default function ArcanistManager({
 
       {/* 自訂阿爾卡納 Modal */}
       {isCustomModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-[#fffdf9] border border-[#9c4d16] rounded p-5 w-full max-w-md shadow-e3 space-y-4">
             <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2">
               <h3 className="text-sm font-bold text-[#9c4d16] flex items-center gap-2">
@@ -540,7 +540,7 @@ export default function ArcanistManager({
 
       {/* 解除結算確認 Modal */}
       {isDismissModalOpen && activeArcana && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-[#fffdf9] border border-[#8c2d36] rounded p-5 w-full max-w-md shadow-e3 space-y-4">
             <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2">
               <h3 className="text-sm font-bold text-[#8c2d36] flex items-center gap-2">

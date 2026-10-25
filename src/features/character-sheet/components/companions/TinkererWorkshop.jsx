@@ -1907,7 +1907,7 @@ export default function TinkererWorkshop({
 
       {/* 新增專案彈窗 (官方六大步驟三乘數計算器) */}
       {isAddModalOpen && typeof document !== 'undefined' && ReactDOM.createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-[#2c221e]/55 backdrop-blur-xs overflow-y-auto animate-fade-in">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-[#2c221e]/55 backdrop-blur-sm overflow-y-auto animate-fade-in">
           {/* 背景點擊關閉 */}
           <div className="fixed inset-0 -z-10" onClick={() => setIsAddModalOpen(false)} />
 
@@ -1952,7 +1952,7 @@ export default function TinkererWorkshop({
                     value={newProjectName}
                     onChange={(e) => setNewProjectName(e.target.value)}
                     placeholder="例如：磁力靴、探索者號飛空艇、加特林魔像"
-                    className="w-full px-3 py-2 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
+                    className="w-full px-3 py-2 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-none"
                     required
                   />
                 </div>
@@ -1966,7 +1966,7 @@ export default function TinkererWorkshop({
                     onChange={(e) => setNewDescription(e.target.value)}
                     placeholder="描述發明效果、如何運作、所需能源與具體益處。"
                     rows={2}
-                    className="w-full px-3 py-1.5 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
+                    className="w-full px-3 py-1.5 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-none"
                   />
                 </div>
               </div>
@@ -2078,7 +2078,7 @@ export default function TinkererWorkshop({
                       value={newFlawDesc}
                       onChange={(e) => setNewFlawDesc(e.target.value)}
                       placeholder="例如：需定期回充能源、極不可靠、體積笨重噪音巨大、或具電屬性弱點。"
-                      className="w-full px-3 py-1.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
+                      className="w-full px-3 py-1.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-none"
                     />
                   </div>
                 )}
@@ -2103,7 +2103,7 @@ export default function TinkererWorkshop({
                       value={newSpecialIngredient}
                       onChange={(e) => setNewSpecialIngredient(e.target.value)}
                       placeholder="例如：元素史萊姆的黏性核心、上古空艇浮空石、火山結晶火精髓。"
-                      className="w-full px-3 py-1.5 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-hidden"
+                      className="w-full px-3 py-1.5 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs focus:ring-1 focus:ring-[#a63d40] focus:outline-none"
                       required={isSpecialRequired}
                     />
                   </div>

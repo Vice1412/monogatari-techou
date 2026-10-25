@@ -338,7 +338,7 @@ export default function ClassPickerModal({
               <button
                 type="button"
                 onClick={() => onSetSourcebooks && onSetSourcebooks([...BOOK_KEYS])}
-                className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-e1 cursor-pointer"
                 style={
                   allBooksOn
                     ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -359,7 +359,7 @@ export default function ClassPickerModal({
                     key={sbKey}
                     type="button"
                     onClick={() => onToggleSourcebook && onToggleSourcebook(sbKey)}
-                    className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                    className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-e1 cursor-pointer"
                     style={
                       isEnabled
                         ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -479,7 +479,7 @@ export default function ClassPickerModal({
                       ? 'opacity-40 bg-[#f4ebd9]/60 border-[#d6c7ab] cursor-not-allowed'
                       : isSelected
                         ? 'ring-2 shadow-sm'
-                        : 'hover:border-[#7c6a58] hover:shadow-2xs'
+                        : 'hover:border-[#7c6a58] hover:shadow-e1'
                   }`}
                   style={{
                     backgroundColor: isSelected ? theme.subpanelBg : theme.cardBg,
@@ -500,7 +500,7 @@ export default function ClassPickerModal({
                   <div className="flex items-center justify-between gap-1.5">
                     <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className="w-7 h-7 rounded border flex items-center justify-center shrink-0 shadow-2xs"
+                        className="w-7 h-7 rounded border flex items-center justify-center shrink-0 shadow-e1"
                         style={{
                           backgroundColor: theme.panelBg,
                           borderColor: theme.border,
@@ -573,12 +573,12 @@ export default function ClassPickerModal({
 
               {/* 頂部職業標題與風格敘述 */}
               <div
-                className="p-2.5 sm:p-3 rounded border flex items-center justify-between gap-3 shrink-0 shadow-2xs"
+                className="p-2.5 sm:p-3 rounded border flex items-center justify-between gap-3 shrink-0 shadow-e1"
                 style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded border flex items-center justify-center shrink-0 shadow-xs"
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded border flex items-center justify-center shrink-0 shadow-e1"
                     style={{
                       backgroundColor: theme.cardBg,
                       borderColor: theme.border,
@@ -621,7 +621,7 @@ export default function ClassPickerModal({
               <div className="flex-1 overflow-y-auto space-y-2.5 pr-1.5 min-h-0">
                 {/* 職業免費增益區塊 */}
                 <div
-                  className="p-2.5 sm:p-3 rounded border space-y-1 shadow-2xs"
+                  className="p-2.5 sm:p-3 rounded border space-y-1 shadow-e1"
                   style={{ backgroundColor: theme.subpanelBg, borderColor: theme.accent }}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -663,7 +663,7 @@ export default function ClassPickerModal({
                   return (
                     <div
                       key={sk.name}
-                      className="p-2.5 sm:p-3 rounded border space-y-2 shadow-2xs"
+                      className="p-2.5 sm:p-3 rounded border space-y-2 shadow-e1"
                       style={{
                         backgroundColor: currentSL > 0 ? theme.subpanelBg : theme.cardBg,
                         borderColor: pickedVariant

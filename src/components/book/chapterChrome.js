@@ -75,7 +75,7 @@ export const BOOK_CHROME = Object.freeze({
   subTitleBadge: 'bg-white/85 border-[#d6c7ab] text-[#3c2415]',
 
   // 頁首動作（三級：主要／次要／第三級）
-  exitBtn: 'border-[#a63d40]/40 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-e1',
+  exitBtn: 'border-[#a63d40]/40 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9]',
   exitIcon: 'text-[#f7f3e8]',
   iconWrapper: 'bg-[#f4ebd9] border-[#d6c7ab] text-[#3c2415]',
   toolBtn: 'border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#e8dcc4] text-[#3c2415] hover:text-[#2c221e]',

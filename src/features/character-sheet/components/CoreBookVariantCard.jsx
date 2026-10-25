@@ -49,7 +49,7 @@ export default function CoreBookVariantCard({
 
   return (
     <div
-      className="p-2.5 sm:p-3 rounded space-y-2 shadow-2xs transition-colors"
+      className="p-2.5 sm:p-3 rounded space-y-2 shadow-e1 transition-colors"
       style={{
         /* 第三十七輪（§CI45）：原本是 `isSelected ? (theme.highlightBg || subpanelBg) : subpanelBg`。
            `highlightBg` 這欄位從來不存在，所以兩個分支都是 `subpanelBg`——底色一直沒在表達選中。

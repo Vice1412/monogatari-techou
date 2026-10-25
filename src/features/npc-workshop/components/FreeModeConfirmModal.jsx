@@ -12,8 +12,8 @@ import { Unlock, AlertTriangle, Check } from 'lucide-react';
 export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#fffdf9] border-2 border-[#a63d40] rounded max-w-md w-full p-6 shadow-xl relative overflow-hidden animate-in zoom-in-95 duration-200 text-[#2c221e]">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm duration-200 animate-fade-in">
+      <div className="bg-[#fffdf9] border-2 border-[#a63d40] rounded max-w-md w-full p-6 shadow-xl relative overflow-hidden duration-200 text-[#2c221e] animate-modal-pop">
 
         <div className="flex items-center gap-3 font-black text-lg mb-4">
           <div className="p-2.5 bg-[#f4ebd9] rounded border border-[#d6c7ab]">

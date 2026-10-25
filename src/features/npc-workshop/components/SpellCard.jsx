@@ -89,7 +89,7 @@ const SpellCard = ({ skillId, spellName, isActive, isDisabled, isOverBudget, isC
           <div className={`text-xs leading-relaxed ${isOverBudget && isActive ? 'text-[#8c2d36]' : selections?.customDesc !== undefined ? 'text-[#3c2415] font-medium' : 'text-[#6b5a4b]'}`}>{renderFormattedText(currentDesc, selections, npcLevel, partyLevel)}{isSecretArt && isActive && !isOverBudget && <div className="text-[#6b5a4b] mt-1 text-t11 font-bold">*(此咒語為祕技，除了目標之外沒有人會意識到那是什麼。)*</div>}</div>
         )}
       </>}
-      {isActive && selectionsConfig && <div className={`mt-4 pt-3 border-t flex flex-col gap-2 animate-in slide-in-from-top-2 ${isOverBudget ? 'border-[#8c2d36]/50' : 'border-[#d6c7ab]'}`}>
+      {isActive && selectionsConfig && <div className={`mt-4 pt-3 border-t flex flex-col gap-2 animate-fade-in${isOverBudget ? 'border-[#8c2d36]/50' : 'border-[#d6c7ab]'}`}>
         {selectionsConfig.filter(cfg => !cfg.showIfKey || (selections?.[cfg.showIfKey] || "").includes(cfg.showIfValue)).map(cfg => (
           <label key={cfg.key} className={`flex justify-between items-center text-xs font-bold bg-[#fffdf9] p-2 rounded border ${isOverBudget ? 'text-[#8c2d36] border-[#8c2d36]/50' : 'text-[#3c2415] border-[#d6c7ab]'}`}>{cfg.label}
             <select className={`bg-[#fbf7ee] text-[#2c221e] border p-1 rounded outline-none w-32 transition-colors ${isOverBudget ? 'border-[#8c2d36] focus:border-[#8c2d36]' : 'border-[#d6c7ab] focus:border-[#3c2415]'}`} value={selections?.[cfg.key] || ''} onChange={(e) => onSelectionChange(skillId, spellName, cfg.key, e.target.value)} onClick={e => e.stopPropagation()} >

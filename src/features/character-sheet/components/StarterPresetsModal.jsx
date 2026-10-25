@@ -95,7 +95,7 @@ export function StarterPresetsPanel({
               key={sb.id}
               type="button"
               onClick={() => setSourcebook(sb.id)}
-              className="text-t11 px-2.5 py-1 rounded border font-bold transition-all shadow-2xs cursor-pointer"
+              className="text-t11 px-2.5 py-1 rounded border font-bold transition-all shadow-e1 cursor-pointer"
               style={
                 isActive
                   ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -151,7 +151,7 @@ export function StarterPresetsPanel({
               return (
               <div
                 key={preset.id}
-                className="rounded border transition-all shadow-xs hover:shadow-md overflow-hidden"
+                className="rounded border transition-all shadow-e1 hover:shadow-md overflow-hidden"
                 style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
               >
                 {/* 標頭：**永遠可見**，只放名字與來源。
@@ -172,7 +172,7 @@ export function StarterPresetsPanel({
                       {preset.title}
                     </span>
                     <span
-                      className="text-t10 font-bold px-1.5 py-0.5 rounded border shadow-2xs shrink-0"
+                      className="text-t10 font-bold px-1.5 py-0.5 rounded border shadow-e1 shrink-0"
                       style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.accent }}
                     >
                       {SOURCEBOOKS[preset.sourcebook || 'core'].shortName}
@@ -273,7 +273,7 @@ export function StarterPresetsPanel({
                   <button
                     type="button"
                     onClick={() => onApply(preset)}
-                    className="w-full py-2 rounded text-white font-bold text-xs shadow-xs transition-all hover:opacity-90 cursor-pointer"
+                    className="w-full py-2 rounded text-white font-bold text-xs transition-all hover:opacity-90 cursor-pointer"
                     style={{ backgroundColor: theme.accent }}
                   >
                     套用此經典配置

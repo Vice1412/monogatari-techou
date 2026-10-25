@@ -105,7 +105,7 @@ export default function AvatarCropperModal({ isOpen, imageSrc, onClose, onConfir
   };
 
   return (
-    <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 duration-200 animate-fade-in">
       <div className="bg-[#fbf7ee] border border-[#d6c7ab] rounded shadow-e3 max-w-md w-full p-5 space-y-4 text-[#2c221e]">
         <div className="flex items-center justify-between pb-2 border-b border-[#d6c7ab]">
           <div>

@@ -180,7 +180,7 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
 
   return (
     <div
-      className="rounded border shadow-xs overflow-hidden"
+      className="rounded border shadow-e1 overflow-hidden"
       style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
       data-testid="technosphere-panel"
     >

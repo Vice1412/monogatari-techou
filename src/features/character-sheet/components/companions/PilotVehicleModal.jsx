@@ -238,7 +238,7 @@ export default function PilotVehicleModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm duration-200 animate-fade-in">
       <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded bg-white border border-[#d6c7ab] shadow-e3 overflow-hidden text-[#3c2415]">
         
         {/* 頂部 Header */}
@@ -327,7 +327,7 @@ export default function PilotVehicleModal({
           <button
             type="button"
             onClick={() => setFormData(prev => ({ ...prev, isMounted: !prev.isMounted }))}
-            className={`px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1.5 transition ${ formData.isMounted ? 'bg-[#27527a] text-white shadow-xs' : 'bg-[#e8dcc4] text-[#6b5a4b] hover:bg-[#d6c7ab]' }`}
+            className={`px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1.5 transition ${ formData.isMounted ? 'bg-[#27527a] text-white shadow-e1' : 'bg-[#e8dcc4] text-[#6b5a4b] hover:bg-[#d6c7ab]' }`}
           >
             <GiSteeringWheel className="text-xs" />
             <span>{formData.isMounted ? '駕駛中' : '步行中'}</span>
@@ -404,21 +404,21 @@ export default function PilotVehicleModal({
                 <button
                   type="button"
                   onClick={() => setActiveTab('weapons')}
-                  className={`px-3 py-1 rounded transition ${ activeTab === 'weapons' ? 'bg-white text-[#27527a] shadow-2xs' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
+                  className={`px-3 py-1 rounded transition ${ activeTab === 'weapons' ? 'bg-white text-[#27527a] shadow-e1' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
                 >
                   武裝模組 (17)
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('armor')}
-                  className={`px-3 py-1 rounded transition ${ activeTab === 'armor' ? 'bg-white text-[#27527a] shadow-2xs' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
+                  className={`px-3 py-1 rounded transition ${ activeTab === 'armor' ? 'bg-white text-[#27527a] shadow-e1' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
                 >
                   防具模組 (4)
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('support')}
-                  className={`px-3 py-1 rounded transition ${ activeTab === 'support' ? 'bg-white text-[#27527a] shadow-2xs' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
+                  className={`px-3 py-1 rounded transition ${ activeTab === 'support' ? 'bg-white text-[#27527a] shadow-e1' : 'text-[#6b5a4b] hover:text-[#2c221e] ' }`}
                 >
                   支援模組 (14)
                 </button>
@@ -675,7 +675,7 @@ export default function PilotVehicleModal({
             <button
               type="button"
               onClick={handleSave}
-              className="px-5 py-1.5 rounded text-xs font-bold bg-[#27527a] hover:bg-[#214365] text-white shadow-xs flex items-center gap-1.5 transition"
+              className="px-5 py-1.5 rounded text-xs font-bold bg-[#27527a] hover:bg-[#214365] text-white shadow-e1 flex items-center gap-1.5 transition"
             >
               <GiCheckMark className="text-xs" />
               <span>確認並儲存載具配置</span>

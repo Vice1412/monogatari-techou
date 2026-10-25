@@ -394,7 +394,7 @@ export default function SkillSuboptionModal({
                 type="button"
                 onClick={() => setActiveCategory('all')}
                 className={`px-2.5 py-1 rounded font-medium transition-colors ${
-                  activeCategory === 'all' ? 'bg-white shadow-2xs text-[#2c221e] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
+                  activeCategory === 'all' ? 'bg-white shadow-e1 text-[#2c221e] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
                 }`}
               >
                 全部項目
@@ -403,7 +403,7 @@ export default function SkillSuboptionModal({
                 type="button"
                 onClick={() => setActiveCategory('keys')}
                 className={`px-2.5 py-1 rounded font-medium transition-colors ${
-                  activeCategory === 'keys' ? 'bg-white shadow-2xs text-[#3c2415] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
+                  activeCategory === 'keys' ? 'bg-white shadow-e1 text-[#3c2415] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
                 }`}
               >
                 音調（8 種）
@@ -412,7 +412,7 @@ export default function SkillSuboptionModal({
                 type="button"
                 onClick={() => setActiveCategory('tones')}
                 className={`px-2.5 py-1 rounded font-medium transition-colors ${
-                  activeCategory === 'tones' ? 'bg-white shadow-2xs text-[#2c221e] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
+                  activeCategory === 'tones' ? 'bg-white shadow-e1 text-[#2c221e] font-bold' : 'text-[#6b5a4b] hover:text-[#2c221e]'
                 }`}
               >
                 曲風（7 種）

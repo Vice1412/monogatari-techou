@@ -152,7 +152,7 @@ export default function IdentityTablesModal({
                 <button
                   type="button"
                   onClick={handleApplyRolled}
-                  className="px-2.5 py-1 rounded text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
+                  className="px-2.5 py-1 rounded text-white text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
                   style={{ backgroundColor: theme?.accent }}
                 >
                   <GiCheckMark className="w-3 h-3" />
@@ -322,7 +322,7 @@ export default function IdentityTablesModal({
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="搜尋身份、特質、細節或英文..."
-              className="w-full border rounded pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-[#6b5a4b]"
+              className="w-full border rounded pl-7 pr-3 py-1 text-xs outline-none shadow-e1 placeholder:text-[#6b5a4b]"
               style={{ backgroundColor: theme?.cardBg, borderColor: theme?.border, color: theme?.textDark }}
             />
             <GiMagnifyingGlass className="w-3.5 h-3.5 absolute left-2 top-2" style={{ color: theme?.accent }} />

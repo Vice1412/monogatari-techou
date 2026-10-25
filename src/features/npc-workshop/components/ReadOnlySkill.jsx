@@ -136,7 +136,7 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
         return (
           <div className={`bg-[#fffdf9] border-l-4 p-2.5 my-1 text-sm ml-2 md:ml-4 rounded-r border border-[#d6c7ab] ${skill.isSecretArt ? 'border-l-[#3c2415]' : skill.category === 'boss' ? 'border-l-[#3c2415]' : 'border-l-[#8c2d36]'}`}>
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-              <span className="inline-flex items-center gap-1 text-[#3c2415] bg-[#e8dcc4] px-2 py-0.5 rounded text-xs font-bold shrink-0 shadow-2xs">
+              <span className="inline-flex items-center gap-1 text-[#3c2415] bg-[#e8dcc4] px-2 py-0.5 rounded text-xs font-bold shrink-0 shadow-e1">
                 <span className="fu-icon text-sm leading-none translate-y-[0.5px]">{isRanged ? 'r' : 'm'}</span>
                 <span>{renderFormattedText(atk.distance, skill.selections, npcLevel, partyLevel, true)}</span>
               </span>

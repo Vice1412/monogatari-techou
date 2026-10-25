@@ -279,7 +279,7 @@ export default function TinkererGadgetsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
       <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-white rounded shadow-e3 border border-[#d6c7ab] overflow-hidden font-sans text-[#3c2415]">
         
         {/* 頂部標題列 */}
@@ -417,7 +417,7 @@ export default function TinkererGadgetsModal({
 
                               <div className="flex items-center gap-1">
                                 {isUnlocked ? (
-                                  <span className="w-5 h-5 rounded-full bg-[#a63d40] text-[#fffdf9] flex items-center justify-center text-xs shadow-xs">
+                                  <span className="w-5 h-5 rounded-full bg-[#a63d40] text-[#fffdf9] flex items-center justify-center text-xs shadow-e1">
                                     <GiCheckMark className="w-3 h-3" />
                                   </span>
                                 ) : canUnlock ? (
@@ -501,7 +501,7 @@ export default function TinkererGadgetsModal({
                       key={sc}
                       type="button"
                       onClick={() => setSpellSchoolFilter(sc)}
-                      className={`px-2.5 py-1 rounded text-t11 font-bold transition-all cursor-pointer ${ spellSchoolFilter === sc ? 'bg-[#3c2415] text-[#fffdf9] shadow-2xs' : 'text-[#6b5a4b] hover:bg-[#f4ebd9] ' }`}
+                      className={`px-2.5 py-1 rounded text-t11 font-bold transition-all cursor-pointer ${ spellSchoolFilter === sc ? 'bg-[#3c2415] text-[#fffdf9] shadow-e1' : 'text-[#6b5a4b] hover:bg-[#f4ebd9] ' }`}
                     >
                       {sc}
                     </button>

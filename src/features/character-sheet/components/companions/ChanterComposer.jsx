@@ -96,7 +96,7 @@ export default function ChanterComposer({
       {/* 頂部標題列 */}
       <div className="flex items-center justify-between border-b border-[#d6c7ab]/60 pb-2">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-[#5e387c] text-white flex items-center justify-center shadow-2xs">
+          <div className="w-6 h-6 rounded bg-[#5e387c] text-white flex items-center justify-center shadow-e1">
             <GiMusicalNotes className="w-3.5 h-3.5" />
           </div>
           <div>
@@ -132,7 +132,7 @@ export default function ChanterComposer({
                   onClick={() => setSelectedVolId(vol.id)}
                   className={`px-2 py-1.5 rounded text-left transition-all flex items-center justify-between cursor-pointer ${
                     isSelected
-                      ? 'bg-[#5e387c] text-white font-bold shadow-xs'
+                      ? 'bg-[#5e387c] text-white font-bold shadow-e1'
                       : 'bg-[#f4ebd9]/60 hover:bg-[#f4ebd9]/80 text-[#5e387c] border border-[#d6c7ab]'
                   }`}
                 >
@@ -163,7 +163,7 @@ export default function ChanterComposer({
                   onClick={() => setSelectedKeyName(kName)}
                   className={`px-2 py-1.5 rounded text-left transition-all flex items-center justify-between cursor-pointer ${
                     isSelected
-                      ? 'bg-[#9c4d16] text-white font-bold shadow-xs'
+                      ? 'bg-[#9c4d16] text-white font-bold shadow-e1'
                       : 'bg-[#f4ebd9]/60 hover:bg-[#f4ebd9]/80 text-[#9c4d16] border border-[#d6c7ab]'
                   }`}
                 >
@@ -195,7 +195,7 @@ export default function ChanterComposer({
                   onClick={() => setSelectedToneName(tName)}
                   className={`px-2 py-1.5 rounded text-left transition-all flex items-center justify-between cursor-pointer ${
                     isSelected
-                      ? 'bg-[#5e387c] text-white font-bold shadow-xs'
+                      ? 'bg-[#5e387c] text-white font-bold shadow-e1'
                       : 'bg-[#f4ebd9]/60 hover:bg-[#f4ebd9]/80 text-[#5e387c] border border-[#d6c7ab]'
                   }`}
                 >
@@ -268,7 +268,7 @@ export default function ChanterComposer({
               type="button"
               onClick={handlePerformSong}
               disabled={!isMpSufficient}
-              className={`px-4 py-1.5 rounded font-bold text-xs transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer ${
+              className={`px-4 py-1.5 rounded font-bold text-xs transition-all flex items-center gap-1.5 shadow-e1 cursor-pointer ${
                 isMpSufficient
                   ? 'bg-[#5e387c] hover:bg-[#4f2e67] text-white shadow-[#3c2415]/30'
                   : 'bg-[#e8dcc4] text-[#7c6a58] cursor-not-allowed'

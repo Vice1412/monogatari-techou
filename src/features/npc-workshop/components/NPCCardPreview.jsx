@@ -241,7 +241,7 @@ export default function NPCCardPreview({
                     <div className="flex items-center justify-between font-bold text-[#3c2415] mb-1">
                       <span>{att.name || att.skillName || '普通攻擊'}</span>
                       <span className="inline-flex items-center gap-1.5 font-mono text-[#6b5a4b]">
-                        <span className="inline-flex items-center gap-1 text-[#3c2415] bg-[#e8dcc4] px-1.5 py-0.5 rounded text-t11 font-bold leading-none shrink-0 shadow-2xs">
+                        <span className="inline-flex items-center gap-1 text-[#3c2415] bg-[#e8dcc4] px-1.5 py-0.5 rounded text-t11 font-bold leading-none shrink-0 shadow-e1">
                           <span className="fu-icon text-xs leading-none translate-y-[0.5px]">{(att.selections?.distance || '').includes('遠程') ? 'r' : 'm'}</span>
                           <span>{att.selections?.distance || '近戰'}</span>
                         </span>

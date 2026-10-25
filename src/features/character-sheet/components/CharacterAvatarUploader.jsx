@@ -339,7 +339,7 @@ export default function CharacterAvatarUploader({
       >
         {/* 拖曳覆蓋層動畫 */}
         {isDraggingOver && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#fffdf9]/95 backdrop-blur-xs rounded border-2 border-dashed border-[#3c2415] text-[#2c221e] pointer-events-none animate-in fade-in duration-150">
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#fffdf9]/95 backdrop-blur-sm rounded border-2 border-dashed border-[#3c2415] text-[#2c221e] pointer-events-none duration-150 animate-fade-in">
             <Upload size={32} className="mb-1 text-[#6b5a4b]" />
             <span className="font-bold text-xs">釋放滑鼠以上傳照片或網址</span>
           </div>
@@ -367,7 +367,7 @@ export default function CharacterAvatarUploader({
                   draggable={false}
                   className="w-full h-full object-cover select-none"
                 />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 text-white p-1 backdrop-blur-xs">
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1 text-white p-1 backdrop-blur-sm">
                   <Crop size={14} />
                   <span className="text-t10 font-bold">調整大小</span>
                 </div>
@@ -389,7 +389,7 @@ export default function CharacterAvatarUploader({
             {/* 按鈕組 */}
             <div className="flex flex-wrap items-center gap-2">
               <label
-                className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded transition-all shadow-2xs hover:opacity-90"
+                className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded transition-all hover:opacity-90"
                 style={{ backgroundColor: theme.accent }}
               >
                 <Upload size={13} />
@@ -408,7 +408,7 @@ export default function CharacterAvatarUploader({
                   <button
                     type="button"
                     onClick={handleReCrop}
-                    className="px-2.5 py-1.5 rounded border text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs hover:opacity-90 cursor-pointer"
+                    className="px-2.5 py-1.5 rounded border text-xs font-bold transition-all flex items-center gap-1.5 shadow-e1 hover:opacity-90 cursor-pointer"
                     style={{
                       backgroundColor: theme.subpanelBg,
                       borderColor: theme.border,
@@ -449,7 +449,7 @@ export default function CharacterAvatarUploader({
                       handleLoadImageUrl();
                     }
                   }}
-                  className="w-full rounded px-2.5 py-1.5 text-xs outline-none border transition-colors font-medium shadow-2xs"
+                  className="w-full rounded px-2.5 py-1.5 text-xs outline-none border transition-colors font-medium shadow-e1"
                   style={{
                     backgroundColor: theme.cardBg,
                     borderColor: theme.border,
@@ -461,7 +461,7 @@ export default function CharacterAvatarUploader({
                 type="button"
                 onClick={() => handleLoadImageUrl()}
                 disabled={isUrlLoading}
-                className="px-3 py-1.5 rounded border text-xs font-bold transition-all disabled:opacity-50 shadow-2xs shrink-0 cursor-pointer flex items-center gap-1"
+                className="px-3 py-1.5 rounded border text-xs font-bold transition-all disabled:opacity-50 shadow-e1 shrink-0 cursor-pointer flex items-center gap-1"
                 style={{
                   backgroundColor: theme.subpanelBg,
                   borderColor: theme.border,
@@ -481,7 +481,7 @@ export default function CharacterAvatarUploader({
 
         {/* 快速選用經典職業圖標庫面板 */}
         {showClassIconPicker && (
-          <div className="mt-3 pt-3 border-t space-y-2 animate-in fade-in duration-150" style={{ borderColor: theme.border }}>
+          <div className="mt-3 pt-3 border-t space-y-2 duration-150 animate-fade-in" style={{ borderColor: theme.border }}>
             <div className="text-t11 font-bold text-[#6b5a4b] flex items-center justify-between">
               <span>經典職業符號（無照片時可作為卡面標誌）：</span>
               <button
@@ -505,7 +505,7 @@ export default function CharacterAvatarUploader({
                       onClick={() => handleSelectClassIcon(cls.name)}
                       className={`px-2 py-1 rounded text-t11 font-bold flex items-center gap-1.5 transition-all border cursor-pointer ${
                         isSelected
-                          ? 'text-white shadow-xs'
+                          ? 'text-white'
                           : 'bg-white hover:bg-[#f4ebd9] text-[#3c2415]'
                       }`}
                       style={isSelected ? { backgroundColor: theme.accent, borderColor: theme.accent } : { borderColor: theme.border }}

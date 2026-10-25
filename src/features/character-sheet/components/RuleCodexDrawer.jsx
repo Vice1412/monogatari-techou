@@ -162,7 +162,7 @@ export default function RuleCodexDrawer({
     <div className="fixed inset-0 z-[10001] flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
       {/* 點擊遮罩背景 */}
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-xs animate-fade-in"
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
         onClick={handleClose}
       />
 
@@ -225,7 +225,7 @@ export default function RuleCodexDrawer({
                     setActiveRuleId(item.id);
                     setSearchTerm('');
                   }}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-xs font-bold transition-all whitespace-nowrap ${ isActive ? 'bg-[#a63d40] text-[#fffdf9] shadow-xs' : 'text-[#3c2415] hover:bg-[#f4ebd9] ' }`}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-xs font-bold transition-all whitespace-nowrap ${ isActive ? 'bg-[#a63d40] text-[#fffdf9] shadow-e1' : 'text-[#3c2415] hover:bg-[#f4ebd9] ' }`}
                 >
                   <Icon className="text-sm" />
                   <span>{item.label}</span>
@@ -281,7 +281,7 @@ export default function RuleCodexDrawer({
                   )}
 
                   {sec.kind === 'table' && (
-                    <div className="overflow-x-auto rounded border border-[#e8dcc4] shadow-2xs">
+                    <div className="overflow-x-auto rounded border border-[#e8dcc4] shadow-e1">
                       <table className="w-full text-left text-xs bg-white">
                         <thead className="bg-[#f4ebd9] text-[#3c2415] font-bold border-b border-[#e8dcc4]">
                           <tr>
@@ -355,7 +355,7 @@ export default function RuleCodexDrawer({
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="搜尋阿爾卡納或領域..."
-                    className="px-2.5 py-1 text-xs rounded border border-[#d6c7ab] bg-white text-[#3c2415] pr-7 focus:outline-hidden focus:ring-1 focus:ring-[#3c2415]"
+                    className="px-2.5 py-1 text-xs rounded border border-[#d6c7ab] bg-white text-[#3c2415] pr-7 focus:outline-none focus:ring-1 focus:ring-[#3c2415]"
                   />
                   <Search className="w-3.5 h-3.5 text-[#7c6a58] absolute right-2 top-2 pointer-events-none" />
                 </div>
@@ -405,7 +405,7 @@ export default function RuleCodexDrawer({
                 <h3 className="font-bold text-[#3c2415] text-xs sm:text-sm">
                   六大學派與施法檢定
                 </h3>
-                <div className="overflow-x-auto rounded border border-[#e8dcc4] shadow-2xs">
+                <div className="overflow-x-auto rounded border border-[#e8dcc4] shadow-e1">
                   <table className="w-full text-left text-xs bg-white">
                     <thead className="bg-[#f4ebd9] text-[#3c2415] font-bold border-b border-[#e8dcc4]">
                       <tr>
@@ -450,7 +450,7 @@ export default function RuleCodexDrawer({
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-1">
                   {/* 效力表 */}
-                  <div className="overflow-x-auto rounded border border-[#e8dcc4] shadow-2xs">
+                  <div className="overflow-x-auto rounded border border-[#e8dcc4] shadow-e1">
                     <table className="w-full text-left text-xs bg-white">
                       <thead className="bg-[#f4ebd9] text-[#3c2415] font-bold border-b border-[#e8dcc4]">
                         <tr>
@@ -474,7 +474,7 @@ export default function RuleCodexDrawer({
                   </div>
 
                   {/* 範圍表 */}
-                  <div className="overflow-x-auto rounded border border-[#e8dcc4] shadow-2xs">
+                  <div className="overflow-x-auto rounded border border-[#e8dcc4] shadow-e1">
                     <table className="w-full text-left text-xs bg-white">
                       <thead className="bg-[#f4ebd9] text-[#3c2415] font-bold border-b border-[#e8dcc4]">
                         <tr>
@@ -937,7 +937,7 @@ export default function RuleCodexDrawer({
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="搜尋咒語名稱或效果..."
-                    className="px-2.5 py-1 text-xs rounded border border-[#d6c7ab] bg-white text-[#3c2415] pr-7 focus:outline-hidden focus:ring-1 focus:ring-[#3c2415]"
+                    className="px-2.5 py-1 text-xs rounded border border-[#d6c7ab] bg-white text-[#3c2415] pr-7 focus:outline-none focus:ring-1 focus:ring-[#3c2415]"
                   />
                   <Search className="w-3.5 h-3.5 text-[#7c6a58] absolute right-2 top-2 pointer-events-none" />
                 </div>
@@ -995,7 +995,7 @@ export default function RuleCodexDrawer({
           <button
             type="button"
             onClick={handleClose}
-            className="px-4 py-1.5 bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] rounded font-bold transition-colors shadow-2xs flex items-center gap-1"
+            className="px-4 py-1.5 bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] rounded font-bold transition-colors shadow-e1 flex items-center gap-1"
           >
             <span>關閉並返回</span>
           </button>
