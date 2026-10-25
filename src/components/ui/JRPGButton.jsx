@@ -26,7 +26,7 @@ import { twMerge } from 'tailwind-merge';
  * | `ghost` | 透明，hover 才出現底 | 工具列、說明入口 |
  *
  * 十四個變體裡有十個的呼叫點是零——但它們不是死碼，是**透過主題物件動態呼叫**的
- * （`variant={theme.buttonVariant || 'primary'}`）。刪掉主題那兩個欄位之後，
+ * （`variant="primary"`）。刪掉主題那兩個欄位之後，
  * 全站 22 處呼叫自動落回 `primary`、8 處落回 `outline`，一個呼叫點都不用改。
  *
  * ## 護欄

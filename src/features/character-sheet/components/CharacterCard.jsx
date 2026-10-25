@@ -70,7 +70,7 @@ export default function CharacterCard({
         <div
           onClick={onAvatarClick || undefined}
           className={`w-16 h-16 rounded bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-2xl font-bold shadow-inner ${
-            onAvatarClick ? 'cursor-pointer hover:ring-2 hover:ring-[#3c2415]/40 hover:scale-105 transition-all' : ''
+            onAvatarClick ? 'cursor-pointer hover:ring-2 hover:ring-[#3c2415]/40 transition-all' : ''
           }`}
           style={{ borderColor: theme.border, color: theme.accent }}
           title={onAvatarClick ? "點擊更換或調整頭像肖像" : character.name}

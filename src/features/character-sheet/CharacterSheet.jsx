@@ -370,8 +370,8 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
               onClick={() => handleUpdateActiveCharacterTheme(t.id)}
               className={`w-5 h-5 rounded-full transition-all relative flex items-center justify-center cursor-pointer ${
                 isSelected
-                  ? 'scale-120 shadow-xs'
-                  : 'opacity-70 hover:opacity-100 hover:scale-110'
+                  ? 'shadow-xs'
+                  : 'opacity-70 hover:opacity-100'
               }`}
               style={{
                 backgroundColor: t.accent,
@@ -491,7 +491,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                   className="hidden"
                 />
                 <span
-                  className="bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab] px-3.5 py-2 rounded font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs cursor-pointer"
+                  className="bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab] px-3.5 py-2 rounded font-bold flex items-center gap-1.5 transition-all justify-center text-xs cursor-pointer"
                   title="支援匯入《物語手帳》備份或 Fultimator 導出之角色 JSON"
                 >
                   <Upload className="w-3.5 h-3.5 text-[#6b5a4b]" />
@@ -503,7 +503,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 type="button"
                 onClick={handleExportJSON}
                 disabled={roster.length === 0}
-                className="bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab] px-3.5 py-2 rounded font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs disabled:opacity-40 disabled:pointer-events-none"
+                className="bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab] px-3.5 py-2 rounded font-bold flex items-center gap-1.5 transition-all justify-center text-xs disabled:opacity-40 disabled:pointer-events-none"
                 title="匯出全站冒險者名冊 JSON 備份"
               >
                 <Download className="w-3.5 h-3.5 text-[#6b5a4b]" />
@@ -513,7 +513,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
               <button
                 type="button"
                 onClick={handleCreateCharacter}
-                className="bg-[#8b5e34] hover:bg-[#78350f] text-white px-4 py-2 rounded font-bold flex items-center gap-1.5 shadow-md transition-all hover:scale-102 justify-center text-xs"
+                className="bg-[#8b5e34] hover:bg-[#78350f] text-white px-4 py-2 rounded font-bold flex items-center gap-1.5 shadow-md transition-all justify-center text-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>建立新角色</span>
@@ -591,7 +591,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                     >
                       <div
                         onClick={() => handleOpenEditorMode(char)}
-                        className="w-12 h-12 rounded bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-xl font-bold shadow-inner cursor-pointer hover:scale-105 hover:ring-2 hover:ring-[#8b5e34]/50 transition-all group relative"
+                        className="w-12 h-12 rounded bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-xl font-bold shadow-inner cursor-pointer hover:ring-2 hover:ring-[#8b5e34]/50 transition-all group relative"
                         style={{ borderColor: charTheme.border, color: charTheme.accent }}
                         title="點擊前往編輯此角色與肖像"
                       >
@@ -794,7 +794,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         </button>
 
                         <JRPGButton
-                          variant={charTheme.buttonVariant || 'primary'}
+                          variant="primary"
                           size="xs"
                           icon={Play}
                           onClick={() => handleOpenPlayMode(char)}

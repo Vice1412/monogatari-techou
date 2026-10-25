@@ -51,49 +51,50 @@ export default function CoreBookVariantCard({
     <div
       className="p-2.5 sm:p-3 rounded space-y-2 shadow-2xs transition-colors"
       style={{
-        backgroundColor: isSelected
-          ? (theme?.highlightBg || theme?.subpanelBg || '#f4ebd9')
-          : (theme?.subpanelBg || '#f4ebd9'),
+        /* 第三十七輪（§CI45）：原本是 `isSelected ? (theme.highlightBg || subpanelBg) : subpanelBg`。
+           `highlightBg` 這欄位從來不存在，所以兩個分支都是 `subpanelBg`——底色一直沒在表達選中。
+           選中由邊框色（accent／border）、粗細（2／1）、虛實（solid／dashed）三件事表達，夠了。 */
+        backgroundColor: theme?.subpanelBg,
         borderColor: isSelected
-          ? (theme?.accent || '#c9a227')
-          : (theme?.border || '#e8dcc4'),
+          ? (theme?.accent)
+          : (theme?.border),
         borderWidth: isSelected ? 2 : 1,
         borderStyle: isSelected ? 'solid' : 'dashed',
       }}
     >
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-t10 font-black px-1.5 py-0.5 rounded border shrink-0"
-          style={{ borderColor: theme?.accent || '#c9a227', color: theme?.accent || '#a16207' }}>
+          style={{ borderColor: theme?.accent, color: theme?.accent }}>
           公測
         </span>
         {isSelected && (
           <span className="text-t10 font-black px-1.5 py-0.5 rounded shrink-0 flex items-center gap-0.5 text-white"
-            style={{ backgroundColor: theme?.accent || '#a16207' }}>
+            style={{ backgroundColor: theme?.accent }}>
             <GiCheckMark className="w-2.5 h-2.5" />
             使用中
           </span>
         )}
         <span className="font-serif font-black text-sm whitespace-nowrap shrink-0"
-          style={{ color: theme?.textDark || '#3c2415' }}>
+          style={{ color: theme?.textDark }}>
           {variant.name}
         </span>
-        <span className="text-t10 font-mono shrink-0" style={{ color: theme?.textMuted || '#8a7a63' }}>
+        <span className="text-t10 font-mono shrink-0" style={{ color: theme?.textMuted }}>
           {variant.en}
         </span>
-        <span className="text-t10 font-mono shrink-0" style={{ color: theme?.textMuted || '#8a7a63' }}>
+        <span className="text-t10 font-mono shrink-0" style={{ color: theme?.textMuted }}>
           SL 上限 {variant.maxSL}
         </span>
-        <span className="text-t10 shrink-0" style={{ color: theme?.textMuted || '#8a7a63' }}>
+        <span className="text-t10 shrink-0" style={{ color: theme?.textMuted }}>
           取代【{variant.replaces}】
         </span>
       </div>
 
-      <div className="text-xs sm:text-t12 leading-relaxed" style={{ color: theme?.textDark || '#3c2415' }}>
+      <div className="text-xs sm:text-t12 leading-relaxed" style={{ color: theme?.textDark }}>
         <SkillDescription desc={variant.desc} sl={0} linkCodex={false} />
       </div>
 
       <div className="flex items-center justify-between gap-2 flex-wrap pt-0.5">
-        <div className="flex items-start gap-1 text-t10 flex-1 min-w-[180px]" style={{ color: theme?.textMuted || '#8a7a63' }}>
+        <div className="flex items-start gap-1 text-t10 flex-1 min-w-[180px]" style={{ color: theme?.textMuted }}>
           <GiScrollUnfurled className="w-3 h-3 mt-0.5 shrink-0" />
           <span>{variant.origin}。粗體＝與原版不同的機制。</span>
         </div>
@@ -111,11 +112,11 @@ export default function CoreBookVariantCard({
                   : `用【${variant.name}】取代原版【${variant.replaces}】`
             }
             className={`text-t11 font-bold px-2.5 py-1 rounded border transition-all shrink-0 ${
-              canPress ? 'cursor-pointer active:scale-95' : 'cursor-not-allowed opacity-45'
+              canPress ? 'cursor-pointer' : 'cursor-not-allowed opacity-45'
             }`}
             style={isSelected
-              ? { backgroundColor: theme?.cardBg || '#fff', borderColor: theme?.border || '#e8dcc4', color: theme?.textDark || '#3c2415' }
-              : { backgroundColor: theme?.accent || '#a16207', borderColor: theme?.accentDark || theme?.accent || '#a16207', color: '#fff' }}
+              ? { backgroundColor: theme?.cardBg, borderColor: theme?.border, color: theme?.textDark }
+              : { backgroundColor: theme?.accent, borderColor: theme?.accentDark || theme?.accent, color: '#fff' }}
           >
             {isSelected ? '改回原版' : '選用此變體'}
           </button>
@@ -123,7 +124,7 @@ export default function CoreBookVariantCard({
       </div>
 
       {interactive && disabled && disabledHint && (
-        <p className="text-t10 italic" style={{ color: theme?.textMuted || '#8a7a63' }}>
+        <p className="text-t10 italic" style={{ color: theme?.textMuted }}>
           {disabledHint}
         </p>
       )}

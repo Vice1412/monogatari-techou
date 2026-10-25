@@ -95,7 +95,7 @@ export function StarterPresetsPanel({
               key={sb.id}
               type="button"
               onClick={() => setSourcebook(sb.id)}
-              className="text-t11 px-2.5 py-1 rounded border font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
+              className="text-t11 px-2.5 py-1 rounded border font-bold transition-all shadow-2xs cursor-pointer"
               style={
                 isActive
                   ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -273,7 +273,7 @@ export function StarterPresetsPanel({
                   <button
                     type="button"
                     onClick={() => onApply(preset)}
-                    className="w-full py-2 rounded text-white font-bold text-xs shadow-xs transition-all hover:opacity-90 active:scale-98 cursor-pointer"
+                    className="w-full py-2 rounded text-white font-bold text-xs shadow-xs transition-all hover:opacity-90 cursor-pointer"
                     style={{ backgroundColor: theme.accent }}
                   >
                     套用此經典配置

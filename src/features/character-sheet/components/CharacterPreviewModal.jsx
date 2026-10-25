@@ -47,7 +47,7 @@ export default function CharacterPreviewModal({
         <div className="flex items-center gap-2">
           {secondaryAction && (
             <JRPGButton
-              variant={theme?.buttonVariant || 'primary'}
+              variant="primary"
               size="sm"
               icon={Play}
               onClick={() => {

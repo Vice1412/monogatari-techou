@@ -45,7 +45,7 @@ function ActivityChip({ activity, active, theme, onClick }) {
       aria-pressed={active}
       className="text-left rounded border px-2.5 py-1.5 transition-all cursor-pointer"
       style={{
-        backgroundColor: active ? (theme.accentSoft || theme.subpanelBg) : theme.cardBg,
+        backgroundColor: active ? (theme.subpanelBg) : theme.cardBg,
         borderColor: active ? theme.accent : theme.border,
         color: theme.textDark
       }}
@@ -88,7 +88,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
               onClick={onToggleUsed}
               className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
               style={{
-                backgroundColor: used ? (theme.accentSoft || theme.cardBg) : theme.cardBg,
+                backgroundColor: theme.cardBg,
                 borderColor: used ? theme.accent : theme.border,
                 color: used ? theme.accent : theme.textMuted
               }}

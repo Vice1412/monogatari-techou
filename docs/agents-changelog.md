@@ -2468,3 +2468,57 @@ export const THEMES = Object.fromEntries(
 - **書頁棕**（141 次）→ R38；**GM 2026-10-24 已裁決「合併成一個」**（與強調紅 `#a63d40`）。
 - 其餘 54 個未登記 hex。
 - `NPCWorkshop.jsx:2548` 的 `w-28 h-28 rounded-full` 量測時讀到 45×90 邊界框，截圖上該圓形是正的——疑似祖先 `transform`，未深究，已記在 §CI44.11。
+
+---
+
+## 第三十七輪（UI Designer，2026-10-24）——三種「宣告了卻不會發生」
+
+**起點**：上一輪殘債寫「`hover:scale-` **51** 處、全站 **7** 處漸層、`theme?.accent ||` 的靜默回退」。實測 **126**／**13 行**／**248 處**——殘債清單本身也是需要被量測的文件，一句「的靜默回退」藏了 248 個站點，而它讀起來像已經記下來了。
+
+**第一筆：`scale-` 126 處 → 0，其中 22 個是死值**
+98 個具名 `scale-` 裡，**22 個指向 Tailwind 沒有的階**（`scale-98`×7、`scale-102`×9、`scale-101`×3、`scale-120`×3）——`scale-98` 不是「縮小 2%」，是**一個產生 0 條 CSS 的 class 名稱**。逐站點量「拿掉之後還剩什麼」：**44 處 `scale` 是唯一回饋**，其中 **12 處是死值 ＋ 完全沒有其他回饋**，也就是「按下去從第一天起就沒有任何反應」。
+
+修法不是「刪掉 126 個 class」，是**先把 44 處的唯一回饋換掉再刪**：`hover:border-[#3c2415]`（多數，邊界是結構不是裝飾）／`hover:brightness-[0.97]`（1 處，`CharacterEditor` 主按鈕的底色來自 inline `theme`，class 型 `hover:bg-*` 蓋不過 inline style，只有 `filter` 繞得過去）／`hover:ring-2`（2 處，拖曳令牌需要「被拿起來」的訊號，環不改變版面）。順帶清掉 8 處空轉的 `transition-transform`（13 → 5，剩 3 個真位移 ＋ 2 個 inline `transform`）。
+
+**第二筆：漸層 13 行 → 11 條／5 檔，且發現護欄只認一種寫法**
+`GRAD_OK` 從第十輪就在，逐檔記次數，看起來很嚴格——但它數的是 `bg-gradient` 這個**字串**：
+
+| 寫法 | 站點 | 舊護欄 |
+|---|---|---|
+| `bg-gradient-to-r` | NPCWorkshop ×2 | ✅ |
+| inline `repeating-linear-gradient` | BookCoverHub ×2 | ❌ |
+| inline `radial-gradient` | TechnosphereBead ×3、index.css ×3 | ❌ |
+| `bg-[radial-gradient(…)]` | BookPageFlipOverlay ×1 | ❌ |
+| inline `linear-gradient` | ZeroPowerBlock ×1 | ❌ |
+
+**它守著 2 條，10 條在牆外。** 另外 `walk()` 只收 `.js`／`.jsx`，`index.css` 從來沒有被任何護欄掃過。改寫成三種寫法全認 ＋ 含 `.css`，並新增「漸層不准吃 `${…}` 插值」——吃主題色＝隨身份色改變＝第二套顏色系統。
+
+**漸層的第二個發現：`ZeroPowerBlock` 是金箔框，只是換了顏色**
+外框是 `linear-gradient(135deg, accentDark → accent → border → accent → accentDark)`（兩端暗、中間亮、135° 對角）＋ `0 18px 40px -22px accent` 彩色投影 ＋ 內層兩圈放射光暈。那是 v4 金箔邊框的**形狀**，把金色換成 `accent` 之後就躲過了「沒有金色」的字面檢查，同時踩到 v5 的三條禁令。而它**有測試在守**（`zeroPowers.test.mjs`「卡片用漸層描邊外框」）——禁令與測試各量一件事，兩邊都沒錯。
+
+判決：**「特別」換人承擔**。四角 ❖、襯線大字、浮起徽章、進場動畫四項全留，外框改**實心 `accent` 3px 描邊**；測試改寫成三條（描邊要在、`linear-gradient` 不在、`boxShadow` 不在）。
+
+**第三筆：292 處回退 → 0**
+| 種類 | 站點 | 處置 |
+|---|---|---|
+| `<物件>.<鍵> \|\| '#hex'` | **248** | 刪右邊 |
+| `theme.accentSoft \|\| X` | 10 | 留 `X`（欄位從未存在） |
+| `theme.buttonVariant \|\| 'primary'` | 23 | 留 `'primary'`（欄位第十五輪已刪） |
+| `theme.outlineButtonVariant \|\| 'outline'` | 10 | 留 `'outline'` |
+| 兩邊同值的三元 | 1 | 收成單值 |
+
+> **`||` 的右邊如果一次都沒被取用，它就不是保險，是第二個答案。**
+
+那 248 個 hex 裡有一批是 **v4 化石**：`#c9a227`（金）、`#334155`／`#1e293b`／`#0f172a`（冷墨）、`#94a3b8`／`#e2e8f0`（冷灰）、`#888888`（純灰）、`#76252d`（硃砂紅 hover 值被當成 accentDark 保險）。**它們活了三十六輪，正因為從來沒被畫出來過**——永遠不執行的分支裡，顏色不會被任何人看到，也不會被任何截圖抓到。
+
+**唯一真的在用的回退**：`CharacterSheetExport` 的 `sheetVars(theme)`，匯出頁可以沒有角色主題而畫布必須有紙色。第一版把 `||` 一起刪 → 測試紅。正確修法是**換成具名來源**：`const t = theme || getCharacterTheme(null)`。護欄形狀因此定為「右邊不准是 hex 字面值」，不是「不准有 fallback」——**有名字的 fallback 是防禦，沒有名字的 fallback 是第二個答案**。順帶修掉 `--sh-ink` 保險 `#3c2415` 與主題 `textDark` `#2c221e` 的顏色不一致。
+
+**死欄位 25 鍵 → 17 鍵**：`activeTabClass`／`ringColor`／`headerIconColor`／`accentHover`／`chipBg`／`cardBorder`／`cardBorderHover`／`borderHover` 讀取次數皆 **0**。第十五輪「`activeTabClass` 必須寫死」的理由本身是對的，但它證明的是「不能改成動態」，不是「必須存在」。
+
+**護欄 226 → 234**：H35（零 hex 回退）、H35-a（六筆鍵集合相同）、H35-a2（恰好 17 鍵）、H35-b（讀的鍵必須落在三張登記表之一）、H35-c（零死欄位，`id`／`name`／`enName` 是內容豁免）、H35-d（六個 `accent` 兩兩相異）、H35-d2（未知 id 落回 `amber`）；漸層改寫 ＋ 新增「漸層不吃主題色」。
+
+**故意破壞 8/8**，每個案例都驗「還原後 sha256 與破壞前一致」再跑一次全綠。**反向控制**：同一份 inline `radial-gradient` 注入 `JRPGModal.jsx`，舊規則完全沉默（只看到 `NPCWorkshop` 的 2 條），新規則看到 6 個檔案。
+
+**收尾**：`scale-` 126 → **0**；`transition-transform` 13 → **5**；hex 回退 248 → **0**；讀不存在欄位 43 → **0**；主題鍵 25 → **17**；死欄位 9 → **0**；漸層 13 行 → **11 條／5 檔全部登記**、吃主題色 3 → **0**；未登記 hex 283 次／54 個 → **227 次／46 個**；護欄 226 → **234**；改動 **48 檔**。`index.css` 另刪 v4「金銀青絲」三件套（前兩者引用 0，`.gold-text-emboss` 只剩翻頁遮罩標題在用 → 改紙白實心字）。
+
+**殘債**：R38 書頁棕 `#8b5e34`(85)／`#78350f`(56) 共 **141** 次——**GM 已裁決：與強調紅 `#a63d40` 家族合併成一個**；其餘 **46 個**一次性 hex。R39 候選：`badgeVariant` 六個主題全是 `'ink'`（集合大小 1）卻被讀 15 次，H35-c 不會紅，要不要收成常數是獨立判決。

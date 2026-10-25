@@ -37,7 +37,7 @@ export default function SkillStarPips({
             className={`transition-all duration-150 transform ${
               disabled
                 ? 'cursor-default'
-                : 'cursor-pointer hover:scale-120 active:scale-95 focus:outline-none'
+                : 'cursor-pointer focus:outline-none'
             }`}
             title={
               disabled
@@ -55,7 +55,7 @@ export default function SkillStarPips({
               aria-hidden="true"
               className={`fu-icon inline-flex items-center justify-center leading-none transition-all duration-150 ${
                 isFilled
-                  ? 'text-[#3c2415] scale-110'
+                  ? 'text-[#3c2415]'
                   : 'text-[#7c6a58] opacity-40 hover:opacity-90 hover:text-[#3c2415]'
               }`}
               style={{ fontSize: `${size}px`, width: `${size}px`, height: `${size}px` }}

@@ -123,7 +123,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
             style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textMuted }}
           />
           <JRPGButton
-            variant={theme.buttonVariant || 'primary'}
+            variant="primary"
             size="sm"
             icon={GiQuillInk}
             onClick={handleAddNote}
@@ -145,7 +145,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
                 key={k}
                 type="button"
                 onClick={() => setKindFilter(k)}
-                className="text-t11 px-2 py-1 rounded border font-bold cursor-pointer active:scale-95 transition-all"
+                className="text-t11 px-2 py-1 rounded border font-bold cursor-pointer transition-all"
                 style={{
                   backgroundColor: active ? theme.accent : theme.panelBg,
                   borderColor: theme.border,

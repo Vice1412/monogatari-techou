@@ -266,7 +266,7 @@ export function EquipmentPickerBody({
       key={label}
       type="button"
       onClick={onClick}
-      className="text-t11 px-2 py-1 rounded border font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer active:scale-95"
+      className="text-t11 px-2 py-1 rounded border font-bold transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
       style={
         active
           ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -566,7 +566,7 @@ export function EquipmentPickerBody({
             key={acc.name}
             type="button"
             onClick={() => commit(acc.name)}
-            className="text-left p-2.5 rounded border transition-all cursor-pointer active:scale-98"
+            className="text-left p-2.5 rounded border transition-all cursor-pointer"
             style={{
               backgroundColor: isCurrent ? theme.subpanelBg : theme.cardBg,
               borderColor: isCurrent ? theme.accent : theme.border
@@ -751,14 +751,14 @@ export function EquipmentPickerBody({
         </div>
         <div className="flex items-center gap-2">
           <JRPGButton
-            variant={theme.outlineButtonVariant || 'outline'}
+            variant="outline"
             size="sm"
             icon={GiCheckMark}
             onClick={() => commit(slotDef.emptyValue)}
           >
             {slotDef.emptyLabel}
           </JRPGButton>
-          <JRPGButton variant={theme.buttonVariant || 'primary'} size="sm" onClick={onClose}>
+          <JRPGButton variant="primary" size="sm" onClick={onClose}>
             關閉
           </JRPGButton>
         </div>

@@ -134,7 +134,7 @@ export default function FloristGardenTracker({
           <button
             type="button"
             onClick={handleAdvanceAll}
-            className="px-2.5 py-1 rounded bg-[#245c45] hover:bg-[#1e4b39] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
+            className="px-2.5 py-1 rounded bg-[#245c45] hover:bg-[#1e4b39] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
             title="回合結束時，將花園內所有植物命刻推進 1 格"
           >
             <GiSprout className="w-3.5 h-3.5" />

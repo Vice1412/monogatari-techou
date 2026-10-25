@@ -98,9 +98,9 @@ export function HeroicSkillPickerBody({
   const sources = useMemo(() => [...new Set(HEROIC_SKILLS.map((h) => h.source))], []);
 
   const inputStyle = {
-    backgroundColor: theme.cardBg || '#fffdf9',
-    borderColor: theme.border || '#d6c7ab',
-    color: theme.textDark || '#3c2415'
+    backgroundColor: theme.cardBg,
+    borderColor: theme.border,
+    color: theme.textDark
   };
 
   return (
@@ -108,7 +108,7 @@ export function HeroicSkillPickerBody({
       {/* ==================== 過濾列 ==================== */}
       <div
         className="shrink-0 rounded border p-3 mb-2 space-y-2"
-        style={{ backgroundColor: theme.panelBg || '#fbf7ee', borderColor: theme.border || '#d6c7ab' }}
+        style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
       >
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[180px]">
@@ -148,7 +148,7 @@ export function HeroicSkillPickerBody({
 
         <div
           className="flex items-center justify-between gap-2 flex-wrap text-t11"
-          style={{ color: theme.textMuted || '#78716c' }}
+          style={{ color: theme.textMuted }}
         >
           <span>
             顯示 <strong style={{ color: theme.textDark }}>{rows.length}</strong> / 共 {HEROIC_SKILLS.length} 筆
@@ -163,10 +163,10 @@ export function HeroicSkillPickerBody({
       </div>
 
       {/* ==================== 表格 ==================== */}
-      <div className="flex-1 overflow-y-auto min-h-0 rounded border" style={{ borderColor: theme.border || '#d6c7ab' }}>
+      <div className="flex-1 overflow-y-auto min-h-0 rounded border" style={{ borderColor: theme.border }}>
         <table className="w-full text-xs border-collapse">
-          <thead className="sticky top-0 z-10" style={{ backgroundColor: theme.subpanelBg || '#f4ebd9' }}>
-            <tr style={{ color: theme.textDark || '#3c2415' }}>
+          <thead className="sticky top-0 z-10" style={{ backgroundColor: theme.subpanelBg }}>
+            <tr style={{ color: theme.textDark }}>
               <th className="text-left font-bold px-3 py-2 border-b w-[15%]" style={{ borderColor: theme.border }}>名稱</th>
               <th className="text-left font-bold px-3 py-2 border-b w-[8%]" style={{ borderColor: theme.border }}>出處</th>
               <th className="text-left font-bold px-3 py-2 border-b w-[22%]" style={{ borderColor: theme.border }}>條件</th>
@@ -177,30 +177,30 @@ export function HeroicSkillPickerBody({
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-3 py-8 text-center" style={{ color: theme.textMuted || '#78716c' }}>
+                <td colSpan={5} className="px-3 py-8 text-center" style={{ color: theme.textMuted }}>
                   沒有符合條件的英雄技能。取消勾選「只顯示與我的職業有關的」看全部。
                 </td>
               </tr>
             )}
             {rows.map(({ h, owned, max, reason, canPick }) => (
-              <tr key={h.name} className="align-top" style={{ borderBottom: `1px solid ${theme.border || '#d6c7ab'}` }}>
-                <td className="px-3 py-2 font-bold" style={{ color: theme.textDark || '#3c2415' }}>
+              <tr key={h.name} className="align-top" style={{ borderBottom: `1px solid ${theme.border}` }}>
+                <td className="px-3 py-2 font-bold" style={{ color: theme.textDark }}>
                   {h.name}
                   {owned > 0 && (
-                    <span className="ml-1.5 text-t10 font-normal" style={{ color: theme.accent || '#a63d40' }}>
+                    <span className="ml-1.5 text-t10 font-normal" style={{ color: theme.accent }}>
                       已持有 {owned}{max > 1 ? `/${max}` : ''}
                     </span>
                   )}
                 </td>
-                <td className="px-3 py-2" style={{ color: theme.textMuted || '#78716c' }}>
+                <td className="px-3 py-2" style={{ color: theme.textMuted }}>
                   {HEROIC_SKILL_SOURCE_LABELS[h.source] || h.source}
                 </td>
-                <td className="px-3 py-2" style={{ color: theme.textMuted || '#78716c' }}>
+                <td className="px-3 py-2" style={{ color: theme.textMuted }}>
                   {h.requirement}
                 </td>
                 <td
                   className="px-3 py-2 leading-relaxed whitespace-pre-line"
-                  style={{ color: theme.textDark || '#3c2415' }}
+                  style={{ color: theme.textDark }}
                 >
                   {resolveHeroicSkillEffect(h.name, h.effect, character)}
                 </td>
@@ -211,15 +211,15 @@ export function HeroicSkillPickerBody({
                     onClick={() => onPick(h)}
                     className="text-t11 font-bold px-2.5 py-1.5 rounded border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1"
                     style={{
-                      backgroundColor: canPick ? (theme.accent || '#a63d40') : (theme.cardBg || '#fffdf9'),
-                      borderColor: theme.border || '#d6c7ab',
-                      color: canPick ? '#fff' : (theme.textDark || '#3c2415')
+                      backgroundColor: canPick ? (theme.accent) : (theme.cardBg),
+                      borderColor: theme.border,
+                      color: canPick ? '#fff' : (theme.textDark)
                     }}
                   >
                     {canPick ? <><GiCheckMark className="w-3 h-3" />選用</> : '不可選'}
                   </button>
                   {reason && (
-                    <div className="text-t10 mt-1 leading-snug" style={{ color: theme.textMuted || '#78716c' }}>
+                    <div className="text-t10 mt-1 leading-snug" style={{ color: theme.textMuted }}>
                       {reason}
                     </div>
                   )}
@@ -231,7 +231,7 @@ export function HeroicSkillPickerBody({
       </div>
 
       <div className="shrink-0 flex items-center justify-between gap-3 pt-2">
-        <span className="text-t11 flex items-center gap-1.5" style={{ color: theme.textMuted || '#78716c' }}>
+        <span className="text-t11 flex items-center gap-1.5" style={{ color: theme.textMuted }}>
           <GiLaurelCrown className="w-3.5 h-3.5" />
           出處與條件以官方規則書／Playtest 為準；繁中譯名取自角色卡 Excel V2.17。
         </span>

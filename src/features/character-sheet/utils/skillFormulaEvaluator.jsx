@@ -376,7 +376,7 @@ function FormulaBadge({ seg, sl }) {
           setShowFormula(prev => !prev);
         }
       }}
-      className={`inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono select-none cursor-pointer transition-all duration-150 ${ showFormula ? 'font-bold text-[#2c221e] bg-[#f4ebd9] border border-dashed border-[#3c2415] hover:bg-[#e8dcc4] active:scale-95' : 'font-black text-[#3c2415] bg-[#e8dcc4] border border-[#d6c7ab] hover:bg-[#d6c7ab] active:scale-95' }`}
+      className={`inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono select-none cursor-pointer transition-all duration-150 ${ showFormula ? 'font-bold text-[#2c221e] bg-[#f4ebd9] border border-dashed border-[#3c2415] hover:bg-[#e8dcc4]' : 'font-black text-[#3c2415] bg-[#e8dcc4] border border-[#d6c7ab] hover:bg-[#d6c7ab]' }`}
       title={
         showFormula
           ? `點擊切換回計算結果：${seg.evaluatedText}（當前 SL: ${sl}）`

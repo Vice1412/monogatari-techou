@@ -465,10 +465,10 @@ export default function AttributeMatrixPicker({
       )}
 
       {/* ==================== 頂部：三大起始陣列 ＋ 快捷功能按鈕 ==================== */}
-      <div className="bg-[#fffdf9] p-3 sm:p-4 rounded border" style={{ borderColor: theme.border || '#d6c7ab' }}>
+      <div className="bg-[#fffdf9] p-3 sm:p-4 rounded border" style={{ borderColor: theme.border }}>
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2.5">
           <div className="flex items-center gap-2">
-            <GiSparkles className="w-4 h-4" style={{ color: theme.accent || '#8b5e34' }} />
+            <GiSparkles className="w-4 h-4" style={{ color: theme.accent }} />
             <span className="font-serif font-black text-xs sm:text-sm text-[#2c221e]">
               選擇起始陣列
             </span>
@@ -480,10 +480,10 @@ export default function AttributeMatrixPicker({
               type="button"
               onClick={handleAutoFill}
               className="text-t12 font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1"
-              style={{ backgroundColor: theme.subpanelBg || '#f4ebd9', color: theme.textDark || '#3c2415', borderColor: theme.border || '#d6c7ab' }}
+              style={{ backgroundColor: theme.subpanelBg, color: theme.textDark, borderColor: theme.border }}
               title="按預設順序一鍵填入四個體質"
             >
-              <Check className="w-3.5 h-3.5" style={{ color: theme.accent || '#8b5e34' }} />
+              <Check className="w-3.5 h-3.5" style={{ color: theme.accent }} />
               <span>一鍵填入</span>
             </button>
             <button
@@ -517,9 +517,9 @@ export default function AttributeMatrixPicker({
                     : 'bg-[#f4ebd9] hover:bg-[#fbf7ee] border-[#d6c7ab]'
                 }`}
                 style={isMatch ? {
-                  backgroundColor: theme.subpanelBg || '#f4ebd9',
-                  borderColor: theme.accent || '#8b5e34',
-                  '--tw-ring-color': theme.border || '#d6c7ab'
+                  backgroundColor: theme.subpanelBg,
+                  borderColor: theme.accent,
+                  '--tw-ring-color': theme.border
                 } : {}}
               >
                 <div>
@@ -529,7 +529,7 @@ export default function AttributeMatrixPicker({
                     </span>
                     <span
                       className="text-t12 px-1.5 py-0.2 rounded font-medium"
-                      style={isMatch ? { backgroundColor: theme.cardBg || '#fffdf9', color: theme.textDark || '#2c221e', fontWeight: 'bold' } : { backgroundColor: '#d6c7ab', color: '#6b5a4b' }}
+                      style={isMatch ? { backgroundColor: theme.cardBg, color: theme.textDark, fontWeight: 'bold' } : { backgroundColor: '#d6c7ab', color: '#6b5a4b' }}
                     >
                       {isMatch ? '目前' : preset.tag}
                     </span>
@@ -560,9 +560,9 @@ export default function AttributeMatrixPicker({
       {remainingUpgrades > 0 && (
         <div
           className="rounded border-2 px-3 py-2.5 space-y-2"
-          style={{ backgroundColor: theme.subpanelBg || '#f4ebd9', borderColor: theme.accent || '#8b5e34' }}
+          style={{ backgroundColor: theme.subpanelBg, borderColor: theme.accent }}
         >
-          <div className="text-xs leading-relaxed" style={{ color: theme.textDark || '#3c2415' }}>
+          <div className="text-xs leading-relaxed" style={{ color: theme.textDark }}>
             <strong>等級獎勵：可以選一顆屬性骰 +1 階</strong>
             <span className="text-t12 ml-1.5 opacity-80">
               （20 級與 40 級各一次，上限 d12，加在<strong>基礎</strong>骰上；還剩 {remainingUpgrades} 次）
@@ -582,7 +582,7 @@ export default function AttributeMatrixPicker({
                   onClick={() => handleUpgradeDie(key)}
                   title={!die ? '先把骰子分配到這一項' : maxed ? '已經是 d12（上限）' : `把 ${ATTRIBUTE_NAMES[key]} 從 d${die.val} 升到 d${next}`}
                   className="text-t12 font-bold px-2 py-1 rounded border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
-                  style={{ backgroundColor: theme.cardBg || '#fffdf9', borderColor: theme.border || '#d6c7ab', color: theme.textDark || '#3c2415' }}
+                  style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
                 >
                   {key.toUpperCase()} {die ? `d${die.val}` : '—'}
                   {!maxed && next ? ` ➔ d${next}` : ''}
@@ -606,7 +606,7 @@ export default function AttributeMatrixPicker({
           {assignedCount === 4 && (
             <span
               className="font-bold px-2 py-0.5 rounded border text-t12 transition-colors"
-              style={{ backgroundColor: theme.subpanelBg || '#f4ebd9', color: theme.textDark || '#3c2415', borderColor: theme.border || '#d6c7ab' }}
+              style={{ backgroundColor: theme.subpanelBg, color: theme.textDark, borderColor: theme.border }}
             >
               已完成
             </span>
@@ -625,7 +625,7 @@ export default function AttributeMatrixPicker({
           onClick={handleTrayClick}
           className={`w-full md:w-44 lg:w-48 shrink-0 bg-[#f4ebd9] text-[#2c221e] rounded p-3 sm:p-4 border transition-all flex flex-col justify-between cursor-pointer select-none ${
             isTrayDragOver || (floatingDieId && floatingDie?.assignedTo)
-              ? 'ring-4 ring-[#a63d40]/35 border-[#a63d40] bg-[#fbf7ee] scale-[1.02]'
+              ? 'ring-4 ring-[#a63d40]/35 border-[#a63d40] bg-[#fbf7ee]'
               : 'border-[#d6c7ab] hover:border-[#8b5e34]'
           }`}
           title={floatingDieId ? '點擊此處收回' : '點選或拖曳骰子；體質內的骰子可直接拖回此處收回'}
@@ -700,8 +700,8 @@ export default function AttributeMatrixPicker({
                       col.bgClass
                     } ${col.borderClass} ${col.glow} ${
                       isFloating
-                        ? 'opacity-25 scale-90 border-dashed ring-2 ring-[#a63d40]/30'
-                        : 'hover:scale-105'
+                        ? 'opacity-25 border-dashed ring-2 ring-[#a63d40]/30'
+                        : 'hover:ring-2 hover:ring-[#3c2415]/25'
                     }`}
                     title="點擊一下即可跟隨滑鼠浮動，再點擊放入體質；亦支援按住拖曳"
                   >
@@ -737,10 +737,10 @@ export default function AttributeMatrixPicker({
                     : 'hover:border-[#8b5e34]'
                 } ${
                   isDragOver
-                    ? 'ring-4 ring-[#a63d40]/35 bg-[#a63d40]/10 border-[#a63d40] scale-[1.01]'
+                    ? 'ring-4 ring-[#a63d40]/35 bg-[#a63d40]/10 border-[#a63d40]'
                     : ''
                 }`}
-                style={{ borderColor: isDragOver ? '#8b5e34' : theme.border || '#d6c7ab' }}
+                style={{ borderColor: isDragOver ? '#8b5e34' : theme.border }}
               >
                 {/* 左側：DEX 加粗，中文名稱字體小一號 */}
                 <div className="flex-1 min-w-0">
@@ -786,8 +786,8 @@ export default function AttributeMatrixPicker({
                             col.bgClass
                           } ${col.borderClass} ${col.glow} ${
                             isFloatingThis
-                              ? 'opacity-25 scale-90 border-dashed ring-2 ring-[#a63d40]/40'
-                              : 'hover:scale-105'
+                              ? 'opacity-25 border-dashed ring-2 ring-[#a63d40]/40'
+                              : 'hover:ring-2 hover:ring-[#3c2415]/25'
                           }`}
                           title="點擊一下即可拿起跟隨滑鼠，再點擊其他體質對調或點托盤收回；亦可直接拖曳"
                         >
@@ -803,7 +803,7 @@ export default function AttributeMatrixPicker({
                     <div
                       className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 border-dashed flex flex-col items-center justify-center transition-all ${
                         floatingDieId
-                          ? 'border-[#a63d40] bg-[#a63d40]/10 text-[#78350f] scale-[1.02]'
+                          ? 'border-[#a63d40] bg-[#a63d40]/10 text-[#78350f]'
                           : 'border-[#d6c7ab] bg-[#f4ebd9] text-[#6b5a4b] hover:border-[#8b5e34]'
                       }`}
                     >

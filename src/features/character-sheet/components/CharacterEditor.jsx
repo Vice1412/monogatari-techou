@@ -783,7 +783,7 @@ export default function CharacterEditor({
             type="button"
             onClick={() => setIsPresetsModalOpen(true)}
             disabled={locked}
-            className="w-full inline-flex items-center justify-between px-3.5 py-2.5 rounded border font-bold transition-all shadow-xs hover:scale-102 group text-left cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="w-full inline-flex items-center justify-between px-3.5 py-2.5 rounded border font-bold transition-all shadow-xs group text-left cursor-pointer hover:brightness-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               borderColor: theme.border,
               backgroundColor: theme.subpanelBg,
@@ -792,7 +792,7 @@ export default function CharacterEditor({
             title={locked ? '已定稿——套用官方配置會重寫屬性與職業，請先解除定稿' : '一鍵套用官方經典職業搭配（職業、特技、屬性骰、裝備配置）'}
           >
             <div className="flex items-center gap-2">
-              <GiSparkles className="w-4 h-4 group-hover:scale-110 transition-transform shrink-0" style={{ color: theme.accent }} />
+              <GiSparkles className="w-4 h-4 shrink-0" style={{ color: theme.accent }} />
               <span className="text-xs font-black">經典職業搭配</span>
             </div>
             <span
@@ -838,7 +838,7 @@ export default function CharacterEditor({
               onClick={locked ? handleUnlock : handleLock}
               disabled={!locked && !canLock}
               className={`w-full text-t11 font-bold px-2.5 py-2 rounded border transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
-                locked ? 'hover:bg-[#f9f5eb]' : 'hover:scale-101'
+                locked ? 'hover:bg-[#f9f5eb]' : ''
               }`}
               style={{
                 backgroundColor: locked ? theme.cardBg : (canLock ? '#a63d40' : theme.subpanelBg),
@@ -919,7 +919,7 @@ export default function CharacterEditor({
           <button
             type="button"
             onClick={() => setIsValidationModalOpen(true)}
-            className={`w-full text-left p-3 rounded border transition-all shadow-xs flex flex-col gap-1.5 hover:scale-101 cursor-pointer ${
+            className={`w-full text-left p-3 rounded border transition-all shadow-xs flex flex-col gap-1.5 cursor-pointer ${
               validation.errors.length > 0
                 ? 'bg-[#f9f5eb] border-[#8c2d36]/50 hover:border-[#8c2d36]'
                 : validation.hasWarnings
@@ -1009,7 +1009,7 @@ export default function CharacterEditor({
             {/* 跑團面板：跑團中操作的介面 */}
             {onEnterPlayMode && (
               <JRPGButton
-                variant={theme.buttonVariant || 'primary'}
+                variant="primary"
                 size="sm"
                 icon={Play}
                 onClick={onEnterPlayMode}
@@ -1150,7 +1150,7 @@ export default function CharacterEditor({
                 <button
                   type="button"
                   onClick={() => setIsPresetsModalOpen(true)}
-                  className="text-xs font-bold px-3 py-1.5 rounded border transition-all flex items-center gap-1.5 shadow-2xs hover:scale-102 cursor-pointer"
+                  className="text-xs font-bold px-3 py-1.5 rounded border transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
                   style={{
                     backgroundColor: theme.subpanelBg,
                     borderColor: theme.border,
@@ -1392,7 +1392,7 @@ export default function CharacterEditor({
                           key={sbKey}
                           type="button"
                           onClick={() => toggleSourcebook(sbKey)}
-                          className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                          className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
                           style={
                             isEnabled
                               ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -1451,7 +1451,7 @@ export default function CharacterEditor({
                 </div>
 
                 <JRPGButton
-                  variant={theme.buttonVariant || 'primary'}
+                  variant="primary"
                   size="sm"
                   icon={Plus}
                   onClick={() => setIsClassPickerOpen(true)}
@@ -1482,7 +1482,7 @@ export default function CharacterEditor({
                       </p>
                     </div>
                     <JRPGButton
-                      variant={theme.buttonVariant || 'primary'}
+                      variant="primary"
                       size="sm"
                       icon={Plus}
                       onClick={() => setIsClassPickerOpen(true)}
@@ -2033,7 +2033,7 @@ export default function CharacterEditor({
                       金手指
                     </label>
                     <JRPGButton
-                      variant={theme.outlineButtonVariant || 'outline'}
+                      variant="outline"
                       size="xs"
                       icon={GiSparkles}
                       onClick={() => setIsQuirkPickerOpen(true)}
@@ -2161,7 +2161,7 @@ export default function CharacterEditor({
                   {!locked && (
                     <>
                       <JRPGButton
-                        variant={theme.buttonVariant || 'primary'}
+                        variant="primary"
                         size="xs"
                         icon={GiLaurelCrown}
                         onClick={() => setIsHeroicPickerOpen(true)}
@@ -2327,7 +2327,7 @@ export default function CharacterEditor({
                 <button
                   type="button"
                   onClick={() => setActiveTab(prev => Math.min(TABS.length, prev + 1))}
-                  className="px-5 py-2 rounded text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                  className="px-5 py-2 rounded text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
                   style={{ backgroundColor: theme.accent }}
                 >
                   <span>下一步</span>
@@ -2336,7 +2336,7 @@ export default function CharacterEditor({
               ) : (
                 onEnterPlayMode && (
                   <JRPGButton
-                    variant={theme.buttonVariant || 'primary'}
+                    variant="primary"
                     size="md"
                     icon={Play}
                     onClick={onEnterPlayMode}
@@ -2385,7 +2385,7 @@ export default function CharacterEditor({
         theme={theme}
         actionButtons={
           <JRPGButton
-            variant={theme.buttonVariant || 'primary'}
+            variant="primary"
             size="sm"
             onClick={() => setIsValidationModalOpen(false)}
           >
@@ -2406,7 +2406,7 @@ export default function CharacterEditor({
                   setActiveTab(w.step);
                   setIsValidationModalOpen(false);
                 }}
-                className={`p-3 rounded border text-xs flex items-center justify-between gap-3 cursor-pointer transition-all hover:scale-[1.01] shadow-sm ${
+                className={`p-3 rounded border text-xs flex items-center justify-between gap-3 cursor-pointer transition-all shadow-sm ${
                   w.type === 'error'
                     ? 'border-[#8c2d36]/50 bg-[#f9f5eb] text-[#8c2d36]'
                     : 'border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415]'

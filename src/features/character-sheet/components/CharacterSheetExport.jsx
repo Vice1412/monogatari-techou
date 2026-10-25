@@ -10,6 +10,7 @@ import { calculateCharacterStats, getProficiencies, getCharacterLevel, HEROIC_SK
 import { ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
 import { buildCustomWeaponEntries } from '../data/customWeapons';
 import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
+import { getCharacterTheme } from '../utils/characterThemes';
 import { isInitiativeVariant } from '../data/initiativeVariant';
 import {
   CAMP_ACTIVITY_SOURCE,
@@ -62,18 +63,32 @@ export const SHEET_PAGE_HEIGHT = 794;
  * 逐一傳 prop 只為了換顏色並不值得；變數掛在最外層，`html-to-image`
  * 取 computed style 時會拿到解析後的值，所以複製出去的節點一樣正確。
  */
-export const sheetVars = (theme = null) => ({
-  // 頁面底色用主題的「頁面底」（比卡片深一階），卡片用主題的「卡片底」——
-  // 這樣才會有站內那種「淡色底 ＋ 白卡片」的層次；兩者同色的話框線會整個消失。
-  '--sh-bg': theme?.sheetBg || theme?.appBg || '#fbf7ee',
-  '--sh-box': theme?.cardBg || '#fffdf9',
-  '--sh-bar': theme?.accent || '#8a6a45',
-  '--sh-bar-ink': '#fffdf9',
-  '--sh-border': theme?.border || '#d6c7ab',
-  '--sh-soft': theme?.subpanelBg || '#f4ebd9',
-  '--sh-ink': theme?.textDark || '#3c2415',
-  '--sh-faint': theme?.textMuted || '#6b5a4b'
-});
+export const sheetVars = (theme = null) => {
+  /* 第三十七輪（§CI45）：這裡原本每一個變數都掛著 `|| '#hex'` 的保險。
+   * 那是全站唯一**真的會被取用**的一組——匯出頁可以沒有角色主題（`theme` 為 null），
+   * 而畫布必須有具體的紙色，`undefined` 會匯出一張沒有底色的圖。
+   *
+   * 所以修法不是「拿掉保險」，是「把保險換成具名來源」：
+   * 沒有主題時就用站內預設主題（`getCharacterTheme(null)` → amber），
+   * 於是紙、墨、邊界仍然只有一個答案，而那個答案是**主題表**，不是這支檔案裡的字面值。
+   *
+   * 順帶修掉一個不一致：原本 `--sh-ink` 的保險是 `#3c2415`，但主題真正的
+   * `textDark` 是 `#2c221e`——也就是說「有主題」和「沒主題」的墨是兩個顏色。
+   * 現在兩條路都走主題表。 */
+  const t = theme || getCharacterTheme(null);
+  return {
+    // 頁面底色用主題的「頁面底」（比卡片深一階），卡片用主題的「卡片底」——
+    // 這樣才會有站內那種「淡色底 ＋ 白卡片」的層次；兩者同色的話框線會整個消失。
+    '--sh-bg': t.sheetBg || t.appBg,
+    '--sh-box': t.cardBg,
+    '--sh-bar': t.accent,
+    '--sh-bar-ink': t.cardBg,
+    '--sh-border': t.border,
+    '--sh-soft': t.subpanelBg,
+    '--sh-ink': t.textDark,
+    '--sh-faint': t.textMuted,
+  };
+};
 
 const C = {
   bar: 'var(--sh-bar)',
@@ -1036,10 +1051,10 @@ export function CharacterSheetExportBody({ character, stats = null, theme = null
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-xs" style={{ color: theme?.textMuted || '#6b5a4b' }}>
+        <p className="text-xs" style={{ color: theme?.textMuted }}>
           依官方三頁橫向 A4 表格的版面重繪，配色沿用站內樣式與這個角色的主題色。
           選圖片會得到三個 PNG 檔（瀏覽器可能會詢問是否允許下載多個檔案）；選 PDF 會得到單一三頁檔案。
-          {progress ? <span className="font-bold" style={{ color: theme?.accent || '#8a6a45' }}>　{progress}</span> : null}
+          {progress ? <span className="font-bold" style={{ color: theme?.accent }}>　{progress}</span> : null}
         </p>
         <div className="flex items-center gap-2 shrink-0">
           <JRPGButton
@@ -1065,10 +1080,10 @@ export function CharacterSheetExportBody({ character, stats = null, theme = null
 
       <div className="space-y-3">
         {SHEET_PAGE_COMPONENTS.map((Page, i) => (
-          <div key={i} className="rounded border overflow-hidden" style={{ borderColor: theme?.border || '#d6c7ab' }}>
+          <div key={i} className="rounded border overflow-hidden" style={{ borderColor: theme?.border }}>
             <div
               className="flex items-center gap-1.5 px-2 py-1 text-t11 font-bold"
-              style={{ backgroundColor: theme?.accentDark || theme?.accent || '#8a6a45', color: '#fffdf9' }}
+              style={{ backgroundColor: theme?.accentDark || theme?.accent, color: '#fffdf9' }}
             >
               <GiCheckMark className="w-3 h-3" />
               第 {i + 1} 頁

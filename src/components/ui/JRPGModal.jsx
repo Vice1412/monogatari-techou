@@ -83,12 +83,12 @@ export default function JRPGModal({
           還是會把整個彈窗撐破、在手機上造成橫向溢出。`min-w-0` 讓它可以真的縮到容器寬度。 */}
       <div
         className={`relative w-full min-w-0 ${maxWidth} bg-[#fffdf9] border-2 border-[#d6c7ab] rounded shadow-e3 overflow-hidden my-auto flex flex-col max-h-[90vh] text-[#2c221e]`}
-        style={theme ? { backgroundColor: theme.cardBg || '#fffdf9', borderColor: theme.border, color: theme.textDark } : {}}
+        style={theme ? { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark } : {}}
       >
         {/* Top accent line（第十五輪：實心，不再是漸層——漸層是第二套顏色系統） */}
         <div
           className="h-1 w-full"
-          style={{ backgroundColor: theme?.accent || '#8b5e34' }}
+          style={{ backgroundColor: theme?.accent }}
         />
 
         {/* Modal Header */}

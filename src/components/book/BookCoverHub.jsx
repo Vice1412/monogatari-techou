@@ -152,7 +152,7 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
           全書只有這一處使用陰影 e3——它是唯一真的「疊在桌面上」的東西。 */}
       <div
         className={`relative z-10 flex w-full max-w-5xl overflow-hidden rounded border border-warm-line bg-paper shadow-e3 transition-all duration-300 ease-out ${
-          isOpening ? 'pointer-events-none scale-[0.98] opacity-0' : 'scale-100 opacity-100'
+          isOpening ? 'pointer-events-none opacity-0' : 'opacity-100'
         }`}
       >
         {/* 書脊 */}

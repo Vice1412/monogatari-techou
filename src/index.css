@@ -291,23 +291,13 @@ body {
     inset 0 0 20px rgba(247, 243, 232, 0.18);
 }
 
-/* Gold/Silver Cyan Filigree Borders */
-.gold-filigree-border {
-  border: 2px solid #0284c7;
-  outline: 1px solid rgba(56, 189, 248, 0.5);
-  outline-offset: 4px;
-}
-
-.gold-text-emboss {
-  background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 35%, #38bdf8 70%, #0284c7 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 6px rgba(3, 105, 161, 0.7));
-}
-
-.gold-foil-glow {
-  box-shadow: 0 0 25px rgba(56, 189, 248, 0.35), inset 0 0 15px rgba(186, 230, 253, 0.25);
-}
+/* 第三十七輪（§CI45）：v4 的「金銀青絲」三件套已刪除。
+   `.gold-filigree-border`（青邊＋青光外框）與 `.gold-foil-glow`（青色光暈）
+   全站引用次數 **0**；`.gold-text-emboss`（白→天藍漸層字＋藍色投影）只剩翻頁
+   遮罩的標題在用，已改成紙白實心字。
+   這三個類別是 v4「雙世界／金屬箔」方向的殘骸：色值 `#0284c7`／`#38bdf8`／
+   `#e0f2fe`／`#0369a1` 都不在登記表裡，而且青色在這本書裡沒有任何職責。
+   **留著不會有人發現，因為它只在翻頁的 300ms 裡出現。** */
 
 /* Page Turn Keyframes - Pure GPU Composited (transform & opacity only) */
 @keyframes pageTurnForward {

@@ -130,7 +130,7 @@ export default function AvatarCropperModal({
     }
   };
 
-  const accentColor = theme?.accent || '#a63d40';
+  const accentColor = theme?.accent;
 
   return (
     <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
@@ -275,7 +275,7 @@ export default function AvatarCropperModal({
           <button
             type="button"
             onClick={handleApply}
-            className="px-5 py-2 text-white rounded text-xs font-bold transition shadow-xs flex items-center gap-1.5 hover:opacity-90 active:scale-98"
+            className="px-5 py-2 text-white rounded text-xs font-bold transition shadow-xs flex items-center gap-1.5 hover:opacity-90"
             style={{ backgroundColor: accentColor }}
           >
             <Check size={14} /> 完成裁切並套用

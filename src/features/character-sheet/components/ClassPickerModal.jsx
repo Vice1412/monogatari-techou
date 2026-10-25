@@ -338,7 +338,7 @@ export default function ClassPickerModal({
               <button
                 type="button"
                 onClick={() => onSetSourcebooks && onSetSourcebooks([...BOOK_KEYS])}
-                className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
                 style={
                   allBooksOn
                     ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -359,7 +359,7 @@ export default function ClassPickerModal({
                     key={sbKey}
                     type="button"
                     onClick={() => onToggleSourcebook && onToggleSourcebook(sbKey)}
-                    className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                    className="text-xs px-2.5 py-1 rounded border font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
                     style={
                       isEnabled
                         ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -395,7 +395,7 @@ export default function ClassPickerModal({
                     type="button"
                     onClick={() => focusClass(className)}
                     title={`${className}：投入 ${total} 級（點一下跳到它）`}
-                    className="relative flex items-center gap-1 pl-1.5 pr-2.5 py-1 rounded border text-t11 font-bold cursor-pointer transition-all active:scale-95"
+                    className="relative flex items-center gap-1 pl-1.5 pr-2.5 py-1 rounded border text-t11 font-bold cursor-pointer transition-all"
                     style={
                       isActive
                         ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -478,8 +478,8 @@ export default function ClassPickerModal({
                     isAdded
                       ? 'opacity-40 bg-[#f4ebd9]/60 border-[#d6c7ab] cursor-not-allowed'
                       : isSelected
-                        ? 'ring-2 shadow-sm scale-101'
-                        : 'hover:border-[#7c6a58] hover:shadow-2xs active:scale-98'
+                        ? 'ring-2 shadow-sm'
+                        : 'hover:border-[#7c6a58] hover:shadow-2xs'
                   }`}
                   style={{
                     backgroundColor: isSelected ? theme.subpanelBg : theme.cardBg,
@@ -564,7 +564,7 @@ export default function ClassPickerModal({
                 <button
                   type="button"
                   onClick={() => setMobileStep('list')}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#3c2415] bg-[#f4ebd9] hover:bg-[#e8dcc4] active:scale-95 px-3 py-1.5 rounded border border-[#d6c7ab] transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#3c2415] bg-[#f4ebd9] hover:bg-[#e8dcc4] px-3 py-1.5 rounded border border-[#d6c7ab] transition-all cursor-pointer"
                 >
                   <span>← 選擇其它職業</span>
                 </button>
@@ -705,7 +705,7 @@ export default function ClassPickerModal({
                               type="button"
                               onClick={() => handleSetSkillSL(sk.name, currentSL - 1)}
                               disabled={currentSL <= 0}
-                              className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs disabled:opacity-20 hover:bg-white active:scale-95 transition-all cursor-pointer"
+                              className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs disabled:opacity-20 hover:bg-white transition-all cursor-pointer"
                               style={{ borderColor: theme.border, color: theme.textDark }}
                               title={currentSL <= 0 ? '已經是最低（SL 0）' : '減少 1 級'}
                             >
@@ -724,7 +724,7 @@ export default function ClassPickerModal({
                               type="button"
                               onClick={() => handleSetSkillSL(sk.name, currentSL + 1)}
                               disabled={currentSL >= maxSL}
-                              className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs disabled:opacity-20 hover:bg-white active:scale-95 transition-all cursor-pointer"
+                              className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs disabled:opacity-20 hover:bg-white transition-all cursor-pointer"
                               style={{ borderColor: theme.border, color: theme.textDark }}
                               title={currentSL >= maxSL
                                 ? `已達此技能的 SL 上限（${maxSL}）——請把剩下的等級分配給其他技能`
@@ -767,7 +767,7 @@ export default function ClassPickerModal({
                             key={v.id}
                             type="button"
                             onClick={() => handleToggleVariant(sk.name, pickedVariantId === v.id ? null : v.id)}
-                            className="w-full text-left text-t11 font-bold px-2.5 py-1.5 rounded border transition-all active:scale-[.99] cursor-pointer flex items-center gap-1.5"
+                            className="w-full text-left text-t11 font-bold px-2.5 py-1.5 rounded border transition-all cursor-pointer flex items-center gap-1.5"
                             style={
                               pickedVariantId === v.id
                                 ? { backgroundColor: theme.accent, borderColor: theme.accentDark || theme.accent, color: '#fffdf9' }
@@ -859,7 +859,7 @@ export default function ClassPickerModal({
                   </button>
 
                   <JRPGButton
-                    variant={theme.buttonVariant || 'primary'}
+                    variant="primary"
                     size="sm"
                     icon={canConfirm ? GiCheckMark : GiSparkles}
                     onClick={handleConfirm}

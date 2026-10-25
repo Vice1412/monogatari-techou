@@ -51,7 +51,7 @@ export default function EquipmentSlotCard({
           <button
             type="button"
             onClick={onOpen}
-            className="text-t11 px-2 py-1 rounded border font-bold flex items-center gap-1 shrink-0 cursor-pointer active:scale-95 transition-all"
+            className="text-t11 px-2 py-1 rounded border font-bold flex items-center gap-1 shrink-0 cursor-pointer transition-all"
             style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
           >
             <GiPencil size={11} />

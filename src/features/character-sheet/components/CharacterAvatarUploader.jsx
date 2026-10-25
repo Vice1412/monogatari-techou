@@ -355,7 +355,7 @@ export default function CharacterAvatarUploader({
                 fileInputRef.current.click();
               }
             }}
-            className="relative w-24 h-24 sm:w-28 sm:h-28 rounded border-2 bg-[#f4ebd9] shrink-0 overflow-hidden flex items-center justify-center shadow-inner group select-none cursor-pointer transition-all hover:scale-102"
+            className="relative w-24 h-24 sm:w-28 sm:h-28 rounded border-2 bg-[#f4ebd9] shrink-0 overflow-hidden flex items-center justify-center shadow-inner group select-none cursor-pointer transition-all"
             style={{ borderColor: theme.border }}
             title={isCustomPhoto ? "點擊重新裁切調整大小" : "點擊上傳本地照片"}
           >
@@ -389,7 +389,7 @@ export default function CharacterAvatarUploader({
             {/* 按鈕組 */}
             <div className="flex flex-wrap items-center gap-2">
               <label
-                className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded transition-all shadow-2xs hover:opacity-90 active:scale-98"
+                className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-bold rounded transition-all shadow-2xs hover:opacity-90"
                 style={{ backgroundColor: theme.accent }}
               >
                 <Upload size={13} />

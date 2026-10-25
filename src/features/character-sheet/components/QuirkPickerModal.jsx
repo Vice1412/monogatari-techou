@@ -129,7 +129,7 @@ export function QuirkPickerBody({
                       // 點回**目前已經選定**的那一個時，還原已存的選擇。
                       setChoice(q.name === selectedName ? (selectedChoice || '') : '');
                     }}
-                    className="w-full text-left px-2.5 py-2 rounded border text-xs font-bold transition-all cursor-pointer active:scale-98 flex items-center justify-between gap-1.5"
+                    className="w-full text-left px-2.5 py-2 rounded border text-xs font-bold transition-all cursor-pointer flex items-center justify-between gap-1.5"
                     style={
                       isOpen
                         ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -254,7 +254,7 @@ export function QuirkPickerBody({
                     </button>
                   )}
                   <JRPGButton
-                    variant={theme.buttonVariant || 'primary'}
+                    variant="primary"
                     size="sm"
                     icon={GiCheckMark}
                     disabled={quirkOptionGroups.length > 0 && !groupsComplete}

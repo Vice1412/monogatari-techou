@@ -42,7 +42,7 @@ export function JRPGInput({
             )
           )}
           style={theme ? {
-            backgroundColor: theme.cardBg || '#fffdf9',
+            backgroundColor: theme.cardBg,
             borderColor: theme.border,
             color: theme.textDark,
             ...style
@@ -89,7 +89,7 @@ export function JRPGSelect({
             )
           )}
           style={theme ? {
-            backgroundColor: theme.cardBg || '#fffdf9',
+            backgroundColor: theme.cardBg,
             borderColor: theme.border,
             color: theme.textDark,
             ...style

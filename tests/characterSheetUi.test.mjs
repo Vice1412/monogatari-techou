@@ -601,8 +601,8 @@ check('咒語列帶說明', model.page2Spells[0].desc.length > 0, true);
 // 「樣式還是照著我們網頁的設計」→ 配色取自角色主題，不是官方表的青綠
 check('配色由角色主題推導（sheetVars）',
   [typeof sheetVars, sheetVars({ accent: '#123456' })['--sh-bar']], ['function', '#123456']);
-check('沒有角色主題時退回站內羊皮紙色',
-  [sheetVars(null)['--sh-bg'], sheetVars(null)['--sh-ink']], ['#fbf7ee', '#3c2415']);
+check('沒有角色主題時退回站內預設主題（紙墨仍然來自主題表，不是本檔的字面值）',
+  [sheetVars(null)['--sh-bg'], sheetVars(null)['--sh-ink'], sheetVars(null)['--sh-bar-ink']], ['#fbf7ee', '#2c221e', '#fffdf9']);
 check('三頁都吃這組變數',
   (exportSrc.match(/\.\.\.S\.page, \.\.\.vars/g) || []).length, 3);
 check('頁面底色與卡片底色不同（否則框線會消失）',

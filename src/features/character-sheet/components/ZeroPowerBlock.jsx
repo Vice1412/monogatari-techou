@@ -73,7 +73,7 @@ function ChoiceChip({ active, title, subtitle, onClick, theme }) {
       onClick={onClick}
       className="text-left rounded border px-2.5 py-1.5 transition-all cursor-pointer"
       style={{
-        backgroundColor: active ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
+        backgroundColor: active ? theme.subpanelBg : theme.cardBg,
         borderColor: active ? theme.accent : theme.border,
         color: theme.textDark
       }}
@@ -113,31 +113,33 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
    */
   if (!effect || !trigger) return null;
 
-  const accent = theme.accent || '#9c4d16';
-  const accentDark = theme.accentDark || '#693108';
-  const accentLight = theme.accentLight || '#f4ebd9';
-  const border = theme.border || '#d6c7ab';
-  const cardBg = theme.cardBg || '#fffdf9';
-  const textDark = theme.textDark || '#3c2415';
-  const textMuted = theme.textMuted || '#7b4720';
+  const accent = theme.accent;
+  const accentDark = theme.accentDark;
+  const accentLight = theme.accentLight;
+  const border = theme.border;
+  const cardBg = theme.cardBg;
+  const textDark = theme.textDark;
+  const textMuted = theme.textMuted;
 
+  /* 第三十七輪（§CI45）：「特別的框」不再由金屬漸層與彩色光暈承擔。
+   *
+   * 這張卡原本是 3px 的**對角線性漸層**描邊（兩端暗、中間亮、135°），
+   * 外面再壓一層彩色投影（`0 18px 40px -22px` 的 accent），內層還疊了兩圈放射光暈。
+   * 那組參數的形狀就是**金箔框**：v4 的「金銀青絲」把金色換成角色的 accent 之後，
+   * 就通過了「沒有金色」的字面檢查——卻同時踩到 v5 的三條禁令：
+   * 漸層、裝飾性光暈、用 box-shadow 造浮起。
+   *
+   * 「這張卡要跟別人不一樣」仍然成立，只是換人承擔：四角 ❖ 角標、襯線大字卡名、
+   * 浮在邊框上的徽章、進場動畫、以及**實心 accent 的 3px 外框**。
+   * 判準回到第九輪那句：一個元素只需要一種方式說「我是一塊」。
+   */
   return (
     <div
       className="relative rounded animate-fade-in"
       data-testid="zero-power-showcase"
-      style={{
-        padding: '3px',
-        background: `linear-gradient(135deg, ${accentDark} 0%, ${accent} 26%, ${border} 50%, ${accent} 74%, ${accentDark} 100%)`,
-        boxShadow: `0 18px 40px -22px ${accent}, 0 2px 10px -6px ${accentDark}`
-      }}
+      style={{ padding: '3px', background: accent }}
     >
-      <div
-        className="relative rounded px-4 py-5 space-y-3"
-        style={{
-          background: `radial-gradient(ellipse at 50% -32%, ${accent}26 0%, transparent 58%), radial-gradient(circle at 50% -12%, ${accentLight} 0%, ${cardBg} 62%)`,
-          border: `1px solid ${border}`
-        }}
-      >
+      <div className="relative rounded px-4 py-5 space-y-3" style={{ background: cardBg }}>
         {/*
           頂端徽章：它浮在邊框上，所以整塊讀起來像「被蓋章的一張卡」而不是另一個欄位。
           刻意不帶四角角標那組定位字串——護欄用那組字數「四角各一個」，這裡多一個就多數一個。
@@ -146,9 +148,8 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
           className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-t10 font-bold whitespace-nowrap"
           style={{
             backgroundColor: accent,
-            color: '#fffdf9',
-            letterSpacing: '0.22em',
-            boxShadow: `0 2px 8px -3px ${accentDark}`
+            color: cardBg,
+            letterSpacing: '0.22em'
           }}
         >
           底力技
@@ -232,9 +233,9 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
 
 /** 還沒選齊時的佔位——位置固定在最下面，避免選齊那一刻版面突然長出一塊。 */
 function ShowcasePlaceholder({ theme, missing }) {
-  const border = theme.border || '#d6c7ab';
-  const panelBg = theme.panelBg || '#f4ebd9';
-  const textMuted = theme.textMuted || '#7b4720';
+  const border = theme.border;
+  const panelBg = theme.panelBg;
+  const textMuted = theme.textMuted;
 
   return (
     <div
@@ -364,7 +365,7 @@ export default function ZeroPowerBlock({
               onClick={() => setAwakenTriggerId(awakenTriggerId === t.id ? '' : t.id)}
               className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
               style={{
-                backgroundColor: awakenTriggerId === t.id ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
+                backgroundColor: awakenTriggerId === t.id ? theme.subpanelBg : theme.cardBg,
                 borderColor: awakenTriggerId === t.id ? theme.accent : theme.border,
                 color: theme.textDark
               }}
@@ -462,7 +463,7 @@ export default function ZeroPowerBlock({
 
         <div className="flex items-center gap-1.5 flex-wrap">
           <JRPGButton
-            variant={theme.outlineButtonVariant || 'outline'}
+            variant="outline"
             size="xs"
             icon={GiSparkles}
             onClick={() => patch(fillZeroClock(state, 1))}
@@ -471,7 +472,7 @@ export default function ZeroPowerBlock({
             填充 1 格
           </JRPGButton>
           <JRPGButton
-            variant={theme.outlineButtonVariant || 'outline'}
+            variant="outline"
             size="xs"
             icon={GiPocketWatch}
             onClick={() => patch(clearZeroClock(state))}
@@ -566,7 +567,7 @@ export default function ZeroPowerBlock({
         {/* 兩顆按鈕都擺在外面：看表與隨機都不該先點進彈窗（同身份欄位的做法） */}
         <div className="flex items-center justify-end gap-1.5">
           <JRPGButton
-            variant={theme.outlineButtonVariant || 'outline'}
+            variant="outline"
             size="xs"
             icon={GiSpellBook}
             onClick={() => setNameTablesOpen(true)}
@@ -574,7 +575,7 @@ export default function ZeroPowerBlock({
             命名表
           </JRPGButton>
           <JRPGButton
-            variant={theme.outlineButtonVariant || 'outline'}
+            variant="outline"
             size="xs"
             icon={GiRollingDices}
             onClick={() => patch({ name: rollZeroPowerName().name })}
@@ -604,7 +605,7 @@ export default function ZeroPowerBlock({
           <div className="flex items-center justify-between gap-1.5 flex-wrap">
             <span className="text-t11 font-bold" style={{ color: theme.textDark }}>觸發</span>
             <JRPGButton
-              variant={theme.outlineButtonVariant || 'outline'}
+              variant="outline"
               size="xs"
               icon={GiScrollUnfurled}
               onClick={() => openGlossary(GLOSSARY_TAB_TRIGGER)}
@@ -660,7 +661,7 @@ export default function ZeroPowerBlock({
               合體配對（每個其他玩家角色各一組）
             </span>
             <JRPGButton
-              variant={theme.outlineButtonVariant || 'outline'}
+              variant="outline"
               size="xs"
               icon={GiScrollUnfurled}
               onClick={() => openGlossary(GLOSSARY_TAB_EFFECT)}
@@ -713,7 +714,7 @@ export default function ZeroPowerBlock({
             </div>
           ))}
           <JRPGButton
-            variant={theme.outlineButtonVariant || 'outline'}
+            variant="outline"
             size="xs"
             icon={GiSparkles}
             onClick={addPair}
@@ -730,7 +731,7 @@ export default function ZeroPowerBlock({
           <div className="flex items-center justify-between gap-1.5 flex-wrap">
             <span className="text-t11 font-bold" style={{ color: theme.textDark }}>效果</span>
             <JRPGButton
-              variant={theme.outlineButtonVariant || 'outline'}
+              variant="outline"
               size="xs"
               icon={GiScrollUnfurled}
               onClick={() => openGlossary(GLOSSARY_TAB_EFFECT)}
@@ -773,7 +774,7 @@ export default function ZeroPowerBlock({
                   }}
                   className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
                   style={{
-                    backgroundColor: picked ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
+                    backgroundColor: picked ? theme.subpanelBg : theme.cardBg,
                     borderColor: picked ? theme.accent : theme.border,
                     color: theme.textDark
                   }}
@@ -800,7 +801,7 @@ export default function ZeroPowerBlock({
                     onClick={() => patch({ choices: { ...state.choices, damageType: picked ? '' : type } })}
                     className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
                     style={{
-                      backgroundColor: picked ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
+                      backgroundColor: picked ? theme.subpanelBg : theme.cardBg,
                       borderColor: picked ? theme.accent : theme.border,
                       color: theme.textDark
                     }}
@@ -827,7 +828,7 @@ export default function ZeroPowerBlock({
                     }}
                     className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
                     style={{
-                      backgroundColor: picked ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
+                      backgroundColor: picked ? theme.subpanelBg : theme.cardBg,
                       borderColor: picked ? theme.accent : theme.border,
                       color: theme.textDark
                     }}
@@ -856,7 +857,7 @@ export default function ZeroPowerBlock({
             onClick={() => patch({ variant: '', awakened: false, combinedPairs: [] })}
             className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
             style={{
-              backgroundColor: state.variant === '' ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
+              backgroundColor: state.variant === '' ? theme.subpanelBg : theme.cardBg,
               borderColor: state.variant === '' ? theme.accent : theme.border,
               color: theme.textDark
             }}
@@ -870,7 +871,7 @@ export default function ZeroPowerBlock({
               onClick={() => patch({ variant: v.id })}
               className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
               style={{
-                backgroundColor: state.variant === v.id ? theme.accentSoft || theme.subpanelBg : theme.cardBg,
+                backgroundColor: state.variant === v.id ? theme.subpanelBg : theme.cardBg,
                 borderColor: state.variant === v.id ? theme.accent : theme.border,
                 color: theme.textDark
               }}

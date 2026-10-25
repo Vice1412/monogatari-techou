@@ -94,7 +94,7 @@ export default function BookPageFlipOverlay({ direction, targetChapter, onAnimat
                 alt="物語手帳"
                 className="w-16 h-16 rounded border-2 border-[#d6c7ab] mx-auto mb-4 bg-[#3c2415] p-1.5 shadow-xl"
               />
-              <h2 className="text-2xl sm:text-3xl font-serif font-black gold-text-emboss tracking-widest">
+              <h2 className="text-2xl sm:text-3xl font-serif font-black text-[#f7f3e8] tracking-widest">
                 《物語手帳》
               </h2>
               <p className="text-xs text-[#f7f3e8] font-serif mt-2 tracking-widest">

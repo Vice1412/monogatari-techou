@@ -2627,3 +2627,70 @@ H34（零退役名字／任意值）、H34-a（恰好兩鍵）、H34-a2（一對
 
 #### 8.37.10 剩餘債
 R37：`hover:scale-` 51、漸層 7（`body` 2）、`theme?.accent ||`。R38：書頁棕 141 次（**GM 已裁決：與強調紅合併成一個**）＋ 其餘 54 個一次性 hex。
+
+---
+
+#### 8.38 第三十七輪（2026-10-24）：三種「宣告了卻不會發生」
+
+#### 8.38.1 開場量測（殘債的三個數字全部要改）
+| 項目 | 殘債寫的 | 實測 |
+|---|---|---|
+| `scale-` | 51 | **126**（98 具名 ＋ 28 任意值） |
+| 漸層 | 7 | **13 行**，其中 **12 條在護欄視野外** |
+| hex 回退 | 「的靜默回退」 | **248** |
+
+`scale-` 的 51 只數了 `hover:` 前綴；漸層的 7 數的是肉眼看到的；回退只有一句話沒有數字。**殘債清單本身也是需要被量測的文件。**
+
+#### 8.38.2 `scale`：22 個是死值，12 處連回饋都沒有
+98 個具名 `scale-` 裡 22 個是不存在的階（`scale-98`×7、`scale-102`×9、`scale-101`×3、`scale-120`×3）——**沒有產生任何 CSS**。逐站點問「拿掉 `scale` 之後還剩什麼」：44 處它是唯一回饋，其中 12 處是死值 ＋ 完全沒有其他回饋，也就是「按下去什麼都不會發生」。
+
+處置：先把 44 處換成 `hover:border-[#3c2415]`（多數）／`hover:brightness-[0.97]`（1，inline `theme` 上色，class hover 無效）／`hover:ring-2`（2，拖曳令牌），再全部刪掉 126 處。
+
+#### 8.38.3 漸層：護欄只認 `bg-gradient` 一種寫法
+| 寫法 | 站點 | 舊護欄 |
+|---|---|---|
+| `bg-gradient-to-r` | NPCWorkshop ×2 | ✅ |
+| inline `repeating-linear-gradient` | BookCoverHub ×2 | ❌ |
+| inline `radial-gradient` | TechnosphereBead ×3、index.css ×3 | ❌ |
+| `bg-[radial-gradient(…)]` | BookPageFlipOverlay ×1 | ❌ |
+| inline `linear-gradient` | ZeroPowerBlock ×1 | ❌ |
+
+另外 `walk()` 只收 `.js`／`.jsx`，`index.css` 從未被任何護欄掃過。改寫成三種寫法全認 ＋ 含 `.css`，並新增「漸層不准吃 `${…}` 插值」（吃主題色＝隨身份色變＝第二套顏色系統）。
+
+#### 8.38.4 `ZeroPowerBlock` 是金箔框，只是換了顏色
+`linear-gradient(135deg, accentDark → accent → border → accent → accentDark)` ＋ `0 18px 40px -22px accent` 投影 ＋ 內層兩圈放射光暈——形狀就是 v4 金箔邊框，把金色換成 `accent` 之後躲過「沒有金色」的字面檢查。改成**實心 `accent` 3px 描邊**；「特別」由四角 ❖、襯線大字、浮起徽章、進場動畫承擔（四項都還在）。`zeroPowers.test.mjs` 的三條斷言同步改寫。
+
+#### 8.38.5 回退 292 處：`||` 的右邊如果沒被取用，它就不是保險
+| 種類 | 站點 | 處置 |
+|---|---|---|
+| `<物件>.<鍵> \|\| '#hex'` | 248 | 刪右邊 |
+| `theme.accentSoft \|\| X` | 10 | 留 `X` |
+| `theme.buttonVariant \|\| 'primary'` | 23 | 留 `'primary'` |
+| `theme.outlineButtonVariant \|\| 'outline'` | 10 | 留 `'outline'` |
+| 兩邊同值的三元 | 1 | 收成單值 |
+
+另外 `CoreBookVariantCard` 的 `highlightBg`（從未存在 → 選中與未選中底色一直一樣）與 `ChapterDevWarningModal` 的假 `currentTheme`（兩個鍵各只有一個值 → 內聯、物件刪除）。
+
+#### 8.38.6 那 248 個 hex 裡有一批是 v4 化石
+`#c9a227`（金）、`#334155`／`#1e293b`／`#0f172a`（冷墨）、`#94a3b8`／`#e2e8f0`（冷灰）、`#888888`（純灰）、`#76252d`（硃砂紅 hover 值被當成 accentDark 保險）。**它們活了三十六輪，正因為從來沒被畫出來過。**
+
+#### 8.38.7 唯一真的在用的回退：匯出畫布
+`sheetVars(theme)` 是全站唯一真的會拿到 `null` 的地方。第一版把 `||` 一起刪掉 → 測試紅。正確修法是**把保險換成具名來源**：`const t = theme || getCharacterTheme(null)`。護欄形狀因此定為「右邊不准是 hex 字面值」，不是「不准有 fallback」。順帶修掉 `--sh-ink` 保險 `#3c2415` 與主題 `textDark` `#2c221e` 的顏色不一致。
+
+#### 8.38.8 死欄位 25 鍵 → 17 鍵
+`activeTabClass`／`ringColor`／`headerIconColor`／`accentHover`／`chipBg`／`cardBorder`／`cardBorderHover`／`borderHover` 讀取次數皆 **0**，刪除。`id`／`name`／`enName` 是內容，留。第十五輪「`activeTabClass` 必須寫死」的理由**本身對**，但它證明的是「不能改成動態」，不是「必須存在」。
+
+#### 8.38.9 護欄 226 → 234
+H35（零 hex 回退）、H35-a（六筆鍵集合相同）、H35-a2（恰好 17 鍵）、H35-b（讀的鍵必須在三張登記表之一）、H35-c（零死欄位）、H35-d（六個 accent 兩兩相異）、H35-d2（未知 id 落回 amber）；漸層改寫（三種寫法 ＋ `.css`）＋ 新增「漸層不吃主題色」。
+
+故意破壞 **8/8**，sha256 全部位元組級一致。反向控制：同一份 inline `radial-gradient`，舊規則看到 2 檔（完全沉默），新規則看到 6 檔（含 `index.css`）。
+
+#### 8.38.10 收尾數字
+`scale-` 126 → **0**；`transition-transform` 13 → **5**；hex 回退 248 → **0**；讀不存在欄位 43 → **0**；主題鍵 25 → **17**；死欄位 9 → **0**；漸層 13 行 → **11 條／5 檔全部登記**、吃主題色 3 → **0**；未登記 hex 283 次／54 個 → **227 次／46 個**；護欄 226 → **234**；改動 **48 檔**。
+
+`index.css` 另刪 v4「金銀青絲」三件套（前兩者引用 0，`.gold-text-emboss` 只剩翻頁遮罩標題在用 → 改紙白實心字）。
+
+#### 8.38.11 剩餘債
+- **R38**：書頁棕 `#8b5e34`(85)／`#78350f`(56) 共 141 次——**GM 已裁決：與強調紅 `#a63d40` 家族合併成一個**；其餘 **46 個**一次性 hex。
+- **R39 候選**：`badgeVariant` 六個主題全是 `'ink'`（集合大小 1）但被讀 15 次——H35-c 不會紅，要不要收成常數是獨立判決。
+- 殘留：`transition-transform` 5 處中 2 處用 inline `transform`，行掃描器分不出來，**刻意不寫護欄**（會假紅的護欄比沒有更糟）。

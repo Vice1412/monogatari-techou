@@ -97,7 +97,7 @@ export default function TinkererGadgetsQuickRef({
           <button
             type="button"
             onClick={onOpenCodex}
-            className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t11 flex items-center gap-1 transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t11 flex items-center gap-1 transition-all cursor-pointer"
             title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
           >
             <GiSpellBook className="text-[#6b5a4b] text-xs" />

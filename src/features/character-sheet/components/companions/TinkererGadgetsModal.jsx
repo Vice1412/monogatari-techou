@@ -407,7 +407,7 @@ export default function TinkererGadgetsModal({
                           <div
                             key={node.tier}
                             onClick={() => isInteractive && handleNodeClick(track.id, node.tier)}
-                            className={`p-3 rounded border transition-all duration-200 flex flex-col justify-between select-none ${ isGrayedOut ? 'opacity-35 grayscale cursor-not-allowed bg-[#f4ebd9] border-[#e8dcc4] text-[#7c6a58] shadow-none' : isUnlocked ? 'bg-[#f9f5eb] border-[#d6c7ab] ring-1 ring-[#3c2415]/40 cursor-pointer' : 'bg-white border-[#d6c7ab] hover:border-[#3c2415] hover:scale-[1.02] cursor-pointer ring-2 ring-[#3c2415]/25' }`}
+                            className={`p-3 rounded border transition-all duration-200 flex flex-col justify-between select-none ${ isGrayedOut ? 'opacity-35 grayscale cursor-not-allowed bg-[#f4ebd9] border-[#e8dcc4] text-[#7c6a58] shadow-none' : isUnlocked ? 'bg-[#f9f5eb] border-[#d6c7ab] ring-1 ring-[#3c2415]/40 cursor-pointer' : 'bg-white border-[#d6c7ab] hover:border-[#3c2415] cursor-pointer ring-2 ring-[#3c2415]/25' }`}
                           >
                             {/* 節點頂部狀態 */}
                             <div className="flex items-center justify-between gap-1 mb-2">

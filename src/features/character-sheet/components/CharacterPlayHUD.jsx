@@ -760,7 +760,7 @@ export default function CharacterPlayHUD({
           <div className="flex items-center gap-3">
             <div
               onClick={() => onOpenEditor()}
-              className="w-11 h-11 rounded border flex items-center justify-center font-serif text-lg font-bold overflow-hidden shadow-inner shrink-0 bg-white cursor-pointer hover:ring-2 hover:scale-105 transition-all group relative"
+              className="w-11 h-11 rounded border flex items-center justify-center font-serif text-lg font-bold overflow-hidden shadow-inner shrink-0 bg-white cursor-pointer hover:ring-2 transition-all group relative"
               style={{ borderColor: theme.border, color: theme.accent }}
               title="點擊前往「構築與成長」更換或調整頭像"
             >
@@ -1189,7 +1189,7 @@ export default function CharacterPlayHUD({
                 modifier: 0,
                 label: `${attr.enName} (${attr.zhName}) 單項檢定`
               })}
- className="w-full rounded p-3.5 border flex flex-col items-center gap-1 transition-all text-center group bg-[#fffdf9] hover: hover:scale-[1.01]"
+ className="w-full rounded p-3.5 border flex flex-col items-center gap-1 transition-all text-center group bg-[#fffdf9] hover:"
               style={{ borderColor: theme.border }}
               title={`點擊使用 ${attr.enName} 擲骰`}
             >
@@ -1402,7 +1402,7 @@ export default function CharacterPlayHUD({
                         modifier: mainCheck.mod,
                         label: `${mainWeapon.name} 命中判定 [${mainCheck.attr1} + ${mainCheck.attr2}]`
                       })}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all"
                       title="點擊直接擲骰命中檢定"
                     >
                       <GiRollingDices className="w-3.5 h-3.5 text-[#8b5e34]" />
@@ -1475,7 +1475,7 @@ export default function CharacterPlayHUD({
                           modifier: offCheck.mod,
                           label: `${offWeapon.name} 命中判定 [${offCheck.attr1} + ${offCheck.attr2}]`
                         })}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all"
                         title="點擊直接擲骰命中檢定"
                       >
                         <GiRollingDices className="w-3.5 h-3.5 text-[#8b5e34]" />
@@ -1785,7 +1785,7 @@ export default function CharacterPlayHUD({
                                     e.stopPropagation();
                                     openRuleCodex('小工具');
                                   }}
-                                  className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8b5e34] font-bold text-t12 flex items-center gap-1 transition-all cursor-pointer hover:scale-105 active:scale-95"
+                                  className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8b5e34] font-bold text-t12 flex items-center gap-1 transition-all cursor-pointer"
                                   title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
                                 >
                                   <GiSpellBook className="text-[#8b5e34] text-xs" />

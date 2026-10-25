@@ -240,7 +240,7 @@ export default function SkillSuboptionModal({
               取消返回
             </button>
             <JRPGButton
-              variant={theme?.buttonVariant || 'primary'}
+              variant="primary"
               size="sm"
               icon={GiCheckMark}
               onClick={handleConfirm}
@@ -254,7 +254,7 @@ export default function SkillSuboptionModal({
     >
       <div className="p-4 sm:p-5 space-y-4 max-h-[72vh] overflow-y-auto">
         {/* ================= 頂部狀態與配額指示列 ================= */}
-        <div className="p-3 rounded border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white" style={{ borderColor: theme?.border || '#e2e8f0' }}>
+        <div className="p-3 rounded border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white" style={{ borderColor: theme?.border }}>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-bold text-sm text-[#2c221e]">

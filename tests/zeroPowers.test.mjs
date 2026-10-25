@@ -869,8 +869,17 @@ const unnamedShowcase = showcaseOf({
 });
 check('還沒取名時卡片給佔位名', unnamedShowcase.includes('（尚未命名）'), true);
 
-/** 外觀是「特別的框」——漸層描邊、四角符號、進場動畫，三者都在原始碼裡。 */
-check('卡片用漸層描邊外框', blockSrc.includes('linear-gradient(135deg'), true);
+/**
+ * 外觀是「特別的框」——實心強調色描邊、四角符號、進場動畫，三者都在原始碼裡。
+ *
+ * 第三十七輪（§CI45）：描邊原本是 `linear-gradient(135deg, …)` 的金箔框形狀
+ * （兩端暗、中間亮、對角 135°），加上 `0 18px 40px -22px` 的彩色投影。
+ * 那正好同時踩到 v5 的三條禁令，所以改成**實心 accent 的 3px 外框**。
+ * 「特別」改由四角 ❖、襯線大字、浮起徽章、進場動畫承擔——四項都還在。
+ */
+check('卡片用實心強調色描邊外框（不是漸層、不是陰影）', blockSrc.includes("padding: '3px', background: accent"), true);
+check('卡片外框不再用漸層', blockSrc.includes('linear-gradient'), false);
+check('卡片不再用彩色投影造浮起', blockSrc.includes('boxShadow'), false);
 check('卡片四角各有角標', blockSrc.split('pointer-events-none absolute').length - 1, 4);
 check('角標用的是軌道 3 允許的排版字符', blockSrc.includes('❖'), true);
 check('卡片有進場動畫', blockSrc.includes('animate-fade-in'), true);

@@ -521,23 +521,89 @@ check('三層噪音（邊框＋低陰影＋底色）', noiseSites.length === 0, 
  * 一條是 `transparent → #d6c7ab → transparent` 的髮絲分隔線，
  * 一條是 `white/20` 的 hover 光掃（`group-hover:` 才動，離開就停）。
  * 判準是第十輪那句「**它有沒有在宣告第二套顏色系統**」——這兩條沒有。
+ *
+ * ## 第三十七輪（§CI45）：這條護欄原本只認一種寫法
+ *
+ * 它數的是 `bg-gradient` 這個**字串**，所以只看見 2 條——都在 `NPCWorkshop.jsx`。
+ * 可是同一時間全站其實有 **13 條**漸層：
+ *
+ * | 寫法 | 站點 | 舊護欄看不看得見 |
+ * |---|---|---|
+ * | `bg-gradient-to-r` | NPCWorkshop ×2 | ✅ 看得見 |
+ * | inline `repeating-linear-gradient(…)` | BookCoverHub ×2 | ❌ 看不見 |
+ * | inline `radial-gradient(…)` | TechnosphereBead ×3、index.css ×3 | ❌ 看不見 |
+ * | `bg-[radial-gradient(…)]` 任意值 | BookPageFlipOverlay ×1 | ❌ 看不見 |
+ * | inline `linear-gradient(…)` | ZeroPowerBlock ×1 | ❌ 看不見 |
+ *
+ * 也就是說**天花板一直是假的**：它守著一個角落，而十條漸層在牆外。
+ * 這是第三十六輪 `BANNED` 圓角規則的同一個病——規則只認一種寫法。
+ *
+ * 現在改成三種寫法全認，並且逐檔記**次數**（不是「有／沒有」）。
+ *
+ * ## 第二條：漸層不准吃主題色
+ *
+ * 剩下的 11 條全部在「畫一個實體」——布紋、書脊縫線、珠子的內陰影與高光、
+ * 皮革封面、髮絲分隔線、hover 光掃、頁面 3% 暖度。它們用的都是**固定的紙階或墨階**，
+ * 所以換角色主題時它們不會跟著變，也就不構成「第二套顏色系統」。
+ *
+ * 反過來說，只要一條漸層裡出現 `${…}` 插值（＝吃主題色），它就會隨身份色改變，
+ * 那才是禁令要抓的東西。`ZeroPowerBlock` 原本那條
+ * `linear-gradient(135deg, accentDark, accent, border, accent, accentDark)`
+ * 正是這樣：兩端暗、中間亮、135° 對角——那是**金箔框的形狀**，
+ * 只是把金色換成了角色的 accent，於是躲過了「沒有金色」的字面檢查。
  */
+const GRAD_TOKEN =
+  /(?:bg-(?:gradient|linear|radial|conic)-[\w-]+|bg-\[[^\]]*(?:linear|radial|conic)-gradient[^\]]*\]|(?:repeating-)?(?:linear|radial|conic)-gradient\()/g;
+
+/** 檔案 → 漸層條數。只能往下修；新增一條就 FAIL。 */
 const GRAD_OK = new Map([
-  ['src/features/npc-workshop/NPCWorkshop.jsx', 2], // 羊皮紙髮絲線 ＋ hover 光掃（皆無色相）
+  ['src/components/book/BookCoverHub.jsx', 2], // 布紋（3.5% 墨）＋書脊縫線（紙階）
+  ['src/components/book/BookPageFlipOverlay.jsx', 1], // 翻頁遮罩的紙色暈影
+  ['src/features/character-sheet/components/TechnosphereBead.jsx', 3], // 珠子的內陰影／高光／柱面
+  ['src/features/npc-workshop/NPCWorkshop.jsx', 2], // 羊皮紙髮絲線 ＋ hover 光掃
+  ['src/index.css', 3], // 頁面 3% 暖度 ×2 ＋ 皮革封面
 ]);
+
 const gradFiles = [];
-for (const abs of walk(path.join(ROOT, 'src'))) {
-  const hits = (stripComments(fs.readFileSync(abs, 'utf8')).match(/bg-gradient/g) || []).length;
-  if (hits) gradFiles.push([path.relative(ROOT, abs).replace(/\\/g, '/'), hits]);
+const gradThemed = [];
+/* `walk()` 只收 `.js`／`.jsx`，所以 `index.css` 從來不在任何一條護欄的視野裡——
+   那 3 條漸層（含皮革封面的有色相那條）一直是「沒有被數過」而不是「沒有」。
+   這裡另外走一遍含 `.css` 的樹。 */
+const walkWithCss = (dir, out = []) => {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) walkWithCss(full, out);
+    else if (['.js', '.jsx', '.css'].includes(path.extname(entry.name))) out.push(full);
+  }
+  return out;
+};
+for (const abs of walkWithCss(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const src = stripComments(fs.readFileSync(abs, 'utf8'));
+  let n = 0;
+  src.split('\n').forEach((line, i) => {
+    GRAD_TOKEN.lastIndex = 0;
+    const hits = line.match(GRAD_TOKEN);
+    if (!hits) return;
+    n += hits.length;
+    // 吃主題色＝隨身份色改變＝第二套顏色系統
+    if (/\$\{/.test(line)) gradThemed.push(`${rel}:${i + 1}`);
+  });
+  if (n) gradFiles.push([rel, n]);
 }
 const gradWrong = [
   ...gradFiles.filter(([f, n]) => GRAD_OK.get(f) !== n).map(([f, n]) => `${f}×${n}（應為 ${GRAD_OK.get(f) ?? 0}）`),
   ...[...GRAD_OK.keys()].filter((f) => !gradFiles.some(([g]) => g === f)).map((f) => `${f} 已無漸層（應從表上移除）`),
 ];
 check(
-  '漸層只存在於有功能的那幾支檔案，且次數固定',
+  '漸層只存在於登記過的檔案，且條數固定（三種寫法全認）',
   gradWrong.length === 0,
   gradWrong.length ? gradWrong.join('、') : `${gradFiles.length} 檔／${gradFiles.reduce((a, [, n]) => a + n, 0)} 條`,
+);
+check(
+  '漸層不吃主題色（不得用 ${…} 插值，否則會隨身份色變成第二套顏色系統）',
+  gradThemed.length === 0,
+  gradThemed.length ? gradThemed.join('、') : '0 處',
 );
 
 /**
@@ -3129,12 +3195,17 @@ for (const abs of walkSrc(path.join(ROOT, 'src'))) {
 const h31Unreg = [...h31Map.entries()].filter(([h]) => !REGISTERED_HEX.has(h));
 const h31UnregTotal = h31Unreg.reduce((s, x) => s + x[1].n, 0);
 
-// H31：預算（只減不增）。形狀選「預算」而不是「硬零」，因為還有 283 次
+// H31：預算（只減不增）。形狀選「預算」而不是「硬零」，因為還有 227 次
 // 未登記的 hex 分佈在書頁棕、一次性色碼裡——那些要逐項裁決，
 // 不是機械替換。預算擋的是「繼續增加」，不是「一次清零」。
 // 第三十五輪：340 → 283。`workshopThemes` 的 58 個 hex 隨投影一起消失
 // （29 個是它獨有的、從未在其他檔案出現過的顏色）。
-const H31_BUDGET = 283;
+// 第三十七輪（§CI45）：283 → **227**。這一輪刪掉 248 處 `|| '#hex'` 靜默回退，
+// 其中 56 次是「未登記」的色（其餘本來就在色票裡），相異 hex 從 54 掉到 46。
+// 掉下去的 8 個是 v4 化石：#c9a227（金）、#334155／#1e293b／#0f172a（冷墨）、
+// #94a3b8／#e2e8f0（冷灰）、#888888（純灰）、#76252d（硃砂紅的 hover 值）。
+// 它們之所以活了三十六輪，正是因為**從來沒有被畫出來過**。
+const H31_BUDGET = 227;
 check(
   `H31 全站未登記 hex 只減不增（預算 ${H31_BUDGET}）`,
   h31UnregTotal <= H31_BUDGET,
@@ -3436,6 +3507,124 @@ check(
   'H34-d2 --r 是 2px（CSS 層的唯一來源）',
   rVars.length > 0 && rVars.every((v) => v === '2px'),
   rVars.join('／')
+);
+
+// ═══════════════════════════════════════════════════════════════════
+// H35 家族：主題表是唯一來源（第三十七輪 §CI45）
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * ## 這一組在擋什麼
+ *
+ * 全站有三張主題表：角色主題（`CHARACTER_THEMES`，6 色）、書頁外框（`BOOK_CHROME`）、
+ * 翻頁遮罩（`OVERLAY_PAPER`）。它們的用途是「一個欄位只有一個答案」。
+ *
+ * 第三十七輪量到三種把答案藏起來的寫法：
+ *
+ * | 寫法 | 站點 | 為什麼是病 |
+ * |---|---|---|
+ * | `theme.accent \|\| '#a63d40'` | 248 | `accent` 從來沒缺席，hex 一次都沒被取用；而它讓「改欄位名」變成靜默換色 |
+ * | `theme.accentSoft \|\| theme.subpanelBg` | 10 | `accentSoft` 這欄位**從來不存在**，所以 `\|\|` 的右邊就是真正的值 |
+ * | `theme.buttonVariant \|\| 'primary'` | 33 | 欄位第十五輪就刪了，讀取留著，於是永遠走右邊 |
+ *
+ * 共通點：**`||` 的右邊如果一次都沒被取用，它就不是保險，是第二個答案。**
+ * 而第二個答案最糟的地方是它看起來很合理——`#a63d40` 是強調紅，`#d6c7ab` 是紙邊，
+ * 就算真的觸發了，畫面上也只是「顏色有點不對」，不會有人回報。
+ *
+ * 更麻煩的是那 248 個 hex 裡有一批是 **v4 化石**：
+ * `#c9a227`（金）、`#334155`／`#1e293b`／`#0f172a`（冷墨）、`#888888`（純灰）、
+ * `#76252d`（硃砂紅的 hover 值，卻被當成 accentDark 的保險）。
+ * 它們之所以還活著，正是因為**從來沒有被畫出來過**。
+ */
+
+/** 甲：任何「屬性存取鏈 || '#hex'」都是第二個答案 */
+const HEX_FALLBACK =
+  /(?:[A-Za-z_$][\w$]*(?:\s*\??\.[A-Za-z_$][\w$]*)+)\s*(?:\|\||\?\?)\s*(['"])(#[0-9a-fA-F]{3,8})\1/g;
+const hexFallbackSites = [];
+for (const abs of walk(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  stripComments(fs.readFileSync(abs, 'utf8'))
+    .split('\n')
+    .forEach((line, i) => {
+      HEX_FALLBACK.lastIndex = 0;
+      if (HEX_FALLBACK.test(line)) hexFallbackSites.push(`${rel}:${i + 1}`);
+    });
+}
+check(
+  'H35 全站零「屬性 || hex」靜默回退（顏色只能來自命名來源）',
+  hexFallbackSites.length === 0,
+  hexFallbackSites.length ? hexFallbackSites.slice(0, 8).join('、') + (hexFallbackSites.length > 8 ? ` …共 ${hexFallbackSites.length} 處` : '') : '0 處'
+);
+
+/** 乙：三張表的鍵集合。角色主題直接讀模組，另兩張從原始碼解析。 */
+const CHARACTER_KEYS = new Set(Object.keys(CHARACTER_THEMES.amber));
+const BOOK_KEYS = new Set(Object.keys(BOOK_CHROME));
+const overlaySrc = stripComments(read('src/components/book/BookPageFlipOverlay.jsx'));
+const OVERLAY_KEYS = new Set(
+  [
+    ...overlaySrc
+      .slice(overlaySrc.indexOf('const OVERLAY_PAPER = {'), overlaySrc.indexOf('const CHAPTER_OVERLAY_THEMES'))
+      .matchAll(/^\s{2}([A-Za-z_$][\w$]*):/gm),
+  ].map((m) => m[1])
+);
+const REGISTERED_KEYS = new Set([...CHARACTER_KEYS, ...BOOK_KEYS, ...OVERLAY_KEYS]);
+
+check(
+  'H35-a 角色主題六筆的鍵集合完全相同（不是六份各自漂移的定義）',
+  new Set(Object.values(CHARACTER_THEMES).map((t) => Object.keys(t).sort().join(','))).size === 1,
+  `${new Set(Object.values(CHARACTER_THEMES).map((t) => Object.keys(t).sort().join(','))).size} 種鍵集合／每筆 ${CHARACTER_KEYS.size} 鍵`
+);
+check(
+  'H35-a2 角色主題恰好 17 個鍵（新增或刪除欄位都要先想清楚）',
+  CHARACTER_KEYS.size === 17,
+  `${CHARACTER_KEYS.size} 鍵`
+);
+
+/** 丙：`theme.` 系列的讀取不准出現表上沒有的鍵 */
+const THEME_VARS = ['theme', 'currentTheme', 'charTheme', 'customTheme'];
+const THEME_READ = new RegExp(`(?<![\\w$.])(${THEME_VARS.join('|')})\\s*\\??\\.\\s*([A-Za-z_$][\\w$]*)`, 'g');
+const unknownKeySites = [];
+const keyReadCount = new Map();
+for (const abs of walk(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  stripComments(fs.readFileSync(abs, 'utf8'))
+    .split('\n')
+    .forEach((line, i) => {
+      THEME_READ.lastIndex = 0;
+      let m;
+      while ((m = THEME_READ.exec(line))) {
+        const key = m[2];
+        keyReadCount.set(key, (keyReadCount.get(key) || 0) + 1);
+        if (!REGISTERED_KEYS.has(key)) unknownKeySites.push(`${rel}:${i + 1} → ${m[1]}.${key}`);
+      }
+    });
+}
+check(
+  'H35-b 每個主題鍵的讀取都在登記過的表裡（讀不存在的欄位＝靜默用假值）',
+  unknownKeySites.length === 0,
+  unknownKeySites.length ? unknownKeySites.slice(0, 6).join('、') : `${keyReadCount.size} 個鍵全部登記過`
+);
+
+/** 丁：表上的樣式鍵不准是死欄位。`id`／`name`／`enName` 是內容不是樣式，豁免。 */
+const META_KEYS = new Set(['id', 'name', 'enName']);
+const deadStyleKeys = [...CHARACTER_KEYS].filter((k) => !META_KEYS.has(k) && !keyReadCount.has(k));
+check(
+  'H35-c 角色主題沒有死欄位（樣式鍵每一個都有人讀）',
+  deadStyleKeys.length === 0,
+  deadStyleKeys.length ? deadStyleKeys.join('、') : `${CHARACTER_KEYS.size - META_KEYS.size} 個樣式鍵全部在服役`
+);
+
+/** 戊：反向控制——六個身份色兩兩相異，且未知 id 落回 amber。 */
+const accentSet = new Set(Object.values(CHARACTER_THEMES).map((t) => t.accent));
+check(
+  'H35-d 六個主題的身份色兩兩相異（反向控制：身份是離散的封閉集合）',
+  accentSet.size === 6,
+  `${accentSet.size} 個相異 accent／6 個主題`
+);
+check(
+  'H35-d2 未知主題 id 落回 amber（不是拋錯、也不是空值）',
+  getCharacterTheme('__nope__').id === 'amber' && getCharacterTheme(undefined).id === 'amber',
+  `__nope__ → ${getCharacterTheme('__nope__').id}／undefined → ${getCharacterTheme(undefined).id}`
 );
 
 const failed = results.filter((r) => !r.ok);

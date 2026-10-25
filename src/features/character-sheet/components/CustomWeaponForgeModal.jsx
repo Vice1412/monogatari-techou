@@ -202,7 +202,7 @@ export default function CustomWeaponForgeModal({
       actionButtons={
         <div className="flex items-center gap-2">
           <JRPGButton
-            variant={theme.buttonVariant || 'primary'}
+            variant="primary"
             size="sm"
             onClick={save}
             disabled={!ok}

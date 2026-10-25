@@ -27,7 +27,7 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
   return (
     <div
       className="rounded border shadow-2xs overflow-hidden"
-      style={{ backgroundColor: theme.panelBg || '#fbf7ee', borderColor: theme.border || '#d6c7ab' }}
+      style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
     >
       <button
         type="button"
@@ -35,53 +35,53 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
         className="w-full flex items-center justify-between gap-3 px-3 py-2 text-left cursor-pointer hover:bg-black/[0.02] transition-colors"
       >
         <span className="flex items-center gap-2 min-w-0">
-          <GiLaurelCrown className="w-4 h-4 shrink-0" style={{ color: theme.accent || '#a63d40' }} />
-          <span className="text-xs font-bold truncate" style={{ color: theme.textDark || '#3c2415' }}>
+          <GiLaurelCrown className="w-4 h-4 shrink-0" style={{ color: theme.accent }} />
+          <span className="text-xs font-bold truncate" style={{ color: theme.textDark }}>
             {open ? '收起英雄技能' : '顯示英雄技能'}
           </span>
           <span
             className="text-t10 px-1.5 py-0.5 rounded border font-mono font-bold shrink-0"
             style={{
-              backgroundColor: theme.cardBg || '#fffdf9',
-              borderColor: theme.border || '#d6c7ab',
-              color: theme.textMuted || '#78716c'
+              backgroundColor: theme.cardBg,
+              borderColor: theme.border,
+              color: theme.textMuted
             }}
           >
             {list.length}
           </span>
         </span>
-        <span className="text-t11 shrink-0" style={{ color: theme.textMuted || '#78716c' }}>
+        <span className="text-t11 shrink-0" style={{ color: theme.textMuted }}>
           {open ? '收起' : '展開'}
         </span>
       </button>
 
       {open && (
-        <div className="border-t divide-y" style={{ borderColor: theme.border || '#d6c7ab' }}>
-          <p className="px-3 py-1.5 text-t12 leading-snug" style={{ color: theme.textMuted || '#78716c' }}>
+        <div className="border-t divide-y" style={{ borderColor: theme.border }}>
+          <p className="px-3 py-1.5 text-t12 leading-snug" style={{ color: theme.textMuted }}>
             把這個職業練到 10 級（精通）可獲得一個英雄技能（原書 p.232）。以下每一條都必須先精通
             {className}，其他條件列在各自的「條件」欄。實際選用在第 5 步「掌握之英雄技能」。
           </p>
           {list.map((h) => (
-            <div key={h.name} className="px-3 py-2 space-y-1" style={{ borderColor: theme.border || '#d6c7ab' }}>
+            <div key={h.name} className="px-3 py-2 space-y-1" style={{ borderColor: theme.border }}>
               <div className="flex items-baseline gap-2 flex-wrap">
-                <span className="text-xs font-bold" style={{ color: theme.textDark || '#3c2415' }}>
+                <span className="text-xs font-bold" style={{ color: theme.textDark }}>
                   {h.name}
                 </span>
                 <span
                   className="text-t10 px-1.5 py-0.5 rounded border font-bold"
                   style={{
-                    backgroundColor: theme.subpanelBg || '#f4ebd9',
-                    borderColor: theme.border || '#d6c7ab',
-                    color: theme.textMuted || '#78716c'
+                    backgroundColor: theme.subpanelBg,
+                    borderColor: theme.border,
+                    color: theme.textMuted
                   }}
                 >
                   {HEROIC_SKILL_SOURCE_LABELS[h.source] || h.source}
                 </span>
               </div>
-              <p className="text-t12 leading-snug" style={{ color: theme.textMuted || '#78716c' }}>
+              <p className="text-t12 leading-snug" style={{ color: theme.textMuted }}>
                 <strong>條件：</strong>{h.requirement}
               </p>
-              <p className="text-t11 leading-relaxed whitespace-pre-line" style={{ color: theme.textDark || '#3c2415' }}>
+              <p className="text-t11 leading-relaxed whitespace-pre-line" style={{ color: theme.textDark }}>
                 {h.effect}
               </p>
             </div>

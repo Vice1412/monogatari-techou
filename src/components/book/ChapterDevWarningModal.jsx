@@ -30,11 +30,13 @@ export default function ChapterDevWarningModal({
   /* 2026-10-23（第八輪）：章節色已收斂，這裡不再分章。
      原本四個章節各有 accent／按鈕變體／徽章底色，而工坊落到預設值——
      那其實是**第五套色表**，而且它出現在「你正要進去的門口」。
-     章節身份由章節圖示與標題承擔，警告框只管「這件事還沒做完」。 */
-  const currentTheme = {
-    buttonVariant: 'primary',
-    bgBadge: 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]',
-  };
+     章節身份由章節圖示與標題承擔，警告框只管「這件事還沒做完」。
+
+     第三十七輪（§CI45）：這裡原本還留著一個 `currentTheme` 物件，
+     兩個鍵各自只有一個值（`'primary'` 與一組紙色 class）。
+     「只有一個值的表」不是表，是**把字面值藏起來**——所以兩個值直接內聯，
+     物件刪掉。這也讓「全站每一處 `xxx.<鍵>` 讀取都必須指向一張已登記的主題表」
+     這條護欄說得通：它不再是第三張沒有人登記的假表。 */
 
   const actionButtons = (
     <>
@@ -48,7 +50,7 @@ export default function ChapterDevWarningModal({
         返回封面目錄
       </JRPGButton>
       <JRPGButton
-        variant={currentTheme.buttonVariant}
+        variant="primary"
         size="sm"
         onClick={onConfirm}
         icon={GiCheckMark}
@@ -91,9 +93,7 @@ export default function ChapterDevWarningModal({
         {/* 章節資訊卡片 */}
         <div className="p-4 rounded border border-[#d6c7ab] bg-[#fffdf9] space-y-2.5">
           <div className="flex items-center gap-3">
-            <div
-              className={`w-11 h-11 rounded border flex items-center justify-center shadow-xs shrink-0 ${currentTheme.bgBadge}`}
-            >
+            <div className="w-11 h-11 rounded border border-[#d6c7ab] bg-[#f4ebd9] text-[#3c2415] flex items-center justify-center shrink-0">
               <ChapterIcon className="w-6 h-6" />
             </div>
             <div>

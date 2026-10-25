@@ -353,7 +353,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         externalUrl: "",
         status: statusArr,
         params: paramsArr,
-        color: currentTheme?.accent || "#888888",
+        color: currentTheme?.accent,
         commands: cmdLines.join('\n')
       }
     };

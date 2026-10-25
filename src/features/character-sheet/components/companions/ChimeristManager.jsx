@@ -304,7 +304,7 @@ export default function ChimeristManager({
                 <button
                   type="button"
                   onClick={() => handleCastSpell(sp)}
-                  className="px-3 py-1 rounded text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-sm flex items-center gap-1 transition-transform hover:scale-105"
+                  className="px-3 py-1 rounded text-xs font-bold bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-sm flex items-center gap-1 transition-colors"
                 >
                   <GiRollingDices className="text-sm" />
                   <span>施放</span>

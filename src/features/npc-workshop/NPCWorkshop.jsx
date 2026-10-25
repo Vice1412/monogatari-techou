@@ -463,8 +463,8 @@ export default function App({
                     }}
                     className={`w-5 h-5 rounded-full transition-all relative flex items-center justify-center cursor-pointer ${
                       isSelected
-                        ? 'scale-120 shadow-xs ring-2 ring-offset-1'
-                        : 'opacity-70 hover:opacity-100 hover:scale-110'
+                        ? 'shadow-xs ring-2 ring-offset-1'
+                        : 'opacity-70 hover:opacity-100'
                     }`}
                     style={{
                       backgroundColor: themeObj.accent,
@@ -502,7 +502,7 @@ export default function App({
             <button
               type="button"
               onClick={handleSaveToLibrary}
-              className="text-[#fffdf9] px-3 py-1.5 rounded font-bold transition-all hover:scale-102 active:scale-98 shadow-xs text-xs flex items-center gap-1.5 cursor-pointer bg-[#8c3235] hover:bg-[#a63d40]"
+              className="text-[#fffdf9] px-3 py-1.5 rounded font-bold transition-all shadow-xs text-xs flex items-center gap-1.5 cursor-pointer bg-[#8c3235] hover:bg-[#a63d40]"
               title="儲存至 NPC 檔案庫 (Ctrl+S)"
             >
               <Save size={13} />
@@ -1826,7 +1826,7 @@ export default function App({
       const dataUrl = await htmlToImage.toJpeg(sheetRef.current, {
         quality: 0.95,
         pixelRatio: 2,
-        backgroundColor: currentTheme.exportBg || '#fbf7ee',
+        backgroundColor: currentTheme.exportBg,
         // 不要讓 html-to-image 去抓網頁字型內嵌（同一顆地雷，見上）
         skipFonts: true,
         filter: (node) => {
@@ -1870,7 +1870,7 @@ export default function App({
       const blob = await htmlToImage.toBlob(sheetRef.current, {
         quality: 0.95,
         pixelRatio: 2,
-        backgroundColor: currentTheme.exportBg || '#fbf7ee',
+        backgroundColor: currentTheme.exportBg,
         skipFonts: true,
         filter: (node) => {
           if (node?.classList?.contains('hide-on-export')) {
@@ -2048,7 +2048,7 @@ export default function App({
                 onDragLeave={handleAvatarDragLeave}
                 onDrop={handleAvatarDrop}
                 className={`relative w-24 h-24 md:w-32 md:h-32 border-2 bg-[#f4ebd9] flex-shrink-0 group overflow-hidden shadow-md select-none block transition-all duration-200 ${
-                  isDraggingOver ? 'border-[#3c2415] ring-2 ring-[#3c2415]/50 scale-105' : 'border-[#a8987e] hover:border-[#3c2415]'
+                  isDraggingOver ? 'border-[#3c2415] ring-2 ring-[#3c2415]/50' : 'border-[#a8987e] hover:border-[#3c2415]'
                 }`}
                 title={state.avatarBase64 ? "NPC 頭像" : "點擊上傳或拖曳圖片至此"}
               >
@@ -2162,7 +2162,7 @@ export default function App({
                               return (
                                 <div
                                   key={t}
-                                  className="bg-[#fffdf9] border border-[#d6c7ab] px-2.5 py-1 rounded flex items-center gap-1.5 text-xs font-bold transition-all hover:scale-105 shrink-0"
+                                  className="bg-[#fffdf9] border border-[#d6c7ab] px-2.5 py-1 rounded flex items-center gap-1.5 text-xs font-bold transition-all hover:border-[#3c2415] shrink-0"
                                 >
                                   <span className={`inline-flex items-center gap-1 ${styleInfo.color || 'text-[#3c2415]'}`}>
                                     <span className="fu-icon text-base leading-none translate-y-[0.5px]">{styleInfo.fuIcon}</span>
@@ -2490,10 +2490,10 @@ export default function App({
               style={{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'pan-y' }}
             >
               {/* Navigation Arrows */}
-              <button onClick={(e) => { e.stopPropagation(); handleMove(-1); }} className="absolute left-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-[#fffdf9] border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] hover:border-[#3c2415] hover:text-[#2c221e] transition-all hover:scale-110 active:scale-95 shadow-md">
+              <button onClick={(e) => { e.stopPropagation(); handleMove(-1); }} className="absolute left-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-[#fffdf9] border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] hover:border-[#3c2415] hover:text-[#2c221e] transition-all shadow-md">
                 <ChevronLeft size={32} strokeWidth={3} />
               </button>
-              <button onClick={(e) => { e.stopPropagation(); handleMove(1); }} className="absolute right-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-[#fffdf9] border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] hover:border-[#3c2415] hover:text-[#2c221e] transition-all hover:scale-110 active:scale-95 shadow-md">
+              <button onClick={(e) => { e.stopPropagation(); handleMove(1); }} className="absolute right-4 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-[#fffdf9] border border-[#d6c7ab] text-[#3c2415] hover:bg-[#f4ebd9] hover:border-[#3c2415] hover:text-[#2c221e] transition-all shadow-md">
                 <ChevronRight size={32} strokeWidth={3} />
               </button>
 
@@ -2535,7 +2535,7 @@ export default function App({
                     >
                       <div className={`bg-[#fffdf9] p-4 sm:p-8 rounded border-2 transition-all duration-300 ${isActive ? 'border-[#3c2415] shadow-xl' : 'border-[#d6c7ab]'} relative overflow-hidden group`}>
                         {/* Background Watermark Icon */}
-                        <div className="absolute top-0 right-0 p-4 opacity-10 text-[#8b4513] pointer-events-none group-hover:scale-110 transition-transform duration-1000">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 text-[#8b4513] pointer-events-none transition-transform duration-1000">
                           {(() => {
                             const WatermarkIcon = ROLE_ICONS[roleName] || ROLE_DESCRIPTIONS[roleName]?.Icon;
                             return WatermarkIcon ? (
@@ -2598,7 +2598,7 @@ export default function App({
                       setVisualIndex(v => v + diff);
                       handleRoleChange(r);
                     }}
-                    className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-300 w-full aspect-square sm:w-20 sm:h-20 border-2 ${isCurrent ? 'bg-[#f4ebd9] border-[#3c2415] shadow-md scale-110 sm:scale-110 z-10' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee] opacity-80 hover:opacity-100'}`}
+                    className={`flex flex-col items-center justify-center p-2 rounded transition-all duration-300 w-full aspect-square sm:w-20 sm:h-20 border-2 ${isCurrent ? 'bg-[#f4ebd9] border-[#3c2415] shadow-md z-10' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee] opacity-80 hover:opacity-100'}`}
                   >
                     <div className={`mb-1 drop-shadow-sm flex items-center justify-center ${isCurrent ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>
                       {QuickIcon ? (
@@ -2615,7 +2615,7 @@ export default function App({
               <button
                 onClick={nextStep}
                 style={{ backgroundColor: workshopTheme.accent }}
-                className="group relative px-10 py-4 text-white font-black tracking-[0.2em] rounded shadow-md transition-all hover:scale-105 active:scale-95 flex items-center gap-3 overflow-hidden"
+                className="group relative px-10 py-4 text-white font-black tracking-[0.2em] rounded shadow-md transition-all hover:brightness-110 flex items-center gap-3 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] skew-x-[-20deg]"></div>
                 確認定位 <ChevronRight size={20} />
@@ -2724,7 +2724,7 @@ export default function App({
                           key={r}
                           onClick={() => handleRankChange(r)}
                           className={`flex-1 py-3 px-2 rounded text-t11 font-black transition-all duration-300 tracking-widest relative z-10 ${state.rank === r
-                            ? 'bg-[#a63d40] text-[#fffdf9] shadow-md scale-[1.02]'
+                            ? 'bg-[#a63d40] text-[#fffdf9] shadow-md'
                             : 'text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9]'
                             }`}
                         >
@@ -2757,7 +2757,7 @@ export default function App({
                               key={num}
                               onClick={() => handleMultiplierChange(num)}
                               className={`flex-1 h-12 rounded font-black text-base transition-all duration-300 flex items-center justify-center border-2 ${state.championMultiplier === num
-                                ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235] shadow-md scale-110'
+                                ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235] shadow-md'
                                 : 'bg-[#fffdf9] text-[#6b5a4b] border-[#d6c7ab] hover:border-[#3c2415] hover:text-[#2c221e]'
                                 }`}
                             >
@@ -2801,17 +2801,17 @@ export default function App({
               {/* Species Selector Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
                 {SPECIES_DATA.map(sp => {
-                  const theme = SPECIES_THEMES[sp.id] || { color: 'gray', icon: <GiMonsterGrasp size={20} />, label: '未知' };
+                  const speciesTheme = SPECIES_THEMES[sp.id] || { color: 'gray', icon: <GiMonsterGrasp size={20} />, label: '未知' };
                   const isSelected = state.selectedSpeciesId === sp.id;
 
                   return (
                     <button
                       key={sp.id}
                       onClick={() => handleSpeciesChange(sp.id)}
-                      className={`relative flex flex-col items-center justify-center p-4 rounded border-2 transition-all duration-300 ${isSelected ? 'bg-[#f4ebd9] border-[#3c2415] shadow-md scale-[1.03] z-10' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee]'}`}
+                      className={`relative flex flex-col items-center justify-center p-4 rounded border-2 transition-all duration-300 ${isSelected ? 'bg-[#f4ebd9] border-[#3c2415] shadow-md z-10' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee]'}`}
                     >
                       <div className={`p-2.5 rounded-full mb-2 transition-all ${isSelected ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b]'}`}>
-                        {theme.icon}
+                        {speciesTheme.icon}
                       </div>
                       <span className={`text-t12 font-bold tracking-tight text-center leading-tight ${isSelected ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>
                         {sp.name}
@@ -3219,7 +3219,7 @@ export default function App({
                                 }}
                                 className={`py-1.5 text-xs font-black rounded transition-all duration-200 relative ${
                                   isActive
-                                    ? 'bg-[#a63d40] text-[#fffdf9] font-extrabold shadow-sm scale-105 z-10'
+                                    ? 'bg-[#a63d40] text-[#fffdf9] font-extrabold shadow-sm z-10'
                                     : 'bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]'
                                 }`}
                               >
@@ -3291,7 +3291,7 @@ export default function App({
                     abs: { l: AFFINITY_STATES.abs.label, c: AFFINITY_STATES.abs.ink, activeBorder: 'border-[#3c2415]', activeBg: 'bg-[#fffdf9]' }
                   };
                   return (
-                    <button key={st} onClick={() => !isDisabled && setActiveAffinityTab(st)} disabled={isDisabled} className={`flex-1 flex flex-col items-center justify-center p-2 rounded-t border-b-4 transition-all duration-200 ${isDisabled ? 'opacity-40 cursor-not-allowed border-[#d6c7ab] bg-[#f4ebd9] grayscale' : isActive ? `${conf[st].activeBorder} ${conf[st].activeBg} scale-105 z-10` : 'border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9]'}`}>
+                    <button key={st} onClick={() => !isDisabled && setActiveAffinityTab(st)} disabled={isDisabled} className={`flex-1 flex flex-col items-center justify-center p-2 rounded-t border-b-4 transition-all duration-200 ${isDisabled ? 'opacity-40 cursor-not-allowed border-[#d6c7ab] bg-[#f4ebd9] grayscale' : isActive ? `${conf[st].activeBorder} ${conf[st].activeBg} z-10` : 'border-[#d6c7ab] bg-[#f9f5eb] hover:bg-[#f4ebd9]'}`}>
                       <span className={`text-t10 sm:text-xs font-bold mb-1 ${isDisabled ? 'text-[#7c6a58]' : conf[st].c}`}>{conf[st].l}</span>
                       <span className={`text-sm font-extrabold ${!isDisabled && isFull && max > 0 && !state.isFreeModeEnabled ? 'text-[#3c2415] font-black' : isDisabled ? 'text-[#7c6a58]' : 'text-[#2c221e]'}`}>{curr} <span className="text-[#7c6a58] font-normal mx-0.5">/</span> {state.isFreeModeEnabled ? '∞' : max}</span>
                     </button>
@@ -3322,7 +3322,7 @@ export default function App({
                       key={type}
                       onClick={() => !isSpeciesLocked && handleAffinityClick(type)}
                       disabled={isDisabled}
-                      className={`flex flex-col items-center justify-center p-2 sm:p-3 rounded border-2 border-[#d6c7ab] bg-[#fffdf9] transition-all transform relative ${isSpeciesLocked ? 'opacity-100 border-dashed cursor-default saturate-[1.2] ring-1 ring-[#3c2415]' : isDisabled ? 'opacity-40 cursor-not-allowed saturate-50' : 'hover:scale-105 cursor-pointer'}`}
+                      className={`flex flex-col items-center justify-center p-2 sm:p-3 rounded border-2 border-[#d6c7ab] bg-[#fffdf9] transition-all transform relative ${isSpeciesLocked ? 'opacity-100 border-dashed cursor-default saturate-[1.2] ring-1 ring-[#3c2415]' : isDisabled ? 'opacity-40 cursor-not-allowed saturate-50' : 'cursor-pointer hover:border-[#3c2415]'}`}
                     >
                       {/* 狀態的極性：只有 4px，只在左緣。面全部相同（第十五輪）。 */}
                       <span className={`absolute left-0 top-0 bottom-0 w-1 rounded-l ${style.bar}`} aria-hidden="true" />
@@ -3362,7 +3362,7 @@ export default function App({
                         type="button"
                         onClick={() => setState(prev => ({ ...prev, magicFormula: opt.value }))}
                         className={`flex flex-col items-center justify-center p-3 rounded border-2 transition-all duration-200 ${isSelected
-                          ? 'border-[#3c2415] bg-[#fffdf9] text-[#2c221e] scale-[1.02]'
+                          ? 'border-[#3c2415] bg-[#fffdf9] text-[#2c221e]'
                           : 'border-[#d6c7ab] bg-[#fffdf9] text-[#6b5a4b] hover:border-[#7c6a58] hover:text-[#2c221e]'
                           }`}
                       >
@@ -3402,7 +3402,7 @@ export default function App({
               <SectionAccordion title="基礎攻擊與核心能力" icon={<GiCrossedSwords size={16} />} current={basicAttacksToRender.length} max={basicAttacksToRender.length} hideIfZeroMax={false} defaultExpanded={true} titleColor="text-[#3c2415]" borderColor="border-[#d6c7ab]" isFreeMode={state.isFreeModeEnabled}>
                 <div className="space-y-4">
                   {basicAttacksToRender.map(skill => (
-                    <div key={skill.id} id={`skill-card-${skill.id}`} className={`transition-all duration-300 ${highlightedSkillId === skill.id ? 'ring-4 ring-[#3c2415] bg-[#f4ebd9] rounded p-1 shadow-lg scale-[1.02]' : ''}`}>
+                    <div key={skill.id} id={`skill-card-${skill.id}`} className={`transition-all duration-300 ${highlightedSkillId === skill.id ? 'ring-4 ring-[#3c2415] bg-[#f4ebd9] rounded p-1 shadow-lg' : ''}`}>
                       <EditableSkill skill={skill} rawSkill={validSkills.find(v => v.id === skill.id) || skill} onUpdate={updateSkill} onDelete={deleteSkill} onUpdateSelection={updateSelection} finalStats={finalStats} npcLevel={state.level} partyLevel={state.partyLevel} />
                     </div>
                   ))}
@@ -3434,7 +3434,7 @@ export default function App({
                   const targetId = activeSkillData?.id || skill.id;
 
                   return (
-                    <div key={skill.id} id={`skill-card-${targetId}`} className={`transition-all duration-300 ${highlightedSkillId === targetId || highlightedSkillId === skill.id ? 'ring-4 ring-[#3c2415] bg-[#f4ebd9] rounded p-1 shadow-lg scale-[1.02]' : ''}`}>
+                    <div key={skill.id} id={`skill-card-${targetId}`} className={`transition-all duration-300 ${highlightedSkillId === targetId || highlightedSkillId === skill.id ? 'ring-4 ring-[#3c2415] bg-[#f4ebd9] rounded p-1 shadow-lg' : ''}`}>
                       <SkillCard
                         skill={activeSkillData || skill}
                         isActive={isActive}
@@ -3491,7 +3491,7 @@ export default function App({
                   const targetId = activeSkillData?.id || skill.id;
 
                   return (
-                    <div key={skill.id} id={`skill-card-${targetId}`} className={`transition-all duration-300 ${highlightedSkillId === targetId || highlightedSkillId === skill.id ? 'ring-4 ring-[#3c2415] bg-[#f4ebd9] rounded p-1 shadow-lg scale-[1.02]' : ''}`}>
+                    <div key={skill.id} id={`skill-card-${targetId}`} className={`transition-all duration-300 ${highlightedSkillId === targetId || highlightedSkillId === skill.id ? 'ring-4 ring-[#3c2415] bg-[#f4ebd9] rounded p-1 shadow-lg' : ''}`}>
                       <SkillCard
                         skill={activeSkillData || skill}
                         isActive={isActive}
@@ -3536,7 +3536,7 @@ export default function App({
                     />
                   </div>
                   {allSpellbooksToRender.map(skill => (
-                    <div key={skill.id} id={`skill-card-${skill.id}`} className={`pt-2 border-t border-[#d6c7ab] mt-4 first:mt-0 first:pt-0 first:border-0 transition-all duration-300 ${highlightedSkillId === skill.id ? 'ring-4 ring-[#3c2415] bg-[#f4ebd9] rounded p-2 shadow-lg scale-[1.02]' : ''}`}>
+                    <div key={skill.id} id={`skill-card-${skill.id}`} className={`pt-2 border-t border-[#d6c7ab] mt-4 first:mt-0 first:pt-0 first:border-0 transition-all duration-300 ${highlightedSkillId === skill.id ? 'ring-4 ring-[#3c2415] bg-[#f4ebd9] rounded p-2 shadow-lg' : ''}`}>
                       <EditableSkill skill={skill} rawSkill={validSkills.find(v => v.id === skill.id) || skill} onUpdate={updateSkill} onDelete={deleteSkill} onUpdateSelection={updateSelection} finalStats={finalStats} npcLevel={state.level} partyLevel={state.partyLevel} />
                       <div className="flex justify-between items-center mt-3 mb-2 pl-6 pr-2">
                         <span className="text-xs font-bold text-[#6b5a4b]">已選咒語 ({(skill.selectedSpells || []).length} / {skill.spellConfig.capacity})</span>
@@ -3705,7 +3705,7 @@ export default function App({
 
                     <button
                       onClick={handleAddCustomSkill}
-                      className="px-4 py-2 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] text-xs font-bold rounded flex items-center gap-2 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto justify-center"
+                      className="px-4 py-2 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] text-xs font-bold rounded flex items-center gap-2 transition-all w-full sm:w-auto justify-center"
                     >
                       <PlusCircle size={14} /> 加入能力清單
                     </button>
@@ -3778,9 +3778,9 @@ export default function App({
                               } else {
                                 el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                               }
-                              el.classList.add('ring-4', 'ring-[#3c2415]', 'ring-offset-4', 'ring-offset-[#fbf7ee]', 'transition-all', 'duration-500', 'scale-[1.02]', 'z-10');
+                              el.classList.add('ring-4', 'ring-[#3c2415]', 'ring-offset-4', 'ring-offset-[#fbf7ee]', 'transition-all', 'duration-500', '', 'z-10');
                               setTimeout(() => {
-                                el.classList.remove('ring-4', 'ring-[#3c2415]', 'ring-offset-4', 'ring-offset-[#fbf7ee]', 'scale-[1.02]', 'z-10');
+                                el.classList.remove('ring-4', 'ring-[#3c2415]', 'ring-offset-4', 'ring-offset-[#fbf7ee]', '', 'z-10');
                               }, 1500);
                             }
                           }, 100);
@@ -3828,7 +3828,7 @@ export default function App({
                           setState(prev => ({ ...prev, rank: '冠位', championMultiplier: mult }));
                           showToast(`成功覺醒為冠位 (倍率 x${mult})！`, 'success');
                         }}
-                        className="flex flex-col items-center justify-center py-3 bg-[#f4ebd9] border border-[#d6c7ab] rounded hover:bg-[#f4ebd9] hover:border-[#3c2415] hover:scale-105 transition-all"
+                        className="flex flex-col items-center justify-center py-3 bg-[#f4ebd9] border border-[#d6c7ab] rounded hover:bg-[#f4ebd9] hover:border-[#3c2415] transition-all"
                       >
                         <span className="text-xl font-black text-[#3c2415] transition-colors drop-shadow-sm">{mult}</span>
                         <span className="text-t10 text-[#3c2415] font-bold">倍率</span>
@@ -4209,7 +4209,7 @@ export default function App({
             <div className="bg-[#fffdf9] p-4 rounded border border-[#d6c7ab] mb-6">
               <textarea className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded p-3 text-[#2c221e] outline-none h-48 resize-none focus:border-[#3c2415] text-sm leading-relaxed font-medium" value={state.tactics || ""} onChange={e => setState({ ...state, tactics: e.target.value })} placeholder="描述這個 NPC 在戰鬥中會怎麼行動。例如：優先攻擊施法者；血量低於一半時退到後排，改用遠程攻擊。" />
             </div>
-            <div className="flex justify-end"><button onClick={() => setActiveMainTab('preview')} className="bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] px-6 py-3 rounded flex items-center gap-2 font-bold shadow-md transition-transform hover:scale-105"><Eye size={18} /> 立即查看角色卡</button></div>
+            <div className="flex justify-end"><button onClick={() => setActiveMainTab('preview')} className="bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] px-6 py-3 rounded flex items-center gap-2 font-bold shadow-md transition-colors"><Eye size={18} /> 立即查看角色卡</button></div>
           </div>
         );
       default:
@@ -4394,7 +4394,7 @@ export default function App({
                     className="hidden"
                   />
                   <span
-                    className="bg-white hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-3.5 py-2 rounded font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs cursor-pointer"
+                    className="bg-white hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-3.5 py-2 rounded font-bold flex items-center gap-1.5 transition-all justify-center text-xs cursor-pointer"
                     title="匯入單張 NPC 的 JSON 檔案（載入後還要按「儲存」才會進檔案庫）"
                   >
                     <Upload className="w-3.5 h-3.5 text-[#3c2415]" />
@@ -4404,7 +4404,7 @@ export default function App({
 
                 <button
                   onClick={handleBackupAllNPCs}
-                  className="bg-white hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-3.5 py-2 rounded font-bold flex items-center gap-1.5 transition-all hover:scale-102 justify-center text-xs"
+                  className="bg-white hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-3.5 py-2 rounded font-bold flex items-center gap-1.5 transition-all justify-center text-xs"
                 >
                   <Download className="w-3.5 h-3.5 text-[#3c2415]" />
                   <span>備份全庫</span>
@@ -4529,7 +4529,7 @@ export default function App({
             {maxRoleSkills > 0 && (
               <button
                 onClick={() => { setCurrentStep(4); setStep4SubTab('skills'); }}
-                className={`flex items-center gap-1.5 text-t10 font-bold px-2.5 py-1 rounded-full border transition-all hover:scale-105 ${
+                className={`flex items-center gap-1.5 text-t10 font-bold px-2.5 py-1 rounded-full border transition-all hover:border-[#3c2415] ${
                   usedRoleSkills > maxRoleSkills
                     ? 'bg-[#f4ebd9] text-[#8c2d36] border-[#8c2d36]'
                     : usedRoleSkills >= maxRoleSkills
@@ -4548,7 +4548,7 @@ export default function App({
               return (
                 <button
                   onClick={() => { setCurrentStep(4); setStep4SubTab('skills'); }}
-                  className={`flex items-center gap-1.5 text-t10 font-bold px-2.5 py-1 rounded-full border transition-all hover:scale-105 ${
+                  className={`flex items-center gap-1.5 text-t10 font-bold px-2.5 py-1 rounded-full border transition-all hover:border-[#3c2415] ${
                     usedSpells > maxSpells
                       ? 'bg-[#f4ebd9] text-[#8c2d36] border-[#8c2d36]'
                       : usedSpells >= maxSpells
@@ -4564,7 +4564,7 @@ export default function App({
             {/* 屬性相性 (弱點 / 抗性 / 免疫) */}
             <button
               onClick={() => { setCurrentStep(4); setStep4SubTab('stats'); }}
-              className="flex items-center gap-1.5 text-t10 font-bold px-2.5 py-1 rounded-full border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] transition-all hover:scale-105 ml-auto md:ml-0"
+              className="flex items-center gap-1.5 text-t10 font-bold px-2.5 py-1 rounded-full border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] transition-all hover:border-[#3c2415] ml-auto md:ml-0"
               title="數字只計算你手動分配的額度；物種自帶的抗性另計、不佔額度。點擊前往相性配置"
             >
               <span className="text-t12 font-normal opacity-70">手動</span>
@@ -4660,11 +4660,11 @@ export default function App({
                     </button>
 
                     {currentStep === 8 ? (
-                      <button onClick={() => setActiveMainTab('preview')} className="flex items-center gap-2 px-8 py-2.5 rounded font-bold transition-all shadow-md text-sm text-[#fffdf9] hover:scale-105 bg-[#a63d40] hover:bg-[#8c3235]">
+                      <button onClick={() => setActiveMainTab('preview')} className="flex items-center gap-2 px-8 py-2.5 rounded font-bold transition-all shadow-md text-sm text-[#fffdf9] bg-[#a63d40] hover:bg-[#8c3235]">
                         <Check size={16} /> 預覽角色卡
                       </button>
                     ) : (
-                      <button onClick={nextStep} title="下一步（Alt + →）" className="flex items-center gap-2 px-8 py-2.5 rounded font-bold transition-all shadow-md text-sm text-[#fffdf9] hover:scale-105 bg-[#a63d40] hover:bg-[#8c3235]">
+                      <button onClick={nextStep} title="下一步（Alt + →）" className="flex items-center gap-2 px-8 py-2.5 rounded font-bold transition-all shadow-md text-sm text-[#fffdf9] bg-[#a63d40] hover:bg-[#8c3235]">
                         下一步 <ChevronRight size={16} />
                       </button>
                     )}
@@ -4678,7 +4678,7 @@ export default function App({
           <div className="xl:hidden fixed bottom-16 right-4 z-40">
             <button
               onClick={() => setIsBottomSheetOpen(true)}
-              className="bg-[#8c3235] hover:bg-[#a63d40] text-[#fffdf9] p-3.5 rounded-full shadow-e3 flex items-center gap-2 font-bold transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-[#d6c7ab]"
+              className="bg-[#8c3235] hover:bg-[#a63d40] text-[#fffdf9] p-3.5 rounded-full shadow-e3 flex items-center gap-2 font-bold transition-all duration-300 border-2 border-[#d6c7ab]"
               title="查看角色卡預覽"
             >
               <Eye size={20} />
@@ -4752,7 +4752,7 @@ export default function App({
                 <div className="relative">
                   <button
                     onClick={() => setIsPaletteOpen(prev => !prev)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded border bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] text-xs font-bold text-[#3c2415] transition-all hover:scale-105"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded border bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] text-xs font-bold text-[#3c2415] transition-all"
                     title="切換角色卡配色風格"
                   >
                     <Palette size={15} style={{ color: currentTheme.accent }} />
@@ -4807,7 +4807,7 @@ export default function App({
                 <div className="relative">
                   <button
                     onClick={() => setCopyFormatDropdownOpen(prev => !prev)}
-                    className="bg-[#8c3235] hover:bg-[#a63d40] text-[#fffdf9] px-3 py-2 rounded flex items-center gap-1.5 font-bold shadow transition-transform hover:scale-105 text-sm"
+                    className="bg-[#8c3235] hover:bg-[#a63d40] text-[#fffdf9] px-3 py-2 rounded flex items-center gap-1.5 font-bold shadow transition-colors text-sm"
                   >
                     <FileText size={15} /> 複製文本 ▾
                   </button>
@@ -4841,10 +4841,10 @@ export default function App({
                     </div>
                   )}
                 </div>
-                <button onClick={handleCopyJPG} className="bg-[#3c2415] hover:bg-[#2c221e] text-[#e8dcc4] px-4 py-2 rounded flex items-center gap-2 font-bold shadow transition-transform hover:scale-105 text-sm">
+                <button onClick={handleCopyJPG} className="bg-[#3c2415] hover:bg-[#2c221e] text-[#e8dcc4] px-4 py-2 rounded flex items-center gap-2 font-bold shadow transition-colors text-sm">
                   <Copy size={16} /> 複製圖片
                 </button>
-                <button onClick={handleExportJPG} className="bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] px-4 py-2 rounded flex items-center gap-2 font-bold shadow transition-transform hover:scale-105 text-sm">
+                <button onClick={handleExportJPG} className="bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] px-4 py-2 rounded flex items-center gap-2 font-bold shadow transition-colors text-sm">
                   <Download size={16} /> 匯出 JPG
                 </button>
               </div>

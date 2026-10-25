@@ -21,23 +21,40 @@
  * | `border`／`cardBorder`／`cardBorderHover` | **收斂成一個** | 邊界是結構，不是身份 |
  * | `textDark`／`textMuted` | **收斂成一個** | 墨是**量**（階梯），不是身份 |
  * | `chipBg` | **收斂成一個** | 晶片是面，文字才是內容 |
- * | `accent`／`accentHover`／`accentDark`／`accentLight` | **保留** | 玩家自己選的那一色，封閉集合、每角色一色 → 真身份 |
- * | `headerIconColor`／`ringColor`／`activeTabClass` | **保留**（跟著 accent） | 同一個身份色的小面積延伸 |
+ * | `accent`／`accentDark`／`accentLight` | **保留** | 玩家自己選的那一色，封閉集合、每角色一色 → 真身份 |
  * | `badgeVariant` | **收斂成一個**（第三十三輪 §CI41） | 徽章的內容是 `Lv N`，身份由 `accent`（頭像環／頁籤／圖示）承載；徽章帶色是重複編碼，且六個鍵裡 `blue → cyan` 已失效（靜默變金）、`slate` 借用了「序」的通道 |
  * | `gradient` | **刪除** | 漸層宣告第二套顏色系統；三處使用全改成實心 accent |
  * | `buttonVariant`／`outlineButtonVariant` | **刪除** | 按鈕不該隨角色換色；呼叫端本來就寫了 `\|\| 'primary'`／`\|\| 'outline'` |
  *
  * ## 為什麼刪欄位是安全的
  *
- * 全站 22 處讀 `theme.buttonVariant`、8 處讀 `theme.outlineButtonVariant`，
- * 每一處都寫成 `theme.buttonVariant || 'primary'`——**fallback 就是為了這種情況存在的**。
- * 唯一沒有 fallback 的是 `ChapterDevWarningModal.jsx`，而它讀的是自己檔內的常值物件。
+ * 第十五輪刪 `buttonVariant`／`outlineButtonVariant` 時，全站 22 ＋ 8 處讀取
+ * 每一處都寫成 `theme.buttonVariant || 'primary'`——**`||` 就是為了這種情況存在的**。
  *
- * ## 為什麼 `activeTabClass` 等三個欄位仍然逐字寫死
+ * 第三十七輪（§CI45）回頭量，發現這句話**只對了一半**：`||` 確實接住了刪掉的欄位，
+ * 但接住之後沒有人回頭把讀取拿掉，於是那 30 處變成永遠走右邊的死三元；
+ * 而同一句話也讓 241 處 `theme.accent || '#hex'` 看起來「很合理」——
+ * 可是 `accent` 從來沒有缺席過，那些 hex 一次都沒有被取用。
  *
- * 它們是 **className 字串**，而 Tailwind 是在**原始碼文字**上掃 class 名稱的。
- * 用 `` `bg-[${t.accent}]` `` 動態組出來的字串，Tailwind 看不到 → class 不會被產生
- * → 樣式靜默失效。所以這三個欄位必須是字面值，哪怕它跟 `accent` 重複。
+ * 判準改成一句話：
+ *
+ * > **`||` 的右邊如果一次都沒被取用，它就不是保險，是第二個答案。**
+ *
+ * 所以本輪把三種回退全部清掉（見 §CI45）：回退到 hex 的 248 處、
+ * 讀了不存在欄位的 `accentSoft` 10 處、讀了已刪欄位的 33 處。
+ * 現在的讀取是裸的：`theme.accent`。欄位真的不見時畫面會**空掉**，
+ * 而不是安靜地換成一個看起來還算合理的棕色——空掉看得見，棕色看不見。
+ *
+ * ## 為什麼 `activeTabClass` 等四個欄位被刪掉了
+ *
+ * 第十五輪的理由是「它們是 className 字串，Tailwind 在原始碼文字上掃 class，
+ * 動態組出來的字串它看不到，所以必須寫成字面值」——**這個理由本身是對的**，
+ * 但它證明的是「這幾個欄位不能改成動態」，不是「這幾個欄位必須存在」。
+ *
+ * 第三十七輪逐字量：`activeTabClass`／`ringColor`／`headerIconColor`／`accentHover`
+ * 在全站（含 `.jsx`、含註解）的讀取次數是 **0**。也就是說第十五輪把它們寫死之後，
+ * 沒有人真的去用它——頁籤與圖示的身份色早就改走 `accent` 了。
+ * 留著四個「只有一個值的欄位」，就是留著一份**看起來像在運作的設定**。
  */
 
 import { STORAGE_KEYS } from '../../../data/keys';
@@ -66,22 +83,16 @@ const SHARED = Object.freeze({
 
   // 邊界
   border: '#d6c7ab',
-  cardBorder: 'border-[#d6c7ab]',
-  cardBorderHover: 'hover:border-[#3c2415]',
 
   // 墨兩階
   textDark: '#2c221e',
   textMuted: '#6b5a4b',
-
-  // 晶片
-  chipBg: 'bg-[#f4ebd9] text-[#2c221e] border-[#d6c7ab]',
 });
 
 /** 一個主題 ＝ 共用的紙與墨 ＋ 自己的一族身份色 */
 const theme = (identity) =>
   Object.freeze({
     ...SHARED,
-    borderHover: identity.accent,
     ...identity,
   });
 
@@ -91,78 +102,54 @@ export const CHARACTER_THEMES = {
     name: '翡翠青',
     enName: 'Emerald Forest',
     accent: '#245c45',
-    accentHover: '#1e4b39',
     accentDark: '#133829',
     accentLight: '#e1eee7',
     badgeVariant: 'ink',
-    activeTabClass: 'bg-[#245c45] text-[#fffdf9]',
-    ringColor: 'focus:ring-[#245c45]/40 focus:border-[#245c45]',
-    headerIconColor: 'text-[#245c45]',
   }),
   amber: theme({
     id: 'amber',
     name: '琥珀棕',
     enName: 'Amber Parchment',
     accent: '#9c4d16',
-    accentHover: '#833f12',
     accentDark: '#693108',
     accentLight: '#f4ebd9',
     badgeVariant: 'ink',
-    activeTabClass: 'bg-[#9c4d16] text-[#fffdf9]',
-    ringColor: 'focus:ring-[#9c4d16]/40 focus:border-[#9c4d16]',
-    headerIconColor: 'text-[#9c4d16]',
   }),
   blue: theme({
     id: 'blue',
     name: '群青藍',
     enName: 'Slate Navy',
     accent: '#27527a',
-    accentHover: '#214365',
     accentDark: '#17324c',
     accentLight: '#dde7f0',
     badgeVariant: 'ink',
-    activeTabClass: 'bg-[#27527a] text-[#fffdf9]',
-    ringColor: 'focus:ring-[#27527a]/40 focus:border-[#27527a]',
-    headerIconColor: 'text-[#27527a]',
   }),
   crimson: theme({
     id: 'crimson',
     name: '硃砂紅',
     enName: 'Crimson Wine',
     accent: '#8c2d36',
-    accentHover: '#76252d',
     accentDark: '#58171e',
     accentLight: '#f5e6e7',
     badgeVariant: 'ink',
-    activeTabClass: 'bg-[#8c2d36] text-[#fffdf9]',
-    ringColor: 'focus:ring-[#8c2d36]/40 focus:border-[#8c2d36]',
-    headerIconColor: 'text-[#8c2d36]',
   }),
   purple: theme({
     id: 'purple',
     name: '秘術紫',
     enName: 'Arcane Plum',
     accent: '#5e387c',
-    accentHover: '#4f2e67',
     accentDark: '#3a1f4f',
     accentLight: '#eee5f5',
     badgeVariant: 'ink',
-    activeTabClass: 'bg-[#5e387c] text-[#fffdf9]',
-    ringColor: 'focus:ring-[#5e387c]/40 focus:border-[#5e387c]',
-    headerIconColor: 'text-[#5e387c]',
   }),
   slate: theme({
     id: 'slate',
     name: '鐵石灰',
     enName: 'Iron Slate',
     accent: '#404a58',
-    accentHover: '#303844',
     accentDark: '#20262f',
     accentLight: '#e6eaef',
     badgeVariant: 'ink',
-    activeTabClass: 'bg-[#404a58] text-[#fffdf9]',
-    ringColor: 'focus:ring-[#404a58]/40 focus:border-[#404a58]',
-    headerIconColor: 'text-[#404a58]',
   }),
 };
 

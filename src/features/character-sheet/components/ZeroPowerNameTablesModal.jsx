@@ -54,9 +54,9 @@ function DieBadge({ die, count, theme }) {
     <span
       className="text-t10 font-mono font-bold px-1.5 py-0.5 rounded border"
       style={{
-        backgroundColor: theme?.subpanelBg || '#f4ebd9',
-        borderColor: theme?.border || '#d6c7ab',
-        color: theme?.accent || '#78350f'
+        backgroundColor: theme?.subpanelBg,
+        borderColor: theme?.border,
+        color: theme?.accent
       }}
     >
       {`${die}: ${count}`}
@@ -72,9 +72,9 @@ function ColumnChip({ active, label, onClick, theme }) {
       onClick={onClick}
       className="text-t10 px-1.5 py-0.5 rounded border cursor-pointer"
       style={{
-        backgroundColor: active ? theme?.accentSoft || theme?.subpanelBg || '#f4ebd9' : 'transparent',
-        borderColor: active ? theme?.accent || '#a63d40' : theme?.border || '#d6c7ab',
-        color: theme?.textDark || '#3c2415'
+        backgroundColor: active ? theme?.subpanelBg : 'transparent',
+        borderColor: active ? theme?.accent : theme?.border,
+        color: theme?.textDark
       }}
     >
       {label}
@@ -120,9 +120,9 @@ export function ZeroPowerNameTablesBody({
   const pickedStyle = (picked) =>
     picked
       ? {
-          backgroundColor: theme?.cardBg || '#fffdf9',
-          borderColor: theme?.accent || '#a63d40',
-          color: theme?.textDark || '#3c2415'
+          backgroundColor: theme?.cardBg,
+          borderColor: theme?.accent,
+          color: theme?.textDark
         }
       : {};
 
@@ -134,13 +134,13 @@ export function ZeroPowerNameTablesBody({
       <div
         key={`${kind}-${group.column}`}
         className="rounded p-2.5 space-y-1.5 border"
-        style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
+        style={{ backgroundColor: theme?.panelBg, borderColor: theme?.border }}
       >
         <div
           className="flex items-center justify-between px-1 pb-1 border-b"
-          style={{ borderColor: theme?.border || '#f4ebd9' }}
+          style={{ borderColor: theme?.border }}
         >
-          <span className="text-xs font-bold font-mono" style={{ color: theme?.textDark || '#3c2415' }}>
+          <span className="text-xs font-bold font-mono" style={{ color: theme?.textDark }}>
             {group.column}
           </span>
           <DieBadge die={group.die} count={group.rows.length} theme={theme} />
@@ -159,12 +159,12 @@ export function ZeroPowerNameTablesBody({
                 style={
                   picked
                     ? {
-                        backgroundColor: theme?.accent || '#78350f',
-                        borderColor: theme?.accent || '#78350f',
+                        backgroundColor: theme?.accent,
+                        borderColor: theme?.accent,
                         color: '#fffdf9',
                         fontWeight: 'bold'
                       }
-                    : { backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.border || '#d6c7ab', color: theme?.textDark || '#1e293b' }
+                    : { backgroundColor: theme?.cardBg, borderColor: theme?.border, color: theme?.textDark }
                 }
               >
                 <div className="flex items-center gap-1.5 truncate">
@@ -188,29 +188,29 @@ export function ZeroPowerNameTablesBody({
       {/* 說明卡 */}
       <div
         className="rounded p-3.5 space-y-2 border transition-colors"
-        style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
+        style={{ backgroundColor: theme?.panelBg, borderColor: theme?.border }}
       >
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h4
               className="font-serif font-bold text-sm flex items-center gap-1.5"
-              style={{ color: theme?.textDark || '#3c2415' }}
+              style={{ color: theme?.textDark }}
             >
-              <GiSpellBook className="w-4 h-4" style={{ color: theme?.accent || '#a63d40' }} />
+              <GiSpellBook className="w-4 h-4" style={{ color: theme?.accent }} />
               官方命名機制：由來 ＋ 動作
             </h4>
             <p className="text-t12 text-[#6b5a4b] mt-0.5">
               高度奇幻手冊 p.128–129。動作骰 1d20、由來骰 1d10；兩張表都是「先依底力技的定位選一欄，再依骰面取詞」。
             </p>
-            <p className="text-t12 mt-1 leading-relaxed" style={{ color: theme?.textMuted || '#7c6a58' }}>
-              <span className="font-bold" style={{ color: theme?.textDark || '#3c2415' }}>這張表是靈感，不是規則</span>
+            <p className="text-t12 mt-1 leading-relaxed" style={{ color: theme?.textMuted }}>
+              <span className="font-bold" style={{ color: theme?.textDark }}>這張表是靈感，不是規則</span>
               ：原文允許調整語序與所有格（王家之刃／刃・王家）。一次給你一個名字——不喜歡就再擲一次，或直接在「底力技名稱」欄自己寫。
             </p>
           </div>
 
           <div className="flex flex-col items-end gap-1">
             <JRPGButton
-              variant={theme?.buttonVariant || 'primary'}
+              variant="primary"
               size="sm"
               icon={GiRollingDices}
               onClick={onRoll}
@@ -222,7 +222,7 @@ export function ZeroPowerNameTablesBody({
 
         {/* 欄位選擇：兩張表各自「先選一欄」 */}
         <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          <span className="text-t10" style={{ color: theme?.textMuted || '#7c6a58' }}>動作欄</span>
+          <span className="text-t10" style={{ color: theme?.textMuted }}>動作欄</span>
           {ZERO_NAME_ACTIONS.columns.map((col, i) => (
             <ColumnChip
               key={`action-col-${col}`}
@@ -232,7 +232,7 @@ export function ZeroPowerNameTablesBody({
               theme={theme}
             />
           ))}
-          <span className="text-t10 ml-1" style={{ color: theme?.textMuted || '#7c6a58' }}>由來欄</span>
+          <span className="text-t10 ml-1" style={{ color: theme?.textMuted }}>由來欄</span>
           {ZERO_NAME_ORIGINS.columns.map((col, i) => (
             <ColumnChip
               key={`origin-col-${col}`}
@@ -248,18 +248,18 @@ export function ZeroPowerNameTablesBody({
         {rolledResult ? (
           <div
             className="mt-2.5 p-3 rounded border shadow-sm space-y-2 animate-fade-in"
-            style={{ backgroundColor: theme?.cardBg || '#fffdf9', borderColor: theme?.border || '#d6c7ab' }}
+            style={{ backgroundColor: theme?.cardBg, borderColor: theme?.border }}
           >
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div
                 className="flex items-center gap-1.5 text-xs font-bold"
-                style={{ color: theme?.textDark || '#3c2415' }}
+                style={{ color: theme?.textDark }}
               >
-                <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent || '#a63d40' }} />
+                <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent }} />
                 <span>擲骰結算: </span>
                 <span
                   className="font-serif text-sm underline"
-                  style={{ color: theme?.textDark || '#3c2415', textDecorationColor: theme?.accent || '#a63d40' }}
+                  style={{ color: theme?.textDark, textDecorationColor: theme?.accent }}
                 >
                   {rolledResult.name}
                 </span>
@@ -268,7 +268,7 @@ export function ZeroPowerNameTablesBody({
                 type="button"
                 onClick={onApplyRolled}
                 className="px-2.5 py-1 rounded text-white text-xs font-bold shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
-                style={{ backgroundColor: theme?.accent || '#78350f' }}
+                style={{ backgroundColor: theme?.accent }}
               >
                 <GiCheckMark className="w-3 h-3" />
                 <span>套用此擲骰名稱</span>
@@ -277,24 +277,24 @@ export function ZeroPowerNameTablesBody({
 
             <div
               className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-t11 pt-1 border-t"
-              style={{ borderColor: theme?.border || '#f4ebd9' }}
+              style={{ borderColor: theme?.border }}
             >
               <div
                 className="p-1.5 rounded border"
-                style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
+                style={{ backgroundColor: theme?.panelBg, borderColor: theme?.border }}
               >
                 <span className="text-[#6b5a4b] block">1. 由來:</span>
-                <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
+                <span className="font-mono font-bold" style={{ color: theme?.accent }}>
                   {`d10 = ${rolledResult.originRoll} → ${rolledResult.origin}`}
                 </span>
                 <span className="block text-[#6b5a4b]">{ZERO_NAME_ORIGINS.columns[rolledResult.originColumn]}</span>
               </div>
               <div
                 className="p-1.5 rounded border"
-                style={{ backgroundColor: theme?.panelBg || '#f4ebd9', borderColor: theme?.border || '#d6c7ab' }}
+                style={{ backgroundColor: theme?.panelBg, borderColor: theme?.border }}
               >
                 <span className="text-[#6b5a4b] block">2. 動作:</span>
-                <span className="font-mono font-bold" style={{ color: theme?.accent || '#78350f' }}>
+                <span className="font-mono font-bold" style={{ color: theme?.accent }}>
                   {`d20 = ${rolledResult.actionRoll} → ${rolledResult.action}`}
                 </span>
                 <span className="block text-[#6b5a4b]">{ZERO_NAME_ACTIONS.columns[rolledResult.actionColumn]}</span>
@@ -351,7 +351,7 @@ export function ZeroPowerNameTablesBody({
                 type="button"
                 onClick={onApplyPicked}
                 className="px-3 py-1 rounded text-white font-bold text-xs shadow-sm flex items-center gap-1 cursor-pointer transition-all"
-                style={{ backgroundColor: theme?.accent || '#78350f' }}
+                style={{ backgroundColor: theme?.accent }}
               >
                 <GiCheckMark className="w-3 h-3" />
                 <span>{`套用此組合: ${assembledName}`}</span>
@@ -379,14 +379,14 @@ export function ZeroPowerNameTablesBody({
                 style={
                   isActive
                     ? {
-                        backgroundColor: theme?.accent || '#78350f',
-                        borderColor: theme?.accentDark || '#76252d',
+                        backgroundColor: theme?.accent,
+                        borderColor: theme?.accentDark,
                         color: '#fffdf9'
                       }
                     : {
-                        backgroundColor: theme?.cardBg || '#fffdf9',
-                        borderColor: theme?.border || '#d6c7ab',
-                        color: theme?.textDark || '#334155'
+                        backgroundColor: theme?.cardBg,
+                        borderColor: theme?.border,
+                        color: theme?.textDark
                       }
                 }
               >
@@ -404,14 +404,14 @@ export function ZeroPowerNameTablesBody({
             placeholder="搜尋動作或由來的詞..."
             className="w-full border rounded pl-7 pr-3 py-1 text-xs outline-none shadow-2xs placeholder:text-[#6b5a4b]"
             style={{
-              backgroundColor: theme?.cardBg || '#fffdf9',
-              borderColor: theme?.border || '#d6c7ab',
-              color: theme?.textDark || '#0f172a'
+              backgroundColor: theme?.cardBg,
+              borderColor: theme?.border,
+              color: theme?.textDark
             }}
           />
           <GiMagnifyingGlass
             className="w-3.5 h-3.5 absolute left-2 top-2"
-            style={{ color: theme?.accent || '#94a3b8' }}
+            style={{ color: theme?.accent }}
           />
           {searchTerm ? (
             <button
@@ -431,9 +431,9 @@ export function ZeroPowerNameTablesBody({
           <div className="space-y-2">
             <h5
               className="text-xs font-black font-serif flex items-center gap-1.5"
-              style={{ color: theme?.textDark || '#3c2415' }}
+              style={{ color: theme?.textDark }}
             >
-              <GiRollingDices className="w-3.5 h-3.5" style={{ color: theme?.accent || '#a63d40' }} />
+              <GiRollingDices className="w-3.5 h-3.5" style={{ color: theme?.accent }} />
               動作（骰 1d20，依底力技的定位選欄）
             </h5>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
@@ -446,9 +446,9 @@ export function ZeroPowerNameTablesBody({
           <div className="space-y-2">
             <h5
               className="text-xs font-black font-serif flex items-center gap-1.5"
-              style={{ color: theme?.textDark || '#3c2415' }}
+              style={{ color: theme?.textDark }}
             >
-              <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent || '#a63d40' }} />
+              <GiSparkles className="w-3.5 h-3.5" style={{ color: theme?.accent }} />
               由來（骰 1d10，依底力技的起源選欄）
             </h5>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
@@ -521,7 +521,7 @@ export default function ZeroPowerNameTablesModal({
             </JRPGButton>
             {assembledName ? (
               <JRPGButton
-                variant={theme?.buttonVariant || 'primary'}
+                variant="primary"
                 size="sm"
                 icon={GiCheckMark}
                 onClick={() => apply(assembledName)}

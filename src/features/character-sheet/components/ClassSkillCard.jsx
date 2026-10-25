@@ -669,7 +669,7 @@ export default function ClassSkillCard({
           <div className="flex items-center gap-1.5 ml-auto">
             {!isEditing ? (
               <JRPGButton
-                variant={theme.buttonVariant || 'primary'}
+                variant="primary"
                 size="xs"
                 icon={GiQuillInk}
                 onClick={handleStartEdit}
@@ -717,7 +717,7 @@ export default function ClassSkillCard({
                 點擊「配置技能」展開查看全部特技，投入點數。
               </p>
               <JRPGButton
-                variant={theme.buttonVariant || 'primary'}
+                variant="primary"
                 size="xs"
                 icon={GiSparkles}
                 onClick={handleStartEdit}
@@ -958,7 +958,7 @@ export default function ClassSkillCard({
                                 return next;
                               });
                             }}
-                            className="text-t10 font-black px-1.5 py-0.5 rounded border bg-[#f4ebd9] text-[#6b5a4b] border-[#d6c7ab] transition-all hover:scale-105 active:scale-95 hover:bg-[#e8dcc4]"
+                            className="text-t10 font-black px-1.5 py-0.5 rounded border bg-[#f4ebd9] text-[#6b5a4b] border-[#d6c7ab] transition-all hover:bg-[#e8dcc4]"
                             title={`已選用公測變體【${activeVariant.name}】—— 點此改回原版【${sk.name}】`}
                           >
                             改回原版
@@ -984,7 +984,7 @@ export default function ClassSkillCard({
                                 setPreviewVariantBySkill({ [sk.name]: previewVariantBySkill[sk.name] || null });
                               }
                             }}
-                            className={`text-t10 font-black px-1.5 py-0.5 rounded border transition-all hover:scale-105 active:scale-95 ${
+                            className={`text-t10 font-black px-1.5 py-0.5 rounded border transition-all hover:border-[#3c2415] ${
                               expandedSkillName === sk.name
                                 ? 'bg-[#f4ebd9] text-[#2c221e] border-[#3c2415]'
                                 : 'bg-white text-[#3c2415] border-[#d6c7ab] hover:bg-[#f4ebd9]'
@@ -1011,7 +1011,7 @@ export default function ClassSkillCard({
                           type="button"
                           onClick={() => handleSetSkillSL(sk.name, currentSL - 1)}
                           disabled={currentSL <= 0}
-                          className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs disabled:opacity-20 hover:bg-white active:scale-95 transition-all cursor-pointer"
+                          className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs disabled:opacity-20 hover:bg-white transition-all cursor-pointer"
                           style={{ borderColor: theme.border, color: theme.textDark }}
                         >
                           -
@@ -1020,7 +1020,7 @@ export default function ClassSkillCard({
                           type="button"
                           onClick={() => handleSetSkillSL(sk.name, currentSL + 1)}
                           disabled={currentSL >= rowMaxSL}
-                          className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs disabled:opacity-20 hover:bg-white active:scale-95 transition-all cursor-pointer"
+                          className="w-6 h-6 rounded border flex items-center justify-center font-bold text-xs disabled:opacity-20 hover:bg-white transition-all cursor-pointer"
                           style={{ borderColor: theme.border, color: theme.textDark }}
                         >
                           +
@@ -1111,7 +1111,7 @@ export default function ClassSkillCard({
                                 return next;
                               });
                             }}
-                            className="flex-1 px-2.5 py-1.5 rounded border-2 font-black text-xs transition-all hover:scale-[1.02] active:scale-95"
+                            className="flex-1 px-2.5 py-1.5 rounded border-2 font-black text-xs transition-all"
                             style={{
                               backgroundColor: '#7c3aed',
                               color: 'white',
@@ -1131,7 +1131,7 @@ export default function ClassSkillCard({
                                 return next;
                               });
                             }}
-                            className="flex-1 px-2.5 py-1.5 rounded border-2 font-bold text-xs transition-all hover:bg-[#fbf7ee] active:scale-95"
+                            className="flex-1 px-2.5 py-1.5 rounded border-2 font-bold text-xs transition-all hover:bg-[#fbf7ee]"
                             style={{
                               backgroundColor: 'white',
                               color: theme.textDark,
@@ -1219,7 +1219,7 @@ export default function ClassSkillCard({
               </button>
 
               <JRPGButton
-                variant={theme.buttonVariant || 'primary'}
+                variant="primary"
                 size="sm"
                 icon={GiSaveArrow}
                 onClick={handleSave}
