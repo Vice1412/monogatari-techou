@@ -814,7 +814,7 @@ export default function ClassPickerModal({
                 <div className="text-xs space-y-0.5 text-center sm:text-left w-full sm:w-auto">
                   <div className="font-bold flex items-center justify-center sm:justify-start gap-1.5" style={{ color: theme.textDark }}>
                     <span>這次總共投入：</span>
-                    <strong className={`font-mono text-sm px-1.5 py-0.2 rounded ${
+                    <strong className={`font-mono text-sm px-1.5 py-0.5 rounded ${
                       draftTotal === 0
                         ? 'text-[#6b5a4b] bg-[#f4ebd9]'
                         : !budgetOk

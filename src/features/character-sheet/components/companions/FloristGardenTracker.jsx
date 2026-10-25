@@ -119,7 +119,7 @@ export default function FloristGardenTracker({
           <div>
             <div className="font-bold text-xs text-[#245c45] tracking-wide font-serif flex items-center gap-1.5">
               <span>花園生長盤</span>
-              <span className="font-mono text-t10 text-[#245c45] bg-[#f4ebd9] px-1.5 py-0.2 rounded border border-[#d6c7ab]">
+              <span className="font-mono text-t10 text-[#245c45] bg-[#f4ebd9] px-1.5 py-0.5 rounded border border-[#d6c7ab]">
                 容量: {gardenList.length}/{maxCapacity}
               </span>
             </div>
@@ -189,7 +189,7 @@ export default function FloristGardenTracker({
                     <span className="font-serif font-black text-sm text-[#245c45]">
                       {item.seedName}
                     </span>
-                    <span className="text-t10 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#245c45] border border-[#d6c7ab] font-bold">
+                    <span className="text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#245c45] border border-[#d6c7ab] font-bold">
                       {clock === 0 ? '剛播種 (0格)' : clock < 4 ? `第 ${clock === 1 ? '1' : clock} 回合 (${clock}/4 格)` : '滿 4 格（即將離園）'}
                     </span>
                   </div>
@@ -270,7 +270,7 @@ export default function FloristGardenTracker({
                               : 'text-[#6b5a4b] opacity-60'
                           }`}
                         >
-                          <span className={`px-1.5 py-0.2 rounded text-t10 font-mono shrink-0 font-bold ${
+                          <span className={`px-1.5 py-0.5 rounded text-t10 font-mono shrink-0 font-bold ${
                             isActive
                               ? 'bg-[#245c45] text-white'
                               : 'bg-[#f4ebd9] text-[#6b5a4b]'

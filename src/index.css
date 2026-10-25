@@ -170,13 +170,23 @@ body {
   animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes backdropFadeIn {
+/* 淡入：全站唯一一個「只改不透明度」的動畫。
+ *
+ * 第四十一輪（§CI49）把它從 `animate-backdrop-fade` 改名為 `animate-fade-in`。
+ * 理由是一個量出來的數字：`animate-backdrop-fade` 全站被用 **1 次**，
+ * 而 `animate-fade-in` 被寫在 **29 個地方**——但 `animate-fade-in` 從來沒有
+ * 被定義過（它不是 Tailwind 的 class，Tailwind 不會生它），所以那 29 個地方
+ * 一直是空的。29 比 1，留下的是 29 的那個名字，定義補在這裡。
+ *
+ * 這也是這一輪的通則：**兩個名字指同一個東西時，留多數的那個，
+ * 把定義補到它身上，而不是讓多數的那邊繼續指向空氣。** */
+@keyframes fadeIn {
   0% { opacity: 0; }
   100% { opacity: 1; }
 }
 
-.animate-backdrop-fade {
-  animation: backdropFadeIn 0.18s ease-out forwards;
+.animate-fade-in {
+  animation: fadeIn 0.18s ease-out forwards;
 }
 
 /* ==========================================================================

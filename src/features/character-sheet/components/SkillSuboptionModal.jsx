@@ -549,7 +549,7 @@ export default function SkillSuboptionModal({
                     <div className="space-y-1 pt-1 border-t border-[#e8dcc4]">
                       {item.effects.map((eff, eIdx) => (
                         <div key={eIdx} className="text-t11 flex items-start gap-1.5">
-                          <span className="font-mono font-bold text-[#2c221e] bg-[#f4ebd9] px-1 py-0.2 rounded text-t10 shrink-0">
+                          <span className="font-mono font-bold text-[#2c221e] bg-[#f4ebd9] px-1 py-0.5 rounded text-t10 shrink-0">
                             {eff.clock}
                           </span>
                           <span className="text-[#3c2415] leading-relaxed">{renderTextWithAffinities(eff.text)}</span>

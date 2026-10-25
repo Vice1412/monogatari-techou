@@ -118,27 +118,64 @@ export default function CombatantCard({
   /**
    * v5 卡片外框狀態。
    *
-   * 舊版（v1）用 `opacity-60` 表示「已行動」，那在深底上是合理的，
-   * 但本卡是淺底：壓暗會連帶把文字對比壓掉。v5 改為**去飽和**——
-   * 卡片「褪色」但文字仍清晰可讀，這是 v5 最重要的狀態語言之一。
+   * ## 這一塊原本是壞的，而且是「看起來對」的壞（第四十一輪 §CI49）
+   *
+   * 舊版在 `hasActed` 時給一個 class 叫 `sat-hiber`，註解寫著「v5 改為**去飽和**
+   * ——卡片『褪色』但文字仍清晰可讀，這是 v5 最重要的狀態語言之一」。
+   * 而全站沒有任何一條 CSS 定義 `sat-hiber`。Tailwind 也不會生它，因為它不是
+   * Tailwind 的 class。
+   *
+   * 它不只「沒有效果」，它比沒有效果更糟。`cardState` 是**唯一**提供邊框色的
+   * 地方，而它是一個三元式——一次只中一個分支。實測（`scratch/ui-audit/r41_states.mjs`）：
+   *
+   * | 狀態 | 邊框色 | 對卡片底對比 |
+   * |---|---|---|
+   * | 敵方·待行動 | `#c4c9ce` | 1.64 |
+   * | 敵方·已行動 | **`#e5e7eb`** | **1.22** |
+   * | 敵方·危機且已行動 | **`#e5e7eb`** | **1.22** |
+   *
+   * ① 已行動 → 沒有任何邊框色 → 掉回 Tailwind 的預設框色 `#e5e7eb`。
+   *    那是一個**不屬於冷暖兩條階梯**的第三種面。
+   * ② 危機 ＋ 已行動 → 紅框與脈動**整個消失**，因為「已行動」把它取代掉了。
+   *    血量見底的敵人只要動過一次，就不再警示。
+   *
+   * ## 修法：不發明那個名字，把狀態放回有顏色的地方
+   *
+   * ① **疊，不取代**：危機 > 已行動 > 陣營。危機永遠贏，因為它是唯一的即時警示；
+   *    「已行動」只表示這一輪結束了，不代表血回來了。
+   * ② **已行動＝降一階，不是換色相**：玩家 `signal-mp/45` → `signal-mp/20`，
+   *    敵方 `cool-line` → `cool-shade`。同一個色相往後退一步。
+   * ③ **識別條去色**：`bg-signal-mp`／`bg-signal-accent` → `bg-cool-line`。
+   *    識別條是全卡唯一「純身份」的面，回合結束就不需要再被辨認。
+   * ④ **資源條不動**：HP／MP 是**量**，GM 還要讀它。把量也去色，
+   *    一隻快死的敵人會看起來很平靜。
    *
    * 危機狀態刻意保留一個低強度脈動：它是**警示**，需要抓注意力，
    * 與「裝飾性光暈」不同。振幅已從 20px blur 降到 10px。
    */
-  const cardState = combatant.hasActed
-    ? 'sat-hiber'
-    : isCrisis
-      ? 'crisis-pulse-active border-signal-hp bg-signal-hp/5'
+  const cardTone = isCrisis
+    ? 'crisis-pulse-active border-signal-hp bg-signal-hp/5'
+    : combatant.hasActed
+      ? isPlayer
+        ? 'border-signal-mp/20 hover:border-signal-mp/45'
+        : 'border-cool-shade hover:border-cool-line'
       : isPlayer
         ? 'border-signal-mp/45 hover:border-signal-mp'
         : 'border-cool-line hover:border-ink-3';
 
+  /* 識別條：玩家＝藍、敵方＝暖紅。已行動時去色（保留明度，去掉色相）。 */
+  const identityTone = combatant.hasActed
+    ? 'bg-cool-line'
+    : isPlayer
+      ? 'bg-signal-mp'
+      : 'bg-signal-accent';
+
   return (
     <div
-      className={`bg-cool-card rounded border transition-all duration-160 overflow-hidden flex flex-col relative ${cardState}`}
+      className={`bg-cool-card rounded border transition-all duration-160 overflow-hidden flex flex-col relative ${cardTone}`}
     >
       {/* 頂部識別條：玩家隊＝藍、敵方＝暖紅。v5 改為實色，不用漸層。 */}
-      <div className={`h-1 w-full ${isPlayer ? 'bg-signal-mp' : 'bg-signal-accent'}`} />
+      <div className={`h-1 w-full transition-colors duration-160 ${identityTone}`} />
 
       {/* 頭像與身分 */}
       <div className="p-3.5 border-b border-cool-line/70 bg-cool-panel-2/60 flex items-start gap-3">
@@ -341,7 +378,7 @@ export default function CombatantCard({
                 key={sk.id}
                 className={`p-1.5 rounded border text-xs flex items-center justify-between gap-2 transition-colors duration-120 ${
                   sk.isRevealed
-                    ? 'border-signal-ip/60 bg-signal-ip/8 text-ink'
+                    ? 'border-signal-ip/60 bg-signal-ip/10 text-ink'
                     : 'border-cool-line bg-cool-card text-ink-3'
                 }`}
               >

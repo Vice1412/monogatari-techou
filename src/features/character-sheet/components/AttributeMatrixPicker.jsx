@@ -528,7 +528,7 @@ export default function AttributeMatrixPicker({
                       {preset.name}
                     </span>
                     <span
-                      className="text-t12 px-1.5 py-0.2 rounded font-medium"
+                      className="text-t12 px-1.5 py-0.5 rounded font-medium"
                       style={isMatch ? { backgroundColor: theme.cardBg, color: theme.textDark, fontWeight: 'bold' } : { backgroundColor: '#d6c7ab', color: '#6b5a4b' }}
                     >
                       {isMatch ? '目前' : preset.tag}
@@ -682,7 +682,7 @@ export default function AttributeMatrixPicker({
                       <span className="text-t12 font-mono text-[#6b5a4b] font-black mt-0.5 leading-none">
                         d{die.val}
                       </span>
-                      <span className="text-t12 font-mono font-bold text-[#6b5a4b] mt-1 px-1.5 py-0.2 rounded bg-[#d6c7ab]/45 truncate max-w-[54px]">
+                      <span className="text-t12 font-mono font-bold text-[#6b5a4b] mt-1 px-1.5 py-0.5 rounded bg-[#d6c7ab]/45 truncate max-w-[54px]">
                         {targetDetail?.enName}
                       </span>
                     </div>

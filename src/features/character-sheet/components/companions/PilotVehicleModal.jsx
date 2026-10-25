@@ -444,11 +444,11 @@ export default function PilotVehicleModal({
                             <strong className="text-xs font-bold text-[#2c221e]">
                               {w.name}
                             </strong>
-                            <span className="text-t10 font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b]">
+                            <span className="text-t10 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b]">
                               {w.category} · {w.range === 'melee' ? '近戰' : '遠程'}
                             </span>
                             {w.isBulky && (
-                              <span className="text-t10 font-bold px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#9c4d16]">
+                              <span className="text-t10 font-bold px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#9c4d16]">
                                 雙手佔槽
                               </span>
                             )}
@@ -569,12 +569,12 @@ export default function PilotVehicleModal({
                               {s.name}
                             </strong>
                             {s.slotsCost > 1 && (
-                              <span className="text-t10 font-bold px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#9c4d16]">
+                              <span className="text-t10 font-bold px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#9c4d16]">
                                 佔 {s.slotsCost} 槽
                               </span>
                             )}
                             {s.frameRestrictions && (
-                              <span className="text-t10 font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b]">
+                              <span className="text-t10 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b]">
                                 僅限 {s.frameRestrictions.map(fid => findFrameById(fid).name).join('/')}
                               </span>
                             )}

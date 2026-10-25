@@ -285,7 +285,7 @@ export default function TinkererGadgetsModal({
         {/* 頂部標題列 */}
         <div className="flex items-center justify-between px-5 py-3.5 bg-[#3c2415] text-[#f7f3e8]">
           <div className="flex items-center gap-2.5">
-            <GiCog className="w-6 h-6 animate-spin-slow text-[#e8dcc4]" />
+            <GiCog className="w-6 h-6 text-[#e8dcc4]" />
             <div>
               <h2 className="text-base sm:text-lg font-black tracking-wide flex items-center gap-2">
                 <span>{branch ? `修補匠【${branch.name}】科技樹配置` : '修補匠【小工具】科技樹配置'}</span>

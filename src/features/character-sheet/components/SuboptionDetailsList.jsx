@@ -69,7 +69,7 @@ export default function SuboptionDetailsList({
               >
                 <div className="flex items-center justify-between font-bold text-xs">
                   <span className="text-[#3c2415] font-serif">{vol.name}</span>
-                  <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] font-mono text-t10 font-bold">
+                  <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] font-mono text-t10 font-bold">
                     {vol.mp} MP
                   </span>
                 </div>
@@ -97,7 +97,7 @@ export default function SuboptionDetailsList({
               <span>{therioRules.label}：使用方式</span>
             </span>
             {isTheriomorphosisVariant(variantId) && (
-              <span className="text-t10 px-1.5 py-0.2 rounded bg-white text-[#8c2d36] border border-[#8c2d36]/50 font-bold">
+              <span className="text-t10 px-1.5 py-0.5 rounded bg-white text-[#8c2d36] border border-[#8c2d36]/50 font-bold">
                 【公測】變體
               </span>
             )}
@@ -141,12 +141,12 @@ export default function SuboptionDetailsList({
 
                     {/* 分類標籤 (如 音調 / 曲風) */}
                     {isChanterKey && (
-                      <span className="text-t10 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
+                      <span className="text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                         音調
                       </span>
                     )}
                     {isChanterTone && (
-                      <span className="text-t10 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
+                      <span className="text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
                         曲風
                       </span>
                     )}

@@ -51,6 +51,10 @@ import twConfig from '../tailwind.config.js';
 // 第三十八輪（§CI46）：六個身份色的唯一來源。H36-b／d 直接比對這個物件，
 // 不是比對字串——「同一個值兩個名字」正是本輪要根治的病。
 import { IDENTITY } from '../src/data/identityPalette.js';
+// 第四十一輪（§CI49）：唯一會問「這個 class 名真的存在嗎」的東西。
+// 它現編一份 CSS（content 就是 `src`），所以它驗的是**地面真相**，
+// 不是「我上次寫的那個字串還在不在」。
+import { auditDeadClasses } from '../scripts/auditClasses.mjs';
 
 const ROOT = process.cwd();
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -3455,6 +3459,15 @@ check(
      H38-c 冷區（戰鬥模組）的面不得出現暖紙 hex 或 `warm-*`（硬零）
      H38-d 反向控制：暖區（書本外框）不得出現 `cool-*` 面令牌（硬零）
 
+     H39  未登記的死 class（硬零）——現編 CSS，問「這個名字真的存在嗎」
+     H39-a 已修好的名字要從清單拿掉（清單不得腐爛）
+     H39-b 死 class 總數只減不增（預算 264）——在已登記的名字上繼續加也會紅
+
+   第四十一輪的判準是：**「讀起來像一個決定」不等於「是一個決定」。**
+   `sat-hiber` 有註解、有分支、有位置，只差一樣東西：它不存在。
+   而前面三十九條護欄全是讀原始碼的——它們讀得到那個字串，讀不到「它不存在」。
+   只有 Tailwind 自己能回答，所以 H39 是唯一一條**現編 CSS** 的護欄。
+
    第四十輪的判準是：**「兩區都有顏色」不等於「兩區是同一張紙」。**
    舊的兩條階梯各自挑色，冷區每階暗 5.8–8.0%，於是同一組墨在兩區對比不同——
    `ink-2` 在暖區第 1 階 4.72:1（過），在冷區第 1 階 4.46:1（不過）。
@@ -3987,6 +4000,124 @@ check(
   'H38-d 反向控制：暖區不得出現 cool-* 面令牌（硬零）',
   warmZoneStray.length === 0,
   warmZoneStray.length ? `${warmZoneStray.length} 處：${warmZoneStray.slice(0, 4).join('、')}` : `${WARM_ZONE_FILES.length} 個暖區檔，0 處冷色`
+);
+
+/* ────────────────────────────────────────────────────────────────
+   H39 家族：寫了名字，但那個名字不存在（第四十一輪 §CI49）
+   ────────────────────────────────────────────────────────────────
+
+   起點是一個具體的 bug：`CombatantCard.jsx` 用 `sat-hiber` 表示「已行動」，
+   註解寫著「v5 改為去飽和，這是 v5 最重要的狀態語言之一」——而全站
+   **沒有任何一條 CSS 定義它**。它不是「效果很弱」，它是**什麼都沒發生**。
+
+   而它比「什麼都沒發生」更糟：`cardState` 是唯一提供邊框色的地方，
+   於是不存在的分支會讓邊框掉回 Tailwind 的預設色 `#e5e7eb`——
+   一個不屬於冷暖兩條階梯的第三種面；而「危機＋已行動」的紅框整個消失。
+
+   ## 為什麼這需要護欄，而不是「記得就好」
+
+   這類東西的共同點是「**在原始碼裡看起來像一個決定**」：
+   不報錯、不影響建置、畫面照樣渲染，只是靜靜地什麼都不做。
+   它已經在這個專案發生過七次（`scale-98`／`theme.accentSoft || …`／
+   `bg-paper`／`--accent`／`s7`／`warm-panel-2`／`sat-hiber`），
+   而**每一次的形狀都不同**——所以不能靠「記住那幾個名字」。
+
+   ## 形狀：為什麼是「編譯」而不是「掃字串」
+
+   前面的護欄都是讀原始碼。這一條不行，因為問題不是「字串寫錯了」，
+   而是「這個字串在 Tailwind 裡不存在」——只有 Tailwind 自己能回答。
+   所以它現編一份 CSS（content 就是 `src` 底下所有 `.js`／`.jsx`），
+   再用同一份編譯結果反解出「這份 CSS 定義了哪些名字」。
+
+   代價是這一條要跑 ~2 秒（其他護欄都是毫秒級）。值得：
+   它是全套護欄裡唯一一條**不可能被寫死的字串騙過**的。
+
+   ## 兩個形狀一起用
+
+   - `H39`（硬零）：出現一個**沒登記**的死亡名字就紅。
+     擋的是「發明一個新名字」——例如下一個人再寫一次 `sat-hiber`。
+   - `H39-a`（清單不得腐爛）：名單上的名字若已經不在畫面上了，也紅。
+     擋的是「修好了卻沒把名字拿掉」——否則這份名單三年後會變成一份
+     誰也不敢動的化石，而它宣稱的東西早就不是真的。
+   - `H39-b`（預算 264，只減不增）：擋的是「在已登記的名字上繼續加」。
+     沒有它，`shadow-xs` 可以從 54 處長到 154 處，而 `H39` 是綠的。
+
+   ⚠️ 這三條的分工刻意做成「一條只回答一個問題」：
+   破壞的時候才知道紅的是哪一個。把它們併成一條會讓失敗訊息變成
+   「死 class 有問題」，而那句話不能告訴你該做什麼。
+   ──────────────────────────────────────────────────────────────── */
+
+/* 已知的死亡名字（第四十一輪普查結果）。全部是同一件事的兩種寫法：
+ *
+ *   Tailwind v4 的命名   → 這個專案是 v3.4.19
+ *     shadow-2xs / shadow-xs / hover:shadow-2xs   陰影階梯在 v4 被重命名
+ *     drop-shadow-xs / drop-shadow-2xs           同上
+ *     backdrop-blur-xs                           v3 叫 backdrop-blur-sm
+ *     sm:w-18 / sm:h-18                          v4 才有動態間距尺度
+ *     focus:outline-hidden                       v4 改名（v3 叫 outline-none）
+ *
+ *   tailwindcss-animate 外掛（**從未安裝**，`plugins: []`）
+ *     animate-in / fade-in / zoom-in-95
+ *     slide-in-from-top-2 / -top-4 / -top-5 / -left-2 / -bottom / -bottom-2
+ *
+ * 兩者的共同點：它們在 shadcn 的文件裡都是正確寫法。抄過來的時候
+ * 專案的 Tailwind 版本不一樣、外掛沒裝——而**抄過來的東西不會報錯**。
+ *
+ * 數字是第四十一輪實測，不是估計。 */
+const DEAD_CLASS_KNOWN = new Map([
+  ['shadow-2xs', 74],
+  ['shadow-xs', 54],
+  ['animate-in', 39],
+  ['fade-in', 29],
+  ['backdrop-blur-xs', 12],
+  ['slide-in-from-top-2', 12],
+  ['sm:w-18', 10],
+  ['sm:h-18', 10],
+  ['drop-shadow-xs', 6],
+  ['focus:outline-hidden', 6],
+  ['slide-in-from-top-4', 3],
+  ['hover:shadow-2xs', 2],
+  ['zoom-in-95', 2],
+  ['slide-in-from-left-2', 1],
+  ['drop-shadow-2xs', 1],
+  ['slide-in-from-bottom-2', 1],
+  ['slide-in-from-top-5', 1],
+  ['slide-in-from-bottom', 1],
+]);
+const DEAD_CLASS_BUDGET = 264;
+
+const classAudit = auditDeadClasses(ROOT);
+
+// H39：沒登記的死亡名字（硬零）。
+const unknownDead = [...classAudit.byToken.entries()]
+  .filter(([tok]) => !DEAD_CLASS_KNOWN.has(tok))
+  .map(([tok, list]) => `${tok}(${list.length} 處 ${list[0].rel}:${list[0].line})`);
+check(
+  'H39 未登記的死 class（硬零）——寫了名字，但 Tailwind 編不出它',
+  unknownDead.length === 0,
+  unknownDead.length
+    ? `${unknownDead.length} 個新名字：${unknownDead.slice(0, 4).join('、')}`
+    : `${classAudit.defined.size} 個 class 名全數存在（掃 ${classAudit.checked} 個 token）`
+);
+
+// H39-a：名單不得腐爛。
+const staleDeadNames = [...DEAD_CLASS_KNOWN.keys()].filter((tok) => !classAudit.byToken.has(tok));
+check(
+  'H39-a 已修好的名字要從清單拿掉（清單不得腐爛）',
+  staleDeadNames.length === 0,
+  staleDeadNames.length
+    ? `${staleDeadNames.length} 個已不存在：${staleDeadNames.join('、')}——請同步刪除並下調預算`
+    : `18 個登記的名字全部仍在畫面上`
+);
+
+// H39-b：總數只減不增。
+const deadDelta = classAudit.dead.length - DEAD_CLASS_BUDGET;
+check(
+  'H39-b 死 class 總數只減不增（預算 264）',
+  deadDelta <= 0,
+  deadDelta > 0
+    ? `超出 ${deadDelta} 處（${classAudit.dead.length}／${DEAD_CLASS_BUDGET}）`
+    : `${classAudit.dead.length}／${DEAD_CLASS_BUDGET}${deadDelta < 0 ? `（已減 ${-deadDelta}，請下調預算）` : ''}`
 );
 
 /* ────────────────────────────────────────────────────────────────

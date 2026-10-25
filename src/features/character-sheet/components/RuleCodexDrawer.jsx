@@ -162,7 +162,7 @@ export default function RuleCodexDrawer({
     <div className="fixed inset-0 z-[10001] flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
       {/* 點擊遮罩背景 */}
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-xs animate-backdrop-fade"
+        className="fixed inset-0 bg-black/70 backdrop-blur-xs animate-fade-in"
         onClick={handleClose}
       />
 
@@ -190,7 +190,7 @@ export default function RuleCodexDrawer({
           <button
             type="button"
             onClick={handleClose}
-            className="p-1.5 rounded text-[#e8dcc4] hover:text-[#f7f3e8] hover:bg-[#f7f3e8]/12 transition-colors"
+            className="p-1.5 rounded text-[#e8dcc4] hover:text-[#f7f3e8] hover:bg-[#f7f3e8]/10 transition-colors"
             title="關閉速查 (ESC)"
           >
             <X className="w-5 h-5" />

@@ -812,7 +812,7 @@ export default function TinkererWorkshop({
             >
               <GiRoundBottomFlask className="w-4 h-4" />
               <span>煉金術</span>
-              <span className="text-t12 px-1.5 py-0.2 rounded bg-[#2c221e]/10 font-mono">
+              <span className="text-t12 px-1.5 py-0.5 rounded bg-[#2c221e]/10 font-mono">
                 Tier {gadgets.alchemy || 0}
               </span>
             </button>
@@ -824,7 +824,7 @@ export default function TinkererWorkshop({
             >
               <GiBroadsword className="w-4 h-4" />
               <span>灌注術</span>
-              <span className="text-t12 px-1.5 py-0.2 rounded bg-[#2c221e]/10 font-mono">
+              <span className="text-t12 px-1.5 py-0.5 rounded bg-[#2c221e]/10 font-mono">
                 Tier {gadgets.infusion || 0}
               </span>
             </button>
@@ -836,7 +836,7 @@ export default function TinkererWorkshop({
             >
               <GiGears className="w-4 h-4" />
               <span>魔導科技</span>
-              <span className="text-t12 px-1.5 py-0.2 rounded bg-[#2c221e]/10 font-mono">
+              <span className="text-t12 px-1.5 py-0.5 rounded bg-[#2c221e]/10 font-mono">
                 Tier {gadgets.magitech || 0}
               </span>
             </button>
@@ -1040,7 +1040,7 @@ export default function TinkererWorkshop({
                                   <span className={`font-mono text-xs font-black px-1.5 py-0.5 rounded ${ isSelected ? 'bg-[#a63d40] text-[#fffdf9]' : isHit ? 'bg-[#e8dcc4] text-[#3c2415] font-bold' : 'bg-[#e8dcc4] text-[#6b5a4b]' }`}>
                                     {row.range}
                                   </span>
-                                  <span className="font-bold text-t12 px-1.5 py-0.2 rounded bg-[#fffdf9] border border-current">
+                                  <span className="font-bold text-t12 px-1.5 py-0.5 rounded bg-[#fffdf9] border border-current">
                                     {row.label}
                                   </span>
                                 </div>
@@ -1101,7 +1101,7 @@ export default function TinkererWorkshop({
                             <span className="font-mono text-xs font-black px-1.5 py-0.5 rounded bg-[#a63d40] text-[#fffdf9]">
                               任意
                             </span>
-                            <span className="font-bold text-t12 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] shrink-0">
+                            <span className="font-bold text-t12 px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] shrink-0">
                               保底備選
                             </span>
                             <div className="font-medium text-xs">
@@ -1131,7 +1131,7 @@ export default function TinkererWorkshop({
                             <span className="font-mono text-xs font-black px-1.5 py-0.5 rounded bg-[#a63d40] text-[#fffdf9]">
                               任意
                             </span>
-                            <span className="font-bold text-t12 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] shrink-0">
+                            <span className="font-bold text-t12 px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] shrink-0">
                               保底備選
                             </span>
                             <div className="font-medium text-xs">
@@ -1175,7 +1175,7 @@ export default function TinkererWorkshop({
                                 <span className={`font-mono text-xs font-black px-1.5 py-0.5 rounded ${ isSelected ? 'bg-[#a63d40] text-[#fffdf9]' : isHit ? 'bg-[#e8dcc4] text-[#3c2415] font-bold' : 'bg-[#e8dcc4] text-[#6b5a4b]' }`}>
                                   {row.diceLabel}
                                 </span>
-                                <span className="font-bold text-t12 px-1.5 py-0.2 rounded bg-[#fffdf9] border border-current shrink-0">
+                                <span className="font-bold text-t12 px-1.5 py-0.5 rounded bg-[#fffdf9] border border-current shrink-0">
                                   {row.category}
                                 </span>
                                 <div className="text-xs leading-relaxed font-medium min-w-0">

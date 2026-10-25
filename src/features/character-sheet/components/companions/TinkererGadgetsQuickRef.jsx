@@ -72,7 +72,7 @@ export default function TinkererGadgetsQuickRef({
         className={`px-2 py-0.5 rounded font-bold text-t11 border flex items-center gap-1 ${ isUnlocked ? 'bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab] ' : 'bg-[#f4ebd9] text-[#7c6a58] border-[#d6c7ab] ' }`}
       >
         <span>{name}</span>
-        <span className="font-mono text-t10 px-1 py-0.2 rounded bg-black/10">
+        <span className="font-mono text-t10 px-1 py-0.5 rounded bg-black/10">
           {tierLabels[tier] || `Tier ${tier}`}
         </span>
       </span>
@@ -87,7 +87,7 @@ export default function TinkererGadgetsQuickRef({
           <GiGears className="text-[#6b5a4b] text-sm" />
           <span>已掌握小工具戰鬥速查</span>
           {totalAllocated > 0 && (
-            <span className="font-mono text-t10 px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415] font-bold border border-[#d6c7ab]">
+            <span className="font-mono text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] font-bold border border-[#d6c7ab]">
               {totalAllocated} / {sl} 節點
             </span>
           )}
@@ -229,7 +229,7 @@ export default function TinkererGadgetsQuickRef({
                 <div className="flex items-center gap-1.5 text-[#2c221e] font-bold text-xs">
                   <GiBroadsword className="text-[#6b5a4b]" />
                   <span>灌注術工藝</span>
-                  <span className="text-t10 font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415]">
+                  <span className="text-t10 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415]">
                     Tier {infusion}
                   </span>
                 </div>
@@ -350,7 +350,7 @@ export default function TinkererGadgetsQuickRef({
                 <div className="flex items-center gap-1.5 text-[#3c2415] font-bold text-xs">
                   <GiGears className="text-[#3c2415]" />
                   <span>{branch ? `${branch.name}工藝` : '魔導科技工藝'}</span>
-                  <span className="text-t10 font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
+                  <span className="text-t10 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
                     {technoRestrictsEquipment ? `Tier ${magitech}/${magitechCeiling}` : `Tier ${magitech}`}
                   </span>
                 </div>
@@ -432,7 +432,7 @@ export default function TinkererGadgetsQuickRef({
                 <div className="flex items-center gap-1.5 text-[#2c221e] font-bold text-xs">
                   <GiRoundBottomFlask className="text-[#6b5a4b]" />
                   <span>即席煉金術</span>
-                  <span className="text-t10 font-mono px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#3c2415]">
+                  <span className="text-t10 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415]">
                     Tier {alchemy}
                   </span>
                 </div>

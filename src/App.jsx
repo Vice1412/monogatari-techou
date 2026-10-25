@@ -298,7 +298,7 @@ export default function App() {
         <div
           className={`flex-1 flex flex-col ${
             transitionState === 'closing'
-              ? 'opacity-0 transition-all duration-350 ease-out pointer-events-none'
+              ? 'opacity-0 transition-all duration-200 ease-out pointer-events-none'
               : 'animate-page-dissolve-in'
           }`}
         >

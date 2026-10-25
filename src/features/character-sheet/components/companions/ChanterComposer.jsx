@@ -137,7 +137,7 @@ export default function ChanterComposer({
                   }`}
                 >
                   <span className="font-serif">{vol.name}</span>
-                  <span className={`font-mono text-t10 px-1.5 py-0.2 rounded ${isSelected ? 'bg-[#5e387c]/90 text-white' : 'bg-white text-[#5e387c]'}`}>
+                  <span className={`font-mono text-t10 px-1.5 py-0.5 rounded ${isSelected ? 'bg-[#5e387c]/90 text-white' : 'bg-white text-[#5e387c]'}`}>
                     {vol.mp} MP
                   </span>
                 </button>
@@ -233,16 +233,16 @@ export default function ChanterComposer({
           {/* 音調特性輔助標籤 */}
           {currentSong.key && (
             <div className="flex flex-wrap gap-1.5 text-t10">
-              <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#9c4d16] border border-[#d6c7ab]">
+              <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#9c4d16] border border-[#d6c7ab]">
                 傷害【{currentSong.key.damageType}】
               </span>
-              <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#8c2d36] border border-[#d6c7ab]">
+              <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#8c2d36] border border-[#d6c7ab]">
                 狀態【{currentSong.key.status}】
               </span>
-              <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#27527a] border border-[#d6c7ab] font-mono">
+              <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#27527a] border border-[#d6c7ab] font-mono">
                 屬性【{currentSong.key.attribute}】
               </span>
-              <span className="px-1.5 py-0.2 rounded bg-[#f4ebd9] text-[#245c45] border border-[#d6c7ab]">
+              <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#245c45] border border-[#d6c7ab]">
                 恢復【{currentSong.key.recovery}】
               </span>
             </div>
