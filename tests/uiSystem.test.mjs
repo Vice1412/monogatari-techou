@@ -1057,20 +1057,23 @@ check('遊戲中主畫面零調色盤令牌（量用長度說）', hudHues === 0
 const hudArb = (hudSrc.match(/text-\[\d+px\]/g) || []).length;
 check('遊戲中主畫面零任意字級（型階梯）', hudArb === 0, `${hudArb} 個`);
 
-// H6. 資源條：三條資源條都是單一實心墨色，危急那一條才是強調色。
-// 漸層會讓一條 bar 自己宣告兩個色相（第十輪），而「危急」若用第四個色相，
-// 使用者就分不出那是「沒血了」還是「這是第三種資源」。
-//
-// 第四條 bar 是**經驗條**，它的填色來自 `theme.accent`——那是玩家自己選的角色主題色
-// （`characterThemes.js` 的封閉集合，每個角色一色）。那條**不算違規**：
-// 它是身份，而且是封閉集合；這條護欄只鎖「三條資源條」。
+// H6. 資源條：三條資源條用各自的語意色（gauge 令牌），危急那條才換強調紅。
+// 2026-10-25 使用者裁定：HP 青／MP 藍／IP 金是有意義的語意——玩家要一眼分得出
+// 條是哪一種資源。原版「全墨色、只危急換紅」的判準在此反轉：
+//   - 三條資源條各帶 gauge-{hp,mp,ip} 語意色（封閉三集，值取自珠色登記表）；
+//   - 危機仍是紅（signal.accent / #a63d40），是獨立的警示語意，不與三色混淆——
+//     因為危機只出現在 HP 條，而且會同時觸發 crisis-pulse 邊框脈動，紅色是
+//     「形狀＋顏色」雙重訊號，不會被誤認成「HP 本來的青色」。
+// 第四條經驗條仍走 theme.accent（身份色，封閉六集），不在這條管轄內。
 const hudBars = (hudSrc.match(/h-full rounded-full transition-all duration-300/g) || []).length;
-const hudSolid = (hudSrc.match(/bg-\[#3c2415\] h-full rounded-full/g) || []).length;
-const hudCrisis = (hudSrc.match(/\$\{isCrisis \? 'bg-\[#a63d40\]' : 'bg-\[#3c2415\]'\}/g) || []).length;
+const hudGaugeHp = (hudSrc.match(/bg-gauge-hp/g) || []).length;
+const hudGaugeMp = (hudSrc.match(/bg-gauge-mp/g) || []).length;
+const hudGaugeIp = (hudSrc.match(/bg-gauge-ip/g) || []).length;
+const hudCrisis = (hudSrc.match(/\$\{isCrisis \? 'bg-\[#a63d40\]' : 'bg-gauge-hp'\}/g) || []).length;
 check(
-  '資源條實心、危急才換強調色',
-  hudBars === 4 && hudSolid === 2 && hudCrisis === 1,
-  `bar ${hudBars} 條（實心墨 ${hudSolid}＋危急 ${hudCrisis}＋經驗 1）`
+  '資源條三色語意、危急才換強調紅',
+  hudBars === 4 && hudGaugeHp === 1 && hudGaugeMp === 1 && hudGaugeIp === 1 && hudCrisis === 1,
+  `bar ${hudBars} 條（HP 青 ${hudGaugeHp}＋MP 藍 ${hudGaugeMp}＋IP 金 ${hudGaugeIp}＋危急 ${hudCrisis}＋經驗 1）`
 );
 
 // H7. 角色主題：六個主題共用同一張紙、同一階墨，只有身份色不同（第十五輪）。
@@ -1130,15 +1133,18 @@ check(
 const btnHues = (btnSrc.match(PALETTE) || []).length;
 check('按鈕零調色盤令牌', btnHues === 0, `${btnHues} 個`);
 
-// H9. 角色卡名冊的資源條與跑團面板同一個判準（第十五輪）。
+// H9. 角色卡名冊的資源條與跑團面板同一個判準（第十五輪 → 2026-10-25 反轉）。
 // 兩支畫面各有一組 HP／MP／IP，如果只收一支，下一輪就會有人「照另一支的寫法」加回去。
+// 反轉後判準：三條各帶 gauge 語意色，危急才換紅。
 const sheetSrc = stripComments(read('src/features/character-sheet/CharacterSheet.jsx'));
-const sheetCrisis = count(sheetSrc, "? 'bg-[#a63d40]' : 'bg-[#3c2415]'");
-const sheetSolid = count(sheetSrc, 'rounded-full transition-all duration-300 bg-[#3c2415]');
+const sheetCrisis = count(sheetSrc, "? 'bg-[#a63d40]' : 'bg-gauge-hp'");
+const sheetGaugeHp = (sheetSrc.match(/bg-gauge-hp/g) || []).length;
+const sheetGaugeMp = count(sheetSrc, 'rounded-full transition-all duration-300 bg-gauge-mp');
+const sheetGaugeIp = count(sheetSrc, 'rounded-full transition-all duration-300 bg-gauge-ip');
 check(
-  '角色卡資源條也是實心、危急才換強調色',
-  sheetCrisis === 1 && sheetSolid === 2,
-  `危急 ${sheetCrisis} 條（應為 1）＋實心墨 ${sheetSolid} 條（應為 2）`
+  '角色卡資源條也是三色語意、危急才換強調紅',
+  sheetCrisis === 1 && sheetGaugeHp === 1 && sheetGaugeMp === 1 && sheetGaugeIp === 1,
+  `危急 ${sheetCrisis} 條（應為 1）＋HP 青 ${sheetGaugeHp}＋MP 藍 ${sheetGaugeMp}＋IP 金 ${sheetGaugeIp}（各應為 1）`
 );
 
 // H10. 借來的灰（第十六輪 slate、第十七輪 stone）。

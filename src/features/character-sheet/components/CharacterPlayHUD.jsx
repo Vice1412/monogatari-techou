@@ -965,7 +965,7 @@ export default function CharacterPlayHUD({
 
           <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-3">
             <div
-              className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-[#a63d40]' : 'bg-[#3c2415]'}`}
+              className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}`}
               style={{ width: `${Math.min(100, (curHp / stats.maxHp) * 100)}%` }}
             />
           </div>
@@ -1033,7 +1033,7 @@ export default function CharacterPlayHUD({
 
           <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-3">
             <div
-              className="bg-[#3c2415] h-full rounded-full transition-all duration-300"
+              className="bg-gauge-mp h-full rounded-full transition-all duration-300"
               style={{ width: `${Math.min(100, (curMp / stats.maxMp) * 100)}%` }}
             />
           </div>
@@ -1083,7 +1083,7 @@ export default function CharacterPlayHUD({
 
             <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-3">
               <div
-                className="bg-[#3c2415] h-full rounded-full transition-all duration-300"
+                className="bg-gauge-ip h-full rounded-full transition-all duration-300"
                 style={{ width: `${Math.min(100, (curIp / stats.maxIp) * 100)}%` }}
               />
             </div>

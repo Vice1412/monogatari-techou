@@ -661,7 +661,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         </div>
                         <div className="h-2 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-[#a63d40]' : 'bg-[#3c2415]'}`}
+                            className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}`}
                             style={{ width: `${Math.max(0, Math.min(100, (curHp / stats.maxHp) * 100))}%` }}
                           />
                         </div>
@@ -675,7 +675,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         </div>
                         <div className="h-2 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
                           <div
-                            className="h-full rounded-full transition-all duration-300 bg-[#3c2415]"
+                            className="h-full rounded-full transition-all duration-300 bg-gauge-mp"
                             style={{ width: `${Math.max(0, Math.min(100, (curMp / stats.maxMp) * 100))}%` }}
                           />
                         </div>
@@ -689,7 +689,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         </div>
                         <div className="h-2 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
                           <div
-                            className="h-full rounded-full transition-all duration-300 bg-[#3c2415]"
+                            className="h-full rounded-full transition-all duration-300 bg-gauge-ip"
                             style={{ width: `${Math.max(0, Math.min(100, (curIp / stats.maxIp) * 100))}%` }}
                           />
                         </div>
