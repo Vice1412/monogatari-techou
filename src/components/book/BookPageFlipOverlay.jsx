@@ -12,7 +12,7 @@ const OVERLAY_PAPER = {
   headerBorder: 'border-[#d6c7ab]',
   title: 'text-[#3c2415]',
   subtitle: 'text-[#6b5a4b]',
-  tag: 'text-[#8b5e34]',
+  tag: 'text-[#6b5a4b]',
   tagAccent: 'text-[#3c2415]',
   backBg: 'bg-[#f4ebd9]',
   backBorder: 'border-[#d6c7ab]',
@@ -112,7 +112,7 @@ export default function BookPageFlipOverlay({ direction, targetChapter, onAnimat
           >
             <div className="text-center my-auto">
  <div className={`w-12 h-12 rounded-full border ${theme.backIconBorder} mx-auto mb-3 flex items-center justify-center bg-white `}>
-                <GiSparkles className="w-6 h-6 text-[#8b5e34]" />
+                <GiSparkles className="w-6 h-6 text-[#6b5a4b]" />
               </div>
               <p className={`font-serif text-sm ${theme.backText} font-bold`}>
                 翻動篇章中...

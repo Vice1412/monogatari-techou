@@ -97,7 +97,7 @@ export default function CharacterCard({
               {character.name && character.name.trim() ? (
                 character.name
               ) : (
-                <span className="text-[#a08f7f] italic font-mono border-b border-dashed border-[#d6c7ab] pb-0.5">
+                <span className="text-[#7c6a58] italic font-mono border-b border-dashed border-[#d6c7ab] pb-0.5">
                   【 ______ 尚未命名冒險者 】
                 </span>
               )}
@@ -121,7 +121,7 @@ export default function CharacterCard({
                   {character.identity}
                 </strong>
               ) : (
-                <span className="text-[#a08f7f] italic font-normal border-b border-dashed border-[#d6c7ab]">
+                <span className="text-[#7c6a58] italic font-normal border-b border-dashed border-[#d6c7ab]">
                   【 尚未設定身份 】
                 </span>
               )}
@@ -134,7 +134,7 @@ export default function CharacterCard({
                   {character.theme}
                 </strong>
               ) : (
-                <span className="text-[#a08f7f] italic font-normal border-b border-dashed border-[#d6c7ab]">
+                <span className="text-[#7c6a58] italic font-normal border-b border-dashed border-[#d6c7ab]">
                   【 尚未設定主題 】
                 </span>
               )}
@@ -147,7 +147,7 @@ export default function CharacterCard({
                   {character.origin}
                 </strong>
               ) : (
-                <span className="text-[#a08f7f] italic font-normal border-b border-dashed border-[#d6c7ab]">
+                <span className="text-[#7c6a58] italic font-normal border-b border-dashed border-[#d6c7ab]">
                   【 尚未設定故鄉 】
                 </span>
               )}
@@ -160,7 +160,7 @@ export default function CharacterCard({
                   {character.gender}
                 </strong>
               ) : (
-                <span className="text-[#a08f7f] italic font-normal border-b border-dashed border-[#d6c7ab]">
+                <span className="text-[#7c6a58] italic font-normal border-b border-dashed border-[#d6c7ab]">
                   【 尚未設定性別 】
                 </span>
               )}
@@ -392,7 +392,7 @@ export default function CharacterCard({
             {character.equipment?.mainHand && character.equipment.mainHand !== '無' ? (
               <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.mainHand}</span>
             ) : (
-              <span className="text-[#a08f7f] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
+              <span className="text-[#7c6a58] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
             )}
           </div>
           <div className="p-2 rounded border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
@@ -400,7 +400,7 @@ export default function CharacterCard({
             {character.equipment?.offHand && character.equipment.offHand !== '無' && character.equipment.offHand !== '無盾牌' ? (
               <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.offHand}</span>
             ) : (
-              <span className="text-[#a08f7f] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
+              <span className="text-[#7c6a58] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
             )}
           </div>
           <div className="p-2 rounded border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
@@ -408,7 +408,7 @@ export default function CharacterCard({
             {character.equipment?.armor && character.equipment.armor !== '無' ? (
               <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.armor}</span>
             ) : (
-              <span className="text-[#a08f7f] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
+              <span className="text-[#7c6a58] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
             )}
           </div>
           <div className="p-2 rounded border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
@@ -416,7 +416,7 @@ export default function CharacterCard({
             {character.equipment?.accessory && character.equipment.accessory !== '無' ? (
               <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.accessory}</span>
             ) : (
-              <span className="text-[#a08f7f] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
+              <span className="text-[#7c6a58] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
             )}
           </div>
         </div>
@@ -457,7 +457,7 @@ export default function CharacterCard({
                             SL {sk.sl} / {skillDef?.maxSL || 5}
                           </span>
                         </div>
-                        <div className="text-[#574c43] leading-relaxed font-sans text-t11">
+                        <div className="text-[#6b5a4b] leading-relaxed font-sans text-t11">
                           <SkillDescription desc={skillDef?.desc || '暫無說明'} sl={sk.sl} />
                         </div>
                       </div>
@@ -502,7 +502,7 @@ export default function CharacterCard({
                       ) : null;
                     })()}
                   </div>
-                  <p className="text-[#574c43] leading-relaxed font-sans text-t11">{resolveHeroicSkillEffect(hs.name, hs.effect, character)}</p>
+                  <p className="text-[#6b5a4b] leading-relaxed font-sans text-t11">{resolveHeroicSkillEffect(hs.name, hs.effect, character)}</p>
                 </div>
               ))}
             </div>
@@ -520,7 +520,7 @@ export default function CharacterCard({
           {(!character.bonds || character.bonds.length === 0) ? (
             <div className="p-3 rounded border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs flex items-center justify-between">
               <span>【 尚未締結任何情感羈絆 】（可建立最多 6 組羈絆）</span>
-              <span className="font-mono text-t10 text-[#a08f7f]">0 / 6</span>
+              <span className="font-mono text-t10 text-[#7c6a58]">0 / 6</span>
             </div>
           ) : (
             <div className="space-y-1.5">

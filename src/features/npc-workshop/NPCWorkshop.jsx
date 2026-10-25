@@ -2006,9 +2006,9 @@ export default function App({
       <div className="w-full max-w-4xl flex flex-col gap-2">
         {validLinks.length > 0 && (
           <div className="bg-[#f4ebd9] border border-[#d6c7ab] p-2.5 flex flex-wrap gap-2 items-center justify-center relative overflow-hidden rounded text-[#2c221e]">
-            <span className="text-xs text-[#8b4513] font-bold mr-2 tracking-wider flex items-center z-10"><Link size={14} className="mr-1" />關聯實體快速跳轉：</span>
+            <span className="text-xs text-[#3c2415] font-bold mr-2 tracking-wider flex items-center z-10"><Link size={14} className="mr-1" />關聯實體快速跳轉：</span>
             {validLinks.map(link => (
-              <button key={link.id} onClick={() => handleJumpToNPC(link.id)} className="bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#8b4513] text-t11 font-bold px-3 py-1 rounded-full border border-[#d6c7ab] hover:border-[#3c2415] transition-all flex items-center z-10">
+              <button key={link.id} onClick={() => handleJumpToNPC(link.id)} className="bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] text-t11 font-bold px-3 py-1 rounded-full border border-[#d6c7ab] hover:border-[#3c2415] transition-all flex items-center z-10">
                 {link.name || "未知"}
               </button>
             ))}
@@ -2039,7 +2039,7 @@ export default function App({
                 </div>
 
                 {state.traits && isRevealed('stats') && <div className="text-sm font-bold italic mb-2" style={{ color: currentTheme.accentDark }}>特質: <span className="font-normal text-[#2c221e]">{state.traits}</span></div>}
-                {state.story && revealLevel === 'full' && <div className="text-xs text-[#574c43] leading-relaxed border-l-2 pl-3 italic mb-2" style={{ borderLeftColor: currentTheme.accent }}>{state.story}</div>}
+                {state.story && revealLevel === 'full' && <div className="text-xs text-[#6b5a4b] leading-relaxed border-l-2 pl-3 italic mb-2" style={{ borderLeftColor: currentTheme.accent }}>{state.story}</div>}
                 {state.tactics && revealLevel === 'full' && <div className="text-xs text-[#3c2415] leading-relaxed bg-[#f9f5eb] border border-[#d6c7ab] p-2 rounded mt-2"><span className="font-bold">戰術：</span>{state.tactics}</div>}
               </div>
               <div
@@ -2048,7 +2048,7 @@ export default function App({
                 onDragLeave={handleAvatarDragLeave}
                 onDrop={handleAvatarDrop}
                 className={`relative w-24 h-24 md:w-32 md:h-32 border-2 bg-[#f4ebd9] flex-shrink-0 group overflow-hidden shadow-md select-none block transition-all duration-200 ${
-                  isDraggingOver ? 'border-[#3c2415] ring-2 ring-[#3c2415]/50' : 'border-[#a8987e] hover:border-[#3c2415]'
+                  isDraggingOver ? 'border-[#3c2415] ring-2 ring-[#3c2415]/50' : 'border-[#d6c7ab] hover:border-[#3c2415]'
                 }`}
                 title={state.avatarBase64 ? "NPC 頭像" : "點擊上傳或拖曳圖片至此"}
               >
@@ -2217,7 +2217,7 @@ export default function App({
               if (!content) return null;
 
               return (
-                <div className="bg-[#f4ebd9]/60 p-3.5 rounded border border-[#d6c7ab]/80 text-xs text-[#5c4a38] leading-relaxed shadow-inner">
+                <div className="bg-[#f4ebd9]/60 p-3.5 rounded border border-[#d6c7ab]/80 text-xs text-[#6b5a4b] leading-relaxed shadow-inner">
                   <div className="font-bold text-[#3c2415] mb-1 flex items-center gap-1.5 text-sm">
                     <span>✦ 物種特質 / 背景說明</span>
                   </div>
@@ -2535,7 +2535,7 @@ export default function App({
                     >
                       <div className={`bg-[#fffdf9] p-4 sm:p-8 rounded border-2 transition-all duration-300 ${isActive ? 'border-[#3c2415] shadow-xl' : 'border-[#d6c7ab]'} relative overflow-hidden group`}>
                         {/* Background Watermark Icon */}
-                        <div className="absolute top-0 right-0 p-4 opacity-10 text-[#8b4513] pointer-events-none transition-transform duration-1000">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 text-[#6b5a4b] pointer-events-none transition-transform duration-1000">
                           {(() => {
                             const WatermarkIcon = ROLE_ICONS[roleName] || ROLE_DESCRIPTIONS[roleName]?.Icon;
                             return WatermarkIcon ? (
@@ -2545,7 +2545,7 @@ export default function App({
                         </div>
 
                         <div className="relative z-10 flex flex-col items-center text-center gap-4">
-                          <div className={`w-28 h-28 rounded-full flex items-center justify-center border transition-all duration-500 ${isActive ? 'bg-[#f4ebd9] border-[#3c2415] shadow-md text-[#3c2415]' : 'bg-[#f4ebd9] border-[#d6c7ab] text-[#8b4513]'}`}>
+                          <div className={`w-28 h-28 rounded-full flex items-center justify-center border transition-all duration-500 ${isActive ? 'bg-[#f4ebd9] border-[#3c2415] shadow-md text-[#3c2415]' : 'bg-[#f4ebd9] border-[#d6c7ab] text-[#6b5a4b]'}`}>
                             {(() => {
                               const CardIcon = ROLE_ICONS[roleName] || ROLE_DESCRIPTIONS[roleName]?.Icon;
                               return CardIcon ? (
@@ -2560,7 +2560,7 @@ export default function App({
                             </div>
                           </div>
                           <div className="h-px w-full bg-gradient-to-r from-transparent via-[#d6c7ab] to-transparent"></div>
-                          <p className="text-[#574c43] leading-relaxed text-sm font-medium h-24 overflow-hidden line-clamp-4">
+                          <p className="text-[#6b5a4b] leading-relaxed text-sm font-medium h-24 overflow-hidden line-clamp-4">
                             {ROLE_DESCRIPTIONS[roleName].desc}
                           </p>
                         </div>
@@ -2892,7 +2892,7 @@ export default function App({
                             <label className="text-t11 font-bold text-[#8c2d36] tracking-wider flex items-center gap-1.5 uppercase mb-3 text-center">
                               △ 額外代償選項
                             </label>
-                            <p className="text-xs text-[#574c43] mb-3 text-center italic">{sp.optionalDrawback.desc}</p>
+                            <p className="text-xs text-[#6b5a4b] mb-3 text-center italic">{sp.optionalDrawback.desc}</p>
                             <div className="flex justify-center">
                               <select
                                 className="bg-[#fffdf9] border border-[#8c2d36]/50 p-2 rounded text-sm text-[#8c2d36] focus:border-[#8c2d36] outline-none min-w-[200px] font-bold"
@@ -2977,7 +2977,7 @@ export default function App({
                                           )}
                                           <div className="flex-1">
                                             <div className="flex items-center justify-between">
-                                              <p className={`text-t12 font-bold leading-relaxed ${isChecked ? 'text-[#3c2415]' : 'text-[#574c43]'}`}>{renderFormattedText(opt.text, state.speciesConfig, state.level, state.partyLevel)}</p>
+                                              <p className={`text-t12 font-bold leading-relaxed ${isChecked ? 'text-[#3c2415]' : 'text-[#6b5a4b]'}`}>{renderFormattedText(opt.text, state.speciesConfig, state.level, state.partyLevel)}</p>
                                               {opt.canPickTwice && isChecked && (
                                                 <span className="text-t10 font-black bg-[#f4ebd9] text-[#3c2415] px-2 py-0.5 rounded border border-[#d6c7ab] ml-2">累計: {count}/2</span>
                                               )}
@@ -3349,7 +3349,7 @@ export default function App({
                 <label className="block text-sm text-[#3c2415] mb-3 font-bold tracking-[0.2em] flex items-center gap-2 uppercase">
                   <span className="fu-icon text-lg">c</span> 攻擊性咒語檢定公式
                 </label>
-                <p className="text-xs text-[#574c43] mb-4">此 NPC 獲得了攻擊性咒語。請選擇所有攻擊性咒語適用的精確度檢定公式：</p>
+                <p className="text-xs text-[#6b5a4b] mb-4">此 NPC 獲得了攻擊性咒語。請選擇所有攻擊性咒語適用的精確度檢定公式：</p>
                 <div className="grid grid-cols-2 gap-4 max-w-md">
                   {[
                     { value: '[INS + WLP]', label: '【洞察】+ 【意志】', desc: '標準魔法檢定' },
@@ -3466,7 +3466,7 @@ export default function App({
                 <input
                   type="text"
                   placeholder="搜尋定位技能..."
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#fffdf9] border border-[#d6c7ab] rounded outline-none focus:border-[#a63d40] text-[#2c221e] placeholder-[#a8987e] transition-colors"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#fffdf9] border border-[#d6c7ab] rounded outline-none focus:border-[#a63d40] text-[#2c221e] placeholder:text-[#7c6a58] transition-colors"
                   value={roleSkillSearch}
                   onChange={e => setRoleSkillSearch(e.target.value)}
                 />
@@ -3530,7 +3530,7 @@ export default function App({
                     <input
                       type="text"
                       placeholder="搜尋咒語..."
-                      className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#fffdf9] border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415] text-[#2c221e] placeholder-[#a8987e] transition-colors"
+                      className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#fffdf9] border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415] text-[#2c221e] placeholder:text-[#7c6a58] transition-colors"
                       value={spellSearch}
                       onChange={e => setSpellSearch(e.target.value)}
                     />
@@ -4133,7 +4133,7 @@ export default function App({
                 </span>
               </div>
 
-              <p className="text-xs text-[#574c43] leading-relaxed">
+              <p className="text-xs text-[#6b5a4b] leading-relaxed">
                 連結至檔案庫中的其他實體，以便在角色卡預覽中快速跳轉。儲存後將自動建立雙向連結。
               </p>
 
@@ -4285,7 +4285,7 @@ export default function App({
                   <GiScrollUnfurled size={18} className="text-[#3c2415] shrink-0 mt-0.5" />
                   <p className="text-xs text-[#3c2415] leading-relaxed">
                     <strong className="font-black">上次有一份沒存進檔案庫的草稿</strong>
-                    <span className="text-[#574c43]">　「{draftOffer.npc?.name || '未命名 NPC'}」</span>
+                    <span className="text-[#6b5a4b]">　「{draftOffer.npc?.name || '未命名 NPC'}」</span>
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -4309,13 +4309,13 @@ export default function App({
               {/* Search Input & Filter Dropdowns */}
               <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
                 <div className="relative min-w-[200px] max-w-xs flex-1">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8b5e34]/70 pointer-events-none" />
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6b5a4b]/70 pointer-events-none" />
                   <input
                     type="text"
                     value={libSearchQuery}
                     onChange={(e) => setLibSearchQuery(e.target.value)}
                     placeholder="搜尋姓名、定位、物種、位階、技能..."
-                    className="w-full pl-9 pr-3 py-2 rounded border border-[#d6c7ab] bg-white/90 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3c2415]/20 text-xs text-[#3c2415] placeholder:text-[#8b5e34]/50 transition-all"
+                    className="w-full pl-9 pr-3 py-2 rounded border border-[#d6c7ab] bg-white/90 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3c2415]/20 text-xs text-[#3c2415] placeholder:text-[#6b5a4b]/50 transition-all"
                   />
                 </div>
 
@@ -4476,7 +4476,7 @@ export default function App({
                           }}
                         />
                       ) : (
-                        <ImageIcon size={32} className="text-[#a8987e]" />
+                        <ImageIcon size={32} className="text-[#7c6a58]" />
                       )}
                       <div className="absolute top-2 right-2 flex gap-1">
                         <span className="bg-[#fffdf9]/90 text-[#a63d40] text-t10 font-bold px-2 py-0.5 rounded border border-[#d6c7ab]">Lv. {npc.level}</span>
@@ -4570,7 +4570,7 @@ export default function App({
               <span className="text-t12 font-normal opacity-70">手動</span>
               ▽ 弱 {currentAffinities.vul} | ▼ 抗 {currentAffinities.res} | ◆ 免 {currentAffinities.imm}
               {speciesAffinitySummary && (
-                <span className="hidden md:inline ml-1 pl-1.5 border-l border-[#d6c7ab] text-[#8a6d3b] font-normal">
+                <span className="hidden md:inline ml-1 pl-1.5 border-l border-[#d6c7ab] text-[#6b5a4b] font-normal">
                   物種：{speciesAffinitySummary}
                 </span>
               )}
@@ -4784,7 +4784,7 @@ export default function App({
                                 className={`flex items-center gap-2 px-2.5 py-2 rounded border text-left transition-all text-xs font-bold ${
                                   isSelected
                                     ? 'border-[#3c2415] bg-[#f9f5eb] text-[#2c221e] ring-1 ring-[#3c2415]/35'
-                                    : 'border-[#d6c7ab]/80 bg-[#fffdf9] text-[#574c43] hover:bg-[#f4ebd9] hover:border-[#7c6a58]'
+                                    : 'border-[#d6c7ab]/80 bg-[#fffdf9] text-[#6b5a4b] hover:bg-[#f4ebd9] hover:border-[#7c6a58]'
                                 }`}
                               >
                                 <div
@@ -4875,7 +4875,7 @@ export default function App({
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #d6c7ab; border-radius: 20px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #b4a383; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #d6c7ab; }
         
         /* 修正匯出圖片時的文字與圖示對齊問題 */
         svg {

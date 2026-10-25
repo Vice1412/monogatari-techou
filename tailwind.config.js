@@ -89,25 +89,22 @@ export default {
           ok: '#3d7a55',
         },
 
-        /* ── v1 羊皮紙色盤（過渡期保留，逐畫面淘汰）────────────────────
-           來源：專案初始版本。與 v5 並存中，勿在新稿使用。 */
-        parchment: {
-          DEFAULT: '#fbf7ee',
-          card: '#fffdf9',
-          panel: '#f5efdf',
-          subpanel: '#f4ebd9',
-          header: '#f4ebd9',
-          border: '#d6c7ab',
-          'border-light': '#e4d9c0',
-          text: '#2c221e',
-          dark: '#3c2415',
-          muted: '#6b5a4b',
-          amber: '#b45309',
-          'amber-hover': '#92400e',
-          'amber-dark': '#8b5e34',
-          'amber-light': '#fef3c7',
-          badge: '#fbf3de'
-        }
+        /* ── v1 羊皮紙色盤：整組移除（第三十八輪 §CI46）──────────────────
+           它原本有 15 個鍵，註解寫著「過渡期保留，逐畫面淘汰」。
+           本輪量到的是：**15 個鍵的使用次數全部是 0**——連 `DEFAULT` 都是。
+           兩次「命中」都在註解裡（`parchment` 這個字出現在兩句說明中）。
+
+           也就是說這組令牌從 v5 遷移開始就沒有接上過，卻在設定層活了三十八輪。
+           它不是「過渡期的殘留」，是**一份沒有人讀的設定**：
+           紙的顏色一直是寫在 hex 與 `CHARACTER_THEMES` 裡的。
+
+           代價是具體的：其中四個鍵帶著 H23-b 明文硬零的琥珀值
+           （`#b45309`／`#92400e`／`#8b5e34`／`#fef3c7`），而它們讓本輪新加的
+           H36-a（rgba 三通道必須是登記色）第一版對 `rgba(139, 94, 52, .6)`
+           給出**綠燈**——因為 `#8b5e34` 在設定層還算「一個登記過的令牌」。
+           一個死宣告可以讓一條新護欄失效，而它自己永遠不會紅。
+
+           `parchment` 這個名字若日後真的需要，請連同第一個使用者一起加回來。 */
       },
       fontFamily: {
         sans: ['"Noto Sans TC"', '"PingFang TC"', '"Microsoft JhengHei"', '"微軟正黑體"', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],

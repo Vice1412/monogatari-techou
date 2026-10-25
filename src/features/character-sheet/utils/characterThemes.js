@@ -58,6 +58,9 @@
  */
 
 import { STORAGE_KEYS } from '../../../data/keys';
+/* 第三十八輪 §CI46：六個身份色的唯一來源。
+   原本這裡與 `ClockTracker` 各抄一份（欄位名還不一樣），色碼一字不差。 */
+import { IDENTITY } from '../../../data/identityPalette';
 
 /**
  * 紙與墨：六個主題共用同一組（本輪**沒有新增任何 hex**，全部取自 v5 既有色票）。
@@ -101,54 +104,54 @@ export const CHARACTER_THEMES = {
     id: 'emerald',
     name: '翡翠青',
     enName: 'Emerald Forest',
-    accent: '#245c45',
-    accentDark: '#133829',
-    accentLight: '#e1eee7',
+    accent: IDENTITY.emerald.accent,
+    accentDark: IDENTITY.emerald.dark,
+    accentLight: IDENTITY.emerald.light,
     badgeVariant: 'ink',
   }),
   amber: theme({
     id: 'amber',
     name: '琥珀棕',
     enName: 'Amber Parchment',
-    accent: '#9c4d16',
-    accentDark: '#693108',
-    accentLight: '#f4ebd9',
+    accent: IDENTITY.amber.accent,
+    accentDark: IDENTITY.amber.dark,
+    accentLight: IDENTITY.amber.light,
     badgeVariant: 'ink',
   }),
   blue: theme({
     id: 'blue',
     name: '群青藍',
     enName: 'Slate Navy',
-    accent: '#27527a',
-    accentDark: '#17324c',
-    accentLight: '#dde7f0',
+    accent: IDENTITY.blue.accent,
+    accentDark: IDENTITY.blue.dark,
+    accentLight: IDENTITY.blue.light,
     badgeVariant: 'ink',
   }),
   crimson: theme({
     id: 'crimson',
     name: '硃砂紅',
     enName: 'Crimson Wine',
-    accent: '#8c2d36',
-    accentDark: '#58171e',
-    accentLight: '#f5e6e7',
+    accent: IDENTITY.crimson.accent,
+    accentDark: IDENTITY.crimson.dark,
+    accentLight: IDENTITY.crimson.light,
     badgeVariant: 'ink',
   }),
   purple: theme({
     id: 'purple',
     name: '秘術紫',
     enName: 'Arcane Plum',
-    accent: '#5e387c',
-    accentDark: '#3a1f4f',
-    accentLight: '#eee5f5',
+    accent: IDENTITY.purple.accent,
+    accentDark: IDENTITY.purple.dark,
+    accentLight: IDENTITY.purple.light,
     badgeVariant: 'ink',
   }),
   slate: theme({
     id: 'slate',
     name: '鐵石灰',
     enName: 'Iron Slate',
-    accent: '#404a58',
-    accentDark: '#20262f',
-    accentLight: '#e6eaef',
+    accent: IDENTITY.slate.accent,
+    accentDark: IDENTITY.slate.dark,
+    accentLight: IDENTITY.slate.light,
     badgeVariant: 'ink',
   }),
 };

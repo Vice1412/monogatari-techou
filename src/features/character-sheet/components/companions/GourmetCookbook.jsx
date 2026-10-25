@@ -724,7 +724,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
                           isPending
                             ? 'bg-[#e8dcc4] border-[#3c2415] text-[#2c221e]'
                             : entry?.roll
-                              ? 'bg-[#e8dcc4] border-[#c9b48f] text-[#3c2415]'
+                              ? 'bg-[#e8dcc4] border-[#d6c7ab] text-[#3c2415]'
                               : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#7c6a58]'
                         }`}
                       >

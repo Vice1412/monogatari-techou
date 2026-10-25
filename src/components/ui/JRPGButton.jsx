@@ -49,7 +49,7 @@ export default function JRPGButton({
   const variantStyles = {
     primary: "bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] border border-[#8c3235]",
     secondary: "bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#2c221e] border border-[#d6c7ab]",
-    outline: "bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] hover:border-[#8b5e34]",
+    outline: "bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] hover:border-[#3c2415]",
     ghost: "bg-transparent hover:bg-[#f4ebd9] text-[#3c2415]",
   };
 

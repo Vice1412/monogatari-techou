@@ -29,6 +29,7 @@ import JRPGModal from '../../../components/ui/JRPGModal';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
 import { ZERO_TRIGGERS, ZERO_EFFECTS, ZERO_POWER_SOURCE } from '../data/zeroPowers';
+import { getCharacterTheme } from '../utils/characterThemes';
 
 export const GLOSSARY_TAB_TRIGGER = 'trigger';
 export const GLOSSARY_TAB_EFFECT = 'effect';
@@ -48,14 +49,24 @@ export function ZeroPowerGlossaryBody({
   selectedTriggerId = '',
   selectedEffectId = ''
 }) {
-  const accent = (theme && theme.accent) || '#9c4d16';
-  const accentDark = (theme && theme.accentDark) || '#693108';
-  const accentLight = (theme && theme.accentLight) || '#f4ebd9';
-  const border = (theme && theme.border) || '#d6c7ab';
-  const cardBg = (theme && theme.cardBg) || '#fffdf9';
-  const panelBg = (theme && theme.panelBg) || '#f4ebd9';
-  const textDark = (theme && theme.textDark) || '#3c2415';
-  const textMuted = (theme && theme.textMuted) || '#7b4720';
+  /* 第三十八輪（§CI46）：這八行原本是 `(theme && theme.accent) || '#9c4d16'`。
+     第三十七輪的 H35 說「全站零 hex 回退」，但它只認 `theme.accent || '#hex'`
+     這種**單一屬性鏈**——`(theme && theme.accent)` 是複合運算式，整批逃掉了。
+     （同一種盲區的第三次：護欄只認得自己寫的那一種寫法。）
+
+     這裡的 `theme` 預設是 `{}`（不是 null），所以 `theme.accent` 會是 undefined，
+     回退**真的會執行**。修法照第三十七輪的結論：換成具名來源，不是刪掉保險。
+     順帶修掉一個不一致：`textDark` 的保險是 `#3c2415`，而主題真正的
+     `textDark` 是 `#2c221e`——「有主題」和「沒主題」的墨是兩個顏色。 */
+  const t = theme || getCharacterTheme(null);
+  const accent = t.accent;
+  const accentDark = t.accentDark;
+  const accentLight = t.accentLight;
+  const border = t.border;
+  const cardBg = t.cardBg;
+  const panelBg = t.panelBg;
+  const textDark = t.textDark;
+  const textMuted = t.textMuted;
 
   const showTriggers = activeTab === GLOSSARY_TAB_TRIGGER;
   const list = showTriggers ? ZERO_TRIGGERS : ZERO_EFFECTS;

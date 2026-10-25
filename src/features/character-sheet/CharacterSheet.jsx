@@ -428,7 +428,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="搜尋姓名、身份、職業..."
-                  className="w-full pl-9 pr-3 py-2 rounded border border-[#d6c7ab] bg-white/90 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#8b5e34]/25 text-xs text-[#2c221e] placeholder:text-[#6b5a4b]/50 transition-all"
+                  className="w-full pl-9 pr-3 py-2 rounded border border-[#d6c7ab] bg-white/90 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#3c2415]/25 text-xs text-[#2c221e] placeholder:text-[#6b5a4b]/50 transition-all"
                 />
               </div>
 
@@ -513,7 +513,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
               <button
                 type="button"
                 onClick={handleCreateCharacter}
-                className="bg-[#8b5e34] hover:bg-[#78350f] text-white px-4 py-2 rounded font-bold flex items-center gap-1.5 shadow-md transition-all justify-center text-xs"
+                className="bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] px-4 py-2 rounded font-bold flex items-center gap-1.5 shadow-md transition-all justify-center text-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>建立新角色</span>
@@ -591,7 +591,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                     >
                       <div
                         onClick={() => handleOpenEditorMode(char)}
-                        className="w-12 h-12 rounded bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-xl font-bold shadow-inner cursor-pointer hover:ring-2 hover:ring-[#8b5e34]/50 transition-all group relative"
+                        className="w-12 h-12 rounded bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-xl font-bold shadow-inner cursor-pointer hover:ring-2 hover:ring-[#3c2415]/50 transition-all group relative"
                         style={{ borderColor: charTheme.border, color: charTheme.accent }}
                         title="點擊前往編輯此角色與肖像"
                       >

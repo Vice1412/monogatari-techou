@@ -109,7 +109,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
       {isEditing ? (
         <textarea
           ref={textareaRef}
-          className={`text-sm leading-relaxed w-full bg-transparent border border-transparent rounded px-1 -mx-1 outline-none resize-none overflow-hidden transition-colors hover:border-[#b4a383] hover:bg-[#f4ebd9] focus:border-[#a63d40] focus:bg-[#fffdf9] min-h-[3rem] ${isOverBudget ? 'text-[#8c2d36]' : skill.customDesc !== undefined ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}
+          className={`text-sm leading-relaxed w-full bg-transparent border border-transparent rounded px-1 -mx-1 outline-none resize-none overflow-hidden transition-colors hover:border-[#d6c7ab] hover:bg-[#f4ebd9] focus:border-[#a63d40] focus:bg-[#fffdf9] min-h-[3rem] ${isOverBudget ? 'text-[#8c2d36]' : skill.customDesc !== undefined ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}
           value={resolveTemplateVariablesForDisplay(getCleanTextForEditor(skill.customDesc !== undefined ? skill.customDesc : effectiveDesc), skill.selections, { damageEmojis: true })}
           placeholder={resolveTemplateVariablesForDisplay(getCleanTextForEditor(effectiveDesc), skill.selections, { damageEmojis: true })}
           onChange={(e) => {
@@ -125,7 +125,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
-        <div className={`text-sm leading-relaxed ${isOverBudget && isActive ? 'text-[#8c2d36]' : skill.customDesc !== undefined ? 'text-[#3c2415] font-medium' : 'text-[#574c43]'}`}>{renderFormattedText(currentDesc, skill.selections, npcLevel, partyLevel)}</div>
+        <div className={`text-sm leading-relaxed ${isOverBudget && isActive ? 'text-[#8c2d36]' : skill.customDesc !== undefined ? 'text-[#3c2415] font-medium' : 'text-[#6b5a4b]'}`}>{renderFormattedText(currentDesc, skill.selections, npcLevel, partyLevel)}</div>
       )}
       {/* 模板裡的 `{key}` 未填時畫成空虛線框，但那框沒有文字標籤——不點下去不知道要填什麼。
           這裡先講「有幾個欄位要填」，讓使用者知道那條虛線不是壞掉。 */}
@@ -181,7 +181,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
               if (cfg.type === 'checkbox') {
                 const isChecked = !!skill.selections?.[cfg.key];
                 return (
-                  <label key={cfg.key} className={`flex items-center gap-2 p-2 rounded border bg-[#f4ebd9]/60 cursor-pointer select-none transition-all ${isChecked ? (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36] bg-[#f4ebd9]' : 'text-[#3c2415] border-[#3c2415] bg-[#f4ebd9]') : (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36]/50' : 'text-[#3c2415] border-[#d6c7ab] hover:border-[#b4a383]')}`} onClick={e => e.stopPropagation()}>
+                  <label key={cfg.key} className={`flex items-center gap-2 p-2 rounded border bg-[#f4ebd9]/60 cursor-pointer select-none transition-all ${isChecked ? (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36] bg-[#f4ebd9]' : 'text-[#3c2415] border-[#3c2415] bg-[#f4ebd9]') : (isOverBudget ? 'text-[#8c2d36] border-[#8c2d36]/50' : 'text-[#3c2415] border-[#d6c7ab] hover:border-[#3c2415]')}`} onClick={e => e.stopPropagation()}>
                     <input type="checkbox" className="accent-[#a63d40] w-3.5 h-3.5 shrink-0" checked={isChecked} onChange={() => onSelectionChange(skill.id, cfg.key, !isChecked)} />
                     <span className="text-xs font-bold">{cfg.label}</span>
                     {isChecked && <span className="text-t10 bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-1.5 py-0.5 rounded ml-auto">已啟用</span>}

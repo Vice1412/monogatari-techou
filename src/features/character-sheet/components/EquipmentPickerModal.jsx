@@ -341,7 +341,7 @@ export function EquipmentPickerBody({
                     </div>
                   ) : null}
                   {row.isShieldRow ? (
-                    <div className="text-t10 text-[#7b4720] mt-0.5">
+                    <div className="text-t10 text-[#6b5a4b] mt-0.5">
                       兩手皆盾時合併為「雙盾」：命中【MIG + MIG】、傷害【HR + 5】物理
                       {dualShield.defenseMasterySL > 0 ? `，額外 +${dualShield.defenseMasterySL}（防守掌握 SL）` : ''}
                     </div>
@@ -351,7 +351,7 @@ export function EquipmentPickerBody({
                   ) : null}
                 </td>
                 <td className={cellText}>
-                  <span className="text-t11 text-[#5b4a3a]">{w.category}</span>
+                  <span className="text-t11 text-[#6b5a4b]">{w.category}</span>
                 </td>
                 <td className={cellText}>
                   <span className={`font-mono font-bold ${overBudget ? 'text-[#8c2d36]' : ''}`}>
@@ -454,7 +454,7 @@ export function EquipmentPickerBody({
                   <span className="font-mono text-t11">{row.outcome.initMod === 0 ? '±0' : row.outcome.initMod}</span>
                 </td>
                 <td className={cellText}>
-                  <span className="text-t11 text-[#5b4a3a]">{row.shield.desc || '—'}</span>
+                  <span className="text-t11 text-[#6b5a4b]">{row.shield.desc || '—'}</span>
                 </td>
               </tr>
             );
@@ -544,7 +544,7 @@ export function EquipmentPickerBody({
                   </span>
                 </td>
                 <td className={cellText}>
-                  <span className="text-t11 text-[#5b4a3a]">{row.desc || '—'}</span>
+                  <span className="text-t11 text-[#6b5a4b]">{row.desc || '—'}</span>
                 </td>
               </tr>
             );
@@ -577,7 +577,7 @@ export function EquipmentPickerBody({
               <span className="font-bold text-xs" style={{ color: theme.textDark }}>{acc.name}</span>
               {isCurrent ? <JRPGBadge variant={theme.badgeVariant} size="xs">已裝備</JRPGBadge> : null}
             </div>
-            <p className="text-t11 text-[#5b4a3a] mt-1 leading-relaxed">{acc.desc}</p>
+            <p className="text-t11 text-[#6b5a4b] mt-1 leading-relaxed">{acc.desc}</p>
           </button>
         );
       })}

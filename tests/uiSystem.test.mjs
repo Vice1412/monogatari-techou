@@ -45,6 +45,12 @@ import {
 } from '../src/features/character-sheet/utils/characterThemes.js';
 // 第三十五輪（§CI43）：NPC 工坊的卡片風格表——現在是 `CHARACTER_THEMES` 的投影。
 import { THEMES as THEMES_WORKSHOP } from '../src/features/npc-workshop/data/workshopThemes.js';
+// 第三十八輪（§CI46）：`cool`／`warm`／`ink`／`signal` 色階唯一的定義。
+// 對比度檢查從這裡取值，不再從 `index.css` 的 `[data-theme]` 變數（那組從來沒有接上）。
+import twConfig from '../tailwind.config.js';
+// 第三十八輪（§CI46）：六個身份色的唯一來源。H36-b／d 直接比對這個物件，
+// 不是比對字串——「同一個值兩個名字」正是本輪要根治的病。
+import { IDENTITY } from '../src/data/identityPalette.js';
 
 const ROOT = process.cwd();
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -147,16 +153,13 @@ console.log(`\n[B] WCAG 對比（門檻 4.5:1）`);
 
 const css = read('src/index.css');
 
-const themeBlock = (theme) => {
-  const start = css.indexOf(`[data-theme="${theme}"]`);
-  if (start < 0) return '';
-  return css.slice(start, css.indexOf('}', start));
-};
-
-const tokenOf = (block, name) => {
-  const m = block.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`));
-  return m ? m[1] : null;
-};
+/* 第三十八輪（§CI46）：改讀 `tailwind.config.js`。
+   原本讀 `[data-theme="cool"|"warm"]` 的 CSS 變數，但實測：
+   全站設定 `data-theme` **0 處**；那 12 個變數只被 `.ui-panel`／`.ui-zone` 讀；
+   而那兩條規則**也 0 處使用**——所以這個測試守的是一組**從來沒有上過畫面**的顏色，
+   而它一直是綠的，於是「對比合格」這句話沒有對應到任何一個畫面。
+   現在改讀那套色階唯一的定義（117 處類別在用）。 */
+const TW = twConfig.theme.extend.colors;
 
 const toRgb = (hex) => {
   const h = hex.replace('#', '');
@@ -177,44 +180,42 @@ const contrast = (fg, bg) => {
 
 const AA = 4.5;
 
-/** [標籤, 前景 token, 背景 token] —— 只列**實際會發生的組合** */
-const PAIRS = [
-  ['ink on paper', 'ink', 'paper'],
-  ['ink on ui-0', 'ink', 'ui-0'],
-  ['ink on ui-1', 'ink', 'ui-1'],
-  ['ink on ui-2', 'ink', 'ui-2'],
-  ['ink-2 on paper', 'ink-2', 'paper'],
-  ['ink-2 on ui-0', 'ink-2', 'ui-0'],
-  ['ink-3 on paper', 'ink-3', 'paper'],
-  ['ink-3 on ui-0', 'ink-3', 'ui-0'],
-  ['accent on paper', 'accent', 'paper'],
-  ['accent on ui-0', 'accent', 'ui-0'],
-];
+/** [標籤, 前景, 背景] —— 只列**真的會發生的組合**。
+ *
+ *  `ink-2`／`ink-3` 對第 2 階面實測 4.15／4.03，低於 AA——那兩個組合不該
+ *  出現在畫面上，所以這裡不斷言它們（列在 §CI46 殘債，不是默默放過）。
+ */
+const PAIRS = [];
+for (const region of ['cool', 'warm']) {
+  const r = TW[region];
+  for (const lvl of ['0', '1', '2']) PAIRS.push([`${region}.${lvl}: ink`, TW.ink.DEFAULT, r[lvl]]);
+  PAIRS.push([`${region}.0: ink-2`, TW.ink['2'], r['0']]);
+  PAIRS.push([`${region}.0: ink-3`, TW.ink['3'], r['0']]);
+  PAIRS.push([`${region}.0: accent`, TW.signal.accent, r['0']]);
+  PAIRS.push([`${region}.1: accent`, TW.signal.accent, r['1']]);
+}
+// 實測 4 處把三級墨放在 warm-1 上（4.58:1，剛好過）——所以它是一個真的組合。
+PAIRS.push(['warm.1: ink-3（實測 4 處用在這一階）', TW.ink['3'], TW.warm['1']]);
 
-for (const theme of ['cool', 'warm']) {
-  const block = themeBlock(theme);
-  const t = (name) => tokenOf(block, name);
+/* 書的色票：全站絕大多數面積，而舊測試**完全沒有測過它**。
+   數字取自 `characterThemes` 的紙與墨（紙三階、墨四階、強調兩階）。 */
+PAIRS.push(
+  ['書：內文 #3c2415 on 面板 #f4ebd9', '#3c2415', '#f4ebd9'],
+  ['書：內文 #3c2415 on 頁面 #fbf7ee', '#3c2415', '#fbf7ee'],
+  ['書：標題 #2c221e on 卡片 #fffdf9', '#2c221e', '#fffdf9'],
+  ['書：次要 #6b5a4b on 面板 #f4ebd9', '#6b5a4b', '#f4ebd9'],
+  ['書：淺字 #fffdf9 on 強調 hover #8c3235', '#fffdf9', '#8c3235'],
+);
 
-  for (const [label, fgName, bgName] of PAIRS) {
-    const fg = t(fgName);
-    const bg = t(bgName);
-    if (!fg || !bg) {
-      check(`${theme}: ${label}`, false, 'token 缺失');
-      continue;
-    }
-    const ratio = contrast(fg, bg);
-    check(`${theme}: ${label}`, ratio >= AA, `${ratio.toFixed(2)}:1（${fg} on ${bg}）`);
-  }
+for (const [label, fg, bg] of PAIRS) {
+  const ratio = contrast(fg, bg);
+  check(label, ratio >= AA, `${ratio.toFixed(2)}:1（${fg} on ${bg}）`);
 }
 
 // 主要動作：白字配 accent 底色
-const warmBlock = themeBlock('warm');
-const accentToken = tokenOf(warmBlock, 'accent');
-if (accentToken) {
-  const ratio = contrast('#ffffff', accentToken);
+{
+  const ratio = contrast('#ffffff', TW.signal.accent);
   check('白字 on accent（主要動作按鈕）', ratio >= AA, `${ratio.toFixed(2)}:1`);
-} else {
-  check('白字 on accent（主要動作按鈕）', false, 'accent token 缺失');
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -561,7 +562,7 @@ const GRAD_OK = new Map([
   ['src/components/book/BookPageFlipOverlay.jsx', 1], // 翻頁遮罩的紙色暈影
   ['src/features/character-sheet/components/TechnosphereBead.jsx', 3], // 珠子的內陰影／高光／柱面
   ['src/features/npc-workshop/NPCWorkshop.jsx', 2], // 羊皮紙髮絲線 ＋ hover 光掃
-  ['src/index.css', 3], // 頁面 3% 暖度 ×2 ＋ 皮革封面
+  ['src/index.css', 1], // 只剩皮革封面；第三十八輪刪掉 body 的兩條 3%（那是琥珀與書頁棕的 rgba）
 ]);
 
 const gradFiles = [];
@@ -633,10 +634,13 @@ check('屬性矩陣沒有純白／純黑', whiteBlack.length === 0, whiteBlack.j
 
 // 書裡的令牌：羊皮紙四階 ＋ 墨階梯四階 ＋ 強調色 ＋ 深棕。新顏色要進這張表，得先改這張表。
 // （第三十三輪 §CI42：`#f5efdf` 併回 `#f4ebd9` 後從表裡移除——它已不存在於任何檔案。）
+// （第三十八輪 §CI46：`#8b5e34`／`#78350f` 兩個書頁棕移除——它們不是第二個強調色，
+//   而是「一個色碼同時當強調色與墨階」。按鈕底改走 `#a63d40`／hover `#8c3235`，
+//   標題與標籤改走墨階。這張表因此回到真正的 v5 色票。）
 const BOOK_HEX = new Set([
   '#fbf7ee', '#f4ebd9', '#fffdf9', '#d6c7ab',
   '#2c221e', '#3c2415', '#6b5a4b', '#7c6a58',
-  '#a63d40', '#8b5e34', '#78350f', '#f7f3e8',
+  '#a63d40', '#8c3235', '#f7f3e8',
 ]);
 const attrHexes = [...new Set(attrSrc.match(/#[0-9a-fA-F]{6}/g) || [])].map((h) => h.toLowerCase());
 const strayHexes = attrHexes.filter((h) => !BOOK_HEX.has(h));
@@ -709,13 +713,31 @@ const CLOCK_REL = 'src/components/ui/ClockTracker.jsx';
 const clockSrc = stripComments(fs.readFileSync(path.join(ROOT, CLOCK_REL), 'utf8'));
 const cStart = clockSrc.indexOf('CLOCK_THEMES');
 const clockBlock = clockSrc.slice(cStart, clockSrc.indexOf('};', cStart));
-const clockKeys = [...clockBlock.matchAll(/^\s{2}([a-z]+):\s*\{/gm)].map((m) => m[1]);
+
+/* 第三十八輪（§CI46）：這張表不再自己寫色碼，改成 `clockTheme(id, name, 身份色 id)`。
+   所以護欄跟著改成**關係式**的問法，而不是數字面值：
+     1. 恰好六項，鍵名唯一；
+     2. 每一項的第一個參數（id）等於它的鍵；
+     3. 六個身份色 id **兩兩相異**——這才是「色相一對一」的真正條件，
+        因為 fill 是從身份色投影出來的（H35-d 另外保證六個 accent 兩兩相異）。
+   舊版數的是 `fill: '#…'` 字面值的數量，投影之後那個字面值不存在了——
+   而「數不到」和「沒有重複」在斷言裡長得一樣，所以必須換成關係式。 */
+const clockKeys = [...clockBlock.matchAll(/^\s{2}([a-z]+):\s*clockTheme\(/gm)].map((m) => m[1]);
 check('命刻主題是封閉六集', clockKeys.length === 6, clockKeys.join('、'));
-const clockIds = [...clockBlock.matchAll(/id:\s*'([a-z]+)'/g)].map((m) => m[1]);
-check('命刻主題的 id 等於鍵', clockIds.length === clockKeys.length && clockKeys.every((k, i) => clockIds[i] === k), clockKeys.map((k, i) => `${k}→${clockIds[i]}`).join('、'));
-const clockFills = [...clockBlock.matchAll(/fill:\s*'(#[0-9a-fA-F]{6})'/g)].map((m) => m[1].toLowerCase());
-// 比的是「色相數 == 主題數」，不是「色相數 == 6」——寫死 6 的話，多加一個重複項仍然會過
-check('命刻色相一對一', clockFills.length === clockKeys.length && new Set(clockFills).size === clockKeys.length, `${clockKeys.length} 鍵／${new Set(clockFills).size} 色`);
+
+const clockArgs = [...clockBlock.matchAll(/clockTheme\('([a-z]+)',\s*'[^']*',\s*'([a-z]+)'\)/g)].map((m) => ({ id: m[1], identity: m[2] }));
+check(
+  '命刻主題的 id 等於鍵',
+  clockArgs.length === clockKeys.length && clockKeys.every((k, i) => clockArgs[i].id === k),
+  clockKeys.map((k, i) => `${k}→${clockArgs[i]?.id}`).join('、')
+);
+const clockIdentityIds = clockArgs.map((a) => a.identity);
+// 比的是「身份色數 == 主題數」，不是「== 6」——寫死 6 的話，多加一個重複項仍然會過
+check(
+  '命刻色相一對一',
+  clockIdentityIds.length === clockKeys.length && new Set(clockIdentityIds).size === clockKeys.length,
+  `${clockKeys.length} 鍵／${new Set(clockIdentityIds).size} 個身份色（${clockIdentityIds.join('／')}）`
+);
 const clockFallback = /CLOCK_THEMES\[theme\]\s*\|\|\s*CLOCK_THEMES\[CLOCK_THEME_ALIAS\[theme\]\]\s*\|\|\s*CLOCK_THEMES\.amber/.test(clockSrc);
 check('命刻主題有別名與 fallback', clockFallback, clockFallback ? '主題 → 別名 → amber' : '找不到三段 fallback');
 
@@ -1264,6 +1286,41 @@ const REGISTERED_HEX = new Set([
   '#475569', '#65a30d', '#6d28d9', '#7c3aed', '#7f1d1d', '#84cc16',
   '#8a7a63', '#8b5cf6', '#a16207', '#c2410c', '#db2777', '#dc2626',
   '#ea580c', '#eab308', '#ef4444', '#facc15',
+
+  /* ── 第三十八輪 §CI46：三組「真身份」＋身份色的深淺兩階 ──────────────
+     這一輪把剩下的 18 個 hex 一次裁決完。判準只有一句：
+
+     > **身份可以用色相；量只能用深淺。**
+
+     所以「登記」與「收斂」的分界不是「好不好看」，是**這個顏色有沒有
+     一個封閉的、離散的、玩家要靠它認出「是哪一個」的語意**。
+
+     ── 九相的三色（`FUIcon.jsx`）────────────────────────────────
+     九相原本九色，六個用了身份色，電／土／毒三個是自己的值。檔頭已量過
+     相鄰色相角（≥29°，兩組靠飽和度分），也在三面上量過對比（最低光 5.09）。
+     這是**有裁決記錄**的顏色，所以登記，不是收斂。 */
+  '#5a6b00', // 電 h70°
+  '#5c4a26', // 土 h40°
+  '#8c2d6a', // 毒 h321°
+
+  /* ── 四屬性（`sourcebookConfig.js` 的 `ATTRIBUTE_COLORS`）──────────
+     色相角 108°／182°／237°／295°，相鄰差 74／55／58°，
+     三面對比 6.00–7.25:1。同樣是量過的封閉四集。
+     ※ 刻意避開紅家族：`#a63d40` 講的是「這裡可以按」，屬性講的是「這是哪一個」，
+     同一個訊號不能同時講兩件事。 */
+  '#336327', // 靈巧 h108°
+  '#216163', // 洞察 h182°
+  '#91259d', // 力量 h295°
+  '#3d458f', // 意志 h237°
+
+  /* ── 六身份色的深階與淺階（`data/identityPalette.js`）──────────────
+     第三十八輪之前，這 11 個值散在 `characterThemes` 與 `ClockTracker` 兩份
+     抄本裡，而且**沒有任何一份登記過**——所以 H31 一直把它們算成債。
+     它們不是債：`dark` 是命刻描邊與按鈕邊界，`light` 是零式選中底，
+     兩者都是「同一個身份的另一個明度」，是**量**，但量的載體是身份的色相，
+     所以必須與 `accent` 成組登記、成組檢查（見 H36-b 的單調性）。 */
+  '#133829', '#693108', '#17324c', '#58171e', '#3a1f4f', '#20262f', // dark
+  '#e1eee7', '#dde7f0', '#f5e6e7', '#eee5f5', '#e6eaef', // light（琥珀的 light 就是 #f4ebd9，已在表內）
 ]);
 const strayHex = [];
 for (const f of HUE_CONVERGED) {
@@ -2186,8 +2243,10 @@ check(
 // 令牌收乾淨了，還有第二條路：直接寫 hex。`#b45309` 就是 amber-700，本輪開場有
 // **29 處**——它幾乎全部是 `theme?.accent || '#b45309'` 這種主題預設值，畫面上跟
 // 令牌版本同一個顏色。只收令牌不收 hex，等於宣告歸零而牆上還留著同一個色。
-// `#78350f`（amber-900）刻意不列：它是棕色強調 `#8b5e34` 的 hover，屬於另一條待收的線。
-const AMBER_HEX = ['#b45309', '#f59e0b', '#d97706', '#92400e', '#fbbf24', '#fcd34d', '#fde68a', '#fef3c7', '#fffbeb', '#451a03'];
+// 第三十八輪（§CI46）：`#78350f`（amber-900）從「刻意不列」改成列入。
+// 它原本被排除的理由是「它是棕色強調 `#8b5e34` 的 hover，屬於另一條待收的線」，
+// 而那條線這一輪收完了（見 H23-d），所以它現在跟其他十個一樣是硬零。
+const AMBER_HEX = ['#b45309', '#f59e0b', '#d97706', '#92400e', '#fbbf24', '#fcd34d', '#fde68a', '#fef3c7', '#fffbeb', '#451a03', '#78350f'];
 const amberHexHits = [];
 for (const abs of walkSrc(path.join(ROOT, 'src'))) {
   const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
@@ -2226,20 +2285,27 @@ check('H23-c 琥珀發光（rgba 光暈）全站硬零', amberGlow.length === 0,
 // 為什麼這條用預算，而 H23 用硬零？因為兩者的退化模式相反：
 // `amber` 的退化是**悄悄用回去**（加一個不會被發現），所以只能硬零；
 // 而這裡的退化是**替代**——把 `amber` 換成 `#8b5e34`，總數一定上升。
-// 預算抓的正是「上升」，而它允許的「這裡減、那裡加」在這裡反而是對的：
-// 書頁棕本來就該逐輪往下收，收到 0 是下一輪的事。
+// 預算抓的正是「上升」。
 //
-// 開場 85 + 56 = 141（去掉註解後，註解裡提到的不算），本輪沒有動它，所以基準就是 141：任何一處新增都會紅。
-const BROWN_ACCENT_BUDGET = 141;
+// 第三十八輪（§CI46）收到 0，所以形狀跟著換成硬零——理由與 H31 相同：
+// 「預算 0」跟「預算 141」的差別只是額度大小，兩者都允許交換；硬零不允許。
+// 這 117 處的去向分兩類（逐項見 §CI46）：
+//   47 處是**面**（按鈕底、hover 底、邊界、focus 環）→ 併進強調色 `#a63d40`／墨階
+//   70 處是**字**（標題、標籤、圖示）→ 併進墨階 `#3c2415`／`#6b5a4b`
+// 為什麼字不併進紅色：強調色講的是「這裡可以按」（CI33 的裁決），
+// 把 70 處字換成紅色，等於讓強調色去標示層級——那是**序**的工作。
+const BROWN_ACCENT_BUDGET = 0;
 const ACCENT_BROWN = '#8b5e34';
 const brownSrc = walkSrc(path.join(ROOT, 'src'))
   .map((abs) => stripComments(fs.readFileSync(abs, 'utf8')).toLowerCase())
   .join('\n');
 const brownNow = count(brownSrc, ACCENT_BROWN) + count(brownSrc, '#78350f');
 check(
-  'H23-d 書頁棕強調色只減不增（預算 141）',
+  'H23-d 書頁棕強調色全站硬零（暖色相只剩一個）',
   brownNow <= BROWN_ACCENT_BUDGET,
-  `${brownNow} / 預算 ${BROWN_ACCENT_BUDGET}`
+  brownNow
+    ? `${brownNow} 處：${ACCENT_BROWN}×${count(brownSrc, ACCENT_BROWN)}、#78350f×${count(brownSrc, '#78350f')}`
+    : `0 處／暖強調色只剩 #a63d40 一族`
 );
 
 // H23-e：強調底上的字必須是登記的淺色，不是純白。
@@ -3195,21 +3261,36 @@ for (const abs of walkSrc(path.join(ROOT, 'src'))) {
 const h31Unreg = [...h31Map.entries()].filter(([h]) => !REGISTERED_HEX.has(h));
 const h31UnregTotal = h31Unreg.reduce((s, x) => s + x[1].n, 0);
 
-// H31：預算（只減不增）。形狀選「預算」而不是「硬零」，因為還有 227 次
-// 未登記的 hex 分佈在書頁棕、一次性色碼裡——那些要逐項裁決，
-// 不是機械替換。預算擋的是「繼續增加」，不是「一次清零」。
-// 第三十五輪：340 → 283。`workshopThemes` 的 58 個 hex 隨投影一起消失
-// （29 個是它獨有的、從未在其他檔案出現過的顏色）。
-// 第三十七輪（§CI45）：283 → **227**。這一輪刪掉 248 處 `|| '#hex'` 靜默回退，
-// 其中 56 次是「未登記」的色（其餘本來就在色票裡），相異 hex 從 54 掉到 46。
-// 掉下去的 8 個是 v4 化石：#c9a227（金）、#334155／#1e293b／#0f172a（冷墨）、
-// #94a3b8／#e2e8f0（冷灰）、#888888（純灰）、#76252d（硃砂紅的 hover 值）。
-// 它們之所以活了三十六輪，正是因為**從來沒有被畫出來過**。
-const H31_BUDGET = 227;
+// H31：**硬零**。全站手寫 hex 必須全部在登記表裡。
+//
+// 形狀原本是「預算（只減不增）」，理由寫在上一段：還有 227 次未登記的 hex
+// 散在書頁棕與一次性色碼裡，那些要逐項裁決，不是機械替換。預算擋的是
+// 「繼續增加」，不是「一次清零」。
+//
+// 第三十八輪（§CI46）清零了，所以形狀跟著換。為什麼要換、不能留一個
+// 「預算 0」：**預算式護欄的弱點是它允許交換**——留 0 跟留 227 的差別
+// 只是額度大小，兩者都允許「這裡加一個、那裡減一個」。硬零不允許交換。
+//
+// 這一輪的帳（逐項裁決見 §CI46）：
+//   227 → 43  刪掉 248 處 `|| '#hex'` 回退的殘餘
+//    43 → 28  書頁棕收斂（117 處，見 H23-d）與三處漂移
+//    28 →  0  18 個真身份登記（九相 3／四屬性 4／身份深淺 11）
+//
+// 掉下來的三種東西各有各的死法，但都死在同一件事上：**沒有人量過它**。
+//   - `#8b4513` ×4（NPC 工坊的連結文字）：離登記的 `#833f12` 只差 Δ8／h1°，
+//     是漂移；它活了三十七輪，因為它「看起來像設計過的棕色」。
+//   - 六狀態裡的四個（`#7a6a9c`/`#4a4068`/`#c0603f`/`#8a3f26`）：見
+//     `CombatantCard` 的檔頭——它們是「signal 只有四個令牌、狀態有六個」
+//     的補丁，不是裁決。
+//   - `accentLight` 五個：見 `identityPalette` 的檔頭——「六個值各用一次」
+//     聽起來像小事，但它是身份的第三個明度，本來就該跟身份放一起。
+const H31_BUDGET = 0;
 check(
-  `H31 全站未登記 hex 只減不增（預算 ${H31_BUDGET}）`,
+  'H31 全站手寫 hex 全部登記（硬零）',
   h31UnregTotal <= H31_BUDGET,
-  `${h31UnregTotal} 次／${h31Unreg.length} 個不同 hex ／ 預算 ${H31_BUDGET}`
+  h31UnregTotal
+    ? `${h31UnregTotal} 次／${h31Unreg.length} 個未登記：${h31Unreg.slice(0, 5).map((x) => x[0]).join('、')}`
+    : `0 處／${h31Map.size} 個相異 hex 全部在登記表`
 );
 
 // H31-a：珠色身份表 23 色全部登記（逐項）。
@@ -3305,11 +3386,16 @@ const h31HueDiff = (a, b) => {
   const d = Math.abs(A.h - B.h);
   return Math.min(d, 360 - d);
 };
-// 書頁棕家族：等 GM 裁決「合併還是分工」，不列入漂移判定。
-const H31_BOOK_BROWN = new Set(['#8b5e34', '#78350f', '#693108', '#7b4720', '#7a5616', '#8b4513', '#8a6a45', '#7c3a20']);
+// 第三十八輪：這張豁免表**刪掉了**。
+//
+// 它原本列了 8 個「書頁棕家族」的 hex，理由是「等 GM 裁決合併還是分工」。
+// 裁決下來了（合併成一個暖色相），117 處也收斂完了，於是這 8 個值全部
+// 走完自己的結局：`#8b5e34`／`#78350f` 併進墨階與強調色、`#8b4513`／`#7b4720`
+// 併進 `#833f12`／墨階、`#693108` 登記成琥珀身份的深階。
+//
+// 留著一張「已裁決項目的豁免表」比留著債更危險：**債會被量到，豁免不會。**
 const h31Drift = [];
 for (const [h, rec] of h31Unreg) {
-  if (H31_BOOK_BROWN.has(h)) continue;
   let best = null;
   for (const g of REGISTERED_HEX) {
     const d = h31Dist(h, g);
@@ -3323,6 +3409,233 @@ check(
   'H31-c 全站零「近似漂移」未登記 hex（Δ≤12 且色相接近）',
   h31Drift.length === 0,
   h31Drift.length ? `${h31Drift.length} 個：${h31Drift.slice(0, 4).join('、')}` : `0 個／${REGISTERED_HEX.size} 個登記色`
+);
+
+/* ────────────────────────────────────────────────────────────────
+   H36 家族：三份拷貝、一個色相、以及一條從來沒掃過的路（第三十八輪 §CI46）
+   ────────────────────────────────────────────────────────────────
+
+   本輪的主題是「同一個調色盤存在三份」：
+
+     | 位置 | 欄位名 | 有沒有被任何護欄看過 |
+     |---|---|---|
+     | `characterThemes.js` | `accent`／`accentDark`／`accentLight` | 只有這一份被看過 |
+     | `ClockTracker.jsx` | `fill`／`stroke` | 沒看過（欄位名不同，所以「同名比對」抓不到） |
+     | `index.css` 的 `[data-theme]` | `--ink`／`--signal` | **完全沒看過** |
+
+   第三份的真相更難看：`data-theme` 在全站被設定 **0 次**，12 個變數 × 2 組
+   只被 `.ui-panel`／`.ui-zone` 讀，而那兩條規則用了 **0 次**。也就是說那是一套
+   從來沒有連上電的顏色系統，而它的 `--ink` 是 `#2a3240`（冷墨）——如果哪天
+   有人真的把 `data-theme` 掛上去，全站內文會從暖墨變成冷墨，而且**沒有任何
+   護欄會紅**。本輪把它整組刪掉，只留 `:root { --r: 2px }`。
+
+   下面六條各擋一種退化：
+     H36   CSS 檔的手寫 hex 也要登記（硬零）——修 `walkSrc` 只收 .js/.jsx 的盲點
+     H36-a `rgba()` 的三通道必須是一個登記色（逐項）——hex 換個寫法就繞過了
+     H36-b 身份的明度單調：light > accent > dark（逐項六組）
+     H36-c 設定層的死宣告（只減不增，預算 4）——`tailwind.config.js` 是唯一沒量過的一層
+     H36-d `characterThemes.js` 只有紙與墨（封閉白名單）——第二份拷貝不得再長出來
+
+   刻意**沒有**加的兩條，以及為什麼：
+
+     ✗ 六身份 ↔ 命刻主題「覆蓋」——已經被「命刻色相一對一」涵蓋。
+       六個身份、六個主題，注入性成立時覆蓋必然成立（鴿籠原理），
+       再寫一條只是同一個問題問兩次。
+     ✗ 九相九色／四屬性四色的「大小與可辨」——已經被 H14-b（九相九色兩兩不同）
+       與 H15-a（四屬性四色兩兩不同）涵蓋。本輪破壞驗證跑出來的結果是：
+       把「土」改成「電」的顏色，會同時讓 **4 條**既有護欄變紅。
+       在那裡再加一條不會多擋任何東西，只會讓「通過 240 條」看起來比實際嚴謹。
+   ──────────────────────────────────────────────────────────────── */
+
+// H36：CSS 檔也要掃。
+//
+// 這是本專案第三次踩同一個坑：`walkSrc` 只收 `.js`／`.jsx`，所以 `.css` 從
+// 第一輪到現在**從來沒有被任何色票護欄掃過**。前兩次的代價是
+// `index.css` 裡一條 `#b45309`（H23-b 明文硬零的琥珀）活了三十七輪，
+// 以及 `body` 的兩條 `radial-gradient` 裡藏著 `rgba(139, 94, 52, .03)`
+// ——那是書頁棕，用 rgba 寫的，所以 hex 護欄看不見它。
+const walkCss = (dir) =>
+  fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) return walkCss(p);
+    return /\.css$/.test(e.name) ? [p] : [];
+  });
+const CSS_HEX = /#[0-9a-fA-F]{3,8}\b/g;
+const cssStray = [];
+let cssFiles = 0;
+for (const abs of walkCss(path.join(ROOT, 'src'))) {
+  cssFiles += 1;
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const src = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const m of src.matchAll(CSS_HEX)) {
+    const raw = m[0].toLowerCase();
+    // 只認 6 位；3 位縮寫與 8 位（含 alpha）視為「寫法不統一」，一併擋下
+    if (raw.length !== 7) {
+      cssStray.push(`${rel}:${raw}（非 6 位寫法）`);
+      continue;
+    }
+    if (!REGISTERED_HEX.has(raw)) cssStray.push(`${rel}:${raw}`);
+  }
+}
+check(
+  'H36 CSS 檔的手寫 hex 全部登記（硬零）',
+  cssStray.length === 0 && cssFiles > 0,
+  cssStray.length
+    ? `${cssStray.length} 處：${[...new Set(cssStray)].slice(0, 5).join('、')}`
+    : `${cssFiles} 個 CSS 檔／0 處未登記`
+);
+
+// H36-a：`rgba()` 的三通道也必須是一個登記色。
+//
+// 為什麼要有這一條：`#8b5e34` 當 hex 寫的時候 H31 抓得到，寫成
+// `rgba(139, 94, 52, 0.03)` 就完全繞過去了——而它正是這樣活過第三十七輪的。
+// 「換一種寫法」是最常見的繞過方式，護欄必須認得同一件事的兩種寫法。
+//
+// 可接受的來源有三種，缺一種就會生出假紅：
+//   ① `REGISTERED_HEX`——書頁色票與三組身份色
+//   ② `tailwind.config.js` 的 v5 色階——`rgba(42,50,64,.035)` 是 `ink.DEFAULT`
+//      當陰影用；它不在書頁色票裡，但它是**登記過的令牌**
+//   ③ 純無彩色 `#000000`／`#ffffff`——影、光澤、遮罩。無彩色沒有色相，
+//      不屬於「身份 vs 量」的任何一邊，硬要它登記只會逼人去發明一個名字
+const TW_HEX = new Set();
+const collectTw = (obj) => {
+  for (const v of Object.values(obj || {})) {
+    if (typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v)) TW_HEX.add(v.toLowerCase());
+    else if (v && typeof v === 'object') collectTw(v);
+  }
+};
+collectTw(twConfig.theme.extend.colors);
+const ACHROMATIC = new Set(['#000000', '#ffffff']);
+const RGBA_LIT = /rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*[\d.]+\s*)?\)/g;
+const rgbaStray = [];
+const hexOf = (r, g, b) =>
+  '#' + [r, g, b].map((v) => Number(v).toString(16).padStart(2, '0')).join('');
+for (const abs of [...walkSrc(path.join(ROOT, 'src')), ...walkCss(path.join(ROOT, 'src'))]) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const src = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const m of src.matchAll(RGBA_LIT)) {
+    const h = hexOf(m[1], m[2], m[3]);
+    if (!REGISTERED_HEX.has(h) && !TW_HEX.has(h) && !ACHROMATIC.has(h)) {
+      rgbaStray.push(`${rel}:${m[0]}→${h}`);
+    }
+  }
+}
+check(
+  'H36-a rgba 三通道必須是登記色（逐項）',
+  rgbaStray.length === 0,
+  rgbaStray.length
+    ? `${rgbaStray.length} 處：${[...new Set(rgbaStray)].slice(0, 4).join('、')}`
+    : `0 處／書頁 ${REGISTERED_HEX.size} 色 ＋ 令牌 ${TW_HEX.size} 色 ＋ 無彩色 2`
+);
+
+// H36-b：身份的明度單調。
+
+//
+// 「深階比本體還淺」是那種改一個字元、畫面只差一格、看起來像設計過的錯。
+// 用相對亮度（WCAG 的定義）而不是 HSL 的 l：`l` 對深色不敏感，
+// 兩個都在 l 20% 左右的顏色可以差 3 倍亮度。
+const lumOf = (hex) => {
+  const c = h31Rgb(hex).map((v) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+};
+const identityKeys = Object.keys(IDENTITY);
+const monoBad = [];
+for (const [k, v] of Object.entries(IDENTITY)) {
+  const [Ld, La, Ll] = [lumOf(v.dark), lumOf(v.accent), lumOf(v.light)];
+  if (!(Ld < La && La < Ll)) {
+    monoBad.push(`${k}（dark ${Ld.toFixed(3)} / accent ${La.toFixed(3)} / light ${Ll.toFixed(3)}）`);
+  }
+}
+check(
+  'H36-b 身份的明度單調 light > accent > dark（逐項六組）',
+  monoBad.length === 0,
+  monoBad.length ? `${monoBad.length} 組不單調：${monoBad.join('；')}` : `${identityKeys.length} 組全部單調`
+);
+
+// H36-c：設定層的死宣告（只減不增，預算 4）。
+//
+// 為什麼要量這個：`tailwind.config.js` 是一份**宣告**，而宣告了沒人用的東西
+// 不會報錯、不會影響畫面、也不會被任何既有護欄看見——它是第三十七輪那個病
+// （宣告了卻不會發生）唯一還沒量過的一層。
+//
+// 本輪實測 17 個死鍵，處置分兩類：
+//   - `parchment` 的 14 個子鍵 → **刪掉**。它們是 v1 遺留，設定層自己的註解
+//     就寫著「遷移完成後 parchment 整組應移除」，而且其中四個帶著 H23-b 明文
+//     硬零的琥珀值。留著它們有一個具體代價：H36-a 第一版對
+//     `rgba(139, 94, 52, .6)` 是綠的，因為 `#8b5e34` 在設定層還算一個「令牌」。
+//   - `cool-0`／`cool-line`／`cool-line-2`／`warm-line-2` → **留下**，列入預算。
+//     它們是 v5 冷暖兩區的完整階梯（設計文件 §01 定義了四階），實際只用三階。
+//     刪掉會讓階梯缺角，而「階梯完整」本身是設計文件的一部分。
+//
+// 形狀用預算不用硬零：這兩類的差別是「這條線要不要留」，不是「有沒有用」。
+const DEAD_TW_BUDGET = 3;
+const twColourKeys = [];
+{
+  const cfgSrc = fs.readFileSync(path.join(ROOT, 'tailwind.config.js'), 'utf8');
+  const block = cfgSrc.slice(cfgSrc.indexOf('colors: {'), cfgSrc.indexOf('fontFamily'));
+  let group = null;
+  for (const line of block.split('\n')) {
+    const g = /^ {8}([a-zA-Z]+):\s*\{/.exec(line);
+    if (g) {
+      group = g[1];
+      continue;
+    }
+    const kv = /^ {10}(?:'([^']+)'|([a-zA-Z]+)):\s*'(#[0-9a-fA-F]{6})'/.exec(line);
+    if (kv && group) twColourKeys.push({ group, key: kv[1] || kv[2] });
+  }
+}
+const twCorpus = walkSrc(path.join(ROOT, 'src'))
+  .map((f) => stripComments(fs.readFileSync(f, 'utf8')))
+  .join('\n');
+const deadTw = [];
+const seenTw = new Set();
+for (const k of twColourKeys) {
+  const name = k.key === 'DEFAULT' ? k.group : `${k.group}-${k.key}`;
+  if (seenTw.has(name)) continue;
+  seenTw.add(name);
+  // class 名一定有前綴（`bg-signal-hp`），所以只擋「後面接字母或連字號」
+  const n = (twCorpus.match(new RegExp(`(?<![a-zA-Z])${name}(?![a-zA-Z-])`, 'g')) || []).length;
+  if (n === 0) deadTw.push(name);
+}
+check(
+  `H36-c 設定層顏色死鍵只減不增（預算 ${DEAD_TW_BUDGET}）`,
+  deadTw.length <= DEAD_TW_BUDGET,
+  `${deadTw.length} 個死鍵／預算 ${DEAD_TW_BUDGET}${deadTw.length ? `：${deadTw.join('、')}` : ''}`
+);
+
+
+//
+// 這一條是「投影」形狀的反向控制。「命刻色相一對一」檢查的是 `ClockTracker`
+// 有沒有指向 `IDENTITY`；這一條檢查**另一份拷貝有沒有再長出來**。
+// 沒有它，有人把 `accent: '#245c45'` 寫回 `characterThemes` 也不會紅
+// ——因為那個值本身是登記過的，H31 完全看不到。
+//
+// 形狀是「封閉白名單」而不是「不得等於身份色」：白名單擋得住**新的**
+// 身份色寫回來（例如有人給第七個主題挑一個新色），黑名單擋不住。
+// 名單裡只有 SHARED 的七個值，一個都不多。
+const PAPER_INK_ALLOW = new Set([
+  '#fbf7ee', // 紙（appBg／sheetBg／exportBg）
+  '#fffdf9', // 卡
+  '#f4ebd9', // 面板／副面（同時是琥珀身份的 light——這正是它必須留在白名單的原因：
+             // 一個值可以同時是「紙」與「某個身份的淺底」，那不代表它是身份色）
+  '#e8dcc4', // 頁首
+  '#d6c7ab', // 邊界
+  '#2c221e', // 墨一
+  '#6b5a4b', // 墨二
+]);
+const charThemesHex = [
+  ...new Set((stripComments(read('src/features/character-sheet/utils/characterThemes.js')).match(/#[0-9a-fA-F]{6}\b/g) || []).map((h) => h.toLowerCase())),
+];
+const identityLeak = charThemesHex.filter((h) => !PAPER_INK_ALLOW.has(h));
+check(
+  'H36-d characterThemes 只有紙與墨（封閉白名單）',
+  identityLeak.length === 0,
+  identityLeak.length
+    ? `${identityLeak.length} 個非紙墨的 hex：${identityLeak.join('、')}`
+    : `${charThemesHex.length} 個 hex 全在白名單的 7 個值裡`
 );
 
 /* ────────────────────────────────────────────────────────────────

@@ -112,7 +112,7 @@ export default function ChapterDevWarningModal({
           </div>
 
           {/* 說明細節 */}
-          <div className="text-xs text-[#5c4a3b] leading-relaxed pt-2 border-t border-[#d6c7ab]/60 space-y-1.5">
+          <div className="text-xs text-[#6b5a4b] leading-relaxed pt-2 border-t border-[#d6c7ab]/60 space-y-1.5">
             <p>
               • <strong>現狀說明</strong>：目前本典籍專案中，<strong>僅【NPC工坊】功能已完全完整穩定</strong>，其餘章節仍在進行數值對齊與功能修繕。
             </p>

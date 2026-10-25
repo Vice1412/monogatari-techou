@@ -458,7 +458,7 @@ export default function AttributeMatrixPicker({
               d{floatingDie.val}
             </span>
           </div>
-          <div className="mt-2 px-2.5 py-0.5 rounded-full bg-[#3c2415] text-[#f7f3e8] text-t12 font-bold border border-[#78350f] whitespace-nowrap">
+          <div className="mt-2 px-2.5 py-0.5 rounded-full bg-[#3c2415] text-[#f7f3e8] text-t12 font-bold border border-[#6b5a4b] whitespace-nowrap">
             點擊體質入座 · ESC 取消
           </div>
         </div>
@@ -626,7 +626,7 @@ export default function AttributeMatrixPicker({
           className={`w-full md:w-44 lg:w-48 shrink-0 bg-[#f4ebd9] text-[#2c221e] rounded p-3 sm:p-4 border transition-all flex flex-col justify-between cursor-pointer select-none ${
             isTrayDragOver || (floatingDieId && floatingDie?.assignedTo)
               ? 'ring-4 ring-[#a63d40]/35 border-[#a63d40] bg-[#fbf7ee]'
-              : 'border-[#d6c7ab] hover:border-[#8b5e34]'
+              : 'border-[#d6c7ab] hover:border-[#3c2415]'
           }`}
           title={floatingDieId ? '點擊此處收回' : '點選或拖曳骰子；體質內的骰子可直接拖回此處收回'}
         >
@@ -674,7 +674,7 @@ export default function AttributeMatrixPicker({
                       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsTrayDragOver(true); }}
                       onDrop={handleDropToTray}
                       className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 border-dashed border-[#d6c7ab] bg-[#f4ebd9]/70 p-1 flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
-                        isFloating ? 'ring-2 ring-[#a63d40]/40 border-[#a63d40] opacity-30' : 'hover:border-[#8b5e34] hover:bg-[#fbf7ee]'
+                        isFloating ? 'ring-2 ring-[#a63d40]/40 border-[#a63d40] opacity-30' : 'hover:border-[#3c2415] hover:bg-[#fbf7ee]'
                       }`}
                       title={`已分配至【${targetDetail?.enName} ${targetDetail?.name}】。點擊可拿起此骰子浮動`}
                     >
@@ -733,14 +733,14 @@ export default function AttributeMatrixPicker({
                 onClick={(e) => handleSlotClick(statKey, e)}
                 className={`rounded border-2 p-3 sm:p-4 bg-[#fffdf9] transition-all cursor-pointer select-none flex items-center justify-between gap-3 sm:gap-4 ${
                   isDragOver || (floatingDieId && !isFloatingThis)
-                    ? 'hover:border-[#8b5e34]'
-                    : 'hover:border-[#8b5e34]'
+                    ? 'hover:border-[#3c2415]'
+                    : 'hover:border-[#3c2415]'
                 } ${
                   isDragOver
                     ? 'ring-4 ring-[#a63d40]/35 bg-[#a63d40]/10 border-[#a63d40]'
                     : ''
                 }`}
-                style={{ borderColor: isDragOver ? '#8b5e34' : theme.border }}
+                style={{ borderColor: isDragOver ? '#a63d40' : theme.border }}
               >
                 {/* 左側：DEX 加粗，中文名稱字體小一號 */}
                 <div className="flex-1 min-w-0">
@@ -803,8 +803,8 @@ export default function AttributeMatrixPicker({
                     <div
                       className={`w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 aspect-square rounded border-2 border-dashed flex flex-col items-center justify-center transition-all ${
                         floatingDieId
-                          ? 'border-[#a63d40] bg-[#a63d40]/10 text-[#78350f]'
-                          : 'border-[#d6c7ab] bg-[#f4ebd9] text-[#6b5a4b] hover:border-[#8b5e34]'
+                          ? 'border-[#a63d40] bg-[#a63d40]/10 text-[#6b5a4b]'
+                          : 'border-[#d6c7ab] bg-[#f4ebd9] text-[#6b5a4b] hover:border-[#3c2415]'
                       }`}
                     >
                       <span className="text-t12 font-black">
@@ -873,7 +873,7 @@ export default function AttributeMatrixPicker({
               <button
                 type="button"
                 onClick={() => setInfoModalKey(null)}
-                className="px-4 py-1.5 rounded bg-[#8b5e34] hover:bg-[#78350f] text-[#fffdf9] font-bold text-xs transition-colors"
+                className="px-4 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs transition-colors"
               >
                 我知道了
               </button>

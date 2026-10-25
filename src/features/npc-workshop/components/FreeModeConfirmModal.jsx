@@ -38,7 +38,7 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
             解鎖後，您將獲得以下權限：
           </p>
 
-          <ul className="list-disc list-inside text-xs text-[#574c43] space-y-1.5 pl-1 bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab]">
+          <ul className="list-disc list-inside text-xs text-[#6b5a4b] space-y-1.5 pl-1 bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab]">
             <li>自由調整 NPC 的 <strong className="text-[#3c2415]">體質骰子大小</strong>。</li>
             <li><strong className="text-[#3c2415]">HP, MP, 物防, 魔防</strong> 將依據 Fabula Ultima 體質公式自動連動重算。</li>
             <li>無視等級、職能與技能額度上限限制，自由組合技能與能力。</li>

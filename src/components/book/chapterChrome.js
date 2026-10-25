@@ -12,6 +12,10 @@
  * | 戰鬥輪次 | `#fdf4f5` 粉 | `#fff1f2` | 玫瑰紅 |
  * | 命刻記錄 | `#f0f9ff` 天藍 | `#f0f9ff` | 天藍 |
  *
+ * （第三十八輪 §CI46：上表那個「棕 `#8b5e34`」已經併掉了。它不是第二個強調色，
+ *   而是**一個色碼同時當強調色與墨階**——按鈕底改走 `#a63d40`，標題與標籤改走墨階。
+ *   這張表保留原樣，因為它記錄的是**當時**的四套色。）
+ *
  * 四個色相跨了 316°，而**整個 app 的 accent 只有一個**（`--accent: #a63d40`）。
  * 也就是說章節色是**第二套顏色系統**，跟設計權杖互相矛盾：翻一章像換一個 app。
  * GM 2026-10-23 的裁定是「章節顏色並非定性，可以收斂」。
@@ -56,7 +60,7 @@ export const BOOK_CHROME = Object.freeze({
   subTitleBadge: 'bg-white/85 border-[#d6c7ab] text-[#3c2415]',
 
   // 頁首動作（三級：主要／次要／第三級）
-  exitBtn: 'border-[#8b5e34]/40 bg-[#8b5e34] hover:bg-[#78350f] text-[#fffdf9] shadow-e1',
+  exitBtn: 'border-[#a63d40]/40 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] shadow-e1',
   exitIcon: 'text-[#f7f3e8]',
   iconWrapper: 'bg-[#f4ebd9] border-[#d6c7ab] text-[#3c2415]',
   toolBtn: 'border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#e8dcc4] text-[#3c2415] hover:text-[#2c221e]',

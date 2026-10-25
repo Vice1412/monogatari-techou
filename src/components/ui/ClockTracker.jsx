@@ -1,6 +1,13 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import { RotateCcw, Plus, Minus } from 'lucide-react';
+import { IDENTITY } from '../../data/identityPalette';
+
+/** `fill` 的 15% 底色。由 fill 推導，避免「同一個顏色寫兩次」。 */
+const tint = (hex, alpha) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+};
 
 /**
  * 命刻的六種主題。**這是一個封閉集合**：每一項的 `id` 必須等於它的鍵，
@@ -10,14 +17,40 @@ import { RotateCcw, Plus, Minus } from 'lucide-react';
  * 第十二輪刪掉了原本的第七項 emerald：它的 id 寫的是 green、色碼與 green 一字不差，
  * 等於下拉選單裡有兩個同名同色的「翡翠綠」。舊存檔若存了 emerald，
  * 由下面的 CLOCK_THEME_ALIAS 接住，畫面不會突然變色。
+ *
+ * ## 第三十八輪（§CI46）：這張表不再自己寫色碼
+ *
+ * 原本六個 `fill`／`stroke` 是**手寫的第二份身份表**，而它與
+ * `characterThemes` 的 `accent`／`accentDark` **一字不差**——只是欄位名不一樣
+ * （`fill`/`stroke` vs `accent`/`accentDark`）。同一個值兩個名字，改一邊就分家，
+ * 而畫面上不會有任何錯誤。
+ *
+ * 現在三個值全部從 `src/data/identityPalette.js` 取：`fill` ＝ `accent`、
+ * `stroke` ＝ `dark`、`bg` ＝ `fill` 的 15%。所以「六個 fill 兩兩不同」
+ * 這條不變式**繼承自身份色本身**（H35-d 已經在守），不需要在這裡重複宣告一次。
+ *
+ * 為什麼不是直接 import `characterThemes`：`ClockTracker` 是通用元件
+ * （角色卡、戰鬥輪次、命刻頁、工匠工坊都在用），反過來依賴角色卡模組
+ * 會讓依賴方向倒過來。
  */
+const clockTheme = (id, name, identityId) => {
+  const identity = IDENTITY[identityId];
+  return {
+    id,
+    name,
+    fill: identity.accent,
+    stroke: identity.dark,
+    bg: tint(identity.accent, 0.15),
+  };
+};
+
 export const CLOCK_THEMES = {
-  amber: { id: 'amber', name: '琥珀棕', fill: '#9c4d16', stroke: '#693108', bg: 'rgba(156, 77, 22, 0.15)' },
-  red: { id: 'red', name: '赤紅', fill: '#8c2d36', stroke: '#58171e', bg: 'rgba(140, 45, 54, 0.15)' },
-  blue: { id: 'blue', name: '群青藍', fill: '#27527a', stroke: '#17324c', bg: 'rgba(39, 82, 122, 0.15)' },
-  green: { id: 'green', name: '翡翠綠', fill: '#245c45', stroke: '#133829', bg: 'rgba(36, 92, 69, 0.15)' },
-  purple: { id: 'purple', name: '秘術紫', fill: '#5e387c', stroke: '#3a1f4f', bg: 'rgba(94, 56, 124, 0.15)' },
-  gray: { id: 'gray', name: '鐵石灰', fill: '#404a58', stroke: '#20262f', bg: 'rgba(64, 74, 88, 0.15)' }
+  amber: clockTheme('amber', '琥珀棕', 'amber'),
+  red: clockTheme('red', '赤紅', 'crimson'),
+  blue: clockTheme('blue', '群青藍', 'blue'),
+  green: clockTheme('green', '翡翠綠', 'emerald'),
+  purple: clockTheme('purple', '秘術紫', 'purple'),
+  gray: clockTheme('gray', '鐵石灰', 'slate'),
 };
 
 /** 舊鍵 → 現行鍵。只為了讓舊存檔維持同一個顏色，不是第七種主題。 */

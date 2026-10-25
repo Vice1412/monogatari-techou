@@ -1633,25 +1633,25 @@ export default function CharacterEditor({
                 <div className="flex items-center gap-2">
                   <span
                     className="px-2 py-0.5 rounded text-t11 font-bold border"
-                    style={stats.profs.martialMelee ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#e2e8f0', borderColor: '#cbd5e1', color: '#64748b' }}
+                    style={stats.profs.martialMelee ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#f4ebd9', borderColor: '#d6c7ab', color: '#6b5a4b' }}
                   >
                     職業近戰 {stats.profs.martialMelee ? '✓' : '✗'}
                   </span>
                   <span
                     className="px-2 py-0.5 rounded text-t11 font-bold border"
-                    style={stats.profs.martialRanged ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#e2e8f0', borderColor: '#cbd5e1', color: '#64748b' }}
+                    style={stats.profs.martialRanged ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#f4ebd9', borderColor: '#d6c7ab', color: '#6b5a4b' }}
                   >
                     職業遠程 {stats.profs.martialRanged ? '✓' : '✗'}
                   </span>
                   <span
                     className="px-2 py-0.5 rounded text-t11 font-bold border"
-                    style={stats.profs.martialArmor ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#e2e8f0', borderColor: '#cbd5e1', color: '#64748b' }}
+                    style={stats.profs.martialArmor ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#f4ebd9', borderColor: '#d6c7ab', color: '#6b5a4b' }}
                   >
                     職業防具 {stats.profs.martialArmor ? '✓' : '✗'}
                   </span>
                   <span
                     className="px-2 py-0.5 rounded text-t11 font-bold border"
-                    style={stats.profs.martialShields ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#e2e8f0', borderColor: '#cbd5e1', color: '#64748b' }}
+                    style={stats.profs.martialShields ? { backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textDark } : { backgroundColor: '#f4ebd9', borderColor: '#d6c7ab', color: '#6b5a4b' }}
                   >
                     職業盾牌 {stats.profs.martialShields ? '✓' : '✗'}
                   </span>

@@ -20,15 +20,35 @@ import GameIcon from '../../../components/ui/GameIcon';
 /**
  * 狀態異常定義。
  *
- * 顏色已改為 v5 淺底族系：`border-*` 用中彩度，
- * `bg-*` 一律極淡（-50 級），`text-*` 用 -800/-900 確保淺底上的對比。
+ * ## 顏色（第三十八輪 §CI46 逐項裁決）
+ *
+ * 六個狀態是**標記**，不是身份——它們跟九相、四屬性那種「封閉的、玩家要一眼
+ * 認出是哪一個」的東西不同：狀態是暫時的、可疊加的、同一時間可能掛三個。
+ * 所以它們**不該長出自己的色相家族**。
+ *
+ * 這一條原本沒有寫下來，於是表裡混了三種寫法：
+ *
+ * | 寫法 | 狀態 | 問題 |
+ * |---|---|---|
+ * | `border-signal-*` ＋ 登記墨色 | 遲緩・眩暈・虛弱・中毒 | ✓ 正確 |
+ * | 手寫兩個 hex（邊界＋文字） | 動搖・憤怒 | 四個從未量測過的顏色 |
+ *
+ * 動搖與憤怒之所以手寫，不是設計裁決，是 **signal 只有四個令牌、狀態有六個**。
+ * 於是作者各挑了一對顏色填補——而那兩對（`#7a6a9c`/`#4a4068`、`#c0603f`/`#8a3f26`）
+ * 在檔案裡沒有任何一句「為什麼是這個值」，也沒有量過對比。
+ * 依本輪的判準，**沒有裁決記錄的顏色就是漂移**，不是身份。
+ *
+ * 收斂後：邊界六色兩兩相異（ip 金／mp 藍／hp 紅／紫／硃砂／ok 綠），
+ * 文字六色全部是登記色，最低對比 5.59:1（遲緩在紙上）。
+ * 動搖借身份紫、憤怒借硃砂紅——這是刻意的：狀態與身份**在同一個畫面不會同時
+ * 承擔「這是哪一個」的責任**（狀態是徽章，身份是頭像環與頁籤）。
  */
 const STATUS_EFFECTS = [
-  { key: 'slow', name: '遲緩', en: 'Slow', desc: '靈巧降階', color: 'border-signal-ip text-[#7a5616] bg-signal-ip/10' },
+  { key: 'slow', name: '遲緩', en: 'Slow', desc: '靈巧降階', color: 'border-signal-ip text-[#833f12] bg-signal-ip/10' },
   { key: 'dazed', name: '眩暈', en: 'Dazed', desc: '洞察降階', color: 'border-signal-mp text-[#27527a] bg-signal-mp/10' },
-  { key: 'weak', name: '虛弱', en: 'Weak', desc: '力量降階', color: 'border-signal-hp text-[#8b2d27] bg-signal-hp/10' },
-  { key: 'shaken', name: '動搖', en: 'Shaken', desc: '意志降階', color: 'border-[#7a6a9c] text-[#4a4068] bg-[#7a6a9c]/10' },
-  { key: 'enraged', name: '憤怒', en: 'Enraged', desc: '靈巧·洞察降階·限普攻', color: 'border-[#c0603f] text-[#8a3f26] bg-[#c0603f]/10' },
+  { key: 'weak', name: '虛弱', en: 'Weak', desc: '力量降階', color: 'border-signal-hp text-[#8c3235] bg-signal-hp/10' },
+  { key: 'shaken', name: '動搖', en: 'Shaken', desc: '意志降階', color: 'border-[#5e387c] text-[#4f2e67] bg-[#5e387c]/10' },
+  { key: 'enraged', name: '憤怒', en: 'Enraged', desc: '靈巧·洞察降階·限普攻', color: 'border-[#8c2d36] text-[#76252d] bg-[#8c2d36]/10' },
   { key: 'poisoned', name: '中毒', en: 'Poison', desc: '回合結束受到5毒傷', color: 'border-signal-ok text-[#1e4b39] bg-signal-ok/10' }
 ];
 
@@ -168,7 +188,7 @@ export default function CombatantCard({
           className={`px-2.5 py-1.5 rounded text-xs font-mono font-bold transition-colors duration-160 flex items-center gap-1.5 shrink-0 border ${
             combatant.hasActed
               ? 'bg-warm-2 text-ink-2 border-warm-line'
-              : 'bg-signal-hp text-white border-transparent hover:bg-[#9d302a]'
+              : 'bg-signal-hp text-white border-transparent hover:bg-[#8c3235]'
           }`}
           title="切換本輪是否已行動"
         >
@@ -340,7 +360,7 @@ export default function CombatantCard({
                   onClick={() => handleToggleRevealSkill(sk.id)}
                   className={`p-1 rounded transition-colors duration-120 ${
                     sk.isRevealed
-                      ? 'text-signal-ip hover:text-[#7a5616]'
+                      ? 'text-signal-ip hover:text-[#833f12]'
                       : 'text-ink-3 hover:text-ink'
                   }`}
                   title={sk.isRevealed ? "收回隱藏" : "向所有人公開此技能"}

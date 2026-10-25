@@ -81,7 +81,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                 onClick={() => writeValue(resource, value - 1)}
                 className={`w-6 h-6 rounded border text-sm leading-none font-bold transition-colors ${
                   atMin
-                    ? 'border-[#d6c7ab] text-[#c4b79c] cursor-not-allowed'
+                    ? 'border-[#d6c7ab] text-[#d6c7ab] cursor-not-allowed'
                     : 'border-[#d6c7ab] text-[#3c2415] bg-[#f9f5eb] hover:bg-[#f4ebd9] cursor-pointer'
                 }`}
               >
@@ -110,7 +110,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                 onClick={() => writeValue(resource, value + 1)}
                 className={`w-6 h-6 rounded border text-sm leading-none font-bold transition-colors ${
                   atMax
-                    ? 'border-[#d6c7ab] text-[#c4b79c] cursor-not-allowed'
+                    ? 'border-[#d6c7ab] text-[#d6c7ab] cursor-not-allowed'
                     : 'border-[#d6c7ab] text-[#3c2415] bg-[#f9f5eb] hover:bg-[#f4ebd9] cursor-pointer'
                 }`}
               >

@@ -67,7 +67,7 @@ export default function NPCCardPreview({
   return (
     <div className={`bg-[#fffdf9] rounded border-2 border-[#d6c7ab] shadow-md overflow-hidden text-[#2c221e] flex flex-col relative ${className}`}>
       {/* Top Amber Bar */}
-      <div className="h-1.5 w-full bg-[#8b5e34]" />
+      <div className="h-1.5 w-full bg-[#a63d40]" />
 
       {/* Header Profile */}
       <div className="p-4 sm:p-5 border-b border-[#d6c7ab] bg-[#f4ebd9] flex items-start gap-4">
@@ -170,7 +170,7 @@ export default function NPCCardPreview({
         </div>
 
         {/* Magic Def & Initiative */}
-        <div className="bg-[#ede9fe] rounded p-2.5 border border-[#ddd6fe]">
+        <div className="bg-[#f4ebd9] rounded p-2.5 border border-[#d6c7ab]">
           <div className="text-t10 text-[#6b5a4b] font-mono font-bold flex items-center gap-1">
             <GiCrystalBall className="w-3 h-3 text-[#6b5a4b]" /> 魔防 M.DEF / 先攻 INIT
           </div>

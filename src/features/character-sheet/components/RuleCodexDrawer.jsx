@@ -172,7 +172,7 @@ export default function RuleCodexDrawer({
         onClick={(e) => e.stopPropagation()}
       >
         {/* 頂部裝飾條 */}
-        <div className="h-1.5 w-full bg-[#8b5e34] shrink-0" />
+        <div className="h-1.5 w-full bg-[#a63d40] shrink-0" />
 
         {/* 典籍標題 Header */}
         <div className="px-5 py-3.5 bg-[#3c2415] text-[#f7f3e8] flex items-center justify-between shrink-0">
@@ -240,7 +240,7 @@ export default function RuleCodexDrawer({
           {/* 當前概念頭銜 */}
           <div className="border-b border-[#e8dcc4] pb-3">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-black text-[#1a1412]">
+              <h1 className="text-xl font-black text-[#2c221e]">
                 {currentRule.title}
               </h1>
             </div>

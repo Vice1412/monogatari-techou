@@ -750,7 +750,7 @@ export default function TinkererWorkshop({
           <div>
             <h3 className="font-bold text-sm sm:text-base text-[#2c221e] flex items-center gap-2">
               <span>修補匠工坊</span>
-              <span className="text-t12 font-mono px-2 py-0.5 rounded-full bg-[#f4ebd9] text-[#78350f] font-bold border border-[#d6c7ab]">
+              <span className="text-t12 font-mono px-2 py-0.5 rounded-full bg-[#f4ebd9] text-[#3c2415] font-bold border border-[#d6c7ab]">
                 道具點：{curIp} / {maxIp}
               </span>
             </h3>
@@ -765,10 +765,10 @@ export default function TinkererWorkshop({
           <button
             type="button"
             onClick={() => openRuleCodex(activeTab === 'projects' ? '造物專案' : '小工具')}
-            className="px-2.5 py-1.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#78350f] font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-2.5 py-1.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
             title={activeTab === 'projects' ? '開啟造物專案官方手冊完整速查 (手冊 p.134~139)' : '開啟小工具官方手冊完整速查大表 (手冊 p.212~216)'}
           >
-            <GiSpellBook className="w-4 h-4 text-[#8b5e34]" />
+            <GiSpellBook className="w-4 h-4 text-[#6b5a4b]" />
             <span>規則概念速查</span>
           </button>
 
@@ -848,9 +848,9 @@ export default function TinkererWorkshop({
               <div className="flex items-center justify-between gap-2 flex-wrap border-b border-[#d6c7ab] pb-2.5">
                 <div>
                   <h4 className="font-bold text-sm text-[#2c221e] flex items-center gap-2">
-                    <GiRoundBottomFlask className="w-5 h-5 text-[#8b5e34]" />
+                    <GiRoundBottomFlask className="w-5 h-5 text-[#6b5a4b]" />
                     <span>煉金術混合調配台</span>
-                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#78350f] font-bold">
+                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] font-bold">
                       {alchemyTier === 0 ? '尚未研發' : alchemyTier === 1 ? '基礎混合 (2d20 · 3 IP)' : alchemyTier === 2 ? '進階混合 (3d20 · 4 IP)' : '最高混合 (4d20 · 5 IP)'}
                     </span>
                   </h4>
@@ -862,10 +862,10 @@ export default function TinkererWorkshop({
                 <button
                   type="button"
                   onClick={() => openRuleCodex('小工具')}
-                  className="px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#78350f] font-bold text-xs flex items-center gap-1 transition-all cursor-pointer"
+                  className="px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-xs flex items-center gap-1 transition-all cursor-pointer"
                   title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
                 >
-                  <GiSpellBook className="text-[#8b5e34] text-xs" />
+                  <GiSpellBook className="text-[#6b5a4b] text-xs" />
                   <span>規則概念速查</span>
                 </button>
               </div>
@@ -881,8 +881,8 @@ export default function TinkererWorkshop({
                   <div className="p-3.5 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-3">
                     <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div className="space-y-0.5">
-                        <div className="text-xs font-bold text-[#78350f] flex items-center gap-1.5">
-                          <GiRollingDices className="text-[#8b5e34] text-base" />
+                        <div className="text-xs font-bold text-[#3c2415] flex items-center gap-1.5">
+                          <GiRollingDices className="text-[#6b5a4b] text-base" />
                           <span>即席混合骰組：共需 {alchemyDiceCount} 顆 d20（消耗 {alchemyIpCost} 道具點）</span>
                         </div>
                         <div className="text-t12 text-[#6b5a4b]">
@@ -954,7 +954,7 @@ export default function TinkererWorkshop({
                           </span>
                           {Array.from({ length: alchemyDiceCount }).map((_, idx) => (
                             <div key={idx} className="flex items-center gap-1 bg-[#fffdf9] px-2 py-1 rounded border border-[#d6c7ab]">
-                              <span className="font-mono text-t12 text-[#78350f] font-bold">#{idx + 1}:</span>
+                              <span className="font-mono text-t12 text-[#3c2415] font-bold">#{idx + 1}:</span>
                               <input
                                 type="number"
                                 min="1"
@@ -1221,7 +1221,7 @@ export default function TinkererWorkshop({
                         </div>
                         <h5 className="font-bold text-sm text-[#2c221e] flex items-center gap-1.5">
                           <span>即席混合藥劑調配成果</span>
-                          <span className="text-t12 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#78350f] border border-[#d6c7ab]">
+                          <span className="text-t12 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab]">
                             消耗 {alchemyIpCost} 道具點
                           </span>
                         </h5>
@@ -1680,11 +1680,11 @@ export default function TinkererWorkshop({
           {/* 特技加成提示列 */}
           {visionarySL > 0 && (
             <div className="p-3 rounded bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-between flex-wrap gap-2 text-xs">
-              <span className="font-bold text-[#78350f] flex items-center gap-1.5">
-                <GiSparkles className="w-4 h-4 text-[#8b5e34]" />
+              <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
+                <GiSparkles className="w-4 h-4 text-[#6b5a4b]" />
                 <span>特技【高瞻遠矚】生效中 (SL {visionarySL})</span>
               </span>
-              <div className="flex items-center gap-3 font-mono font-bold text-[#78350f] text-t12">
+              <div className="flex items-center gap-3 font-mono font-bold text-[#3c2415] text-t12">
                 <span>材料抵扣：-{freeCostDiscount} z</span>
                 <span>每日額外進度：+{extraProgressPerDay} 點/天</span>
               </div>
@@ -1694,7 +1694,7 @@ export default function TinkererWorkshop({
           {/* 專案列表操作列 */}
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
-              <GiGearHammer className="w-4 h-4 text-[#8b5e34]" />
+              <GiGearHammer className="w-4 h-4 text-[#6b5a4b]" />
               <span>進行中的造物專案 ({projects.filter(p => !p.completed).length} 個未完成)</span>
             </span>
 
@@ -1733,7 +1733,7 @@ export default function TinkererWorkshop({
                           <h4 className="font-bold text-sm text-[#2c221e]">{proj.name}</h4>
                         </div>
                         <div className="flex items-center gap-1 flex-wrap">
-                          <span className="text-t12 px-2 py-0.5 rounded-full bg-[#f4ebd9] text-[#78350f] font-bold border border-[#d6c7ab] font-mono">
+                          <span className="text-t12 px-2 py-0.5 rounded-full bg-[#f4ebd9] text-[#3c2415] font-bold border border-[#d6c7ab] font-mono">
                             {proj.potency ? `${proj.potency}效力` : (proj.tier || '專案')}
                           </span>
                           {proj.area && (
@@ -1773,7 +1773,7 @@ export default function TinkererWorkshop({
 
                       <div className="flex items-center gap-3 pt-1 text-t12 text-[#6b5a4b] font-mono">
                         <span className="flex items-center gap-1">
-                          <GiCoins className="w-3.5 h-3.5 text-[#8b5e34]" />
+                          <GiCoins className="w-3.5 h-3.5 text-[#6b5a4b]" />
                           材料花費：{proj.zenit} z
                         </span>
                         {proj.rawCost && proj.rawCost !== proj.zenit && (
@@ -1807,7 +1807,7 @@ export default function TinkererWorkshop({
                           <button
                             type="button"
                             onClick={() => (advancingId === proj.id ? setAdvancingId(null) : handleOpenAdvance(proj))}
-                            className="text-t12 font-bold text-[#8b5e34] hover:text-[#78350f] transition-colors cursor-pointer"
+                            className="text-t12 font-bold text-[#6b5a4b] hover:text-[#3c2415] transition-colors cursor-pointer"
                           >
                             {advancingId === proj.id ? '收起' : '推進一天'}
                           </button>
@@ -1825,8 +1825,8 @@ export default function TinkererWorkshop({
                       {advancingId === proj.id && !isDone && (
                         <div className="mt-2 p-2.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] space-y-2">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-t12 font-bold text-[#78350f]">推進一天</span>
-                            <span className="text-t12 font-mono font-bold text-[#78350f]">
+                            <span className="text-t12 font-bold text-[#3c2415]">推進一天</span>
+                            <span className="text-t12 font-mono font-bold text-[#3c2415]">
                               每日合計 +{dailyPreview.total} 格
                             </span>
                           </div>
@@ -1838,22 +1838,22 @@ export default function TinkererWorkshop({
                               { key: 'helpers', label: '幫手' }
                             ].map(({ key, label }) => (
                               <div key={key} className="flex flex-col items-center gap-1">
-                                <span className="text-t12 text-[#78350f] text-center">{label}</span>
+                                <span className="text-t12 text-[#6b5a4b] text-center">{label}</span>
                                 <div className="flex items-center gap-1">
                                   <button
                                     type="button"
                                     onClick={() => setAdvanceInput(v => ({ ...v, [key]: Math.max(0, v[key] - 1) }))}
-                                    className="w-5 h-5 rounded border border-[#d6c7ab] text-[#78350f] text-xs leading-none cursor-pointer hover:bg-[#f4ebd9]"
+                                    className="w-5 h-5 rounded border border-[#d6c7ab] text-[#6b5a4b] text-xs leading-none cursor-pointer hover:bg-[#f4ebd9]"
                                   >
                                     -
                                   </button>
-                                  <span className="w-5 text-center font-mono text-xs font-bold text-[#78350f]">
+                                  <span className="w-5 text-center font-mono text-xs font-bold text-[#3c2415]">
                                     {advanceInput[key]}
                                   </span>
                                   <button
                                     type="button"
                                     onClick={() => setAdvanceInput(v => ({ ...v, [key]: v[key] + 1 }))}
-                                    className="w-5 h-5 rounded border border-[#d6c7ab] text-[#78350f] text-xs leading-none cursor-pointer hover:bg-[#f4ebd9]"
+                                    className="w-5 h-5 rounded border border-[#d6c7ab] text-[#6b5a4b] text-xs leading-none cursor-pointer hover:bg-[#f4ebd9]"
                                   >
                                     +
                                   </button>
@@ -1862,12 +1862,12 @@ export default function TinkererWorkshop({
                             ))}
                           </div>
 
-                          <div className="text-t12 text-[#78350f] font-mono leading-relaxed">
+                          <div className="text-t12 text-[#6b5a4b] font-mono leading-relaxed">
                             參與 {dailyPreview.workers} + 修補匠 {dailyPreview.tinkererBonus}
                             {dailyPreview.visionary > 0 ? '+ 高瞻遠矚' + dailyPreview.visionary : ''}
                             {dailyPreview.helpers > 0 ? '+ 幫手' + dailyPreview.helpers : ''}
                             {advanceInput.helpers > 0 && (
-                              <span className="block text-[#8b5e34]">
+                              <span className="block text-[#6b5a4b]">
                                 幫手要價：每人 {helperHireCost(proj.zenit)} z（總成本一半）
                               </span>
                             )}
@@ -1884,12 +1884,12 @@ export default function TinkererWorkshop({
                             <button
                               type="button"
                               onClick={() => setAdvancingId(null)}
-                              className="px-3 py-1 rounded border border-[#d6c7ab] text-[#78350f] text-t12 font-bold cursor-pointer hover:bg-[#f4ebd9] transition-colors"
+                              className="px-3 py-1 rounded border border-[#d6c7ab] text-[#3c2415] text-t12 font-bold cursor-pointer hover:bg-[#f4ebd9] transition-colors"
                             >
                               取消
                             </button>
                             {proj.daysWorked > 0 && (
-                              <span className="ml-auto text-t12 text-[#8b5e34] font-mono">
+                              <span className="ml-auto text-t12 text-[#6b5a4b] font-mono">
                                 已作業 {proj.daysWorked} 天
                               </span>
                             )}
@@ -1916,7 +1916,7 @@ export default function TinkererWorkshop({
             onClick={(e) => e.stopPropagation()}
           >
             {/* 頂部裝飾條 */}
-            <div className="h-1.5 w-full bg-[#8b5e34] shrink-0" />
+            <div className="h-1.5 w-full bg-[#a63d40] shrink-0" />
 
             {/* 彈窗 Header */}
             <div className="px-5 py-3.5 bg-[#3c2415] text-[#f7f3e8] flex items-center justify-between shrink-0">
@@ -1974,8 +1974,8 @@ export default function TinkererWorkshop({
               {/* 步驟 2~3：官方三乘數計算器 */}
               <div className="space-y-3.5 p-3.5 rounded bg-[#fbf7ee] border border-[#d6c7ab]">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#78350f] flex items-center gap-1.5">
-                    <GiGearHammer className="w-4 h-4 text-[#8b5e34]" />
+                  <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
+                    <GiGearHammer className="w-4 h-4 text-[#6b5a4b]" />
                     <span>官方三乘數計算器 (效力 × 範圍 × 使用次數)</span>
                   </span>
                   <span className="text-t12 font-mono text-[#6b5a4b]">
@@ -2060,10 +2060,10 @@ export default function TinkererWorkshop({
                     type="checkbox"
                     checked={newHasFlaw}
                     onChange={(e) => setNewHasFlaw(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#8b5e34] focus:ring-[#a63d40] cursor-pointer"
+                    className="w-4 h-4 rounded text-[#6b5a4b] focus:ring-[#a63d40] cursor-pointer"
                   />
                   <span className="flex items-center gap-1.5">
-                    <GiHazardSign className="w-4 h-4 text-[#8b5e34]" />
+                    <GiHazardSign className="w-4 h-4 text-[#6b5a4b]" />
                     <span>協商致命缺陷 (總成本減免 25%)</span>
                   </span>
                 </label>
@@ -2113,11 +2113,11 @@ export default function TinkererWorkshop({
               {/* 步驟 6：成本結算與進度命刻即時儀表板 */}
               <div className="p-4 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-2.5">
                 <div className="flex items-center justify-between border-b border-[#d6c7ab] pb-2">
-                  <span className="font-bold text-[#78350f] flex items-center gap-1.5 text-xs">
-                    <GiCoins className="w-4 h-4 text-[#8b5e34]" />
+                  <span className="font-bold text-[#3c2415] flex items-center gap-1.5 text-xs">
+                    <GiCoins className="w-4 h-4 text-[#6b5a4b]" />
                     <span>成本結算與進度命刻即時儀表板</span>
                   </span>
-                  <span className="font-mono text-t12 text-[#78350f] font-bold">
+                  <span className="font-mono text-t12 text-[#3c2415] font-bold">
                     每 100z = 1 點進度
                   </span>
                 </div>
@@ -2136,21 +2136,21 @@ export default function TinkererWorkshop({
                   )}
 
                   {freeCostDiscount > 0 && (
-                    <div className="flex items-center justify-between text-[#8b5e34] font-mono">
+                    <div className="flex items-center justify-between text-[#6b5a4b] font-mono">
                       <span>特技【高瞻遠矚】抵扣 (SL {visionarySL})：</span>
                       <span>-{Math.min(calcDiscountedCost, freeCostDiscount)} z</span>
                     </div>
                   )}
 
                   <div className="pt-2 border-t border-[#d6c7ab] flex items-center justify-between flex-wrap gap-2 text-sm">
-                    <div className="font-bold text-[#78350f] flex items-center gap-1">
+                    <div className="font-bold text-[#3c2415] flex items-center gap-1">
                       <span>最終材料花費：</span>
-                      <span className="font-mono text-base text-[#8b5e34]">{calcFinalPay} z</span>
+                      <span className="font-mono text-base text-[#6b5a4b]">{calcFinalPay} z</span>
                     </div>
 
                     <div className="font-bold text-[#2c221e] flex items-center gap-1">
                       <span>所需推進進度：</span>
-                      <span className="font-mono text-base text-[#8b5e34]">{calcRequiredClock} 格</span>
+                      <span className="font-mono text-base text-[#6b5a4b]">{calcRequiredClock} 格</span>
                     </div>
                   </div>
 

@@ -330,7 +330,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                       <span>傷害</span>
                     </span>
                   </div>
-                  {displayExtra && <div className="text-[#574c43] mt-1 text-xs border-t border-[#d6c7ab]/60 pt-1 whitespace-pre-wrap">{renderFormattedText(displayExtra, skill.selections, npcLevel, partyLevel)}</div>}
+                  {displayExtra && <div className="text-[#6b5a4b] mt-1 text-xs border-t border-[#d6c7ab]/60 pt-1 whitespace-pre-wrap">{renderFormattedText(displayExtra, skill.selections, npcLevel, partyLevel)}</div>}
                 </div>
               );
             })()}
