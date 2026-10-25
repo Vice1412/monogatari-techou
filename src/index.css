@@ -88,7 +88,13 @@
    ========================================================================== */
 
 :where(a, button, [role="button"], input, select, textarea, summary):focus-visible {
-  outline: 2px solid var(--accent, #a63d40);
+  /* 第三十九輪 §CI47：原本是 `var(--accent, #a63d40)`。
+     `--accent` 是 `[data-theme]` 那兩組變數裡的其中一個，而第三十八輪把整組刪掉了
+     ——於是這裡變成一個**引用不到任何東西的變數，靠 fallback 活著**。
+     fallback 的值剛好跟變數原本的值一樣（`#a63d40`），所以畫面一px都沒變，
+     也就沒有人發現。這正是「宣告了卻不會發生」最難抓的一種：
+     **壞掉的東西長得跟好的一模一樣。** */
+  outline: 2px solid #a63d40;
   outline-offset: 2px;
   border-radius: inherit;
 }

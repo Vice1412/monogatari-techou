@@ -3433,8 +3433,20 @@ check(
      H36   CSS 檔的手寫 hex 也要登記（硬零）——修 `walkSrc` 只收 .js/.jsx 的盲點
      H36-a `rgba()` 的三通道必須是一個登記色（逐項）——hex 換個寫法就繞過了
      H36-b 身份的明度單調：light > accent > dark（逐項六組）
-     H36-c 設定層的死宣告（只減不增，預算 4）——`tailwind.config.js` 是唯一沒量過的一層
+     H36-c 設定層的死宣告（只減不增，預算 3）——`tailwind.config.js` 是唯一沒量過的一層
      H36-d `characterThemes.js` 只有紙與墨（封閉白名單）——第二份拷貝不得再長出來
+
+     H37  匯出頁字級一律引用 `T`（封閉白名單）——49 個字面值收成 9 階
+     H37-a 全站零小數字級（硬零）——CSS／行內／Tailwind 三種寫法一起掃
+     H37-b CSS 層 `font-size` 落在匯出字級階梯上（值域）——H33 的 CSS 對應物
+     H37-c 行內圓角只有 2px／50%／0（逐項）——`H34-d` 只掃 `.css` 檔
+     H37-d 每個 `var(--x)` 都有定義（硬零）——`--tw-*` 是 Tailwind 命名空間，豁免
+
+   第三十九輪的判準是：**「把檔案加進掃描範圍」不等於「檔案受到檢查」。**
+   第三十八輪把 `.css` 加進 `walkSrc` 之後，239/239 依然全綠、零新增——
+   因為護欄的樣式是 `text-[13px]`，而 CSS 寫的是 `font-size: 13px`。
+   真正的缺口不是檔案沒被掃，是**同一條禁令有幾種寫法**。
+   `GRAD_TOKEN`（漸層）早就三種全認，這一輪只是把同一個問法補到字級與圓角上。
 
    刻意**沒有**加的兩條，以及為什麼：
 
@@ -3636,6 +3648,189 @@ check(
   identityLeak.length
     ? `${identityLeak.length} 個非紙墨的 hex：${identityLeak.join('、')}`
     : `${charThemesHex.length} 個 hex 全在白名單的 7 個值裡`
+);
+
+/* ═══════════════════════════════════════════════════════════════════
+   H37 家族：同一條禁令的三種寫法（第三十九輪 §CI47）
+   ═══════════════════════════════════════════════════════════════════
+
+   這一族的起點是一個**失敗的修補嘗試**。
+
+   第三十八輪的殘債清單寫著「`walkSrc` 只收 `.js`／`.jsx`，其餘二十幾條
+   護欄看不見 `.css`」。看起來的修法是「把 `.css` 加進 `walkSrc`」。
+   我做了，然後量到：
+
+   > **239/239 依然全綠，零新增失敗。**
+
+   那個「全綠」不是好消息，是證據：護欄的樣式長成 `text-[13px]`，
+   而 CSS 裡寫的是 `font-size: 13px`。**兩者永遠不會相遇。**
+   把 `.css` 加進掃描範圍，只是讓「掃了 147 檔」這句話變真，
+   而不是讓那 147 檔受到同樣的檢查。這是**假修補**：
+   它讓覆蓋率這個數字變好看，而缺陷的數量一個都沒少。
+
+   真正的缺口不是「檔案沒被掃」，是**同一條禁令有幾種寫法**：
+
+   | 禁令 | Tailwind 類別 | CSS 宣告 | 行內樣式 | 本輪前誰看得到 |
+   |---|---|---|---|---|
+   | 任意字級 | `text-[13px]` | `font-size: 13px` | `fontSize: '13px'` | 只有第一種（H33） |
+   | 圓角上限 | `rounded-[6px]` | `border-radius: 6px` | `borderRadius: '6px'` | 前兩種（H34／H34-d） |
+   | 漸層 | `bg-gradient-to-r` | `linear-gradient(` | `linear-gradient(` | **三種全認**（GRAD_TOKEN） |
+   | 顏色 | `#hex` | `#hex` | `#hex` | 三種（H31／H36 掃整段文字） |
+
+   **漸層那一列就是模板。** 它的正則同時認得
+   `bg-gradient-*`、`bg-[…linear-gradient…]` 與裸的 `linear-gradient(`，
+   而且它自己走一遍含 `.css` 的樹（`walkWithCss`）。
+   本輪只是把同一個問法套到字級與圓角上。
+
+   ## 量到的缺口（本輪修掉之前）
+
+   - `fontSize: '8px'` 等行內字級 **49 處／11 個值**，全在 `CharacterSheetExport.jsx`。
+     同一時間 `H33`（全站零任意字級）是**綠的**——因為它只認 `text-[Npx]`。
+   - CSS `font-size: 7px` 1 處，沒有任何護欄。
+   - 行內 `borderRadius: '3px'` 1 處，超過 2px 上限；`H34-d` 只掃 `.css` 檔。
+   - 13 處是半像素（7.5／8.5／9.5）——步距 6.3%，比型階梯最小步距 10% 還小一半。
+
+   ## 為什麼匯出頁可以有自己的一套
+
+   因為它**不是同一個媒介**。1123×794 的固定畫布要塞進三頁角色的全部內容，
+   10px 起跳一定溢出，而 `overflow: hidden` 的溢出等於內容被裁掉。
+   所以匯出頁的字級不是漂移，是**第二條真實存在的階梯**——
+   問題是它原本沒有名字，49 個字面值散在檔案裡。
+
+   修法沿用第三十六輪（圓角）那一句：**一個值、一個名字。**
+   `T`（那個檔案裡 `C` 是顏色、`S` 是樣式、`T` 是字級）是匯出頁唯一的字級來源，護欄直接從原始碼解析它
+   （不另外抄一份，否則又多一份可以漂移的拷貝）。
+   ─────────────────────────────────────────────────────────────── */
+
+const SHEET_TYPE_SRC = 'src/features/character-sheet/components/CharacterSheetExport.jsx';
+const sheetTypeSrc = stripComments(read(SHEET_TYPE_SRC));
+
+// 從原始碼解析 `T`：`s8: '8px',` → { s8: '8px' }
+const sheetScale = new Map(
+  [...sheetTypeSrc.matchAll(/^\s*(s\d+):\s*'([\d.]+px)'/gm)].map((m) => [m[1], m[2]])
+);
+const sheetScaleKeys = new Set(sheetScale.keys());
+const sheetScaleVals = new Set(sheetScale.values());
+
+// H37：匯出頁的行內字級必須引用 `T`，不准再寫字面值。
+// 形狀選「封閉白名單」而不是「值域檢查」：後者允許 `fontSize: '9px'` 這種
+// 看起來無害、但等於把階梯又抄了一份的寫法。要引用，不要複寫。
+const inlineFontHits = [...sheetTypeSrc.matchAll(/fontSize:\s*([^,\n}]+)/g)].map((m) => m[1].trim());
+const inlineFontBad = inlineFontHits.filter((v) => {
+  const m = /^T\.(s\d+)$/.exec(v);
+  return !m || !sheetScaleKeys.has(m[1]);
+});
+check(
+  'H37 匯出頁字級一律引用 T（封閉白名單）',
+  inlineFontBad.length === 0,
+  inlineFontBad.length
+    ? `${inlineFontBad.length} 處字面值：${inlineFontBad.slice(0, 4).join('、')}`
+    : `${inlineFontHits.length} 處全部走 T.sN／階梯 ${sheetScaleKeys.size} 階`
+);
+
+// H37-a：全站零小數字級——三種寫法一起掃。
+//
+// 為什麼半像素要當成缺陷而不是「更精細的排版」：
+// 8px → 8.5px 是 **6.3%**，而型階梯最小的步距是 10px → 11px ＝ **10%**。
+// 一個比系統自己允許的最小步距還小一半的差距，不構成可辨的層級；
+// 而 `html-to-image` 光柵化時，小數字級在不同 DPR 下的捨入方向不一致，
+// 同一張表在不同機器上可能一行高一像素。**它是雜訊，不是階層。**
+const CSS_FONT_DECL = /font-size:\s*([\d.]+)px/g;
+const INLINE_FONT_DECL = /fontSize:\s*'([\d.]+)px'/g;
+const TW_FONT_DECL = /text-\[(\d+\.?\d*)px\]/g;
+const decimalFont = [];
+const walkAllSyntax = (dir) =>
+  fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) return walkAllSyntax(p);
+    return /\.(jsx?|css)$/.test(e.name) ? [p] : [];
+  });
+for (const abs of walkAllSyntax(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const src = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const [re, label] of [
+    [CSS_FONT_DECL, 'font-size'],
+    [INLINE_FONT_DECL, 'fontSize'],
+    [TW_FONT_DECL, 'text-['],
+  ]) {
+    for (const m of src.matchAll(re)) {
+      if (!Number.isInteger(Number(m[1]))) decimalFont.push(`${rel}:${label}${m[1]}px`);
+    }
+  }
+}
+check(
+  'H37-a 全站零小數字級（CSS／行內／Tailwind 三種寫法一起掃）',
+  decimalFont.length === 0,
+  decimalFont.length ? `${decimalFont.length} 處：${decimalFont.slice(0, 4).join('、')}` : '0 處'
+);
+
+// H37-b：CSS 層的 `font-size` 也必須落在匯出階梯上。
+// 這一條是 H33 的 CSS 對應物：H33 掃 `text-[Npx]`（Tailwind），
+// 而 `.sheet-skill-desc` 的 `font-size: 7px` 一直在牆外。
+const cssFontDecls = [];
+for (const abs of walkCss(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const src = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const m of src.matchAll(CSS_FONT_DECL)) {
+    if (!sheetScaleVals.has(`${m[1]}px`)) cssFontDecls.push(`${rel}:${m[1]}px`);
+  }
+}
+check(
+  'H37-b CSS 層 font-size 落在匯出字級階梯上',
+  cssFontDecls.length === 0,
+  cssFontDecls.length ? `${cssFontDecls.length} 處階梯外：${cssFontDecls.join('、')}` : '0 處階梯外'
+);
+
+// H37-c：行內圓角只有兩個答案——`2px`（方）與 `50%`（圓）。
+//
+// `H34-d` 已經守住了 `.css` 的 `border-radius`，但 `style={{ borderRadius: '3px' }}`
+// 兩邊都不在它的視野裡：它不是類別，也不在 `.css` 檔。
+// 匯出頁那一處 3px 就是這樣活下來的——同一個檔案裡另外兩處寫的是 2px，
+// 所以它不是「另一套設計」，是**沒有人看得到的一致性缺口**。
+const inlineRadiusHits = [];
+for (const abs of walkSrc(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const src = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const m of src.matchAll(/borderRadius:\s*'([^']+)'/g)) {
+    if (!/^(2px|50%|0)$/.test(m[1])) inlineRadiusHits.push(`${rel}:${m[1]}`);
+  }
+}
+check(
+  'H37-c 行內圓角只有 2px／50%／0（逐項）',
+  inlineRadiusHits.length === 0,
+  inlineRadiusHits.length ? `${inlineRadiusHits.length} 處：${inlineRadiusHits.join('、')}` : '0 處'
+);
+
+// H37-d：`var(--x)` 必須有定義。
+//
+// 這一條抓的是第三十八輪**自己留下來的**傷：那一輪刪掉 `[data-theme]` 兩組變數時，
+// 連 `--accent: #a63d40` 一起帶走了，而 `index.css` 的焦點外框寫的是
+// `var(--accent, #a63d40)`。fallback 的值剛好一樣，所以**畫面一 px 都沒變**，
+// 也就沒有人發現它已經是一句空話。
+//
+// > 壞掉的東西長得跟好的一模一樣，是「宣告了卻不會發生」最難抓的一種。
+//
+// 定義可以來自 `.css`（`--x: …`）或行內樣式物件（`'--x': …`），兩邊都算。
+//
+// `--tw-*` 是 Tailwind 自己的命名空間（`--tw-gradient-stops` 之類），
+// 由框架在執行時注入，不該由我們定義——這一族是唯一豁免。
+const varRefs = [];
+const varDefs = new Set();
+for (const abs of walkAllSyntax(path.join(ROOT, 'src'))) {
+  const rel = path.relative(ROOT, abs).replace(/\\/g, '/');
+  const src = stripComments(fs.readFileSync(abs, 'utf8'));
+  for (const m of src.matchAll(/var\(\s*--([a-z0-9-]+)/g)) {
+    if (!m[1].startsWith('tw-')) varRefs.push({ rel, name: m[1] });
+  }
+  for (const m of src.matchAll(/['"]?--([a-z0-9-]+)['"]?\s*:/g)) varDefs.add(m[1]);
+}
+const deadVarRefs = varRefs.filter((r) => !varDefs.has(r.name));
+check(
+  'H37-d 每個 var(--x) 都有定義（CSS 或行內樣式物件）',
+  deadVarRefs.length === 0,
+  deadVarRefs.length
+    ? `${deadVarRefs.length} 處空引用：${deadVarRefs.slice(0, 4).map((r) => `${r.rel}→--${r.name}`).join('、')}`
+    : `${varRefs.length} 處引用／${varDefs.size} 個定義，全部對得上`
 );
 
 /* ────────────────────────────────────────────────────────────────

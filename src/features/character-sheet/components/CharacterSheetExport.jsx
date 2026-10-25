@@ -100,6 +100,52 @@ const C = {
   faint: 'var(--sh-faint)'
 };
 
+/**
+ * 匯出頁的字級階梯（第三十九輪 §CI47）。
+ *
+ * ## 為什麼匯出頁需要自己的一套
+ *
+ * 螢幕的型階梯是 `t10`–`t39`（10/11/12/14/16/20/25/31/39），最低階就是 10px。
+ * 匯出頁是一張 **1123×794 的固定畫布**，要塞進三頁角色的全部技能、裝備、
+ * 關係與日誌——技能描述動輒兩三百字。用 10px 排版一定溢出，而溢出在
+ * `overflow: hidden` 的畫布上等於**內容直接被裁掉**，不是「醜一點」。
+ *
+ * 所以匯出頁的字級不是漂移，是**另一條真實存在的階梯**。問題是它從來沒有名字：
+ * 49 處 `fontSize: 'Npx'` 散在檔案各處，11 個不同值（含 13 處半像素），
+ * 而 `H33`（全站零任意字級）只認得 `text-[13px]` 這個**形狀**——
+ * 換成行內樣式就完全繞過去了。
+ *
+ * ## 這條階梯長什麼樣
+ *
+ * `7 · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 16`——8 到 14 是 **1px 的線性階梯**，
+ * 這是密集表格的常見做法（步距 7–12%，比模組化比例更適合「同一頁塞很多層」）。
+ * 剛好也是 **9 階**，與螢幕型階梯同數。
+ *
+ * ## 半像素為什麼要收掉
+ *
+ * 原本有 7.5／8.5／9.5 三個半像素值，共 13 處。它們**不是層級，是雜訊**：
+ *
+ * - 8px → 8.5px 是 **6.3%**，而螢幕階梯最小的步距是 10px → 11px ＝ **10%**。
+ *   也就是說這半步比設計系統自己允許的最小步距還小一半——它不構成可辨的層級。
+ * - `html-to-image` 光柵化時，小數字級在不同 DPR 下的捨入方向不一致，
+ *   同一張表在不同機器上可能一行高一px。
+ *
+ * 一律**向下取整**（7.5→7、8.5→8、9.5→9），理由是版面安全：
+ * 固定畫布上「變小」不會溢出，「變大」會。副作用正好是把 CSS 裡
+ * `.sheet-skill-desc` 的 7px 收進同一條階梯，CSS 與 JS 不再是兩套。
+ */
+const T = {
+  s7: '7px', // 技能描述全文（最窄的一欄，也是 CSS `.sheet-skill-desc` 的值）
+  s8: '8px', // 表格內最小字：勾選格、情緒格、註記
+  s9: '9px', // 欄位標籤（粗體 ＋ 字距）、格線內文
+  s10: '10px', // 一般值、說明文字
+  s11: '11px', // 區塊標題條
+  s12: '12px', // 資源池數值
+  s13: '13px', // 角色名、主值
+  s14: '14px', // 先攻表頭
+  s16: '16px' // 禪特——整頁最大的數字
+};
+
 const S = {
   page: {
     width: SHEET_PAGE_WIDTH,
@@ -116,14 +162,14 @@ const S = {
   col: { display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 },
   box: {
     border: `1px solid ${C.border}`,
-    borderRadius: '3px',
+    borderRadius: '2px',
     overflow: 'hidden',
     backgroundColor: C.box
   },
   bar: {
     backgroundColor: C.bar,
     color: C.barText,
-    fontSize: '11px',
+    fontSize: T.s11,
     fontWeight: 700,
     letterSpacing: '0.08em',
     padding: '2px 8px',
@@ -131,17 +177,17 @@ const S = {
     alignItems: 'center',
     gap: '6px'
   },
-  barNote: { fontSize: '8.5px', fontWeight: 400, opacity: 0.92 },
+  barNote: { fontSize: T.s8, fontWeight: 400, opacity: 0.92 },
   body: { padding: '4px 7px' },
-  label: { fontSize: '9px', fontWeight: 700, color: C.ink, letterSpacing: '0.04em' },
-  value: { fontSize: '10px', color: C.ink },
-  faint: { fontSize: '8.5px', color: C.faint },
+  label: { fontSize: T.s9, fontWeight: 700, color: C.ink, letterSpacing: '0.04em' },
+  value: { fontSize: T.s10, color: C.ink },
+  faint: { fontSize: T.s8, color: C.faint },
   line: { borderBottom: `1px solid ${C.border}`, minHeight: '14px' },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px' },
-  cell: { display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9.5px' },
+  cell: { display: 'flex', alignItems: 'center', gap: '4px', fontSize: T.s9 },
   tableHead: {
     display: 'grid',
-    fontSize: '8.5px',
+    fontSize: T.s8,
     fontWeight: 700,
     color: C.faint,
     letterSpacing: '0.06em',
@@ -159,7 +205,7 @@ const Check = ({ on }) => (
       display: 'inline-flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontSize: '9px',
+      fontSize: T.s9,
       lineHeight: 1,
       flex: '0 0 auto',
       backgroundColor: on ? C.ink : C.box,
@@ -428,13 +474,13 @@ export const buildSheetModel = (character, stats = null) => {
 
 const NameHeader = ({ model, full = false }) => (
   <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', marginBottom: '4px' }}>
-    <span style={{ ...S.label, fontSize: '10px' }}>姓名</span>
-    <span style={{ ...S.line, flex: '1 1 auto', minWidth: 0, fontSize: '13px', fontWeight: 700 }}>
+    <span style={{ ...S.label, fontSize: T.s10 }}>姓名</span>
+    <span style={{ ...S.line, flex: '1 1 auto', minWidth: 0, fontSize: T.s13, fontWeight: 700 }}>
       {model.name}
     </span>
     {!full && (
       <>
-        <span style={{ ...S.label, fontSize: '10px', marginLeft: '8px' }}>性別</span>
+        <span style={{ ...S.label, fontSize: T.s10, marginLeft: '8px' }}>性別</span>
         <span style={{ ...S.line, flex: '0 0 120px' }}>{model.gender}</span>
       </>
     )}
@@ -464,10 +510,10 @@ const BondsBox = ({ model }) => (
       {model.bonds.map((bond) => (
         <div key={bond.index} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <span style={{ ...S.faint, width: '8px' }}>{bond.index}</span>
-          <span style={{ ...S.line, flex: '0 0 74px', fontSize: '9.5px' }}>{bond.target}</span>
+          <span style={{ ...S.line, flex: '0 0 74px', fontSize: T.s9 }}>{bond.target}</span>
           <span style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 6px', flex: '1 1 auto' }}>
             {FEELINGS.map(([key, cn]) => (
-              <span key={key} style={{ ...S.cell, fontSize: '8px', gap: '2px' }}>
+              <span key={key} style={{ ...S.cell, fontSize: T.s8, gap: '2px' }}>
                 <Check on={bond.feelings[key]} />
                 {cn}
               </span>
@@ -482,7 +528,7 @@ const BondsBox = ({ model }) => (
 const RulesList = ({ lines }) => (
   <ul style={{ margin: 0, paddingLeft: '12px', display: 'flex', flexDirection: 'column', gap: '1.5px' }}>
     {lines.map((t) => (
-      <li key={t} style={{ fontSize: '7.5px', lineHeight: 1.22 }}>{t}</li>
+      <li key={t} style={{ fontSize: T.s7, lineHeight: 1.22 }}>{t}</li>
     ))}
   </ul>
 );
@@ -491,11 +537,11 @@ const ClassSlot = ({ slot }) => (
   <div style={{ ...S.box, display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: '104px' }}>
     {/* 標題列與數值列合併成一列——固定版面裡每一列都很貴，省下來給技能效果 */}
     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: `1px solid ${C.border}`, padding: '2px 6px' }}>
-      <span style={{ fontSize: '11px', fontWeight: 700 }}>
+      <span style={{ fontSize: T.s11, fontWeight: 700 }}>
         {slot ? `${slot.className}　Lv ${slot.level}` : ''}
       </span>
       {slot?.freeBenefit ? (
-        <span style={{ marginLeft: 'auto', fontSize: '8.5px', color: C.faint }}>
+        <span style={{ marginLeft: 'auto', fontSize: T.s8, color: C.faint }}>
           免費增益：{slot.freeBenefit}
         </span>
       ) : null}
@@ -505,8 +551,8 @@ const ClassSlot = ({ slot }) => (
         {(slot?.skills || []).map((sk) => (
           <div key={sk.name}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-              <span style={{ fontSize: '9px', fontWeight: 700 }}>{sk.name}</span>
-              <span style={{ fontSize: '8px', color: C.faint }}>
+              <span style={{ fontSize: T.s9, fontWeight: 700 }}>{sk.name}</span>
+              <span style={{ fontSize: T.s8, color: C.faint }}>
                 SL {sk.sl}{sk.maxSL ? ` / ${sk.maxSL}` : ''}
               </span>
             </div>
@@ -534,11 +580,11 @@ const SpellTable = ({ rows, count }) => {
       <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
         {filled.map((sp) => (
           <div key={sp.name} style={{ borderBottom: `1px solid ${C.border}`, padding: '2px 0 3px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: cols, fontSize: '9.5px', fontWeight: 700 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: cols, fontSize: T.s9, fontWeight: 700 }}>
               <span>{sp.name}</span><span>{sp.mp}</span><span>{sp.targets}</span><span>{sp.duration}</span>
             </div>
             {sp.desc ? (
-              <div style={{ fontSize: '8.5px', lineHeight: 1.3, color: C.ink, whiteSpace: 'pre-wrap' }}>{sp.desc}</div>
+              <div style={{ fontSize: T.s8, lineHeight: 1.3, color: C.ink, whiteSpace: 'pre-wrap' }}>{sp.desc}</div>
             ) : null}
           </div>
         ))}
@@ -569,7 +615,7 @@ const RitualBox = ({ model }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
       <span style={{ ...S.label }}>學派：</span>
       {model.disciplines.map((d) => (
-        <span key={d.name} style={{ ...S.cell, fontSize: '9px' }}>
+        <span key={d.name} style={{ ...S.cell, fontSize: T.s9 }}>
           <Check on={d.on} />
           {d.name}
         </span>
@@ -598,17 +644,17 @@ export const OfficialSheetPage1 = ({ model, vars = null }) => (
         </Box>
         <div style={{ ...S.box, flex: '1 1 40%' }}>
           <div style={S.bar}><span>先攻修正</span></div>
-          <div style={{ padding: '4px 8px', fontSize: '14px', fontWeight: 700, borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ padding: '4px 8px', fontSize: T.s14, fontWeight: 700, borderBottom: `1px solid ${C.border}` }}>
             {model.attributesUnset ? (
-              <span style={{ fontSize: '14px', fontWeight: 700 }}>—</span>
+              <span style={{ fontSize: T.s14, fontWeight: 700 }}>—</span>
             ) : (model.initiativeVariant ? '不計' : model.initiative)}
           </div>
           <div style={S.bar}><span>物防</span></div>
-          <div style={{ padding: '4px 8px', fontSize: '14px', fontWeight: 700, borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ padding: '4px 8px', fontSize: T.s14, fontWeight: 700, borderBottom: `1px solid ${C.border}` }}>
             {model.attributesUnset ? '—' : model.defense}
           </div>
           <div style={S.bar}><span>魔防</span></div>
-          <div style={{ padding: '4px 8px', fontSize: '14px', fontWeight: 700 }}>
+          <div style={{ padding: '4px 8px', fontSize: T.s14, fontWeight: 700 }}>
             {model.attributesUnset ? '—' : model.magicDefense}
           </div>
         </div>
@@ -622,7 +668,7 @@ export const OfficialSheetPage1 = ({ model, vars = null }) => (
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '5px' }}>
           {[['martialArmor', '職業防具'], ['martialShields', '職業盾牌'], ['martialMelee', '職業近戰武器'], ['martialRanged', '職業遠程武器']]
             .map(([key, cn]) => (
-              <span key={key} style={{ ...S.cell, fontSize: '9px' }}>
+              <span key={key} style={{ ...S.cell, fontSize: T.s9 }}>
                 <Check on={Boolean(model.proficiencies[key])} />
                 {cn}
               </span>
@@ -644,10 +690,10 @@ export const OfficialSheetPage1 = ({ model, vars = null }) => (
               }}
             >
               <div>
-                <div style={{ ...S.faint, fontSize: '7.5px' }}>{row.label}</div>
-                <div style={{ fontSize: '10px', fontWeight: 700 }}>{row.name}</div>
+                <div style={{ ...S.faint, fontSize: T.s7 }}>{row.label}</div>
+                <div style={{ fontSize: T.s10, fontWeight: 700 }}>{row.name}</div>
               </div>
-              <div style={{ fontSize: '8.5px', lineHeight: 1.3 }}>{row.desc}</div>
+              <div style={{ fontSize: T.s8, lineHeight: 1.3 }}>{row.desc}</div>
             </div>
           ))}
         </div>
@@ -655,14 +701,14 @@ export const OfficialSheetPage1 = ({ model, vars = null }) => (
 
       <div style={{ display: 'flex', gap: '7px', alignItems: 'stretch' }}>
         <Box title="行囊與筆記" style={{ flex: '1 1 auto' }}>
-          <div style={{ fontSize: '9px', lineHeight: 1.35, whiteSpace: 'pre-wrap', minHeight: '44px' }}>
+          <div style={{ fontSize: T.s9, lineHeight: 1.35, whiteSpace: 'pre-wrap', minHeight: '44px' }}>
             {model.backpackNotes}
           </div>
         </Box>
         <div style={{ ...S.box, flex: '0 0 120px' }}>
           <div style={S.bar}><span>資金</span></div>
-          <div style={{ padding: '8px', textAlign: 'center', fontSize: '16px', fontWeight: 700 }}>
-            {model.zenit}<span style={{ fontSize: '10px' }}> z</span>
+          <div style={{ padding: '8px', textAlign: 'center', fontSize: T.s16, fontWeight: 700 }}>
+            {model.zenit}<span style={{ fontSize: T.s10 }}> z</span>
           </div>
         </div>
       </div>
@@ -694,21 +740,21 @@ export const OfficialSheetPage1 = ({ model, vars = null }) => (
             合併後直接讓出三十幾像素給下面的技能效果全文。 */}
         <Box title="屬性・狀態・資源" style={{ flex: '1 1 auto' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr 1fr', ...S.faint, fontSize: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr 1fr', ...S.faint, fontSize: T.s8 }}>
               <span /><span>基礎</span><span>當前</span>
             </div>
             {model.attributes.base.map((a, i) => (
               <div key={a.key} style={{ display: 'grid', gridTemplateColumns: '70px 1fr 1fr', alignItems: 'center' }}>
-                <span style={{ fontSize: '9.5px', fontWeight: 700 }}>{a.cn} {a.en}</span>
-                <span style={{ fontSize: '11px', fontWeight: 700 }}>{model.attributesUnset ? '—' : `d${a.value}`}</span>
-                <span style={{ fontSize: '11px', fontWeight: 700 }}>
+                <span style={{ fontSize: T.s9, fontWeight: 700 }}>{a.cn} {a.en}</span>
+                <span style={{ fontSize: T.s11, fontWeight: 700 }}>{model.attributesUnset ? '—' : `d${a.value}`}</span>
+                <span style={{ fontSize: T.s11, fontWeight: 700 }}>
                   {model.attributesUnset ? '—' : `d${model.attributes.current[i].value}`}
                 </span>
               </div>
             ))}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px 6px', marginTop: '2px' }}>
               {model.statuses.map((st) => (
-                <span key={st.key} style={{ ...S.cell, fontSize: '8px' }}>
+                <span key={st.key} style={{ ...S.cell, fontSize: T.s8 }}>
                   <Check on={st.on} />
                   {st.cn}
                 </span>
@@ -718,16 +764,16 @@ export const OfficialSheetPage1 = ({ model, vars = null }) => (
             <div style={{ borderTop: `1px solid ${C.border}`, marginTop: '3px', paddingTop: '3px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr 1fr', gap: '1px 8px', alignItems: 'center' }}>
                 <span />
-                <span style={{ ...S.faint, fontSize: '8px' }}>上限</span>
-                <span style={{ ...S.faint, fontSize: '8px' }}>當前</span>
+                <span style={{ ...S.faint, fontSize: T.s8 }}>上限</span>
+                <span style={{ ...S.faint, fontSize: T.s8 }}>當前</span>
                 {[['hp', 'HP', '生命值'], ['mp', 'MP', '魔力值'], ['ip', 'IP', '物品點']].map(([key, en, cn]) => (
                   <React.Fragment key={key}>
-                    <span style={{ fontSize: '10px', fontWeight: 700 }}>{en}</span>
-              <span style={{ fontSize: '12px', fontWeight: 700 }}>{model.attributesUnset ? '—' : model.pools[key].max}</span>
-              <span style={{ fontSize: '13px', fontWeight: 700 }}>
+                    <span style={{ fontSize: T.s10, fontWeight: 700 }}>{en}</span>
+              <span style={{ fontSize: T.s12, fontWeight: 700 }}>{model.attributesUnset ? '—' : model.pools[key].max}</span>
+              <span style={{ fontSize: T.s13, fontWeight: 700 }}>
                 {model.attributesUnset ? '—' : model.pools[key].current}
                 {key === 'hp' && !model.attributesUnset ? (
-                  <span style={{ ...S.faint, fontSize: '8px', marginLeft: '6px' }}>
+                  <span style={{ ...S.faint, fontSize: T.s8, marginLeft: '6px' }}>
                     危機 {model.crisisThreshold}
                   </span>
                 ) : null}
@@ -776,7 +822,7 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
           放 P2 是因為 P1 的左欄已經滿了，而且金手指的效果文字本來就長。 */}
       {model.quirk ? (
         <Box title="金手指" style={{ flex: '0 0 auto' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, marginBottom: '1px' }}>{model.quirk}</div>
+          <div style={{ fontSize: T.s10, fontWeight: 700, marginBottom: '1px' }}>{model.quirk}</div>
           {model.quirkDesc ? (
             <SkillDescription desc={model.quirkDesc} sl={1} className="sheet-skill-desc" />
           ) : null}
@@ -789,9 +835,9 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
         <Box title="營地活動" note={CAMP_ACTIVITY_SOURCE} style={{ flex: '0 0 auto' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {model.campActivities.map((a) => (
-              <div key={a.id} style={{ fontSize: '10px', fontWeight: 700 }}>
+              <div key={a.id} style={{ fontSize: T.s10, fontWeight: 700 }}>
                 {a.name}
-                <span style={{ fontSize: '8px', color: C.faint, fontWeight: 400 }}>（{a.target}）</span>
+                <span style={{ fontSize: T.s8, color: C.faint, fontWeight: 400 }}>（{a.target}）</span>
               </div>
             ))}
           </div>
@@ -802,10 +848,10 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
           {model.heroicSkills.map((hs) => (
             <div key={hs.name}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '9.5px', fontWeight: 700 }}>{hs.name}</span>
-                {hs.sl ? <span style={{ fontSize: '8px', color: C.faint }}>SL {hs.sl}</span> : null}
+                <span style={{ fontSize: T.s9, fontWeight: 700 }}>{hs.name}</span>
+                {hs.sl ? <span style={{ fontSize: T.s8, color: C.faint }}>SL {hs.sl}</span> : null}
                 {hs.requirement ? (
-                  <span style={{ fontSize: '8px', color: C.faint }}>（{hs.requirement}）</span>
+                  <span style={{ fontSize: T.s8, color: C.faint }}>（{hs.requirement}）</span>
                 ) : null}
               </div>
               {hs.effect ? (
