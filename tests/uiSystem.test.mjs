@@ -4523,6 +4523,55 @@ check(
   `__nope__ → ${getCharacterTheme('__nope__').id}／undefined → ${getCharacterTheme(undefined).id}`
 );
 
+/** 己：F-007 的 live region 還在（P12 轉測試，2026-10-26）。
+ *
+ *  為什麼放這裡而不是 `test:ui`：這一條驗的是**原始碼的結構**，不是渲染結果。
+ *  `test:ui` 走 SSR，而 live region 的重點「容器必須常駐」在 SSR 快照裡看不出來
+ *  ——空的時候它 `sr-only` 但仍然在 DOM 裡，跟「條件渲染不存在」在 HTML 上長得一樣
+ *  （都是看不到），所以只能讀原始碼。
+ *
+ *  這一條原本沒有任何護欄（P12 盤點時發現 F-007 在 tests/ 出現 0 次）。
+ *  沒有護欄的「已修」等於「下次有人重寫這個 Toast 就會安靜退回原狀」——
+ *  而它退化時**畫面完全正常**，只有讀屏使用者受影響。 */
+{
+  const sheetSrc = stripComments(read('src/features/character-sheet/CharacterSheet.jsx'));
+
+  // ① 有 live region，而且 role 與 aria-live 都在
+  const liveRegions = sheetSrc.match(/role="status"/g) || [];
+  check(
+    'F-007 創角介面有 role="status" 的 live region',
+    liveRegions.length === 1,
+    `找到 ${liveRegions.length} 個（應為 1）`
+  );
+  check(
+    'F-007 live region 同時帶 aria-live="polite"',
+    /role="status"[\s\S]{0,120}?aria-live="polite"/.test(sheetSrc),
+    'role="status" 與 aria-live="polite" 必須在同一個元素上'
+  );
+
+  // ② 容器常駐：無訊息時是 `sr-only`，不是從 DOM 移除。
+  //    判準是 className 三元式裡有 `sr-only` 分支——這正是「先存在、後播報」的寫法。
+  const alwaysMounted = /toastMessage[\s\S]{0,40}?\?[\s\S]{0,600}?sr-only/.test(sheetSrc);
+  check(
+    'F-007 live region 容器常駐（無訊息時 sr-only，不是條件渲染）',
+    alwaysMounted,
+    alwaysMounted
+      ? '有訊息顯示、無訊息 sr-only'
+      : '找不到「有訊息顯示、無訊息 sr-only」的三元式——容器可能被條件渲染掉了'
+  );
+
+  // ③ 反向控制：條件渲染整個 live region 是這個缺陷的原始樣子。
+  //    `{cond && <div role="status"` 這種寫法要抓出來。
+  const conditionallyRendered = /\{[\s\S]{0,60}?&&\s*\(\s*<div[^>]*role="status"/.test(sheetSrc);
+  check(
+    'F-007 live region 沒有被條件渲染（反向控制）',
+    !conditionallyRendered,
+    conditionallyRendered
+      ? '發現 `{cond && <div role="status">}`——容器不常駐，播報不會觸發'
+      : '沒有條件渲染的寫法'
+  );
+}
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${'='.repeat(56)}`);
 console.log(`  通過 ${results.length - failed.length} / ${results.length}${failed.length ? `　失敗 ${failed.length}` : '　（全部通過）'}`);
