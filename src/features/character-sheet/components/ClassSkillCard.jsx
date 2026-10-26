@@ -18,6 +18,7 @@ import JRPGButton from '../../../components/ui/JRPGButton';
 import SkillStarPips from './SkillStarPips';
 import {
   getVariantsForSkill,
+  getVariantsForClass,
   getVariantById,
   withSkillVariant,
   resolveSkillDisplay,
@@ -407,6 +408,9 @@ export default function ClassSkillCard({
   //   不再看 `character.enabledSourcebooks`——公測是規則開關，不是一本手冊（§BE）。
   const showPlaytestVariants = isPlaytestAllowed(character);
 
+  /** 這個職業有幾個公測變體（可發現性提示用；P8 2026-10-26 GM 同意）。 */
+  const classVariants = getVariantsForClass(className);
+
   /** 這個技能條目目前選用了哪個變體（沒選回 null）。 */
   const adoptedVariantId = (skillName) => {
     const entry = (classItem.skills || []).find(s => s.name === skillName);
@@ -702,6 +706,19 @@ export default function ClassSkillCard({
         <p className="text-xs text-[#6b5a4b] italic leading-relaxed pl-2 border-l-2" style={{ borderColor: theme.accent }}>
           {classInfo.tagline}
         </p>
+
+        {/* 公測變體的可發現性提示（P8，2026-10-26 GM 同意）。
+            只在「這個職業有變體 + 本團沒開公測」時出現；開關一開，
+            技能列的 △公測 toggle 就接手，這行自動消失。 */}
+        {!showPlaytestVariants && classVariants.length > 0 && (
+          <div
+            data-testid={`playtest-hint-${className}`}
+            className="text-t10 text-[#6b5a4b] font-bold flex items-start gap-1.5 pl-2"
+          >
+            <span className="shrink-0">※</span>
+            <span>此職業有 {classVariants.length} 個公測變體；本團未開放（GM 可在「此團開卡規則」開啟）</span>
+          </div>
+        )}
       </div>
 
       {/* ================= 模式 A：簡潔檢視模式 (Compact / Saved Mode) ================= */}

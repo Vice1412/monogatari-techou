@@ -146,7 +146,10 @@ const off = renderToStaticMarkup(React.createElement(ClassSkillCard, {
   classIndex: 0, character: mkChar(['core']), theme
 }));
 check('關閉時看不到【咒語自助餐】', off.includes('咒語自助餐'), false);
-check('關閉時看不到【公測】徽章', off.includes('公測'), false);
+// ※ 2026-10-26 P8：公測關閉時仍會出現一行「本團未開放」的可發現性提示，
+//   它合法地含「公測」二字。所以這裡斷言**徽章**（△ 公測），不是裸的「公測」
+//   ——正是 §1.1「`html.includes('x')` 前先問別處是否也有這字串」的實例。
+check('關閉時看不到【公測】徽章', off.includes('△ 公測'), false);
 check('關閉時原版【咒語模仿】仍在', off.includes('咒語模仿'), true);
 
 // ─────────────────────────────────────────────────────────── E
@@ -188,6 +191,29 @@ check('狂怒鬥士未選用時【勇猛打手】與【隕石猛擊】都不渲�
     classItem: mkClassItem('狂怒鬥士'), classIndex: 0,
     character: mkChar(['core', 'playtest']), theme
   })).match(/勇猛打手|隕石猛擊/g) || []).length, 0);
+
+// ─────────────────────────────────────────────────────────── P8
+section('P8. 公測關閉時，有變體的職業要給一行可發現性提示（2026-10-26 GM 同意）');
+// 目的：新手不知道「公測變體」藏在收合的開卡規則面板裡。所以只要這個職業有變體、
+// 而本團沒開公測，就在職業卡上寫一行，並指出去哪裡開。
+const hintOff = renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 2, selectedOptions: [] }]),
+  classIndex: 0, character: mkChar(['core']), theme
+}));
+check('公測關＋有變體 → 出現提示（data-testid）', hintOff.includes('playtest-hint-嵌合師'), true);
+check('提示寫出「本團未開放」與去處', hintOff.includes('本團未開放') && hintOff.includes('此團開卡規則'), true);
+
+const hintOn = renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('嵌合師', [{ name: '咒語模仿', sl: 2, selectedOptions: [] }]),
+  classIndex: 0, character: mkChar(['core', 'playtest']), theme
+}));
+check('公測開 → 提示消失（交給技能列 toggle）', hintOn.includes('playtest-hint-嵌合師'), false);
+
+const hintNoVariant = renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkClassItem('秘儀師', []),
+  classIndex: 0, character: mkChar(['core']), theme
+}));
+check('沒有變體的職業 → 不出現提示', hintNoVariant.includes('playtest-hint-秘儀師'), false);
 
 // ─────────────────────────────────────────────────────────── F
 section('F. 閘門來源必須正確（這是最容易寫錯、而且不會報錯的地方）');

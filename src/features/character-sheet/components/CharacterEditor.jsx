@@ -87,11 +87,10 @@ const TAB_COUNT = 6;
 import { applyPreset } from '../utils/presetApply';
 import {
   calculateCharacterStats,
-  validateCharacter,
+  deriveCreationState,
   isCharacterLocked,
   lockCharacter,
   unlockCharacter,
-  buildCreationChecklist,
   CREATION_STEPS,
   LOCKED_CREATION_TABS,
   getCharacterLevel,
@@ -239,7 +238,6 @@ export default function CharacterEditor({
   const campAccess = campActivityAccess(character, rules);
 
   // Validation checklist（以這一團的規則驗證，不是寫死的官方標準）
-  const validation = validateCharacter(character, rules);
   const stats = calculateCharacterStats(character);
 
   // 等級獎勵：屬性骰 +1 階（原書 p.229：20／40 級各一次）。傳給四維選擇器顯示升級列。
@@ -248,11 +246,11 @@ export default function CharacterEditor({
     attributeDieUpgradesAllowed(character.level) - (attributeDieUpgradesUsed(character.attributes) ?? 0)
   );
 
-  // 創角進度：同一份驗證結果按步驟整理成主線（導航列本身就是進度表）
-  const checklist = buildCreationChecklist(character, rules);
-  const checklistById = new Map(checklist.map((item) => [item.id, item]));
-  const blockedCount = checklist.filter((item) => item.status === 'error').length;
-  const canLock = blockedCount === 0;
+  // 創角狀態的**單一來源**（2026-10-26，群 A 重構：F-004／F-005／F-010）。
+  // 以前這裡有三份各自計算的數字——頁首數「有 error 的步驟」、自檢卡數「error 條數」、
+  // 導航列數「每步一個圓點」——分母不同卻長得像同一件事。現在全部從 `creation` 出來。
+  const creation = deriveCreationState(character, rules);
+  const { validation, checklist, checklistById, canLock } = creation;
 
   // 英雄技能的前提（原書 p.232；開局名額見 Playtest Materials 2026-10-01 p.4）：
   // **不能選的原因要在選之前看見**，不是選完才被擋。判定與 `validateCharacter` 共用同一份。
@@ -830,11 +828,17 @@ export default function CharacterEditor({
                 ? '身世與四維屬性已凍結；等級、技能、裝備仍可隨時調整。'
                 : canLock
                   ? `${TABS.length} 個步驟都通過規則檢查，可以定稿了。定稿後創角欄位會凍結。`
-                  : `還有 ${blockedCount} 項未符合規則，補完後即可定稿。`}
+                  // F-010：這裡以前只數「有 error 的步驟數」，跟左側自檢卡的「error 條數」
+                  // 和導航列的圓點數都不一樣。現在兩個數字都講清楚自己在數什麼：
+                  // 「必須修正」＝擋定稿的，「提醒」＝不擋但建議補的。
+                  : `還有 ${creation.blockerCount} 項必須修正${
+                    creation.suggestionCount > 0 ? `，另有 ${creation.suggestionCount} 項提醒` : ''
+                  }，補完後即可定稿。`}
             </p>
 
             <button
               type="button"
+              data-testid="lock-character"
               onClick={locked ? handleUnlock : handleLock}
               disabled={!locked && !canLock}
               className={`w-full text-t11 font-bold px-2.5 py-2 rounded border transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed ${
@@ -845,7 +849,9 @@ export default function CharacterEditor({
                 borderColor: locked ? theme.border : (canLock ? '#8c3235' : theme.border),
                 color: locked ? theme.textDark : (canLock ? '#fffdf9' : theme.textMuted)
               }}
-              title={locked ? '解除定稿會重新開放身世與四維屬性' : '定稿後創角欄位凍結，只留成長相關欄位'}
+              // F-005：灰掉的時候要說「現在為什麼不能按」，不是「按下去會怎樣」。
+              // `creation.lockHint` 會列出實際缺口（例如「尚缺：尚未選擇任何職業、起始資金尚未結算」）。
+              title={locked ? '解除定稿會重新開放身世與四維屬性' : creation.lockHint}
             >
               <GiPadlock className="w-3.5 h-3.5" />
               {locked ? '解鎖編輯' : '完成創角'}
@@ -857,8 +863,22 @@ export default function CharacterEditor({
             className="rounded border shadow-e1 p-2 flex flex-col gap-1 transition-colors"
             style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
           >
-            <div className="px-2 py-1 text-t10 font-mono font-bold text-[#6b5a4b] uppercase tracking-wider">
-              創角流程
+            <div className="px-2 py-1 flex items-center justify-between gap-2">
+              <span className="text-t10 font-mono font-bold text-[#6b5a4b] uppercase tracking-wider">
+                創角流程
+              </span>
+              {/* F-010 的另一半：新手問「5 個點但只有 2 項，那 3 個點是不用管的嗎？」
+                  ——答案是「要管，但不擋定稿」。與其讓他猜，不如把圖例寫出來。
+                  顏色也一併分開：原本兩種點都是深紅（#8c2d36／#a63d40），根本看不出差別。 */}
+              <span
+                className="text-t10 text-[#6b5a4b] flex items-center gap-1.5 shrink-0"
+                data-testid="checklist-legend"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#8c2d36]" aria-hidden="true" />
+                <span data-testid="legend-blocking">必須修正</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#9c4d16] ml-1" aria-hidden="true" />
+                <span data-testid="legend-reminder">提醒</span>
+              </span>
             </div>
 
             {TABS.map(t => {
@@ -871,6 +891,17 @@ export default function CharacterEditor({
                   key={t.id}
                   type="button"
                   onClick={() => setActiveTab(t.id)}
+                  // 圓點只有 8px，塞不進「幾項」；所以把數字放進 title，
+                  // 而且**每一步都說自己的數字**——這樣「5 個點」與「N 項」就不再是兩個世界的東西。
+                  title={
+                    step.status === 'error'
+                      ? `第 ${t.id} 步：${step.errorCount} 項必須修正${
+                        step.issueCount > step.errorCount ? `、${step.issueCount - step.errorCount} 項提醒` : ''
+                      }`
+                      : step.status === 'todo'
+                        ? `第 ${t.id} 步：${step.issueCount} 項提醒（不擋定稿）`
+                        : `第 ${t.id} 步：已完成`
+                  }
                   className={`w-full text-left px-2.5 py-2 rounded text-xs font-bold transition-all flex items-center justify-between group cursor-pointer ${
                     isTabActive
                       ? 'text-white shadow-sm'
@@ -902,11 +933,13 @@ export default function CharacterEditor({
                     </div>
                   </div>
 
-                  {/* 狀態：完成打勾、待處理黃點、有問題紅點 */}
+                  {/* 狀態：完成打勾、必須修正紅點、提醒琥珀點。
+                      顏色必須真的不一樣——原本兩個點都是深紅（#8c2d36／#a63d40），
+                      畫面上分不出來，於是「哪個點擋定稿」變成要猜的事。 */}
                   {step.status === 'error' ? (
-                    <span className="w-2 h-2 rounded-full bg-[#8c2d36] ring-2 ring-[#8c2d36]/30 shrink-0" title="有未符合規則的項目" />
+                    <span className="w-2 h-2 rounded-full bg-[#8c2d36] ring-2 ring-[#8c2d36]/30 shrink-0" aria-hidden="true" />
                   ) : step.status === 'todo' ? (
-                    <span className="w-2 h-2 rounded-full bg-[#a63d40] shrink-0" title="還有提醒項目" />
+                    <span className="w-2 h-2 rounded-full bg-[#9c4d16] shrink-0" aria-hidden="true" />
                   ) : (
                     <GiCheckMark className={`w-3.5 h-3.5 shrink-0 ${isTabActive ? 'text-white' : 'text-[#6b5a4b]'}`} />
                   )}
@@ -920,9 +953,9 @@ export default function CharacterEditor({
             type="button"
             onClick={() => setIsValidationModalOpen(true)}
             className={`w-full text-left p-3 rounded border transition-all shadow-e1 flex flex-col gap-1.5 cursor-pointer ${
-              validation.errors.length > 0
+              creation.blockerCount > 0
                 ? 'bg-[#f9f5eb] border-[#8c2d36]/50 hover:border-[#8c2d36]'
-                : validation.hasWarnings
+                : creation.suggestionCount > 0
                   ? 'bg-[#f9f5eb] border-[#d6c7ab] hover:border-[#7c6a58]'
                   : 'bg-[#f9f5eb] border-[#d6c7ab] hover:border-[#3c2415]'
             }`}
@@ -930,47 +963,46 @@ export default function CharacterEditor({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 font-bold text-xs">
-                {validation.errors.length > 0 ? (
+                {creation.blockerCount > 0 ? (
                   <GiHazardSign className="w-4 h-4 text-[#8c2d36] shrink-0" />
-                ) : validation.hasWarnings ? (
+                ) : creation.suggestionCount > 0 ? (
                   <Info className="w-4 h-4 text-[#6b5a4b] shrink-0" />
                 ) : (
                   <GiCheckMark className="w-4 h-4 text-[#3c2415] shrink-0" />
                 )}
-                <span className={
-                  validation.errors.length > 0
-                    ? 'text-[#8c2d36]'
-                    : validation.hasWarnings
-                      ? 'text-[#2c221e]'
-                      : 'text-[#2c221e]'
-                }>
+                <span className={creation.blockerCount > 0 ? 'text-[#8c2d36]' : 'text-[#2c221e]'}>
                   規則自檢
                 </span>
               </div>
-              <span className={`text-t10 font-mono font-bold px-1.5 py-0.5 rounded ${
-                validation.errors.length > 0
-                  ? 'bg-[#e8dcc4] text-[#8c2d36]'
-                  : validation.hasWarnings
-                    ? 'bg-[#e8dcc4] text-[#3c2415]'
-                    : 'bg-[#e8dcc4] text-[#2c221e]'
-              }`}>
-                {validation.errors.length > 0
-                  ? `${validation.errors.length} 項待修正`
-                  : validation.hasWarnings
-                    ? `${validation.warnings.length} 項提醒`
+              <span
+                className={`text-t10 font-mono font-bold px-1.5 py-0.5 rounded ${
+                  creation.blockerCount > 0
+                    ? 'bg-[#e8dcc4] text-[#8c2d36]'
+                    : creation.suggestionCount > 0
+                      ? 'bg-[#e8dcc4] text-[#3c2415]'
+                      : 'bg-[#e8dcc4] text-[#2c221e]'
+                }`}
+                data-testid="validation-badge"
+              >
+                {/* 與頁首**同一個來源**（`creation`）。以前這裡數「error 條數」、
+                    頁首數「有 error 的步驟數」，於是同一張卡會出現 2 和 3 兩個數字。 */}
+                {creation.blockerCount > 0
+                  ? `${creation.blockerCount} 項必須修正`
+                  : creation.suggestionCount > 0
+                    ? `${creation.suggestionCount} 項提醒`
                     : '100% 合規'}
               </span>
             </div>
             <p className={`text-t11 leading-tight ${
-              validation.errors.length > 0
+              creation.blockerCount > 0
                 ? 'text-[#8c2d36]'
-                : validation.hasWarnings
+                : creation.suggestionCount > 0
                   ? 'text-[#6b5a4b]'
                   : 'text-[#3c2415]'
             }`}>
-              {validation.errors.length > 0
-                ? '尚有未符規則項目，點擊查看詳情'
-                : validation.hasWarnings
+              {creation.blockerCount > 0
+                ? `${creation.suggestionCount > 0 ? `另有 ${creation.suggestionCount} 項提醒 · ` : ''}點擊查看詳情`
+                : creation.suggestionCount > 0
                   ? '基本合規，有可優化提醒'
                   : '已符合官方標準創角規範'}
             </p>
@@ -1055,26 +1087,26 @@ export default function CharacterEditor({
                 type="button"
                 onClick={() => setIsValidationModalOpen(true)}
                 className={`px-2 py-1 rounded border text-t11 font-bold flex items-center gap-1 shadow-e1 cursor-pointer ${
-                  validation.errors.length > 0
+                  creation.blockerCount > 0
                     ? 'bg-[#f9f5eb] text-[#8c2d36] border-[#8c2d36]/50'
-                    : validation.hasWarnings
-                      ? 'bg-[#f9f5eb] text-[#3c2415] border-[#d6c7ab]'
-                      : 'bg-[#f9f5eb] text-[#3c2415] border-[#d6c7ab]'
+                    : 'bg-[#f9f5eb] text-[#3c2415] border-[#d6c7ab]'
                 }`}
                 title="創角規則自檢"
               >
-                {validation.errors.length > 0 ? (
+                {creation.blockerCount > 0 ? (
                   <GiHazardSign className="w-3 h-3 text-[#8c2d36]" />
-                ) : validation.hasWarnings ? (
+                ) : creation.suggestionCount > 0 ? (
                   <Info className="w-3 h-3 text-[#6b5a4b]" />
                 ) : (
                   <GiCheckMark className="w-3 h-3 text-[#3c2415]" />
                 )}
-                <span>
-                  {validation.errors.length > 0
-                    ? `${validation.errors.length}待修正`
-                    : validation.hasWarnings
-                      ? `${validation.warnings.length}提醒`
+                {/* 第三處計數（同一排的快捷鈕）。以前它也有自己的一套 `filter`，
+                    三個地方各算各的，正是 F-010「三個數字互相打架」的成因之一。 */}
+                <span data-testid="validation-badge-compact">
+                  {creation.blockerCount > 0
+                    ? `${creation.blockerCount} 必須修正`
+                    : creation.suggestionCount > 0
+                      ? `${creation.suggestionCount} 提醒`
                       : '合規'}
                 </span>
               </button>
@@ -1344,7 +1376,7 @@ export default function CharacterEditor({
 
               {/* 2x2 四宮格拖曳分配矩陣 */}
               <AttributeMatrixPicker
-                attributes={character.attributes || { dex: 8, ins: 8, mig: 8, wlp: 8 }}
+                attributes={character.attributes || { dex: 0, ins: 0, mig: 0, wlp: 0 }}
                 remainingUpgrades={remainingDieUpgrades}
                 onChange={(newAttrs) => {
                   onChange({
@@ -1989,7 +2021,7 @@ export default function CharacterEditor({
                   <span style={{ color: theme.accent }}>5.</span> 英雄技能與特質
                 </h4>
                 <p className="text-xs text-[#6b5a4b] mt-0.5">
-                  精通職業後解鎖英雄技能，並可設定特質。
+                  精通職業後解鎖英雄技能；其餘項目由開卡規則決定。
                 </p>
               </div>
 
@@ -2340,8 +2372,21 @@ export default function CharacterEditor({
                     size="md"
                     icon={Play}
                     onClick={onEnterPlayMode}
+                    data-testid="enter-play-preview"
+                    // F-004：這顆以前叫「完成創角，進入跑團面板」，跟左側那顆灰掉的
+                    // 「完成創角」幾乎同名，行為卻相反——它不定稿、不檢查、也不設 `locked`。
+                    // 實測按下去會帶著一張「職業 0 個、四維全 0、locked 仍是 false」的卡進面板。
+                    //
+                    // 修法不是拿掉它（先去看看面板是合理需求），是**讓名字說實話**：
+                    // 它只負責「去看」，不負責「完成」。全站文案含「完成創角」的按鈕
+                    // 因此只剩左側那一顆，而那顆在 blockers > 0 時是停用的。
+                    title={
+                      canLock
+                        ? '規則檢查已通過。這顆只帶你去看面板，不會定稿——要凍結創角欄位請按左側「完成創角」'
+                        : `這張卡還有 ${creation.blockerCount} 項必須修正。這顆只帶你去看面板目前長什麼樣，不會定稿`
+                    }
                   >
-                    完成創角，進入跑團面板
+                    先去看跑團面板（尚未定稿）
                   </JRPGButton>
                 )
               )}
@@ -2395,7 +2440,8 @@ export default function CharacterEditor({
       >
         <div className="space-y-4">
           <p className="text-xs text-[#6b5a4b] leading-relaxed -mt-1">
-            本清單為輔助提醒，未填寫項<strong>不會強制阻擋</strong>您的儲存或跑團，您可以隨時返回修改。
+            <strong>必須修正</strong>的項目會擋住定稿；<strong>提醒</strong>只是建議，
+            不影響儲存或跑團。兩者都會列在這裡，是因為導航列的圓點也分成這兩種。
           </p>
 
           <div className="space-y-2">
@@ -2418,6 +2464,17 @@ export default function CharacterEditor({
                   ) : (
                     <Info className="w-4 h-4 text-[#6b5a4b] shrink-0" />
                   )}
+                  {/* 每一列都要自己說「我擋不擋定稿」——
+                      以前整份清單長得一樣，玩家只能從顏色猜（而兩種顏色都是深紅）。 */}
+                  <span
+                    className={`text-t10 font-bold px-1 py-0.5 rounded shrink-0 ${
+                      w.type === 'error'
+                        ? 'bg-[#8c2d36] text-[#fffdf9]'
+                        : 'bg-[#e8dcc4] text-[#6b5a4b]'
+                    }`}
+                  >
+                    {w.type === 'error' ? '必須修正' : '提醒'}
+                  </span>
                   <span>{w.message}</span>
                 </div>
                 <span className="font-bold underline shrink-0 text-t11">跳轉至步驟 {w.step} ➔</span>

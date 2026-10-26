@@ -189,6 +189,20 @@ body {
   animation: fadeIn 0.18s ease-out forwards;
 }
 
+/* 托盤骰子引導縮放呼吸動畫：原位平滑微幅放大縮小，無晃動眩暈感 */
+@keyframes diceBreath {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-dice-scale {
+  animation: diceBreath 2s ease-in-out infinite;
+}
+
 /* ==========================================================================
    3D Book & Page-Flip Animation System (典籍與翻書漸隱動畫)
    ========================================================================== */

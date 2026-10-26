@@ -44,11 +44,16 @@ export const CLASS_RESOURCES = [
     skillName: '貿易之風',
     label: '貿易點數',
     maxFromSL: (sl) => sl + 3,
+    // 原書（Natural Fantasy p.159）：「如果你在角色創建時獲得此技能，你將以 2 點貿易點數開始遊戲。」
+    // 這是「開卡時就有」的起點，不是每次聚會重置——所以用 `initial` 而不是 `resetTo`。
+    // 已知近似：App 無法判斷技能是「開卡時」還是「升級時」拿到的，一律給 2；
+    // 升級才取得的情況會多 2 點。hint 已寫明條件，讓 GM 自己扣。
+    initial: 2,
     // 原書沒有「清空貿易點數」的規則——點數只會被花掉，不會被清掉。
     // 故不提供重置按鈕，避免暗示不存在的規則。
     resetLabel: null,
     resetTo: null,
-    hint: '上限 SL+3',
+    hint: '上限 SL+3；開卡時取得此技能者以 2 點開始',
     source: 'Natural Fantasy p.159',
   },
   {
@@ -213,7 +218,9 @@ export const getActiveClassResources = (character) => {
       max: def.kind === 'pool'
         ? (def.maxFromSL ? def.maxFromSL(sl) : def.max)
         : null,
-      initial: def.kind === 'value' ? def.initial : null,
+      // `initial` 兩種 kind 都要傳：池型也可能有「開卡時的起點」（貿易點數＝2）。
+      // 沒有標 initial 的池（氣勢、異常值）就是 null，讀取時退回 0。
+      initial: def.initial ?? null,
       min: def.kind === 'value' ? (def.min ?? 1) : 0,
     });
   }
@@ -222,6 +229,10 @@ export const getActiveClassResources = (character) => {
 
 /**
  * 讀取某資源目前的值。缺值時回傳合理預設（池為 0、單值為 initial）。
+ *
+ * **池型要分開「沒填過」與「填成 0」**：貿易點數的起點是 2，但玩家可以花到 0。
+ * 若沿用「<=0 就當沒填」，花到 0 之後會**復活成 2 點**——這比原本的 bug 更糟。
+ * 所以池型改看 `Number.isFinite`：NaN（從未寫入）才給 initial，0 就是 0。
  */
 export const readResource = (character, resource) => {
   const raw = character?.classResources?.[resource.id];
@@ -230,7 +241,11 @@ export const readResource = (character, resource) => {
     return Number.isFinite(n) && n > 0 ? n : resource.initial;
   }
   const n = Math.floor(Number(raw));
-  return Number.isFinite(n) && n > 0 ? Math.min(n, resource.max) : 0;
+  if (!Number.isFinite(n)) {
+    // 從未寫入 → 用起點（沒有 initial 的池退回 0），並夾在上限內
+    return Math.min(Number(resource.initial) || 0, resource.max);
+  }
+  return Math.min(n, resource.max);
 };
 
 /**
@@ -241,7 +256,12 @@ export const readResource = (character, resource) => {
  */
 export const clampResource = (resource, nextValue) => {
   const n = Math.floor(Number(nextValue));
-  if (!Number.isFinite(n)) return resource.kind === 'value' ? resource.initial : 0;
+  if (!Number.isFinite(n)) {
+    // 池型的預設是「起點」（沒有 initial 就是 0），不是硬性 0——
+    // 否則清空後再寫入會把貿易點數打回 0，跟 initial: 2 互相矛盾。
+    const fallback = resource.kind === 'value' ? resource.initial : (Number(resource.initial) || 0);
+    return resource.kind === 'value' ? fallback : Math.min(resource.max, fallback);
+  }
   if (resource.kind === 'value') return Math.max(resource.min ?? 1, n);
   return Math.min(resource.max, Math.max(0, n));
 };

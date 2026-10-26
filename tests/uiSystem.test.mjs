@@ -673,19 +673,19 @@ check('屬性矩陣只用書裡的令牌', strayHexes.length === 0, strayHexes.j
 const tierBlock = attrSrc.slice(attrSrc.indexOf('export const getDiceColorConfig'));
 const tierBgs = [...tierBlock.matchAll(/bgClass:\s*'([^']+)'/g)].map((m) => m[1]);
 check('骰階四階都給得出底色', tierBgs.length === 4, `實際 ${tierBgs.length} 階`);
-// 四階、三種底色：這正是「階梯」的形狀——差異來自描邊與墨色，不是來自第四個色相。
+// 四階皆為實心負形底色（單一實心 hex，依墨階與強調色遞增，字色皆為負形反白）
 // 每一階都必須是**單一實心 hex**（`bg-[#rrggbb]`）；出現 `from-*`／`to-*` 就代表又回到漸層。
 const solidTier = /^bg-\[#[0-9a-f]{6}\]$/;
 check(
-  '骰階是階梯不是色相',
-  new Set(tierBgs).size === 3 && tierBgs.every((b) => solidTier.test(b)),
+  '骰階皆為實心負形底色',
+  new Set(tierBgs).size === 4 && tierBgs.every((b) => solidTier.test(b)),
   tierBgs.join('、'),
 );
 check('骰階不再用漸層', !tierBlock.includes('bg-gradient'), tierBlock.includes('bg-gradient') ? '仍有漸層' : '無漸層');
 check(
-  '最強階是唯一實心強調色',
-  tierBgs.filter((b) => b.includes('#a63d40')).length === 1,
-  tierBgs.filter((b) => b.includes('#a63d40')).join('、'),
+  '骰階皆為負形反白字',
+  (tierBlock.match(/textClass:\s*'text-\[#fffdf9\] font-black'/g) || []).length === 4,
+  '四階皆為負形白字',
 );
 check('骰階不再發光', (tierBlock.match(/glow:\s*''/g) || []).length === 4, tierBlock.match(/glow:\s*'[^']*'/g)?.join('、') || '四階 glow 全空');
 

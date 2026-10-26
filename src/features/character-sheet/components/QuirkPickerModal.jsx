@@ -86,6 +86,18 @@ export function QuirkPickerBody({
   const groupsComplete = quirkOptionGroups.length > 0
     && quirkOptionGroups.every((group) => Boolean(choiceFor(group.id)));
 
+  // 一個選項的 id 若已被**別組**選走，就不能再選（§CH）。
+  //
+  // 原書兩處明文：元素之魂第二組寫「不可與上面相同」；通智幽魂寫「選擇 2 種傷害類型」
+  // 與「第 3 種易傷」——三種都必須不同。以前介面不擋，玩家選了同一個屬性之後，
+  // 引擎會把重複的抗性去重成一筆，**少掉的那一個抗性不會有任何提示**。
+  //
+  // 判準用「id 是否已被別組選走」而不是逐個金手指寫例外：草木成精的兩組 id
+  // 分屬「免疫狀態」與「易傷傷害類型」，本來就不會撞，所以自動不受影響。
+  const pickedElsewhere = (groupId, optId) => quirkOptionGroups.some(
+    (g) => g.id !== groupId && choiceFor(g.id) === optId
+  );
+
   return (
     <div className="flex flex-col h-[80vh] md:h-[72vh] max-h-[700px] overflow-hidden -m-1">
       {/* 搜尋列 */}
@@ -216,6 +228,7 @@ export function QuirkPickerBody({
                               type="radio"
                               name={`quirk-option-${opened.name}-${group.id}`}
                               checked={choiceFor(group.id) === opt.id}
+                              disabled={pickedElsewhere(group.id, opt.id)}
                               onChange={() => pickOption(group.id, opt.id)}
                               className="mt-0.5 shrink-0"
                             />
@@ -224,6 +237,11 @@ export function QuirkPickerBody({
                               {opt.effects && (
                                 <span className="text-t10 ml-1" style={{ color: theme.textMuted }}>
                                   （會寫進角色數值）
+                                </span>
+                              )}
+                              {pickedElsewhere(group.id, opt.id) && (
+                                <span className="text-t10 ml-1" style={{ color: theme.textMuted }}>
+                                  （上面已經選了，不能重複）
                                 </span>
                               )}
                             </span>

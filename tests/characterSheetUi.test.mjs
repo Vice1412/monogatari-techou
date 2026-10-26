@@ -27,7 +27,7 @@ import {
   EXPERIENCE_POINT_RULES,
   SHEET_DISCIPLINES
 } from '../src/features/character-sheet/components/CharacterSheetExport.jsx';
-import { createNewCharacter, getProficiencies, calculateCharacterStats } from '../src/features/character-sheet/utils/characterEngine.js';
+import { createNewCharacter, getProficiencies, calculateCharacterStats, deriveCreationState, shortIssueLabel } from '../src/features/character-sheet/utils/characterEngine.js';
 import { resolveCreationRules, DEFAULT_CREATION_RULES } from '../src/features/character-sheet/data/creationRules.js';
 import { HeroicSkillPickerBody } from '../src/features/character-sheet/components/HeroicSkillPickerModal.jsx';
 import { QuirkPickerBody } from '../src/features/character-sheet/components/QuirkPickerModal.jsx';
@@ -49,7 +49,7 @@ import CharacterEditor from '../src/features/character-sheet/components/Characte
 import CharacterCard from '../src/features/character-sheet/components/CharacterCard.jsx';
 import AttributeMatrixPicker from '../src/features/character-sheet/components/AttributeMatrixPicker.jsx';
 import ClassPickerModal from '../src/features/character-sheet/components/ClassPickerModal.jsx';
-import CreationRulesPanel from '../src/features/character-sheet/components/CreationRulesPanel.jsx';
+import CreationRulesPanel, { describeRulesDiff } from '../src/features/character-sheet/components/CreationRulesPanel.jsx';
 import {
   buildImagePdf,
   buildImagePdfBytes,
@@ -680,6 +680,20 @@ check('第 5 步空狀態不放 CTA',
 check('開啟金手指後第 5 步空狀態消失',
   renderEditorAt(5, {}, { allowQuirk: true }).includes('這一步目前沒有可設定的項目'), false);
 
+// F-001 的驗收條件（`00-plan.md` §12.6.1 先修 #1 明文寫的那一條）：
+// 副標題原本寫「精通職業後解鎖英雄技能，**並可設定特質**」，
+// 而官方標準下「特質」（金手指）同樣被 `rules.allowQuirk` 收掉——
+// 說明文字承諾了畫面上不存在的功能。所以這句半句**不得**再出現，
+// 而且不只是空狀態下：任何規則組合都不該有它。
+check('第 5 步副標題不再承諾「並可設定特質」（F-001 的驗收條件）',
+  tab5Default.includes('並可設定特質'), false);
+check('開啟金手指時也不再承諾（不是只在空狀態時才對）',
+  renderEditorAt(5, {}, { allowQuirk: true }).includes('並可設定特質'), false);
+// 「由開卡規則決定」這幾個字在**空狀態說明**裡也有，所以不能只驗那幾個字——
+// 要驗的是副標題那整句（護欄鐵則：斷言前先問「別處是否也有這字串」）
+check('第 5 步副標題改成指路「其餘項目由開卡規則決定」',
+  tab5Default.includes('精通職業後解鎖英雄技能；其餘項目由開卡規則決定'), true);
+
 // 姓名搬到第 6 步（原書第 8 步，p.154／p.170）——第 1 步不該再有姓名輸入框
 const tab1Html = renderEditorAt(1);
 const tab6Html = renderEditorAt(6);
@@ -1102,11 +1116,13 @@ check('CharacterPlayHUD.jsx：play 模式職業標題仍用 withEn(cl.className)
 section('BE. 開卡規則面板：公測是 tickbox，不在手冊清單裡');
 
 const rulesPanelHTML = renderToStaticMarkup(React.createElement(CreationRulesPanel, {
-  // 非預設 → 面板自動展開（預設收合，SSR 會什麼都看不到）
+  // 面板預設收合（見元件檔頭），所以要看展開態的內容得明說 defaultOpen。
+  // 這是**起始狀態**不是受控 prop——使用者點標題列之後就由元件自己管。
   rules: resolveCreationRules({ allowPlaytest: true }),
   diff: { allowPlaytest: true },
   onChange: () => {},
-  theme: {}
+  theme: {},
+  defaultOpen: true
 }));
 check('面板展開後有【開放公測修訂內容】tickbox', rulesPanelHTML.includes('開放公測修訂內容'), true);
 check('面板的「開放的手冊」不再列出公測修訂（書名不該出現）',
@@ -1120,6 +1136,131 @@ const rulesPanelDefaultHTML = renderToStaticMarkup(React.createElement(CreationR
 check('官方標準時面板收合（不渲染任何欄位）',
   [rulesPanelDefaultHTML.includes('開放公測修訂內容'), rulesPanelDefaultHTML.includes('官方公測修訂')],
   [false, false]);
+// 官方標準時也**不該**出現差異摘要——沒有差異就沒有東西可摘要
+check('官方標準時不渲染差異摘要',
+  rulesPanelDefaultHTML.includes('rules-diff-summary'), false);
+
+// ─────────────────────────────────────────────────────────── BJ
+// §BJ（2026-10-26 playtest P4）：面板預設收合，改由「一行差異摘要」承擔
+// 「一眼知道這張卡哪裡跟別人不一樣」。舊版是「自訂就自動展開」，成本是每一頁第一屏的一半。
+section('BJ. 開卡規則面板：預設收合，自訂時改用一行差異摘要');
+
+// 純函式先驗：摘要文字是從 diff 推出來的，不是寫死的
+check('describeRulesDiff：空 diff → 沒有標籤', describeRulesDiff({}), []);
+check('describeRulesDiff：null / undefined 不會爆',
+  [describeRulesDiff(null), describeRulesDiff(undefined)], [[], []]);
+check('describeRulesDiff：底力技用短標籤（不是面板上的完整標題）',
+  describeRulesDiff({ zeroPowers: true }), ['底力技']);
+check('describeRulesDiff：面板完整標題「開放底力技」不該出現在摘要裡',
+  describeRulesDiff({ zeroPowers: true }).includes('開放底力技'), false);
+check('describeRulesDiff：營地活動', describeRulesDiff({ campActivities: true }), ['營地活動']);
+check('describeRulesDiff：多條時逐一都在（不是只取第一條）',
+  // 順序是規則欄位的宣告順序（`CREATION_RULE_FIELDS`），不是物件的插入順序——
+  // 這樣摘要的排列不會因為呼叫端傳入的鍵序不同而跳來跳去
+  describeRulesDiff({ zeroPowers: true, campActivities: true, allowQuirk: true }),
+  ['金手指', '底力技', '營地活動']);
+// defaultSourcebooks 與 allowedSourcebooks 講同一件事，列兩次只會讓摘要變長
+check('describeRulesDiff：defaultSourcebooks 不列入摘要',
+  describeRulesDiff({ defaultSourcebooks: ['core', 'highFantasy'] }), []);
+check('describeRulesDiff：手冊清單收成一條「手冊 N 本」',
+  describeRulesDiff({ allowedSourcebooks: ['core', 'highFantasy', 'naturalFantasy'] }), ['手冊 3 本']);
+// 公測修訂開關會自動把 playtest 塞進手冊清單——那不是 GM 調的，
+// 摘要已經有「公測修訂」那一條，不該再報一條「手冊 6 本」
+check('describeRulesDiff：只因為公測而多一本書時，不報手冊那一條',
+  describeRulesDiff({ allowedSourcebooks: ['core', 'highFantasy', 'technoFantasy', 'naturalFantasy', 'bonus', 'playtest'] }),
+  []);
+check('describeRulesDiff：真的收窄了手冊時照樣報（沒有連正常情況一起吞掉）',
+  describeRulesDiff({ allowedSourcebooks: ['core', 'playtest'] }), ['手冊 1 本']);
+check('describeRulesDiff：魔晶石是枚舉，摘要要帶出是哪一態',
+  describeRulesDiff({ technospheres: 'integrated' }).length, 1);
+check('describeRulesDiff：魔晶石摘要不是乾巴巴的 key',
+  describeRulesDiff({ technospheres: 'integrated' })[0].includes('integrated'), false);
+check('describeRulesDiff：魔晶石關閉就是官方標準，不算一條差異',
+  describeRulesDiff({ technospheres: 'off' }), []);
+check('describeRulesDiff：不是規則欄位的雜訊不會混進摘要',
+  describeRulesDiff({ 某個未來欄位: 1 }), []);
+
+// 派生欄位：改了起始等級，起始資金與技能點數會**自動**跟著變。
+// 那兩條不是 GM 的決定，算進「不同 N 條」會讓他以為自己動過沒動過的東西。
+check('describeRulesDiff：只改起始等級時，只報一條（不把派生的資金／點數算進去）',
+  describeRulesDiff({ startingLevel: 8 }), ['起始等級']);
+check('describeRulesDiff：但 GM 真的指定了資金時要報（沒有連正常情況一起吞掉）',
+  describeRulesDiff({ startingLevel: 8, startingZenit: 1234 }).includes('起始資金'), true);
+check('describeRulesDiff：GM 真的指定了技能點數時要報',
+  describeRulesDiff({ startingLevel: 8, skillPointBudget: 12 }).includes('技能點數'), true);
+
+// 收合態的渲染：自訂時要有一行摘要，而且**不能**把整個面板的欄位一起畫出來
+const rulesPanelCollapsedHTML = renderToStaticMarkup(React.createElement(CreationRulesPanel, {
+  rules: resolveCreationRules({ zeroPowers: true, campActivities: true }),
+  diff: { zeroPowers: true, campActivities: true },
+  onChange: () => {},
+  theme: {}
+}));
+check('自訂＋收合：差異摘要存在', rulesPanelCollapsedHTML.includes('rules-diff-summary'), true);
+check('自訂＋收合：摘要寫出「幾條不同」', rulesPanelCollapsedHTML.includes('與官方標準不同 2 條'), true);
+check('自訂＋收合：摘要列出兩條的短標籤',
+  [rulesPanelCollapsedHTML.includes('底力技'), rulesPanelCollapsedHTML.includes('營地活動')],
+  [true, true]);
+// 這是收合的**目的**：欄位不在 DOM 裡，第一屏才空得出來
+check('自訂＋收合：欄位沒有被畫出來（收合是真的收合，不是視覺遮住）',
+  [rulesPanelCollapsedHTML.includes('開放底力技'), rulesPanelCollapsedHTML.includes('開放的手冊')],
+  [false, false]);
+check('自訂＋收合：標題列的「自訂」徽章仍在（收合也要看得出不是官方標準）',
+  rulesPanelCollapsedHTML.includes('自訂'), true);
+check('自訂＋收合：標題列寫「展開」（告訴使用者怎麼看細節）',
+  rulesPanelCollapsedHTML.includes('展開'), true);
+
+// 超過 5 條要收成「＋N」——摘要太長就失去「一眼」的意義
+const manyDiff = {
+  allowQuirk: true, allowCustomWeapon: true, startingHeroicSkill: true,
+  allowPlaytest: true, initiativeVariant: true, zeroPowers: true, campActivities: true
+};
+const rulesPanelManyHTML = renderToStaticMarkup(React.createElement(CreationRulesPanel, {
+  rules: resolveCreationRules(manyDiff), diff: manyDiff, onChange: () => {}, theme: {}
+}));
+check('7 條差異時：總數照實寫 7', rulesPanelManyHTML.includes('與官方標準不同 7 條'), true);
+check('7 條差異時：多出來的收成「＋2」（7 - 5）', rulesPanelManyHTML.includes('＋2'), true);
+check('7 條差異時：第 6、7 條的標籤不直接列出',
+  [rulesPanelManyHTML.includes('>底力技<'), rulesPanelManyHTML.includes('>營地活動<')],
+  [false, false]);
+
+// 摘要的來源必須是「解析後算出來的 diff」，不是角色身上的原始存檔。
+// 原始存檔會留著「開過又關掉」的欄位（下面 allowPlaytest: false 就是），
+// 直接數它會報出根本不存在的差異——面板收合後這行是唯一的線索，報錯就是騙人。
+const staleDiffHTML = renderToStaticMarkup(React.createElement(CreationRulesPanel, {
+  rules: resolveCreationRules({ zeroPowers: true }),
+  diff: { zeroPowers: true, allowPlaytest: false, campActivities: false },
+  onChange: () => {},
+  theme: {}
+}));
+check('存檔留著「開過又關掉」的欄位時，摘要只算真正不同的那一條',
+  staleDiffHTML.includes('與官方標準不同 1 條'), true);
+check('被關掉且等於預設的公測修訂不出現在摘要裡',
+  staleDiffHTML.includes('公測修訂'), false);
+
+// 魔晶石開啟時，職業數是派生值（原書 p.134 的「恰好三個」），不是 GM 調的
+// → 不該進摘要，否則 GM 會以為自己動過那兩個數字
+const techDiffHTML = renderToStaticMarkup(React.createElement(CreationRulesPanel, {
+  rules: resolveCreationRules({ technospheres: 'full', classCountMin: 3, classCountMax: 3 }),
+  diff: { technospheres: 'full', classCountMin: 3, classCountMax: 3 },
+  onChange: () => {},
+  theme: {}
+}));
+check('魔晶石開啟時：派生的職業數下限不進摘要', techDiffHTML.includes('職業數下限'), false);
+check('魔晶石開啟時：派生的職業數上限不進摘要', techDiffHTML.includes('職業數上限'), false);
+check('魔晶石開啟時：摘要仍算得到魔晶石那一條', techDiffHTML.includes('魔晶石'), true);
+
+// 極端情況：`isDefault` 與摘要來源不同層（後者不列 defaultSourcebooks），
+// 可能出現「自訂但一條都數不出來」。那時候寧可不寫，也不要寫「不同 0 條」。
+const zeroChipHTML = renderToStaticMarkup(React.createElement(CreationRulesPanel, {
+  rules: resolveCreationRules({ defaultSourcebooks: ['core'] }),
+  diff: { defaultSourcebooks: ['core'] },
+  onChange: () => {},
+  theme: {}
+}));
+check('數不出任何一條時不渲染摘要（不寫「不同 0 條」）',
+  zeroChipHTML.includes('與官方標準不同 0 條'), false);
+
 
 // 行為驗證：開關真的決定「秘儀師【變體】能不能選」
 const renderPickerWithRules = (creationRules, enabledBooks) => renderToStaticMarkup(React.createElement(ClassPickerModal, {
@@ -1404,6 +1545,63 @@ check('兩組都選了確定鈕才可以按', plantFull.includes('disabled=""'),
 check('多組的 checked 標在已選的那兩項',
   (plantFull.match(/checked=""/g) || []).length >= 2, true);
 
+// ─────────────────────────────────────────────────────────── CH
+// §CH（2026-10-26 P11 / F-026）：多組金手指選項必須互斥。
+//
+// 原書兩處明文：
+//   - 元素之魂 第二組標籤：「選擇另一種你易傷的傷害類型（不可與上面相同）」
+//   - 通智幽魂：「選擇 2 種傷害類型…獲得從上述傷害類型中的第 3 種易傷」
+// 修之前介面完全不擋；玩家兩組選同一個屬性時，引擎把重複的抗性去重成一筆，
+// **少掉的那一個抗性沒有任何提示**——比報錯更糟，因為它看起來成功了。
+//
+// 判準是「選項 id 是否已被別組選走」，不是逐個金手指寫例外：
+// 草木成精兩組的 id 分屬狀態與傷害類型，本來就不會撞，所以必須**不受影響**。
+const soulClash = quirkBody('元素之魂', { resist: '火' });
+const soulClean = quirkBody('元素之魂', { resist: '火', vuln: '冰' });
+const ghostClash = quirkBody('通智幽魂', { resist1: '火' });
+const plantClash = quirkBody('草木成精', { immune: '眩暈' });
+
+// ※ 不要用「html 裡有沒有『不能重複』這幾個字」斷言——那一行在**別的**選項上
+//   本來就會合法出現（選了火，易傷組的火就被擋），裸字串守衛會變成空的。
+//   改成逐組數「有幾個選項被禁用」。
+//
+// 掃描範圍要先切掉頁尾（「一個角色只能擁有一個金手指」之後是確定鈕，
+// 它自己也有 disabled，會被算進最後一組）。
+// React SSR 的屬性順序是 type／class／name／checked／disabled，
+// 所以不能靠切 `name="..."` 取區段——disabled 落在切點之後，
+// 用 `/>` 截斷反而會把它切掉。改成「看到組標記就換組、看到 disabled 就記一筆」。
+const disabledPerGroup = (html) => {
+  const box = html.split('一個角色只能擁有一個金手指')[0];
+  const out = {};
+  const re = /data-testid="quirk-group-([^"]+)"|disabled=""/g;
+  let cur = null;
+  let m;
+  while ((m = re.exec(box)) !== null) {
+    if (m[1]) {
+      cur = m[1];
+      out[cur] = out[cur] || 0;
+    } else if (cur) {
+      out[cur] += 1;
+    }
+  }
+  return out;
+};
+
+check('元素之魂：抗性選火 → 易傷組剛好擋掉 1 個（火）',
+  disabledPerGroup(soulClash), { resist: 0, vuln: 1 });
+check('通智幽魂：第一種抗性選火 → 另外兩組各擋掉 1 個（火）',
+  disabledPerGroup(ghostClash), { resist1: 0, resist2: 1, vuln: 1 });
+check('元素之魂：抗性火／易傷冰 → 兩組各擋 1 個，選到的冰本身沒有被擋',
+  disabledPerGroup(soulClean), { resist: 1, vuln: 1 });
+check('元素之魂：已選中的那一項不會被自己擋掉',
+  soulClean.includes('checked="" disabled=""'), false);
+check('草木成精：兩組 id 不同領域，完全不會互相誤擋（眩暈／火 可以同時選）',
+  disabledPerGroup(plantClash), { immune: 0, vuln: 0 });
+check('單組金手指不受互斥影響（倖存者三個選項都能選）',
+  disabledPerGroup(quirkNoChoice), { default: 0 });
+check('被擋掉的選項有寫原因，不是只變灰',
+  quirkBody('元素之魂', { resist: '火' }).includes('上面已經選了，不能重複'), true);
+
 // ── 金手指相性（§CG）：引擎算了，介面要說出來
 const zombieHtml = renderEditorAt(4, { quirk: '亡者歸來' });
 const plainHtml = renderEditorAt(4);
@@ -1413,6 +1611,194 @@ check('沒有相性時整塊不渲染',
   plainHtml.includes('data-testid="quirk-affinities"'), false);
 check('亡者歸來的免疫／易傷／狀態免疫都寫出來',
   ['傷害免疫', '易傷', '狀態免疫'].every((s) => zombieHtml.includes(s)), true);
+
+// ─────────────────────────────────────────────────────────── BK
+// §BK（2026-10-26 P4c）：群 A 重構——F-004／F-005／F-010。
+//
+// 三條同源：**「完成創角」在畫面上沒有單一定義**。
+//   F-010：頁首數「有 error 的步驟數」、自檢卡數「error 條數」、導航列每步一個圓點
+//          ——三個數字分母不同卻長得像同一件事（空卡 R01：2／2／5 個點）。
+//   F-004：頁尾那顆「完成創角，進入跑團面板」不定稿、不檢查、也不設 locked。
+//   F-005：灰掉的按鈕只說「定稿後會怎樣」，沒說「現在為什麼不能按」。
+//
+// 修法：全部從 `deriveCreationState()` 出來，並且讓每個數字都說清楚自己在數什麼。
+section('BK. 創角狀態單一來源：三個數字不准再各算各的（F-004／F-005／F-010）');
+
+/** 渲染整個編輯器（含頁尾的「先去看跑團面板」，所以一定要傳 `onEnterPlayMode`） */
+const renderEditorFull = (tab, over = {}, rules = null) => renderToStaticMarkup(React.createElement(CharacterEditor, {
+  character: createNewCharacter({ name: '', startingFundsRolled: false, ...over }),
+  themeId: 'emerald',
+  onChange: () => {},
+  showToast: () => {},
+  initialTab: tab,
+  onEnterPlayMode: () => {},
+  ...(rules ? { creationRules: rules } : {})
+}));
+
+/** 一張真的填完、可以定稿的卡 */
+const FILLED = {
+  identity: '見習搬運工', theme: '使命感', origin: '礦坑小鎮',
+  classes: [
+    { className: '守護者', level: 2, skills: [{ name: '保鏢', sl: 1 }, { name: '防守掌握', sl: 1 }] },
+    { className: '元素師', level: 2, skills: [{ name: '元素魔法', sl: 1 }] }
+  ],
+  attributes: { dex: 8, ins: 6, mig: 10, wlp: 6 },
+  startingFundsRolled: true, name: '阿草', gender: '女', background: '搬了十年礦石'
+};
+
+/** 按鈕的**可見文字**（不含 title 等屬性）——「哪幾顆按鈕叫這個名字」要問的是文字，不是屬性 */
+const buttonTexts = (html) => [...html.matchAll(/<button[^>]*>([\s\S]*?)<\/button>/g)]
+  .map((m) => m[1].replace(/<[^>]*>/g, '').trim());
+
+/** 取某個 data-testid 元素的可見文字 */
+const testIdText = (html, id) => {
+  const m = html.match(new RegExp(`data-testid="${id}"[^>]*>([^<]*)<`));
+  return m ? m[1].trim() : null;
+};
+
+/** 取某個 data-testid 元素的開標籤（要看 disabled 這類屬性） */
+const testIdTag = (html, id) => {
+  const m = html.match(new RegExp(`<button[^>]*data-testid="${id}"[^>]*>`));
+  return m ? m[0] : null;
+};
+
+/** 取任意元素的開標籤（不限定 button） */
+const testIdAnyTag = (html, id) => {
+  const m = html.match(new RegExp(`<[a-z]+[^>]*data-testid="${id}"[^>]*>`));
+  return m ? m[0] : null;
+};
+
+/** 取某個 data-testid 按鈕的**可見文字**（去掉裡面那個 SVG 圖示） */
+const testIdButtonText = (html, id) => {
+  const m = html.match(new RegExp(`<button[^>]*data-testid="${id}"[^>]*>([\\s\\S]*?)</button>`));
+  return m ? m[1].replace(/<[^>]*>/g, '').trim() : null;
+};
+
+const emptyChar = { ...createNewCharacter({ name: '', startingFundsRolled: false }) };
+const emptyState = deriveCreationState(emptyChar, resolveCreationRules({}));
+const filledChar = { ...createNewCharacter(FILLED) };
+const filledState = deriveCreationState(filledChar, resolveCreationRules({}));
+
+// ── A. 單一來源：兩個計數加起來必須等於全部訊息，一條都不能漏
+check('blockerCount ＋ suggestionCount ＝ 全部 warnings（沒有訊息被漏掉）',
+  emptyState.blockerCount + emptyState.suggestionCount, emptyState.validation.warnings.length);
+check('canLock 就是「沒有必須修正的項目」',
+  emptyState.canLock, emptyState.blockerCount === 0);
+check('填完的卡 canLock 為 true', filledState.canLock, true);
+check('填完的卡 blockerCount 為 0', filledState.blockerCount, 0);
+check('checklist 恰好 6 步', emptyState.checklist.length, 6);
+check('checklistById 與 checklist 同步', emptyState.checklistById.size, 6);
+
+// 這條是 F-010 的核心：頁首以前數「**步驟數**」，而每步可能有 2 條 error。
+// 所以「每步的 errorCount 加起來」必須等於「頁首的數字」——以前沒有人做這個加法。
+check('每步 errorCount 加總 ＝ blockerCount（頁首數的是條數，不是步驟數）',
+  emptyState.checklist.reduce((s, step) => s + step.errorCount, 0), emptyState.blockerCount);
+check('每步 issueCount 加總 ＝ 全部 warnings',
+  emptyState.checklist.reduce((s, step) => s + step.issueCount, 0), emptyState.validation.warnings.length);
+check('blockerSteps 恰等於 checklist 裡 status=error 的步驟',
+  emptyState.blockerSteps,
+  emptyState.checklist.filter((s) => s.status === 'error').map((s) => s.id));
+
+// ── B. 畫面上只有一組數字（F-010）
+const emptyHtml = renderEditorFull(1);
+const emptyTab6 = renderEditorFull(6);
+const techHtml = renderEditorFull(1, {}, { technospheres: 'full' });
+const techState = deriveCreationState(
+  { ...createNewCharacter({ name: '', startingFundsRolled: false }), creationRules: { technospheres: 'full' } },
+  resolveCreationRules({ technospheres: 'full' })
+);
+const filledHtml = renderEditorFull(6, FILLED);
+
+const headerNumber = (html) => {
+  const m = html.match(/還有 (\d+) 項必須修正/);
+  return m ? Number(m[1]) : null;
+};
+const badgeNumber = (html, id) => {
+  const t = testIdText(html, id);
+  const m = t && t.match(/(\d+)/);
+  return m ? Number(m[1]) : null;
+};
+
+check('空卡：頁首說「2 項必須修正」', headerNumber(emptyHtml), emptyState.blockerCount);
+check('空卡：自檢徽章與頁首同一個數字',
+  badgeNumber(emptyHtml, 'validation-badge'), headerNumber(emptyHtml));
+check('空卡：快捷列的緊湊徽章也同一個數字',
+  badgeNumber(emptyHtml, 'validation-badge-compact'), headerNumber(emptyHtml));
+check('空卡：頁首同時講「另有 N 項提醒」（不是只講擋定稿的那個）',
+  emptyHtml.includes(`另有 ${emptyState.suggestionCount} 項提醒`), true);
+
+// 魔晶石模式是原本最容易露餡的一組：頁首 2、自檢 3（第 2 步有兩條 error）
+check('魔晶石卡：blockerCount 是 3（第 2 步有兩條 error，不是一個步驟算一項）',
+  techState.blockerCount, 3);
+check('魔晶石卡：頁首也說 3（以前永遠說 2）', headerNumber(techHtml), 3);
+check('魔晶石卡：自檢徽章也說 3（不再跟頁首打架）',
+  badgeNumber(techHtml, 'validation-badge'), headerNumber(techHtml));
+
+check('填完的卡：頁首不再說「還有 N 項必須修正」', headerNumber(filledHtml), null);
+check('填完的卡：徽章寫「N 項提醒」而不是「0 項必須修正」',
+  testIdText(filledHtml, 'validation-badge'), `${filledState.suggestionCount} 項提醒`);
+
+// ── C. 圖例與每步的數字（F-010 的另一半：橘點到底要不要管？）
+// 用 testid 定位圖例，不用「HTML 裡有『必須修正』」——
+// 頁首、徽章、每步 title 都有那四個字，那種斷言等於沒斷言。
+check('導航列有圖例（找得到那一塊）', testIdAnyTag(emptyHtml, 'checklist-legend') !== null, true);
+check('圖例說明紅色是「必須修正」', testIdText(emptyHtml, 'legend-blocking'), '必須修正');
+check('圖例說明琥珀色是「提醒」', testIdText(emptyHtml, 'legend-reminder'), '提醒');
+check('導航列圖例用的是琥珀色，不是第二個深紅（兩個點原本看不出差別）',
+  [emptyHtml.includes('bg-[#8c2d36]'), emptyHtml.includes('bg-[#9c4d16]')], [true, true]);
+check('六個步驟每一步的 title 都寫「第 N 步：」',
+  (emptyHtml.match(/第 \d+ 步：/g) || []).length, 6);
+check('有必須修正項目的那一步，title 說出它有幾項',
+  emptyHtml.includes('第 2 步：1 項必須修正') || emptyHtml.includes('第 4 步：1 項必須修正'), true);
+check('只有提醒的步驟，title 明說「不擋定稿」',
+  emptyHtml.includes('不擋定稿'), true);
+
+// ── D. F-004：只有一顆按鈕叫「完成創角」，而且它有閘門
+// 頁尾那顆以前叫「完成創角，進入跑團面板」——名字幾乎一樣，行為卻相反。
+// 修法不是拿掉它（先去看看面板是合理需求），是讓它改名。
+check('按鈕可見文字裡，「完成創角」只出現一次（只剩定稿那一顆）',
+  buttonTexts(emptyTab6).filter((t) => t.includes('完成創角')).length, 1);
+check('頁尾那顆改名為「先去看跑團面板（尚未定稿）」',
+  (testIdButtonText(emptyTab6, 'enter-play-preview') || '').includes('先去看跑團面板'), true);
+check('頁尾那顆的文字註明「尚未定稿」',
+  (testIdButtonText(emptyTab6, 'enter-play-preview') || '').includes('尚未定稿'), true);
+// 這一條刻意用 testid 定位，不用「文字含跑團面板」去找——
+// 快捷操作區也有一顆「跑團面板」，用文字找會抓到那一顆，護欄就永遠通過。
+check('頁尾那顆的文字不含「完成創角」',
+  (testIdButtonText(emptyTab6, 'enter-play-preview') || '').includes('完成創角'), false);
+// 閘門：有必須修正的項目時，定稿鈕必須停用
+check('有必須修正項目時，定稿鈕是停用的',
+  /disabled=""/.test(testIdTag(emptyTab6, 'lock-character') || ''), true);
+check('填完的卡：定稿鈕可以按',
+  /disabled=""/.test(testIdTag(filledHtml, 'lock-character') || ''), false);
+check('定稿鈕的文字是「完成創角」', testIdButtonText(emptyTab6, 'lock-character'), '完成創角');
+
+// ── E. F-005：按不下去時要說得出原因
+const lockTitle = (html) => {
+  const tag = testIdTag(html, 'lock-character');
+  const m = tag && tag.match(/title="([^"]*)"/);
+  return m ? m[1] : null;
+};
+check('灰掉的定稿鈕，title 說「尚缺」而不是「定稿後會怎樣」',
+  (lockTitle(emptyTab6) || '').includes('尚缺'), true);
+check('灰掉的定稿鈕，title 列出實際缺口名稱',
+  (lockTitle(emptyTab6) || '').includes(emptyState.blockerLabels[0]), true);
+check('灰掉的定稿鈕，title 指出去哪裡看詳情',
+  (lockTitle(emptyTab6) || '').includes('規則自檢'), true);
+check('可以定稿時，title 不含「尚缺」',
+  (lockTitle(filledHtml) || '').includes('尚缺'), false);
+check('可以定稿時，title 仍說明定稿的後果（沒有連正常態一起改掉）',
+  (lockTitle(filledHtml) || '').includes('凍結'), true);
+
+// ── F. shortIssueLabel：把長訊息壓成一行（title 塞不下括號補充與破折號解釋）
+check('切在括號前', shortIssueLabel('尚未選擇任何職業 (起始 5 級需配置 2~3 個職業)'), '尚未選擇任何職業');
+check('切在破折號前',
+  shortIssueLabel('起始資金尚未結算（原書 p.165）——目前顯示的 500z 是裝備預算'), '起始資金尚未結算');
+check('沒有可切的地方就原樣回傳', shortIssueLabel('角色尚未填寫姓名'), '角色尚未填寫姓名');
+check('空字串不會爆', shortIssueLabel(''), '');
+check('null 不會爆', shortIssueLabel(null), '');
+check('太長會截斷並加刪節號',
+  shortIssueLabel('這是一條非常非常非常非常非常非常長的訊息沒有標點可以切').endsWith('…'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

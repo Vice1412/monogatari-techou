@@ -20,11 +20,21 @@
  *
  * 預設收合——平常開卡的人不需要一直看到它；展開後才是 GM 需求的那幾格。
  * 這是**團務需求**，不是玩家的角色選擇，所以標題寫「此團」而不是「我的」。
+ *
+ * ## 為什麼自訂時也不自動展開（2026-10-26 改）
+ *
+ * 舊版是「自訂時自動展開」，理由是「否則你只會看到一張跟別人不一樣的卡，
+ * 卻不知道是哪條規則造成的」。那個**目的**是對的，但**手段**太貴：
+ * 這塊面板在編輯器裡是常駐的，一展開就吃掉每一頁第一屏的一半，
+ * 而 GM 的 20 張卡幾乎每一張都是自訂的（`00-plan.md` §12.6.2 的人眼判定）。
+ *
+ * 所以改成「**收合 ＋ 一行差異摘要**」：目的（一眼知道哪幾條不同）由那行標籤承擔，
+ * 成本從「半個螢幕」降到「一行」。要改的時候再展開。
  */
 import React, { useState } from 'react';
 import { GiScrollQuill } from 'react-icons/gi';
 import { SOURCEBOOKS } from '../data/sourcebookConfig';
-import { isDefaultCreationRules, DEFAULT_CREATION_RULES, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
+import { isDefaultCreationRules, resolveCreationRules, diffCreationRules, DEFAULT_CREATION_RULES, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
 import {
   TECHNOSPHERE_MODE_OPTIONS,
   getIntegratedMnemosphereCap,
@@ -87,12 +97,104 @@ const TECHNOSPHERE_FIELD = {
   hint: '科技奇幻手冊 p.132–145；開啟後職業固定三個且不得新增'
 };
 
-export default function CreationRulesPanel({ rules, diff = {}, onChange, theme = {}, disabled = false }) {
-  // 官方標準時收合（開卡的人不需要一直看到它）；**自訂時自動展開**——
-  // 否則你只會看到一張「跟別人不一樣」的卡，卻不知道是哪條規則造成的。
-  const [open, setOpen] = useState(() => !isDefaultCreationRules(rules));
+/**
+ * 差異摘要用的短標籤。
+ * 只為了「一眼知道哪幾條跟官方標準不同」，所以用最短的稱呼，
+ * 不是面板上的完整標題（例如面板寫「開放底力技」，這裡只寫「底力技」）。
+ */
+const SHORT_LABELS = Object.freeze({
+  allowQuirk: '金手指',
+  allowCustomWeapon: '定制武器',
+  startingHeroicSkill: '開局英雄技能',
+  allowPlaytest: '公測修訂',
+  initiativeVariant: '先攻變體',
+  zeroPowers: '底力技',
+  campActivities: '營地活動',
+  requiredClasses: '必修職業',
+  startingLevel: '起始等級',
+  classCountMin: '職業數下限',
+  classCountMax: '職業數上限',
+  startingZenit: '起始資金',
+  skillPointBudget: '技能點數'
+});
+
+/**
+ * 這一條是不是「別的設定派生出來的」？
+ *
+ * 判準：**把它拿掉，實際生效的規則會不會變？** 不會 → 它只是結果，不是 GM 的決定。
+ *
+ * 為什麼需要這條：摘要的職責是回答「這張卡哪裡跟官方標準不一樣」，
+ * 而有些欄位的差異是**算出來的**，不是設出來的——
+ *   - 起始等級改 8 → 起始資金自動變 900z、技能點數自動變 8
+ *   - 開魔晶石 → 職業數固定 3
+ *   - 開公測修訂 → 手冊清單自動多一本
+ * 把這些都算進「不同 N 條」，GM 會以為自己動過一堆沒動過的東西。
+ * 逐欄位寫例外清單會在下次新增規則時安靜失效，所以改用這個通用判準。
+ */
+const isDerivedRule = (rules, key) => {
+  const without = { ...rules };
+  delete without[key];
+  return JSON.stringify(resolveCreationRules(without)) === JSON.stringify(resolveCreationRules(rules));
+};
+
+/**
+ * 把這張卡的 `creationRules` 翻成「跟官方標準不同」的短標籤。
+ *
+ * 純函式，不碰 React——護欄測試直接呼叫它，不必渲染元件。
+ * 輸入是角色身上那份 `creationRules`（存的是與預設不同的欄位 diff），
+ * 不是已經解析過的規則；內部自己走 `diffCreationRules`，所以「開過又關掉」的
+ * 殘留欄位（例如 `allowPlaytest: false`）不會被算成一條差異。
+ *
+ * `defaultSourcebooks` 不列：它與 `allowedSourcebooks` 講同一件事，列兩次只會讓摘要變長。
+ */
+export const describeRulesDiff = (rules = {}) => {
+  const out = [];
+  for (const [key, value] of Object.entries(diffCreationRules(rules))) {
+    if (key === 'defaultSourcebooks') continue;
+    if (isDerivedRule(rules, key)) continue;
+    if (key === 'technospheres') {
+      const mode = TECHNOSPHERE_MODE_OPTIONS.find((m) => m.key === value);
+      out.push(mode && mode.key !== 'off' ? `魔晶石：${mode.label}` : '魔晶石：不使用');
+      continue;
+    }
+    if (key === 'allowedSourcebooks') {
+      // 公測修訂是獨立開關，它會自動把 playtest 塞進這份清單——那不是手冊數，
+      // 摘要已經有「公測修訂」那一條了。所以算本數時把它扣掉。
+      const books = (Array.isArray(value) ? value : []).filter((k) => k !== PLAYTEST_SOURCEBOOK_KEY);
+      out.push(`手冊 ${books.length} 本`);
+      continue;
+    }
+    out.push(SHORT_LABELS[key] || key);
+  }
+  return out;
+};
+
+/** 摘要最多顯示幾個標籤；多的收成「＋N」。太長就失去「一眼」的意義。 */
+const DIFF_SUMMARY_MAX = 5;
+
+/**
+ * `defaultOpen` 是**起始狀態**，不是受控 prop（之後由使用者點標題列自己決定）。
+ * 預設 false：面板在編輯器裡是常駐的，一展開就吃掉每一頁第一屏的一半。
+ * 需要直接看到展開態的場合（護欄測試、截圖比對）才傳 true。
+ */
+export default function CreationRulesPanel({
+  rules,
+  diff = {},
+  onChange,
+  theme = {},
+  disabled = false,
+  defaultOpen = false
+}) {
+  // 自訂時**不再自動展開**——改由下面那行差異摘要承擔「一眼知道哪裡不同」。
+  // 理由寫在檔頭（吃掉每一頁第一屏的成本太高）。
+  const [open, setOpen] = useState(defaultOpen);
   const [classPickerOpen, setClassPickerOpen] = useState(false);
   const isDefault = isDefaultCreationRules(rules);
+  // 摘要吃的是角色身上那份 `creationRules`（`diff` prop）——`describeRulesDiff`
+  // 自己會先走 `diffCreationRules` 濾掉「開過又關掉」的殘留，再逐條判斷是不是派生的。
+  const diffChips = describeRulesDiff(diff);
+  const shownChips = diffChips.slice(0, DIFF_SUMMARY_MAX);
+  const hiddenChipCount = diffChips.length - shownChips.length;
 
   // 魔晶石開啟時，職業數是**派生值**（原書 p.134 的「恰好三個」），不是 GM 可調的欄位。
   // 所以這裡把兩個數字框鎖住——讓它們看起來可以改，等於讓一條規則自己打自己。
@@ -152,6 +254,37 @@ export default function CreationRulesPanel({ rules, diff = {}, onChange, theme =
           {open ? '收起' : '展開'}
         </span>
       </button>
+
+      {/* 差異摘要：收合時才顯示。目的與舊版「自訂就自動展開」相同——
+          讓你知道這張卡哪裡跟別人不一樣——但只花一行，不佔半個螢幕。
+          `diffChips.length > 0` 是必要的：`isDefault` 與摘要來源不同層
+          （前者比全部欄位，後者不列 `defaultSourcebooks`），
+          極端情況下會出現「自訂但數不出任何一條」——那時候寫「不同 0 條」比不寫更糟。 */}
+      {!open && !isDefault && diffChips.length > 0 && (
+        <div
+          className="px-4 pb-2.5 flex items-center gap-1.5 flex-wrap border-t"
+          style={{ borderColor: theme.border }}
+          data-testid="rules-diff-summary"
+        >
+          <span className="text-t10 font-bold shrink-0" style={{ color: theme.textMuted }}>
+            與官方標準不同 {diffChips.length} 條：
+          </span>
+          {shownChips.map((label) => (
+            <span
+              key={label}
+              className="text-t10 px-1.5 py-0.5 rounded border font-bold"
+              style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
+            >
+              {label}
+            </span>
+          ))}
+          {hiddenChipCount > 0 && (
+            <span className="text-t10 font-bold" style={{ color: theme.textMuted }}>
+              ＋{hiddenChipCount}
+            </span>
+          )}
+        </div>
+      )}
 
       {open && (
         <div className="px-4 pb-4 pt-1 space-y-4 border-t" style={{ borderColor: theme.border }}>

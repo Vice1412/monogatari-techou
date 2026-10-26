@@ -139,6 +139,36 @@ check('幸運數字有重置按鈕', !!lnDef.resetLabel, true);
 check('幸運數字重置為 7', lnDef.resetTo, 7);
 check('幸運數字 resetTo 等於 initial', lnDef.resetTo, lnDef.initial);
 
+// ─────────────────────────────────────────────────────────── I
+section('I. 貿易點數起點 2 點（playtest P4 的 F-019）');
+// 原書 Natural Fantasy p.159：「If you gain this Skill at character creation,
+// you start the game with 2 Trade Points.」
+// → 這是**開卡時的起點**，不是每次聚會的重置值，所以住 `initial` 不住 `resetTo`。
+check('定義裡標了 initial: 2', tpDef.initial, 2);
+check('起點不是用 resetTo 表達（原書沒有清空規則）', tpDef.resetTo, null);
+// bug 的成因：`initial` 原本只傳給單值型，池型一律變成 null，
+// 於是商人一輩子顯示 0 點，玩家只能自己記在紙上。
+check('池型資源也要把 initial 傳出來（不是 null）', tp.initial, 2);
+check('沒有 initial 的池仍為 null（墳墓點不該憑空長出起點）', gp.initial, null);
+
+// 讀取：分清楚「沒填過」與「填成 0」
+check('商人從未記過 -> 2（不是 0）', readResource(mkChar([MERCHANT]), tp), 2);
+check('記成 0 -> 就是 0（花光了不會復活成 2）',
+  readResource(mkChar([MERCHANT], { tradePoints: 0 }), tp), 0);
+check('記成 3 -> 3', readResource(mkChar([MERCHANT], { tradePoints: 3 }), tp), 3);
+check('超過上限 -> 夾到上限 5', readResource(mkChar([MERCHANT], { tradePoints: 99 }), tp), 5);
+check('起點本身也夾在上限內（SL 若被改小也不會超過）',
+  readResource(mkChar([MERCHANT]), { ...tp, max: 1 }), 1);
+// 修 F-019 不能順手把別的池一起改成 2
+check('墳墓點從未記過仍是 0（沒被順手改壞）', readResource(mkChar([NECRO]), gp), 0);
+
+// 寫入：非數字時退回起點，不是硬性 0
+check('池：非數字 -> 退回起點 2', clampResource(tp, 'abc'), 2);
+check('池：負數 -> 0（花到 0 是合法的，不是錯誤輸入）', clampResource(tp, -5), 0);
+check('池：正常值', clampResource(tp, 4), 4);
+check('池：超過上限 -> 5', clampResource(tp, 99), 5);
+check('沒有起點的池：非數字仍是 0（沒被順手改壞）', clampResource(gp, 'abc'), 0);
+
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
 console.log(`\n${'='.repeat(56)}`);

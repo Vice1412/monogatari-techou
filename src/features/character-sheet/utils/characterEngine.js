@@ -2264,6 +2264,96 @@ export const buildCreationChecklist = (char, rules = DEFAULT_CREATION_RULES) => 
 };
 
 /**
+ * 把一條驗證訊息壓成「一句話的開頭」，給 `title` 這種只能塞一行的地方用。
+ *
+ * 原文常帶括號補充與破折號解釋，整條塞進 tooltip 會爆版。例：
+ *   起始資金尚未結算（原書 p.165：剩餘預算 ＋ 2d6 × 10）——目前顯示的 500z 是裝備預算…
+ *   → 起始資金尚未結算
+ *
+ * 切在第一個「（／(／——／；」之前。**不切在句尾**：有些訊息本來就只有一句，
+ * 硬截會截掉主詞。所以再加一道長度上限，超過才加「…」。
+ */
+const ISSUE_LABEL_CUT = /[（(；;]|——/;
+const ISSUE_LABEL_MAX = 24;
+
+export const shortIssueLabel = (message) => {
+  const text = String(message || '').trim();
+  if (!text) return '';
+  const cut = text.search(ISSUE_LABEL_CUT);
+  const head = (cut > 0 ? text.slice(0, cut) : text).trim();
+  return head.length > ISSUE_LABEL_MAX ? `${head.slice(0, ISSUE_LABEL_MAX)}…` : head;
+};
+
+/** 「按不下去時要說得出原因」——`title` 最多列幾條（其餘收成「…等 N 項」）。 */
+const LOCK_HINT_MAX_ITEMS = 3;
+
+/**
+ * 創角狀態的**單一來源**（2026-10-26，群 A 重構：F-004／F-005／F-010）。
+ *
+ * ## 為什麼要有這個函式
+ *
+ * 在此之前，畫面上同時存在**三個各自計算的數字**，而且分母不一樣：
+ *
+ * | 位置 | 算什麼 | 空卡 R01 | 空卡 R05（魔晶石） |
+ * |---|---|---|---|
+ * | 頁首「還有 N 項未符合規則」 | **有 error 的步驟數** | 2 | **2**（沒跟上） |
+ * | 左側「N 項待修正」 | **error 訊息條數** | 2 | **3** |
+ * | 導航列圓點 | 每步一個（紅＝有 error／橘＝只有提醒） | 2 紅 3 橘 | 2 紅 3 橘 |
+ *
+ * 三個數字都「對」，只是回答不同問題；但畫面上長得像是同一件事，
+ * 於是玩家問「5 個橘點，但只有 2 項？那 3 個橘點是不用管的嗎？」。
+ *
+ * 修法不是「把三個數字調成一樣」（步驟數與訊息條數本來就不會相等——
+ * 第 2 步可能有兩條 error，那是 2 項、1 步），而是**讓每一個數字都說清楚自己在數什麼**，
+ * 而且**全部從這裡出來**，不再各自 `filter` 一遍。
+ *
+ * ## 兩個計數的定義
+ *
+ * - `blockerCount`＝**必須修正**的條數（`type === 'error'`）。歸零才能定稿。
+ * - `suggestionCount`＝**提醒**的條數（`warning` ＋ `info`）。不擋定稿。
+ *
+ * 這兩個加起來才是 `validation.warnings.length`。以前頁首只數前者、
+ * 自檢卡在沒有 error 時只數後者，所以同一張卡會看到「2」和「10」兩個數字。
+ */
+export const deriveCreationState = (char, rules = null) => {
+  const validation = validateCharacter(char, rules);
+  const checklist = buildCreationChecklist(char, rules);
+
+  const blockers = validation.errors;
+  const suggestions = validation.warnings.filter((w) => w.type !== 'error');
+  const blockerSteps = [...new Set(blockers.map((b) => b.step))].sort((a, b) => a - b);
+  const suggestionSteps = [...new Set(suggestions.map((s) => s.step))].sort((a, b) => a - b);
+  const blockerLabels = blockers.map((b) => shortIssueLabel(b.message));
+
+  const canLock = blockers.length === 0;
+
+  // F-005：灰掉的按鈕原本只說「定稿後會怎樣」，沒說「現在為什麼不能按」。
+  // 這裡把缺口直接寫進 title——想定稿的人不必自己去左側翻詳情。
+  const lockHint = canLock
+    ? '定稿後創角欄位凍結，只留成長相關欄位'
+    : `尚缺：${blockerLabels.slice(0, LOCK_HINT_MAX_ITEMS).join('、')}${
+      blockerLabels.length > LOCK_HINT_MAX_ITEMS
+        ? `…等 ${blockerLabels.length} 項`
+        : ''
+    } —— 點左側「規則自檢」看詳情`;
+
+  return {
+    validation,
+    checklist,
+    checklistById: new Map(checklist.map((item) => [item.id, item])),
+    blockers,
+    suggestions,
+    blockerSteps,
+    suggestionSteps,
+    blockerCount: blockers.length,
+    suggestionCount: suggestions.length,
+    blockerLabels,
+    canLock,
+    lockHint
+  };
+};
+
+/**
  * 導出至戰鬥輪次追蹤器 (CombatTracker)
  */
 export const exportCharacterToCombatant = (char) => {

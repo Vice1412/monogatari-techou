@@ -14,8 +14,7 @@ import { ATTRIBUTE_PRESET_ARRAYS, ATTRIBUTE_NAMES, ATTRIBUTE_KEYS } from '../dat
 import { ATTRIBUTE_DICE_TIERS } from '../utils/characterEngine';
 import {
   buildTrayPool,
-  assignPoolInOrder,
-  applyPreset as applyPresetToPool
+  assignPoolInOrder
 } from '../utils/attributePresets';
 
 /**
@@ -28,11 +27,12 @@ import {
  * 骰階是**量**（同一個屬性的強弱），不是**身份**（DEX／INS／MIG／WLP）。
  * 量用深淺與粗細說，身份才用色相說；把兩者混在一起，畫面就有兩個互相競爭的色系。
  *
- * 現在是單調階梯，四階只有一件事在變——離「實心強調色」有多遠：
- *   d12  實心 accent ＋ 白字        ← 全頁唯一實心強調色，最強階自己站出來
- *   d10  accent 描邊 ＋ accent 字
- *   d8   羊皮紙描邊 ＋ 墨字
- *   d6   內凹底 ＋ 三級墨（最弱階退到背景裡）
+ * 現在是負形（Negative Space）實體骰塊：
+ * 四階皆為實心負形方塊，文字與多面骰圖示皆為負形反白（#fffdf9），如真實實體骰子般立體且清晰可辨：
+ *   d12  深緋紅（#8c3235）實心 ＋ 白字    ← 等級上限升級頂階（皇室深血紅）
+ *   d10  強調紅（#a63d40）實心 ＋ 白字    ← 創角起始陣列最高階（醒目強調赤）
+ *   d8   深黑墨（#2c221e）實心 ＋ 白字    ← 標準標準階（深邃書籍主墨）
+ *   d6   灰褐墨（#6b5a4b）實心 ＋ 白字    ← 基礎階（溫潤三級次墨）
  *
  * glow 欄位保留（呼叫端仍在展開它），但**永遠是空字串**：發光環是第四種說法，
  * 而一個元素只需要一種方式說「我比較強」。
@@ -40,33 +40,33 @@ import {
 export const getDiceColorConfig = (val) => {
   if (val >= 12) {
     return {
-      bgClass: 'bg-[#a63d40]',
-      borderClass: 'border-[#a63d40]',
+      bgClass: 'bg-[#8c3235]',
+      borderClass: 'border-[#8c3235]',
       textClass: 'text-[#fffdf9] font-black',
       glow: ''
     };
   }
   if (val === 10) {
     return {
-      bgClass: 'bg-[#fffdf9]',
+      bgClass: 'bg-[#a63d40]',
       borderClass: 'border-[#a63d40]',
-      textClass: 'text-[#a63d40] font-black',
+      textClass: 'text-[#fffdf9] font-black',
       glow: ''
     };
   }
   if (val === 8) {
     return {
-      bgClass: 'bg-[#fffdf9]',
-      borderClass: 'border-[#d6c7ab]',
-      textClass: 'text-[#2c221e] font-black',
+      bgClass: 'bg-[#3c2415]',
+      borderClass: 'border-[#3c2415]',
+      textClass: 'text-[#fffdf9] font-black',
       glow: ''
     };
   }
   // d6 或更低
   return {
-    bgClass: 'bg-[#f4ebd9]',
-    borderClass: 'border-[#d6c7ab]',
-    textClass: 'text-[#6b5a4b] font-black',
+    bgClass: 'bg-[#6b5a4b]',
+    borderClass: 'border-[#6b5a4b]',
+    textClass: 'text-[#fffdf9] font-black',
     glow: ''
   };
 };
@@ -152,14 +152,53 @@ export default function AttributeMatrixPicker({
   // 「要讓玩家自己選起始陣列才會在那邊出現 4 個骰子」。舊版會在空托盤先放
   // d10/d8/d8/d6（正好是「標準」那四顆），等於又替玩家選了一次。
   const [dicePool, setDicePool] = useState(() => {
-    const hasInitialAttrs = attributes && (attributes.dex || attributes.ins || attributes.mig || attributes.wlp);
-    if (!hasInitialAttrs) return [];
-    return [
-      { id: 'd_0', val: attributes.dex || 10, assignedTo: 'dex' },
-      { id: 'd_1', val: attributes.ins || 8, assignedTo: 'ins' },
-      { id: 'd_2', val: attributes.mig || 8, assignedTo: 'mig' },
-      { id: 'd_3', val: attributes.wlp || 6, assignedTo: 'wlp' }
-    ];
+    if (!attributes) return [];
+    const assigned = [];
+    ATTRIBUTE_KEYS.forEach((k) => {
+      const val = Number(attributes[k]);
+      if (val > 0) assigned.push({ key: k, val });
+    });
+    if (assigned.length === 0) return [];
+    if (assigned.length === ATTRIBUTE_KEYS.length) {
+      return assigned.map((item, idx) => ({
+        id: `d_${idx}`,
+        val: item.val,
+        assignedTo: item.key
+      }));
+    }
+    // 部分指派：找出能容納這些值的起始陣列，把其餘骰子放進托盤
+    const assignedVals = assigned.map((a) => a.val);
+    const matchedPreset = ATTRIBUTE_PRESET_ARRAYS.find((p) => {
+      const pool = [...p.diceList];
+      return assignedVals.every((val) => {
+        const i = pool.indexOf(val);
+        if (i >= 0) {
+          pool.splice(i, 1);
+          return true;
+        }
+        return false;
+      });
+    }) || ATTRIBUTE_PRESET_ARRAYS[0];
+
+    const remainingVals = [...matchedPreset.diceList];
+    assignedVals.forEach((val) => {
+      const i = remainingVals.indexOf(val);
+      if (i >= 0) remainingVals.splice(i, 1);
+    });
+
+    const pool = assigned.map((item, idx) => ({
+      id: `d_assigned_${idx}`,
+      val: item.val,
+      assignedTo: item.key
+    }));
+    remainingVals.forEach((val, idx) => {
+      pool.push({
+        id: `d_tray_${idx}`,
+        val,
+        assignedTo: null
+      });
+    });
+    return pool;
   });
 
   // 浮動拿起狀態（跟隨滑鼠）
@@ -232,31 +271,28 @@ export default function AttributeMatrixPicker({
   };
 
   // 同步通知父層
-  const notifyParent = (newPool) => {    const newAttrs = { ...attributes };
-    let anyAssigned = false;
-    newPool.forEach(d => {
-      if (d.assignedTo) {
+  const notifyParent = (newPool) => {
+    const newAttrs = {
+      dex: 0,
+      ins: 0,
+      mig: 0,
+      wlp: 0
+    };
+    (newPool || []).forEach(d => {
+      if (d.assignedTo && ATTRIBUTE_KEYS.includes(d.assignedTo)) {
         newAttrs[d.assignedTo] = d.val;
-        anyAssigned = true;
       }
     });
-    if (anyAssigned) {
-      onChange(newAttrs);
-    }
+    onChange(newAttrs);
   };
 
-  // 1. 選擇預設起始陣列：骰子直接入座並寫回屬性。
-  //
-  // 舊版只把骰子丟進左側托盤、**不通知父層**，所以點「萬事通」之後四維仍是 0——
-  // 玩家會以為卡片壞了（實測確實如此）。預設卡本身就把四個數值寫在卡面上，
-  // 按下去卻沒有任何一格被填，這個落差沒有任何人能從畫面上推出來。
-  // 現在改成一步到位（依 DEX／INS／MIG／WLP 的固定順序入座），
-  // 想自己排的人按「全部清空回托盤」再拖曳即可。
+  // 1. 選擇預設起始陣列：骰子進入左側托盤（尚未分配），由玩家逐格拖曳或點入對應體質。
+  // 想要快速入座的玩家可點擊「一鍵填入」。
   const handleApplyPreset = (preset) => {
-    const { pool, attributes: nextAttrs } = applyPresetToPool(preset, `d_${Date.now()}`);
-    setDicePool(pool);
+    const newPool = buildTrayPool(preset, `d_${Date.now()}`);
+    setDicePool(newPool);
     setFloatingDieId(null);
-    if (nextAttrs) onChange(nextAttrs);
+    notifyParent(newPool);
   };
 
   // 2. 一鍵填滿（按順序快速入座）
@@ -278,6 +314,7 @@ export default function AttributeMatrixPicker({
     }));
     setDicePool(newPool);
     setFloatingDieId(null);
+    notifyParent(newPool);
   };
 
   // 4. 點選托盤中的實體骰子（點一下拿起跟隨滑鼠，或放回）
@@ -501,10 +538,8 @@ export default function AttributeMatrixPicker({
         {/* 三套起始陣列卡片 */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {ATTRIBUTE_PRESET_ARRAYS.map(preset => {
-            // 「目前」只有在四顆骰子都真的指派完、且組合等於這一組時才顯示。
-            // 空托盤本來就放著「標準」那四顆（d10/d8/d8/d6），少了 assignedCount 這一項，
-            // 一個還沒選配置的角色會被標成「標準（目前）」——等於又替他選了一次。
-            const isMatch = assignedCount === 4 && preset.diceList.every((v, i) => v === poolSortedVals[i]);
+            // 當前托盤或已分配骰子是否屬於此起始陣列（四顆面數組合一致）
+            const isMatch = dicePool.length === 4 && preset.diceList.every((v, i) => v === poolSortedVals[i]);
 
             return (
               <button
@@ -657,7 +692,7 @@ export default function AttributeMatrixPicker({
 
             {/* 托盤內的 4 個正方形骰子位置：手機橫向 4 個，桌面直列 4 個 */}
             <div className="flex md:flex-col justify-center md:items-center gap-2.5">
-              {dicePool.map((die) => {
+              {dicePool.map((die, idx) => {
                 const isAssigned = !!die.assignedTo;
                 const isFloating = floatingDieId === die.id;
                 const col = getDiceColorConfig(die.val);
@@ -689,19 +724,20 @@ export default function AttributeMatrixPicker({
                   );
                 }
 
-                // 躺在托盤中的正方形實體骰子
+                // 躺在托盤中的正方形實體骰子（帶引導微幅呼吸縮放，滑鼠懸浮時靜止）
                 return (
                   <div
                     key={die.id}
                     draggable
                     onDragStart={(e) => handleDragStart(die.id, e)}
                     onClick={(e) => handleTrayDieClick(die.id, e)}
+                    style={{ animationDelay: `${idx * 160}ms` }}
                     className={`w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] lg:w-20 lg:h-20 aspect-square rounded border-2 p-1 flex flex-col items-center justify-center select-none cursor-grab active:cursor-grabbing transition-all ${
                       col.bgClass
                     } ${col.borderClass} ${col.glow} ${
                       isFloating
                         ? 'opacity-25 border-dashed ring-2 ring-[#a63d40]/30'
-                        : 'hover:ring-2 hover:ring-[#3c2415]/25'
+                        : 'animate-dice-scale hover:animate-none hover:ring-2 hover:ring-[#3c2415]/25'
                     }`}
                     title="點擊一下即可跟隨滑鼠浮動，再點擊放入體質；亦支援按住拖曳"
                   >

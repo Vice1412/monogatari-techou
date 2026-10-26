@@ -194,12 +194,14 @@ check('非秘儀師角色不受影響',
   validateCharacter(nonArcanist).warnings.some((w) => String(w.message || '').includes('綁定和召喚')), false);
 
 // ─────────────────────────────────────────────────────────────
-section('G. 屬性預設卡：按下去要真的寫回四維（純函式）');
+section('G. 屬性預設卡：點擊起始陣列先出現在托盤（尚未入座），再由使用者拖曳或一鍵填入');
 check('官方三組起始陣列都在', ATTRIBUTE_PRESET_ARRAYS.length, 3);
 ATTRIBUTE_PRESET_ARRAYS.forEach((preset) => {
+  const trayPool = buildTrayPool(preset);
+  check(`【${preset.name}】點選後托盤 4 顆`, trayPool.length, 4);
+  check(`【${preset.name}】初始皆未入座（在托盤待拖曳）`, trayPool.every((d) => d.assignedTo === null), true);
   const { pool, attributes } = applyPreset(preset);
-  check(`【${preset.name}】托盤 4 顆`, pool.length, 4);
-  check(`【${preset.name}】四顆都入座`, pool.every((d) => !!d.assignedTo), true);
+  check(`【${preset.name}】一鍵填入四顆都入座`, pool.every((d) => !!d.assignedTo), true);
   check(`【${preset.name}】推出四維 4 個鍵`, Object.keys(attributes || {}).length, 4);
   check(`【${preset.name}】四維值＝該組骰值`,
     Object.values(attributes || {}).slice().sort((a, b) => b - a), preset.diceList.slice().sort((a, b) => b - a));
@@ -210,8 +212,8 @@ check('一鍵填入是依 DEX→INS→MIG→WLP 的固定順序',
   assignPoolInOrder(buildTrayPool(ATTRIBUTE_PRESET_ARRAYS[0])).map((d) => d.assignedTo), ['dex', 'ins', 'mig', 'wlp']);
 
 const pickerSrc = fs.readFileSync('src/features/character-sheet/components/AttributeMatrixPicker.jsx', 'utf8');
-check('預設卡 onClick 會呼叫 onChange（舊版只丟進托盤）',
-  /handleApplyPreset[\s\S]{0,600}?onChange\(nextAttrs\)/.test(pickerSrc), true);
+check('預設卡 onClick 會將骰子放入托盤並同步通知',
+  /handleApplyPreset[\s\S]{0,400}?buildTrayPool[\s\S]{0,400}?notifyParent/.test(pickerSrc), true);
 
 // ─────────────────────────────────────────────────────────────
 section('H. SSR：面板與創角綁定區塊');

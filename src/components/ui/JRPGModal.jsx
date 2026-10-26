@@ -84,6 +84,7 @@ export default function JRPGModal({
       <div
         className={`relative w-full min-w-0 ${maxWidth} bg-[#fffdf9] border-2 border-[#d6c7ab] rounded shadow-e3 overflow-hidden my-auto flex flex-col max-h-[90vh] text-[#2c221e]`}
         style={theme ? { backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark } : {}}
+        data-testid="jrpg-modal"
       >
         {/* Top accent line（第十五輪：實心，不再是漸層——漸層是第二套顏色系統） */}
         <div
