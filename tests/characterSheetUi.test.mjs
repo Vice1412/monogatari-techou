@@ -592,6 +592,36 @@ check('技能帶效果全文（不是只有技能名）',
   [true, true]);
 check('英雄技能帶效果全文', model.heroicSkills[0].effect.length >= 0, true);
 check('金手指帶效果全文', typeof model.quirkDesc === 'string', true);
+
+// ─────────────────────────────────────────────────────────── F-023
+// §CI（2026-10-26 P11 / F-023）：金手指的「相性」要印在紙上。
+//
+// 修之前：`quirkDesc` 只取規則原文，`character.quirkChoice` 完全沒讀。
+// 帶【亡者歸來】的角色印出來，紙上寫著「免疫暗毒、易傷光」的規則，
+// 但那是**規則**，不是你這一場的狀態——玩家的第一反應是「那我到底怕什麼」。
+const deadModel = buildSheetModel(createNewCharacter({ quirk: '亡者歸來' }));
+check('F-023 亡者歸來：相性有 3 列（傷害免疫／易傷／狀態免疫）',
+  deadModel.quirkAffinities.map((r) => r.label), ['傷害免疫', '易傷', '狀態免疫']);
+// ※ 用 `|| { values: [], danger: false }` 而不是直接 `.find(...).values`：
+//   欄位整個不見時 `.find` 回 undefined，測試會**拋錯崩掉**而不是 FAIL。
+//   崩掉的訊息長得像「測試自己壞了」，很容易被誤讀成程式沒問題。
+const immRow = deadModel.quirkAffinities.find((r) => r.label === '傷害免疫') || { values: [] };
+const vulnRow = deadModel.quirkAffinities.find((r) => r.label === '易傷') || { danger: false };
+check('F-023 傷害免疫是暗與毒', immRow.values, ['暗', '毒']);
+check('F-023 易傷標了 danger（紙上用危險紅）', vulnRow.danger, true);
+check('F-023 純敘事金手指不會長出空相性',
+  buildSheetModel(createNewCharacter({ quirk: '飛行' })).quirkAffinities, []);
+check('F-023 沒有金手指就沒有相性',
+  buildSheetModel(createNewCharacter({ quirk: '無' })).quirkAffinities, []);
+
+const deadPage2 = renderToStaticMarkup(React.createElement(OfficialSheetPage2, { model: deadModel }));
+check('F-023 第 2 頁真的印出「傷害免疫」與「暗」「毒」',
+  ['傷害免疫', '暗', '毒'].every((x) => deadPage2.includes(x)), true);
+check('F-023 第 2 頁把易傷寫成危險紅',
+  deadPage2.includes('#8c2d36'), true);
+check('F-023 沒有相性的卡不會印出「傷害免疫」',
+  page2Html.includes('傷害免疫'), false);
+
 check('匯出用 SkillDescription 渲染效果（會代換【SL×N】公式）',
   [exportSrc.includes("import SkillDescription from '../utils/skillFormulaEvaluator'"),
     exportSrc.includes('<SkillDescription')],

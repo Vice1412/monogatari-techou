@@ -219,6 +219,40 @@ check('H1 全站沒有「讀不到的中文標籤」（真文字 slate-400 = 0�
 check('H2 text-slate-400 總量 ≤ 62（只能減）', total400 <= 62, `${total400} / 上限 62`);
 
 /* ────────────────────────────────────────────────────────────────
+   F-023（2026-10-26 P11）：金手指相性要出現在跑團面板
+   ────────────────────────────────────────────────────────────────
+   修之前：`stats.quirkEffects` 全專案只有編輯器第 4 頁一個消費端。
+   帶【亡者歸來】的角色進跑團面板，整頁 621 字裡沒有任何相性字樣——
+   打團當下算錯傷害，而且看不出是 App 沒畫。
+
+   ※ 這裡只斷言**結構**（testid／列標籤／值），不斷言整句文案：
+     文案會調，結構不會。 */
+const withQuirk = (quirk, quirkChoice = '') =>
+  createNewCharacter({ name: '相性測試', quirk, quirkChoice });
+
+const deadHtml = render(withQuirk('亡者歸來'));
+check('F-023 有相性時跑團面板畫出 hud-affinities',
+  deadHtml.includes('data-testid="hud-affinities"'), true);
+check('F-023 亡者歸來：傷害免疫／易傷／狀態免疫三列都在',
+  ['傷害免疫', '易傷', '狀態免疫'].every((x) => deadHtml.includes(x)), true);
+check('F-023 免疫的「暗」「毒」與易傷的「光」都寫出來',
+  ['暗', '毒', '光'].every((x) => deadHtml.includes(x)), true);
+
+const ghostHtml = render(withQuirk('通智幽魂', { resist1: '火', resist2: '光', vuln: '冰' }));
+check('F-023 通智幽魂：抗性列有火與光',
+  ['抗性', '火', '光'].every((x) => ghostHtml.includes(x)), true);
+check('F-023 通智幽魂：易傷列有冰', ghostHtml.includes('冰'), true);
+
+// ※「不該出現」的斷言要把結果**取反**再傳給 ok：
+//   直接把 includes(...) 當 ok，等於在斷言「它存在」，意思剛好相反。
+check('F-023 純敘事金手指（飛行）不會長出相性區塊',
+  !render(withQuirk('飛行')).includes('data-testid="hud-affinities"'), true);
+check('F-023 沒有金手指就沒有相性區塊',
+  !render(bare()).includes('data-testid="hud-affinities"'), true);
+check('F-023 相性區塊只出現一次（不會每個分頁各畫一份）',
+  countOf(deadHtml, 'data-testid="hud-affinities"'), 1);
+
+/* ────────────────────────────────────────────────────────────────
    總結
    ──────────────────────────────────────────────────────────────── */
 const failed = results.filter((r) => !r.ok);

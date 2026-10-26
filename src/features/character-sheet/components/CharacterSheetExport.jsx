@@ -466,6 +466,20 @@ export const buildSheetModel = (character, stats = null) => {
       const name = ch.quirk && ch.quirk !== '無' ? ch.quirk : '';
       if (!name) return '';
       return (rulesData.quirks || []).find((x) => x.name === name)?.desc || '';
+    })(),
+    // 金手指相性（F-023）：紙卡原本只有規則原文，玩家印出來就不知道自己是免疫什麼、怕什麼。
+    // 與編輯器第 4 頁、跑團面板吃的是同一份 stats.quirkEffects，不另算一套。
+    quirkAffinities: (() => {
+      const name = ch.quirk && ch.quirk !== '無' ? ch.quirk : '';
+      if (!name) return [];
+      const fx = s.quirkEffects || {};
+      return [
+        { label: '傷害免疫', values: fx.immuneDamage || [], danger: false },
+        { label: '抗性', values: fx.resistances || [], danger: false },
+        { label: '易傷', values: fx.vulnerabilities || [], danger: true },
+        { label: '吸收', values: fx.absorption || [], danger: false },
+        { label: '狀態免疫', values: fx.immuneStatuses || [], danger: false }
+      ].filter((row) => row.values.length > 0);
     })()
   };
 };
@@ -825,6 +839,18 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
           <div style={{ fontSize: T.s10, fontWeight: 700, marginBottom: '1px' }}>{model.quirk}</div>
           {model.quirkDesc ? (
             <SkillDescription desc={model.quirkDesc} sl={1} className="sheet-skill-desc" />
+          ) : null}
+          {model.quirkAffinities.length ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1px 8px', marginTop: '2px' }}>
+              {model.quirkAffinities.map((row) => (
+                <span key={row.label} style={{ fontSize: T.s9 }}>
+                  <span style={{ fontWeight: 700, color: C.faint }}>{row.label}　</span>
+                  <span style={{ fontWeight: 700, color: row.danger ? '#8c2d36' : C.ink }}>
+                    {row.values.join('、')}
+                  </span>
+                </span>
+              ))}
+            </div>
           ) : null}
         </Box>
       ) : null}

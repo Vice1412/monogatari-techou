@@ -1172,6 +1172,47 @@ export default function CharacterPlayHUD({
         </div>
       </div>
 
+      {/* 4b. 金手指相性（F-023，2026-10-26 P11）。
+          免疫／抗性／易傷／吸收只存在於 stats.quirkEffects 裡，以前只有編輯器
+          第 4 裝備配置頁畫得出來——打團時看不到，等於「書上寫了、App 算對了、
+          畫面沒說」。放這裡是因為它跟上面那排狀態一樣，都是「被打到的時候會用到」。
+          沒有任何相性時整塊不渲染（大多數金手指是純敘事）。 */}
+      {(() => {
+        const fx = stats.quirkEffects || {};
+        const rows = [
+          { label: '傷害免疫', values: fx.immuneDamage, tone: '#2c221e' },
+          { label: '抗性', values: fx.resistances, tone: '#2c221e' },
+          { label: '易傷', values: fx.vulnerabilities, tone: '#8c2d36' },
+          { label: '吸收', values: fx.absorption, tone: '#2c221e' },
+          { label: '狀態免疫', values: fx.immuneStatuses, tone: '#2c221e' }
+        ].filter((row) => Array.isArray(row.values) && row.values.length > 0);
+        if (rows.length === 0) return null;
+        return (
+          <div
+            data-testid="hud-affinities"
+            className="p-3.5 rounded bg-white border border-[#e8dcc4] space-y-1.5"
+          >
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-[#3c2415] flex items-center gap-1">
+                <GiHeartShield className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                <span>金手指相性</span>
+              </span>
+              <span className="text-t12 text-[#6b5a4b] font-mono">{character.quirk}</span>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              {rows.map((row) => (
+                <span key={row.label} className="text-t11 flex items-baseline gap-1.5">
+                  <span className="font-bold text-[#6b5a4b] shrink-0">{row.label}</span>
+                  <span style={{ color: row.tone }}>
+                    {renderTextWithAffinities(row.values.join('、'))}
+                  </span>
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* 5. Four Attributes Block (DEX / INS / MIG / WLP - Click-to-Roll) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
