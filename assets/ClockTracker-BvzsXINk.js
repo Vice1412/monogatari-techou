@@ -1,4 +1,4 @@
-import{c as g,j as e,cX as u}from"./index-BqRSY7bl.js";import{R as B,I as F}from"./identityPalette-Dp6nYsDK.js";/**
+import{c as g,j as e,cX as u}from"./index-B9N1KPdk.js";import{R as B,I as F}from"./identityPalette-6QhweBwL.js";/**
  * @license lucide-react v1.47.0 - ISC
  *
  * This source code is licensed under the ISC license.
