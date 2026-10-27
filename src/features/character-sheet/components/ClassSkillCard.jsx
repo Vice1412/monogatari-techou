@@ -14,6 +14,8 @@ import {
 } from 'react-icons/gi';
 import GameIcon from '../../../components/ui/GameIcon';
 import JRPGBadge from '../../../components/ui/JRPGBadge';
+import TermHint from '../../../components/ui/TermHint';
+import { TERMS } from '../data/glossary';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import SkillStarPips from './SkillStarPips';
 import {
@@ -716,7 +718,7 @@ export default function ClassSkillCard({
             className="text-t10 text-[#6b5a4b] font-bold flex items-start gap-1.5 pl-2"
           >
             <span className="shrink-0">※</span>
-            <span>此職業有 {classVariants.length} 個公測變體；本團未開放（GM 可在「此團開卡規則」開啟）</span>
+            <span>此職業有 {classVariants.length} 個<TermHint entry={TERMS.playtest} />變體；本團未開放（GM 可在「此團開卡規則」開啟）</span>
           </div>
         )}
       </div>
@@ -731,7 +733,7 @@ export default function ClassSkillCard({
             >
               <div className="font-bold text-[#3c2415]">尚未分配技能點數</div>
               <p className="text-[#6b5a4b] text-t12">
-                點擊「配置技能」展開查看全部特技，投入點數。
+                點擊「配置技能」展開查看全部<TermHint entry={TERMS.classSkill}>特技</TermHint>，投入點數。
               </p>
               <JRPGButton
                 variant="primary"

@@ -8,6 +8,8 @@ import {
   GiSparkles
 } from 'react-icons/gi';
 import JRPGModal from '../../../components/ui/JRPGModal';
+import TermHint from '../../../components/ui/TermHint';
+import { TERMS } from '../data/glossary';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import {
   OFFICIAL_IDENTITY_TABLES,
@@ -173,7 +175,7 @@ export default function IdentityTablesModal({
                 </div>
 
                 <div className="p-1.5 rounded border" style={{ backgroundColor: theme?.panelBg, borderColor: theme?.border }}>
-                  <span className="text-[#6b5a4b] block">2. 形容特質:</span>
+                  <span className="text-[#6b5a4b] block">2. <TermHint entry={TERMS.trait}>形容特質</TermHint>:</span>
                   <span className="font-mono font-bold" style={{ color: theme?.accent }}>
                     d6=[{rolledResult.rolls.adjective.d6}] {rolledResult.rolls.adjective.group.split(' ')[0]} ➔ d20=[#{rolledResult.rolls.adjective.d20}]
                   </span>

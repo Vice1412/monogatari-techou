@@ -61,7 +61,7 @@ import { resolveCreationRules } from '../data/creationRules';
 import { modeRestrictsEquipment, isTechnosphereEnabled, isSkillSuppressedByTechnospheres, getLevelUpMnemosphereCandidates, MNEMOSPHERE_MAX_LEVEL } from '../data/technospheres';
 import ZeroPowerBlock from './ZeroPowerBlock';
 import { getCharacterTheme } from '../utils/characterThemes';
-import { getDualShieldState } from '../utils/equipmentRules';
+import { getDualShieldState, withHrBonus } from '../utils/equipmentRules';
 import {
   buildCustomWeaponEntries,
   equipCustomWeapon,
@@ -584,7 +584,15 @@ export default function CharacterPlayHUD({
   const resolveWeapon = (name) => rulesData.equipment.weapons.find(w => w.name === name)
     || ownCustomWeapons.find(w => w.name === name);
 
-  const mainWeapon = dualShield.active
+  // 空手道的徒手傷害加成（F-024，2026-10-27）。
+  // 引擎已經把它併進 `stats.mainHandWeapon.damage`，但跑團面板的兩處徒手顯示
+  // 都是**自己寫死 `HR + 0`** 的：① 主手空著時的退回條目、② 下面那顆「徒手／自由打擊」膠囊。
+  // 兩處都要吃同一個數字，否則會出現「膠囊 +6、上面的主手武器 +0」這種自相矛盾。
+  const unarmedBonus = stats.quirkEffects?.unarmedDamageBonus || 0;
+
+  // 徒手時把加成併進傷害式。這一步對「武器表查到的徒手打擊」與「查不到時的退回條目」
+  // 都成立（兩者的基礎都是 `HR + 0`），所以只寫一次。
+  const mainWeaponBase = dualShield.active
     ? dualShield.weapon
     : (resolveWeapon(character.equipment?.mainHand) || {
         name: character.equipment?.mainHand || '徒手打擊',
@@ -593,6 +601,9 @@ export default function CharacterPlayHUD({
         range: '近戰',
         category: '鬥毆'
       });
+  const mainWeapon = (mainWeaponBase.name === '徒手打擊' && unarmedBonus > 0)
+    ? { ...mainWeaponBase, damage: withHrBonus(mainWeaponBase.damage, unarmedBonus) }
+    : mainWeaponBase;
 
   const offWeapon = resolveWeapon(character.equipment?.offHand);
 
@@ -622,7 +633,10 @@ export default function CharacterPlayHUD({
 
   // Unarmed check
   const unarmedCheck = parseCheckFormula('DEX + MIG', stats);
-  const unarmedDamage = parseDamageFormula('【HR + 0】物理');
+  // 徒手打擊的傷害式不再在這裡寫死。原本這裡有一行
+  // `const unarmedDamage = parseDamageFormula('【HR + 0】物理')`，宣告了卻從沒被用過——
+  // 真正顯示的地方自己又寫了一次 `[HR + 0]`。兩份寫死的字串就是 F-024 的成因，
+  // 所以移除這一行，改由上面 `unarmedBonus`（來自引擎）統一供應。
 
   // Toggle expand for skills/spells
   const toggleSkillExpand = (key) => {
@@ -1184,7 +1198,11 @@ export default function CharacterPlayHUD({
           { label: '抗性', values: fx.resistances, tone: '#2c221e' },
           { label: '易傷', values: fx.vulnerabilities, tone: '#8c2d36' },
           { label: '吸收', values: fx.absorption, tone: '#2c221e' },
-          { label: '狀態免疫', values: fx.immuneStatuses, tone: '#2c221e' }
+          { label: '狀態免疫', values: fx.immuneStatuses, tone: '#2c221e' },
+          // 徒手傷害加成（F-024，2026-10-27）。這一行是 P11 當時**刻意拿掉**的：
+          // 那時攻擊公式還沒接上，放進來會讓玩家看到「+6」和「[HR + 0]」並排，
+          // 比只顯示一個更難懂。現在公式已經吃了這個數字，兩邊一致，才放回來。
+          { label: '徒手傷害', values: fx.unarmedDamageBonus ? [`+${fx.unarmedDamageBonus}`] : [], tone: '#2c221e' }
         ].filter((row) => Array.isArray(row.values) && row.values.length > 0);
         if (rows.length === 0) return null;
         return (
@@ -1569,7 +1587,7 @@ export default function CharacterPlayHUD({
                   >
                     [DEX + MIG]
                   </button>
-                  <span className="text-[#6b5a4b] font-bold">[HR + 0] 物理</span>
+                  <span className="text-[#6b5a4b] font-bold">[HR + {unarmedBonus}] 物理</span>
                 </div>
               </div>
 

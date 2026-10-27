@@ -4,7 +4,7 @@ import { SOURCEBOOKS, STATUS_AFFLICTIONS, ATTRIBUTE_NAMES, ATTRIBUTE_KEYS, ATTRI
 import { getSkillSuboptionConfig, calculateSkillSuboptionMax } from '../data/skillSuboptionsData';
 import { PILOT_ARMOR_MODULES } from '../data/pilotVehicleData';
 import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
-import { buildLoadoutIssues } from './equipmentRules';
+import { buildLoadoutIssues, withHrBonus } from './equipmentRules';
 import { buildCustomWeaponEntries, validateCustomWeapon, CUSTOM_WEAPON_BASE } from '../data/customWeapons';
 import { appendLog, createLogEntry } from './characterLog';
 import { findVariantHeroicSkillConflicts } from '../data/coreBookVariants';
@@ -596,6 +596,18 @@ export const getProficiencies = (char) => {
     if (fb.includes('盾牌') || ['守護者', '武器大師', '神射手', '指揮官'].some(n => cName.includes(n))) profs.martialShields = true;
   });
 
+  // 金手指給的熟練度（F-025，2026-10-27）。
+  //
+  // 原書的【倖存者】①寫「獲得裝備職業近戰武器、職業遠程武器、職業盾牌與職業防具的能力」。
+  // 以前這一項在資料層沒有 `effects`，所以選了之後 `profs` 四項**全部仍是 false**——
+  // 玩家選了「可以穿職業防具」，到第 4 步照樣被擋，而且看不出是 App 沒做。
+  //
+  // 判定方式刻意用「資料層宣告 + 逐項 OR」，不在這裡寫職業名或金手指名：
+  // 之後任何金手指要給熟練度，只要在 `effects.profs` 列出四個鍵即可。
+  (getQuirkEffects(char).profs || []).forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(profs, key)) profs[key] = true;
+  });
+
   return profs;
 };
 
@@ -655,8 +667,15 @@ const findQuirkDef = (name) => {
   return quirks.find((q) => q.name === name) || quirks.find((q) => name.includes(q.name)) || null;
 };
 
-/** 金手指 effects 裡「會累加成陣列」的鍵（其餘數字鍵一律相加） */
-const QUIRK_FX_ARRAY_KEYS = ['resistances', 'vulnerabilities', 'absorption', 'immuneDamage', 'immuneStatuses'];
+/**
+ * 金手指 effects 裡「會累加成陣列」的鍵（其餘數字鍵一律相加）。
+ *
+ * `profs`（2026-10-27，F-025）：四項職業武裝熟練度是**布林**，但選項的語意是
+ * 「獲得這四項能力」——所以宣告成「要打開哪幾項」的清單，由 `getProficiencies`
+ * 逐項 OR 進去。放在這裡而不是在引擎寫 `if (quirkName === '倖存者')`：
+ * 資料層宣告、引擎只負責合併，下一個金手指要給熟練度時不必改程式。
+ */
+const QUIRK_FX_ARRAY_KEYS = ['resistances', 'vulnerabilities', 'absorption', 'immuneDamage', 'immuneStatuses', 'profs'];
 
 /** 把一筆 effects 併進累加器：數字相加、陣列去重後串接 */
 const mergeQuirkEffects = (acc, fx) => {
@@ -750,7 +769,11 @@ export const getQuirkEffects = (char) => {
     defIfNoArmor: 0,
     mdefIfNoArmor: 0,
     unarmedDamageBonus: 0,
-    unarmedDamageBonusHigh: 0
+    unarmedDamageBonusHigh: 0,
+    // 金手指給的起始資金加成（F-025）：【富家子弟】的 +1000z。
+    // 放在金手指效果裡而不是 `stats` 的數字欄位，因為**起始資金不是衍生數值**——
+    // 它是一次性寫進 `character.zenit` 的存量，不是每幀重算的量。
+    startingZenitBonus: 0
   };
   if (!quirk) return empty;
 
@@ -767,12 +790,63 @@ export const getQuirkEffects = (char) => {
     absorption: merged.absorption || [],
     immuneDamage: merged.immuneDamage || [],
     immuneStatuses: merged.immuneStatuses || [],
+    // 金手指給的職業武裝熟練度（F-025）：值是 `getProficiencies` 的四個鍵之一。
+    // 空陣列＝沒給任何一項（絕大多數金手指）。
+    profs: merged.profs || [],
     defIfNoWeapon: merged.defIfNoWeapon || 0,
     mdefIfNoWeapon: merged.mdefIfNoWeapon || 0,
     defIfNoArmor: merged.defIfNoArmor || 0,
     mdefIfNoArmor: merged.mdefIfNoArmor || 0,
     unarmedDamageBonus: merged.unarmedDamageBonus || 0,
-    unarmedDamageBonusHigh: merged.unarmedDamageBonusHigh || 0
+    unarmedDamageBonusHigh: merged.unarmedDamageBonusHigh || 0,
+    startingZenitBonus: merged.startingZenitBonus || 0
+  };
+};
+
+/**
+ * 金手指給的**起始資金加成**（F-025，2026-10-27）。
+ *
+ * 【富家子弟】原書：「如果你在創建角色時選擇了這個金手指，你的初始資金將增加 1000z。」
+ *
+ * 為甚麼要獨立一個函式而不是塞進 `stats`：
+ * 起始資金是**存量**（一次性寫進 `character.zenit`），不是衍生數值。
+ * 混進 `stats` 會變成「每幀重算的加成」，於是玩家花掉的錢會一直被補回來。
+ *
+ * 為甚麼不在「結算起始資金」時加：金手指在第 5 步選，而結算在第 1 步，
+ * 照流程走**永遠加不到**。所以改由呼叫端在「換金手指」的當下補／退，
+ * 並用 `character.quirkZenitBonus` 記住「已經補過多少」——
+ * 這樣來回換金手指不會重複加，也不會漏退。
+ */
+export const getQuirkStartingZenitBonus = (char) => getQuirkEffects(char).startingZenitBonus || 0;
+
+/**
+ * 換金手指時要寫入的欄位包（F-025，2026-10-27）。
+ *
+ * 抽成純函式而不是留在 `CharacterEditor` 的 onClick 裡，是為了**測得到**：
+ * 這段邏輯有三種會出錯的方式，而三種都不會讓畫面壞掉，只會讓角色默默多拿或少拿錢——
+ *
+ *   1. 來回換金手指時**重複加**：富家子弟 → 無 → 富家子弟，zenit 變 +2000；
+ *   2. 從富家子弟換走時**沒退**：角色白拿 1000z；
+ *   3. 只寫了 `zenit` 卻沒寫帳本：下一次換金手指時 `applied` 還是 0，於是再加一次。
+ *
+ * 三種都要靠「把結果算出來比對」才抓得到，看畫面是看不出來的。
+ *
+ * @param {object} character 目前角色
+ * @param {string} nextName 新金手指名稱（取消＝`'無'`）
+ * @param {string} [choiceId] 新選項 id
+ * @returns {object} 要交給 `updateField` 的欄位包
+ */
+export const buildQuirkPatch = (character, nextName, choiceId) => {
+  const nextChoice = choiceId || '';
+  const nextBonus = getQuirkStartingZenitBonus({ quirk: nextName, quirkChoice: nextChoice });
+  const applied = (character && character.quirkZenitBonus) || 0;
+  const delta = nextBonus - applied;
+  return {
+    quirk: nextName,
+    quirkChoice: nextChoice,
+    quirkZenitBonus: nextBonus,
+    // 差額為 0 就不碰 zenit——不然每次換金手指都會寫一筆「金額沒變」的歷史記錄。
+    ...(delta === 0 ? {} : { zenit: Math.max(0, ((character && character.zenit) || 0) + delta) })
   };
 };
 
@@ -989,6 +1063,11 @@ export const calculateCharacterStats = (char) => {
     || customWeaponEntries.find((w) => w.name === mainHandName)
     || null;
   const offHandSuppressed = Number(mainHandDef?.hands) === 2;
+  // 「徒手打擊」在武器表裡是**真的存在的一筆**（`category: 鬥毆`、`cost: 0`、`hands: 1`），
+  // 而開卡預設的 `mainHand` 正是它。所以「空手」的判定不能只看 `!mainHandDef`，
+  // 要連「查到的是徒手打擊」一起算。這個常數往上提，是因為下面兩個地方都要用：
+  // 徒手傷害加成（F-024）與「空手時才生效」的防禦加成。
+  const UNARMED_ENTRY = '徒手打擊';
   const shieldDef = offHandSuppressed
     ? findByName(rulesData.equipment.shields, NEUTRAL_SHIELD)
     : (rulesData.equipment.shields.find(s => s.name === char.equipment?.offHand || s.name === normName(char.equipment?.offHand))
@@ -1061,10 +1140,29 @@ export const calculateCharacterStats = (char) => {
     if (shieldMdefBonus) mdefTerms.push({ label: `${shieldLabel} 魔防 +${shieldMdefBonus}`, value: shieldMdefBonus, kind: 'equip' });
   }
 
+  // 空手道的徒手傷害加成（F-024，2026-10-27）。
+  //
+  // 原書【空手道】：「你的徒手打擊傷害獲得 +6（30 級後改為 +10）」。以前這個數字
+  // 只被放進 `stats.quirkEffects`，編輯器把它**印成一行字**，但攻擊公式讀的是
+  // 武器條目自己的 `damage`（`【HR + 0】物理`），所以跑團時照樣是 +0——
+  // 玩家看到「編輯器說 +6、打團寫 +0」，只能自己記著手動加。
+  //
+  // 這裡直接改寫 `mainHandWeapon.damage` 的 HR，讓**所有**讀武器條目的地方
+  // （跑團面板的膠囊、列印卡、之後新增的消費端）自動拿到正確數字。
+  // 只在「主手真的是徒手」時才加：拿著劍的空手道徒不該多 6 點。
+  const unarmedDamageBonus = (getCharacterLevel(char) >= 30 && quirkFx.unarmedDamageBonusHigh)
+    ? quirkFx.unarmedDamageBonusHigh
+    : quirkFx.unarmedDamageBonus;
+
   // 定制武器的【物防提升】與【魔防提升】（HF p.107）。
   // 這兩項是「持有者獲得加值」，不是武器本身的數值，所以算在這裡而不是武器條目裡。
   // `countsAsShield` 另外回報給技能判定——原書明講它會被視為裝備著一面盾牌。
-  const mainHandWeapon = mainHandDef;
+  const isUnarmed = !mainHandDef || mainHandDef.name === UNARMED_ENTRY;
+  const mainHandWeapon = (isUnarmed && unarmedDamageBonus > 0 && mainHandDef)
+    // 複製一份再改：`mainHandDef` 是 `rulesData` 的共享物件，
+    // 直接改它會把加成寫進全站共用的武器表，下一個角色也跟著 +6。
+    ? { ...mainHandDef, damage: withHrBonus(mainHandDef.damage, unarmedDamageBonus), unarmedDamageBonus }
+    : mainHandDef;
   const countsAsShield = Boolean(mainHandWeapon?.countsAsShield);
   if (mainHandWeapon?.defBoost) {
     def += mainHandWeapon.defBoost;
@@ -1099,7 +1197,6 @@ export const calculateCharacterStats = (char) => {
   //    而開卡預設的 `mainHand` 正是它（見 `createNewCharacter`）。所以
   //    `!mainHandDef` 對「真的空手」是 false——空手道在**每個**新角身上都不生效。
   //    這裡改成「查不到 或 查到的是徒手打擊」才算空手。
-  const UNARMED_ENTRY = '徒手打擊';
   const mainIsShieldNow = rulesData.equipment.shields
     .some((s) => s.name === char.equipment?.mainHand || s.name === normName(char.equipment?.mainHand));
   const mainIsUnarmed = !mainHandDef || mainHandDef.name === UNARMED_ENTRY;
@@ -1281,9 +1378,7 @@ export const calculateCharacterStats = (char) => {
       absorption: quirkFx.absorption,
       immuneDamage: quirkFx.immuneDamage,
       immuneStatuses: quirkFx.immuneStatuses,
-      unarmedDamageBonus: (getCharacterLevel(char) >= 30 && quirkFx.unarmedDamageBonusHigh)
-        ? quirkFx.unarmedDamageBonusHigh
-        : quirkFx.unarmedDamageBonus
+      unarmedDamageBonus
     },
     def,
     mdef,
@@ -1638,14 +1733,24 @@ export const validateCharacter = (char, rules = null) => {
 
   // 步驟 2: 職業與特技（起始等級的職業數限制由開卡規則決定）
   const classCount = (char.classes || []).length;
+  // 上下限相同時不要寫成「3~3」（F-012，2026-10-27）。
+  // 魔晶石制把 min／max 一起鎖成 3，於是原本的模板拼出「需配置 3~3 個職業」——
+  // 「3 到 3」讀起來像還要挑，實際上是「剛好 3 個」。而這句話出現在**最需要明確**的位置。
+  const classCountRequirement = creation.classCountMin === creation.classCountMax
+    ? `需配置恰好 ${creation.classCountMin} 個職業`
+    : `需配置 ${creation.classCountMin}~${creation.classCountMax} 個職業`;
+  // 記錄「這一段有沒有已經說過職業數不對」（F-011）。
+  // 下面那段魔晶石檢查講的是同一件事，只是換句話說；兩條並列會讓玩家以為是兩個缺口。
+  let classCountReported = false;
   if (char.level === creation.startingLevel) {
     if (classCount === 0) {
       warnings.push({
         step: 2,
         field: 'classes',
         type: 'error',
-        message: `尚未選擇任何職業 (起始 ${creation.startingLevel} 級需配置 ${creation.classCountMin}~${creation.classCountMax} 個職業)`
+        message: `尚未選擇任何職業 (起始 ${creation.startingLevel} 級${classCountRequirement})`
       });
+      classCountReported = true;
     } else if (classCount < creation.classCountMin) {
       warnings.push({
         step: 2,
@@ -1653,6 +1758,7 @@ export const validateCharacter = (char, rules = null) => {
         type: 'error',
         message: `起始需至少 ${creation.classCountMin} 個職業，目前只有 ${classCount} 個 (不可純單職)`
       });
+      classCountReported = true;
     } else if (classCount > creation.classCountMax) {
       warnings.push({
         step: 2,
@@ -1660,6 +1766,7 @@ export const validateCharacter = (char, rules = null) => {
         type: 'error',
         message: `起始不可超過 ${creation.classCountMax} 個職業，目前有 ${classCount} 個`
       });
+      classCountReported = true;
     }
 
     // GM 指定的必修職業（開卡規則 requiredClasses）
@@ -1680,7 +1787,17 @@ export const validateCharacter = (char, rules = null) => {
   // 上面那段只在「還在起始等級」時跑，但這條不隨等級鬆綁——原書寫得很硬：
   // 「cannot acquire new Classes, not even after mastering all three Innate Classes」。
   // 所以獨立成一段，任何等級都檢查。
-  if (isTechnosphereEnabled(creation.technospheres) && classCount !== INNATE_CLASS_COUNT) {
+  //
+  // 但**起始等級時上面那段已經說過同一件事**（F-011，2026-10-27）。
+  // 魔晶石制把 `classCountMin`／`classCountMax` 一起鎖成 3，所以「不是 3 個」
+  // 一定也會被上面那三條抓到一次，於是玩家看到兩條並列的 error 在講同一個缺口：
+  //   「尚未選擇任何職業 (起始 5 級需配置恰好 3 個職業)」
+  //   「魔晶石制需恰好 3 個固有職業（目前 0 個），且升級不得新增職業」
+  // 用 `!classCountReported` 排除掉重複的那一種情況，而不是寫 `classCount > 0`——
+  // 後者會在「已經離開起始等級、職業數是 0」時**兩條都不報**，變成靜默放行。
+  if (isTechnosphereEnabled(creation.technospheres)
+    && classCount !== INNATE_CLASS_COUNT
+    && !classCountReported) {
     warnings.push({
       step: 2,
       field: 'classes',
@@ -2229,15 +2346,23 @@ export const unlockCharacter = (char, { at, note = '' } = {}) => {
  * 原本的「特質與命刻已確認」是命刻還留在創角裡時的寫法，而命刻早已移出創角
  * （見 `CharacterEditor.jsx` 第 5 步上方的說明）——留著等於對玩家宣稱一件沒發生的事。
  *
- * 為什麼 label 是「英雄技能與特質」：`CharacterEditor.jsx` 的 `TABS` **直接由這裡派生**
- * （不再各自硬編碼），所以兩份清單的步驟名稱在結構上不可能再漂移。
+ * 為什麼 label 是「英雄技能與金手指」（F-029，2026-10-27 改名）：
+ * 原本叫「英雄技能與特質」，但「特質」在這個 App 裡已經是**另一個東西**——
+ * 第 1 步 d20 身世表的那 40 種特質（`CharacterEditor.jsx` 的對照表標題寫著「40 種特質」）。
+ * 「特質」其實是金手指的**舊名**（F-003 那個年代的用語），步驟名一路沿用下來，
+ * 於是玩家在第 1 步把「特質」選完，到第 5 步又看到一個叫「特質」的步驟，
+ * 而裡面一個 d20 特質都沒有。改名比改 d20 那邊安全：只動一個字串，
+ * 不動資料、也不動玩家既有的理解（`findings.md` F-029 建議①）。
+ *
+ * `CharacterEditor.jsx` 的 `TABS` **直接由這裡派生**（不再各自硬編碼），
+ * 所以兩份清單的步驟名稱在結構上不可能再漂移。
  */
 export const CREATION_STEPS = Object.freeze([
   { id: 1, label: '基礎身世', doneHint: '身分、主題、故鄉都已填寫' },
   { id: 2, label: '職業與技能', doneHint: '職業組合與技能點數已配置' },
   { id: 3, label: '四維屬性', doneHint: '骰階點數已分配完成' },
   { id: 4, label: '裝備配置', doneHint: '武裝與防具已就緒' },
-  { id: 5, label: '英雄技能與特質', doneHint: '沒有需要設定的項目' },
+  { id: 5, label: '英雄技能與金手指', doneHint: '沒有需要設定的項目' },
   { id: 6, label: '命名與背景', doneHint: '姓名、性別與角色背景都已填寫' }
 ]);
 

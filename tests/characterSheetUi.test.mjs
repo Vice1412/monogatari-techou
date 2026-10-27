@@ -46,6 +46,7 @@ import { stripClassSuffix } from '../src/features/character-sheet/data/classAlia
 import { GAME_ICONS_MAP } from '../src/components/ui/GameIcon.jsx';
 import { readIconMapKeys, findDuplicateIconKeys } from './helpers/gameIconMap.mjs';
 import CharacterEditor from '../src/features/character-sheet/components/CharacterEditor.jsx';
+import { GLOSSARY, TERMS as TERM_ENTRIES } from '../src/features/character-sheet/data/glossary.js';
 import CharacterCard from '../src/features/character-sheet/components/CharacterCard.jsx';
 import AttributeMatrixPicker from '../src/features/character-sheet/components/AttributeMatrixPicker.jsx';
 import ClassPickerModal from '../src/features/character-sheet/components/ClassPickerModal.jsx';
@@ -530,7 +531,7 @@ check('TAB_COUNT 與實際分頁數綁在一起（改了一邊就會在執行時
 // 源碼裡不再有那些行——所以改成**從實際渲染結果**驗證。
 // 這比掃源碼更接近玩家看到的東西：掃源碼只證明「字串寫在某處」，
 // 渲染結果才證明「它真的出現在導航列上、而且順序對」。
-const NAV_LABELS = ['基礎身世', '職業與技能', '四維屬性', '裝備配置', '英雄技能與特質', '命名與背景'];
+const NAV_LABELS = ['基礎身世', '職業與技能', '四維屬性', '裝備配置', '英雄技能與金手指', '命名與背景'];
 const editorNavHtml = renderToStaticMarkup(React.createElement(CharacterEditor, {
   character: createNewCharacter({ name: '標籤測試' }),
   themeId: 'emerald',
@@ -540,7 +541,7 @@ const editorNavHtml = renderToStaticMarkup(React.createElement(CharacterEditor, 
 check('導航列把六個創角步驟全部畫出來（順序即流程）',
   NAV_LABELS.filter((label) => editorNavHtml.includes(label)).length, 6);
 // 這裡**不**重複斷言順序。順序已由同檔兩條既有護欄釘住：
-// 「導航列的順序也是職業在四維之前」與「第 6 步排在英雄技能與特質之後（導航列的最後一格）」。
+// 「導航列的順序也是職業在四維之前」與「第 6 步排在英雄技能與金手指之後（導航列的最後一格）」。
 // 硬要用 indexOf 驗證整串順序會假失敗——這些步驟名在整份 HTML 裡出現 2~4 次
 // （第 1 步內容區、進度提示、導航列），實測 `indexOf` 給出
 // [508, 9052, 9814, 2949, 11328, 12353]，其中「裝備配置」@2949 是內容區而非導航列；
@@ -721,8 +722,16 @@ check('開啟金手指時也不再承諾（不是只在空狀態時才對）',
   renderEditorAt(5, {}, { allowQuirk: true }).includes('並可設定特質'), false);
 // 「由開卡規則決定」這幾個字在**空狀態說明**裡也有，所以不能只驗那幾個字——
 // 要驗的是副標題那整句（護欄鐵則：斷言前先問「別處是否也有這字串」）
+//
+// 2026-10-27（F-028）：這句裡的「精通」與「英雄技能」各自包成了 `<TermHint>`，
+// 所以**整句不再是一段連續文字**——原本的 `includes(整句)` 會失效。
+// 改成兩段：句子後半仍然要連續出現，前半改用「兩個術語的說明都在」來斷言。
+// 這比原本更強：它不只驗「有這句話」，還驗「這兩個詞各自有解釋」。
 check('第 5 步副標題改成指路「其餘項目由開卡規則決定」',
-  tab5Default.includes('精通職業後解鎖英雄技能；其餘項目由開卡規則決定'), true);
+  tab5Default.includes('；其餘項目由開卡規則決定'), true);
+check('第 5 步副標題的「精通」與「英雄技能」各自帶了說明（F-028）',
+  [tab5Default.includes('term-hint-mastery'), tab5Default.includes('term-hint-heroicSkill')],
+  [true, true]);
 
 // 姓名搬到第 6 步（原書第 8 步，p.154／p.170）——第 1 步不該再有姓名輸入框
 const tab1Html = renderEditorAt(1);
@@ -732,8 +741,8 @@ check('第 1 步不再有姓名輸入框（原書把姓名放在最後）',
 check('第 6 步有姓名、性別與角色背景',
   [tab6Html.includes('角色姓名'), tab6Html.includes('性別'), tab6Html.includes('角色背景')],
   [true, true, true]);
-check('第 6 步排在英雄技能與特質之後（導航列的最後一格）',
-  tab6Html.lastIndexOf('命名與背景') > tab6Html.lastIndexOf('英雄技能與特質'), true);
+check('第 6 步排在英雄技能與金手指之後（導航列的最後一格）',
+  tab6Html.lastIndexOf('命名與背景') > tab6Html.lastIndexOf('英雄技能與金手指'), true);
 
 // 英雄技能的資格關卡（原書 p.232）：不合格的要停用並寫出原因。
 //
@@ -1757,11 +1766,17 @@ check('空卡：快捷列的緊湊徽章也同一個數字',
 check('空卡：頁首同時講「另有 N 項提醒」（不是只講擋定稿的那個）',
   emptyHtml.includes(`另有 ${emptyState.suggestionCount} 項提醒`), true);
 
-// 魔晶石模式是原本最容易露餡的一組：頁首 2、自檢 3（第 2 步有兩條 error）
-check('魔晶石卡：blockerCount 是 3（第 2 步有兩條 error，不是一個步驟算一項）',
-  techState.blockerCount, 3);
-check('魔晶石卡：頁首也說 3（以前永遠說 2）', headerNumber(techHtml), 3);
-check('魔晶石卡：自檢徽章也說 3（不再跟頁首打架）',
+// 魔晶石模式是原本最容易露餡的一組：頁首 2、自檢 3（第 2 步有兩條 error）。
+//
+// 2026-10-27（F-011）之後這裡是 **2**：第 2 步那兩條 error 講的是同一個缺口
+// （「沒選職業」與「魔晶石制需恰好 3 個職業」），已改成只報一條，
+// 所以魔晶石卡與普通空卡的 blockerCount 剛好都是 2。
+// 這一組的價值不在數字大小，而在「頁首、徽章、state 三邊同一個數字」——
+// 真正的「算條數不是算步驟數」由上面的 `每步 errorCount 加總 ＝ blockerCount` 守著。
+check('魔晶石卡：blockerCount 是 2（第 2 步只剩一條 error，F-011 已去重）',
+  techState.blockerCount, 2);
+check('魔晶石卡：頁首也說 2', headerNumber(techHtml), 2);
+check('魔晶石卡：自檢徽章與頁首同一個數字（不再打架）',
   badgeNumber(techHtml, 'validation-badge'), headerNumber(techHtml));
 
 check('填完的卡：頁首不再說「還有 N 項必須修正」', headerNumber(filledHtml), null);
@@ -1829,6 +1844,133 @@ check('空字串不會爆', shortIssueLabel(''), '');
 check('null 不會爆', shortIssueLabel(null), '');
 check('太長會截斷並加刪節號',
   shortIssueLabel('這是一條非常非常非常非常非常非常長的訊息沒有標點可以切').endsWith('…'), true);
+
+// ─────────────────────────────────────────────────────────── CJ
+section('CJ. F-028 術語解釋層：術語旁邊一句話（2026-10-27）');
+
+// 這一組守的是「6 個天天看到的詞，全站沒有一句話解釋」（P12 量到 K2 = 6/12 = 50%）。
+// 2026-10-27 GM 裁定的做法**不是**加速查抽屜分頁，而是「術語旁邊一個 tooltip、壓到一句」。
+//
+// 所以護欄守三件事，缺一不可：
+//   ① 定義表本身完整：12 條、id 不重複、每條真的只有一句
+//   ② 那 6 個詞各自在畫面上真的掛了說明——**只寫在資料裡不算**
+//   ③ 說明是「常駐在 DOM 的 sr-only」，不是 hover 才存在
+//      （否則讀屏聽不到、SSR 快照也驗不到——這是 F-007 的教訓）
+
+check('F-028 定義表有 12 條（＝ K2 量測的那 12 個術語）', GLOSSARY.length, 12);
+check('F-028 定義表的 id 不重複', new Set(GLOSSARY.map((e) => e.id)).size, GLOSSARY.length);
+check('F-028 每一條都有 id／term／short',
+  GLOSSARY.filter((e) => !e.id || !e.term || !e.short).map((e) => e.id || '(無 id)'), []);
+// 「一句話」是硬規則：兩個句號就是兩句。用句末標點數來判，比數字數可靠。
+check('F-028 每一條的解釋只有一句（句末標點恰好一個、且以句號收尾）',
+  GLOSSARY.filter((e) => (e.short.match(/[。？！]/g) || []).length !== 1 || !e.short.endsWith('。'))
+    .map((e) => e.id),
+  []);
+check('F-028 每一條的解釋都在 60 字以內（tooltip 塞得下的長度）',
+  GLOSSARY.filter((e) => e.short.length > 60).map((e) => `${e.id}:${e.short.length}`), []);
+// 反向控制：解釋裡不得再出現第二個未解釋的術語。
+// 判準刻意放寬到「不得提到另一個術語的正式名稱」，否則會誤傷（例如「精通」的解釋裡
+// 本來就會出現「職業」這兩個字，那是普通名詞不是術語）。
+check('F-028 解釋不得用另一個術語來解釋（禁用「請參考原書」這種推託）',
+  GLOSSARY.filter((e) => /參考原書|請見原書|詳見/.test(e.short)).map((e) => e.id), []);
+
+// ② 六個原本沒解釋的詞，各自在畫面上真的掛了說明。
+// 「特質」掛在 d20 身世表的彈窗裡，而彈窗不開就不渲染，所以那一條改用原始碼層斷言。
+//
+// ※ 職業要挑對：`公測` 那一行只在「這個職業**有**變體、而且本團沒開公測」時才出現
+//   （`ClassSkillCard.jsx` 的 `!showPlaytestVariants && classVariants.length > 0`）。
+//   元素師沒有變體，用它會量到 0——那是「狀態沒到」不是「不存在」，正是 P12 記過的坑。
+//   有變體的是：嵌合師／狂怒鬥士／守護者／熵師／修補匠／突變體。
+const tab2WithClass = renderEditorAt(2, {
+  classes: [{ className: '守護者', level: 3, skills: [] }]
+});
+// ※ 資金欄位在**第 1 步**（`TAB 1: 基礎身世`），不在第 4 步。
+const tab1WithFunds = renderEditorAt(1, { startingFundsRolled: true });
+const tab5TermHtml = renderEditorAt(5);
+const termScreens = tab2WithClass + tab1WithFunds + tab5TermHtml;
+
+check('F-028 第 5 步副標的「精通」有說明', termScreens.includes('term-hint-mastery'), true);
+check('F-028 第 5 步副標的「英雄技能」有說明', termScreens.includes('term-hint-heroicSkill'), true);
+check('F-028 第 2 步職業卡的「公測」有說明', termScreens.includes('term-hint-playtest'), true);
+check('F-028 第 2 步職業卡的「特技（＝職業技能）」有說明',
+  termScreens.includes('term-hint-classSkill'), true);
+check('F-028 第 1 步的「初始持有金幣（＝起始資金）」有說明',
+  termScreens.includes('term-hint-startingZenit'), true);
+
+const identitySrc = read('../src/features/character-sheet/components/IdentityTablesModal.jsx');
+check('F-028「特質」的說明掛在 d20 身世表（彈窗不開不渲染，故掃原始碼）',
+  identitySrc.includes('<TermHint entry={TERMS.trait}>'), true);
+
+// ③ 說明常駐：那一句話必須**一直是 DOM 的一部分**（這裡是 `aria-label`），
+//    不能只在 hover 時才存在——否則讀屏聽不到、SSR 快照也驗不到（F-007 的教訓）。
+const TERM_IDS = ['mastery', 'heroicSkill', 'playtest', 'classSkill', 'startingZenit'];
+check('F-028 五個現場術語的說明都常駐在 DOM 裡（不是 hover 才出現）',
+  TERM_IDS.filter((id) => !termScreens.includes(TERM_ENTRIES[id].short)), []);
+check('F-028 每個術語按鈕都帶 aria-label（讀屏讀到這個詞時聽得到定義）',
+  TERM_IDS.filter((id) => !new RegExp(`aria-label="[^"]*"[^>]*data-testid="term-hint-${id}"`).test(termScreens)
+    && !new RegExp(`data-testid="term-hint-${id}"[^>]*aria-label="[^"]*"`).test(termScreens)),
+  []);
+// 反向控制：不要把定義塞成行內文字節點。
+// 2026-10-27 第一版就是那樣做（`sr-only` 的鄰居），實機量到「1 個公測 公測：… 變體」——
+// 畫面上看不到，但讀屏會把定義唸在句子中間，整句就斷了。
+check('F-028 說明沒有被塞成行內文字（那會讓讀屏把定義唸在句子中間）',
+  termScreens.includes('term-def-'), false);
+check('F-028 常駐說明裡真的有那句話（不是空殼）',
+  termScreens.includes(TERM_ENTRIES.mastery.short), true);
+// 反向控制：浮層（term-tip）在預設狀態**不該**存在——它是條件渲染的。
+// 這條同時證明「常駐的 aria-label」與「浮出的 tip」是兩個東西，不是同一個被誤認。
+check('F-028 預設狀態不會預先渲染浮層（term-tip 只在開的時候出現）',
+  termScreens.includes('term-tip-'), false);
+// 反向控制：不要退回 `title` 屬性——那是手機看不到、鍵盤聽不到的做法。
+check('F-028 沒有退回 title 屬性（手機不顯示、讀屏聽不到）',
+  read('../src/components/ui/TermHint.jsx').includes('title='), false);
+
+// ─────────────────────────────────────────────────────────── CK
+section('CK. F-024：跑團面板的徒手傷害要吃引擎算好的加成');
+
+// 這一節只守 UI 那一層——「引擎算對了，但面板自己又寫死一個 0」。
+// 引擎那一半在 `characterEngine.test.mjs` §N。
+const HUD_SRC = read('../src/features/character-sheet/components/CharacterPlayHUD.jsx');
+
+// 只搜「`[HR + 0] 物理`」而不是「`HR + 0`」——後者會命中我自己寫的註解（§6 第 7 條），
+// 也會命中 `【HR + 0】物理`（那是資料層的原始字串，本來就該保持 0）。
+check('F-024 跑團面板不再寫死 [HR + 0] 物理', HUD_SRC.split('[HR + 0] 物理').length - 1, 0);
+check('F-024 徒手膠囊改讀引擎算好的加成', HUD_SRC.includes('[HR + {unarmedBonus}] 物理'), true);
+check('F-024 加成只在「主手真的是徒手」時才套用（拿劍的空手道徒不該多 6 點）',
+  HUD_SRC.includes("mainWeaponBase.name === '徒手打擊'"), true);
+// 反向控制：主手空著時那條退回路徑也要吃同一個數字。
+// 如果只改膠囊、沒改退回條目，玩家空手時會看到上面「HR + 0」、下面「HR + 6」。
+check('F-024 主手空著時的退回條目也走同一個分支（不是另一段寫死的字串）',
+  HUD_SRC.split("name: character.equipment?.mainHand || '徒手打擊'").length - 1, 1);
+
+// 列印卡也要一致，否則「印出來的」和「打團看到的」會是兩個數字。
+const SHEET_SRC = read('../src/features/character-sheet/components/CharacterSheetExport.jsx');
+check('F-024 列印卡的徒手列也套用同一個加成',
+  SHEET_SRC.includes("item.name === '徒手打擊'"), true);
+check('F-024 列印卡用的是共用的 withHrBonus，不是自己再寫一次字串取代',
+  SHEET_SRC.includes('withHrBonus('), true);
+
+// ─────────────────────────────────────────────────────────── CM
+section('CM. F-012：角色卡上的職業數提示也要吃同一份開卡規則');
+
+// 這條守的是「同一句話有兩個來源」。角色卡上原本寫死「起始需配置 2~3 個職業」，
+// 但魔晶石制把上下限一起鎖成 3——於是同一張卡在角色卡上寫 2~3、
+// 在驗證訊息裡寫「恰好 3」。修了驗證器卻沒修卡片，就還是兩個數字。
+const emptyCard = (rules) => renderToStaticMarkup(React.createElement(CharacterCard, {
+  character: { ...createNewCharacter({ name: '空卡' }), creationRules: rules }
+}));
+
+const standardCardHtml = emptyCard({});
+const techCardHtml = emptyCard({ technospheres: 'full' });
+check('一般團的角色卡寫「起始需配置 2~3 個職業」',
+  standardCardHtml.includes('起始需配置 2~3 個職業'), true);
+check('魔晶石團的角色卡寫「恰好 3 個職業」，不是 2~3',
+  [techCardHtml.includes('起始需配置恰好 3 個職業'), techCardHtml.includes('2~3')], [true, false]);
+// 反向控制：卡片上不能出現「3~3」這種退化區間。
+check('兩張卡都不會出現「3~3」', [standardCardHtml.includes('3~3'), techCardHtml.includes('3~3')], [false, false]);
+// 這條是「真的吃開卡規則」而不是「剛好硬編碼兩個字串」——GM 自訂 1~4 也要反映。
+const customCardHtml = emptyCard({ classCountMin: 1, classCountMax: 4 });
+check('GM 自訂 1~4 時角色卡也跟著改', customCardHtml.includes('起始需配置 1~4 個職業'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

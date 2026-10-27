@@ -26,6 +26,7 @@ import { getCharacterTheme } from '../utils/characterThemes';
 import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
 import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
 import { withEn } from '../../../utils/properNouns';
+import { resolveCreationRules } from '../data/creationRules';
 
 export default function CharacterCard({
   character,
@@ -52,6 +53,15 @@ export default function CharacterCard({
   // 四維還沒指派完 → 六項數值還不成立（見 `calculateCharacterStats` 的 `attributesUnset`）。
   // 顯示「—」而不是拿 0 算出來的假數字；卡片其他地方也已經用「尚未設定…」表達同一件事。
   const statsUnset = Boolean(stats.attributesUnset);
+
+  // 「尚未配置職業」那句提示的職業數（F-012，2026-10-27）。
+  // 原本寫死「起始需配置 2~3 個職業」，但魔晶石制把上下限一起鎖成 3，
+  // 於是同一張卡在角色卡上寫「2~3」、在驗證訊息裡寫「恰好 3」——同一件事兩個來源。
+  // 改成跟驗證器吃同一份開卡規則，並沿用「上下限相同時不寫成 3~3」的規則。
+  const creationForHint = resolveCreationRules(character.creationRules);
+  const classCountHint = creationForHint.classCountMin === creationForHint.classCountMax
+    ? `起始需配置恰好 ${creationForHint.classCountMin} 個職業`
+    : `起始需配置 ${creationForHint.classCountMin}~${creationForHint.classCountMax} 個職業`;
 
   return (
     <div
@@ -171,7 +181,7 @@ export default function CharacterCard({
           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
             {(!character.classes || character.classes.length === 0) ? (
               <span className="text-t11 px-2 py-0.5 rounded border border-dashed border-[#d6c7ab] bg-[#f4ebd9] text-[#2c221e] font-mono italic">
-                【 尚未配置職業 (起始需配置 2~3 個職業) 】
+                【 尚未配置職業 ({classCountHint}) 】
               </span>
             ) : (
               <>

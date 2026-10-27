@@ -7,6 +7,7 @@ import rulesData from '../data/rulesData.json';
 import SkillDescription from '../utils/skillFormulaEvaluator';
 import iconFontUrl from '../../../assets/FabulaUltimaIcons-Regular.otf';
 import { calculateCharacterStats, getProficiencies, getCharacterLevel, HEROIC_SKILLS } from '../utils/characterEngine';
+import { withHrBonus } from '../utils/equipmentRules';
 import { ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
 import { buildCustomWeaponEntries } from '../data/customWeapons';
 import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
@@ -337,7 +338,13 @@ export const buildSheetModel = (character, stats = null) => {
     // 定制武器的「物防提升＝視為裝備盾牌」「迅捷＝打兩次」「可變形＝切換型態」
     // 是數字看不出來的規則，跑團時要查得到，所以跟著裝備列一起印。
     const effects = item.isCustomWeapon && item.note ? ` ｜ ${item.note}` : '';
-    if (item.damage) return `${item.attr} ｜ ${item.damage} ｜ ${item.range}${effects}`;
+    // 徒手打擊要把【空手道】的加成算進去（F-024，2026-10-27）。
+    // 不處理的話，列印卡印「HR + 0」而跑團面板顯示「+6」——同一張角色卡兩個數字，
+    // 正是 F-024 那一類「印出來的和算出來的不一致」。
+    const damage = item.name === '徒手打擊'
+      ? withHrBonus(item.damage, s.quirkEffects?.unarmedDamageBonus || 0)
+      : item.damage;
+    if (item.damage) return `${item.attr} ｜ ${damage} ｜ ${item.range}${effects}`;
     return item.desc || '';
   };
   const equipmentRows = EQUIP_SLOTS.map(([slot, label]) => {

@@ -234,6 +234,14 @@ export function QuirkPickerBody({
                             />
                             <span>
                               {opt.label}
+                              {/* F-025：有些選項的後果要玩家自己去別的地方挑（道具、咒語），
+                                  App 不能代選——但也不能什麼都不說，那會變成「選了等於沒選」。
+                                  所以資料層用 `manual` 寫一句「去哪挑」，這裡照實顯示。 */}
+                              {opt.manual && (
+                                <span className="text-t10 ml-1" style={{ color: theme.textMuted }}>
+                                  （{opt.manual}）
+                                </span>
+                              )}
                               {opt.effects && (
                                 <span className="text-t10 ml-1" style={{ color: theme.textMuted }}>
                                   （會寫進角色數值）

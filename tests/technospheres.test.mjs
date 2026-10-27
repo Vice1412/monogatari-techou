@@ -727,11 +727,31 @@ const techChar = {
 };
 const techErrors = validateCharacter(techChar).errors.map((e) => e.message);
 check('官方武器表在魔晶石制下被擋', techErrors.some((m) => m.includes('只能裝備自訂武器')), true);
-check('四職業在魔晶石制下被擋',
+// 2026-10-27（F-011）：起始等級時「職業數不對」由通用那條負責（「起始不可超過 3 個職業」），
+// 魔晶石那條**不重複發言**——兩條並列會讓玩家以為是兩個不同的缺口。
+// 所以這裡要分兩個情況驗，才不會把「去重」誤讀成「檢查不見了」。
+check('四職業在魔晶石制下被擋（起始等級：由通用的職業數檢查發言）',
   validateCharacter({ ...withMnem, classes: [...withMnem.classes, { className: '舞者', level: 1, skills: [] }] })
-    .errors.some((e) => e.message.includes('恰好 3 個固有職業')), true);
+    .errors.some((e) => e.message.includes('起始不可超過 3 個職業')), true);
+check('四職業在魔晶石制下不會被報兩次（同一件事只說一遍）',
+  validateCharacter({ ...withMnem, classes: [...withMnem.classes, { className: '舞者', level: 1, skills: [] }] })
+    .errors.filter((e) => e.message.includes('個職業') || e.message.includes('固有職業')).length, 1);
+// 離開起始等級之後，通用那條不跑了，魔晶石這條就必須自己發言——
+// 否則「已升級的角色把職業數改壞」會靜默放行。
+check('四職業在魔晶石制下被擋（非起始等級：由魔晶石那條發言）',
+  validateCharacter({
+    ...withMnem,
+    level: 6,
+    classes: [...withMnem.classes, { className: '舞者', level: 1, skills: [] }]
+  }).errors.some((e) => e.message.includes('恰好 3 個固有職業')), true);
 check('三職業在魔晶石制下不擋職業數',
   validateCharacter(withMnem).errors.some((e) => e.message.includes('恰好 3 個固有職業')), false);
+// 去重最危險的寫法是「魔晶石那條只在 classCount > 0 時才檢查」——
+// 那會在「已升級、但職業被清空」時讓兩條都不發言，變成靜默放行。
+// 這條專門擋那個寫法：離開起始等級、0 個職業，魔晶石那條必須自己說。
+check('非起始等級 + 0 個職業：魔晶石那條仍要發言（不能被去重吃掉）',
+  validateCharacter({ ...withMnem, level: 6, classes: [] })
+    .errors.some((e) => e.message.includes('恰好 3 個固有職業')), true);
 
 // ─────────────────────────────────────────────────────────── L
 section('L. 裝備層（插槽品級算進同一筆預算）');

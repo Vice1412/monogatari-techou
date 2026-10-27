@@ -41,6 +41,7 @@ import {
   parseAccuracy,
   parseDamage,
   parseArmorFormula,
+  withHrBonus,
   evaluateWeapon,
   computeArmorOutcome,
   computeShieldOutcome,
@@ -826,6 +827,27 @@ check('沒裝備的武器改名不影響裝備欄',
   syncEquipmentNames({ mainHand: '青銅劍' }, twinForms, renamedTwin).equipment.mainHand, '青銅劍');
 check('副手也可以被同步（例如盾牌類定制武器）',
   syncEquipmentNames({ offHand: '柔性纏手布（第二型態）' }, twinForms, renamedTwin).equipment.offHand, '織炎型態');
+
+// ─────────────────────────────────────────────────────────── withHrBonus（F-024）
+section('withHrBonus：把傷害式的 HR 加值往上加（F-024，2026-10-27）');
+
+// 這支小函式存在的理由：傷害式在資料裡至少兩種寫法，而且加值可能不只一位。
+// 如果每個呼叫端各寫一次 `replace`，改格式時就會漏掉其中一個。
+check('徒手打擊 +6 → 【HR + 6】物理', withHrBonus('【HR + 0】物理', 6), '【HR + 6】物理');
+check('已經有加值的式子往上疊（+4 再加 6 → +10）', withHrBonus('【HR + 4】物理', 6), '【HR + 10】物理');
+check('兩位數加值不會被截斷（+8 加 10 → +18）', withHrBonus('【HR + 8】物理', 10), '【HR + 18】物理');
+// 反向控制：加 0 時**原樣回傳**（連空白都不能動），否則每個沒有金手指的角色
+// 都會被寫出一筆「格式略有不同」的傷害式，之後比對字串就會失敗。
+check('加 0 時原樣回傳', withHrBonus('【HR + 0】物理', 0), '【HR + 0】物理');
+check('加 0 時連空白的寫法都不動', withHrBonus('【HR  +  0】物理', 0), '【HR  +  0】物理');
+// 找不到 HR 就別硬改——寧可少加，也不要生出一段壞掉的字串。
+check('沒有 HR 的式子原樣回傳', withHrBonus('特殊：直接造成 3 點傷害', 6), '特殊：直接造成 3 點傷害');
+check('空字串不會炸', withHrBonus('', 6), '');
+// 預設參數 `damage = ''` 會接住 undefined，所以回空字串而不是 "undefined"。
+// 這條守的是「呼叫端忘了傳值時畫面不會出現 'undefined' 這串字」。
+check('undefined 走預設值，回空字串（不會印出 "undefined"）', withHrBonus(undefined, 6), '');
+// 另一種寫法（括號版）也要認得——列印卡與說明文字用的是這一種。
+check('括號寫法 (HR + 8) 也認得', withHrBonus('(HR + 8) 物理', 6), '(HR + 14) 物理');
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

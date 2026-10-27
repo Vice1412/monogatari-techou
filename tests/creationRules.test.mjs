@@ -292,6 +292,17 @@ check('GM 放寬成 1~4 個職業後，單職不再報錯',
 check('GM 收窄成 3~3 個職業後，2 個職業會報錯',
   errs(withClasses(['守護者', '元素師']), { classCountMin: 3, classCountMax: 3 }),
   ['起始需至少 3 個職業，目前只有 2 個 (不可純單職)']);
+// F-012（2026-10-27）：上下限相同時不能寫成「3~3」。
+// 「3 到 3」讀起來像還要挑，實際上是「剛好 3 個」——而這句話出現在最需要明確的位置。
+check('上下限相同時，訊息寫「恰好 3 個職業」而不是「3~3」',
+  errs(withClasses([]), { classCountMin: 3, classCountMax: 3 }),
+  ['尚未選擇任何職業 (起始 5 級需配置恰好 3 個職業)']);
+// 反向控制：上下限不同時**不能**冒出「恰好」——那會變成另一種說錯。
+// 這條同時守住「預設值沒被改壞」：一般團仍然是 2~3。
+check('上下限不同時仍寫區間（預設 2~3）',
+  errs(withClasses([]), {}), ['尚未選擇任何職業 (起始 5 級需配置 2~3 個職業)']);
+check('任何情況下，職業數訊息都不含「~」以外的退化寫法（例如 3~3）',
+  errs(withClasses([]), { classCountMin: 3, classCountMax: 3 }).filter((m) => m.includes('3~3')), []);
 
 check('必修職業缺少 → error',
   errs(withClasses(['元素師', '靈師']), { requiredClasses: ['守護者'] }), ['此團規定必須修習：守護者']);
@@ -477,7 +488,7 @@ section('O. 2026-10-06 稽核修正：步驟次序、主題、姓名、屬性陣
 // O1 步驟次序：原書是「先選職業（第 4 步）再分配屬性（第 5 步）」（p.154／p.162）
 check('CREATION_STEPS 的順序是職業(2) 先於四維(3)，姓名在最後(6)',
   CREATION_STEPS.map((s) => s.label),
-  ['基礎身世', '職業與技能', '四維屬性', '裝備配置', '英雄技能與特質', '命名與背景']);
+  ['基礎身世', '職業與技能', '四維屬性', '裝備配置', '英雄技能與金手指', '命名與背景']);
 
 // O1b 第 5 步的完成提示不得宣稱「已確認」。
 // 這一步在官方標準開卡規則下**沒有任何欄位**（英雄技能要精通職業才解鎖、金手指是選用規則），
@@ -486,7 +497,22 @@ check('CREATION_STEPS 的順序是職業(2) 先於四維(3)，姓名在最後(6)
 check('第 5 步的 doneHint 不得宣稱「已確認」（該步在官方標準下無欄位）',
   CREATION_STEPS.find((s) => s.id === 5).doneHint.includes('已確認'), false);
 check('第 5 步在兩份清單裡同名（導航列與進度清單不得各叫各的）',
-  CREATION_STEPS.find((s) => s.id === 5).label, '英雄技能與特質');
+  CREATION_STEPS.find((s) => s.id === 5).label, '英雄技能與金手指');
+
+// O1b-2 「特質」不能同時指兩件事（F-029，2026-10-27）。
+// 「特質」在這個 App 裡是**第 1 步 d20 身世表**的那 40 種（見對照表標題），
+// 而第 5 步的舊名「英雄技能與特質」指的是金手指——同一個詞兩個意思，
+// 玩家在第 1 步選完特質，到第 5 步又看到一個叫「特質」的步驟，裡面卻沒有 d20 特質。
+check('第 5 步的名稱不含「特質」（那個詞專指 d20 身世表）',
+  CREATION_STEPS.find((s) => s.id === 5).label.includes('特質'), false);
+// 反向控制：不能為了「不含特質」就把第 1 步那個正牌「特質」也改掉。
+// 那會變成「為了解決撞名，把正確的那個也一起消滅」。
+const editorSrcForTrait = fs.readFileSync(
+  new URL('../src/features/character-sheet/components/CharacterEditor.jsx', import.meta.url), 'utf8');
+check('第 1 步的 d20 對照表仍然叫「特質」（正牌用法沒被誤改）',
+  editorSrcForTrait.includes('40 種特質'), true);
+check('六個步驟名稱裡「特質」只出現在 0 個步驟上（撞名已解除）',
+  CREATION_STEPS.filter((s) => s.label.includes('特質')).length, 0);
 
 // O1c 導航列的步驟名稱必須由 CREATION_STEPS 派生，不得再手抄一份。
 // 2026-10-20 之前是兩份硬編碼，而兩邊各有自己的測試釘住——於是**兩邊都綠、名稱卻不同**，

@@ -37,6 +37,8 @@ import { JRPGInput } from '../../../components/ui/JRPGInput';
 import StatBadge from '../../../components/ui/StatBadge';
 import JRPGModal from '../../../components/ui/JRPGModal';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
+import TermHint from '../../../components/ui/TermHint';
+import { TERMS } from '../data/glossary';
 import IdentityTablesModal from './IdentityTablesModal';
 import AttributeMatrixPicker from './AttributeMatrixPicker';
 import ClassSkillCard from './ClassSkillCard';
@@ -99,7 +101,8 @@ import {
   attributeDieUpgradesAllowed,
   attributeDieUpgradesUsed,
   HEROIC_SKILLS,
-  HEROIC_SKILL_SOURCE_LABELS
+  HEROIC_SKILL_SOURCE_LABELS,
+  buildQuirkPatch
 } from '../utils/characterEngine';
 import {
   EQUIPMENT_SLOTS,
@@ -587,6 +590,27 @@ export default function CharacterEditor({
       { kind: 'zenit', title: '擲起始資金 2d6 × 10' }
     );
     alert(`[2d6 擲骰] [${d1}] + [${d2}] = ${d1 + d2} (× 10 = ${rollSum}z)！\n加上剩餘裝備預算 ${Math.max(0, remainingBudget)}z，角色的起始儲蓄已結算為 ${finalZenit}z！`);
+  };
+
+  /**
+   * 換金手指（F-025，2026-10-27）。
+   *
+   * 為什麼不能只寫 `quirk` 與 `quirkChoice` 兩個欄位：
+   * 【富家子弟】原書寫「你的初始資金將增加 1000z」。金手指在**第 5 步**選，
+   * 而起始資金在**第 1 步**就結算了——所以「結算時把加成算進去」這條路永遠加不到。
+   * 只能改成「換過去的當下補、換回來的時候退」。
+   *
+   * `character.quirkZenitBonus` 是這件事的帳本：記住「已經補過多少」。
+   * 有它才不會出現兩種錯：
+   * - 來回換金手指時**重複加**（1000 → 2000 → 3000）；
+   * - 從富家子弟換走時**沒退**（角色白拿 1000z）。
+   *
+   * 實際算式在引擎的 `buildQuirkPatch` 裡（純函式，測試測得到）；
+   * 這裡只負責把它交給 `updateField`，一次寫完四個欄位，
+   * 避免「寫了 zenit 卻沒寫帳本」的中間狀態。
+   */
+  const applyQuirkChoice = (nextName, choiceId) => {
+    updateField(buildQuirkPatch(character, nextName, choiceId));
   };
 
   const mainHandName = character.equipment?.mainHand || '';
@@ -1335,7 +1359,7 @@ export default function CharacterEditor({
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="text-xs font-bold" style={{ color: theme.textDark }}>
-                        初始持有金幣
+                        <TermHint entry={TERMS.startingZenit} align="end">初始持有金幣</TermHint>
                       </label>
                       <span className="text-t10 font-bold" style={{ color: theme.textMuted }}>
                         由開卡規則決定
@@ -2013,20 +2037,20 @@ export default function CharacterEditor({
             onSave={handleSaveCustomWeapons}
           />
 
-          {/* ==================== TAB 5: 英雄技能與特質 ==================== */}
+          {/* ==================== TAB 5: 英雄技能與金手指 ==================== */}
           {activeTab === 5 && (
             <div className="space-y-5 animate-fade-in">
               <div>
                 <h4 className="font-serif font-black text-lg flex items-center gap-2" style={{ color: theme.textDark }}>
-                  <span style={{ color: theme.accent }}>5.</span> 英雄技能與特質
+                  <span style={{ color: theme.accent }}>5.</span> {TABS.find((t) => t.id === 5).label}
                 </h4>
                 <p className="text-xs text-[#6b5a4b] mt-0.5">
-                  精通職業後解鎖英雄技能；其餘項目由開卡規則決定。
+                  <TermHint entry={TERMS.mastery} />職業後解鎖<TermHint entry={TERMS.heroicSkill} />；其餘項目由開卡規則決定。
                 </p>
               </div>
 
-              {/* 空狀態：這一步的三塊內容（金手指特質／底力技／營地活動）**全部由開卡規則決定**。
-                  三者都沒開時，這頁原本只剩標題與一行副標——標題承諾「英雄技能與特質」，
+              {/* 空狀態：這一步的三塊內容（金手指／底力技／營地活動）**全部由開卡規則決定**。
+                  三者都沒開時，這頁原本只剩標題與一行副標——標題承諾「英雄技能與金手指」，
                   畫面卻是一片空白，而且沒有任何線索說明「為什麼是空的、要怎樣才會有」。
                   依 §CI12 的空狀態語法補（虛線框 ＋ gi 敘事圖示 ＋ 粗體標題 ＋ 一句教學），
                   並**刻意不放 CTA**：換規則集的入口在第 1 步，左側步驟列本來就走得到，
@@ -2048,13 +2072,13 @@ export default function CharacterEditor({
                       這一步目前沒有可設定的項目
                     </h4>
                     <p className="text-t12 text-[#6b5a4b] max-w-md mx-auto leading-relaxed">
-                      特質、底力技與營地活動都由開卡規則決定。到第 1 步換一組規則集，可設定的項目就會出現在這裡。
+                      金手指、底力技與營地活動都由開卡規則決定。到第 1 步換一組規則集，可設定的項目就會出現在這裡。
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* 金手指特質：開卡規則沒開就直接整塊收掉。
+              {/* 金手指：開卡規則沒開就直接整塊收掉。
                   ※ 沒開的話清單裡只剩「無特殊金手指」，留一個只能選「無」的下拉是純噪音
                   （見 §U 的「不能選的原因要在選之前看見」——那是對**選項**的要求；
                   整條規則關閉時，這個入口本身就不該存在）。 */}
@@ -2326,8 +2350,8 @@ export default function CharacterEditor({
             theme={theme}
             selectedName={character.quirk === '無' ? '' : (character.quirk || '')}
             selectedChoice={character.quirkChoice || ''}
-            onPick={(q, choiceId) => updateField({ quirk: q.name, quirkChoice: choiceId || '' })}
-            onClear={() => updateField({ quirk: '無', quirkChoice: '' })}
+            onPick={(q, choiceId) => applyQuirkChoice(q.name, choiceId)}
+            onClear={() => applyQuirkChoice('無', '')}
           />
 
           {/* Wizard Footer Navigation Bar */}

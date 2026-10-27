@@ -173,6 +173,24 @@ export const parseDamage = (damage = '') => {
   return { damageBonus, damageType };
 };
 
+/**
+ * 把傷害式的 HR 加值往上加（F-024，2026-10-27）。
+ *
+ * `【HR + 0】物理` ＋ 6 → `【HR + 6】物理`
+ *
+ * 為甚麼要有這一個小函式，而不是在呼叫端寫字串取代：
+ * 傷害式的寫法在資料裡至少有兩種（`【HR + 0】物理`、`(HR + 8) 物理`），
+ * 而且數字可能不只一位。集中在這裡，改格式時只會有一個地方要改。
+ * 找不到 `HR + N` 就原樣回傳——寧可少加，也不要生出一段壞掉的字串。
+ */
+export const withHrBonus = (damage = '', bonus = 0) => {
+  const text = String(damage);
+  if (!bonus) return text;
+  const m = text.match(/HR\s*\+\s*(\d+)/);
+  if (!m) return text;
+  return text.replace(/HR\s*\+\s*\d+/, `HR + ${parseInt(m[1], 10) + bonus}`);
+};
+
 /** 防具的物防／魔防公式種類（Core p.127：固定值 或 當前骰 + 加值） */
 export const parseArmorFormula = (formula = '') => {
   const text = String(formula).trim();

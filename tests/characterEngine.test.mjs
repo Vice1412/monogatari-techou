@@ -49,7 +49,10 @@ import {
   MAX_NON_MASTERED_CLASSES,
   resolveLevelUpSkill,
   getQuirkOptionEffects,
-  getQuirkEffects
+  getQuirkEffects,
+  getProficiencies,
+  getQuirkStartingZenitBonus,
+  buildQuirkPatch
 } from '../src/features/character-sheet/utils/characterEngine.js';
 import { DEFAULT_CREATION_RULES } from '../src/features/character-sheet/data/creationRules.js';
 import { INNATE_MIN_LEVELS } from '../src/features/character-sheet/data/technospheres.js';
@@ -858,8 +861,14 @@ check('J7 其中只有 2 個的選項會改數值，所以只有它們有結構�
 const EFFECT_OPTIONS = QUIRK_OPTION_QUIRKS
   .flatMap((q) => q.options.filter((o) => o.effects).map((o) => `${q.name}/${o.id}`))
   .sort();
-check('J7 只有倖存者③與墮落天使③帶機械效果',
-  EFFECT_OPTIONS, ['倖存者/ip', '墮落天使/mp'].sort());
+// 2026-10-27（F-025）新增 `倖存者/proficiency`。
+// 這條以前寫的是「只有倖存者③與墮落天使③帶機械效果」——那不是規則，是**缺陷的形狀**：
+// 倖存者① 原書寫「獲得裝備職業近戰武器、職業遠程武器、職業盾牌與職業防具的能力」，
+// 但資料層沒有 `effects`，所以選了之後四項熟練度**全部仍是 false**，玩家在裝備步驟被擋下，
+// 而且看不出是 App 沒做。所以這條斷言從「只有 2 個」改成「恰好這 3 個」，
+// 並在下面 §J9 逐一驗證這三個效果真的進到引擎。
+check('J7 帶結構化效果的選項恰好這 3 個（倖存者①②③ 與墮落天使③）',
+  EFFECT_OPTIONS, ['倖存者/ip', '倖存者/proficiency', '墮落天使/mp'].sort());
 
 const survivorBase = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '倖存者' }));
 const survivorIp = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '倖存者', quirkChoice: 'ip' }));
@@ -867,7 +876,7 @@ check('J7 倖存者沒選選項 → 最大 IP 仍是 6（行為與以前相同�
 check('J7 倖存者③ → 最大 IP 6 + 2 = 8', survivorIp.maxIp, 8);
 check('J7 倖存者③ 的標籤寫進 breakdown',
   survivorIp.breakdown.ip.terms.some((t) => t.label === '金手指 倖存者 選項'), true);
-check('J7 倖存者①（裝備熟練）是敘事選項 → 不改 IP',
+check('J7 倖存者①（裝備熟練）不影響 IP（它的效果在熟練度，不在 IP）',
   calculateCharacterStats(mk({ attributes: ALL_8, quirk: '倖存者', quirkChoice: 'proficiency' })).maxIp, 6);
 
 const angelBase = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '墮落天使' }));
@@ -880,8 +889,11 @@ check('J7 沒選金手指時 quirkChoice 無效',
   calculateCharacterStats(mk({ attributes: ALL_8, quirk: '無', quirkChoice: 'ip' })).maxIp, 6);
 check('J7 名稱自己加了註記也認得（舊存檔相容）',
   calculateCharacterStats(mk({ attributes: ALL_8, quirk: '倖存者（自奇）', quirkChoice: 'ip' })).maxIp, 8);
-check('J7 getQuirkOptionEffects 對敘事選項回空物件',
-  getQuirkOptionEffects({ quirk: '倖存者', quirkChoice: 'proficiency' }), {});
+// 這條守的是「沒有結構化效果的選項要回空物件」。原本拿倖存者①當例子，
+// 但 F-025 之後倖存者① 有 `profs` 效果了，所以改拿墮落天使①（道具）——
+// 它永遠不會有 `effects`，因為「獲得一個價值 1000z 以下的道具」不可能由 App 代選。
+check('J7 getQuirkOptionEffects 對純敘事選項回空物件',
+  getQuirkOptionEffects({ quirk: '墮落天使', quirkChoice: 'item' }), {});
 check('J7 getQuirkOptionEffects 精確回 effects',
   getQuirkOptionEffects({ quirk: '墮落天使', quirkChoice: 'mp' }), { mp: 10 });
 check('J7 新建角色 quirkChoice 預設空字串（不替玩家選）',
@@ -1194,6 +1206,146 @@ check('規格本身不合法（超出名額）→ 錯誤',
     creationRules: { ...DEFAULT_CREATION_RULES, allowCustomWeapon: true },
     customWeapons: [createCustomWeaponSpec({ name: '壞的', customizations: ['quick', 'accurate', 'defenseBoost'] })]
   }).errors.some((e) => e.message.includes('超出名額')), true);
+
+// ─────────────────────────────────────────────────────────── M
+section('M. 金手指選項真的生效（F-025，2026-10-27）');
+
+// 這一段守的是 P12 測試抓到的「選了等於沒選」。
+// 三個選項在原書都有明確的機械後果，但以前資料層只寫了說明文字、沒有結構化效果，
+// 所以選了之後角色卡一個數字都不會變，玩家也看不出是 App 沒做。
+//
+// 判定方式刻意不寫死金手指名稱：全部從資料層的 `effects` 推導，
+// 這樣下一個金手指要給熟練度或起始資金時，只要改 JSON 就會被這裡守到。
+
+// ── 倖存者①：裝備熟練度
+const profOf = (over) => getProficiencies(mk({ attributes: ALL_8, ...over }));
+const NO_PROF = { martialMelee: false, martialRanged: false, martialArmor: false, martialShields: false };
+
+check('M 沒選金手指 → 四項職業武裝熟練度全 false', profOf({}), NO_PROF);
+check('M 倖存者但沒選選項 → 仍是四項全 false（不替玩家決定）', profOf({ quirk: '倖存者' }), NO_PROF);
+check('M 倖存者①（裝備熟練）→ 四項全部 true',
+  profOf({ quirk: '倖存者', quirkChoice: 'proficiency' }),
+  { martialMelee: true, martialRanged: true, martialArmor: true, martialShields: true });
+// 反向控制：同一組的四項要能各自獨立。若哪天有人把 OR 迴圈寫成「設一項就全設」，
+// 上面那條會照樣綠燈（因為期望值剛好也是四項全 true），只有這條會叫。
+check('M 倖存者③（+2 IP）不會順帶給熟練度', profOf({ quirk: '倖存者', quirkChoice: 'ip' }), NO_PROF);
+check('M 倖存者②（學咒語）不會順帶給熟練度', profOf({ quirk: '倖存者', quirkChoice: 'spell' }), NO_PROF);
+
+// ── 富家子弟：起始資金 +1000z
+// 原書寫「你的初始資金將增加 1000z」。這裡驗的是「引擎算得出這個加成」；
+// 「編輯器換金手指時會不會重複加／該不該退」屬於 UI 行為，由 §CJ 那類的元件測試守。
+const ZENIT_BASE = mk({ attributes: ALL_8 }).zenit;
+check('M 富家子弟的起始資金加成是 1000', getQuirkStartingZenitBonus({ quirk: '富家子弟' }), 1000);
+check('M 沒選金手指 → 起始資金加成 0', getQuirkStartingZenitBonus({ quirk: '無' }), 0);
+check('M 金手指加成不會自己跑進 zenit（zenit 仍是第 1 步擲出的值）',
+  mk({ attributes: ALL_8, quirk: '富家子弟' }).zenit, ZENIT_BASE);
+// 這條說明「為什麼編輯器需要 applyQuirkChoice 那個帳本」：
+// 起始資金在第 1 步就結算了，金手指在第 5 步才選，所以不可能在結算時算進去。
+// 若哪天有人以為「引擎會自動加」，這條會立刻失敗並指向正確做法。
+check('M 起始資金與金手指加成是兩個獨立欄位（不是同一個數字）',
+  [typeof mk({ attributes: ALL_8, quirk: '富家子弟' }).zenit, getQuirkStartingZenitBonus({ quirk: '富家子弟' })],
+  ['number', 1000]);
+
+// ── 玩家代選不了的選項：要有一句「去哪挑」，不能靜靜地什麼都不說
+const MANUAL_OPTIONS = QUIRK_OPTION_QUIRKS
+  .flatMap((q) => q.options.filter((o) => o.manual).map((o) => `${q.name}/${o.id}`))
+  .sort();
+check('M 有 3 個選項需要玩家自己去別處挑（咒語 ×2、道具 ×1）',
+  MANUAL_OPTIONS, ['倖存者/spell', '墮落天使/item', '墮落天使/spell'].sort());
+check('M 需要代選的選項都寫了 `manual` 指路，不是空白',
+  MANUAL_OPTIONS.filter((k) => {
+    const [qn, oid] = k.split('/');
+    const q = rulesData.quirks.find((x) => x.name === qn);
+    const o = q.options.find((x) => x.id === oid);
+    return !o.manual || o.manual.trim().length < 4;
+  }), []);
+// 反向控制：`manual` 只該出現在「沒有結構化效果」的選項上。
+// 兩者同時存在代表資料互相矛盾——到底 App 會代做，還是要玩家自己做？
+check('M 有結構化效果的選項不該再叫人自己去挑',
+  QUIRK_OPTION_QUIRKS.flatMap((q) => q.options.filter((o) => o.effects && o.manual).map((o) => `${q.name}/${o.id}`)), []);
+
+// ── 換金手指的帳本：`buildQuirkPatch`
+// 這三條守的是「畫面看不出來、但錢會算錯」的錯法。用純函式驗，不靠點按鈕。
+const richStart = mk({ attributes: ALL_8, zenit: 500 });
+const patchToRich = buildQuirkPatch(richStart, '富家子弟', '');
+check('M 換成富家子弟 → zenit 從 500 變 1500', patchToRich.zenit, 1500);
+check('M 換成富家子弟 → 帳本記住已經補了 1000', patchToRich.quirkZenitBonus, 1000);
+check('M 換成富家子弟 → 同時寫入金手指名稱與選項（一次寫完，不留中間狀態）',
+  [patchToRich.quirk, patchToRich.quirkChoice], ['富家子弟', '']);
+
+// 錯誤類型 1：來回換金手指重複加。
+const afterRich = { ...richStart, ...patchToRich };
+check('M 富家子弟 → 無 → 富家子弟，金額只加一次（1500 而不是 2500）',
+  (() => {
+    const off = { ...afterRich, ...buildQuirkPatch(afterRich, '無', '') };
+    const on = { ...off, ...buildQuirkPatch(off, '富家子弟', '') };
+    return [off.zenit, on.zenit];
+  })(), [500, 1500]);
+
+// 錯誤類型 2：換走時沒退。
+check('M 從富家子弟換成別的金手指 → 1000z 要退回',
+  (() => {
+    const off = { ...afterRich, ...buildQuirkPatch(afterRich, '倖存者', 'ip') };
+    return [off.zenit, off.quirkZenitBonus];
+  })(), [500, 0]);
+
+// 錯誤類型 3：帳本沒更新。上面兩條已經間接守住，這裡再直接檢查一次帳本本身。
+check('M 帳本跟著金手指一起歸零，不是只改 zenit',
+  buildQuirkPatch({ ...afterRich }, '無', '').quirkZenitBonus, 0);
+
+// 差額為 0 時不要動 zenit —— 否則每次換金手指都留一筆「金額沒變」的歷史。
+check('M 沒加成的金手指之間互換 → 欄位包裡沒有 zenit（不寫無意義的歷史）',
+  Object.prototype.hasOwnProperty.call(buildQuirkPatch(mk({ attributes: ALL_8 }), '倖存者', 'ip'), 'zenit'), false);
+// 邊界：錢不夠扣的時候不能變成負數。
+check('M zenit 不足 1000 時換走富家子弟 → 歸零而不是負數',
+  buildQuirkPatch({ quirk: '富家子弟', quirkChoice: '', quirkZenitBonus: 1000, zenit: 300 }, '無', '').zenit, 0);
+
+// ─────────────────────────────────────────────────────────── N
+section('N. 徒手傷害加進攻擊公式（F-024，2026-10-27）');
+
+// 這一段守的是「算對了但沒接到公式上」。
+// 【空手道】的 +6 一直都有算出來、編輯器也印得出來，但跑團面板的攻擊公式
+// 讀的是**武器條目自己的 `damage`**（`【HR + 0】物理`），所以實戰永遠是 +0。
+// 玩家看到「編輯器說 +6、打團寫 +0」，只能自己記著手動加。
+const UNARMED_ONLY = { mainHand: '徒手打擊', offHand: '徒手打擊', armor: '無裝甲 / 冒險服', accessory: '' };
+const karate = calculateCharacterStats(mk({ attributes: ALL_8, quirk: '空手道', equipment: UNARMED_ONLY }));
+const karateBare = calculateCharacterStats(mk({ attributes: ALL_8, equipment: UNARMED_ONLY }));
+
+check('N 空手道：quirkEffects 的徒手加成是 6', karate.quirkEffects.unarmedDamageBonus, 6);
+check('N 空手道：引擎產出的主手武器傷害式含 HR + 6（這才是修好的地方）',
+  karate.mainHandWeapon.damage, '【HR + 6】物理');
+check('N 沒有金手指：主手武器傷害式維持 HR + 0', karateBare.mainHandWeapon.damage, '【HR + 0】物理');
+
+// 30 級後改成 +10（原書寫在同一個條目裡）
+const karate30 = calculateCharacterStats(mk({ attributes: ALL_8, level: 30, quirk: '空手道', equipment: UNARMED_ONLY }));
+check('N 空手道 30 級：徒手加成變 10', karate30.quirkEffects.unarmedDamageBonus, 10);
+check('N 空手道 30 級：傷害式含 HR + 10', karate30.mainHandWeapon.damage, '【HR + 10】物理');
+check('N 空手道 29 級：仍是 +6（升級門檻不能提前）',
+  calculateCharacterStats(mk({ attributes: ALL_8, level: 29, quirk: '空手道', equipment: UNARMED_ONLY })).mainHandWeapon.damage,
+  '【HR + 6】物理');
+
+// 拿著武器時不該多 6 點——加成只屬於「徒手」。
+// 刻意挑【短匕首】（HR + 4）而不是【青銅劍】（HR + 6）：後者的 +6 剛好跟空手道的加成一樣，
+// 就算程式錯誤地把加成也套上去，數字會變成 +12 才被抓到，看起來反而像「測試很弱」。
+const karateArmed = calculateCharacterStats(mk({
+  attributes: ALL_8, quirk: '空手道',
+  equipment: { mainHand: '短匕首', offHand: '無盾牌', armor: '無裝甲 / 冒險服', accessory: '' }
+}));
+check('N 空手道拿短匕首：匕首的 HR 不受影響（仍是資料上的 +4）',
+  karateArmed.mainHandWeapon.damage, '【HR + 4】物理');
+check('N 空手道拿短匕首：不是徒手，所以引擎沒有改寫它的傷害式',
+  karateArmed.mainHandWeapon.unarmedDamageBonus, undefined);
+check('N 空手道拿短匕首：加成仍記在 quirkEffects 裡（資料沒丟，只是不套用）',
+  karateArmed.quirkEffects.unarmedDamageBonus, 6);
+
+// ⚠️ 這一條是「改到共用資料」的護欄。`mainHandDef` 是 `rulesData` 的共享物件，
+// 如果直接改它的 `damage`，加成會寫進全站共用的武器表——下一個角色、NPC、
+// 甚至對手的徒手攻擊都會變成 +6，而且重新整理也不會恢復。
+check('N 計算完之後，武器表裡的徒手打擊仍是 HR + 0（沒有污染共用資料）',
+  rulesData.equipment.weapons.find((w) => w.name === '徒手打擊').damage, '【HR + 0】物理');
+
+// 跑團面板那兩處顯示屬於 UI 層，護欄寫在 `characterSheetUi.test.mjs` 的 §CK
+// （那個檔才有讀原始碼的 `read()` 輔助函式）。
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
