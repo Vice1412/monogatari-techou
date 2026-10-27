@@ -290,13 +290,19 @@ export const heroicSkillsForClass = (className) => {
  *
  * 為什麼放在引擎而不是資料層：`rulesData` 只被引擎持有（資料層零依賴原則）。
  */
-export const classSkillsForClass = (className, technosphereMode = null) => {
-  if (!className) return [];
+/** 職業名 → `rulesData.classes` 的鍵（精確優先，其次去掉後綴）。查不到回空字串。 */
+const resolveClassKey = (className) => {
+  if (!className) return '';
   const key = normalizeClassName(className);
-  if (!key) return [];
+  if (!key) return '';
   const match = Object.prototype.hasOwnProperty.call(rulesData.classes, key)
     ? key
     : stripClassSuffix(key);
+  return match || '';
+};
+
+export const classSkillsForClass = (className, technosphereMode = null) => {
+  const match = resolveClassKey(className);
   if (!match) return [];
   return (rulesData.classes[match]?.skills || [])
     .filter((sk) => !isSkillSuppressedByTechnospheres(sk.name, technosphereMode))
@@ -305,6 +311,24 @@ export const classSkillsForClass = (className, technosphereMode = null) => {
       maxSL: Math.max(1, Number(sk.maxSL) || 1),
       desc: sk.desc || ''
     }));
+};
+
+/**
+ * 這個職業在當前模式下**被原書作廢**的技能名稱（F-016，2026-10-27）。
+ *
+ * 為什麼要另外回一份：`classSkillsForClass` 把作廢的技能濾掉了，於是畫面上
+ * 「守護者只剩 4 條」看起來像資料少了，而不是「有一條被這團的規則拿掉」。
+ * 介面需要一個能說出「少了哪一條、為什麼」的來源——那就是這支。
+ *
+ * 與 `classSkillsForClass` 共用 `resolveClassKey`，否則兩邊對「守護者（變體）」
+ * 這種帶後綴的名字寬容度不同，會出現「清單 4 條、說明卻說少了 0 條」。
+ */
+export const suppressedSkillsForClass = (className, technosphereMode = null) => {
+  const match = resolveClassKey(className);
+  if (!match) return [];
+  return (rulesData.classes[match]?.skills || [])
+    .filter((sk) => isSkillSuppressedByTechnospheres(sk.name, technosphereMode))
+    .map((sk) => sk.name);
 };
 
 /**
@@ -778,6 +802,41 @@ const collectChosenQuirkOptions = (quirk, choice) => {
  * 沒選、選了敘事項、或舊存檔沒有 `quirkChoice` → 回空物件（行為與以前相同）。
  * 選了資料裡不存在的 id 也回空物件——不猜、不近似。
  */
+/**
+ * 玩家在這個金手指上「選了什麼」——給列印卡與其他唯讀畫面用的純文字（F-027，2026-10-27）。
+ *
+ * 為什麼需要它：列印卡原本只印 `rulesData.quirks[].desc`（原書全文），
+ * 於是印出來的紙上寫著「在風、電、暗、土、火、冰和光屬性中選擇 2 種」，
+ * 但**你選了火、光、冰這件事紙上沒有**。玩家帶去團裡只能憑記憶。
+ *
+ * 回傳 `[{ group, label }]`：多組的金手指要知道「哪一組選了什麼」，
+ * 只印 label 會出現兩個一樣的字串而分不出來。單組時 `group` 是空字串。
+ * 沒選、選了不存在的 id、舊存檔 → 回空陣列（呼叫端用「有沒有內容」決定要不要印）。
+ */
+export const describeQuirkChoice = (char) => {
+  const quirk = findQuirkDef(char?.quirk);
+  if (!quirk) return [];
+  const choice = char?.quirkChoice;
+  const labelOf = (list, id) => (list || []).find((o) => o && o.id === id)?.label || '';
+  const out = [];
+
+  if (Array.isArray(quirk.optionGroups) && quirk.optionGroups.length > 0) {
+    quirk.optionGroups.forEach((group) => {
+      const id = choice && typeof choice === 'object'
+        ? choice[group.id]
+        : (typeof choice === 'string' ? choice : '');
+      const label = labelOf(group.options, id);
+      if (label) out.push({ group: group.label || '', label });
+    });
+    return out;
+  }
+
+  const id = typeof choice === 'string' ? choice : (choice && choice.default) || '';
+  const label = labelOf(quirk.options, id);
+  if (label) out.push({ group: '', label });
+  return out;
+};
+
 export const getQuirkOptionEffects = (char) => {
   const quirk = findQuirkDef(char?.quirk);
   if (!quirk) return {};

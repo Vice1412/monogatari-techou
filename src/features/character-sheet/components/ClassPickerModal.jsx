@@ -17,7 +17,8 @@ import { getVariantsForClass, getVariantById, buildSkillEntry } from '../data/co
 import { SOURCEBOOKS, getClassInfo } from '../data/sourcebookConfig';
 import { matchesClassQuery, formatClassAliases, classAliasSource } from '../data/classAliases';
 import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY, classCountPhrase, classCountRange } from '../data/creationRules';
-import { isSkillSuppressedByTechnospheres } from '../data/technospheres';
+import { isSkillSuppressedByTechnospheres, suppressedSkillsNote } from '../data/technospheres';
+import { suppressedSkillsForClass } from '../utils/characterEngine';
 import rulesData from '../data/rulesData.json';
 import { withEn } from '../../../utils/properNouns';
 import ClassHeroicSkillsBlock from './ClassHeroicSkillsBlock';
@@ -215,6 +216,14 @@ export default function ClassPickerModal({
     if (!activeClassName) return null;
     return availableClasses.find(c => c.className === activeClassName);
   }, [availableClasses, activeClassName]);
+
+  /* F-016（2026-10-27）：`activeClassItem.def.skills` 已經濾掉本團作廢的技能，
+     所以標題的「幾項」必須**從清單長度算**，不能寫死 5。
+     同時要能說出「少了哪一條」——只把數字改對，玩家還是不知道為什麼少。 */
+  const suppressedSkills = useMemo(
+    () => suppressedSkillsForClass(activeClassItem?.className, rules.technospheres),
+    [activeClassItem, rules.technospheres]
+  );
 
   const activeDraftSkills = draftSkillsOf(activeClassName);
 
@@ -660,10 +669,18 @@ export default function ClassPickerModal({
                   <span className="font-bold">
                     職業技能清單（點擊星星或加號分配等級）：
                   </span>
-                  <span className="font-mono font-bold text-[#6b5a4b]">
-                    5 項技能任選
+                  <span className="font-mono font-bold text-[#6b5a4b]" data-testid="class-skill-count">
+                    {(activeClassItem.def.skills || []).length} 項技能任選
                   </span>
                 </div>
+                {suppressedSkillsNote(suppressedSkills) ? (
+                  <p
+                    className="text-t11 leading-relaxed text-[#6b5a4b] rounded border-l-2 pl-2 py-1 border-[#d6c7ab]"
+                    data-testid="class-skill-suppressed-note"
+                  >
+                    ※ {suppressedSkillsNote(suppressedSkills)}
+                  </p>
+                ) : null}
 
                 {/* 5 項技能卡片 */}
                 {(activeClassItem.def.skills || []).map((sk) => {

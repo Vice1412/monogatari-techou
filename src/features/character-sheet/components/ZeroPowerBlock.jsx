@@ -232,7 +232,7 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
 }
 
 /** 還沒選齊時的佔位——位置固定在最下面，避免選齊那一刻版面突然長出一塊。 */
-function ShowcasePlaceholder({ theme, missing }) {
+function ShowcasePlaceholder({ theme, missing, note }) {
   const border = theme.border;
   const panelBg = theme.panelBg;
   const textMuted = theme.textMuted;
@@ -244,9 +244,11 @@ function ShowcasePlaceholder({ theme, missing }) {
       data-testid="zero-power-showcase-placeholder"
     >
       <span className="block text-t11 font-bold" style={{ color: textMuted }}>
-        選好觸發與效果後，這裡會出現這一招的完整卡片
+        {note || '選好觸發與效果後，這裡會出現這一招的完整卡片'}
       </span>
-      <p className="text-t12" style={{ color: textMuted }}>{`還缺：${missing}`}</p>
+      {/* F-022：`missing` 可能是空字串（覺醒之力在覺醒前只缺「觸發」，而那是**還沒輪到**，
+          不是漏填）。空字串時整行不印——否則會出現一行光禿禿的「還缺：」。 */}
+      {missing ? <p className="text-t12" style={{ color: textMuted }}>{`還缺：${missing}`}</p> : null}
     </div>
   );
 }
@@ -533,8 +535,13 @@ export default function ZeroPowerBlock({
     choiceReady &&
     (combined ? showcasePairs.length > 0 : Boolean(effect));
   const showcaseTriggerText = describeZeroTrigger(state, { roster });
+  /* F-022（2026-10-27）：覺醒之力建角時**本來就不選觸發**（原書：觸發在覺醒當下才選定）。
+     上面那段說明已經寫了「留白是正確狀態」，這裡卻又把它列進「還缺」——
+     同一個區塊兩句話互相矛盾，玩家會回頭去補一個不該補的欄位。
+     判準：**「還沒輪到」不是「缺」**，所以不列進 missing，改由下面的 note 說明。 */
+  const awakeningPending = state.variant === 'awakened' && !state.awakened;
   const showcaseMissing = [
-    trigger ? null : '觸發',
+    trigger || awakeningPending ? null : '觸發',
     state.triggerId === 'love' && !loveBound ? '愛的對象' : null,
     combined ? (showcasePairs.length > 0 ? null : '配對效果') : effect ? null : '效果',
     combined || choiceReady ? null : '效果的必要選擇'
@@ -933,7 +940,13 @@ export default function ZeroPowerBlock({
           />
         )
       ) : (
-        <ShowcasePlaceholder theme={theme} missing={showcaseMissing.join('、')} />
+        <ShowcasePlaceholder
+          theme={theme}
+          missing={showcaseMissing.join('、')}
+          note={awakeningPending
+            ? '覺醒之力的觸發要等覺醒當下才選。先選好效果，覺醒後補上觸發就會出現完整卡片。'
+            : undefined}
+        />
       )}
 
       <ZeroPowerGlossaryModal

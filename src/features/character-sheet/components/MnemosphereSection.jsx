@@ -37,8 +37,10 @@ import { GiOrbWand } from 'react-icons/gi';
 import {
   classSkillsForClass,
   getCharacterLevel,
-  heroicSkillsForClass
+  heroicSkillsForClass,
+  suppressedSkillsForClass
 } from '../utils/characterEngine';
+import { suppressedSkillsNote } from '../data/technospheres';
 import { resolveCreationRules } from '../data/creationRules';
 import TechnosphereBead, { EmptyBeadSocket } from './TechnosphereBead';
 import ClassSkillPickerList from './ClassSkillPickerList';
@@ -443,6 +445,17 @@ export default function MnemosphereSection({ character, theme = {}, disabled = f
                         每一級給該職業的一個技能等級，單一技能上限 5 級（p.135）
                       </span>
                     </div>
+                    {/* F-016（2026-10-27）：這裡原本直接吃 `classSkillsForClass` 的結果，
+                        作廢的技能被濾掉後只剩 4 條，而畫面上一個字都沒說。 */}
+                    {suppressedSkillsNote(suppressedSkillsForClass(m.className, mode)) ? (
+                      <p
+                        className="text-t10 leading-relaxed"
+                        style={{ color: theme.textMuted }}
+                        data-testid={`mnemosphere-suppressed-note-${m.id}`}
+                      >
+                        ※ {suppressedSkillsNote(suppressedSkillsForClass(m.className, mode))}
+                      </p>
+                    ) : null}
                     <ClassSkillPickerList
                       skills={skillDefs}
                       value={m.skills || []}

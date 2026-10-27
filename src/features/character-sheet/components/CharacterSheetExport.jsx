@@ -6,7 +6,7 @@ import GameIcon from '../../../components/ui/GameIcon';
 import rulesData from '../data/rulesData.json';
 import SkillDescription from '../utils/skillFormulaEvaluator';
 import iconFontUrl from '../../../assets/FabulaUltimaIcons-Regular.otf';
-import { calculateCharacterStats, getProficiencies, getCharacterLevel, HEROIC_SKILLS, describeFreeBenefit } from '../utils/characterEngine';
+import { calculateCharacterStats, getProficiencies, getCharacterLevel, HEROIC_SKILLS, describeFreeBenefit, describeQuirkChoice } from '../utils/characterEngine';
 import { withHrBonus } from '../utils/equipmentRules';
 import { ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
 import { buildCustomWeaponEntries } from '../data/customWeapons';
@@ -478,6 +478,9 @@ export const buildSheetModel = (character, stats = null) => {
       if (!name) return '';
       return (rulesData.quirks || []).find((x) => x.name === name)?.desc || '';
     })(),
+    // 金手指「你選了什麼」（F-027，2026-10-27）：原文寫「選擇一項…」，紙上卻只有原文。
+    // 與編輯器的金手指選擇器吃同一份 `quirkChoice`，不另算一套。
+    quirkChoice: describeQuirkChoice(ch),
     // 金手指相性（F-023）：紙卡原本只有規則原文，玩家印出來就不知道自己是免疫什麼、怕什麼。
     // 與編輯器第 4 頁、跑團面板吃的是同一份 stats.quirkEffects，不另算一套。
     quirkAffinities: (() => {
@@ -850,6 +853,21 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
           <div style={{ fontSize: T.s10, fontWeight: 700, marginBottom: '1px' }}>{model.quirk}</div>
           {model.quirkDesc ? (
             <SkillDescription desc={model.quirkDesc} sl={1} className="sheet-skill-desc" />
+          ) : null}
+          {/* F-027：原文寫「選擇一項…」時，紙上要印出你選了哪一個。
+              沒選過就整行不出現（舊角色不受影響）。 */}
+          {model.quirkChoice.length ? (
+            <div
+              style={{ display: 'flex', flexWrap: 'wrap', gap: '1px 8px', marginTop: '2px' }}
+              data-testid="sheet-quirk-choice"
+            >
+              {model.quirkChoice.map((row, i) => (
+                <span key={`${row.group}-${row.label}-${i}`} style={{ fontSize: T.s9 }}>
+                  <span style={{ fontWeight: 700, color: C.faint }}>{row.group ? `${row.group}　` : '已選　'}</span>
+                  <span style={{ fontWeight: 700, color: C.ink }}>{row.label}</span>
+                </span>
+              ))}
+            </div>
           ) : null}
           {model.quirkAffinities.length ? (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1px 8px', marginTop: '2px' }}>

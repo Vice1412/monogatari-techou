@@ -27,7 +27,9 @@ import {
   EXPERIENCE_POINT_RULES,
   SHEET_DISCIPLINES
 } from '../src/features/character-sheet/components/CharacterSheetExport.jsx';
-import { createNewCharacter, getProficiencies, calculateCharacterStats, deriveCreationState, shortIssueLabel, isHpMpChoiceBenefit } from '../src/features/character-sheet/utils/characterEngine.js';
+import { createNewCharacter, getProficiencies, calculateCharacterStats, deriveCreationState, shortIssueLabel, isHpMpChoiceBenefit, classSkillsForClass, suppressedSkillsForClass, describeQuirkChoice } from '../src/features/character-sheet/utils/characterEngine.js';
+import { suppressedSkillsNote } from '../src/features/character-sheet/data/technospheres.js';
+import { EquipmentPickerBody } from '../src/features/character-sheet/components/EquipmentPickerModal.jsx';
 import { resolveCreationRules, DEFAULT_CREATION_RULES, classCountRange, classCountPhrase } from '../src/features/character-sheet/data/creationRules.js';
 import { HeroicSkillPickerBody } from '../src/features/character-sheet/components/HeroicSkillPickerModal.jsx';
 import { QuirkPickerBody } from '../src/features/character-sheet/components/QuirkPickerModal.jsx';
@@ -52,6 +54,7 @@ import ClassSkillCard from '../src/features/character-sheet/components/ClassSkil
 import { getCharacterTheme } from '../src/features/character-sheet/utils/characterThemes.js';
 import AttributeMatrixPicker from '../src/features/character-sheet/components/AttributeMatrixPicker.jsx';
 import ClassPickerModal from '../src/features/character-sheet/components/ClassPickerModal.jsx';
+import MnemosphereSection from '../src/features/character-sheet/components/MnemosphereSection.jsx';
 import CreationRulesPanel, { describeRulesDiff } from '../src/features/character-sheet/components/CreationRulesPanel.jsx';
 import {
   buildImagePdf,
@@ -1562,7 +1565,11 @@ const quirkBody = (selectedName, selectedChoice) => renderToStaticMarkup(
 
 const quirkNoChoice = quirkBody('倖存者', '');
 const quirkWithChoice = quirkBody('倖存者', 'ip');
-const quirkNarrative = quirkBody('會說話的野獸', '');
+// ※ 這條原本拿【會說話的野獸】當「沒有選項」的例子。
+//   F-027（2026-10-27）之後它有了兩組選項（原書：從 3 個增益中選 2 個），
+//   所以改拿【大夢一場】——它真的沒有選項（原書只有骰 2d20 的進度規則）。
+//   守的東西沒變：**沒有選項的金手指不該長出一塊空的單選區**。
+const quirkNarrative = quirkBody('大夢一場', '');
 
 check('帶選項的金手指會畫出選項區', quirkNoChoice.includes('data-testid="quirk-options"'), true);
 check('三個選項都在', ['獲得裝備職業近戰武器', '從元素師或靈師的咒語表', '永久 +2 IP']
@@ -2186,6 +2193,174 @@ const badgeCopyElsewhere = featureFiles
   .filter((url) => fs.readFileSync(url, 'utf8').includes(BADGE_LABEL_MARK))
   .map(baseName);
 check('徽章文案只有一份（整個功能目錄都不得自己再寫一次）', badgeCopyElsewhere, []);
+
+// ═══════════════════════════════════════════════════════════
+section('CQ. F-016：技能數標題要跟清單一起走，少掉的那條要說出來（2026-10-27）');
+
+// 兩句話都對，但放在一起就是騙人：標題寫「5 項技能任選」，底下只有 4 張卡。
+// 而且那個過濾**本身是對的**（科技奇幻 p.133 說魔晶石制沒有盾牌）——
+// 錯的是「濾掉了卻不說」。所以這裡守兩件事：
+//   ①數字必須由清單長度算出來（不是寫死 5）
+//   ②濾掉時要說出「少了哪一條、為什麼」
+const fullRules = { technospheres: 'full' };
+check('守護者在魔晶石制下少一條技能',
+  suppressedSkillsForClass('守護者', 'full'), ['雙重盾牌']);
+check('不使用魔晶石時一條都不少',
+  suppressedSkillsForClass('守護者', 'off'), []);
+// 清單長度 + 被作廢數 ＝ 原書的技能總數（逐一驗 29 個職業，不抽樣）
+const coreClassNames = Object.keys(rulesData.classes);
+const classSkillMathOff = coreClassNames.filter((n) =>
+  classSkillsForClass(n, 'off').length + suppressedSkillsForClass(n, 'off').length
+  !== (rulesData.classes[n].skills || []).length);
+check('不使用魔晶石時：清單長度 + 作廢數 ＝ 原書技能數（29 職業逐一）', classSkillMathOff, []);
+const classSkillMathFull = coreClassNames.filter((n) =>
+  classSkillsForClass(n, 'full').length + suppressedSkillsForClass(n, 'full').length
+  !== (rulesData.classes[n].skills || []).length);
+check('魔晶石制下也成立（29 職業逐一，不抽樣）', classSkillMathFull, []);
+check('沒有被作廢的技能時，說明句是空字串（不要印一行空的）',
+  suppressedSkillsNote([]), '');
+check('說明句點名那一條技能',
+  suppressedSkillsNote(['雙重盾牌']).includes('【雙重盾牌】'), true);
+check('說明句附出處（p.133）',
+  suppressedSkillsNote(['雙重盾牌']).includes('p.133'), true);
+
+// 標題的數字：掃原始碼確認沒有寫死的「5 項技能任選」
+const pickerSrcF16 = read('../src/features/character-sheet/components/ClassPickerModal.jsx');
+check('職業選擇器的技能數不是寫死的 5',
+  stripComments(pickerSrcF16).includes('5 項技能任選'), false);
+check('職業選擇器的技能數由清單長度算出來',
+  pickerSrcF16.includes('{(activeClassItem.def.skills || []).length} 項技能任選'), true);
+check('職業選擇器有作廢說明的位置（用 testid 定位，不靠文字）',
+  pickerSrcF16.includes('data-testid="class-skill-suppressed-note"'), true);
+
+// 第二個現場（職業魔石區塊）——F-016 的教訓就是「只修一個現場會變成修好一半」
+const mnemoSrcF16 = read('../src/features/character-sheet/components/MnemosphereSection.jsx');
+// ※ 只掃原始碼不夠：把整段條件改成 `{false ? …}` 之後，testid 那串字還在檔案裡，
+//   掃字串照樣全綠，但畫面上一個字都不會印。所以下面一律用 SSR 真的畫一次。
+check('職業魔石區塊原始碼裡有作廢說明的位置',
+  mnemoSrcF16.includes('mnemosphere-suppressed-note-'), true);
+
+const renderMnemosphereBlock = (className, creationRules) => renderToStaticMarkup(
+  React.createElement(MnemosphereSection, {
+    theme: {},
+    onChange: () => {},
+    character: {
+      ...createNewCharacter({ name: '魔石測試' }),
+      creationRules,
+      technospheres: { mnemospheres: [{ id: 'm1', className, level: 1, skills: [] }] }
+    }
+  })
+);
+const mnemoGuardianHtml = renderMnemosphereBlock('守護者', fullRules);
+const mnemoElementalistHtml = renderMnemosphereBlock('元素師', fullRules);
+check('職業魔石區塊真的印出作廢說明（SSR，不是掃字串）',
+  mnemoGuardianHtml.includes('mnemosphere-suppressed-note-m1'), true);
+check('職業魔石區塊的說明點名【雙重盾牌】',
+  mnemoGuardianHtml.includes('【雙重盾牌】'), true);
+check('（F-016 反向）沒有技能被作廢的職業不印這句',
+  mnemoElementalistHtml.includes('suppressed-note'), false);
+check('兩個現場吃同一個說明句（不得各寫一份）',
+  [pickerSrcF16.includes('suppressedSkillsNote(suppressedSkills)'),
+    mnemoSrcF16.includes('suppressedSkillsNote(suppressedSkillsForClass(')],
+  [true, true]);
+
+// SSR：守護者 + 魔晶石 full → 標題 4、有說明；off → 標題 5、沒說明
+const renderPickerDetailWithRules = (className, creationRules) => renderToStaticMarkup(
+  React.createElement(ClassPickerModal, {
+    isOpen: true, onClose: () => {}, theme: {}, enabledBooks: ['core'],
+    onToggleSourcebook: () => {}, onSetSourcebooks: () => {},
+    existingClassNames: [], onSelectClasses: () => {}, budgetUsed: 0,
+    initialClassName: className, creationRules, panelOnly: true
+  })
+);
+const guardianFullHtml = renderPickerDetailWithRules('守護者', fullRules);
+const guardianOffHtml = renderPickerDetailWithRules('守護者', { technospheres: 'off' });
+check('（SSR）魔晶石制下守護者標題寫「4 項」', guardianFullHtml.includes('4 項技能任選'), true);
+check('（SSR）魔晶石制下不再寫「5 項」', guardianFullHtml.includes('5 項技能任選'), false);
+check('（SSR）魔晶石制下說出【雙重盾牌】被作廢',
+  guardianFullHtml.includes('【雙重盾牌】'), true);
+check('（SSR）不使用魔晶石時標題回到「5 項」', guardianOffHtml.includes('5 項技能任選'), true);
+check('（SSR）不使用魔晶石時不發這句說明（反向控制）',
+  guardianOffHtml.includes('class-skill-suppressed-note'), false);
+
+// ═══════════════════════════════════════════════════════════
+section('CR. F-013：魔晶石制下的主手彈窗不該留一堆按了沒反應的控制項（2026-10-27）');
+
+// 20 顆按鈕裡有 18 顆永遠不會改變任何東西。**資料層清了，外殼沒清。**
+const renderEquipBody = (creationRules, slot = 'mainHand') => renderToStaticMarkup(
+  React.createElement(EquipmentPickerBody, {
+    slot,
+    theme: {},
+    character: { ...createNewCharacter({ name: '裝備測試' }), creationRules },
+    stats: {},
+    remainingBudget: 500,
+    onSelect: () => {},
+    onClose: () => {}
+  })
+);
+const equipFullHtml = renderEquipBody(fullRules);
+const equipOffHtml = renderEquipBody({ technospheres: 'off' });
+
+check('（F-013）魔晶石制下不再有搜尋框', equipFullHtml.includes('名稱或說明'), false);
+check('（F-013）魔晶石制下不再有「顯示目前無法裝備的」勾選',
+  equipFullHtml.includes('顯示目前無法裝備的'), false);
+check('（F-013）魔晶石制下不再有「只看買得起的」勾選', equipFullHtml.includes('只看買得起的'), false);
+check('（F-013）魔晶石制下不再有排序下拉', equipFullHtml.includes('>排序<'), false);
+// ※ 不要用「>類別<」判斷：那四個字在**表頭**也有（武器表本來就有「類別」欄），
+//   第一版就是這樣寫，於是過濾器明明收掉了它還說「還在」。
+//   改用只在篩選列出現的字（類別鈕「奧術」）。
+check('（F-013）魔晶石制下不再有類別篩選鈕', equipFullHtml.includes('>奧術<'), false);
+check('（F-013）魔晶石制下留一顆「關閉並去鍛造」',
+  equipFullHtml.includes('關閉並去鍛造'), true);
+check('（F-013）說明不再把同一頁下方的面板講成「分頁」',
+  equipFullHtml.includes('分頁鍛造'), false);
+check('（F-013）說明改成「下方」', equipFullHtml.includes('下方'), true);
+// 反向控制：不使用魔晶石時，篩選工具列必須完整還在（修法不是把工具列全刪）
+check('（F-013 反向）不使用魔晶石時搜尋框還在', equipOffHtml.includes('名稱或說明'), true);
+check('（F-013 反向）不使用魔晶石時類別篩選還在', equipOffHtml.includes('>奧術<'), true);
+check('（F-013 反向）不使用魔晶石時沒有「關閉並去鍛造」',
+  equipOffHtml.includes('關閉並去鍛造'), false);
+// 副手那兩顆切換鈕（盾牌／單手武器）在受限模式下也是死按鈕——兩邊都是空表。
+const equipOffHandFull = renderEquipBody(fullRules, 'offHand');
+const equipOffHandOff = renderEquipBody({ technospheres: 'off' }, 'offHand');
+check('（F-013）魔晶石制下副手不再有「盾牌／單手武器」切換鈕',
+  equipOffHandFull.includes('單手武器'), false);
+check('（F-013 反向）不使用魔晶石時副手切換鈕還在',
+  equipOffHandOff.includes('單手武器'), true);
+
+// ═══════════════════════════════════════════════════════════
+section('CS. F-027：紙卡要印出「你選了什麼」，不是只有規則原文（2026-10-27）');
+
+const quirkCardChar = (quirk, quirkChoice) => ({
+  ...createNewCharacter({ name: '金手指測試' }),
+  quirk,
+  quirkChoice
+});
+check('（F-027）單組選項：通智幽魂印得出選了哪些屬性（含組名，否則兩組分不出來）',
+  describeQuirkChoice(quirkCardChar('通智幽魂', { resist1: '火', resist2: '光' })).map((r) => `${r.group}/${r.label}`),
+  ['第一種抗性/火', '第二種抗性/光']);
+check('（F-027）沒選過 → 空陣列（舊角色不受影響）',
+  describeQuirkChoice(quirkCardChar('通智幽魂', '')), []);
+check('（F-027）沒選金手指 → 空陣列',
+  describeQuirkChoice(quirkCardChar('無', '')), []);
+check('（F-027）天才的宿敵：3 選 1 印得出來',
+  describeQuirkChoice(quirkCardChar('天才的宿敵', 'ritual')).map((r) => r.label), ['儀式']);
+check('（F-027）會說話的野獸：兩組都印，且分得出是哪一組',
+  describeQuirkChoice(quirkCardChar('會說話的野獸', { boon1: 'customWeapon', boon2: 'unarmed' }))
+    .map((r) => `${r.group}/${r.label}`),
+  ['第一個增益/你可以裝備一個自訂武器', '第二個增益/徒手攻擊 +6 傷害（30 級後 +10）']);
+check('（F-027）會說話的野獸只選一半 → 只印選了的那一組',
+  describeQuirkChoice(quirkCardChar('會說話的野獸', { boon1: 'customWeapon' })).length, 1);
+
+const sheetWithChoice = buildSheetModel(quirkCardChar('天才的宿敵', 'spell'));
+check('（F-027）列印卡模型帶「已選」', sheetWithChoice.quirkChoice.map((r) => r.label), ['咒語']);
+const sheetNoChoice = buildSheetModel(quirkCardChar('天才的宿敵', ''));
+check('（F-027）沒選過 → 列印卡不印這一塊', sheetNoChoice.quirkChoice, []);
+const quirkPage2Html = renderToStaticMarkup(React.createElement(OfficialSheetPage2, {
+  model: sheetWithChoice, theme: 'parchment'
+}));
+check('（F-027）紙卡第 2 頁真的印出「已選」', quirkPage2Html.includes('已選'), true);
+check('（F-027）紙卡上印得出選的那一項', quirkPage2Html.includes('咒語'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

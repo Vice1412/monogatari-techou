@@ -201,6 +201,25 @@ export const isSkillSuppressedByTechnospheres = (skillName, mode) => (
   modeRestrictsEquipment(mode) && TECHNOSPHERE_SUPPRESSED_SKILLS.includes(skillName)
 );
 
+/**
+ * 「這幾條技能被本團規則作廢了」的一句話（F-016，2026-10-27）。
+ *
+ * 為什麼要有這一句：把作廢的技能濾掉是**對的**（買了也不會生效），
+ * 但濾掉之後畫面上只剩「4 項」——玩家會以為程式少了資料，
+ * 而不是「這團的規則拿掉了一條」。原書沒有義務提醒你，介面有。
+ *
+ * 兩個現場（職業選擇器的技能清單、職業魔石區塊）都吃這一個字串，
+ * 所以「少了哪一條、為什麼」不會兩邊說得不一樣。
+ *
+ * 空陣列回空字串——呼叫端用「有沒有字」決定要不要印，不要印一行空的。
+ */
+export const suppressedSkillsNote = (names) => {
+  const list = (names || []).filter(Boolean);
+  if (list.length === 0) return '';
+  const quoted = list.map((n) => `【${n}】`).join('、');
+  return `${quoted}在本團規則下作廢（科技奇幻手冊 p.133），所以不在這份清單裡。`;
+};
+
 /** 這個模式要不要顯示「魔晶石插槽」編輯介面（有任何一種魔石就需要） */
 export const modeNeedsSlotEditor = (mode) => modeHasHoplospheres(mode);
 

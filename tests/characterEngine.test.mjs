@@ -858,8 +858,23 @@ check('J5 金手指標籤帶金手指名稱',
 const QUIRK_OPTION_QUIRKS = rulesData.quirks.filter((q) => Array.isArray(q.options));
 check('J7 原書寫「選擇一個選項」的共 11 個',
   rulesData.quirks.filter((q) => q.desc && q.desc.includes('選擇一個選項')).length, 11);
-check('J7 其中只有 2 個的選項會改數值，所以只有它們有結構化選項',
-  QUIRK_OPTION_QUIRKS.map((q) => q.name).sort(), ['倖存者', '墮落天使'].sort());
+// ※ 這條原本寫「只有 2 個會改數值，所以只有它們有結構化選項」。
+//   F-027（2026-10-27）之後**不再成立，而且不該成立**：
+//   天才的宿敵（選擅長領域：儀式／技能／咒語）沒有機械效果，但那個選擇要能記錄下來、
+//   要能印在紙卡上——「選了什麼」本身就是玩家需要的資訊，不是只有「會改數字」才值得存。
+//   所以守的對象換成兩件事：
+//   ①**會改數值**的仍然只有那兩個（下面那條 EFFECT_OPTIONS 才是真正的守門員）；
+//   ②新增的敘事選項**不得偷偷帶 effects**——那會讓一個純敘事選擇改到角色數值。
+check('J7 有結構化選項的金手指（含純敘事）',
+  QUIRK_OPTION_QUIRKS.map((q) => q.name).sort(), ['倖存者', '墮落天使', '天才的宿敵'].sort());
+check('J7 只有真的會改數值的金手指才帶 effects',
+  [...new Set(QUIRK_OPTION_QUIRKS.filter((q) => q.options.some((o) => o.effects)).map((q) => q.name))].sort(),
+  ['倖存者', '墮落天使'].sort());
+check('J7 天才的宿敵是 3 選 1 的純敘事選項（不得帶 effects）',
+  (rulesData.quirks.find((q) => q.name === '天才的宿敵').options || []).map((o) => o.id).sort(),
+  ['ritual', 'skill', 'spell'].sort());
+check('J7 天才的宿敵的選項沒有任何一個帶 effects',
+  (rulesData.quirks.find((q) => q.name === '天才的宿敵').options || []).some((o) => o.effects), false);
 
 const EFFECT_OPTIONS = QUIRK_OPTION_QUIRKS
   .flatMap((q) => q.options.filter((o) => o.effects).map((o) => `${q.name}/${o.id}`))

@@ -58,6 +58,13 @@ import { auditDeadClasses } from '../scripts/auditClasses.mjs';
 // 第四十三輪（§CI50.5）：class 合併器。H40 家族要真的跑它，不是讀它的原始碼——
 // 「合併後還剩什麼」只有合併器自己答得出來。
 import { cn } from '../src/utils/cn.js';
+import {
+  CHAPTER_STATUS,
+  CHAPTER_STATUS_LABEL,
+  chapterStatusOf,
+  chapterStatusLabelOf,
+  needsDevWarning
+} from '../src/components/book/chapterStatus.js';
 
 const ROOT = process.cwd();
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -4572,8 +4579,73 @@ check(
   );
 }
 
-const failed = results.filter((r) => !r.ok);
-console.log(`\n${'='.repeat(56)}`);
+// ═══════════════════════════════════════════════════════════
+// H40. F-008（2026-10-27）：章節狀態只能有一份，「開發中」不能寫在兩個地方
+//
+// 這條缺陷的病根不是文案難聽，是**同一件事被寫在兩處**：
+// 封面寫 `statusLabel: '開發中'`，App 寫 `chapterId !== 'workshop'` 決定要不要攔。
+// 兩處各自漂移之後，做完四輪測試、結論寫著「能上桌」的角色卡助手，
+// 在封面被標成開發中，而且每次進站都被攔一次、被告知「未完善使用」。
+//
+// 這種事在畫面上「只是有點保守」，不會報錯、不會建置失敗——所以要有東西在它漂移時叫。
+console.log(`\n=== H40. F-008：章節狀態的單一來源 ===`);
+
+check(
+  '角色卡助手不再被當成施工中（它已經可以上桌）',
+  needsDevWarning('character') === false,
+  `needsDevWarning('character') → ${needsDevWarning('character')}`
+);
+check('NPC工坊是完整功能，不攔', needsDevWarning('workshop') === false);
+check('戰鬥輪次仍在施工，要攔', needsDevWarning('combat') === true);
+check('命刻記錄仍在施工，要攔', needsDevWarning('clocks') === true);
+// 沒登記的章節一律當成施工中——寧可多攔一次，也不要讓半成品看起來像完成品。
+check('沒有登記的章節預設「施工中」（安全方向的預設）',
+  needsDevWarning('brand-new-chapter') === true && chapterStatusOf('brand-new-chapter') === 'wip');
+check('四個章節都登記了狀態（新增章節不能靠預設值蒙混）',
+  ['character', 'workshop', 'combat', 'clocks'].every((id) => Boolean(CHAPTER_STATUS[id])),
+  `已登記：${Object.keys(CHAPTER_STATUS).join('、')}`);
+check('狀態標籤也只有一份（三種狀態各一個字）',
+  Object.values(CHAPTER_STATUS_LABEL).length === 3,
+  `實際 ${Object.values(CHAPTER_STATUS_LABEL).length} 個`);
+
+const coverSrcF8 = stripComments(read('src/components/book/BookCoverHub.jsx'));
+// ※ 這支檔案的 `check(name, ok, detail)` 收的是**布林**，不是 actual/expected。
+//   第一版照另一支測試的習慣寫成 `check(..., count(...), 0)`，於是 count=0 被當成 ok=0 → 假紅。
+check('封面不再自己寫死狀態標籤（`statusLabel:` 0 處）',
+  count(coverSrcF8, 'statusLabel') === 0,
+  `實際 ${count(coverSrcF8, 'statusLabel')} 處`);
+check('封面改吃 `chapterStatusLabelOf`', coverSrcF8.includes('chapterStatusLabelOf(chap.id)'));
+check('封面不再自己判斷「是不是完整功能」',
+  !coverSrcF8.includes("chap.status === 'complete'"));
+
+const appSrcF8 = stripComments(read('src/App.jsx'));
+check('App 不再用「不是工坊就攔」這種寫法',
+  !appSrcF8.includes("chapterId !== 'workshop'"));
+check('App 改吃 `needsDevWarning`', appSrcF8.includes('needsDevWarning(chapterId)'));
+
+// 「未完善使用」不是中文詞（應為「尚未完善」）。它出現在最需要信任的第一屏。
+const srcFilesF8 = [];
+(function walk(dir) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) walk(p);
+    else if (/\.(js|jsx)$/.test(e.name)) srcFilesF8.push(p);
+  }
+})(path.join(ROOT, 'src'));
+const badPhraseHits = srcFilesF8
+  .filter((f) => stripComments(fs.readFileSync(f, 'utf8')).includes('未完善使用'))
+  .map((f) => path.relative(ROOT, f));
+check('全站不再出現「未完善使用」這個病句', badPhraseHits.length === 0, badPhraseHits.join('、'));
+
+const devModalSrcF8 = stripComments(read('src/components/book/ChapterDevWarningModal.jsx'));
+check('警告框不再宣稱「只有 NPC工坊完整」',
+  !devModalSrcF8.includes('僅【NPC工坊】功能已完全完整穩定'));
+check('警告框說出角色卡助手可以上桌',
+  devModalSrcF8.includes('可以上桌使用'));
+check('警告框點名「你正要進入的這一章」（不再泛指其餘章節）',
+  devModalSrcF8.includes('你正要進入的'));
+
+const failed = results.filter((r) => !r.ok);console.log(`\n${'='.repeat(56)}`);
 console.log(`  通過 ${results.length - failed.length} / ${results.length}${failed.length ? `　失敗 ${failed.length}` : '　（全部通過）'}`);
 if (failed.length) {
   console.log(`\n  失敗項目：`);

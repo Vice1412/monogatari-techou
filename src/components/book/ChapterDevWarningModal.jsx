@@ -13,9 +13,12 @@ import JRPGButton from '../ui/JRPGButton';
 
 /**
  * ChapterDevWarningModal - 章節開發中提醒視窗
- * 用途：針對尚未完全完工的章節（角色卡助手、戰鬥輪次、命刻記錄），
- * 於使用者點擊進入時彈出提醒，說明此功能仍在開發中、未完善使用，
+ * 用途：針對尚未完工的章節（目前是戰鬥輪次、命刻記錄），
+ * 於使用者點擊進入時彈出提醒，說明這一章還在施工，
  * 須點擊「確定進入」後方可開啟瀏覽章節內容。
+ *
+ * ※ F-008（2026-10-27）：角色卡助手原本也被攔，但它已經可以上桌——
+ *   「哪些章節要攔」現在由 `chapterStatus.js` 決定，不再寫死在呼叫端。
  */
 export default function ChapterDevWarningModal({
   isOpen,
@@ -85,7 +88,7 @@ export default function ChapterDevWarningModal({
               </span>
             </div>
             <p className="text-xs text-[#3c2415] leading-relaxed">
-              此功能尚未完全成熟，部分機制、數值計算或儲存架構仍未完善使用。
+              這一章還在施工：部分機制與數值計算尚未完成，資料格式之後可能調整。
             </p>
           </div>
         </div>
@@ -102,7 +105,7 @@ export default function ChapterDevWarningModal({
                   {chapter.title}
                 </span>
                 <span className="text-t10 px-2 py-0.5 rounded-full font-bold bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab]">
-                  未完善使用
+                  施工中
                 </span>
               </div>
               <p className="text-xs text-[#6b5a4b] mt-0.5">
@@ -114,10 +117,10 @@ export default function ChapterDevWarningModal({
           {/* 說明細節 */}
           <div className="text-xs text-[#6b5a4b] leading-relaxed pt-2 border-t border-[#d6c7ab]/60 space-y-1.5">
             <p>
-              • <strong>現狀說明</strong>：目前本典籍專案中，<strong>僅【NPC工坊】功能已完全完整穩定</strong>，其餘章節仍在進行數值對齊與功能修繕。
+              • <strong>現狀說明</strong>：【NPC工坊】已完成，<strong>【角色卡助手】可以上桌使用</strong>（創角六步、29 個職業、金手指與跑團面板都走得完）；你正要進入的<strong>【{chapter.title}】</strong>還在施工中。
             </p>
             <p>
-              • <strong>體驗指引</strong>：若您希望進入查看現階段的開發成果、介面樣式或預先體驗雛形功能，請點擊下方<strong>「確定進入」</strong>鍵。
+              • <strong>體驗指引</strong>：若您只是想先看看目前的樣子，請點擊下方<strong>「確定進入」</strong>鍵；要正式跑團，建議先用角色卡助手或 NPC工坊。
             </p>
           </div>
         </div>

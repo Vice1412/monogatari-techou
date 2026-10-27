@@ -7,6 +7,7 @@ import {
   GiPocketWatch
 } from 'react-icons/gi';
 import BookCoverHub from './components/book/BookCoverHub';
+import { needsDevWarning } from './components/book/chapterStatus';
 import ChapterHeader from './components/book/ChapterHeader';
 import BookPageFlipOverlay from './components/book/BookPageFlipOverlay';
 import { BOOK_CHROME } from './components/book/chapterChrome';
@@ -133,10 +134,11 @@ export default function App() {
   const handleSelectChapter = (chapterId) => {
     if (transitionState) return;
 
-    // 目前完成的只有NPC工坊的功能完全完整。
-    // 在剩下的那三個功能裡（角色卡助手、戰鬥輪次、命刻記錄），
-    // 點進章節時跳出提醒視窗，說明此功能仍在開發中、未完善使用，按確定後才可進入。
-    if (chapterId !== 'workshop') {
+    // F-008（2026-10-27）：這裡原本寫死「除了 NPC工坊，其他都要攔」。
+    // 角色卡助手早就做完四輪測試、可以上桌（見 docs/playtest/99-summary.md），
+    // 卻每次進站都被攔一次並被告知「未完善使用」——那是**用一句舊文案勸退使用者**。
+    // 現在只攔真正還在施工的章節，判斷來自 `components/book/chapterStatus.js`。
+    if (needsDevWarning(chapterId)) {
       setPendingDevChapterId(chapterId);
       return;
     }

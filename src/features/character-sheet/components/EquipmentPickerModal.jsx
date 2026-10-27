@@ -299,7 +299,7 @@ export function EquipmentPickerBody({
             <tr>
               <td colSpan={6} className="px-2 py-6 text-center text-[#7c6a58]">
                 {technoRestrictsEquipment
-                  ? '魔晶石制沒有官方武器表——主手與副手一律到「定制武器」分頁鍛造（科技奇幻手冊 p.133）。'
+                  ? '魔晶石制沒有官方武器表——主手與副手一律改用定制武器：鍛造面板就在這一頁的下方，關掉這個視窗就看得到「鍛造定制武器」（科技奇幻手冊 p.133）。'
                   : '沒有符合條件的武器，請放寬篩選。'}
               </td>
             </tr>
@@ -400,7 +400,7 @@ export function EquipmentPickerBody({
             <tr>
               <td colSpan={6} className="px-2 py-6 text-center text-[#7c6a58]">
                 {technoRestrictsEquipment
-                  ? '魔晶石制沒有盾牌——原書要求直接忽略守護者的【雙重盾牌】，副手改裝定制武器（p.133）。'
+                  ? '魔晶石制沒有盾牌——原書要求直接忽略守護者的【雙重盾牌】，副手改用定制武器：鍛造面板就在這一頁的下方（p.133）。'
                   : '沒有符合條件的盾牌，請放寬篩選。'}
               </td>
             </tr>
@@ -595,7 +595,9 @@ export function EquipmentPickerBody({
   return (
     <div className="flex flex-col h-[82vh] md:h-[76vh] max-h-[760px] overflow-hidden -m-1">
       {/* 副手：盾牌 / 單手武器 兩種完全不同的比較基準，先分開 */}
-      {slot === 'offHand' && (
+      {/* F-013：魔晶石制下盾牌整類不存在、單手武器也沒有官方表——兩邊都是空表，
+          所以這個切換鈕本身也是死按鈕，一起收起來。 */}
+      {slot === 'offHand' && !technoRestrictsEquipment && (
         <div className="flex items-center gap-1.5 mb-2 shrink-0">
           <button
             type="button"
@@ -636,6 +638,18 @@ export function EquipmentPickerBody({
       )}
 
       {/* 篩選與搜尋 */}
+      {/* F-013（2026-10-27）：魔晶石制下武器表是空的，但篩選列照樣渲染——
+          搜尋框、2 個勾選、排序下拉＋方向鈕、11 個類別鈕、3 個距離鈕、3 個持握鈕
+          全部可按，按了什麼都不會變。18 顆死按鈕比「這頁壞了」更難懂。
+          判準：**資料層清了，外殼也要清。** 說明留在空表那一列（單一來源），
+          這裡只放一顆把人送去真正能做事的地方的按鈕。 */}
+      {technoRestrictsEquipment ? (
+        <div className="mb-2.5 shrink-0" data-testid="equipment-restricted-actions">
+          <JRPGButton variant="outline" size="sm" onClick={onClose}>
+            關閉並去鍛造
+          </JRPGButton>
+        </div>
+      ) : (
       <div
         className="px-3 py-2 rounded border space-y-2 mb-2.5 shrink-0"
         style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
@@ -722,6 +736,7 @@ export function EquipmentPickerBody({
           </p>
         )}
       </div>
+      )}
 
       {/* 比較表 */}
       <div className="flex-1 overflow-y-auto min-h-0 pr-0.5">

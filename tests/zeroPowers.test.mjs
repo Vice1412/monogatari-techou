@@ -562,6 +562,44 @@ check('衝突中覺醒命刻立即全滿', awakenInFight.state.clock, 6);
 check('衝突中覺醒訊息說明填滿', awakenInFight.message.includes('已填滿'), true);
 check('衝突中覺醒的訊息含觸發名', awakenInFight.message.includes('愛'), true);
 
+// ─────────────────────────────────────────────────────────── N2（F-022）
+section('N2. F-022：覺醒之力的占位句不得說「還缺：觸發」（2026-10-27）');
+
+// 這條守的是**同一個區塊裡兩句話不能互相矛盾**。
+// 上面那段說明寫「建角時不選觸發，留白是正確狀態」，下面的佔位句卻寫「還缺：觸發」——
+// 玩家會回頭去補一個原書說不必補的欄位。
+//
+// 判準：**「還沒輪到」不是「缺」。**
+const awakeningNoTrigger = renderEdit({ ...fresh, zeroPower: awakening });
+check('覺醒前不再說「還缺：觸發」', awakeningNoTrigger.includes('還缺：觸發'), false);
+check(
+  '覺醒前的佔位句說明「覺醒當下才選」',
+  awakeningNoTrigger.includes('覺醒之力的觸發要等覺醒當下才選'),
+  true
+);
+// 效果已選 → 真的沒有東西可補了，整行「還缺」都不該出現（否則會印出一行光禿禿的「還缺：」）。
+check('覺醒前且效果已選 → 不印空的「還缺」行', awakeningNoTrigger.includes('還缺：'), false);
+
+const awakeningNoEffect = renderEdit({ ...fresh, zeroPower: { ...awakening, effectId: '' } });
+check('覺醒前但還沒選效果 → 仍然要說「還缺：效果」', awakeningNoEffect.includes('還缺：效果'), true);
+
+// 反向控制：修法不是把「觸發」兩個字從全站刪掉。
+// 已經覺醒卻沒有觸發（手動改壞資料、舊存檔）→ 這時它**真的是缺**，必須說出來。
+const awakenedNoTrigger = renderEdit({
+  ...fresh,
+  zeroPower: { ...awakening, awakened: true, triggerId: '' }
+});
+check('已覺醒卻沒觸發 → 照樣要說「還缺：觸發」', awakenedNoTrigger.includes('還缺：觸發'), true);
+check(
+  '已覺醒時不再印「覺醒當下才選」那句',
+  awakenedNoTrigger.includes('覺醒之力的觸發要等覺醒當下才選'),
+  false
+);
+
+// 非變體（一般底力技）完全不受影響。
+const plainNoTrigger = renderEdit({ ...fresh, zeroPower: { ...createZeroPowerState(), effectId: 'blitz' } });
+check('一般底力技沒選觸發 → 仍然要說「還缺：觸發」', plainNoTrigger.includes('還缺：觸發'), true);
+
 check('沒選觸發不能覺醒', awakenZeroPower(awakening, {}).ok, false);
 check('沒選觸發的訊息', awakenZeroPower(awakening, {}).message, '覺醒時要選定一個與事件相符的底力觸發');
 check('未知觸發不能覺醒', awakenZeroPower(awakening, { triggerId: 'nope' }).ok, false);

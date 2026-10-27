@@ -14,6 +14,7 @@ import {
 import appIcon from '../../assets/app-icon.png';
 import modLogo from '../../assets/Fabula Ultima Mod Logo - White Background.png';
 import { isSoundEnabled, toggleSoundEnabled } from '../../utils/soundEffects';
+import { chapterStatusOf, chapterStatusLabelOf } from './chapterStatus';
 
 /**
  * 封面：書本物件 ＋ 四個章節入口
@@ -47,39 +48,16 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
 
   // `desc` 是新增的：卡片沒有說明文字時，使用者只能靠標題猜裡面有什麼。
   // 文案取自各章節的實際功能範圍（與 App.jsx 的 CHAPTER_METAS 一致），不新增承諾。
+  //
+  // F-008（2026-10-27）：狀態**不再寫在這裡**。原本這一格寫「開發中」，
+  // 而「點進去要不要彈開發中提醒」寫在 App.jsx 的 `chapterId !== 'workshop'`——
+  // 兩份判斷各說各的，於是做完四輪測試的角色卡助手在封面被標成開發中。
+  // 現在狀態只有一份：`data/chapterStatus.js`。
   const CHAPTERS = [
-    {
-      id: 'character',
-      title: '角色卡助手',
-      desc: '建立與管理冒險者角色卡，數值、技能、裝備一次掌握。',
-      status: 'wip',
-      statusLabel: '開發中',
-      icon: GiVisoredHelm,
-    },
-    {
-      id: 'workshop',
-      title: 'NPC工坊',
-      desc: '從物種、定位到技能，逐步建構一隻 NPC。',
-      status: 'complete',
-      statusLabel: '完整功能',
-      icon: GiDragonHead,
-    },
-    {
-      id: 'combat',
-      title: '戰鬥輪次',
-      desc: '管理遭遇戰的輪次推進、參戰者狀態與先攻順序。',
-      status: 'wip',
-      statusLabel: '開發中',
-      icon: GiSwordClash,
-    },
-    {
-      id: 'clocks',
-      title: '命刻記錄',
-      desc: '管理情勢命刻、進度時鐘與場景危機。',
-      status: 'wip',
-      statusLabel: '開發中',
-      icon: GiPocketWatch,
-    }
+    { id: 'character', title: '角色卡助手', desc: '建立與管理冒險者角色卡，數值、技能、裝備一次掌握。', icon: GiVisoredHelm },
+    { id: 'workshop', title: 'NPC工坊', desc: '從物種、定位到技能，逐步建構一隻 NPC。', icon: GiDragonHead },
+    { id: 'combat', title: '戰鬥輪次', desc: '管理遭遇戰的輪次推進、參戰者狀態與先攻順序。', icon: GiSwordClash },
+    { id: 'clocks', title: '命刻記錄', desc: '管理情勢命刻、進度時鐘與場景危機。', icon: GiPocketWatch }
   ];
 
   return (
@@ -189,7 +167,9 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
             {CHAPTERS.map((chap) => {
               const Icon = chap.icon;
-              const isComplete = chap.status === 'complete';
+              // F-008：綠點＝「可以放心用」（完整功能／可用），橘點＝「施工中」。
+              const status = chapterStatusOf(chap.id);
+              const isReady = status === 'complete' || status === 'usable';
 
               return (
                 <button
@@ -220,9 +200,9 @@ export default function BookCoverHub({ onSelectChapter, onOpenDice, onBackup, on
                   <span className="flex items-center gap-1.5 pl-[30px] text-t12 text-ink-3">
                     <span
                       aria-hidden="true"
-                      className={`h-1.5 w-1.5 rounded-full ${isComplete ? 'bg-signal-ok' : 'bg-signal-ip'}`}
+                      className={`h-1.5 w-1.5 rounded-full ${isReady ? 'bg-signal-ok' : 'bg-signal-ip'}`}
                     />
-                    {chap.statusLabel} · 點擊翻開
+                    {chapterStatusLabelOf(chap.id)} · 點擊翻開
                   </span>
                 </button>
               );
