@@ -40,3 +40,11 @@ resources/
 
 # WorkBuddy 本地記憶（agent 的工作日誌與長期筆記，非專案產出）
 .workbuddy-ai/
+
+# Antigravity 本機絕對路徑（DevVault、原書 PDF）
+# repo 是公開的，路徑不得進版控；換機器時依 .agents/rules/00-local-paths.md 的格式重建。
+.agents/rules/00-local-paths.md
+
+# 自動生成的現況快照（每次 `npm run handoff` 重寫）
+# 進版控就會變成「寫死的過期快照」——這正是這支腳本要消滅的東西。
+docs/STATE-LIVE.md

@@ -1,5 +1,10 @@
 # CODEBUDDY.md —《物語手帳》WorkBuddy 入口
 
+> **不是 WorkBuddy 的 agent（Antigravity／Gemini／Cursor）請改讀 [`.agents/rules/00-start-here.md`](.agents/rules/00-start-here.md)。**
+> 本檔是 WorkBuddy 專用的 bootstrap，Antigravity 不會載入它——Antigravity 自動載入
+> `.agents/rules/*.md`、`AGENTS.md`、`GEMINI.md`。完整交接簡報在 [`docs/antigravity-brief.md`](docs/antigravity-brief.md)，
+> 現況數字用 `npm run handoff` 現量（會生成 `docs/STATE-LIVE.md`）。
+>
 > **本檔是 bootstrap，不是規範本體。**
 > WorkBuddy 只讀 `CODEBUDDY.md` → `.codebuddy/CODEBUDDY.md` → `AGENTS.md` **三者中第一個存在的**，
 > 並且**硬截斷在 8000 字元**。`AGENTS.md` 有約 52 KB，直接餵進去會被砍掉 84%——所以用本檔把新 session 送進正確的檔案。
