@@ -27,7 +27,7 @@
 
 ## 1. 環境事實（DSH 專用）
 
-- **工作目錄**：`E:\MINGWAN\Projects\monogatari-techou`（2026-10-05 由 `FU Companion` 更名，**已完成**）
+- **工作目錄**：`本專案根目錄`（2026-10-05 由 `FU Companion` 更名，**已完成**）
   **一律以 harness 回報的實際工作目錄為準**（目前與本行一致）。
   本機路徑與 repo 名稱無關；`.github/workflows/deploy.yml` 與 `vite.config.js` 皆用相對路徑，**不受更名影響**。
 - **可用工具**：`pwsh`、`read`、`write`、`edit`、`glob`、`grep`

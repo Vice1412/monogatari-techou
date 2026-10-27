@@ -1,7 +1,7 @@
 # 《物語手帳》功能健檢報告（第二輪）
 
 - **實測日期**：2026-10-16 09:11～09:30（GMT+8）
-- **範圍**：整個工作區 `E:\MINGWAN\Projects\monogatari-techou`
+- **範圍**：整個工作區 `本專案根目錄`
 - **基準 commit**：`85ffe2a`（`docs: 文件分工判準收斂進 AGENTS.md §7.1`）
 - **方法**：`npm test`／`npm run build`／`npm run test:emoji`／`npm run audit:affinity` 實跑
   ＋ 靜態掃描（`grep`／`wc`）＋ **獨立建置量測**（`scratch/vite.audit.config.js`，只寫入 `scratch/`，不動版控）

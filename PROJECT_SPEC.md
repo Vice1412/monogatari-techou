@@ -18,7 +18,7 @@
 
 > **文件定位**：本文件為 AI CLI 智能體（Antigravity CLI / Claude Code / OpenCode）的完整項目初始化與分步實施規範指南。
 > **項目名稱**：`fu-companion FU Companion 《物語助手》`
-> **項目實體目錄**：`"E:\MINGWAN\Projects\FU Companion"`
+> **項目實體目錄**：`"本專案根目錄"`
 
 ---
 
@@ -176,7 +176,7 @@ fabula-companion/
 請接管本項目的 CLI Agent 按照以下階段循序漸進實施，每完成一階段進行本地驗證：
 
 ### 【Phase 1: 環境搭建與骨架建立】
-1. 在 `"E:\MINGWAN\Projects\FU Companion"` 初始化 Vite + React 項目。
+1. 在 `"本專案根目錄"` 初始化 Vite + React 項目。
 2. 安裝 TailwindCSS、`lucide-react`、`canvas-confetti`、`clsx`、`tailwind-merge`。
 3. 配置 `tailwind.config.js` 與全局 `index.css`（JRPG 深色主題底色、自定義滾動條）。
 4. 驗證構建 `npm run build` 通過。

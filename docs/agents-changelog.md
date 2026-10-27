@@ -592,7 +592,7 @@
 
 *① **官方格式確認**：每個職業頁的標題下方印一行 `ALSO:`，格式固定為**三個詞**。全 **28 個職業**都有（核心 15＋高奇幻 4＋自然奇幻 4＋科技奇幻 3＋特典 2），實測**無例外、無一職少於或多於 3 個**。*
 
-*② **抽取過程的一個環境事實（新增）**：本專案的 shell 對 `E:\MINGWAN\TRPG\...` 與 `resources/角色卡/` 有 **Security Center 規則，PDF 一律 `Permission denied`**，連 `dangerouslyDisableSandbox` 也擋、`Read` 工具也讀不了（「Cannot display content of binary file」）。故本次改用 `scratch/` 內既有的**完整抽取檔**（`core_full.txt`／`atlas_high|natural|techno.txt`／`bonus.txt`），並以「頁數與 §1.1 記載的原書頁數一致」交叉驗證（核心 362／高 202／自然 210／科技 218／特典 48，五本全中）。中文別稱取自 `scratch/_zh_classes_pdf.txt` 等與 `resources/角色卡/` 的 CHM 漢化 `.md`（後者 `Read` 工具讀得到，只有 shell 被擋）。*
+*② **抽取過程的一個環境事實（新增）**：本專案的 shell 對 `<TRPG 資料夾>\...` 與 `resources/角色卡/` 有 **Security Center 規則，PDF 一律 `Permission denied`**，連 `dangerouslyDisableSandbox` 也擋、`Read` 工具也讀不了（「Cannot display content of binary file」）。故本次改用 `scratch/` 內既有的**完整抽取檔**（`core_full.txt`／`atlas_high|natural|techno.txt`／`bonus.txt`），並以「頁數與 §1.1 記載的原書頁數一致」交叉驗證（核心 362／高 202／自然 210／科技 218／特典 48，五本全中）。中文別稱取自 `scratch/_zh_classes_pdf.txt` 等與 `resources/角色卡/` 的 CHM 漢化 `.md`（後者 `Read` 工具讀得到，只有 shell 被擋）。*
 
 *③ **漢化內部自己就不一致**：核心漢化寫「同时也可以叫做：弓箭手，枪手，狙击手」，旅人那頁寫「别称：冒险家，探索者，宝藏猎人」。**兩種寫法都要抓**，只抓一種會漏掉一半職業。*
 

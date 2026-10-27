@@ -20,7 +20,7 @@
 | 項目 | 值 |
 |---|---|
 | 名稱 | 《物語手帳》（套件名 `monogatari-techou`）。原名 FU Companion **已因版權問題廢棄，不得再用於新增的路徑／識別字／對外文件**；既有文件中的「原名」屬歷史敘述 |
-| 路徑 | `E:\MINGWAN\Projects\monogatari-techou` |
+| 路徑 | `本專案根目錄` |
 | repo | https://github.com/Vice1412/monogatari-techou （**公開**） |
 | 技術 | Vite 6 + React + Tailwind 3；全站羊皮紙暖色調（`#fbf7ee` / `#3c2415` / `#d6c7ab`），**非**深色石板底 |
 | 資料層 | 純 localStorage，但已收斂為單一存取層 `src/data/store.js`；鍵註冊表 `src/data/keys.js`（7 權威鍵，前綴 `monogatari_techou_`；11 個舊鍵只讀不寫，由 `migrateLegacyStorage()` 於啟動時搬移）；房間契約 `shared/schema.js`。**`src/` 內不得直接呼叫 `localStorage`** |
@@ -45,12 +45,16 @@
 
 | 書 | 路徑 | PDF 頁碼偏移 |
 |---|---|---|
-| 核心規則書 v1.1（機制最高權威） | `E:\MINGWAN\TRPG\Fabula ultima\最終幻想1.1\Fabula_Ultima_TTJRPG_Need_Games,_Rooster_Games_Fabula_Ultima_Core.pdf` | **PDF = 印刷 + 2** |
+| 核心規則書 v1.1（機制最高權威） | `<TRPG 資料夾>\Fabula ultima\最終幻想1.1\Fabula_Ultima_TTJRPG_Need_Games,_Rooster_Games_Fabula_Ultima_Core.pdf` | **PDF = 印刷 + 2** |
 | 高度／自然／科技奇幻手冊 | 同目錄 `..._High_Fantasy_Atlas.pdf`、`..._Natural_Fantasy_Atlas.pdf`、`..._Techno_Fantasy_Atlas.pdf` | +2 |
 | 官方特典合輯 | 同目錄 `Fabula_Ultima_TTJRPG_Bonus_Collection.pdf` | **0（無偏移）** |
-| 怪物圖鑑 Vol.1 | `E:\MINGWAN\TRPG\Fabula ultima\Fabula Ultima Bestiary Vol. 1 KS_preview.pdf` | — |
-| 民間漢化（**只管譯名，不管機制**） | `E:\MINGWAN\TRPG\Fabula ultima\DLC\《Fabula Ultima最终物语》全扩展不全书V1.0(1)\`（26 個 HTML） | — |
-| 繁中角色卡 Excel（三大手冊＋特典的譯名權威） | `E:\MINGWAN\TRPG\Fabula ultima\最终物语_自动角色卡_核心+扩展_正式版25_10_14.xlsx` | — |
+| 怪物圖鑑 Vol.1 | `<TRPG 資料夾>\Fabula ultima\Fabula Ultima Bestiary Vol. 1 KS_preview.pdf` | — |
+| 民間漢化（**只管譯名，不管機制**） | `<TRPG 資料夾>\Fabula ultima\DLC\《Fabula Ultima最终物语》全扩展不全书V1.0(1)\`（26 個 HTML） | — |
+| 繁中角色卡 Excel（三大手冊＋特典的譯名權威） | `<TRPG 資料夾>\Fabula ultima\最终物语_自动角色卡_核心+扩展_正式版25_10_14.xlsx` | — |
+
+> **`<TRPG 資料夾>` 與 `本專案根目錄` 都是佔位符，不是真的路徑。** 本 repo 是公開的，
+> 所以文件裡不寫作者的磁碟機代號、工作區資料夾名與 Windows 帳號名（2026-10-27 清理，見 `docs/handoff.md`）。
+> 實際位置請以目前工作目錄為準；找不到原書時直接問使用者。
 
 - 抽 PDF：`pypdf` 已安裝；**`read` 工具讀不了 PDF**，`pdftotext` 未裝。抽取腳本 `scratch/pdf_text.py`（`scratch/` 不在版控，重建即可）。
 - ※ 頁碼偏移**因書而異**，引用頁碼前先確認該書的偏移，不要沿用上一本的。

@@ -131,7 +131,7 @@
 官方英文 Core v1.1 原書位於**專案目錄之外**：
 
 ```
-E:\MINGWAN\TRPG\Fabula ultima\最終幻想1.1\Fabula_Ultima_TTJRPG_Need_Games,_Rooster_Games_Fabula_Ultima_Core.pdf
+<TRPG 資料夾>\Fabula ultima\最終幻想1.1\Fabula_Ultima_TTJRPG_Need_Games,_Rooster_Games_Fabula_Ultima_Core.pdf
 ```
 
 - 涉及《FU》專有子系統（造物專案、小工具、儀式魔法、忠實夥伴等）的實作前，  
@@ -4657,7 +4657,7 @@ ALSO: Avatar, Chosen, Summoner
 
 #### AZ2. 抽取與核對
 
-> ⚠️ **本專案的 shell 對 `E:\MINGWAN\TRPG\...` 與 `resources/角色卡/` 有 Security Center 規則，
+> ⚠️ **本專案的 shell 對 `<TRPG 資料夾>\...` 與 `resources/角色卡/` 有 Security Center 規則，
 > PDF 一律 `Permission denied`**（連 `dangerouslyDisableSandbox` 也擋）。
 > 所以本次是用 `scratch/` 內既有的**完整抽取檔**（`core_full.txt`／`atlas_high|natural|techno.txt`／`bonus.txt`），
 > 並以「頁數與 `AGENTS.md` §1.1 記載的原書頁數一致」交叉驗證：
@@ -5270,7 +5270,7 @@ roster 用原始碼護欄（`CharacterSheet` 沒有 SSR 注入點，空 roster �
 
 #### BE2. 覆核方法與結論（刪除 6 職的依據）
 
-**文件**：`E:\MINGWAN\TRPG\Fabula ultima\Playtest\Fabula Ultima Playtest Materials (ENG) (October 1st, 2026) (single page).pdf`
+**文件**：`<TRPG 資料夾>\Fabula ultima\Playtest\Fabula Ultima Playtest Materials (ENG) (October 1st, 2026) (single page).pdf`
 （45 頁，changelog 首行 `Last Updated: October 1st, 2026`——資料夾內最新一份）。
 
 **方法**：用既有抽取檔 `scratch/playtest_2026-10-01.txt`（`TOTAL_PAGES=45`）逐項 grep。

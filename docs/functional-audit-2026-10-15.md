@@ -20,7 +20,7 @@
 > 本報告**方向正確**的部分仍然成立：舊名前綴、`NPCWorkshop.jsx` 大檔、bundle 大小。
 
 - **實測日期**：2026-10-15
-- **範圍**：整個工作區 `E:\MINGWAN\Projects\monogatari-techou`
+- **範圍**：整個工作區 `本專案根目錄`
 - **方法**：`npm test`／`npm run build`／`npm run test:emoji` 實跑 ＋ 靜態掃描（grep／wc）
 - **基準守則**：一律以當前工作區實際源碼為準，未引用 `PROJECT_CHANGELOG.md` 或任何歷史報告作為現況結論
 

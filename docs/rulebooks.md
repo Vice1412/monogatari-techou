@@ -11,7 +11,7 @@
 
 ## 1. 官方原書（機制最高權威）
 
-**位置**：專案目錄之外，`E:\MINGWAN\TRPG\Fabula ultima\`（本機路徑，不寫進 repo）。
+**位置**：專案目錄之外，`<TRPG 資料夾>\Fabula ultima\`（本機路徑，不寫進 repo）。
 
 | 書 | 檔名 | 頁數 | 用途 |
 |---|---|---|---|
@@ -88,7 +88,7 @@ resources/角色卡/
 **規模**：106 檔 / 92 MB（54 PDF、26 MD、25 HTML、1 XLSX）。
 
 **漢化抽出來源（版控外，僅供追溯）**：
-`E:\MINGWAN\TRPG\Fabula ultima\DLC\《Fabula Ultima最终物语》全扩展不全书V1.0(1)\`（26 個 HTML）。
+`<TRPG 資料夾>\Fabula ultima\DLC\《Fabula Ultima最终物语》全扩展不全书V1.0(1)\`（26 個 HTML）。
 CHM 旁的 `.html` 只是 301 bytes 的空殼 frameset，**無用**；真正的內容在那個同名資料夾。
 
 > 🔑 **教訓（兩層）**：

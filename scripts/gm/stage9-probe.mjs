@@ -166,7 +166,9 @@ await settle(400);
 
 // ── P4 匯出 JSON ─────────────────────────────────────────────
 section('P4 匯出單張 JSON（檔案庫每張卡的「匯出」）');
-const dlDir = 'E:\\MINGWAN\\Projects\\monogatari-techou\\scratch\\gm-test\\stage9-probe\\downloads';
+// 原本寫死絕對路徑（含作者的磁碟機與資料夾名）。改成從「執行時所在目錄」推導，
+// 這樣換一台機器、或 repo 被別人 clone 下來，這支探勘腳本都還跑得動。
+const dlDir = path.resolve(process.cwd(), 'scratch/gm-test/stage9-probe/downloads');
 await api.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: dlDir, eventsEnabled: true }).catch(() => {});
 const backR = await clickText('返回檔案庫', 900);
 note('返回檔案庫', backR.mode);

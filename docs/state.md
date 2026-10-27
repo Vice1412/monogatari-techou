@@ -183,7 +183,7 @@ SSR 雙模式真渲染／紙卡匯出，刻意破壞驗證紅 6 條，
 | 項目 | 內容 | 狀態 |
 |---|---|---|
 | ~~金手指來源標記~~ | ✅ **已由 §AR4 裁定結案**：使用者裁定「檢查重複，有重複就不列出處」——實測**有重複**（FLIGHT／CURSED 橫跨高低＋自然；ROBOT 橫跨高低＋科技），故**介面不列出處**，`（高奇）`等名稱標記與 `filterQuirksBySources` 一併移除（§AR5，55→46 筆）。 | ✅ 已結案 |
-| ~~本機路徑搬遷~~ | ✅ **已完成**：`AGENTS.md:25` 已是 `E:\MINGWAN\Projects\monogatari-techou` | ✅ 已結案 |
+| ~~本機路徑搬遷~~ | ✅ **已完成**：`AGENTS.md:25` 已是 `本專案根目錄` | ✅ 已結案 |
 | ~~金手指效果逐筆核對~~ | ✅ **2026-10-22 已結案（§CG）**：46 條逐條讀過（含 `desc` 全文）。只有 **11 條**會改角色卡上的數字（7 條本體 `effects` ＋ 4 條 `optionGroups`），已全部進 `calculateCharacterStats`（`stats.quirkEffects` ＋ 條件式 `def`／`mdef`）。其餘 **35 條不實作**，分類與逐類理由見 §CG7（敘事／章節結算／裝備載具／戰鬥內一次性）——判準是「有欄位放它，而且有東西讀那個欄位」 | ✅ 已結案 |
 | Bonus Collection 其餘 7 項 | ~~New Heroic Skills~~ ✅ 2026-10-06 已收錄（卡牌大師 4 筆，見 §AK4）；**Halloween 系列／Arcane Whispers／三隻 Additional Bosses** 仍待裁定優先序（Halloween 的**範例角色 8 組**已於 `expansionPresets.js` 收錄，此處指其餘內容） | 待裁定 |
 | ~~先攻變體是否套用~~ | ✅ **2026-10-21 已實裝（§BL）**：改成整團開關 `creationRules.initiativeVariant`（預設 `false`＝與核心逐字相同）。開啟後：防具先攻減值不存在、戰鬥輕甲改物防 +2／魔防 +0、先攻值不存在（顯示「不計」）、影響先攻的效果**忽略而非替換**。判定收斂在 `data/initiativeVariant.js`，`test:initiative` 95 條釘住。**NPC 端刻意未接線**（NPC 工坊沒有開卡規則面板，見 §BL5） | ✅ 已結案 |
