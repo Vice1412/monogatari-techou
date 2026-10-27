@@ -155,6 +155,46 @@ export const isHpMpChoiceBenefit = (freeBenefitText = '') => (
 );
 
 /**
+ * 把玩家存下來的 `chosenBenefit` 正規化成 `'HP'` / `'MP'`（不認得就回空字串）。
+ *
+ * 為什麼需要這一層：UI 按鈕寫的是大寫 `'HP'`／`'MP'`，但歷史上有兩處拿小寫去比
+ * （`'mp'`／`'hp'`），於是永遠不相等、永遠走預設分支。**同一份資料有兩種寫法，
+ * 就一定有人比錯**——與其逐一改字面值，不如只留一個正規化入口。
+ */
+export const normalizeBenefitKey = (value) => {
+  const key = String(value || '').trim().toUpperCase();
+  return key === 'HP' || key === 'MP' ? key : '';
+};
+
+/**
+ * 這個職業的免費增益「實際上落在哪一邊」——**二選一的唯一判定入口**。
+ *
+ * 回傳 `'HP'`／`'MP'`；不是二選一職業就回空字串（那種職業的增益是固定的，沒有選擇）。
+ * 玩家沒選時預設 `'HP'`，理由是**不能兩邊都加**（那會多送 5 點）。
+ *
+ * 原書只寫「二選一」，沒說怎麼選——**那就是玩家的選擇**，不是 App 該替他決定的事
+ * （2026-10-27 GM 裁定）。所以這裡只負責「讀出他選了什麼」，不提供推薦。
+ */
+export const resolveChosenBenefit = (classDef, classItem) => {
+  const text = (classDef?.freeBenefits || '') + ' ' + (classDef?.freeBonus || '');
+  if (!isHpMpChoiceBenefit(text)) return '';
+  return normalizeBenefitKey(classItem?.chosenBenefit) || 'HP';
+};
+
+/**
+ * 免費增益要印在卡片上的那句話。
+ *
+ * 二選一職業 → 玩家實際選到的 `'最大 HP +5'`／`'最大 MP +5'`（不是只印「二選一」，
+ * 因為列印出來的卡要能直接拿去桌上用）。
+ * 其餘職業 → 資料層的 `freeBonus` 原文（例如守護者的 `'HP +5，職業防具/盾牌'`）。
+ */
+export const describeFreeBenefit = (classDef, classItem) => {
+  const key = resolveChosenBenefit(classDef, classItem);
+  if (key) return `最大 ${key} +5`;
+  return String(classDef?.freeBonus || '').trim();
+};
+
+/**
  * 新角色的佔位姓名。
  *
  * 它不是玩家填的名字，只是讓卡片在填之前有東西可顯示。
@@ -927,9 +967,13 @@ export const calculateCharacterStats = (char) => {
     const clsLabel = cl.className || '未知職業';
 
     // 二選一職業判定 (秘儀師【變體】、死靈術士、舞者、祈喚者、植物學家、卡牌大師)
+    //
+    // 2026-10-27（F-018）：判定改走 `resolveChosenBenefit`。以前這裡直接比
+    // `cl.chosenBenefit === 'MP'`，而另外兩個消費端（修改記錄、列印卡）比的是小寫
+    // `'mp'`／`'hp'`——同一份資料兩種寫法，結果是「記錄說你選了 HP、列印卡什麼都不印」。
+    // 現在三個地方吃同一個函式，寫法不可能再漂移。
     if (isHpMpChoiceBenefit(fb)) {
-      // 未指定時預設以 HP+5 為主（避免兩者同時加 5 點導致多送點數）
-      if (cl.chosenBenefit === 'MP') {
+      if (resolveChosenBenefit(classDef, cl) === 'MP') {
         addMp(`${clsLabel} 免費增益（MP）`, 5, 'class');
       } else {
         addHp(`${clsLabel} 免費增益（HP）`, 5, 'class');

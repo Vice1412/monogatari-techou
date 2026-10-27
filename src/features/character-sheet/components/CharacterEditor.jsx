@@ -102,7 +102,8 @@ import {
   attributeDieUpgradesUsed,
   HEROIC_SKILLS,
   HEROIC_SKILL_SOURCE_LABELS,
-  buildQuirkPatch
+  buildQuirkPatch,
+  describeFreeBenefit
 } from '../utils/characterEngine';
 import {
   EQUIPMENT_SLOTS,
@@ -415,13 +416,22 @@ export default function CharacterEditor({
   );
 
   // 免費增益二選一（最大 HP 或 最大 MP）：寫入 classes[].chosenBenefit，引擎據此決定 +5 落在 HP 還是 MP
+  //
+  // 2026-10-27（F-018）：這行記錄以前寫 `benefit === 'mp'`，但傳進來的 `benefit` 是
+  // 大寫 `'MP'`（ClassSkillCard 的按鈕就是 `['HP','MP']`），所以**永遠不相等**——
+  // 玩家明明選了 MP，修改記錄卻寫「改為 最大 HP +5」。改成問引擎要標籤，
+  // 三處（記錄／列印卡／數值）從此不可能各說各話。
   const handleUpdateClassBenefit = (classIdx, benefit) => {
     const curClasses = JSON.parse(JSON.stringify(character.classes || []));
     if (!curClasses[classIdx]) return;
     curClasses[classIdx].chosenBenefit = benefit;
+    const label = describeFreeBenefit(
+      rulesData.classes[curClasses[classIdx].className],
+      curClasses[classIdx]
+    );
     updateField('classes', curClasses, {
       kind: 'skill',
-      title: `【${curClasses[classIdx].className}】免費增益改為 ${benefit === 'mp' ? '最大 MP +5' : '最大 HP +5'}`,
+      title: `【${curClasses[classIdx].className}】免費增益改為 ${label}`,
       fields: []
     });
   };

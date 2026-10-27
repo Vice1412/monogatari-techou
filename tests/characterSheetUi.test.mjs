@@ -27,7 +27,7 @@ import {
   EXPERIENCE_POINT_RULES,
   SHEET_DISCIPLINES
 } from '../src/features/character-sheet/components/CharacterSheetExport.jsx';
-import { createNewCharacter, getProficiencies, calculateCharacterStats, deriveCreationState, shortIssueLabel } from '../src/features/character-sheet/utils/characterEngine.js';
+import { createNewCharacter, getProficiencies, calculateCharacterStats, deriveCreationState, shortIssueLabel, isHpMpChoiceBenefit } from '../src/features/character-sheet/utils/characterEngine.js';
 import { resolveCreationRules, DEFAULT_CREATION_RULES } from '../src/features/character-sheet/data/creationRules.js';
 import { HeroicSkillPickerBody } from '../src/features/character-sheet/components/HeroicSkillPickerModal.jsx';
 import { QuirkPickerBody } from '../src/features/character-sheet/components/QuirkPickerModal.jsx';
@@ -48,6 +48,8 @@ import { readIconMapKeys, findDuplicateIconKeys } from './helpers/gameIconMap.mj
 import CharacterEditor from '../src/features/character-sheet/components/CharacterEditor.jsx';
 import { GLOSSARY, TERMS as TERM_ENTRIES } from '../src/features/character-sheet/data/glossary.js';
 import CharacterCard from '../src/features/character-sheet/components/CharacterCard.jsx';
+import ClassSkillCard from '../src/features/character-sheet/components/ClassSkillCard.jsx';
+import { getCharacterTheme } from '../src/features/character-sheet/utils/characterThemes.js';
 import AttributeMatrixPicker from '../src/features/character-sheet/components/AttributeMatrixPicker.jsx';
 import ClassPickerModal from '../src/features/character-sheet/components/ClassPickerModal.jsx';
 import CreationRulesPanel, { describeRulesDiff } from '../src/features/character-sheet/components/CreationRulesPanel.jsx';
@@ -256,7 +258,12 @@ check('熟練度不是全空（確實有讀到職業）',
   Object.values(model.proficiencies).some(Boolean), true);
 check('P1 職業欄只放前 3 個', model.page1Classes.map((c) => c.className), ['守護者', '元素師', '博學士']);
 check('其他職業從第 4 個開始，最多 4 個', model.otherClasses.map((c) => c.className), ['靈師', '熵師']);
-check('免費增益翻成中文', model.page1Classes[0].freeBenefit, '最大 HP +5');
+// 2026-10-27（F-018）：這條原本期望 '最大 HP +5'，而那是舊程式「拿小寫 'hp' 去比」的產物。
+// 守護者**不是**二選一職業，它的免費增益原文就是「HP +5，職業防具/盾牌」——
+// 舊寫法只印了前半段，把「職業防具/盾牌」整段吃掉。改吃 `describeFreeBenefit` 之後印原文，
+// 資訊只多不少；二選一那 6 個職業則印玩家實際選到的那一邊（見 §CN）。
+check('免費增益印資料層原文（守護者：HP +5，職業防具/盾牌）',
+  model.page1Classes[0].freeBenefit, 'HP +5，職業防具/盾牌');
 check('技能資訊帶 SL（現在是物件，多了效果全文欄位）',
   [model.page1Classes[0].skills[0].name, model.page1Classes[0].skills[0].sl,
     'desc' in model.page1Classes[0].skills[0]],
@@ -1971,6 +1978,69 @@ check('兩張卡都不會出現「3~3」', [standardCardHtml.includes('3~3'), te
 // 這條是「真的吃開卡規則」而不是「剛好硬編碼兩個字串」——GM 自訂 1~4 也要反映。
 const customCardHtml = emptyCard({ classCountMin: 1, classCountMax: 4 });
 check('GM 自訂 1~4 時角色卡也跟著改', customCardHtml.includes('起始需配置 1~4 個職業'), true);
+
+section('CN. F-018：免費增益二選一——「由玩家自己選」要說出來，選了要算對（2026-10-27）');
+
+// GM 裁定：「這個原本就是玩家自己選擇的」。所以這一節守的不是「幫他選」，
+// 而是兩件事：①畫面上要說清楚沒有對錯（不然新手會停下來翻書）
+// ②選了之後，三個消費端（數值／修改記錄／列印卡）要說同一句話。
+const mkChoiceItem = (className, extra = {}) => ({
+  className,
+  level: 3,
+  skills: [],
+  ...extra
+});
+const renderClassCard = (className, extra) => renderToStaticMarkup(React.createElement(ClassSkillCard, {
+  classItem: mkChoiceItem(className, extra),
+  classIndex: 0,
+  character: createNewCharacter({ name: '二選一' }),
+  theme: getCharacterTheme('emerald')
+}));
+
+const dancerDefault = renderClassCard('舞者');
+check('舞者（二選一職業）出現「二選一」那一列',
+  dancerDefault.includes('data-testid="free-benefit-choice"'), true);
+check('那一列有「由你決定，兩者都是永久 +5」的說明',
+  dancerDefault.includes('由你決定，兩者都是永久 +5'), true);
+check('未選時 HP 是按下狀態、MP 不是',
+  [dancerDefault.includes('aria-pressed="true" data-testid="free-benefit-hp"'),
+    dancerDefault.includes('aria-pressed="true" data-testid="free-benefit-mp"')], [true, false]);
+
+// 舊存檔若存了小寫（歷史上有兩處拿小寫比），介面也必須認得——這是正規化的實際好處。
+const dancerLegacyMp = renderClassCard('舞者', { chosenBenefit: 'mp' });
+check('舊存檔寫小寫 mp，介面仍把 MP 標成已選',
+  [dancerLegacyMp.includes('aria-pressed="true" data-testid="free-benefit-mp"'),
+    dancerLegacyMp.includes('aria-pressed="true" data-testid="free-benefit-hp"')], [true, false]);
+
+// 反向控制：不是二選一的職業不准出現選擇列（守護者是固定 HP +5）。
+const guardianCard = renderClassCard('守護者');
+check('守護者（固定 HP +5）不出現二選一那一列',
+  guardianCard.includes('data-testid="free-benefit-choice"'), false);
+
+// ── 列印卡：這一行以前永遠是空的（比小寫比不到），29 個職業全部不顯示免費增益
+const sheetOf = (className, extra) => buildSheetModel({
+  ...createNewCharacter({ name: '列印' }),
+  level: 5,
+  classes: [mkChoiceItem(className, extra)]
+}).classes[0].freeBenefit;
+
+check('列印卡：舞者選 MP → 印「最大 MP +5」', sheetOf('舞者', { chosenBenefit: 'MP' }), '最大 MP +5');
+check('列印卡：舞者選 HP → 印「最大 HP +5」', sheetOf('舞者', { chosenBenefit: 'HP' }), '最大 HP +5');
+check('列印卡：舞者未選 → 預設印「最大 HP +5」', sheetOf('舞者'), '最大 HP +5');
+check('列印卡：舊存檔小寫 mp → 印「最大 MP +5」', sheetOf('舞者', { chosenBenefit: 'mp' }), '最大 MP +5');
+// 非二選一職業印資料層原文（這條以前也是空的）
+check('列印卡：守護者印「HP +5，職業防具/盾牌」', sheetOf('守護者'), 'HP +5，職業防具/盾牌');
+check('列印卡：遊蕩者印「IP +2」', sheetOf('遊蕩者'), 'IP +2');
+
+// ── 資料層：6 個二選一職業的寫法必須完全一致
+// （原本只有秘儀師【變體】多寫「(請依配置選擇)」，而它剛好是最不需要提示的那個）
+const choiceClassNames = Object.keys(rulesData.classes)
+  .filter((cn) => isHpMpChoiceBenefit((rulesData.classes[cn].freeBenefits || '') + ' ' + (rulesData.classes[cn].freeBonus || '')));
+check('二選一職業共 6 個', choiceClassNames.length, 6);
+check('6 個的 freeBonus 寫法完全一致',
+  [...new Set(choiceClassNames.map((cn) => rulesData.classes[cn].freeBonus))], ['HP +5 或 MP +5']);
+check('沒有任何一個還在寫「請依配置選擇」',
+  choiceClassNames.some((cn) => rulesData.classes[cn].freeBonus.includes('請依配置選擇')), false);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

@@ -34,7 +34,7 @@
     },
     "秘儀師【變體】": {
       "name": "秘儀師【變體】",
-      "freeBonus": "HP +5 或 MP +5 (請依配置選擇)",
+      "freeBonus": "HP +5 或 MP +5",
       "skills": [
         {
           "name": "秘術再生",

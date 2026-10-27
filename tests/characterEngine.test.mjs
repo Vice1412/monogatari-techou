@@ -52,7 +52,10 @@ import {
   getQuirkEffects,
   getProficiencies,
   getQuirkStartingZenitBonus,
-  buildQuirkPatch
+  buildQuirkPatch,
+  normalizeBenefitKey,
+  resolveChosenBenefit,
+  describeFreeBenefit
 } from '../src/features/character-sheet/utils/characterEngine.js';
 import { DEFAULT_CREATION_RULES } from '../src/features/character-sheet/data/creationRules.js';
 import { INNATE_MIN_LEVELS } from '../src/features/character-sheet/data/technospheres.js';
@@ -1346,6 +1349,42 @@ check('N 計算完之後，武器表裡的徒手打擊仍是 HR + 0（沒有污�
 
 // 跑團面板那兩處顯示屬於 UI 層，護欄寫在 `characterSheetUi.test.mjs` 的 §CK
 // （那個檔才有讀原始碼的 `read()` 輔助函式）。
+
+section('O. 免費增益二選一：一個判定入口（F-018，2026-10-27）');
+
+// 這一節守的是「同一份資料有兩種寫法，就一定有人比錯」。
+// 2026-10-27 之前：UI 按鈕寫大寫 `'HP'`／`'MP'`，但修改記錄與列印卡拿小寫 `'mp'`／`'hp'` 去比，
+// 於是永遠不相等——玩家選了 MP，記錄卻寫「改為 最大 HP +5」，列印卡則什麼都不印。
+check('O 正規化：MP → MP', normalizeBenefitKey('MP'), 'MP');
+check('O 正規化：小寫 mp → MP', normalizeBenefitKey('mp'), 'MP');
+check('O 正規化：混寫 Mp → MP', normalizeBenefitKey('Mp'), 'MP');
+check('O 正規化：小寫 hp → HP', normalizeBenefitKey('hp'), 'HP');
+check('O 正規化：空值 → 空字串', [normalizeBenefitKey(''), normalizeBenefitKey(null), normalizeBenefitKey(undefined)], ['', '', '']);
+check('O 正規化：不認得的值 → 空字串（不要猜）', normalizeBenefitKey('IP'), '');
+
+// resolveChosenBenefit 是二選一的唯一判定入口
+check('O 舞者選 mp（舊存檔小寫）→ 判定為 MP',
+  resolveChosenBenefit(rulesData.classes['舞者'], { className: '舞者', chosenBenefit: 'mp' }), 'MP');
+check('O 舞者未選 → 預設 HP（不能兩邊都加）',
+  resolveChosenBenefit(rulesData.classes['舞者'], { className: '舞者' }), 'HP');
+check('O 守護者不是二選一 → 回空字串（固定增益沒有選擇）',
+  resolveChosenBenefit(rulesData.classes['守護者'], { className: '守護者', chosenBenefit: 'MP' }), '');
+
+// 實際數值：6 個職業用**小寫**存也必須算對（這正是舊存檔會踩到的情況）
+CHOICE_CLASSES.forEach((cn) => {
+  const s = choiceStats(cn, 'mp');
+  check(`O ${cn} 存小寫 mp 也要得到 MP 50`, [s.maxHp, s.maxMp], [45, 50]);
+});
+
+// 標籤：三個消費端共用 describeFreeBenefit，說法不可能再漂移
+check('O describeFreeBenefit 選 MP → 最大 MP +5',
+  describeFreeBenefit(rulesData.classes['舞者'], { className: '舞者', chosenBenefit: 'MP' }), '最大 MP +5');
+check('O describeFreeBenefit 選小寫 mp → 最大 MP +5',
+  describeFreeBenefit(rulesData.classes['舞者'], { className: '舞者', chosenBenefit: 'mp' }), '最大 MP +5');
+check('O describeFreeBenefit 未選 → 最大 HP +5',
+  describeFreeBenefit(rulesData.classes['舞者'], { className: '舞者' }), '最大 HP +5');
+check('O describeFreeBenefit 非二選一 → 印資料層原文',
+  describeFreeBenefit(rulesData.classes['守護者'], { className: '守護者' }), 'HP +5，職業防具/盾牌');
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

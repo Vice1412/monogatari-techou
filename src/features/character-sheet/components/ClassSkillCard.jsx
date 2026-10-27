@@ -51,7 +51,7 @@ import {
   createDefaultCompanionData
 } from '../data/wayfarerCompanionData';
 import { getClassInfo } from '../data/sourcebookConfig';
-import { isHpMpChoiceBenefit, getCharacterLevel } from '../utils/characterEngine';
+import { isHpMpChoiceBenefit, getCharacterLevel, resolveChosenBenefit } from '../utils/characterEngine';
 import rulesData from '../data/rulesData.json';
 import { withEn } from '../../../utils/properNouns';
 
@@ -461,7 +461,8 @@ export default function ClassSkillCard({
 
   // 免費增益二選一：只有「最大 HP 或 最大 MP」的職業需要玩家指定（引擎未指定時預設 HP）
   const isHpMpChoice = isHpMpChoiceBenefit((classDef.freeBenefits || '') + ' ' + (classDef.freeBonus || ''));
-  const chosenBenefit = classItem.chosenBenefit || 'HP';
+  // F-018：判定改走引擎的唯一入口，大寫／小寫／未設定都在那裡收斂成 'HP'｜'MP'。
+  const chosenBenefit = resolveChosenBenefit(classDef, classItem) || 'HP';
 
   // 子項目構築彈窗目標特技 { skillName, sl, selectedOptions }
   const [suboptionModalSkill, setSuboptionModalSkill] = useState(null);
@@ -649,7 +650,10 @@ export default function ClassSkillCard({
 
               {/* 免費增益二選一：僅「最大 HP 或 最大 MP」的職業需要指定，選了才會反映在角色體質上 */}
               {isHpMpChoice && (
-                <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                <div
+                  data-testid="free-benefit-choice"
+                  className="flex items-center gap-1.5 flex-wrap mt-1.5"
+                >
                   <span className="text-t10 font-bold text-[#6b5a4b]">二選一</span>
                   {['HP', 'MP'].map(opt => (
                     <button
@@ -657,6 +661,8 @@ export default function ClassSkillCard({
                       type="button"
                       onClick={() => onUpdateClassBenefit && onUpdateClassBenefit(classIndex, opt)}
                       title={`將此職業的免費增益設為 ${opt} +5`}
+                      aria-pressed={chosenBenefit === opt}
+                      data-testid={`free-benefit-${opt.toLowerCase()}`}
                       className={`text-t10 font-mono font-bold px-2 py-0.5 rounded border transition-colors cursor-pointer ${
                         chosenBenefit === opt
                           ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
@@ -666,6 +672,12 @@ export default function ClassSkillCard({
                       {opt} +5
                     </button>
                   ))}
+                  {/* F-018（2026-10-27 GM 裁定）：原書只寫「二選一」，沒說怎麼選——
+                      因為**那就是玩家的選擇**，不是規則，也不是 App 該替他決定的。
+                      所以這裡不放推薦，只把「沒有對錯」講出來，免得新手停下來翻書。 */}
+                  <span data-testid="free-benefit-hint" className="text-t10 text-[#6b5a4b]">
+                    由你決定，兩者都是永久 +5
+                  </span>
                 </div>
               )}
             </div>

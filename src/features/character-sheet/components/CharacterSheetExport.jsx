@@ -6,7 +6,7 @@ import GameIcon from '../../../components/ui/GameIcon';
 import rulesData from '../data/rulesData.json';
 import SkillDescription from '../utils/skillFormulaEvaluator';
 import iconFontUrl from '../../../assets/FabulaUltimaIcons-Regular.otf';
-import { calculateCharacterStats, getProficiencies, getCharacterLevel, HEROIC_SKILLS } from '../utils/characterEngine';
+import { calculateCharacterStats, getProficiencies, getCharacterLevel, HEROIC_SKILLS, describeFreeBenefit } from '../utils/characterEngine';
 import { withHrBonus } from '../utils/equipmentRules';
 import { ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
 import { buildCustomWeaponEntries } from '../data/customWeapons';
@@ -377,7 +377,11 @@ export const buildSheetModel = (character, stats = null) => {
     return {
       className: cl.className,
       level: cl.level || 0,
-      freeBenefit: cl.chosenBenefit === 'mp' ? '最大 MP +5' : (cl.chosenBenefit === 'hp' ? '最大 HP +5' : ''),
+      // F-018（2026-10-27）：原本這裡比小寫 `'mp'`／`'hp'`，而 UI 寫的是大寫，
+      // 於是 `freeBenefit` 永遠是空字串——**列印卡上 29 個職業的免費增益全部消失**
+      // （不只二選一那 6 個）。改吃 `describeFreeBenefit`，二選一印玩家選到的那一邊，
+      // 其餘職業印資料層原文。
+      freeBenefit: describeFreeBenefit(classDef, cl),
       skills: (cl.skills || []).map((sk) => {
         const skillDef = (classDef?.skills || []).find((s) => s.name === sk.name);
         return {
