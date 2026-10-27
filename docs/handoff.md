@@ -111,6 +111,20 @@ git rev-list --objects --all | Select-String "<path>"    # 歷史層（真正會
 所以「研究紀錄會不會被使用者下載」的答案是**不會**——只有 `git clone` 的人才看得到。
 這條要記著，否則每次有人問都會重新查一遍。
 
+**常設約定三：repo 維持公開，不要建議改 private（2026-10-27 GM 裁定）。**
+理由不是「不在乎隱私」，而是**改了會把網站弄下線**。GitHub 官方文件寫得很清楚：
+
+> GitHub Pages is available in **public repositories with GitHub Free** …,
+> and in public and private repositories with **GitHub Pro** and above.
+
+本專案的部署完全靠 Pages（`deploy.yml` → `gh-pages`）。所以對 Free 方案而言，
+「改 private」與「網站關掉」是同一件事。清理已經把該藏的都藏了（見下面兩個坑），
+**剩下只有歷史層**——要刻意去翻特定舊提交才看得到，代價不值得拿網站換。
+
+> 真的要走這條路時，正確順序是：**先確認帳號是不是 Pro**（學生方案送的也算）→ 是 Pro 就直接改；
+> 不是 Pro 就先把部署搬到 Vercel／Cloudflare Pages（兩者免費方案都支援私有 repo）→ 再改 private。
+> **不要先改 private 再想辦法救網站。**
+
 **清理時踩到的兩個坑：**
 
 1. **`gitignore` 不等於 untracked。** `scratch/` 早在 `.gitignore` 裡，但 `scratch/port_builder.cjs`
