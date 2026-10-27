@@ -3,7 +3,7 @@ import { PLAYTEST_HEROIC_SKILLS } from '../data/playtestHeroicSkills';
 import { SOURCEBOOKS, STATUS_AFFLICTIONS, ATTRIBUTE_NAMES, ATTRIBUTE_KEYS, ATTRIBUTE_PRESET_ARRAYS, normalizeClassName, VARIANT_ARCANIST_CLASS_NAME } from '../data/sourcebookConfig';
 import { getSkillSuboptionConfig, calculateSkillSuboptionMax } from '../data/skillSuboptionsData';
 import { PILOT_ARMOR_MODULES } from '../data/pilotVehicleData';
-import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
+import { DEFAULT_CREATION_RULES, resolveCreationRules, classCountPhrase, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
 import { buildLoadoutIssues, withHrBonus } from './equipmentRules';
 import { buildCustomWeaponEntries, validateCustomWeapon, CUSTOM_WEAPON_BASE } from '../data/customWeapons';
 import { appendLog, createLogEntry } from './characterLog';
@@ -1780,9 +1780,13 @@ export const validateCharacter = (char, rules = null) => {
   // 上下限相同時不要寫成「3~3」（F-012，2026-10-27）。
   // 魔晶石制把 min／max 一起鎖成 3，於是原本的模板拼出「需配置 3~3 個職業」——
   // 「3 到 3」讀起來像還要挑，實際上是「剛好 3 個」。而這句話出現在**最需要明確**的位置。
-  const classCountRequirement = creation.classCountMin === creation.classCountMax
-    ? `需配置恰好 ${creation.classCountMin} 個職業`
-    : `需配置 ${creation.classCountMin}~${creation.classCountMax} 個職業`;
+  // F-012 第 9 處（2026-10-27，P16 掃描補抓）：這段原本自己比 min === max 再拼字串，
+  // 是 classCountPhrase 的第三份複本。輸出字面完全相同（「恰好 3」／「2~3」），
+  // 差別只在以後改規則時不必再來這裡改一次。
+  const countPhrase = classCountPhrase(creation);
+  // 空格只影響排版，但這是玩家看得到的紅字，改動前後必須一字不差：
+  // 接「恰好」時不加空格（需配置恰好 3 個職業），接區間時要加（需配置 2~3 個職業）。
+  const classCountRequirement = `需配置${countPhrase.startsWith('恰好') ? '' : ' '}${countPhrase} 個職業`;
   // 記錄「這一段有沒有已經說過職業數不對」（F-011）。
   // 下面那段魔晶石檢查講的是同一件事，只是換句話說；兩條並列會讓玩家以為是兩個缺口。
   let classCountReported = false;

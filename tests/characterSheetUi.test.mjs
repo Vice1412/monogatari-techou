@@ -2009,17 +2009,49 @@ check('角色卡也吃共用函式（不再自己比 min === max）',
 //
 // 教訓：「逐一都必須成立」不能靠手寫清單。清單是我想得到的檔案，
 // 而漏掉的正是我沒想到的那一個。改成**掃整個目錄**，新增檔案自動納入。
-const COMPONENT_DIR = new URL('../src/features/character-sheet/components/', import.meta.url);
-const componentFiles = fs.readdirSync(COMPONENT_DIR).filter((f) => f.endsWith('.jsx'));
-check('元件目錄掃得到檔案（掃描本身不能是空的）', componentFiles.length > 20, true);
+//
+// ※ P16 再把範圍擴大一次：原本只掃 `components/`，但 `CharacterSheet.jsx`
+//   住在功能目錄根、不在 `components/` 底下——刻意破壞「把徽章文案寫進名冊」
+//   時護欄一聲不吭，才發現掃描的邊界畫錯了。現在掃**整個 `character-sheet/`**（遞迴）。
+const FEATURE_DIR = new URL('../src/features/character-sheet/', import.meta.url);
+const walkSourceFiles = (dir, acc = []) => {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const child = new URL(`${entry.name}${entry.isDirectory() ? '/' : ''}`, dir);
+    if (entry.isDirectory()) walkSourceFiles(child, acc);
+    else if (/\.(js|jsx)$/.test(entry.name)) acc.push(child);
+  }
+  return acc;
+};
+const featureFiles = walkSourceFiles(FEATURE_DIR);
+const baseName = (url) => url.pathname.split('/').pop();
+check('功能目錄掃得到檔案（掃描本身不能是空的）', featureFiles.length > 50, true);
 // 兩種寫法都要抓：JSX 的 `{min}~{max}` 與樣板字串的 `${min}~${max}`。
 // 第一版只掃前者，於是 `ClassPickerModal` 按鈕上的
 // `開局需兼修 ${min}~${max} 個職業` 從掃描底下走過去了（P15 再抓到一處）。
 const HAND_ROLLED = /classCount(?:Min|Max)\}?\s*~/;
-const handRolledRange = componentFiles.filter(
-  (f) => HAND_ROLLED.test(fs.readFileSync(new URL(f, COMPONENT_DIR), 'utf8'))
-);
-check('所有元件的「N~M 個職業」都吃共用函式（逐一，不抽樣）', handRolledRange, []);
+// ※ 掃描範圍一擴大就立刻抓到**第 9 處**：`utils/characterEngine.js` 的驗證訊息
+//   `需配置 ${min}~${max} 個職業` 是 `classCountPhrase` 的第三份複本。
+//   當時（P14）說「共 8 處」是照我手寫的清單數的——清單漏了它。
+//   這次不是靠猜，是靠掃描；先紅後綠，比任何人工比對可信。
+//
+// 唯一允許命中 `HAND_ROLLED` 的檔案就是**共用函式的定義檔**（`classCountRange` 本身）。
+// 但不能整檔放行：那等於在定義檔裡開一個無人看守的後門。
+// 所以改成「定義檔恰好命中 1 次」——多一次就是又長出一個複本。
+const RANGE_DEF_FILE = 'creationRules.js';
+const rangeHits = featureFiles
+  .map((url) => ({ name: baseName(url), hits: (fs.readFileSync(url, 'utf8').match(HAND_ROLLED) || []).length }))
+  .filter((f) => f.hits > 0);
+check('所有「N~M 個職業」都吃共用函式（整個功能目錄，逐一，不抽樣）',
+  rangeHits.filter((f) => f.name !== RANGE_DEF_FILE).map((f) => `${f.name}×${f.hits}`), []);
+check('共用函式在定義檔裡只寫一次（定義檔不是後門）',
+  rangeHits.filter((f) => f.name === RANGE_DEF_FILE).map((f) => f.hits), [1]);
+// 訊息文字必須與改動前一字不差：這是給玩家看的驗證紅字，不是內部字串。
+// ※ 上一版在這裡漏了空格（變成「需配置 恰好 3 個職業」），是 creation 測試的
+//   「上下限相同時，訊息寫『恰好 3 個職業』」那條抓到的——所以這裡補一條守空格。
+const engineSrc = read('../src/features/character-sheet/utils/characterEngine.js');
+check('驗證訊息吃共用函式（第 9 處）', engineSrc.includes('classCountPhrase(creation)'), true);
+check('驗證訊息沒有偷偷改字', engineSrc.includes('需配置 ${creation.classCountMin}~'), false);
+check('驗證訊息的空格沒被改掉', engineSrc.includes("countPhrase.startsWith('恰好') ? '' : ' '"), true);
 // 掃描本身的體檢：餵它一段真的寫壞的字串，它必須叫。
 check('掃描抓得到 JSX 寫法', HAND_ROLLED.test('是 {rules.classCountMin}~{rules.classCountMax} 個'), true);
 check('掃描抓得到樣板字串寫法', HAND_ROLLED.test('是 ${rules.classCountMin}~${rules.classCountMax} 個'), true);
@@ -2121,6 +2153,39 @@ check('每一張清單卡都有自己的 testid（不是靠文字比對）',
 const pickerSrcTail = read('../src/features/character-sheet/components/ClassPickerModal.jsx');
 check('定位句在清單上截斷成兩行', pickerSrcTail.includes('line-clamp-2'), true);
 check('完整句子留在 title 裡', pickerSrcTail.includes('title={item.info.tagline}'), true);
+
+// ─────────────────────────────────────────────────────────── CP
+section('CP. F-015：名冊卡要看得出「這張卡是哪個規則開的」（2026-10-27）');
+
+// 病：20 張卡並存時，四張卡四組規則，外觀完全一致。把卡名從全文剔除後，
+// 搜「魔晶石／底力／營地活動／自訂規則」一個都沒中——要分辨只能一張一張點進去。
+// 徽章的內容由 `describeRuleBadges()` 決定（`test:creation` §F-015 驗行為），
+// 這裡只守「名冊卡真的把它印出來，而且沒有第二份寫法」。
+// ※ `sheetSrc` 是 §BH1 就讀好的同一份原始碼，直接重用（重複宣告會讓整個檔案編不過）。
+check('名冊卡有規則徽章區塊（用 testid 定位，不靠文字）',
+  sheetSrc.includes('data-testid={`roster-rules-${char.id}`}'), true);
+check('徽章吃共用函式（不是自己拼字串）',
+  sheetSrc.includes('describeRuleBadges(char.creationRules)'), true);
+check('徽章有印出 label（算得出來但沒畫，等於沒修）',
+  sheetSrc.includes('{badge.label}'), true);
+check('超過 4 顆時收成「+N」而不是把卡片撐爆',
+  [sheetSrc.includes('ruleBadges.slice(0, 4)'), sheetSrc.includes('+{ruleBadgesRest.length}')], [true, true]);
+check('「+N」的 title 列出被收起來的那幾顆（資訊不能消失）',
+  sheetSrc.includes('ruleBadgesRest.map((b) => b.label).join'), true);
+
+// 單一來源：徽章文案只准出現在 `creationRules.js`。
+// 若哪天有人在名冊或角色卡裡再寫一次 `'魔晶石・'`，這裡會叫——
+// 「同一句話寫兩份」正是 F-012 補了三輪的原因。
+//
+// ※ 掃描範圍是**整個 `character-sheet/` 功能目錄**（遞迴，見上方 §CM 的 `walkSourceFiles`），
+//   不是只有 `components/`——第一版只掃 `components/`，於是 `CharacterSheet.jsx`
+//   （它在功能目錄根）整個被跳過。這是同一個坑的第三次：**掃描的邊界畫在哪，決定了你漏掉什麼。**
+const BADGE_LABEL_MARK = '魔晶石・';
+const badgeCopyElsewhere = featureFiles
+  .filter((url) => !url.pathname.endsWith('/data/creationRules.js'))
+  .filter((url) => fs.readFileSync(url, 'utf8').includes(BADGE_LABEL_MARK))
+  .map(baseName);
+check('徽章文案只有一份（整個功能目錄都不得自己再寫一次）', badgeCopyElsewhere, []);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

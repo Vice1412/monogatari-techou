@@ -36,6 +36,7 @@ import { SOURCEBOOKS } from './sourcebookConfig';
 import {
   DEFAULT_TECHNOSPHERE_MODE,
   INNATE_CLASS_COUNT,
+  TECHNOSPHERE_MODES,
   isTechnosphereEnabled,
   modeRestrictsEquipment,
   normalizeTechnosphereMode
@@ -437,6 +438,54 @@ export const classCountPhrase = (rules) => {
   const r = resolveCreationRules(rules);
   const range = classCountRange(r);
   return r.classCountMin === r.classCountMax ? `恰好 ${range}` : range;
+};
+
+/**
+ * 名冊卡上的「這張卡是哪個規則開的」徽章（F-015，2026-10-27）。
+ *
+ * 為什麼需要：20 張卡並存時，四張卡四組規則，外觀**完全一致**——
+ * P1 實測把卡名從全文剔除後，搜「魔晶石／底力／營地活動／自訂規則」一個都沒中。
+ * 要分辨只能一張一張點進去，而「每次開團情況都不一樣」正是這個專案的核心用法。
+ *
+ * 三條設計約束：
+ * ① **只列與官方核心規則不同的項目**。徽章是「差異」，不是「清單」；
+ *    完整清單仍在角色卡展開後的「此團開卡規則」。
+ * ② 沒有差異時回**一顆「官方標準」**——「什麼都沒有」和「還沒載入」在畫面上長得一樣。
+ * ③ 魔晶石開啟時 `allowCustomWeapon` 與職業數都是**派生值**（p.133 的裝備後果），
+ *    不是 GM 的選擇，所以只在魔晶石關閉時才單獨列它們。
+ *
+ * @param {object} rules 角色身上的 `creationRules`
+ * @returns {Array<{key:string, label:string}>} 依「影響上桌程度」排序，至少一筆
+ */
+export const describeRuleBadges = (rules) => {
+  const r = resolveCreationRules(rules);
+  const techMode = normalizeTechnosphereMode(r.technospheres);
+  const techOn = isTechnosphereEnabled(techMode);
+  const badges = [];
+
+  if (techOn) {
+    const def = TECHNOSPHERE_MODES[techMode];
+    badges.push({ key: 'technospheres', label: `魔晶石・${def?.label || techMode}` });
+  }
+  if (r.zeroPowers) badges.push({ key: 'zeroPowers', label: '底力技' });
+  if (r.campActivities) badges.push({ key: 'campActivities', label: '營地活動' });
+  if (r.allowQuirk) badges.push({ key: 'allowQuirk', label: '金手指' });
+  if (r.allowPlaytest) badges.push({ key: 'allowPlaytest', label: '公測修訂' });
+  if (r.initiativeVariant) badges.push({ key: 'initiativeVariant', label: '先攻變體' });
+  if (r.startingHeroicSkill) badges.push({ key: 'startingHeroicSkill', label: '開局英雄技能' });
+  if (Number(r.startingLevel) !== DEFAULT_CREATION_RULES.startingLevel) {
+    badges.push({ key: 'startingLevel', label: `起始 ${r.startingLevel} 級` });
+  }
+  if (!techOn && r.allowCustomWeapon) {
+    badges.push({ key: 'allowCustomWeapon', label: '定制武器' });
+  }
+  if (!techOn && (r.classCountMin !== DEFAULT_CREATION_RULES.classCountMin
+    || r.classCountMax !== DEFAULT_CREATION_RULES.classCountMax)) {
+    badges.push({ key: 'classCount', label: `職業 ${classCountRange(r)}` });
+  }
+
+  if (badges.length === 0) return [{ key: 'standard', label: '官方標準' }];
+  return badges;
 };
 
 /** 這份規則是否等於官方標準（UI 用來決定要不要顯示「此團自訂規則」提示） */

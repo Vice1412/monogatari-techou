@@ -56,6 +56,8 @@ import { hasGreaterTheriomorphosis } from '../data/theriomorphosisVariant';
 import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
 import { isZeroPowersEnabled } from '../data/zeroPowers';
 import { campActivityAccess } from '../data/campActivities';
+// F-020（2026-10-27）：職業面板「住哪個分頁」與指路句的唯一來源。
+import { classPanelHint, isClassPanelActive } from '../data/classPanels';
 import CampActivitiesBlock from './CampActivitiesBlock';
 import { resolveCreationRules } from '../data/creationRules';
 import { modeRestrictsEquipment, isTechnosphereEnabled, isSkillSuppressedByTechnospheres, getLevelUpMnemosphereCandidates, MNEMOSPHERE_MAX_LEVEL } from '../data/technospheres';
@@ -1608,7 +1610,7 @@ export default function CharacterPlayHUD({
               </div>
 
               {/* Pilot Personal Vehicle in Combat (if active) */}
-              {(character.classes || []).some(c => c.className === '機師' && (c.skills || []).some(s => s.name === '個人載具' && s.sl > 0)) && (
+              {isClassPanelActive(character, '機師') && (
                 <div className="pt-2 border-t">
                   <PilotVehicleCombatSheet
                     character={character}
@@ -1620,7 +1622,7 @@ export default function CharacterPlayHUD({
               )}
 
               {/* Wayfarer Companion in Combat (if active) */}
-              {(character.classes || []).some(c => c.className === '旅人' && (c.skills || []).some(s => s.name === '忠實夥伴' && s.sl > 0)) && (
+              {isClassPanelActive(character, '旅人') && (
                 <div className="pt-2 border-t">
                   <WayfarerCompanionSheet
                     character={character}
@@ -1633,9 +1635,7 @@ export default function CharacterPlayHUD({
 
               {/* 死靈術士【殘酷的誕生】的僕從。條件是「有沒有拿那個英雄技能」——
                   僕從的有無則看 `necroData.minion.active`，摧毀後面板會回到空狀態。 */}
-              {(character.heroicSkills || []).some(
-                (h) => (typeof h === 'string' ? h : h?.name) === '殘酷的誕生'
-              ) && (
+              {isClassPanelActive(character, '死靈術士') && (
                 <div className="pt-2 border-t">
                   <NecromancerMinionSheet
                     character={character}
@@ -1800,7 +1800,7 @@ export default function CharacterPlayHUD({
               )}
 
               {/* Chimerist Spells in Magic Tab (if active) */}
-              {(character.classes || []).some(c => c.className === '嵌合師' && (c.skills || []).some(s => s.name === '咒語模仿' && s.sl > 0)) && (
+              {isClassPanelActive(character, '嵌合師') && (
                 <div className="pt-2 border-t">
                   <ChimeristManager
                     character={character}
@@ -1822,6 +1822,20 @@ export default function CharacterPlayHUD({
                     <span className="font-serif font-black text-sm" style={{ color: theme.textDark }}>{withEn(cl.className)}</span>
                     <JRPGBadge variant={theme.badgeVariant} size="xs">Lv {cl.level}</JRPGBadge>
                   </div>
+
+                  {/* F-020（2026-10-27）：這個職業的面板不在這一頁時，直接說它在哪。
+                      以前「武器與戰鬥」與「職業特技」各掛一次同一份面板（DOM 加倍），
+                      而死靈術士只在「武器與戰鬥」——玩家學了【殘酷的誕生】會來這裡找，然後以為沒做。
+                      現在面板只掛一次，這一頁只負責指路。文案與判斷都來自 `data/classPanels.js`。 */}
+                  {classPanelHint(character, cl.className, 'skills') ? (
+                    <p
+                      className="text-t11 leading-relaxed rounded border-l-2 pl-2 py-1"
+                      style={{ color: theme.textMuted, borderColor: theme.accent }}
+                      data-testid={`class-panel-hint-${cl.className}`}
+                    >
+                      ※ {classPanelHint(character, cl.className, 'skills')}
+                    </p>
+                  ) : null}
 
                   <div className="space-y-2">
                     {(cl.skills || []).map((sk, sIdx) => {
@@ -2083,38 +2097,11 @@ export default function CharacterPlayHUD({
                     </div>
                   )}
 
-                  {cl.className === '嵌合師' && (cl.skills || []).some(s => s.name === '咒語模仿' && s.sl > 0) && (
-                    <div className="mt-3">
-                      <ChimeristManager
-                        character={character}
-                        onChange={onChange}
-                        onOpenDice={onOpenDice}
-                        showToast={showToast}
-                      />
-                    </div>
-                  )}
-
-                  {cl.className === '旅人' && (cl.skills || []).some(s => s.name === '忠實夥伴' && s.sl > 0) && (
-                    <div className="mt-3">
-                      <WayfarerCompanionSheet
-                        character={character}
-                        onChange={onChange}
-                        onOpenDice={onOpenDice}
-                        showToast={showToast}
-                      />
-                    </div>
-                  )}
-
-                  {cl.className === '機師' && (cl.skills || []).some(s => s.name === '個人載具' && s.sl > 0) && (
-                    <div className="mt-3">
-                      <PilotVehicleCombatSheet
-                        character={character}
-                        onChange={onChange}
-                        onOpenDice={onOpenDice}
-                        showToast={showToast}
-                      />
-                    </div>
-                  )}
+                  {/* F-020（2026-10-27）：這裡原本還掛了三個面板——嵌合師（模仿咒語）、
+                      旅人（夥伴）、機師（載具）。前兩者各自在「咒語與魔法」／「武器與戰鬥」
+                      已經有一份，同一份 UI 被渲染兩次（DOM 加倍、捲動加倍）。
+                      第三個（嵌合師）的正確家在「咒語與魔法」，因為它管的是咒語清單。
+                      三個都改成上方那一行指路句，面板本身只留一份。 */}
 
                   {cl.className === '修補匠' && (
                     <div className="mt-3">

@@ -28,6 +28,8 @@ import CharacterEditor from './components/CharacterEditor';
 import CharacterPlayHUD from './components/CharacterPlayHUD';
 import CharacterLogModal from './components/CharacterLogModal';
 import { createNewCharacter, calculateCharacterStats, getCharacterLevel } from './utils/characterEngine';
+// F-015（2026-10-27）：名冊卡上的「這張卡是哪個規則開的」徽章，唯一來源在 creationRules。
+import { describeRuleBadges } from './data/creationRules';
 import { CHARACTER_THEMES, getCharacterTheme } from './utils/characterThemes';
 import {
   isFultimatorCharacter,
@@ -575,6 +577,10 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 const statsUnset = Boolean(stats.attributesUnset);
                 // 先攻變體（公測 p.34）：名冊上的先攻同樣不顯示數字。
                 const initiativeVariant = isInitiativeVariant(char);
+                // 開卡規則徽章（F-015）：四張卡四組規則，外觀原本完全一致，只能一張一張點進去分辨。
+                const ruleBadges = describeRuleBadges(char.creationRules);
+                const ruleBadgesShown = ruleBadges.slice(0, 4);
+                const ruleBadgesRest = ruleBadges.slice(4);
 
                 return (
                   <div
@@ -715,6 +721,34 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                           ))
                         ) : (
                           <span className="text-[#7c6a58]">【未配置職業】</span>
+                        )}
+                      </div>
+
+                      {/* 2.5 開卡規則徽章（F-015，2026-10-27）
+                          以前名冊上完全看不出這張卡是哪個規則開的——把卡名剔除後，
+                          全文搜「魔晶石／底力／營地活動」一個都沒中。20 張卡要點 20 次才分得出。
+                          這裡只印「與官方核心規則不同」的項目（`describeRuleBadges` 是唯一來源），
+                          完整清單仍在角色卡展開後的「此團開卡規則」。 */}
+                      <div
+                        className="flex items-center gap-1 flex-wrap"
+                        data-testid={`roster-rules-${char.id}`}
+                        title={ruleBadges.map((b) => b.label).join('、')}
+                      >
+                        {ruleBadgesShown.map((badge) => (
+                          <span
+                            key={badge.key}
+                            className="text-t10 font-bold px-1.5 py-0.5 rounded border bg-[#f4ebd9]/70 border-[#e8dcc4] text-[#6b5a4b]"
+                          >
+                            {badge.label}
+                          </span>
+                        ))}
+                        {ruleBadgesRest.length > 0 && (
+                          <span
+                            className="text-t10 font-bold px-1.5 py-0.5 rounded border bg-[#f4ebd9]/40 border-[#e8dcc4] text-[#7c6a58]"
+                            title={ruleBadgesRest.map((b) => b.label).join('、')}
+                          >
+                            +{ruleBadgesRest.length}
+                          </span>
                         )}
                       </div>
 

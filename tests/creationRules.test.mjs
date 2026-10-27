@@ -64,6 +64,7 @@ import { totalStartingEquipCost } from '../src/features/character-sheet/utils/eq
 import rulesData from '../src/features/character-sheet/data/rulesData.json';
 
 import { modeRestrictsEquipment } from '../src/features/character-sheet/data/technospheres.js';
+import { describeRuleBadges } from '../src/features/character-sheet/data/creationRules.js';
 
 let pass = 0;
 let fail = 0;
@@ -1206,6 +1207,50 @@ check('勾選框在派生時 disabled',
   rulesPanel.includes('disabled={disabled || derivedToggle(f.key)}'), true);
 check('鎖住時寫出理由「官方武器表整份不存在」',
   rulesPanel.includes('官方武器表整份不存在'), true);
+
+// ─────────────────────────────────────────────────────────── F-015
+section('F-015 名冊卡上的「這張卡是哪個規則開的」徽章（2026-10-27）');
+
+// 病：20 張卡並存時，四張卡四組規則，外觀完全一致——把卡名從全文剔除後，
+// 搜「魔晶石／底力／營地活動／自訂規則」一個都沒中，只能一張一張點進去。
+// 徽章是**差異**，不是清單：只列與官方核心規則不同的項目，沒有差異就印一顆「官方標準」
+// （「什麼都沒有」和「還沒載入」在畫面上長得一樣）。
+const labelsOf = (rules) => describeRuleBadges(rules).map((b) => b.label);
+const keysOf = (rules) => describeRuleBadges(rules).map((b) => b.key);
+
+check('官方預設規則 → 只有一顆「官方標準」', labelsOf({}), ['官方標準']);
+check('沒有規則資料（舊存檔）也回「官方標準」，不是空陣列', labelsOf(undefined), ['官方標準']);
+check('魔晶石 full → 印「魔晶石・完整規則」', labelsOf({ technospheres: 'full' }), ['魔晶石・完整規則']);
+check('魔晶石 integrated → 印「魔晶石・內嵌魔晶石」',
+  labelsOf({ technospheres: 'integrated' }), ['魔晶石・內嵌魔晶石']);
+check('底力技 → 印「底力技」', labelsOf({ zeroPowers: true }), ['底力技']);
+check('營地活動 → 印「營地活動」', labelsOf({ campActivities: true }), ['營地活動']);
+check('金手指 → 印「金手指」', labelsOf({ allowQuirk: true }), ['金手指']);
+check('公測修訂 → 印「公測修訂」', labelsOf({ allowPlaytest: true }), ['公測修訂']);
+check('起始等級不是 5 → 印出來（不然「3 級開局」的卡跟官方標準長得一樣）',
+  labelsOf({ startingLevel: 3 }), ['起始 3 級']);
+check('職業數被改過 → 印出來', labelsOf({ classCountMin: 4, classCountMax: 4 }), ['職業 4']);
+
+// 派生值不列：魔晶石開啟時 allowCustomWeapon 一定是 true、職業數被鎖成 3。
+// 若照樣列，每一張魔晶石卡都會多兩顆「定制武器」「職業 3」——那不是 GM 的選擇。
+check('魔晶石開啟時不單獨列「定制武器」（那是 p.133 的規則後果）',
+  labelsOf({ technospheres: 'full', allowCustomWeapon: true }), ['魔晶石・完整規則']);
+check('魔晶石開啟時不列職業數（被鎖成 3，不是 GM 調的）',
+  labelsOf({ technospheres: 'full', classCountMin: 3, classCountMax: 3 }), ['魔晶石・完整規則']);
+check('魔晶石關閉時，定制武器要列（那才是 GM 真的打開的）',
+  labelsOf({ allowCustomWeapon: true }), ['定制武器']);
+
+// 順序：影響上桌程度大的排前面（名冊卡只顯示前 4 顆，排序錯了就看不到重點）
+check('全部打開時魔晶石排第一、底力技第二',
+  keysOf({ technospheres: 'full', zeroPowers: true, campActivities: true, allowQuirk: true }).slice(0, 2),
+  ['technospheres', 'zeroPowers']);
+check('每一筆都有 key 與非空 label（逐一，不抽樣）',
+  describeRuleBadges({
+    technospheres: 'full', zeroPowers: true, campActivities: true, allowQuirk: true,
+    allowPlaytest: true, initiativeVariant: true, startingHeroicSkill: true, startingLevel: 3
+  }).every((b) => b.key && b.label && b.label.length > 0), true);
+check('同一份規則呼叫兩次結果相同（沒有隱藏狀態）',
+  labelsOf({ zeroPowers: true, campActivities: true }), labelsOf({ zeroPowers: true, campActivities: true }));
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

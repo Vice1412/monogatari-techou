@@ -18,6 +18,15 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterPlayHUD from '../src/features/character-sheet/components/CharacterPlayHUD.jsx';
 import { createNewCharacter } from '../src/features/character-sheet/utils/characterEngine.js';
+import {
+  CLASS_PANEL_HOME,
+  CLASS_PANEL_LABEL,
+  CLASS_PANEL_OWNER,
+  PLAY_TAB_LABELS,
+  classPanelHint,
+  isClassPanelActive,
+  panelHomeHint
+} from '../src/features/character-sheet/data/classPanels.js';
 
 let results = [];
 const check = (name, ok, detail = '') => results.push({ name, ok: !!ok, detail });
@@ -251,6 +260,99 @@ check('F-023 沒有金手指就沒有相性區塊',
   !render(bare()).includes('data-testid="hud-affinities"'), true);
 check('F-023 相性區塊只出現一次（不會每個分頁各畫一份）',
   countOf(deadHtml, 'data-testid="hud-affinities"'), 1);
+
+/* ────────────────────────────────────────────────────────────────
+   F-020（2026-10-27）：職業面板散在兩個分頁，旅人／機師／嵌合師還各掛兩次
+
+   這一條的病不是「找不到」，是**同一份 UI 被渲染兩次**（DOM 加倍、捲動加倍），
+   以及**死靈術士的僕從只住在「武器與戰鬥」**——玩家學會【殘酷的誕生】之後
+   會去「職業特技」找（那裡才是放職業技能的地方），找不到就以為功能沒做。
+
+   修法：一張對照表（`data/classPanels.js`）回答「這個面板住哪個分頁」，
+   面板只掛一次，不在當前分頁時給一句指路。
+   ──────────────────────────────────────────────────────────────── */
+
+const HUD_SRC = fs.readFileSync(
+  new URL('../src/features/character-sheet/components/CharacterPlayHUD.jsx', import.meta.url),
+  'utf8'
+);
+
+// 掃描整個檔案裡「長得像職業面板」的元件掛載。
+// 用字尾比對（Sheet／Manager／Workshop／Cookbook／Table）而不是手寫清單——
+// 手寫清單漏掉的永遠是我沒想到的那一個（F-012 補到第三輪的教訓）。
+const panelMounts = [...HUD_SRC.matchAll(/<([A-Z][A-Za-z]*(?:Sheet|Manager|Workshop|Cookbook|Table))\b/g)]
+  .map((m) => m[1]);
+const uniqueMounts = [...new Set(panelMounts)];
+const duplicatedMounts = uniqueMounts.filter((n) => panelMounts.filter((x) => x === n).length > 1);
+
+check('F-020 掃到 8 個職業面板（掃描本身不能是空的）', uniqueMounts.length === 8, `${uniqueMounts.length} 個：${uniqueMounts.join('、')}`);
+check('F-020 每一個面板在 HUD 裡只掛一次（逐一，不抽樣）', duplicatedMounts.length === 0, duplicatedMounts.length ? `重複：${duplicatedMounts.join('、')}` : '沒有任何重複');
+check('F-020 對照表收錄 8 個面板（與掃描到的數量一致）',
+  Object.keys(CLASS_PANEL_HOME).length === 8, `${Object.keys(CLASS_PANEL_HOME).length} 筆`);
+check('F-020 每個面板都有中文短名（指路句不會出現「面板」這種空話）',
+  Object.keys(CLASS_PANEL_HOME).every((k) => CLASS_PANEL_LABEL[k]), Object.keys(CLASS_PANEL_HOME).filter((k) => !CLASS_PANEL_LABEL[k]).join('、') || '全部都有');
+check('F-020 每個面板都住在一個登記過的分頁',
+  Object.values(CLASS_PANEL_HOME).every((tab) => PLAY_TAB_LABELS[tab]), Object.values(CLASS_PANEL_HOME).join('、'));
+check('F-020 每個職業指向的面板都在對照表裡',
+  Object.values(CLASS_PANEL_OWNER).every((o) => CLASS_PANEL_HOME[o.panel]),
+  Object.values(CLASS_PANEL_OWNER).map((o) => o.panel).join('、'));
+
+// 指路句：只有「不在這一頁」才說話
+check('F-020 面板就在當前分頁時不廢話', panelHomeHint('wayfarerCompanion', 'attacks') === '', panelHomeHint('wayfarerCompanion', 'attacks') || '(空字串)');
+check('F-020 面板不在當前分頁時說出它在哪',
+  panelHomeHint('wayfarerCompanion', 'skills') === '夥伴卡在「武器與戰鬥」分頁', panelHomeHint('wayfarerCompanion', 'skills'));
+check('F-020 不存在的面板回空字串（呼叫端不必防呆）', panelHomeHint('nope', 'skills') === '', panelHomeHint('nope', 'skills') || '(空字串)');
+
+// 什麼時候才有面板：學了才有，沒學不該冒出指路句
+const mkClass = (className, skills = [], heroicSkills = []) => ({
+  ...createNewCharacter({ name: '面板測試' }),
+  classes: [{ className, level: 5, skills }],
+  heroicSkills
+});
+const wayfarerNoSkill = mkClass('旅人', [{ name: '忠實夥伴', sl: 0 }]);
+const wayfarer = mkClass('旅人', [{ name: '忠實夥伴', sl: 1 }]);
+const necroStr = mkClass('死靈術士', [], ['殘酷的誕生']);
+const necroObj = mkClass('死靈術士', [], [{ name: '殘酷的誕生' }]);
+const pilot = mkClass('機師', [{ name: '個人載具', sl: 1 }]);
+const guardian = mkClass('守護者', [{ name: '保鏢', sl: 1 }]);
+
+check('F-020 技能 0 級不算學過（面板不該出現）', isClassPanelActive(wayfarerNoSkill, '旅人') === false, '');
+check('F-020 技能 1 級才算學過', isClassPanelActive(wayfarer, '旅人') === true, '');
+check('F-020 英雄技能用字串存也認得（既有存檔有兩種寫法）', isClassPanelActive(necroStr, '死靈術士') === true, '');
+check('F-020 英雄技能用物件存也認得', isClassPanelActive(necroObj, '死靈術士') === true, '');
+check('F-020 沒有專屬面板的職業回 false', isClassPanelActive(guardian, '守護者') === false, '');
+check('F-020 沒學技能就沒有指路句', classPanelHint(wayfarerNoSkill, '旅人', 'skills') === '', classPanelHint(wayfarerNoSkill, '旅人', 'skills') || '(空字串)');
+check('F-020 學了技能、人在錯的分頁 → 給指路句',
+  classPanelHint(wayfarer, '旅人', 'skills') === '夥伴卡在「武器與戰鬥」分頁', classPanelHint(wayfarer, '旅人', 'skills'));
+
+// 實機畫面（SSR）：指路句真的印出來，面板真的只有一份
+const wayfarerSkillsTab = render(wayfarer, { initialTab: 'skills' });
+const wayfarerCombatTab = render(wayfarer, { initialTab: 'attacks' });
+const necroSkillsTab = render(necroStr, { initialTab: 'skills' });
+const necroCombatTab = render(necroStr, { initialTab: 'attacks' });
+const pilotSkillsTab = render(pilot, { initialTab: 'skills' });
+
+check('F-020 職業特技分頁：旅人卡上有指路句',
+  countOf(wayfarerSkillsTab, 'data-testid="class-panel-hint-旅人"'), 1);
+check('F-020 職業特技分頁：指路句寫「夥伴卡在「武器與戰鬥」分頁」',
+  wayfarerSkillsTab.includes('夥伴卡在「武器與戰鬥」分頁'), true);
+// ※ 這三條是「不該出現」的斷言，所以要把結果**取反**再傳給 ok。
+//   這個檔案自己在上面的註解就寫過這件事，我還是照樣寫錯了一次：
+//   把 `includes(...)` 直接當 ok，等於在斷言「它存在」，意思剛好相反。
+check('F-020 職業特技分頁：旅人面板本身不在這裡（只指路，不重複渲染）',
+  !wayfarerSkillsTab.includes('官方 5 級 NPC 隨從'), '面板字串 0 次');
+check('F-020 武器與戰鬥分頁：旅人面板在這裡，而且只有一份',
+  countOf(wayfarerCombatTab, '官方 5 級 NPC 隨從'), 1);
+check('F-020 武器與戰鬥分頁：面板就在這一頁，所以沒有指路句',
+  !wayfarerCombatTab.includes('data-testid="class-panel-hint-旅人"'), '指路句 0 次');
+check('F-020 職業特技分頁：死靈術士卡上有指路句（以前這裡什麼都沒有）',
+  necroSkillsTab.includes('僕從卡在「武器與戰鬥」分頁'), true);
+check('F-020 武器與戰鬥分頁：死靈術士的僕從卡在這裡',
+  countOf(necroCombatTab, '還沒有僕從'), 1);
+check('F-020 職業特技分頁：機師卡上指路到「武器與戰鬥」',
+  pilotSkillsTab.includes('載具卡在「武器與戰鬥」分頁'), true);
+check('F-020 沒有專屬面板的職業不會長出指路句',
+  !render(guardian, { initialTab: 'skills' }).includes('class-panel-hint-守護者'), '指路句 0 次');
 
 /* ────────────────────────────────────────────────────────────────
    總結
