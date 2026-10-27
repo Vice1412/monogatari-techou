@@ -407,6 +407,38 @@ export const isPlaytestAllowed = (character) => {
   return books.includes(PLAYTEST_SOURCEBOOK_KEY);
 };
 
+/**
+ * 「幾個職業」的區間寫法——**單一來源**。
+ *
+ * 為什麼需要它（F-012，2026-10-27）：這句話原本**四個地方各寫一次**
+ * （驗證訊息、角色卡、編輯器第 2 步的「目前已選擇 N 個職業」、以及同一步的說明句），
+ * 每處都是 `${min}~${max}`。魔晶石制把上下限一起鎖成 3 之後，四處同時變成「3~3」——
+ * 當時只修了前兩處，後兩處**留在畫面上**，直到 P14 的實機截圖才被看見。
+ *
+ * 判準：**上下限相等時不要印區間**。「3~3 個職業」不是數字錯，是廢話，
+ * 而且會讓人以為自己看錯了。
+ *
+ * @param {object} rules creationRules（會先過 resolveCreationRules）
+ * @returns {string} `'2~3'` 或 `'3'`
+ */
+export const classCountRange = (rules) => {
+  const r = resolveCreationRules(rules);
+  return r.classCountMin === r.classCountMax
+    ? String(r.classCountMin)
+    : `${r.classCountMin}~${r.classCountMax}`;
+};
+
+/**
+ * 同上的「強調版」：上下限相等時前面加「恰好」，用來強調那不是「最多」。
+ * @param {object} rules creationRules
+ * @returns {string} `'2~3'` 或 `'恰好 3'`
+ */
+export const classCountPhrase = (rules) => {
+  const r = resolveCreationRules(rules);
+  const range = classCountRange(r);
+  return r.classCountMin === r.classCountMax ? `恰好 ${range}` : range;
+};
+
 /** 這份規則是否等於官方標準（UI 用來決定要不要顯示「此團自訂規則」提示） */
 export const isDefaultCreationRules = (rules) => {
   const r = resolveCreationRules(rules);

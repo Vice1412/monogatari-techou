@@ -26,7 +26,7 @@ import { getCharacterTheme } from '../utils/characterThemes';
 import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
 import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
 import { withEn } from '../../../utils/properNouns';
-import { resolveCreationRules } from '../data/creationRules';
+import { classCountPhrase } from '../data/creationRules';
 
 export default function CharacterCard({
   character,
@@ -57,11 +57,9 @@ export default function CharacterCard({
   // 「尚未配置職業」那句提示的職業數（F-012，2026-10-27）。
   // 原本寫死「起始需配置 2~3 個職業」，但魔晶石制把上下限一起鎖成 3，
   // 於是同一張卡在角色卡上寫「2~3」、在驗證訊息裡寫「恰好 3」——同一件事兩個來源。
-  // 改成跟驗證器吃同一份開卡規則，並沿用「上下限相同時不寫成 3~3」的規則。
-  const creationForHint = resolveCreationRules(character.creationRules);
-  const classCountHint = creationForHint.classCountMin === creationForHint.classCountMax
-    ? `起始需配置恰好 ${creationForHint.classCountMin} 個職業`
-    : `起始需配置 ${creationForHint.classCountMin}~${creationForHint.classCountMax} 個職業`;
+  // P14 再收斂一次：這句話在**四個地方**各寫過一次，編輯器那兩處當時沒改到
+  // （實機截圖上還印著「3~3」）。現在四處都吃 `classCountPhrase`，寫法只有一份。
+  const classCountHint = `起始需配置 ${classCountPhrase(character.creationRules)} 個職業`;
 
   return (
     <div

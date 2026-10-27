@@ -28,7 +28,7 @@ import {
   SHEET_DISCIPLINES
 } from '../src/features/character-sheet/components/CharacterSheetExport.jsx';
 import { createNewCharacter, getProficiencies, calculateCharacterStats, deriveCreationState, shortIssueLabel, isHpMpChoiceBenefit } from '../src/features/character-sheet/utils/characterEngine.js';
-import { resolveCreationRules, DEFAULT_CREATION_RULES } from '../src/features/character-sheet/data/creationRules.js';
+import { resolveCreationRules, DEFAULT_CREATION_RULES, classCountRange, classCountPhrase } from '../src/features/character-sheet/data/creationRules.js';
 import { HeroicSkillPickerBody } from '../src/features/character-sheet/components/HeroicSkillPickerModal.jsx';
 import { QuirkPickerBody } from '../src/features/character-sheet/components/QuirkPickerModal.jsx';
 import ClassHeroicSkillsBlock from '../src/features/character-sheet/components/ClassHeroicSkillsBlock.jsx';
@@ -1972,12 +1972,34 @@ const techCardHtml = emptyCard({ technospheres: 'full' });
 check('一般團的角色卡寫「起始需配置 2~3 個職業」',
   standardCardHtml.includes('起始需配置 2~3 個職業'), true);
 check('魔晶石團的角色卡寫「恰好 3 個職業」，不是 2~3',
-  [techCardHtml.includes('起始需配置恰好 3 個職業'), techCardHtml.includes('2~3')], [true, false]);
+  [techCardHtml.includes('恰好 3 個職業'), techCardHtml.includes('2~3')], [true, false]);
 // 反向控制：卡片上不能出現「3~3」這種退化區間。
 check('兩張卡都不會出現「3~3」', [standardCardHtml.includes('3~3'), techCardHtml.includes('3~3')], [false, false]);
 // 這條是「真的吃開卡規則」而不是「剛好硬編碼兩個字串」——GM 自訂 1~4 也要反映。
 const customCardHtml = emptyCard({ classCountMin: 1, classCountMax: 4 });
 check('GM 自訂 1~4 時角色卡也跟著改', customCardHtml.includes('起始需配置 1~4 個職業'), true);
+
+// ── F-012 的漏網之魚（P14，2026-10-27）
+//
+// 同一句話原本有**四個**地方各寫一次。P13 只修了驗證器與角色卡，
+// 編輯器第 2 步那兩處**留在畫面上**——P14 的實機截圖上還印著「創角規定：3~3 個職業」。
+// 這是「修好一半」的典型：修了看得見的那兩處，沒去數總共有幾處。
+check('classCountRange 上下限相等 → 只印一個數字', classCountRange({ classCountMin: 3, classCountMax: 3 }), '3');
+check('classCountRange 上下限不同 → 印區間', classCountRange({ classCountMin: 2, classCountMax: 3 }), '2~3');
+check('classCountRange 走 resolveCreationRules（缺值用預設 2~3）', classCountRange({}), '2~3');
+check('classCountPhrase 相等 → 加「恰好」', classCountPhrase({ classCountMin: 3, classCountMax: 3 }), '恰好 3');
+check('classCountPhrase 不同 → 不加「恰好」', classCountPhrase({ classCountMin: 1, classCountMax: 4 }), '1~4');
+
+// 原始碼掃描：編輯器裡不准再有「自己拼區間」的寫法。
+// 這比「畫面上有沒有 3~3」可靠——後者要先想辦法讓畫面進入那個狀態。
+// （`editor` 是檔頭就讀好的原始碼，路徑相對這個測試檔，不是 cwd。）
+check('編輯器不再自己拼 `classCountMin}~{classCountMax`',
+  editor.includes('classCountMin}~{'), false);
+check('編輯器兩處都改吃共用函式',
+  [editor.includes('classCountPhrase(rules)'), editor.includes('classCountRange(rules)')], [true, true]);
+const cardSrc = read('../src/features/character-sheet/components/CharacterCard.jsx');
+check('角色卡也吃共用函式（不再自己比 min === max）',
+  [cardSrc.includes('classCountPhrase('), cardSrc.includes('classCountMin ===')], [true, false]);
 
 section('CN. F-018：免費增益二選一——「由玩家自己選」要說出來，選了要算對（2026-10-27）');
 

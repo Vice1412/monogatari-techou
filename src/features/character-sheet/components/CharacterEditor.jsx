@@ -58,7 +58,7 @@ import {
 } from '../data/customWeapons';
 import EquipmentSlotCard from './EquipmentSlotCard';
 import rulesData from '../data/rulesData.json';
-import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
+import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY, classCountPhrase, classCountRange } from '../data/creationRules';
 import { loggableChange, formatLogTime } from '../utils/characterLog';
 import { splitParagraphs } from '../utils/paragraphs';
 import CharacterAvatarUploader from './CharacterAvatarUploader';
@@ -1432,7 +1432,7 @@ export default function CharacterEditor({
                   <span style={{ color: theme.accent }}>2.</span> 職業組合與技能加點
                 </h4>
                 <p className="text-xs text-[#6b5a4b] mt-0.5">
-                  起始 {rules.startingLevel} 級必須分配在 {rules.classCountMin}~{rules.classCountMax} 個不同職業中，每級獲得 1 點技能。
+                  起始 {rules.startingLevel} 級必須分配在 {classCountRange(rules)} 個不同職業中，每級獲得 1 點技能。
                 </p>
               </div>
 
@@ -1512,7 +1512,7 @@ export default function CharacterEditor({
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-[#3c2415]">
                     目前已選擇 <strong className="font-mono text-sm" style={{ color: theme.accent }}>{(character.classes || []).length}</strong> 個職業
-                    {character.level <= rules.startingLevel && <span className="text-t11 text-[#6b5a4b] ml-1">（創角規定：{rules.classCountMin}~{rules.classCountMax} 個職業）</span>}
+                    {character.level <= rules.startingLevel && <span className="text-t11 text-[#6b5a4b] ml-1">（創角規定：{classCountPhrase(rules)} 個職業）</span>}
                   </span>
                 </div>
 
@@ -1544,7 +1544,7 @@ export default function CharacterEditor({
                     <div className="space-y-1">
                       <h4 className="font-serif font-black text-sm text-[#3c2415]">尚未選擇任何職業</h4>
                       <p className="text-xs text-[#6b5a4b] max-w-md mx-auto leading-relaxed">
-                        《Fabula Ultima》開局角色需要在 {rules.classCountMin}~{rules.classCountMax} 個職業中探索分配起始 {rules.startingLevel} 級。
+                        《Fabula Ultima》開局角色需要在 {classCountRange(rules)} 個職業中探索分配起始 {rules.startingLevel} 級。
                       </p>
                     </div>
                     <JRPGButton
