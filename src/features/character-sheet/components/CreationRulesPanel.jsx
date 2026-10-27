@@ -34,7 +34,7 @@
 import React, { useState } from 'react';
 import { GiScrollQuill } from 'react-icons/gi';
 import { SOURCEBOOKS } from '../data/sourcebookConfig';
-import { isDefaultCreationRules, resolveCreationRules, diffCreationRules, DEFAULT_CREATION_RULES, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
+import { isDefaultCreationRules, resolveCreationRules, diffCreationRules, DEFAULT_CREATION_RULES, PLAYTEST_SOURCEBOOK_KEY, classCountRange } from '../data/creationRules';
 import {
   TECHNOSPHERE_MODE_OPTIONS,
   getIntegratedMnemosphereCap,
@@ -455,7 +455,7 @@ export default function CreationRulesPanel({
             </button>
             <span className="text-t10" style={{ color: theme.textMuted }}>
               官方標準：{DEFAULT_CREATION_RULES.startingLevel} 級、
-              {DEFAULT_CREATION_RULES.classCountMin}~{DEFAULT_CREATION_RULES.classCountMax} 職業、
+              {classCountRange(DEFAULT_CREATION_RULES)} 職業、
               {DEFAULT_CREATION_RULES.startingZenit}z
             </span>
           </div>

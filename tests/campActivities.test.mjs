@@ -35,6 +35,7 @@ import {
   campActivityById,
   campActivityIssues,
   campActivityName,
+  campActivityModeNote,
   campActivityTargetLabel,
   createCampActivityState,
   isCampActivitiesEnabled,
@@ -421,6 +422,48 @@ check('上限判定讀結構化欄位 campActivityCount', blockSrc.includes('cam
 check('區塊不直接碰 localStorage', blockSrc.includes('localStorage'), false);
 check('資料層不直接碰 localStorage',
   READ('src/features/character-sheet/data/campActivities.js').includes('localStorage'), false);
+
+// ─────────────────────────────────────────────────────────── L
+section('L. F-014：營地打造在裝備受限的魔晶石制下做不到兩個選項，介面要講');
+
+// 兩個官方來源單獨看都沒問題：營地打造照抄核心規則書 p.131（「基礎武器、防具或盾牌」），
+// 魔晶石制照抄科技奇幻手冊 p.133（裝備只剩定制武器／定制防具／飾品／機師模組）。
+// **同時開啟時才碰撞**——創角時看不出來，要到露營當下才撞牆。
+check('full 模式：明確講出「基礎武器」與「盾牌」做不到',
+  [campActivityModeNote('campForge', 'full').includes('基礎武器'),
+    campActivityModeNote('campForge', 'full').includes('盾牌'),
+    campActivityModeNote('campForge', 'full').includes('做不到')], [true, true, true]);
+check('三種裝備受限的模式都要發言（逐一，不抽樣）',
+  ['full', 'integrated', 'hoplospheresOnly'].map((m) => campActivityModeNote('campForge', m).length > 0),
+  [true, true, true]);
+check('off／僅職業魔石不受限 → 不發言（裝備表還在，沒有衝突）',
+  [campActivityModeNote('campForge', 'off'), campActivityModeNote('campForge', 'mnemospheresOnly')], ['', '']);
+check('只有營地打造會碰撞（其餘 14 種照舊）',
+  CAMP_ACTIVITIES.filter((a) => a.id !== 'campForge').every((a) => campActivityModeNote(a.id, 'full') === ''), true);
+
+// 介面層：那一行要真的出現在「營地打造」的卡片裡，而且只在受限模式下出現
+const forgeChar = (mode) => ({
+  campActivities: { picked: ['campForge'], used: [] },
+  creationRules: { technospheres: mode, campActivities: true }
+});
+const forgeFullHtml = renderToStaticMarkup(React.createElement(CampActivitiesBlock, {
+  character: forgeChar('full'), theme, mode: 'edit', allowance: 2, onChange: () => {}
+}));
+const forgeOffHtml = renderToStaticMarkup(React.createElement(CampActivitiesBlock, {
+  character: forgeChar('off'), theme, mode: 'edit', allowance: 2, onChange: () => {}
+}));
+check('受限模式下「營地打造」卡片內出現提示',
+  forgeFullHtml.includes('data-testid="camp-mode-note-campForge"'), true);
+check('提示寫的是「基礎武器」與「盾牌」做不到',
+  [forgeFullHtml.includes('基礎武器'), forgeFullHtml.includes('做不到')], [true, true]);
+check('不受限時卡片內沒有那一行（不是永遠掛著一句免責）',
+  forgeOffHtml.includes('data-testid="camp-mode-note-campForge"'), false);
+
+// 跑團模式也要有——GM 是**在露營當下**才撞牆的，那時看的是跑團面板。
+const forgePlayHtml = renderToStaticMarkup(React.createElement(CampActivitiesBlock, {
+  character: forgeChar('full'), theme, mode: 'play', allowance: 2, onChange: () => {}
+}));
+check('跑團面板的營地打造也有提示', forgePlayHtml.includes('data-testid="camp-mode-note-campForge"'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 lines.push(`\n通過 ${pass} / ${pass + fail}${fail === 0 ? '　（全部通過）' : ''}`);

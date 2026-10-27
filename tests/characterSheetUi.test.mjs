@@ -40,7 +40,7 @@ import {
   createCustomWeaponSpec
 } from '../src/features/character-sheet/data/customWeapons.js';
 import rulesData from '../src/features/character-sheet/data/rulesData.json';
-import { ATTRIBUTE_NAMES, CLASS_METADATA, VARIANT_ARCANIST_CLASS_NAME, normalizeClassName, normalizeRosterClassNames } from '../src/features/character-sheet/data/sourcebookConfig.js';
+import { ATTRIBUTE_NAMES, CLASS_METADATA, VARIANT_ARCANIST_CLASS_NAME, normalizeClassName, normalizeRosterClassNames, getClassInfo } from '../src/features/character-sheet/data/sourcebookConfig.js';
 import ArcanistManager from '../src/features/character-sheet/components/companions/ArcanistManager.jsx';
 import { stripClassSuffix } from '../src/features/character-sheet/data/classAliases.js';
 import { GAME_ICONS_MAP } from '../src/components/ui/GameIcon.jsx';
@@ -2001,6 +2001,32 @@ const cardSrc = read('../src/features/character-sheet/components/CharacterCard.j
 check('角色卡也吃共用函式（不再自己比 min === max）',
   [cardSrc.includes('classCountPhrase('), cardSrc.includes('classCountMin ===')], [true, false]);
 
+// ── 第六處（P15，2026-10-27）
+//
+// 上面兩條掃描只掃了「編輯器」與「角色卡」，於是**職業選擇器**那一處活了下來：
+// `ClassPickerModal.jsx` 的「確定後會有 N 個職業，開局規定是 {min}~{max} 個」
+// 仍然自己拼區間——玩家選錯職業數時，紅字會印「開局規定是 3~3 個」。
+//
+// 教訓：「逐一都必須成立」不能靠手寫清單。清單是我想得到的檔案，
+// 而漏掉的正是我沒想到的那一個。改成**掃整個目錄**，新增檔案自動納入。
+const COMPONENT_DIR = new URL('../src/features/character-sheet/components/', import.meta.url);
+const componentFiles = fs.readdirSync(COMPONENT_DIR).filter((f) => f.endsWith('.jsx'));
+check('元件目錄掃得到檔案（掃描本身不能是空的）', componentFiles.length > 20, true);
+// 兩種寫法都要抓：JSX 的 `{min}~{max}` 與樣板字串的 `${min}~${max}`。
+// 第一版只掃前者，於是 `ClassPickerModal` 按鈕上的
+// `開局需兼修 ${min}~${max} 個職業` 從掃描底下走過去了（P15 再抓到一處）。
+const HAND_ROLLED = /classCount(?:Min|Max)\}?\s*~/;
+const handRolledRange = componentFiles.filter(
+  (f) => HAND_ROLLED.test(fs.readFileSync(new URL(f, COMPONENT_DIR), 'utf8'))
+);
+check('所有元件的「N~M 個職業」都吃共用函式（逐一，不抽樣）', handRolledRange, []);
+// 掃描本身的體檢：餵它一段真的寫壞的字串，它必須叫。
+check('掃描抓得到 JSX 寫法', HAND_ROLLED.test('是 {rules.classCountMin}~{rules.classCountMax} 個'), true);
+check('掃描抓得到樣板字串寫法', HAND_ROLLED.test('是 ${rules.classCountMin}~${rules.classCountMax} 個'), true);
+check('掃描不會誤抓單純的比較式', HAND_ROLLED.test('classesAfter >= rules.classCountMin && classesAfter <= rules.classCountMax'), false);
+const pickerSrc = read('../src/features/character-sheet/components/ClassPickerModal.jsx');
+check('職業選擇器的紅字也吃 classCountPhrase', pickerSrc.includes('classCountPhrase(rules)'), true);
+
 section('CN. F-018：免費增益二選一——「由玩家自己選」要說出來，選了要算對（2026-10-27）');
 
 // GM 裁定：「這個原本就是玩家自己選擇的」。所以這一節守的不是「幫他選」，
@@ -2063,6 +2089,38 @@ check('6 個的 freeBonus 寫法完全一致',
   [...new Set(choiceClassNames.map((cn) => rulesData.classes[cn].freeBonus))], ['HP +5 或 MP +5']);
 check('沒有任何一個還在寫「請依配置選擇」',
   choiceClassNames.some((cn) => rulesData.classes[cn].freeBonus.includes('請依配置選擇')), false);
+
+section('CO. F-017：29 個職業的定位句要出現在「左邊清單」，不是點開才看得到');
+
+// 選職業是開卡最關鍵的決定，但 29 個名字擺在一起時，清單卡上只有
+// 「職業名／又稱／免費增益」——定位句（「護衛同伴並吸收衝擊的鐵壁守衛。」）只寫在右邊詳情面板。
+// 於是「這 29 個哪個適合我」的比較成本＝29 次點擊，而且來回比較還要在清單與詳情之間找位置。
+const pickerHtml = renderToStaticMarkup(React.createElement(ClassPickerModal, {
+  isOpen: true,
+  onClose: () => {},
+  theme: getCharacterTheme('emerald'),
+  // 五本全開（含特典合輯與公測），否則「每一個職業」這句話就不成立——
+  // 第一版漏了 bonus，於是 死靈術士／卡牌大師 被判成「缺定位句」，其實是它們根本沒列出來。
+  enabledBooks: ['core', 'highFantasy', 'naturalFantasy', 'technoFantasy', 'bonus', 'playtest'],
+  creationRules: { ...DEFAULT_CREATION_RULES, allowPlaytest: true },
+  onSelectClasses: () => {}
+}));
+const pickerText = pickerHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+check('守護者的定位句出現在清單上',
+  pickerText.includes('護衛同伴並吸收衝擊的鐵壁守衛'), true);
+// 逐一都必須成立，不是「至少有一個」——只補幾個的話，比較起來還是有洞。
+const missingTaglines = Object.keys(rulesData.classes).filter((cn) => {
+  const tag = getClassInfo(cn).tagline;
+  return tag && !pickerText.includes(tag);
+});
+check('每一個職業的定位句都在清單上（缺的列出來）', missingTaglines, []);
+check('每一張清單卡都有自己的 testid（不是靠文字比對）',
+  [pickerHtml.includes('data-testid="class-tagline-守護者"'),
+    pickerHtml.includes('data-testid="class-tagline-舞者"')], [true, true]);
+// 兩行就截斷，完整句子放 title——否則 29 張卡會變成一面字牆。
+const pickerSrcTail = read('../src/features/character-sheet/components/ClassPickerModal.jsx');
+check('定位句在清單上截斷成兩行', pickerSrcTail.includes('line-clamp-2'), true);
+check('完整句子留在 title 裡', pickerSrcTail.includes('title={item.info.tagline}'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

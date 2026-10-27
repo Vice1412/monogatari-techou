@@ -737,6 +737,29 @@ export const HOPLOSPHERE_MAP = Object.freeze(
 /** 取得附魔魔石；不合法回 `null`（呼叫端負責給訊息） */
 export const getHoplosphere = (key) => HOPLOSPHERE_MAP[key] || null;
 
+/**
+ * 選單裡「還沒鑲上去」時要預覽的內容（F-021，2026-10-27）。
+ *
+ * 為什麼需要它：36 顆附魔魔石的下拉原本只有「`11 靈敏（2 格）`」——**只有名字**。
+ * 想知道「深淵」是什麼效果，唯一辦法是**先鑲進武器再看**，看完再拔掉；
+ * 而鑲嵌會寫進角色的成長履歷。GM 發獎勵（p.137）時挑一顆也要走同一條路。
+ *
+ * 回傳 `[{ label, text }]`，第一筆是基礎效果（`label` 空字串），
+ * 之後才是凝聚效果。凝聚的語意是「**同一個物品上鑲到 2／3 顆**才取得」，
+ * 所以標籤寫「鑲 2 顆」而不是「升級」——它不是升級，是門檻。
+ *
+ * @param {string} key 附魔魔石 key
+ * @returns {Array<{label:string, text:string}>} 不合法回空陣列
+ */
+export const hoplospherePreviewLines = (key) => {
+  const hop = getHoplosphere(key);
+  if (!hop) return [];
+  const lines = [{ label: '', text: hop.effect }];
+  if (hop.coag2) lines.push({ label: '鑲 2 顆', text: hop.coag2 });
+  if (hop.coag3) lines.push({ label: '鑲 3 顆', text: hop.coag3 });
+  return lines;
+};
+
 /** 附魔魔石的單顆價格（p.137：each technosphere is worth approximately 500 zenit） */
 export const HOPLOSPHERE_PRICE = 500;
 

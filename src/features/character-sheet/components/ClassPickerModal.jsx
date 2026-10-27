@@ -16,7 +16,7 @@ import CoreBookVariantCard from './CoreBookVariantCard';
 import { getVariantsForClass, getVariantById, buildSkillEntry } from '../data/coreBookVariants';
 import { SOURCEBOOKS, getClassInfo } from '../data/sourcebookConfig';
 import { matchesClassQuery, formatClassAliases, classAliasSource } from '../data/classAliases';
-import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
+import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY, classCountPhrase, classCountRange } from '../data/creationRules';
 import { isSkillSuppressedByTechnospheres } from '../data/technospheres';
 import rulesData from '../data/rulesData.json';
 import { withEn } from '../../../utils/properNouns';
@@ -524,6 +524,19 @@ export default function ClassPickerModal({
                             又稱：{formatClassAliases(item.className)}
                           </div>
                         )}
+                        {/* F-017（2026-10-27）：29 個名字擺在一起時，定位句原本**只寫在右邊詳情面板**，
+                            想比較就得一個一個點開（成本 29 次點擊），而選職業是開卡最關鍵的決定。
+                            這裡補一行截斷的定位句——點開之前就分得出「鐵壁守衛」和「時空術士」。
+                            兩行就截斷，完整句子在 title 裡，也仍然在右邊詳情面板。 */}
+                        {item.info.tagline ? (
+                          <div
+                            className="text-t10 text-[#6b5a4b] leading-snug line-clamp-2 mt-0.5"
+                            title={item.info.tagline}
+                            data-testid={`class-tagline-${item.className}`}
+                          >
+                            {item.info.tagline}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
 
@@ -838,7 +851,7 @@ export default function ClassPickerModal({
                     ) : !countOk ? (
                       <span className="text-[#8c2d36] font-bold flex items-center justify-center sm:justify-start gap-1">
                         <GiHazardSign className="w-3.5 h-3.5 shrink-0" />
-                        確定後會有 {classesAfter} 個職業，開局規定是 {rules.classCountMin}~{rules.classCountMax} 個
+                        確定後會有 {classesAfter} 個職業，開局規定是 {classCountPhrase(rules)} 個
                       </span>
                     ) : (
                       <span>
@@ -871,7 +884,7 @@ export default function ClassPickerModal({
                       : !budgetOk
                         ? '等級超出上限'
                         : !countOk
-                          ? `開局需兼修 ${rules.classCountMin}~${rules.classCountMax} 個職業`
+                          ? `開局需兼修 ${classCountRange(rules)} 個職業`
                           : `確定修習 ${assignedEntries.length} 個職業（共 ${draftTotal} 級）`}
                   </JRPGButton>
                 </div>

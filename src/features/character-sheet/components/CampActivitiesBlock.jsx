@@ -29,12 +29,14 @@ import {
   CAMP_ACTIVITY_BASE_COUNT,
   CAMP_ACTIVITY_SOURCE,
   campActivityById,
+  campActivityModeNote,
   campActivityTargetLabel,
   normalizeCampActivities,
   resetCampActivityUses,
   setCampActivityUsed,
   toggleCampActivity
 } from '../data/campActivities';
+import { resolveCreationRules } from '../data/creationRules';
 
 /** 一張可選的活動卡（名稱＋目標＋一句話）。 */
 function ActivityChip({ activity, active, theme, onClick }) {
@@ -66,7 +68,7 @@ function ActivityChip({ activity, active, theme, onClick }) {
 }
 
 /** 規則全文（含 1d6 表格）。 */
-function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsage = false }) {
+function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsage = false, modeNote = '' }) {
   return (
     <div
       className="rounded border p-3 space-y-1.5"
@@ -113,6 +115,18 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
         {activity.desc}
       </p>
 
+      {/* F-014（2026-10-27）：兩份官方文件同時開啟時的碰撞，要在**選這個活動的當下**就講，
+          而不是等到露營時 GM 說「這團沒有武器表」。 */}
+      {modeNote ? (
+        <p
+          data-testid={`camp-mode-note-${activity.id}`}
+          className="text-t11 leading-relaxed rounded border-l-2 pl-2 py-1"
+          style={{ color: theme.textDark, borderColor: theme.accent, backgroundColor: theme.cardBg }}
+        >
+          {modeNote}
+        </p>
+      ) : null}
+
       {activity.table ? (
         <div className="space-y-0.5">
           {activity.table.map((row) => (
@@ -151,6 +165,8 @@ export default function CampActivitiesBlock({
 }) {
   const state = normalizeCampActivities(character && character.campActivities);
   const picked = state.picked.map((id) => campActivityById(id)).filter(Boolean);
+  // 這團的魔晶石模式——「營地打造」的「基礎武器／盾牌」在裝備受限的模式下不存在（F-014）。
+  const techMode = resolveCreationRules(character && character.creationRules).technospheres;
 
   const commit = (next) => {
     if (typeof onChange === 'function') onChange(next);
@@ -199,6 +215,7 @@ export default function CampActivitiesBlock({
                   theme={theme}
                   showUsage
                   used={state.used.includes(activity.id)}
+                  modeNote={campActivityModeNote(activity.id, techMode)}
                   onToggleUsed={() => commit(setCampActivityUsed(state, activity.id, !state.used.includes(activity.id)))}
                 />
               ))}
@@ -256,6 +273,7 @@ export default function CampActivitiesBlock({
               key={activity.id}
               activity={activity}
               theme={theme}
+              modeNote={campActivityModeNote(activity.id, techMode)}
               onRemove={() => commit(toggleCampActivity(state, activity.id, allowance))}
             />
           ))}

@@ -60,6 +60,7 @@ import {
   getInitialMnemosphereLevels,
   buildInitialMnemosphere,
   HOPLOSPHERES,
+  hoplospherePreviewLines,
   HOPLOSPHERE_MAP,
   getHoplosphere,
   HOPLOSPHERE_PRICE,
@@ -1810,6 +1811,41 @@ check('X8 跑團面板把團規傳進去了',
 check('X9 裝備選擇器把團規傳進去了（主手清單不該再出現盾牌）',
   READ('src/features/character-sheet/components/EquipmentPickerModal.jsx')
     .includes('technosphereMode: resolveCreationRules(character?.creationRules).technospheres'), true);
+
+// ─────────────────────────────────────────────────────────── X
+section('X. F-021：下拉選了但還沒鑲嵌時，先看得到效果');
+
+// 36 顆附魔魔石的下拉原本只有「11 靈敏（2 格）」——只有名字。
+// 想知道「深淵」是什麼效果，唯一辦法是先鑲上去再看、看完再拔，而鑲嵌會寫進成長履歷。
+// 這裡守的是「預覽的字從哪裡來」：一律來自 `hoplospherePreviewLines`，畫面不另寫一份文案。
+// 為什麼每一條都先過一層 `previewLines()`：
+// 如果被測函式回空陣列，下面的 `[1].text` 會拋 TypeError，整個測試檔在載入期就死掉，
+// 連「通過 X / Y」都不印——那看起來像「護欄沒抓到」，實際上是**護欄沒機會跑**，
+// 破壞驗證會拿到 fail = -1 這種假訊號（2026-10-27 真的踩到，見 scratch/_p15_sabotage.mjs ⑦）。
+// 包一層之後，壞掉就是一行 FAIL，還說得出是哪一條壞。
+const previewLines = (key) => {
+  const v = hoplospherePreviewLines(key);
+  return Array.isArray(v) ? v : [];
+};
+check('36 顆全部都能產生預覽（逐一，不抽樣）',
+  HOPLOSPHERES.every((h) => previewLines(h.key).length >= 1), true);
+check('第一行就是基礎效果、沒有標籤',
+  previewLines('arctic')[0], { label: '', text: '你獲得冰屬性傷害抗性。若這件物品是武器，它造成的所有傷害變為冰屬性。' });
+check('有凝聚 2 的會多一行，標籤寫「鑲 2 顆」',
+  previewLines('arctic').map((l) => l.label), ['', '鑲 2 顆', '鑲 3 顆']);
+check('沒有凝聚的只有一行（不要印空行）',
+  previewLines('agile').map((l) => l.label), ['']);
+check('凝聚效果的文字跟資料層一致（不是另外抄一份）',
+  (previewLines('arctic')[1] || {}).text, getHoplosphere('arctic').coag2);
+check('不合法的 key 回空陣列（呼叫端不必防呆）',
+  [hoplospherePreviewLines('nope'), hoplospherePreviewLines('')], [[], []]);
+
+// 面板原始碼：預覽必須在 `withHoplospheres` 分支裡、且吃的是 `pending`
+// （吃已鑲嵌的內容就等於沒修——那本來就看得到）。
+check('面板有掛預覽區塊', PANEL_SRC.includes('data-testid={`hoplosphere-preview-${slotId}`}'), true);
+check('預覽的文字來自 hoplospherePreviewLines(pending)',
+  PANEL_SRC.includes('hoplospherePreviewLines(pending)'), true);
+check('預覽只在有附魔魔石的模式出現', PANEL_SRC.includes('withHoplospheres && pendingHop'), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 lines.push('');

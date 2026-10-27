@@ -60,6 +60,7 @@ import {
   getIntegratedMnemosphereCap,
   getMnemosphereBeadTint,
   getTechnosphereEquipmentSpend,
+  hoplospherePreviewLines,
   isTechnosphereEnabled,
   listHoplosphereEffects,
   modeAllowsDeltaSlot,
@@ -357,6 +358,9 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                 .filter((q) => !q.weaponOnly || WEAPON_SLOT_KEYS.includes(slotId));
               const usage = computeSlotUsage(slot, state.mnemospheres);
               const pending = pendingHoplosphere[slotId] || '';
+              // F-021（2026-10-27）：選單裡「選了但還沒按鑲嵌」的那一顆。
+              // 以前要知道某顆是做什麼的，唯一辦法是鑲上去再看、看完再拔——而鑲嵌會寫進成長履歷。
+              const pendingHop = getHoplosphere(pending);
               const { entries: effectEntries, damageTypeConflicts } = listHoplosphereEffects(slot.contents);
               const emptySockets = canSocket ? Math.max(0, usage.remaining) : 0;
               return (
@@ -534,6 +538,32 @@ export default function TechnospherePanel({ character, theme = {}, disabled = fa
                           </select>
                         )}
                       </div>
+
+                      {/* F-021：按「鑲嵌」之前就把效果印出來（含凝聚門檻）。
+                          文案全部來自 `hoplospherePreviewLines`，不在這裡另寫一份。 */}
+                      {withHoplospheres && pendingHop ? (
+                        <div
+                          data-testid={`hoplosphere-preview-${slotId}`}
+                          className="text-t11 leading-relaxed rounded border-l-2 pl-2 py-1 space-y-0.5"
+                          style={{ color: theme.textDark, borderColor: theme.accent, backgroundColor: theme.cardBg }}
+                        >
+                          <p>
+                            <span className="font-bold">【{pendingHop.name}】</span>
+                            <span className="text-[#6b5a4b]">
+                              {' '}{pendingHop.d66}・{pendingHop.slots} 格
+                              {pendingHop.weaponOnly ? '・武器限定' : ''}（尚未鑲嵌）
+                            </span>
+                          </p>
+                          {hoplospherePreviewLines(pending).map((line, i) => (
+                            <p key={`${pending}_line_${i}`}>
+                              {line.label ? (
+                                <span className="font-bold" style={{ color: theme.accent }}>{line.label}：</span>
+                              ) : null}
+                              {line.text}
+                            </p>
+                          ))}
+                        </div>
+                      ) : null}
                       {usage.mnemosphereOverflow && (
                         <p className="text-t12 text-[#6b5a4b]">
                           這個品級最多裝 {slotQualityMnemosphereCap(slot.quality)} 顆職業魔石。

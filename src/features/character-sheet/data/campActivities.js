@@ -38,6 +38,7 @@
  */
 
 import rulesData from './rulesData.json';
+import { modeRestrictsEquipment } from './technospheres';
 
 /** `creationRules` 上的欄位名（整團一層的開關）。 */
 export const CAMP_ACTIVITY_FIELD = 'campActivities';
@@ -245,6 +246,29 @@ export const campActivityName = (id) => campActivityById(id)?.name || '';
 /** 目標的中文標籤。 */
 export const campActivityTargetLabel = (activity) =>
   CAMP_ACTIVITY_TARGETS[activity?.target] || CAMP_ACTIVITY_TARGETS.self;
+
+/**
+ * 這個活動在這團的裝備規則下「哪一部分做不到」——沒有衝突就回空字串。
+ *
+ * 為什麼需要它（F-014，2026-10-27）：營地打造的三個選項之一是「免費製作一件你選擇的
+ * **基礎武器、防具或盾牌**」。那是核心規則書的裝備表。可是魔晶石制（科技奇幻手冊 p.133）
+ * 把裝備白名單縮成「定制武器／定制防具／飾品／機師模組」——**官方基礎武器表與盾牌整份不存在**。
+ *
+ * 兩份官方文件本身沒有矛盾，是**同時開啟時才碰撞**。創角時看不出來，要到露營當下才撞牆
+ * （而營地活動是 p.130 明定「創角時選定」的欄位，那時改已經來不及）。
+ *
+ * 刻意寫成「做不到哪兩個」而不是替玩家決定怎麼替代——原書沒有替代方案，這裡也不發明。
+ *
+ * @param {string} activityId 活動 id（目前只有 `campForge` 會碰撞）
+ * @param {string} technosphereMode `creationRules.technospheres`
+ * @returns {string} 空字串＝沒有衝突
+ */
+export const campActivityModeNote = (activityId, technosphereMode) => {
+  if (activityId !== 'campForge') return '';
+  if (!modeRestrictsEquipment(technosphereMode)) return '';
+  return '本團的裝備只剩定制武器、定制防具、飾品與機師模組（科技奇幻手冊 p.133）：'
+    + '「基礎武器」與「盾牌」這兩個選項做不到，「防具」也只能用定制防具。';
+};
 
 /**
  * 這條規則是否開啟（**單一判定入口**，與 `isZeroPowersEnabled` 同一個形狀）。
