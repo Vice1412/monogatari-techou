@@ -579,127 +579,147 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 return (
                   <div
                     key={char.id}
-                    className="bg-[#fffdf9] rounded hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col group relative border-2"
+                    className="bg-[#fffdf9] rounded hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col group relative border"
                     style={{ borderColor: isCrisis ? '#8c2d36' : charTheme.border }}
                   >
-                    <div className="h-1.5" style={{ backgroundColor: charTheme.accent }} />
+                    <div className="h-1 shrink-0" style={{ backgroundColor: charTheme.accent }} />
 
-                    {/* Profile Header */}
+                    {/* 頂部半身/全身立繪區（約佔 40%-50% 高度） */}
                     <div
-                      className="p-4 flex items-start gap-3.5 border-b transition-colors duration-200"
-                      style={{ backgroundColor: charTheme.headerBg, borderColor: charTheme.border }}
+                      onClick={() => handleOpenEditorMode(char)}
+                      className="relative w-full h-64 sm:h-72 overflow-hidden bg-[#f4ebd9]/40 flex items-center justify-center shrink-0 cursor-pointer group/portrait"
+                      title="點擊前往編輯此角色與肖像"
                     >
-                      <div
-                        onClick={() => handleOpenEditorMode(char)}
-                        className="w-12 h-12 rounded bg-[#fffdf9] border overflow-hidden shrink-0 flex items-center justify-center font-serif text-xl font-bold shadow-inner cursor-pointer hover:ring-2 hover:ring-[#3c2415]/50 transition-all group relative"
-                        style={{ borderColor: charTheme.border, color: charTheme.accent }}
-                        title="點擊前往編輯此角色與肖像"
-                      >
-                        {char.avatar ? (
-                          char.avatar.startsWith('http') || char.avatar.startsWith('data:') ? (
-                            <img src={char.avatar} alt={char.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <GameIcon name={char.avatar} className="w-7 h-7" style={{ color: charTheme.accent }} />
-                          )
-                        ) : (
-                          <GameIcon name={char.classes?.[0]?.className || 'GiSparkles'} className="w-7 h-7" style={{ color: charTheme.accent }} />
-                        )}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-t10 font-bold">
-                          編輯
+                      {/* 立繪圖片或 GameIcon 象徵 */}
+                      {char.avatar && (char.avatar.startsWith('http') || char.avatar.startsWith('data:')) ? (
+                        <img
+                          src={char.avatar}
+                          alt={char.name}
+                          className="w-full h-full object-cover object-top transition-transform duration-500 group-hover/portrait:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-[#f4ebd9]/40">
+                          <GameIcon
+                            name={char.avatar || char.classes?.[0]?.className || 'GiSparkles'}
+                            className="w-16 h-16 opacity-75 transition-transform duration-300 group-hover/portrait:scale-110"
+                            style={{ color: charTheme.accent }}
+                          />
+                          <span className="text-t10 text-[#7c6a58] mt-2 font-mono">未上傳立繪</span>
                         </div>
-                      </div>
+                      )}
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h4
-                            className="font-serif font-bold text-base truncate transition-colors"
-                            style={{ color: charTheme.textDark }}
-                          >
-                            {char.name || '冒險者'}
-                          </h4>
-                          <JRPGBadge variant={charTheme.badgeVariant} size="xs">
-                            Lv {getCharacterLevel(char)}
+                      {/* 頂部浮層：等級徽章與危機標籤 */}
+                      <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
+                        <JRPGBadge variant={charTheme.badgeVariant} size="xs" className="shadow-sm">
+                          Lv {getCharacterLevel(char)}
+                        </JRPGBadge>
+                        {isCrisis && (
+                          <JRPGBadge variant="danger" size="xs" className="flex items-center gap-1 font-mono shadow-sm">
+                            <FUIcon name="crisis" className="text-xs leading-none" />
+                            <span>危機</span>
                           </JRPGBadge>
-                          {isCrisis && (
-                            <JRPGBadge variant="danger" size="xs" className="flex items-center gap-1 font-mono">
-                              <FUIcon name="crisis" className="text-xs leading-none" />
-                              <span>危機</span>
-                            </JRPGBadge>
-                          )}
-                        </div>
+                        )}
+                      </div>
 
-                        <p className="text-t12 text-[#7c6a58] mt-0.5 line-clamp-1">
+                      {/* 懸停編輯提示 */}
+                      <div className="absolute inset-0 bg-[#3c2415]/10 opacity-0 group-hover/portrait:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                        <span className="px-2 py-1 rounded bg-[#fffdf9]/95 text-t10 font-bold text-[#3c2415] shadow-sm">
+                          更換肖像
+                        </span>
+                      </div>
+
+                      {/* 漸變融合遮罩：由透明平滑過渡至背景色 #fffdf9，無縫沒入下半部 */}
+                      <svg className="absolute inset-x-0 bottom-0 h-28 w-full pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 100">
+                        <defs>
+                          <linearGradient id={`portrait-fade-${char.id}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#fffdf9" stopOpacity="0" />
+                            <stop offset="60%" stopColor="#fffdf9" stopOpacity="0.75" />
+                            <stop offset="100%" stopColor="#fffdf9" stopOpacity="1" />
+                          </linearGradient>
+                        </defs>
+                        <rect width="100" height="100" fill={`url(#portrait-fade-${char.id})`} />
+                      </svg>
+
+                      {/* 角色姓名與身世主題：自然浮現在漸隱過渡處 */}
+                      <div className="absolute inset-x-0 bottom-1 px-4 z-10 pointer-events-none">
+                        <h4
+                          className="font-serif font-bold text-t16 truncate transition-colors"
+                          style={{ color: charTheme.textDark }}
+                        >
+                          {char.name || '冒險者'}
+                        </h4>
+                        <div className="text-t11 text-[#7c6a58] mt-0.5 truncate">
                           {char.identity || '未設定身份'} · <span style={{ color: charTheme.accent, fontWeight: 'bold' }}>{char.theme || '未設定主題'}</span>
-                        </p>
+                        </div>
+                      </div>
+                    </div>
 
-                        {/* Classes Badges — roster 是對外展示界面，不顯示英文職業名（截圖 §BD）。
-                            保留 `c.className` 原樣（含【變體】標記），讓玩家看出哪些職業用的是變體規則。 */}
-                        <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-                          {(char.classes || []).map((c, i) => (
-                            <span
-                              key={i}
-                              className="text-t10 px-1.5 py-0.5 rounded border font-mono font-medium"
-                              style={{ backgroundColor: '#fffdf9', borderColor: charTheme.border, color: charTheme.textDark }}
-                            >
-                              {c.className} Lv{c.level}
+                    {/* 下半部分數據面板 */}
+                    <div className="p-4 flex-1 flex flex-col justify-between space-y-3.5 bg-[#fffdf9]">
+                      {/* 1. 狀態條：HP、MP、IP 橫向極簡進度條 */}
+                      <div className="space-y-2">
+                        {/* HP Gauge */}
+                        <div className="space-y-0.5">
+                          <div className="flex items-center justify-between text-t11 font-mono leading-none">
+                            <span className="font-bold flex items-center gap-1" style={{ color: isCrisis ? '#a63d40' : '#3c2415' }}>
+                              HP
+                              {isCrisis && <FUIcon name="crisis" className="text-xs inline-block" />}
                             </span>
-                          ))}
+                            <span className="font-bold text-[#3c2415]">{statsUnset ? '—' : `${curHp} / ${stats.maxHp}`}</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}`}
+                              style={{ width: `${Math.max(0, Math.min(100, (curHp / stats.maxHp) * 100))}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* MP Gauge */}
+                        <div className="space-y-0.5">
+                          <div className="flex items-center justify-between text-t11 font-mono leading-none">
+                            <span className="font-bold text-[#3c2415]">MP</span>
+                            <span className="font-bold text-[#3c2415]">{statsUnset ? '—' : `${curMp} / ${stats.maxMp}`}</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-300 bg-gauge-mp"
+                              style={{ width: `${Math.max(0, Math.min(100, (curMp / stats.maxMp) * 100))}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* IP Gauge */}
+                        <div className="space-y-0.5">
+                          <div className="flex items-center justify-between text-t11 font-mono leading-none">
+                            <span className="font-bold text-[#6b5a4b]">IP</span>
+                            <span className="font-bold text-[#3c2415]">{curIp} / {stats.maxIp}</span>
+                          </div>
+                          <div className="h-1.5 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-300 bg-gauge-ip"
+                              style={{ width: `${Math.max(0, Math.min(100, (curIp / stats.maxIp) * 100))}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Fultimator-Style Visual Resource Meters (HP / MP / IP) */}
-                    <div className="p-3.5 space-y-2 border-b bg-[#f4ebd9]/70" style={{ borderColor: charTheme.border }}>
-                      {/* HP Gauge（第十五輪：資源條是「量」——同一個墨，只有危急換強調色） */}
-                      <div className="space-y-0.5">
-                        <div className="flex items-center justify-between text-t12 font-mono">
-                          <span className="font-bold flex items-center gap-1" style={{ color: isCrisis ? '#a63d40' : '#3c2415' }}>
-                            HP
-                            {isCrisis && <FUIcon name="crisis" className="text-xs inline-block" />}
-                          </span>
-                          <span className="font-bold text-[#3c2415]">{statsUnset ? '—' : `${curHp} / ${stats.maxHp}`}</span>
-                        </div>
-                        <div className="h-2 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}`}
-                            style={{ width: `${Math.max(0, Math.min(100, (curHp / stats.maxHp) * 100))}%` }}
-                          />
-                        </div>
+                      {/* 2. 職業信息：簡潔的文本標籤 */}
+                      <div className="text-t11 font-mono flex items-center gap-1 flex-wrap text-[#6b5a4b]">
+                        <span className="font-bold text-[#3c2415]">職業</span>
+                        {char.classes && char.classes.length > 0 ? (
+                          char.classes.map((c, i) => (
+                            <span key={i} className="text-[#3c2415] font-medium">
+                              【{c.className} Lv{c.level}】
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-[#7c6a58]">【未配置職業】</span>
+                        )}
                       </div>
 
-                      {/* MP Gauge */}
-                      <div className="space-y-0.5">
-                        <div className="flex items-center justify-between text-t12 font-mono">
-                          <span className="font-bold text-[#3c2415]">MP</span>
-                          <span className="font-bold text-[#3c2415]">{statsUnset ? '—' : `${curMp} / ${stats.maxMp}`}</span>
-                        </div>
-                        <div className="h-2 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-300 bg-gauge-mp"
-                            style={{ width: `${Math.max(0, Math.min(100, (curMp / stats.maxMp) * 100))}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* IP Gauge */}
-                      <div className="space-y-0.5">
-                        <div className="flex items-center justify-between text-t12 font-mono">
-                          <span className="font-bold text-[#6b5a4b]">IP</span>
-                          <span className="font-bold text-[#3c2415]">{curIp} / {stats.maxIp}</span>
-                        </div>
-                        <div className="h-2 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-300 bg-gauge-ip"
-                            style={{ width: `${Math.max(0, Math.min(100, (curIp / stats.maxIp) * 100))}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Attributes Dice Pills & Combat Matrix */}
-                    <div className="p-3 border-b space-y-2 bg-[#fffdf9]" style={{ borderColor: charTheme.border }}>
-                      {/* Four Attributes Grid */}
-                      <div className="grid grid-cols-4 gap-1.5 text-center font-mono text-xs">
+                      {/* 3. 核心屬性：橫向四屬性微圓角小卡片 */}
+                      <div className="grid grid-cols-4 gap-1.5 text-center font-mono">
                         {[
                           { key: 'dex', label: 'DEX', cur: stats.currentDex, base: stats.baseDex },
                           { key: 'ins', label: 'INS', cur: stats.currentIns, base: stats.baseIns },
@@ -708,11 +728,10 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         ].map(attr => (
                           <div
                             key={attr.key}
-                            className="p-1 rounded border bg-[#f4ebd9] flex flex-col items-center"
-                            style={{ borderColor: charTheme.border }}
+                            className="py-1 px-0.5 rounded bg-[#f4ebd9]/80 border border-[#e8dcc4] flex flex-col items-center"
                           >
                             <span className="text-t10 font-bold text-[#7c6a58]">{attr.label}</span>
-                            <span className="font-black text-[#3c2415] flex items-center gap-0.5">
+                            <span className="text-t12 font-black text-[#3c2415] flex items-center gap-0.5">
                               <span>d{attr.cur}</span>
                               {attr.cur < attr.base && (
                                 <span className="text-t10 text-[#8c2d36] line-through">d{attr.base}</span>
@@ -722,86 +741,89 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         ))}
                       </div>
 
-                      {/* Defense & Initiative Row */}
-                      <div className="flex items-center justify-between px-2 py-1 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-t11 font-mono">
+                      {/* 4. 衍生屬性：DEF, M.DEF, INIT 數值一行排布 */}
+                      <div className="flex items-center justify-between px-2.5 py-1.5 rounded bg-[#f4ebd9]/60 border border-[#e8dcc4] text-t11 font-mono">
                         <span className="text-[#6b5a4b]">DEF <strong className="text-[#3c2415]">{statsUnset ? '—' : stats.def}</strong></span>
                         <span className="text-[#d6c7ab]">|</span>
                         <span className="text-[#2c221e]">M.DEF <strong className="text-[#2c221e]">{stats.mdef}</strong></span>
                         <span className="text-[#d6c7ab]">|</span>
                         <span className="text-[#6b5a4b]">INIT <strong className="text-[#3c2415]">{formatInitiative(stats.init, initiativeVariant)}</strong></span>
                       </div>
-                    </div>
 
-                    {/* Footer Actions */}
-                    <div
-                      className="p-3 flex items-center justify-between gap-1.5 mt-auto transition-colors duration-200 bg-[#f4ebd9]/80 border-t"
-                      style={{ borderColor: charTheme.border }}
-                    >
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleDuplicateCharacter(char)}
-                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#3c2415] hover:bg-[#e8dcc4] transition-colors"
-                          title="複製卡片"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleSendToCombatDirect(char)}
-                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] transition-colors"
-                          title="推入戰鬥房間"
-                        >
-                          <GiCrossedSwords className="w-4 h-4 text-[#8c2d36]" />
-                        </button>
-                        <button
-                          onClick={() => handleExportSingleCharacter(char, 'native')}
-                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors"
-                          title="匯出單卡 JSON"
-                        >
-                          <Download className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleExportSingleCharacter(char, 'fultimator')}
-                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors font-mono text-t10 font-bold"
-                          title="匯出為 Fultimator 相容格式"
-                        >
-                          <FileCode className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenLog(char)}
-                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors"
-                          title="成長履歷"
-                        >
-                          <GiScrollQuill className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCharacter(char.id)}
-                          className="p-1.5 rounded text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] transition-colors"
-                          title="刪除角色"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      {/* 5. 底部操作區 */}
+                      <div className="pt-2 mt-auto border-t border-[#e8dcc4] flex items-center justify-between gap-1">
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => handleDuplicateCharacter(char)}
+                            className="p-1.5 rounded text-[#6b5a4b] hover:text-[#3c2415] hover:bg-[#f4ebd9] transition-colors"
+                            title="複製卡片"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSendToCombatDirect(char)}
+                            className="p-1.5 rounded text-[#6b5a4b] hover:text-[#76252d] hover:bg-[#f9f5eb] transition-colors"
+                            title="推入戰鬥房間"
+                          >
+                            <GiCrossedSwords className="w-3.5 h-3.5 text-[#8c2d36]" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleExportSingleCharacter(char, 'native')}
+                            className="p-1.5 rounded text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors"
+                            title="匯出單卡 JSON"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleExportSingleCharacter(char, 'fultimator')}
+                            className="p-1.5 rounded text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors font-mono text-t10 font-bold"
+                            title="匯出為 Fultimator 相容格式"
+                          >
+                            <FileCode className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenLog(char)}
+                            className="p-1.5 rounded text-[#6b5a4b] hover:text-[#2c221e] hover:bg-[#f4ebd9] transition-colors"
+                            title="成長履歷"
+                          >
+                            <GiScrollQuill className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCharacter(char.id)}
+                            className="p-1.5 rounded text-[#6b5a4b] hover:text-[#8c2d36] hover:bg-[#f9f5eb] transition-colors"
+                            title="刪除角色"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
 
-                      <div className="flex items-center gap-1.5 ml-auto">
-                        <button
-                          onClick={() => handleOpenEditorMode(char)}
- className="px-2.5 py-1 rounded border bg-[#fffdf9] hover:bg-[#f4ebd9] text-xs font-bold transition-colors flex items-center gap-1"
-                          style={{ borderColor: charTheme.border, color: charTheme.textDark }}
-                          title="進入創角與加點工作台"
-                        >
-                          <GiQuillInk className="w-3.5 h-3.5" style={{ color: charTheme.accent }} />
-                          <span>構築與成長</span>
-                        </button>
+                        <div className="flex items-center gap-1.5 ml-auto">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditorMode(char)}
+                            className="px-2.5 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-t11 font-bold text-[#3c2415] transition-colors flex items-center gap-1"
+                            title="進入創角與加點工作台"
+                          >
+                            <GiQuillInk className="w-3.5 h-3.5" style={{ color: charTheme.accent }} />
+                            <span>構築與成長</span>
+                          </button>
 
-                        <JRPGButton
-                          variant="primary"
-                          size="xs"
-                          icon={Play}
-                          onClick={() => handleOpenPlayMode(char)}
-                          title="跑團中用：HP／MP／狀態、攻擊與咒語、命刻"
-                        >
-                          跑團面板
-                        </JRPGButton>
+                          <JRPGButton
+                            variant="primary"
+                            size="xs"
+                            icon={Play}
+                            onClick={() => handleOpenPlayMode(char)}
+                            title="跑團中用：HP／MP／狀態、攻擊與咒語、命刻"
+                          >
+                            跑團面板
+                          </JRPGButton>
+                        </div>
                       </div>
                     </div>
                   </div>
