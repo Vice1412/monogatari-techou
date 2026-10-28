@@ -26,6 +26,13 @@
  * 每一列都會跑一次 `checkHeroicSkillRequirement`（開局模式或精通模式，取規則決定），
  * 不合格的列**照樣列出**、按鈕停用、並把原因寫在旁邊——不是直接藏起來。
  * 藏起來的話玩家只會覺得「怎麼找不到」。
+ *
+ * ## 引擎算不到的前提：叫玩家自己確認（F-030，GM 2026-10-28 裁定）
+ *
+ * 31 條技能的條件後半段是自由文字（「且習得招架反擊技能」），引擎**刻意不解析**——
+ * 猜錯會擋掉合法角色。所以那幾列多一個「我符合這個前提」勾選框，**沒勾就按不下去**，
+ * 判斷權在玩家手上。勾選是**那一次選擇**的宣告，選完立刻清掉，不會變成永久放行。
+ * 只有等級前提的（雙重詠唱、偉大召喚）不長勾選框：那個引擎已經在算了。
  */
 import React, { useMemo, useState } from 'react';
 import { GiLaurelCrown, GiMagnifyingGlass, GiCheckMark } from 'react-icons/gi';
@@ -34,6 +41,7 @@ import {
   HEROIC_SKILLS,
   HEROIC_SKILL_SOURCE_LABELS,
   checkHeroicSkillRequirement,
+  heroicSkillExtraPrerequisite,
   heroicSkillMaxAcquisitions,
   heroicSkillsForClass
 } from '../utils/characterEngine';
@@ -66,6 +74,20 @@ export function HeroicSkillPickerBody({
   const [query, setQuery] = useState('');
   const [onlyMyClasses, setOnlyMyClasses] = useState(true);
   const [sourceFilter, setSourceFilter] = useState('all');
+  /**
+   * 已經勾了「我符合這個前提」的技能名（F-030）。
+   *
+   * 為什麼是元件 state 而不是存進角色卡：這是**那一次選擇**的宣告，不是角色屬性。
+   * 存進角色卡的話，勾一次就永久放行；而彈窗關掉時 `JRPGModal` 會 `return null`，
+   * 整個 Body 卸載，state 自然歸零——「下次開還是要重新確認」是免費得到的。
+   */
+  const [confirmed, setConfirmed] = useState(() => new Set());
+
+  const toggleConfirm = (name, on) => setConfirmed((prev) => {
+    const next = new Set(prev);
+    if (on) next.add(name); else next.delete(name);
+    return next;
+  });
 
   const myClasses = (character?.classes || []).map((c) => c.className);
   const masteredClasses = stats?.masteredClasses || [];
@@ -104,7 +126,11 @@ export function HeroicSkillPickerBody({
         const reason = already
           ? (max > 1 ? `已取滿 ${owned}/${max}` : '已習得')
           : (!verdict.ok ? verdict.reason : (needsSlot && slotBlocked ? '開局名額已用完' : ''));
-        return { h, owned, max, verdict, already, blocked, reason, canPick: verdict.ok && !blocked };
+        // 引擎算得到的那部分已經過了、卻還有算不到的前提 → 要玩家自己確認（F-030）。
+        // 已經持有的列不必再問：那一列本來就按不下去。
+        const extra = heroicSkillExtraPrerequisite(h);
+        const needsConfirm = Boolean(extra) && verdict.ok && !blocked;
+        return { h, owned, max, verdict, already, blocked, reason, extra, needsConfirm, ok: verdict.ok };
       });
   }, [query, onlyMyClasses, sourceFilter, mine, character, masteredClasses.join('|'), // eslint-disable-line react-hooks/exhaustive-deps
     level, atCreation, slotBlocked]);
@@ -196,7 +222,12 @@ export function HeroicSkillPickerBody({
                 </td>
               </tr>
             )}
-            {rows.map(({ h, owned, max, reason, canPick }) => (
+            {rows.map(({ h, owned, max, reason, extra, needsConfirm, ok, blocked }) => {
+              // 勾選狀態在 render 期才算，不進 useMemo——不然每勾一次整張表都要重算。
+              const isConfirmed = confirmed.has(h.name);
+              const canPick = ok && !blocked && (!needsConfirm || isConfirmed);
+              const pendingConfirm = needsConfirm && !isConfirmed;
+              return (
               <tr key={h.name} className="align-top" style={{ borderBottom: `1px solid ${theme.border}` }}>
                 <td className="px-3 py-2 font-bold" style={{ color: theme.textDark }}>
                   {h.name}
@@ -211,6 +242,32 @@ export function HeroicSkillPickerBody({
                 </td>
                 <td className="px-3 py-2" style={{ color: theme.textMuted }}>
                   {h.requirement}
+                  {needsConfirm && (
+                    /* 勾選框放在「條件」欄而不是「選用」欄：它確認的是條件，不是按鈕；
+                       而且 10% 寬的按鈕欄塞不下「我符合這個前提」這幾個字。 */
+                    <label
+                      className="mt-1.5 flex items-start gap-1.5 cursor-pointer text-t10 leading-snug rounded px-1.5 py-1"
+                      style={{
+                        color: theme.textDark,
+                        border: `1px dashed ${theme.border}`,
+                        backgroundColor: isConfirmed ? 'transparent' : theme.subpanelBg
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        className="mt-0.5 shrink-0 cursor-pointer"
+                        checked={isConfirmed}
+                        onChange={(e) => toggleConfirm(h.name, e.target.checked)}
+                        data-testid={`heroic-confirm-${h.name}`}
+                      />
+                      <span>
+                        我符合這個前提
+                        <span className="block" style={{ color: theme.textMuted }}>
+                          （「{extra}」App 不會自動檢查，請自己確認）
+                        </span>
+                      </span>
+                    </label>
+                  )}
                 </td>
                 <td
                   className="px-3 py-2 leading-relaxed whitespace-pre-line"
@@ -224,7 +281,12 @@ export function HeroicSkillPickerBody({
                   <button
                     type="button"
                     disabled={!canPick}
-                    onClick={() => onPick(h)}
+                    data-testid={`heroic-pick-${h.name}`}
+                    onClick={() => {
+                      // 勾選是「這一次選擇」的宣告：選完就清掉，連按兩次要勾兩次。
+                      if (needsConfirm) toggleConfirm(h.name, false);
+                      onPick(h);
+                    }}
                     className="text-t11 font-bold px-2.5 py-1.5 rounded border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1"
                     style={{
                       backgroundColor: canPick ? (theme.accent) : (theme.cardBg),
@@ -232,25 +294,32 @@ export function HeroicSkillPickerBody({
                       color: canPick ? '#fff' : (theme.textDark)
                     }}
                   >
-                    {canPick ? <><GiCheckMark className="w-3 h-3" />選用</> : '不可選'}
+                    {canPick ? <><GiCheckMark className="w-3 h-3" />選用</> : (pendingConfirm ? '先確認' : '不可選')}
                   </button>
-                  {reason && (
+                  {(reason || pendingConfirm) && (
                     <div className="text-t10 mt-1 leading-snug" style={{ color: theme.textMuted }}>
-                      {reason}
+                      {reason || '請先勾選左邊的「我符合這個前提」'}
                     </div>
                   )}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       <div className="shrink-0 flex items-center justify-between gap-3 pt-2">
-        <span className="text-t11 flex items-center gap-1.5" style={{ color: theme.textMuted }}>
-          <GiLaurelCrown className="w-3.5 h-3.5" />
-          出處與條件以官方規則書／Playtest 為準；繁中譯名取自角色卡 Excel V2.17。
-        </span>
+        <div className="text-t11 leading-snug min-w-0" style={{ color: theme.textMuted }}>
+          <div className="flex items-center gap-1.5">
+            <GiLaurelCrown className="w-3.5 h-3.5 shrink-0" />
+            出處與條件以官方規則書／Playtest 為準；繁中譯名取自角色卡 Excel V2.17。
+          </div>
+          {/* 這一句是給「為什麼那幾列要打勾」用的：不打勾的人會以為 App 壞了。 */}
+          <div className="mt-0.5">
+            條件的後半段（例如「習得某技能」）是自由文字，App 不解析——請自己勾「我符合這個前提」。
+          </div>
+        </div>
         {onClose && (
           <button
             type="button"
