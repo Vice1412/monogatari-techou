@@ -122,11 +122,13 @@ const BOOK_NAMES = Object.values(SOURCEBOOKS).map((b) => b.name);
 // 要求「整個括號裡只有引用」會把正確的寫法判成錯的。
 // 這一組守的是**引用本身的格式**，不是括號的嵌套方式。
 const ALLOWED_CITATION = /見《([^》]+)》p\.(\d+)/g;
-const ALLOWED_BARE = /見 p\.(\d+)/g;
+// 裸頁碼（只有頁碼、沒有書名）。**這不是合格寫法**，只是拿來數量的。
+const BARE_PAGE = /見 p\.(\d+)/g;
 
 // 先把「合格的引用」整段拿掉，再看剩下的還有沒有「見 + 頁碼」。
 // 這樣不用窮舉六種舊寫法，任何**新**的寫法也會被抓到。
-const stripAllowed = (t) => t.replace(ALLOWED_CITATION, '').replace(ALLOWED_BARE, '');
+// ※ 裸頁碼刻意**不**在 stripAllowed 裡：它不是合格寫法，要留下來讓 badCitation 抓到。
+const stripAllowed = (t) => t.replace(ALLOWED_CITATION, '');
 const badCitation = (t) => {
   const m = stripAllowed(t).match(/見[^。\n]{0,24}?p\.?\s?\d+|參閱[^。\n]{0,24}?\d+\s?頁/);
   return m ? m[0] : null;
@@ -141,11 +143,31 @@ check('引用到的書名都是 sourcebookConfig 裡真的有的書（防打錯�
 check('至少引用了 2 本書（證明掃描真的掃到東西，不是因為一條都沒有而全綠）',
   citedBooks.length >= 2, true);
 
-// 裸頁碼（只有頁碼、沒有書名）**刻意留著 2 處**：破釜沉舟的「見p113」「見p161」。
-// 為什麼不補書名：站內線索互相矛盾（可變形武器在別處一律標「HF p.107」），
-// 補錯比留白更糟。所以這裡把它**釘住**——數量一變就紅，逼人回來看這段註解。
-const barePages = HS.flatMap((h) => [...h.effect.matchAll(ALLOWED_BARE)].map((m) => `${h.name}:${m[1]}`));
-check('裸頁碼恰好 2 處，都在破釜沉舟（書名待補，見 findings F-033）', barePages, ['破釜沉舟:113', '破釜沉舟:161']);
+// 裸頁碼（只有頁碼、沒有書名）**必須是 0 處**。
+//
+// 這條原本是「恰好 2 處，都在破釜沉舟」——當時不知道那兩頁屬於哪本書，
+// 站內線索互相矛盾（可變形武器在別處一律標「HF p.107」），所以刻意留白並釘住數量。
+// **2026-10-28 GM 裁定「破釜沉舟是科技奇幻的」**，書名補上（《科技奇幻手冊》p.113／p.161），
+// 於是這條改成 0。
+//
+// 為什麼不是「刪掉這條斷言就好」：它原本守的是「有人又寫了沒有書名的頁碼」。
+// 刪掉的話，`badCitation` 雖然也會抓到（裸頁碼現在不在 stripAllowed 裡），
+// 但那裡只會回報「有一條不合格」，看不出是「裸頁碼」這種特定情況。
+// 兩條一起留著：一條負責「不准有」，一條負責「就算有也說得出是哪一條」。
+const barePages = HS.flatMap((h) => [...h.effect.matchAll(BARE_PAGE)].map((m) => `${h.name}:${m[1]}`));
+check('沒有裸頁碼（每一處引用都要寫書名）', barePages, []);
+check('（反向）掃描器本身會叫：餵它「見 p.9」必須數到 1',
+  [...'見 p.9'.matchAll(BARE_PAGE)].length, 1);
+
+// 補了書名之後要順便釘住「補的是哪一本」，否則下次有人手滑改成別的書名也不會有人知道。
+// 依據：該技能的 `source` 是 `technoFantasy`，且 GM 2026-10-28 明確裁定。
+const pot = HS.find((h) => h.name === '破釜沉舟');
+check('破釜沉舟的出處是科技奇幻', pot ? pot.source : null, 'technoFantasy');
+// 這條技能一共三處引用：兩處指向自己那本書（p.113／p.161），一處指向核心規則書（雙重盾牌 p.197）。
+// 三處都寫出來，而不是只挑前兩處——只挑前兩處的話，第三處被改成什麼書都不會紅。
+check('破釜沉舟的三處引用書名',
+  pot ? [...pot.effect.matchAll(ALLOWED_CITATION)].map((m) => m[1]) : [],
+  ['科技奇幻手冊', '科技奇幻手冊', '核心規則書']);
 
 // ─────────────────────────────────────────────────────────── F
 section('F. F-033：同一個東西只有一個叫法');
