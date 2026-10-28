@@ -1871,7 +1871,15 @@ section('CJ. F-028 術語解釋層：術語旁邊一句話（2026-10-27）');
 //   ③ 說明是「常駐在 DOM 的 sr-only」，不是 hover 才存在
 //      （否則讀屏聽不到、SSR 快照也驗不到——這是 F-007 的教訓）
 
-check('F-028 定義表有 12 條（＝ K2 量測的那 12 個術語）', GLOSSARY.length, 12);
+// 2026-10-28（P18／F-031）：這裡原本是「恰好 12 條」。
+// F-031 補了英雄技能表專用的 4 個詞（HR／物語點／IP／TP），總數變成 16。
+// 改的時候**要留住它原本守的東西**：那 12 個詞是 K2 量測的分母，一個都不准消失——
+// 所以改成逐一點名（只把 12 改成 16 的話，有人刪掉一條時它還是綠的）。
+const K2_TERM_IDS = ['sl', 'freeBonus', 'classSkill', 'heroicSkill', 'mastery', 'quirk',
+  'fateClock', 'playtest', 'creationRules', 'startingZenit', 'attributes', 'trait'];
+check('F-028 定義表含 K2 量測的那 12 個術語（逐一點名，不准消失）',
+  K2_TERM_IDS.filter((id) => !TERM_ENTRIES[id]), []);
+check('F-028 定義表有 16 條（K2 的 12 ＋ F-031 補的 4）', GLOSSARY.length, 16);
 check('F-028 定義表的 id 不重複', new Set(GLOSSARY.map((e) => e.id)).size, GLOSSARY.length);
 check('F-028 每一條都有 id／term／short',
   GLOSSARY.filter((e) => !e.id || !e.term || !e.short).map((e) => e.id || '(無 id)'), []);
