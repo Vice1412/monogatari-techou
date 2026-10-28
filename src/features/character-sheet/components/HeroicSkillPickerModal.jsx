@@ -38,6 +38,20 @@ import {
   heroicSkillsForClass
 } from '../utils/characterEngine';
 import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
+import { TERMS } from '../data/glossary';
+import { renderTextWithTerms } from '../../../components/ui/termText';
+
+/**
+ * 英雄技能效果欄要標註的術語（F-031）。
+ *
+ * 為什麼只有這四個：115 條效果裡出現的縮寫共 6 種，其中「（o）」與「10×T」
+ * 不是名詞而是**圖示與公式**（原書是攻擊性咒語的圖示），已在資料層改寫成文字，
+ * 不需要 tooltip；剩下這四個才是「查得到定義就能讀懂」的名詞。
+ *
+ * **匯出是刻意的**：`tests/heroicText.test.mjs` 要能斷言「這四個一個都沒被漏掉」。
+ * 清單只寫在這個檔案裡的話，有人刪掉一條時測試不會知道——它會繼續綠。
+ */
+export const HEROIC_TERM_LIST = [TERMS.hr, TERMS.fabulaPoint, TERMS.ip, TERMS.tradePoint].filter(Boolean);
 
 /** 表格本體（可獨立 SSR 測試） */
 export function HeroicSkillPickerBody({
@@ -201,8 +215,10 @@ export function HeroicSkillPickerBody({
                 <td
                   className="px-3 py-2 leading-relaxed whitespace-pre-line"
                   style={{ color: theme.textDark }}
+                  data-testid={`heroic-effect-${h.name}`}
                 >
-                  {resolveHeroicSkillEffect(h.name, h.effect, character)}
+                  {/* 資料層保持純文字，只在渲染時把術語包成 tooltip（F-031）。 */}
+                  {renderTextWithTerms(resolveHeroicSkillEffect(h.name, h.effect, character), HEROIC_TERM_LIST)}
                 </td>
                 <td className="px-3 py-2 text-center">
                   <button
