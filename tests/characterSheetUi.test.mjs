@@ -818,9 +818,33 @@ const startRuleHtml = renderEditorAt(5, {
   classes: [{ className: '暗黑之刃', level: 3, skills: [] }],
   heroicSkills: []
 }, { startingHeroicSkill: true });
-check('規則開啟時，靠開局名額取得的技能變成可選',
-  [renderHeroicPicker({ classes: [{ className: '暗黑之刃', level: 3, skills: [] }] },
-    { startingHeroicSkill: true }).includes('不可選')], [false]);
+
+/**
+ * 取某一列「選用」按鈕的開頭標籤。用 `data-testid` 指名，不要取第一個 `<button>`：
+ * 效果欄的術語 tooltip 也是按鈕而且排在前面（SSR 測試踩過一次）。
+ */
+const pickTagOf = (html, name) => {
+  const key = `data-testid="heroic-pick-${name}"`;
+  const i = html.indexOf(key);
+  if (i < 0) return '';
+  return html.slice(html.lastIndexOf('<button', i), html.indexOf('>', i) + 1);
+};
+
+// ※ 不要用 `tag.includes('disabled')` 判斷停用：按鈕的 class 裡有 Tailwind 的
+//   `disabled:opacity-40 disabled:pointer-events-none`，那個字串**永遠在**，
+//   於是「可選」也會被讀成「停用」。要驗的是真正的屬性。
+const isPickDisabled = (html, name) => /\sdisabled(=""|\s|>)/.test(pickTagOf(html, name));
+
+// ※ 這條原本寫成「整頁不該出現『不可選』」。P31 之後那個說法**不再成立**：
+//   引擎開始真的判「且習得某技能」，所以畫面上本來就會有幾列因為缺前置技能而
+//   「不可選」——那是正確行為，不是開局規則失效。改成**指名 背水 那一列**，
+//   並補一條對照（規則關閉時它應該要是「不可選」），否則這條會變成恆真。
+check('規則開啟時，靠開局名額取得的【背水】變成可選',
+  isPickDisabled(renderHeroicPicker({ classes: [{ className: '暗黑之刃', level: 3, skills: [] }] },
+    { startingHeroicSkill: true }), '背水'), false);
+check('（對照）規則關閉時，同一張卡的【背水】是「不可選」',
+  isPickDisabled(renderHeroicPicker({ classes: [{ className: '暗黑之刃', level: 3, skills: [] }] }),
+    '背水'), true);
 check('規則開啟時說明這是哪一條規則',
   startRuleHtml.includes('開局贈送一個英雄技能'), true);
 check('規則開啟時顯示名額狀態', startRuleHtml.includes('開局名額：'), true);

@@ -421,6 +421,23 @@ export const checkHeroicSkillRequirement = (skill, {
   masteredClasses = [],
   classes = [],
   level = 5,
+  atCreation = false,
+  learnedSkills = null,
+  learnedSpells = null
+} = {}) => {
+  const base = checkClassAndLevelRequirement(skill, { masteredClasses, classes, level, atCreation });
+  if (!base.ok) return base;
+  return checkExtraRequirement(skill, { learnedSkills, learnedSpells });
+};
+
+/**
+ * 前提的「前半段」：職業與等級。這兩件事引擎一直都算得出來。
+ * @returns {{ok: boolean, reason: string}}
+ */
+const checkClassAndLevelRequirement = (skill, {
+  masteredClasses = [],
+  classes = [],
+  level = 5,
   atCreation = false
 } = {}) => {
   const req = String(skill?.requirement || '').trim();
@@ -479,6 +496,56 @@ export const checkHeroicSkillRequirement = (skill, {
 };
 
 /**
+ * 前提的「後半段」：額外技能前提（F-030／P31）。
+ *
+ * 三種結果：
+ * - **判得出來** → 缺什麼就回什麼（`需先學會【招架反擊】`），玩家知道要去點哪一招；
+ * - **判不出來** → `needsPlayerConfirm: true` ＋ `extraText`，由選擇器顯示勾選框；
+ * - **呼叫端沒給「學過什麼」** → 一律交回玩家。**不知道就不要假裝知道。**
+ *   為什麼要留這條路：編輯器算「開局名額用掉幾個」時是在數**已經取得的**技能，
+ *   那時候不該重新審核資格（重新審核會讓名額看起來是空的，玩家就能多拿一個）。
+ *
+ * @returns {{ok: boolean, reason: string, needsPlayerConfirm?: boolean, extraText?: string}}
+ */
+const checkExtraRequirement = (skill, { learnedSkills = null, learnedSpells = null } = {}) => {
+  const r = resolveHeroicExtraRequirement(skill);
+  if (!r.hasExtra) return { ok: true, reason: '' };
+
+  const handToPlayer = { ok: true, reason: '', needsPlayerConfirm: true, extraText: r.text };
+  if (!r.checkable || learnedSkills === null) return handToPlayer;
+
+  const nameOf = (s) => (typeof s === 'string' ? s : s?.name);
+  const owned = new Set();
+  for (const s of learnedSkills || []) owned.add(nameOf(s));
+  for (const s of learnedSpells || []) owned.add(nameOf(s));
+
+  // 技能等級前提：「【魔法卡組】達到技能等級 3」
+  if (r.skillLevel) {
+    const have = (learnedSkills || []).find((s) => nameOf(s) === r.skillLevel.name);
+    const sl = Number(have?.sl || 0);
+    if (sl < r.skillLevel.level) {
+      return {
+        ok: false,
+        reason: `需【${r.skillLevel.name}】技能等級 ${r.skillLevel.level}（目前 ${sl}）`
+      };
+    }
+    return { ok: true, reason: '' };
+  }
+
+  const missing = r.needs.filter((n) => !owned.has(n.name));
+  if (r.mode === 'any') {
+    if (missing.length === r.needs.length) {
+      return { ok: false, reason: `需先學會${r.needs.map((n) => `【${n.name}】`).join('或')}其中之一` };
+    }
+    return { ok: true, reason: '' };
+  }
+  if (missing.length) {
+    return { ok: false, reason: `需先學會${missing.map((n) => `【${n.name}】`).join('、')}` };
+  }
+  return { ok: true, reason: '' };
+};
+
+/**
  * 英雄技能前提裡「**引擎算不到的那一段**」（F-030）。
  *
  * ## 這是什麼
@@ -528,6 +595,119 @@ export const heroicSkillExtraPrerequisite = (skill) => {
     .filter(Boolean)
     .filter((s) => s.replace(LEVEL_PHRASE, '').trim() !== '')
     .join('、');
+};
+
+/**
+ * 引擎「認得」的所有可學習名稱：145 條職業技能 ＋ 38 條咒語。
+ *
+ * **長名優先排序**：`隔音屏障` 要先於 `屏障` 命中，否則「屏障」會把「隔音屏障」吃掉，
+ * 判定就變成「你有隔音屏障嗎」——問錯問題。（目前只有 `屏障／隔音屏障`、`幻影／幻影之力`
+ * 兩組會互相包含，但排序是免費的保險。）
+ */
+const LEARNABLE_NAMES = (() => {
+  const out = [];
+  for (const c of Object.values(rulesData.classes || {})) {
+    for (const s of c.skills || []) out.push({ kind: 'skill', name: s.name });
+  }
+  for (const s of rulesData.spells || []) out.push({ kind: 'spell', name: s.name });
+  const seen = new Set();
+  return out
+    .filter((x) => (seen.has(x.name) ? false : (seen.add(x.name), true)))
+    .sort((a, b) => b.name.length - a.name.length);
+})();
+
+/** 職業名（長名優先，`秘儀師【變體】` 先於 `秘儀師`）。判「殘留」時要一起拿掉。 */
+const ALL_CLASS_NAMES = Object.keys(rulesData.classes || {}).sort((a, b) => b.length - a.length);
+
+/**
+ * 條件文字裡「不是名詞」的填充詞。
+ * 拿掉技能名、職業名、填充詞之後**還有字**，就代表那段話裡有引擎讀不懂的東西
+ * （例：「高級煉金術」「構裝體物種」「至少兩個攻擊性」）→ 不可自動判。
+ *
+ * ※ 漏一個填充詞＝那條被誤判成「讀不懂」＝勾選框多一個，**不會擋掉任何人**，
+ *   所以漏字的代價是「多問一次」而不是「判錯」。但反過來說，漏字是**安靜的**：
+ *   測試只會顯示「交回玩家 15 條」而不是 6 條，看起來像正常運作。
+ *   P31 就漏了「取得」——Playtest 那批寫的是「已**取得**【挑釁】」，
+ *   而基本 115 條寫的是「已**習得**／已**學會**」，所以我量 115 條時它從來沒出現過。
+ *   **這就是 MEMORY 鐵則 13 的第四次：樣本換了，邊界就變了。**
+ */
+const EXTRA_FILLER = /(必須|學會|習得|取得|獲得|學習了|已|技能|咒語|增益|中的|中|的|和|或|與|達到|技能等級|\d+|【|】|（|）|\(|\)|「|」|、|，|,|\s)/g;
+
+/**
+ * 把「額外前提」解析成**引擎能不能自己判**的形式。
+ *
+ * ## 為什麼要解析（原本刻意不解析）
+ *
+ * F-030 立案時的理由是「那是自由文字，猜錯會擋掉合法角色」。那個顧慮是真的，
+ * 但**量過之後發現代價被高估了**：34 條裡有 28 條的條件就是一個或多個真實存在的技能名
+ * （145 條職業技能 ＋ 38 條咒語），而且角色卡本來就存著 `classes[].skills = [{name, sl}]`。
+ * 缺的只是「把句子拆成名詞」這一步。
+ *
+ * 所以現在分兩條路：
+ * - **認得出來 → 直接判**，判不過就寫「需先學會【招架反擊】」，玩家知道缺什麼；
+ * - **認不出來 → 交回玩家**（勾「我符合這個前提」），不假裝知道。
+ *
+ * ## 認不出來的三種情況（共 6 條，逐條釘在測試裡）
+ *
+ * 1. **「有那個技能」≠「有那個變體」**：【根源共生】要「忠實夥伴（植物物種）」、
+ *    【這東西是活著的】要「忠實夥伴（構裝體物種）」——App 知道你有忠實夥伴，
+ *    不知道你選了哪個物種。
+ * 2. **「有那個技能」≠「拿了那個增益」**：【藥水霧化】【大鍋秘方】【量子魔加農】
+ *    要「透過小工具獲得高級煉金術／高級魔科技」——App 知道你有小工具，不知道你拿了哪個。
+ * 3. **資料裡沒有那個分類**：【奧法戰士】要「至少學會兩個攻擊性咒語」——
+ *    38 條咒語沒有「攻擊性」欄位，數不出來。
+ *
+ * @returns {{
+ *   text: string, hasExtra: boolean, checkable: boolean,
+ *   mode: 'all'|'any', needs: Array<{kind:string,name:string}>,
+ *   skillLevel: null|{name:string, level:number}
+ * }}
+ */
+export const resolveHeroicExtraRequirement = (skill) => {
+  const text = heroicSkillExtraPrerequisite(skill);
+  const none = {
+    text: '', hasExtra: false, checkable: true, mode: 'all', needs: [], skillLevel: null
+  };
+  if (!text) return none;
+
+  const unknown = { text, hasExtra: true, checkable: false, mode: 'all', needs: [], skillLevel: null };
+
+  // ① 「【魔法卡組】達到技能等級 3」：技能等級存在角色卡裡，判得出來。
+  const sl = /【([^】]+)】\s*達到技能等級\s*(\d+)/.exec(text);
+  if (sl) {
+    return {
+      text,
+      hasExtra: true,
+      checkable: true,
+      mode: 'all',
+      needs: [{ kind: 'skill', name: sl[1] }],
+      skillLevel: { name: sl[1], level: Number(sl[2]) }
+    };
+  }
+
+  // ② 從文字裡認出可學習的名稱（長名優先；命中後就地佔位，避免短名重複命中）。
+  let rest = text;
+  const needs = [];
+  for (const k of LEARNABLE_NAMES) {
+    if (!rest.includes(k.name)) continue;
+    rest = rest.split(k.name).join('\u0000');
+    needs.push(k);
+  }
+
+  // ③ 把職業名、填充詞、佔位符拿掉；還有殘留 → 有讀不懂的東西 → 交回玩家。
+  let residual = rest;
+  for (const cn of ALL_CLASS_NAMES) residual = residual.split(cn).join('');
+  residual = residual.replace(/\u0000/g, '').replace(EXTRA_FILLER, '').trim();
+  if (needs.length === 0 || residual !== '') return unknown;
+
+  // ④ 「和／與」＝全部都要，「或」＝任一個。兩個都出現＝語意不明，不猜。
+  const hasAnd = /和|與/.test(text);
+  const hasOr = /或/.test(text);
+  if (hasAnd && hasOr) return unknown;
+
+  return {
+    text, hasExtra: true, checkable: true, mode: hasOr ? 'any' : 'all', needs, skillLevel: null
+  };
 };
 
 /**

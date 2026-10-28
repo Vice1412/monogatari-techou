@@ -27,11 +27,14 @@
  * 不合格的列**照樣列出**、按鈕停用、並把原因寫在旁邊——不是直接藏起來。
  * 藏起來的話玩家只會覺得「怎麼找不到」。
  *
- * ## 引擎算不到的前提：叫玩家自己確認（F-030，GM 2026-10-28 裁定）
+ * ## 條件後半段：能判的自己判，判不出來的才問玩家（F-030，P31）
  *
- * 31 條技能的條件後半段是自由文字（「且習得招架反擊技能」），引擎**刻意不解析**——
- * 猜錯會擋掉合法角色。所以那幾列多一個「我符合這個前提」勾選框，**沒勾就按不下去**，
- * 判斷權在玩家手上。勾選是**那一次選擇**的宣告，選完立刻清掉，不會變成永久放行。
+ * 34 條技能的前提後面還有一段（「且習得招架反擊技能」「【魔法卡組】達到技能等級 3」）。
+ * 原本的作法是「一律不解析、全部交給玩家勾」——GM 問了一句「不能自己檢查嗎」，
+ * 量完發現**28 條判得出來**（技能名都在名冊裡），只有 6 條判不出來
+ * （要嘛「有技能≠有那個物種」，要嘛資料沒有「這條咒語算不算攻擊性」這種分類）。
+ * 所以：判得出來的直接把缺的那一招寫在條件欄；判不出來的才長勾選框。
+ * 勾選是**那一次選擇**的宣告，選完立刻清掉，不會變成永久放行。
  * 只有等級前提的（雙重詠唱、偉大召喚）不長勾選框：那個引擎已經在算了。
  */
 import React, { useMemo, useState } from 'react';
@@ -41,7 +44,6 @@ import {
   HEROIC_SKILLS,
   HEROIC_SKILL_SOURCE_LABELS,
   checkHeroicSkillRequirement,
-  heroicSkillExtraPrerequisite,
   heroicSkillMaxAcquisitions,
   heroicSkillsForClass
 } from '../utils/characterEngine';
@@ -93,6 +95,20 @@ export function HeroicSkillPickerBody({
   const masteredClasses = stats?.masteredClasses || [];
   const level = character?.level;
   const atCreation = Boolean(rules?.startingHeroicSkill);
+  /**
+   * 這張卡「學過什麼」——額外前提（「且習得招架反擊技能」）要靠它才判得出來（P31）。
+   *
+   * `classes[].skills` 是 `[{ name, sl }]`，連技能等級都存著，
+   * 所以「【魔法卡組】達到技能等級 3」也判得出來。
+   */
+  const learnedSkills = useMemo(
+    () => (character?.classes || []).flatMap((c) => c.skills || []),
+    [JSON.stringify((character?.classes || []).map((c) => c.skills || []))] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  const learnedSpells = useMemo(
+    () => (character?.spells || []).map((s) => (typeof s === 'string' ? s : s?.name)).filter(Boolean),
+    [JSON.stringify((character?.spells || []).map((s) => (typeof s === 'string' ? s : s?.name)))] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   // 這一張卡「自己的職業會解鎖哪些」——用來當預設過濾
   const mine = useMemo(
@@ -116,24 +132,26 @@ export function HeroicSkillPickerBody({
           .filter((x) => (x?.name || x) === h.name).length;
         const max = heroicSkillMaxAcquisitions(h);
         const verdict = checkHeroicSkillRequirement(h, {
-          masteredClasses, classes: myClasses, level, atCreation
+          masteredClasses, classes: myClasses, level, atCreation, learnedSkills, learnedSpells
         });
         const already = owned >= max;
         // 只能靠開局名額取得（精通條件還沒到）
         const needsSlot = !verdict.ok && atCreation
-          && checkHeroicSkillRequirement(h, { classes: myClasses, level, atCreation: true }).ok;
+          && checkHeroicSkillRequirement(h, {
+            classes: myClasses, level, atCreation: true, learnedSkills, learnedSpells
+          }).ok;
         const blocked = already || (needsSlot && slotBlocked);
         const reason = already
           ? (max > 1 ? `已取滿 ${owned}/${max}` : '已習得')
           : (!verdict.ok ? verdict.reason : (needsSlot && slotBlocked ? '開局名額已用完' : ''));
-        // 引擎算得到的那部分已經過了、卻還有算不到的前提 → 要玩家自己確認（F-030）。
-        // 已經持有的列不必再問：那一列本來就按不下去。
-        const extra = heroicSkillExtraPrerequisite(h);
-        const needsConfirm = Boolean(extra) && verdict.ok && !blocked;
+        // 引擎**判不出來**的前提才問玩家（P31）：能算的已經在 `verdict` 裡算過了，
+        // 算不過會直接變成上面那句 reason。已經持有的列不必再問——那一列本來就按不下去。
+        const extra = verdict.extraText || '';
+        const needsConfirm = Boolean(verdict.needsPlayerConfirm) && verdict.ok && !blocked;
         return { h, owned, max, verdict, already, blocked, reason, extra, needsConfirm, ok: verdict.ok };
       });
   }, [query, onlyMyClasses, sourceFilter, mine, character, masteredClasses.join('|'), // eslint-disable-line react-hooks/exhaustive-deps
-    level, atCreation, slotBlocked]);
+    level, atCreation, slotBlocked, learnedSkills, learnedSpells]);
 
   const sources = useMemo(() => [...new Set(HEROIC_SKILLS.map((h) => h.source))], []);
 
@@ -315,9 +333,12 @@ export function HeroicSkillPickerBody({
             <GiLaurelCrown className="w-3.5 h-3.5 shrink-0" />
             出處與條件以官方規則書／Playtest 為準；繁中譯名取自角色卡 Excel V2.17。
           </div>
-          {/* 這一句是給「為什麼那幾列要打勾」用的：不打勾的人會以為 App 壞了。 */}
+          {/* 這一句是給「為什麼那幾列要打勾」用的：不打勾的人會以為 App 壞了。
+              P31 之後只剩少數幾條要打勾（引擎判得出「學會某技能」，判不出「選了哪個物種」），
+              所以不能沿用舊說法「後半段一律不解析」——那是改動前的行為。 */}
           <div className="mt-0.5">
-            條件的後半段（例如「習得某技能」）是自由文字，App 不解析——請自己勾「我符合這個前提」。
+            條件缺哪一招，App 會直接寫出來。只有「選了哪個物種／哪個增益」這類判不出來的，
+            才會出現勾選框請你自己確認。
           </div>
         </div>
         {onClose && (
