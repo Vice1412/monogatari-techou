@@ -6,11 +6,12 @@ import GameIcon from '../../../components/ui/GameIcon';
 import rulesData from '../data/rulesData.json';
 import SkillDescription from '../utils/skillFormulaEvaluator';
 import iconFontUrl from '../../../assets/FabulaUltimaIcons-Regular.otf';
-import { calculateCharacterStats, getProficiencies, getCharacterLevel, HEROIC_SKILLS, describeFreeBenefit, describeQuirkChoice } from '../utils/characterEngine';
+import { calculateCharacterStats, getProficiencies, getCharacterLevel, HEROIC_SKILLS, resolveHeroicSkillEntry, resolveCharacterSpells, describeFreeBenefit, describeQuirkChoice } from '../utils/characterEngine';
 import { withHrBonus } from '../utils/equipmentRules';
-import { ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
+import { ATTRIBUTE_NAMES, normalizeClassName, normalizeSkillName, normalizeEquipmentName } from '../data/sourcebookConfig';
 import { buildCustomWeaponEntries } from '../data/customWeapons';
 import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
+import { resolveSkillDisplay } from '../data/coreBookVariants';
 import { getCharacterTheme } from '../utils/characterThemes';
 import { isInitiativeVariant } from '../data/initiativeVariant';
 import {
@@ -348,7 +349,7 @@ export const buildSheetModel = (character, stats = null) => {
     return item.desc || '';
   };
   const equipmentRows = EQUIP_SLOTS.map(([slot, label]) => {
-    const name = equipment[slot] || '';
+    const name = normalizeEquipmentName(equipment[slot] || '');
     const item = slot === 'armor'
       ? findArmor(name)
       : (slot === 'accessory' ? findAccessory(name) : (findShield(name) || findWeapon(name)));
@@ -356,26 +357,27 @@ export const buildSheetModel = (character, stats = null) => {
   });
 
   // 技能名稱裡含學派名 → 該學派打勾（資料推導，不靠職業對應的記憶）
-  const skillNames = (ch.classes || []).flatMap((cl) => (cl.skills || []).map((sk) => sk.name));
+  const skillNames = (ch.classes || []).flatMap((cl) => (cl.skills || []).map((sk) => normalizeSkillName(sk.name)));
   const disciplines = SHEET_DISCIPLINES.map((name) => ({
     name,
     on: skillNames.some((sn) => sn.includes(name))
   }));
 
-  // 咒語：官方表的每一列是 名稱／MP／目標／持續時間 ＋ 說明
-  const spellRows = (ch.spells || []).map((sp) => ({
+  // 咒語：官方表的每一列是 名稱／MP／目標／持續時間 ＋ 說明（透過 resolveCharacterSpells 動態解析最新權威資料）
+  const spellRows = resolveCharacterSpells(ch).map((sp) => ({
     name: sp.name || '',
     mp: sp.mp || '',
     targets: sp.target || sp.targets || '',
     duration: sp.duration || '',
-    desc: sp.desc || sp.effect || ''
+    desc: sp.effect || sp.desc || ''
   }));
 
   // 職業與技能：**帶效果全文**（使用者要的是「丟進 TTS 給玩家隨時查」，不能只有技能名）
   const classes = (ch.classes || []).map((cl) => {
-    const classDef = rulesData.classes?.[cl.className];
+    const cName = normalizeClassName(cl.className);
+    const classDef = rulesData.classes?.[cName];
     return {
-      className: cl.className,
+      className: cName,
       level: cl.level || 0,
       // F-018（2026-10-27）：原本這裡比小寫 `'mp'`／`'hp'`，而 UI 寫的是大寫，
       // 於是 `freeBenefit` 永遠是空字串——**列印卡上 29 個職業的免費增益全部消失**
@@ -383,12 +385,14 @@ export const buildSheetModel = (character, stats = null) => {
       // 其餘職業印資料層原文。
       freeBenefit: describeFreeBenefit(classDef, cl),
       skills: (cl.skills || []).map((sk) => {
-        const skillDef = (classDef?.skills || []).find((s) => s.name === sk.name);
+        const normSkName = normalizeSkillName(sk.name);
+        const skillDef = (classDef?.skills || []).find((s) => s.name === normSkName);
+        const display = resolveSkillDisplay({ ...sk, name: normSkName }, skillDef);
         return {
-          name: sk.name,
+          name: display.name,
           sl: sk.sl,
-          maxSL: skillDef?.maxSL || 0,
-          desc: skillDef?.desc || ''
+          maxSL: display.maxSL || 0,
+          desc: display.desc || ''
         };
       })
     };
@@ -446,15 +450,13 @@ export const buildSheetModel = (character, stats = null) => {
     otherClasses: classes.slice(3, 7),
     // 英雄技能也帶效果全文（同樣是為了「丟進 TTS 給玩家查」）
     heroicSkills: (ch.heroicSkills || []).map((h) => {
-      const name = typeof h === 'string' ? h : h.name;
-      const sl = typeof h === 'string' ? null : h.sl;
-      const def = HEROIC_SKILLS.find((x) => x.name === name);
+      const sl = typeof h === 'string' ? null : h?.sl ?? null;
+      const resolved = resolveHeroicSkillEntry(h, ch);
       return {
-        name,
+        name: resolved.name,
         sl,
-        requirement: def?.requirement || '',
-        // 選了混合變形變體（公測 p.40）時，【進階混合變形】的文本要換成變體版本。
-        effect: resolveHeroicSkillEffect(name, def?.effect || '', ch)
+        requirement: resolved.requirement || '',
+        effect: resolved.effect || ''
       };
     }),
     spells: spellRows,

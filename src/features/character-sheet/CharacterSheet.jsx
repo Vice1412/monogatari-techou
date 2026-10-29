@@ -41,7 +41,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import JRPGBadge from '../../components/ui/JRPGBadge';
 import { STORAGE_KEYS } from '../../data/keys';
 import { readJSON, writeJSON } from '../../data/store';
-import { findDuplicateStartingHeroicSkills } from './utils/characterEngine';
+import { findDuplicateStartingHeroicSkills, normalizeCharacter, normalizeRosterCharacters } from './utils/characterEngine';
 import { formatInitiative, isInitiativeVariant } from './data/initiativeVariant';
 import { normalizeRosterClassNames } from './data/sourcebookConfig';
 
@@ -50,9 +50,9 @@ const STORAGE_KEY = STORAGE_KEYS.characterRoster;
 export default function CharacterSheet({ onOpenDice = null, onSubNavChange = null }) {
   const [roster, setRoster] = useState(() => {
     const parsed = readJSON(STORAGE_KEY, []);
-    // 舊存檔的職業名正名（§BF：秘儀師【Playtest】 → 秘儀師【變體】）。
-    // 不刪不改任何資料，只是把查不到資料的舊鍵換成現行鍵；下面的 writeJSON 會自然寫回。
-    return Array.isArray(parsed) ? normalizeRosterClassNames(parsed) : [];
+    // 舊存檔的識別字正名與快照刷新（§BF：秘儀師【Playtest】 → 秘儀師【變體】，並同步最新規則文本）。
+    // 不刪任何資料，只是把舊鍵與過期快照對齊現行權威資料；下面的 writeJSON 會自然寫回。
+    return Array.isArray(parsed) ? normalizeRosterCharacters(normalizeRosterClassNames(parsed)) : [];
   });
 
   const [activeCharId, setActiveCharId] = useState(null);
@@ -249,9 +249,9 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
           const convertedList = parsed.map(item => {
             if (isFultimatorCharacter(item)) {
               fultimatorCount++;
-              return convertFultimatorToMonogatari(item);
+              return normalizeCharacter(convertFultimatorToMonogatari(item));
             }
-            return item;
+            return normalizeCharacter(item);
           });
           setRoster(prev => {
             const combined = [...convertedList];
@@ -265,12 +265,13 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
             : `成功匯入 ${convertedList.length} 張角色卡！`);
         } else if (parsed && typeof parsed === 'object') {
           if (isFultimatorCharacter(parsed)) {
-            const converted = convertFultimatorToMonogatari(parsed);
+            const converted = normalizeCharacter(convertFultimatorToMonogatari(parsed));
             setRoster(prev => [converted, ...prev]);
             showToast(`成功匯入 Fultimator 角色「${converted.name}」！已無縫轉換為《物語手帳》格式。`);
           } else {
-            setRoster(prev => [parsed, ...prev]);
-            showToast(`成功匯入「${parsed.name || '冒險者'}」！`);
+            const normalized = normalizeCharacter(parsed);
+            setRoster(prev => [normalized, ...prev]);
+            showToast(`成功匯入「${normalized.name || '冒險者'}」！`);
           }
         }
       } catch (err) {

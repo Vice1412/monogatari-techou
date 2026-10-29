@@ -15,7 +15,7 @@ import {
 } from 'react-icons/gi';
 import GameIcon from '../../../components/ui/GameIcon';
 import FUIcon from '../../../components/ui/FUIcon';
-import { calculateCharacterStats, getCharacterLevel, HEROIC_SKILLS, HEROIC_SKILL_SOURCE_LABELS } from '../utils/characterEngine';
+import { calculateCharacterStats, getCharacterLevel, HEROIC_SKILLS, HEROIC_SKILL_SOURCE_LABELS, resolveHeroicSkillEntry } from '../utils/characterEngine';
 import StatBadge from '../../../components/ui/StatBadge';
 import JRPGBadge from '../../../components/ui/JRPGBadge';
 import ClockTracker from '../../../components/ui/ClockTracker';
@@ -24,6 +24,8 @@ import StatFormulaPanel, { STAT_FORMULA_NOTE } from './StatFormulaPanel';
 import rulesData from '../data/rulesData.json';
 import { getCharacterTheme } from '../utils/characterThemes';
 import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
+import { resolveSkillDisplay } from '../data/coreBookVariants';
+import { normalizeClassName, normalizeSkillName, normalizeEquipmentName } from '../data/sourcebookConfig';
 import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
 import { withEn } from '../../../utils/properNouns';
 import { classCountPhrase } from '../data/creationRules';
@@ -398,7 +400,7 @@ export default function CharacterCard({
           <div className="p-2 rounded border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
             <span className="text-[#7c6a58]">主手: </span>
             {character.equipment?.mainHand && character.equipment.mainHand !== '無' ? (
-              <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.mainHand}</span>
+              <span className="font-bold font-sans" style={{ color: theme.textDark }}>{normalizeEquipmentName(character.equipment.mainHand)}</span>
             ) : (
               <span className="text-[#7c6a58] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
             )}
@@ -406,7 +408,7 @@ export default function CharacterCard({
           <div className="p-2 rounded border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
             <span className="text-[#7c6a58]">副手/盾: </span>
             {character.equipment?.offHand && character.equipment.offHand !== '無' && character.equipment.offHand !== '無盾牌' ? (
-              <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.offHand}</span>
+              <span className="font-bold font-sans" style={{ color: theme.textDark }}>{normalizeEquipmentName(character.equipment.offHand)}</span>
             ) : (
               <span className="text-[#7c6a58] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
             )}
@@ -414,7 +416,7 @@ export default function CharacterCard({
           <div className="p-2 rounded border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
             <span className="text-[#7c6a58]">防具: </span>
             {character.equipment?.armor && character.equipment.armor !== '無' ? (
-              <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.armor}</span>
+              <span className="font-bold font-sans" style={{ color: theme.textDark }}>{normalizeEquipmentName(character.equipment.armor)}</span>
             ) : (
               <span className="text-[#7c6a58] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
             )}
@@ -422,7 +424,7 @@ export default function CharacterCard({
           <div className="p-2 rounded border" style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}>
             <span className="text-[#7c6a58]">飾品: </span>
             {character.equipment?.accessory && character.equipment.accessory !== '無' ? (
-              <span className="font-bold font-sans" style={{ color: theme.textDark }}>{character.equipment.accessory}</span>
+              <span className="font-bold font-sans" style={{ color: theme.textDark }}>{normalizeEquipmentName(character.equipment.accessory)}</span>
             ) : (
               <span className="text-[#7c6a58] italic font-sans font-normal border-b border-dashed border-[#d6c7ab]">[ 空格 / 未裝備 ]</span>
             )}
@@ -445,34 +447,39 @@ export default function CharacterCard({
             </div>
           ) : (
             <div className="space-y-2">
-              {(character.classes || []).map((cl, cIdx) => (
-                <div key={cIdx} className="space-y-1.5">
-                  {(cl.skills || []).map((sk, sIdx) => {
-                    const classDef = rulesData.classes[cl.className];
-                    const skillDef = classDef?.skills?.find(s => s.name === sk.name);
-                    return (
-                      <div
-                        key={sIdx}
-                        className="rounded p-2.5 border text-xs"
-                        style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
-                      >
-                        <div className="flex items-center justify-between font-bold mb-1" style={{ color: theme.textDark }}>
-                          <span className="flex items-center gap-1.5">
-                            <GameIcon name={cl.className} size={14} style={{ color: theme.accent }} />
-                            {sk.name}
-                          </span>
-                          <span className="font-mono text-[#7c6a58] text-t11">
-                            SL {sk.sl} / {skillDef?.maxSL || 5}
-                          </span>
+              {(character.classes || []).map((cl, cIdx) => {
+                const cName = normalizeClassName(cl.className);
+                const classDef = rulesData.classes[cName];
+                return (
+                  <div key={cIdx} className="space-y-1.5">
+                    {(cl.skills || []).map((sk, sIdx) => {
+                      const normSkName = normalizeSkillName(sk.name);
+                      const skillDef = classDef?.skills?.find(s => s.name === normSkName);
+                      const display = resolveSkillDisplay({ ...sk, name: normSkName }, skillDef);
+                      return (
+                        <div
+                          key={sIdx}
+                          className="rounded p-2.5 border text-xs"
+                          style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
+                        >
+                          <div className="flex items-center justify-between font-bold mb-1" style={{ color: theme.textDark }}>
+                            <span className="flex items-center gap-1.5">
+                              <GameIcon name={cName} size={14} style={{ color: theme.accent }} />
+                              {display.name}
+                            </span>
+                            <span className="font-mono text-[#7c6a58] text-t11">
+                              SL {sk.sl} / {display.maxSL || 5}
+                            </span>
+                          </div>
+                          <div className="text-[#6b5a4b] leading-relaxed font-sans text-t11">
+                            <SkillDescription desc={display.desc || '暫無說明'} sl={sk.sl} />
+                          </div>
                         </div>
-                        <div className="text-[#6b5a4b] leading-relaxed font-sans text-t11">
-                          <SkillDescription desc={skillDef?.desc || '暫無說明'} sl={sk.sl} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -487,32 +494,32 @@ export default function CharacterCard({
               <GiLaurelCrown className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 英雄技能
             </h4>
             <div className="space-y-2">
-              {character.heroicSkills.map((hs, idx) => (
-                <div
-                  key={idx}
-                  className="rounded p-2.5 border text-xs"
-                  style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
-                >
-                  <div className="font-bold mb-1 flex items-center gap-1.5" style={{ color: theme.textDark }}>
-                    <GiLaurelCrown className="w-3.5 h-3.5" style={{ color: theme.accent }} />
-                    {hs.name}
-                    {/* 出處（使用者要求「必須要標出出處」）：Playtest 那批還沒進正式規則書 */}
-                    {(() => {
-                      const found = HEROIC_SKILLS.find((x) => x.name === hs.name);
-                      const label = HEROIC_SKILL_SOURCE_LABELS[hs.source || found?.source];
-                      return label ? (
+              {character.heroicSkills.map((hs, idx) => {
+                const resolved = resolveHeroicSkillEntry(hs, character);
+                const label = HEROIC_SKILL_SOURCE_LABELS[resolved.source];
+                return (
+                  <div
+                    key={idx}
+                    className="rounded p-2.5 border text-xs"
+                    style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
+                  >
+                    <div className="font-bold mb-1 flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                      <GiLaurelCrown className="w-3.5 h-3.5" style={{ color: theme.accent }} />
+                      {resolved.name}
+                      {/* 出處（使用者要求「必須要標出出處」）：Playtest 那批還沒進正式規則書 */}
+                      {label ? (
                         <span
                           className="text-t10 px-1.5 py-0.5 rounded border font-bold shrink-0"
                           style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.accent }}
                         >
                           {label}
                         </span>
-                      ) : null;
-                    })()}
+                      ) : null}
+                    </div>
+                    <p className="text-[#6b5a4b] leading-relaxed font-sans text-t11">{resolved.effect}</p>
                   </div>
-                  <p className="text-[#6b5a4b] leading-relaxed font-sans text-t11">{resolveHeroicSkillEffect(hs.name, hs.effect, character)}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

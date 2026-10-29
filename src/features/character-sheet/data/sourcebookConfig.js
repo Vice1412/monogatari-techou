@@ -29,8 +29,47 @@ export const VARIANT_ARCANIST_CLASS_NAME = '秘儀師【變體】';
  * 讀名冊時就地正名，寫回時自然升級，全程不刪任何資料。
  */
 const LEGACY_CLASS_RENAMES = Object.freeze({
-  '秘儀師【Playtest】': VARIANT_ARCANIST_CLASS_NAME
+  '秘儀師【Playtest】': VARIANT_ARCANIST_CLASS_NAME,
+  '守護者【Playtest】': '守護者',
+  '武器大師【Playtest】': '武器大師',
+  '博學士【Playtest】': '博學士',
+  '暗黑之刃【Playtest】': '暗黑之刃',
+  '神射手【Playtest】': '神射手',
+  '吟唱者【Playtest】': '吟唱者'
 });
+
+/**
+ * 舊職業技能名 → 現行名稱（歷次正名對照）。
+ */
+export const LEGACY_SKILL_RENAMES = Object.freeze({
+  '護衛': '保鏢',
+  '盾反': '保鏢',
+  '熵係魔法': '熵系魔法',
+  '待會再見': '後會有期',
+  '高速': '迅捷',
+  '魔力套牌': '魔法卡組'
+});
+
+/**
+ * 舊英雄技能名 → 現行名稱（簡繁字形與譯名校準）。
+ */
+export const LEGACY_HEROIC_SKILL_RENAMES = Object.freeze({
+  '潔净月光': '潔淨月光'
+});
+
+/**
+ * 舊裝備名 → 現行名稱（對照官方核心規則書裝備表正名）。
+ */
+export const LEGACY_EQUIPMENT_RENAMES = Object.freeze({
+  '無手空拳': '徒手打擊',
+  '闊劍': '巨劍',
+  '長槍': '輕長矛',
+  '重型塔盾': '符文圓盾'
+});
+
+const TRAILING_EN_PAREN_RE = /\s*\([A-Za-z][^()]*\)\s*$/;
+const LEGACY_SPELL_SENTINEL_RE = /\s*\u26A1\s*$/;
+const LEGACY_QUIRK_SUFFIX_RE = /\s*[（(](?:高奇|自奇|科奇)[）)]\s*$/;
 
 /**
  * 把職業名正名為現行名稱；不是舊名就原樣回傳。
@@ -44,6 +83,297 @@ export const normalizeClassName = (className) => (
 );
 
 /**
+ * 把職業技能名正名為現行名稱；不是舊名就原樣回傳。
+ * @param {string} skillName
+ * @returns {string}
+ */
+export const normalizeSkillName = (skillName) => (
+  typeof skillName === 'string' && Object.prototype.hasOwnProperty.call(LEGACY_SKILL_RENAMES, skillName)
+    ? LEGACY_SKILL_RENAMES[skillName]
+    : skillName
+);
+
+/**
+ * 把英雄技能名正名為現行名稱；不是舊名就原樣回傳。
+ * @param {string} name
+ * @returns {string}
+ */
+export const normalizeHeroicSkillName = (name) => (
+  typeof name === 'string' && Object.prototype.hasOwnProperty.call(LEGACY_HEROIC_SKILL_RENAMES, name)
+    ? LEGACY_HEROIC_SKILL_RENAMES[name]
+    : name
+);
+
+/**
+ * 把裝備名正名為現行名稱（剝除尾端英文括號並映射舊譯名）。
+ * @param {string} name
+ * @returns {string}
+ */
+export const normalizeEquipmentName = (name) => {
+  if (typeof name !== 'string' || !name) return name;
+  const stripped = name.replace(TRAILING_EN_PAREN_RE, '').trim();
+  return Object.prototype.hasOwnProperty.call(LEGACY_EQUIPMENT_RENAMES, stripped)
+    ? LEGACY_EQUIPMENT_RENAMES[stripped]
+    : stripped;
+};
+
+/**
+ * 把咒語名正名為現行名稱（剝除舊版尾端 U+26A1 哨兵字元）。
+ * @param {string} name
+ * @returns {string}
+ */
+export const normalizeSpellName = (name) => (
+  typeof name === 'string' && LEGACY_SPELL_SENTINEL_RE.test(name)
+    ? name.replace(LEGACY_SPELL_SENTINEL_RE, '').trim()
+    : name
+);
+
+/**
+ * 把金手指名正名為現行名稱（剝除舊版尾端手冊簡稱括號）。
+ * @param {string} name
+ * @returns {string}
+ */
+export const normalizeQuirkName = (name) => (
+  typeof name === 'string' && LEGACY_QUIRK_SUFFIX_RE.test(name)
+    ? name.replace(LEGACY_QUIRK_SUFFIX_RE, '').trim()
+    : name
+);
+
+/**
+ * 正名單一角色身上的舊識別字（職業、技能、子選項咒語、英雄技能、咒語、裝備、金手指）。
+ * 若全部已是現行名稱，回傳原本的物件參考（`===`）。
+ * @param {object} char
+ * @returns {object}
+ */
+export const normalizeCharacterLegacyNames = (char) => {
+  if (!char || typeof char !== 'object') return char;
+  let charChanged = false;
+  let nextChar = char;
+  const patch = (key, val) => {
+    if (!charChanged) {
+      nextChar = { ...char };
+      charChanged = true;
+    }
+    nextChar[key] = val;
+  };
+
+  if (Array.isArray(char.classes)) {
+    let classesChanged = false;
+    const classes = char.classes.map((cl) => {
+      if (!cl || typeof cl !== 'object') return cl;
+      let clChanged = false;
+      const cName = normalizeClassName(cl.className);
+      if (cName !== cl.className) clChanged = true;
+
+      let skills = cl.skills;
+      if (Array.isArray(cl.skills)) {
+        let skillsChanged = false;
+        const nextSkills = cl.skills.map((sk) => {
+          if (!sk || typeof sk !== 'object') return sk;
+          let skChanged = false;
+          const sName = normalizeSkillName(sk.name);
+          if (sName !== sk.name) skChanged = true;
+
+          let selectedOptions = sk.selectedOptions;
+          if (Array.isArray(sk.selectedOptions)) {
+            let optsChanged = false;
+            const nextOpts = sk.selectedOptions.map((opt) => {
+              if (typeof opt !== 'string') return opt;
+              const normOpt = normalizeSpellName(opt);
+              if (normOpt !== opt) optsChanged = true;
+              return normOpt;
+            });
+            if (optsChanged) {
+              selectedOptions = nextOpts;
+              skChanged = true;
+            }
+          }
+          if (!skChanged) return sk;
+          skillsChanged = true;
+          return {
+            ...sk,
+            name: sName,
+            ...(selectedOptions !== sk.selectedOptions ? { selectedOptions } : {})
+          };
+        });
+        if (skillsChanged) {
+          skills = nextSkills;
+          clChanged = true;
+        }
+      }
+
+      if (!clChanged) return cl;
+      classesChanged = true;
+      return {
+        ...cl,
+        className: cName,
+        ...(skills !== cl.skills ? { skills } : {})
+      };
+    });
+    if (classesChanged) patch('classes', classes);
+  }
+
+  if (Array.isArray(char.heroicSkills)) {
+    let hsChanged = false;
+    const heroicSkills = char.heroicSkills.map((hs) => {
+      if (typeof hs === 'string') {
+        const norm = normalizeHeroicSkillName(hs);
+        if (norm !== hs) hsChanged = true;
+        return norm;
+      }
+      if (hs && typeof hs === 'object') {
+        const norm = normalizeHeroicSkillName(hs.name);
+        if (norm !== hs.name) {
+          hsChanged = true;
+          return { ...hs, name: norm };
+        }
+      }
+      return hs;
+    });
+    if (hsChanged) patch('heroicSkills', heroicSkills);
+  }
+
+  if (Array.isArray(char.spells)) {
+    let spChanged = false;
+    const spells = char.spells.map((sp) => {
+      if (typeof sp === 'string') {
+        const norm = normalizeSpellName(sp);
+        if (norm !== sp) spChanged = true;
+        return norm;
+      }
+      if (sp && typeof sp === 'object') {
+        const norm = normalizeSpellName(sp.name);
+        if (norm !== sp.name) {
+          spChanged = true;
+          return { ...sp, name: norm };
+        }
+      }
+      return sp;
+    });
+    if (spChanged) patch('spells', spells);
+  }
+
+  if (char.equipment && typeof char.equipment === 'object') {
+    let eqChanged = false;
+    const nextEq = { ...char.equipment };
+    ['mainHand', 'offHand', 'armor', 'accessory'].forEach((slot) => {
+      if (typeof nextEq[slot] === 'string') {
+        const norm = normalizeEquipmentName(nextEq[slot]);
+        if (norm !== nextEq[slot]) {
+          nextEq[slot] = norm;
+          eqChanged = true;
+        }
+      }
+    });
+    if (eqChanged) patch('equipment', nextEq);
+  }
+
+  if (typeof char.quirk === 'string') {
+    const normQuirk = normalizeQuirkName(char.quirk);
+    if (normQuirk !== char.quirk) patch('quirk', normQuirk);
+  }
+
+  if (Array.isArray(char.tinkererData?.gadgets?.magitechSpells)) {
+    let mtChanged = false;
+    const nextMt = char.tinkererData.gadgets.magitechSpells.map((s) => {
+      const norm = normalizeSpellName(s);
+      if (norm !== s) mtChanged = true;
+      return norm;
+    });
+    if (mtChanged) {
+      patch('tinkererData', {
+        ...char.tinkererData,
+        gadgets: {
+          ...char.tinkererData.gadgets,
+          magitechSpells: nextMt
+        }
+      });
+    }
+  }
+
+  if (Array.isArray(char.chimeristData?.spells)) {
+    let chChanged = false;
+    const nextCh = char.chimeristData.spells.map((sp) => {
+      if (!sp || typeof sp !== 'object') return sp;
+      const norm = normalizeSpellName(sp.name);
+      if (norm !== sp.name) {
+        chChanged = true;
+        return { ...sp, name: norm };
+      }
+      return sp;
+    });
+    if (chChanged) {
+      patch('chimeristData', {
+        ...char.chimeristData,
+        spells: nextCh
+      });
+    }
+  }
+
+  if (Array.isArray(char.technospheres?.mnemospheres)) {
+    let mnChanged = false;
+    const nextMn = char.technospheres.mnemospheres.map((mn) => {
+      if (!mn || typeof mn !== 'object') return mn;
+      let itemChanged = false;
+      const cName = normalizeClassName(mn.className);
+      if (cName !== mn.className) itemChanged = true;
+
+      let skills = mn.skills;
+      if (Array.isArray(mn.skills)) {
+        let sksChanged = false;
+        const nextSkills = mn.skills.map((sk) => {
+          if (!sk || typeof sk !== 'object') return sk;
+          let skChanged = false;
+          const sName = normalizeSkillName(sk.name);
+          if (sName !== sk.name) skChanged = true;
+
+          let selectedOptions = sk.selectedOptions;
+          if (Array.isArray(sk.selectedOptions)) {
+            let optsChanged = false;
+            const nextOpts = sk.selectedOptions.map((opt) => {
+              if (typeof opt !== 'string') return opt;
+              const normOpt = normalizeSpellName(opt);
+              if (normOpt !== opt) optsChanged = true;
+              return normOpt;
+            });
+            if (optsChanged) {
+              selectedOptions = nextOpts;
+              skChanged = true;
+            }
+          }
+          if (!skChanged) return sk;
+          sksChanged = true;
+          return {
+            ...sk,
+            name: sName,
+            ...(selectedOptions !== sk.selectedOptions ? { selectedOptions } : {})
+          };
+        });
+        if (sksChanged) {
+          skills = nextSkills;
+          itemChanged = true;
+        }
+      }
+      if (!itemChanged) return mn;
+      mnChanged = true;
+      return {
+        ...mn,
+        className: cName,
+        ...(skills !== mn.skills ? { skills } : {})
+      };
+    });
+    if (mnChanged) {
+      patch('technospheres', {
+        ...char.technospheres,
+        mnemospheres: nextMn
+      });
+    }
+  }
+
+  return nextChar;
+};
+
+/**
  * 正名整份角色名冊。
  *
  * 回傳**新陣列**；若整份名冊都沒有舊名，回傳原本那個陣列（呼叫端可用參考相等
@@ -55,17 +385,9 @@ export const normalizeRosterClassNames = (roster) => {
   if (!Array.isArray(roster)) return roster;
   let rosterChanged = false;
   const next = roster.map((char) => {
-    if (!char || !Array.isArray(char.classes)) return char;
-    let charChanged = false;
-    const classes = char.classes.map((cl) => {
-      const name = normalizeClassName(cl?.className);
-      if (name === cl?.className) return cl;
-      charChanged = true;
-      return { ...cl, className: name };
-    });
-    if (!charChanged) return char;
-    rosterChanged = true;
-    return { ...char, classes };
+    const norm = normalizeCharacterLegacyNames(char);
+    if (norm !== char) rosterChanged = true;
+    return norm;
   });
   return rosterChanged ? next : roster;
 };

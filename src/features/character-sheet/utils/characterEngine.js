@@ -1,6 +1,20 @@
 import rulesData from '../data/rulesData.json';
 import { PLAYTEST_HEROIC_SKILLS } from '../data/playtestHeroicSkills';
-import { SOURCEBOOKS, STATUS_AFFLICTIONS, ATTRIBUTE_NAMES, ATTRIBUTE_KEYS, ATTRIBUTE_PRESET_ARRAYS, normalizeClassName, VARIANT_ARCANIST_CLASS_NAME } from '../data/sourcebookConfig';
+import {
+  SOURCEBOOKS,
+  STATUS_AFFLICTIONS,
+  ATTRIBUTE_NAMES,
+  ATTRIBUTE_KEYS,
+  ATTRIBUTE_PRESET_ARRAYS,
+  normalizeClassName,
+  normalizeSkillName,
+  normalizeHeroicSkillName,
+  normalizeEquipmentName,
+  normalizeSpellName,
+  normalizeCharacterLegacyNames,
+  VARIANT_ARCANIST_CLASS_NAME
+} from '../data/sourcebookConfig';
+import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
 import { getSkillSuboptionConfig, calculateSkillSuboptionMax } from '../data/skillSuboptionsData';
 import { PILOT_ARMOR_MODULES } from '../data/pilotVehicleData';
 import { DEFAULT_CREATION_RULES, resolveCreationRules, classCountPhrase, PLAYTEST_SOURCEBOOK_KEY } from '../data/creationRules';
@@ -235,6 +249,225 @@ export const HEROIC_SKILL_SOURCE_LABELS = Object.freeze({
   bonus: '特典',
   playtest: 'Playtest'
 });
+
+/**
+ * 動態解析單一英雄技能條目（權威資料優先於存檔快照）。
+ *
+ * 舊存檔的 `character.heroicSkills` 在選取當下把 `{ name, source, requirement, effect }`
+ * 整份拷貝進角色 JSON。日後規則文本或出處修訂時，若讀取端直接讀 `hs.effect`／`hs.source`，
+ * 舊卡就會永遠停留在當初的舊文字。
+ * 透過此唯一入口：凡名稱在 `HEROIC_SKILLS` 查得到者，一律以最新權威資料覆蓋快照欄位，
+ * 並套用混合變形變體改寫（`resolveHeroicSkillEffect`）；查不到者（自訂條目）才退回快照欄位。
+ */
+export const resolveHeroicSkillEntry = (entry, character = null) => {
+  if (!entry) return { name: '', source: '', requirement: '', effect: '' };
+  const rawName = typeof entry === 'string' ? entry : (entry?.name || '');
+  const name = normalizeHeroicSkillName(rawName);
+  const def = HEROIC_SKILLS.find((h) => h.name === name);
+  const baseObj = typeof entry === 'object' ? entry : {};
+  const source = def?.source ?? baseObj.source ?? '';
+  const requirement = def?.requirement ?? baseObj.requirement ?? '';
+  const rawEffect = def?.effect ?? baseObj.effect ?? '';
+  const effect = resolveHeroicSkillEffect(name, rawEffect, character);
+  return {
+    ...baseObj,
+    name,
+    source,
+    requirement,
+    effect
+  };
+};
+
+const SPELL_SKILL_NAMES = new Set(['元素魔法', '靈魂魔法', '熵系魔法']);
+
+/**
+ * 動態解析單一咒語條目（權威 `rulesData.spells` 優先於存檔快照）。
+ *
+ * 凡名稱在 `rulesData.spells` 查得到者，其 `school`、`mp`、`target`、`duration`、`effect`、
+ * `isOffensive` 一律以最新權威資料為準；自訂咒語（不在 `rulesData.spells` 內）則保留原欄位。
+ */
+export const resolveSpellEntry = (entry) => {
+  if (!entry) {
+    return { name: '', school: '通用', mp: '10', target: '單體', duration: '瞬發', effect: '', isOffensive: false };
+  }
+  const rawName = typeof entry === 'string' ? entry : (entry?.name || '');
+  const name = normalizeSpellName(rawName);
+  const rulesSpell = (rulesData.spells || []).find((s) => s.name === name);
+  const baseObj = typeof entry === 'object' ? entry : {};
+  if (rulesSpell) {
+    return {
+      ...baseObj,
+      name: rulesSpell.name,
+      school: rulesSpell.school,
+      mp: rulesSpell.mp,
+      target: rulesSpell.target,
+      duration: rulesSpell.duration,
+      effect: rulesSpell.effect,
+      isOffensive: Boolean(rulesSpell.isOffensive)
+    };
+  }
+  return {
+    ...baseObj,
+    name,
+    school: baseObj.school || '通用',
+    mp: baseObj.mp || '10',
+    target: baseObj.target || '單體',
+    duration: baseObj.duration || '瞬發',
+    effect: baseObj.effect || baseObj.desc || '',
+    isOffensive: Boolean(baseObj.isOffensive) || /\s*\u26A1\s*$/.test(rawName) || String(baseObj.effect || '').includes('（o）')
+  };
+};
+
+/**
+ * 解析角色目前已掌握的全部咒語（合併 `character.spells` 與三大魔法技能的 `selectedOptions`），
+ * 並將每一筆以 `resolveSpellEntry` 對齊最新權威資料。
+ */
+export const resolveCharacterSpells = (character) => {
+  if (!character || typeof character !== 'object') return [];
+  const result = [];
+  const seen = new Set();
+  (Array.isArray(character.spells) ? character.spells : []).forEach((sp) => {
+    const resolved = resolveSpellEntry(sp);
+    if (resolved.name && !seen.has(resolved.name)) {
+      seen.add(resolved.name);
+      result.push(resolved);
+    }
+  });
+  (Array.isArray(character.classes) ? character.classes : []).forEach((cl) => {
+    (Array.isArray(cl?.skills) ? cl.skills : []).forEach((sk) => {
+      const sName = normalizeSkillName(sk?.name);
+      if (!SPELL_SKILL_NAMES.has(sName) || !Array.isArray(sk?.selectedOptions)) return;
+      sk.selectedOptions.forEach((optName) => {
+        const normName = normalizeSpellName(optName);
+        if (!normName || seen.has(normName)) return;
+        const rulesSpell = (rulesData.spells || []).find((s) => s.name === normName);
+        if (rulesSpell) {
+          seen.add(normName);
+          result.push(resolveSpellEntry(rulesSpell));
+        }
+      });
+    });
+  });
+  return result;
+};
+
+/**
+ * 正規化單一角色（舊名正名 ＋ 英雄技能與咒語快照刷新 ＋ 魔法子選項同步）。
+ * 若角色所有欄位皆已是最新狀態，嚴格回傳原本的物件參考（`===`）。
+ */
+export const normalizeCharacter = (char) => {
+  if (!char || typeof char !== 'object') return char;
+  const legacyNorm = normalizeCharacterLegacyNames(char);
+  let changed = legacyNorm !== char;
+  let next = legacyNorm;
+  const patch = (key, val) => {
+    if (!changed) {
+      next = { ...legacyNorm };
+      changed = true;
+    }
+    next[key] = val;
+  };
+
+  if (Array.isArray(next.heroicSkills)) {
+    let hsChanged = false;
+    const nextHs = next.heroicSkills.map((hs) => {
+      if (!hs || typeof hs !== 'object') return hs;
+      const def = HEROIC_SKILLS.find((h) => h.name === hs.name);
+      if (!def) return hs;
+      if (hs.source === def.source && hs.requirement === def.requirement && hs.effect === def.effect) {
+        return hs;
+      }
+      hsChanged = true;
+      return {
+        ...hs,
+        source: def.source,
+        requirement: def.requirement,
+        effect: def.effect
+      };
+    });
+    if (hsChanged) patch('heroicSkills', nextHs);
+  }
+
+  const hasSpellsArray = Array.isArray(next.spells);
+  const currentSpells = hasSpellsArray ? next.spells : [];
+  let spChanged = false;
+  const seenSpells = new Set();
+  const nextSpells = currentSpells.map((sp) => {
+    if (typeof sp === 'string') {
+      seenSpells.add(sp);
+      return sp;
+    }
+    if (!sp || typeof sp !== 'object') return sp;
+    seenSpells.add(sp.name);
+    const rulesSpell = (rulesData.spells || []).find((s) => s.name === sp.name);
+    if (!rulesSpell) return sp;
+    const wantOff = Boolean(rulesSpell.isOffensive);
+    if (
+      sp.school === rulesSpell.school &&
+      sp.mp === rulesSpell.mp &&
+      sp.target === rulesSpell.target &&
+      sp.duration === rulesSpell.duration &&
+      sp.effect === rulesSpell.effect &&
+      Boolean(sp.isOffensive) === wantOff &&
+      typeof sp.isOffensive === 'boolean'
+    ) {
+      return sp;
+    }
+    spChanged = true;
+    return {
+      ...sp,
+      school: rulesSpell.school,
+      mp: rulesSpell.mp,
+      target: rulesSpell.target,
+      duration: rulesSpell.duration,
+      effect: rulesSpell.effect,
+      isOffensive: wantOff
+    };
+  });
+
+  if (Array.isArray(next.classes)) {
+    next.classes.forEach((cl) => {
+      (Array.isArray(cl?.skills) ? cl.skills : []).forEach((sk) => {
+        if (!SPELL_SKILL_NAMES.has(sk?.name) || !Array.isArray(sk?.selectedOptions)) return;
+        sk.selectedOptions.forEach((optName) => {
+          if (!optName || seenSpells.has(optName)) return;
+          const rulesSpell = (rulesData.spells || []).find((s) => s.name === optName);
+          if (rulesSpell) {
+            seenSpells.add(optName);
+            spChanged = true;
+            nextSpells.push({
+              name: rulesSpell.name,
+              school: rulesSpell.school,
+              mp: rulesSpell.mp,
+              target: rulesSpell.target,
+              duration: rulesSpell.duration,
+              effect: rulesSpell.effect,
+              isOffensive: Boolean(rulesSpell.isOffensive)
+            });
+          }
+        });
+      });
+    });
+  }
+
+  if (spChanged) patch('spells', nextSpells);
+
+  return next;
+};
+
+/**
+ * 正規化整份角色名冊；若全名冊皆已是最新狀態，回傳原本的陣列參考（`===`）。
+ */
+export const normalizeRosterCharacters = (roster) => {
+  if (!Array.isArray(roster)) return roster;
+  let rosterChanged = false;
+  const next = roster.map((char) => {
+    const norm = normalizeCharacter(char);
+    if (norm !== char) rosterChanged = true;
+    return norm;
+  });
+  return rosterChanged ? next : roster;
+};
 
 /**
  * 從 `requirement` 的職業段落抽出**最長**的職業名。
@@ -546,10 +779,14 @@ const OFFENSIVE_SPELL_NAMES = new Set(
  * @param {Array<string|{name?:string,isOffensive?:boolean}>} spells
  * @returns {number}
  */
+const KNOWN_SPELL_NAMES = new Set((rulesData.spells || []).map((s) => s.name));
+
 export const countOffensiveSpells = (spells = []) =>
   (spells || []).filter((s) => {
-    const name = typeof s === 'string' ? s : s?.name;
-    if (name && OFFENSIVE_SPELL_NAMES.has(name)) return true;
+    const rawName = typeof s === 'string' ? s : s?.name;
+    const name = normalizeSpellName(rawName);
+    if (name && KNOWN_SPELL_NAMES.has(name)) return OFFENSIVE_SPELL_NAMES.has(name);
+    if (typeof rawName === 'string' && /\s*\u26A1\s*$/.test(rawName)) return true;
     return typeof s === 'object' && s !== null && s.isOffensive === true;
   }).length;
 
@@ -575,14 +812,15 @@ const checkExtraRequirement = (skill, {
   const handToPlayer = { ok: true, reason: '', needsPlayerConfirm: true, extraText: r.text };
   if (!r.checkable || learnedSkills === null) return handToPlayer;
 
-  const nameOf = (s) => (typeof s === 'string' ? s : s?.name);
+  const skillNameOf = (s) => normalizeSkillName(typeof s === 'string' ? s : s?.name);
+  const spellNameOf = (s) => normalizeSpellName(typeof s === 'string' ? s : s?.name);
   const owned = new Set();
-  for (const s of learnedSkills || []) owned.add(nameOf(s));
-  for (const s of learnedSpells || []) owned.add(nameOf(s));
+  for (const s of learnedSkills || []) owned.add(skillNameOf(s));
+  for (const s of learnedSpells || []) owned.add(spellNameOf(s));
 
   // 技能等級前提：「【魔法卡組】達到技能等級 3」
   if (r.skillLevel) {
-    const have = (learnedSkills || []).find((s) => nameOf(s) === r.skillLevel.name);
+    const have = (learnedSkills || []).find((s) => skillNameOf(s) === r.skillLevel.name);
     const sl = Number(have?.sl || 0);
     if (sl < r.skillLevel.level) {
       return {
@@ -1163,7 +1401,7 @@ export const getProficiencies = (char) => {
   }
 
   (char.classes || []).forEach(cl => {
-    const cName = cl.className || '';
+    const cName = normalizeClassName(cl.className || '');
     const classDef = rulesData.classes[cName];
     const fb = (classDef?.freeBenefits || '') + ' ' + (classDef?.freeBonus || '');
 
@@ -1534,9 +1772,10 @@ export const calculateCharacterStats = (char) => {
 
   // (1) 職業免費增益 (Free Benefits) 與職業常駐被動技能
   (char.classes || []).forEach(cl => {
-    const classDef = rulesData.classes[cl.className];
+    const cName = normalizeClassName(cl.className || '');
+    const classDef = rulesData.classes[cName];
     const fb = (classDef?.freeBenefits || '') + ' ' + (classDef?.freeBonus || '');
-    const clsLabel = cl.className || '未知職業';
+    const clsLabel = cName || '未知職業';
 
     // 二選一職業判定 (秘儀師【變體】、死靈術士、舞者、祈喚者、植物學家、卡牌大師)
     //
@@ -1658,7 +1897,7 @@ export const calculateCharacterStats = (char) => {
   const crisisThreshold = Math.floor(maxHp / 2);
 
   // 3. 裝備防禦與先攻計算
-  const normName = (n) => (n || '').replace(/\s*\([^)]*\)/g, '').trim();
+  const normName = (n) => normalizeEquipmentName((n || '').replace(/\s*\([^)]*\)/g, '').trim());
   // 回退一律回**具名的中性條目**，不要回「資料表第一筆」——
   // 第一筆剛好是中性值只是運氣，哪天有人把新裝備插到最前面，
   // 所有沒穿防具的角色就會白拿那份加值，而且不會有任何警告。
@@ -2800,7 +3039,7 @@ export const validateCharacter = (char, rules = null) => {
 
   const viaCreationSlot = [];
   heroic.forEach((entry) => {
-    const name = typeof entry === 'string' ? entry : entry?.name;
+    const name = normalizeHeroicSkillName(typeof entry === 'string' ? entry : entry?.name);
     const def = HEROIC_SKILLS.find((h) => h.name === name);
     if (!def) return; // 資料表裡沒有這個英雄技能 → 無法判定，不擋（寧漏不誤）
     if (masteryGate(def).ok) return; // 靠精通取得 → 沒問題
@@ -2831,7 +3070,7 @@ export const validateCharacter = (char, rules = null) => {
   // 少數技能明文可以拿多次（嵌合術精通 2 次、解剖學家 3 次），見 `heroicSkillMaxAcquisitions`。
   const skillCounts = new Map();
   heroic.forEach((entry) => {
-    const name = typeof entry === 'string' ? entry : entry?.name;
+    const name = normalizeHeroicSkillName(typeof entry === 'string' ? entry : entry?.name);
     skillCounts.set(name, (skillCounts.get(name) || 0) + 1);
   });
   skillCounts.forEach((count, name) => {

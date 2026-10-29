@@ -102,6 +102,7 @@ import {
   attributeDieUpgradesUsed,
   HEROIC_SKILLS,
   HEROIC_SKILL_SOURCE_LABELS,
+  resolveHeroicSkillEntry,
   buildQuirkPatch,
   describeFreeBenefit
 } from '../utils/characterEngine';
@@ -285,11 +286,10 @@ export default function CharacterEditor({
   const creationSlotFull = Boolean(rules.startingHeroicSkill) && creationSlotUsed >= 1;
 
   // 英雄技能的出處（使用者要求「必須要標出出處」）。
-  // 舊存檔的技能物件沒有 `source`，所以一律回查 `HEROIC_SKILLS` 而不是只讀物件上的欄位。
+  // 一律透過 `resolveHeroicSkillEntry` 以 `HEROIC_SKILLS` 權威資料優先於存檔快照。
   const heroicSourceOf = (entry) => {
-    const name = entry?.name || entry;
-    const found = HEROIC_SKILLS.find((x) => x.name === name);
-    return HEROIC_SKILL_SOURCE_LABELS[entry?.source || found?.source] || '';
+    const resolved = resolveHeroicSkillEntry(entry, character);
+    return HEROIC_SKILL_SOURCE_LABELS[resolved.source] || '';
   };
 
   // 定稿狀態：創角欄位凍結，只留成長相關的欄位可以動
@@ -2242,38 +2242,41 @@ export default function CharacterEditor({
                 </div>
 
                 <div className="space-y-2">
-                  {(character.heroicSkills || []).map((hs, idx) => (
-                    <div
-                      key={idx}
-                      className="rounded p-3 border text-xs flex items-start justify-between gap-3 shadow-sm"
-                      style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
-                    >
-                      <div>
-                        <div className="font-bold flex items-center gap-1.5" style={{ color: theme.textDark }}>
-                          <GiLaurelCrown className="w-4 h-4 shrink-0" style={{ color: theme.accent }} />
-                          <span>{hs.name}</span>
-                          {heroicSourceOf(hs) && (
-                            <span
-                              className="text-t10 px-1.5 py-0.5 rounded border font-bold shrink-0"
-                              style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textMuted }}
-                            >
-                              {heroicSourceOf(hs)}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-t11 text-[#6b5a4b] mt-0.5">{renderTextWithAffinities(resolveHeroicSkillEffect(hs.name, hs.effect, character))}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          updateField('heroicSkills', character.heroicSkills.filter((_, i) => i !== idx));
-                        }}
-                        className="text-[#6b5a4b] hover:text-[#76252d] font-bold cursor-pointer"
+                  {(character.heroicSkills || []).map((hs, idx) => {
+                    const resolved = resolveHeroicSkillEntry(hs, character);
+                    return (
+                      <div
+                        key={idx}
+                        className="rounded p-3 border text-xs flex items-start justify-between gap-3 shadow-sm"
+                        style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
                       >
-                        ×
-                      </button>
-                    </div>
-                  ))}
+                        <div>
+                          <div className="font-bold flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                            <GiLaurelCrown className="w-4 h-4 shrink-0" style={{ color: theme.accent }} />
+                            <span>{resolved.name}</span>
+                            {heroicSourceOf(hs) && (
+                              <span
+                                className="text-t10 px-1.5 py-0.5 rounded border font-bold shrink-0"
+                                style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textMuted }}
+                              >
+                                {heroicSourceOf(hs)}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-t11 text-[#6b5a4b] mt-0.5">{renderTextWithAffinities(resolved.effect)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateField('heroicSkills', character.heroicSkills.filter((_, i) => i !== idx));
+                          }}
+                          className="text-[#6b5a4b] hover:text-[#76252d] font-bold cursor-pointer"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               )}

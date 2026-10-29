@@ -2793,3 +2793,30 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 **出圖**：把 `cn.js` 暫時換回第四十二輪版本、用**真實元件**渲染一次，`finally` 還原並比對 sha256 後再渲染一次——兩次只差那個合併器。最值得看的是**前後完全一樣的那兩顆**（`secondary`／`ghost`），證明「壞掉但看起來對」是同一份錯誤輸出；`rank-top` 修正前是空方塊，修正後「冠位」才出現。
 
 **收尾**：顏色被刪的按鈕 **58 → 0**（可見 36 → 0）；徽章變體 **2 → 0**；直接 import `tailwind-merge` 的檔案 **4 → 0**；護欄 271 → **275**；`npm test` 全綠（275/275）、`npm run build` exit 0；改動 **5 檔**（4 元件 ＋ 新檔 `src/utils/cn.js`）；新增 hex **0**。
+
+---
+
+## 第四十四輪（2026-10-29）——已存檔角色卡的動態查表與舊名正規化
+
+**起點是 GM 的提問**：「我之前改過的東西似乎都不會影響那些已經存進系統了的角色卡。為什麼會這樣？有辦法做到讓日後修改的任何規則和文本都能 reflect 進之前已經寫好的角色卡嗎？」
+
+**根因診斷（三層問題）**：
+1. **存檔快照覆蓋權威資料**：角色卡在挑英雄技能與咒語時，會把當下的整包物件（`{ name, source, requirement, effect }`、`{ name, school, mp, target, duration, effect, isOffensive }`）直接抄進 `localStorage` 的角色 JSON。而四個檢視面（`CharacterCard`、`CharacterEditor` 第 5 步、`CharacterPlayHUD` 咒語分頁、`CharacterSheetExport` 三頁列印）在渲染時**直接讀角色身上的 `hs.effect`／`hs.source`／`sp.effect`／`sp.mp`**，完全沒回頭查 `HEROIC_SKILLS` 與 `rulesData.spells`——所以就算日後修了規則書文本或數值，舊存檔也永遠印當初存進去的舊文字。
+2. **職業技能變體漏接**：`CharacterCard` 與 `CharacterPlayHUD` 在渲染職業技能時，直接拿 `skillDef.name` 與 `skillDef.desc`，漏接了 `resolveSkillDisplay(sk, skillDef)`——選了公測變體（如【咒語自助餐】、【混合變形（變體）】）的角色在卡片預覽與跑團面板看到的仍是原版技能名與原版說明。
+3. **舊版識別字（ID）改名斷鏈與咒語雙軌不同步**：歷次正名（如 6 個已刪除的 `【Playtest】` 職業、`護衛/盾反 → 保鏢`、`熵係魔法 → 熵系魔法`、`待會再見 → 後會有期`、`高速 → 迅捷`、`魔力套牌 → 魔法卡組`、`潔净月光 → 潔淨月光`、`無手空拳 → 徒手打擊`、`闊劍 → 巨劍`、`長槍 → 輕長矛`、`重型塔盾 → 符文圓盾`、尾端英文括號 `(Sword)`、咒語尾端 `\u26A1` 哨兵、金手指尾端 `（高奇）/（自奇）/（科奇）`）若留在舊存檔裡，拿舊名字去查表會查空；且在構築工坊三大魔法技能 `selectedOptions` 勾選的咒語（含快速套用預設範本 `applyPreset`）未同步進 `character.spells`，導致跑團面板咒語分頁與列印匯出漏掉。
+
+**修法（雙重保險：渲染時動態查表 ＋ 載入時無損正規化）**：
+1. **唯一解析入口（`characterEngine.js`）**：
+   - `resolveHeroicSkillEntry(entry, character)`：以正規化後的名稱反查 `HEROIC_SKILLS`，最新權威 `source`／`requirement`／`effect` 優先於存檔快照，並自動套用 `resolveHeroicSkillEffect`（混合變形變體改寫）；自訂條目才退回存檔欄位。
+   - `resolveSpellEntry(entry)` 與 `resolveCharacterSpells(character)`：剝除舊版 `\u26A1` 哨兵並反查 `rulesData.spells` 最新欄位，同時合併 `character.spells` 與三大魔法技能（`元素魔法`／`靈魂魔法`／`熵系魔法`）的 `selectedOptions`。
+   - 四個顯示面（`CharacterCard`、`CharacterEditor`、`CharacterPlayHUD`、`CharacterSheetExport`）與預設套用（`presetApply.js`）全面改走上述唯一入口，並補齊 `resolveSkillDisplay` 與 `normalizeEquipmentName`。
+2. **載入與匯入時自動遷移（`sourcebookConfig.js` ＋ `characterEngine.js` ＋ `CharacterSheet.jsx`）**：
+   - 擴充 `LEGACY_CLASS_RENAMES`（含 6 個已併回核心的 `【Playtest】` 職業與 `秘儀師【Playtest】 → 秘儀師【變體】`），新增 `LEGACY_SKILL_RENAMES`、`LEGACY_HEROIC_SKILL_RENAMES`、`LEGACY_EQUIPMENT_RENAMES` 與對應正規化函式，涵蓋 `classes`、`technospheres.mnemospheres`、`heroicSkills`、`spells`、`equipment`、`quirk`、`tinkererData.gadgets.magitechSpells`、`chimeristData.spells`。
+   - 新增 `normalizeCharacter` 與 `normalizeRosterCharacters`：於讀取名冊與匯入 JSON 時自動正名並刷新過時快照；若角色已經是乾淨狀態，**嚴格保持 `===` 物件參考相等**，不觸發無謂重寫。
+3. **順帶揪出的潛伏矛盾（`coreBookVariants.js:170`）**：
+   - `theriomorphosisVariant.js:158` 為了避免出現「追加一個動作」這五個字，寫的是 `（變體版本不提供追加動作。）`；但 `coreBookVariants.js:170` 卻寫成 `**變體版本沒有原版那句「追加一個動作」。**`。以前 `test:variants` 沒爆，是因為 `CharacterCard` 根本忘了呼叫 `resolveSkillDisplay`！接上後立刻現形，已對齊為 `**（變體版本不提供追加動作。）**`。
+
+**護欄與破壞驗證**：
+- `tests/characterSheetUi.test.mjs` 新增 `CT` 區段（17 條斷言，577 → **594**），涵蓋英雄技能／咒語／技能變體的 SSR 渲染時動態查表、載入時舊名遷移與 `===` 參照相等。
+- 刻意破壞驗證發現並修正一處測試自身的錨點重疊（`CharacterCard` 同時渲染職業技能與英雄技能，改以 `staleCardHtml.slice(staleCardHtml.indexOf('英雄技能'))` 切出獨立區段），確認破壞時精準 FAIL、還原後 PASS。
+- 全套 **36 支測試全綠**、`test:emoji` 0 命中、`npm run build` exit 0。

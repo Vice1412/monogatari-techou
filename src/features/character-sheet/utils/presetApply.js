@@ -7,12 +7,15 @@
  * **不覆寫**身分／主題／出身／羈絆 —— 官方原書不提供這些欄位，屬玩家自訂（見 `docs/decisions.md` §P3）。
  */
 
+import rulesData from '../data/rulesData.json';
 import { createDefaultVehicleData } from '../data/pilotVehicleData';
 import {
   createMnemosphere,
   makeMnemosphereId,
   normalizeTechnosphereState
 } from '../data/technospheres';
+
+const SPELL_SKILL_NAMES = new Set(['元素魔法', '靈魂魔法', '熵系魔法']);
 
 /**
  * 把一個經典職業搭配套用到角色上，回傳新的角色物件（不修改輸入）。
@@ -46,6 +49,33 @@ export const applyPreset = (character, preset) => {
     enabledSourcebooks: Array.from(enabledBooks),
     updatedAt: new Date().toISOString()
   };
+
+  // 同步三大魔法技能（元素魔法／靈魂魔法／熵系魔法）的 selectedOptions 至 next.spells，
+  // 讓套用經典搭配的角色在跑團面板與三頁匯出都能直接看到已習得的咒語。
+  const presetSpells = [];
+  const seenSpellNames = new Set();
+  (next.classes || []).forEach((cl) => {
+    (cl?.skills || []).forEach((sk) => {
+      if (!SPELL_SKILL_NAMES.has(sk?.name) || !Array.isArray(sk?.selectedOptions)) return;
+      sk.selectedOptions.forEach((optName) => {
+        if (!optName || seenSpellNames.has(optName)) return;
+        const rulesSpell = (rulesData.spells || []).find((s) => s.name === optName);
+        if (rulesSpell) {
+          seenSpellNames.add(optName);
+          presetSpells.push({
+            name: rulesSpell.name,
+            school: rulesSpell.school,
+            mp: rulesSpell.mp,
+            target: rulesSpell.target,
+            duration: rulesSpell.duration,
+            effect: rulesSpell.effect,
+            isOffensive: Boolean(rulesSpell.isOffensive)
+          });
+        }
+      });
+    });
+  });
+  next.spells = presetSpells;
 
   // 秘儀師【綁定和召喚】：起始自選一個已綁定的阿爾卡納
   if (preset.arcana) {

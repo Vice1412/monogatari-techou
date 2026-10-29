@@ -27,7 +27,7 @@ import {
   EXPERIENCE_POINT_RULES,
   SHEET_DISCIPLINES
 } from '../src/features/character-sheet/components/CharacterSheetExport.jsx';
-import { createNewCharacter, getProficiencies, calculateCharacterStats, deriveCreationState, shortIssueLabel, isHpMpChoiceBenefit, classSkillsForClass, suppressedSkillsForClass, describeQuirkChoice } from '../src/features/character-sheet/utils/characterEngine.js';
+import { createNewCharacter, getProficiencies, calculateCharacterStats, deriveCreationState, shortIssueLabel, isHpMpChoiceBenefit, classSkillsForClass, suppressedSkillsForClass, describeQuirkChoice, resolveHeroicSkillEntry, resolveSpellEntry, resolveCharacterSpells, normalizeCharacter, normalizeRosterCharacters } from '../src/features/character-sheet/utils/characterEngine.js';
 import { suppressedSkillsNote } from '../src/features/character-sheet/data/technospheres.js';
 import { EquipmentPickerBody } from '../src/features/character-sheet/components/EquipmentPickerModal.jsx';
 import { resolveCreationRules, DEFAULT_CREATION_RULES, classCountRange, classCountPhrase } from '../src/features/character-sheet/data/creationRules.js';
@@ -42,7 +42,8 @@ import {
   createCustomWeaponSpec
 } from '../src/features/character-sheet/data/customWeapons.js';
 import rulesData from '../src/features/character-sheet/data/rulesData.json';
-import { ATTRIBUTE_NAMES, CLASS_METADATA, VARIANT_ARCANIST_CLASS_NAME, normalizeClassName, normalizeRosterClassNames, getClassInfo } from '../src/features/character-sheet/data/sourcebookConfig.js';
+import { ATTRIBUTE_NAMES, CLASS_METADATA, VARIANT_ARCANIST_CLASS_NAME, normalizeClassName, normalizeSkillName, normalizeHeroicSkillName, normalizeEquipmentName, normalizeSpellName, normalizeQuirkName, normalizeCharacterLegacyNames, normalizeRosterClassNames, getClassInfo } from '../src/features/character-sheet/data/sourcebookConfig.js';
+import CharacterPlayHUD from '../src/features/character-sheet/components/CharacterPlayHUD.jsx';
 import ArcanistManager from '../src/features/character-sheet/components/companions/ArcanistManager.jsx';
 import { stripClassSuffix } from '../src/features/character-sheet/data/classAliases.js';
 import { GAME_ICONS_MAP } from '../src/components/ui/GameIcon.jsx';
@@ -2393,6 +2394,263 @@ const quirkPage2Html = renderToStaticMarkup(React.createElement(OfficialSheetPag
 }));
 check('（F-027）紙卡第 2 頁真的印出「已選」', quirkPage2Html.includes('已選'), true);
 check('（F-027）紙卡上印得出選的那一項', quirkPage2Html.includes('咒語'), true);
+
+// ═══════════════════════════════════════════════════════════
+section('CT. 已存檔角色卡的動態查表與舊名正規化（2026-10-29）');
+
+// 使用者回報：「我之前改過的東西似乎都不會影響那些已經存進系統了的角色卡。
+// 為什麼會這樣？有辦法做到讓日後修改的任何規則和文本都能 reflect 進之前已經寫好的角色卡嗎？」
+// 兩層雙保險：
+// 1. 渲染時動態查表（resolveHeroicSkillEntry / resolveSpellEntry / resolveCharacterSpells / resolveSkillDisplay）
+// 2. 載入時正規化舊譯名與刷新快照（normalizeCharacter / normalizeRosterCharacters / normalizeRosterClassNames）
+
+// ── 1. 英雄技能渲染時動態查表（即使存檔裡寫了過時 effect / source / 舊名，畫面也以權威表為準）
+const staleHeroicChar = {
+  ...createNewCharacter({ name: '舊英雄卡' }),
+  classes: [
+    {
+      className: '突變體',
+      level: 10,
+      skills: [{ name: '混合變形', sl: 2, variantId: 'theriomorphosisVariant' }]
+    }
+  ],
+  heroicSkills: [
+    {
+      name: '潔净月光', // 舊簡繁混寫名
+      source: 'core', // 故意寫錯出處（權威表是 natural_fantasy）
+      requirement: '舊版錯誤條件',
+      effect: '這是一段早已被刪除的舊版錯誤英雄技能說明'
+    },
+    {
+      name: '進階混合變形',
+      source: 'techno_fantasy',
+      effect: '舊版進階混合變形說明，且未套用變體覆寫'
+    }
+  ]
+};
+
+const resolvedMoonlight = resolveHeroicSkillEntry(staleHeroicChar.heroicSkills[0], staleHeroicChar);
+check('（CT-1）resolveHeroicSkillEntry：舊名「潔净月光」自動對齊為「潔淨月光」',
+  resolvedMoonlight.name, '潔淨月光');
+check('（CT-2）resolveHeroicSkillEntry：忽略存檔裡的錯誤 source，回傳權威表的 naturalFantasy',
+  resolvedMoonlight.source, 'naturalFantasy');
+check('（CT-3）resolveHeroicSkillEntry：忽略存檔裡的過時 effect，回傳權威表最新條文',
+  [resolvedMoonlight.effect.includes('這是一段早已被刪除的舊版錯誤英雄技能說明'),
+    resolvedMoonlight.effect.includes('奧術類武器')],
+  [false, true]);
+
+const staleCardHtml = renderToStaticMarkup(React.createElement(CharacterCard, {
+  character: staleHeroicChar,
+  themeId: 'emerald'
+}));
+const staleCardHeroicSec = staleCardHtml.slice(staleCardHtml.indexOf('英雄技能'));
+check('（CT-4 SSR）CharacterCard 英雄技能區段不印存檔裡的過時文字，改印最新權威條文與變體覆寫',
+  [staleCardHeroicSec.includes('這是一段早已被刪除的舊版錯誤英雄技能說明'),
+    staleCardHeroicSec.includes('潔淨月光'),
+    staleCardHeroicSec.includes('（變體版本不提供追加動作。）')],
+  [false, true, true]);
+
+const staleEditorStep5Html = renderEditorAt(5, {
+  classes: staleHeroicChar.classes,
+  heroicSkills: staleHeroicChar.heroicSkills
+});
+check('（CT-5 SSR）CharacterEditor 第 5 步忽略舊快照，顯示最新條文、自然奇幻出處徽章與變體覆寫',
+  [staleEditorStep5Html.includes('這是一段早已被刪除的舊版錯誤英雄技能說明'),
+    staleEditorStep5Html.includes('潔淨月光'),
+    staleEditorStep5Html.includes('自然奇幻'),
+    staleEditorStep5Html.includes('（變體版本不提供追加動作。）')],
+  [false, true, true, true]);
+
+const staleExportModel = buildSheetModel(staleHeroicChar);
+check('（CT-6）CharacterSheetExport buildSheetModel 英雄技能取最新條文與變體覆寫',
+  [staleExportModel.heroicSkills[0].name,
+    staleExportModel.heroicSkills[0].effect.includes('這是一段早已被刪除的舊版錯誤英雄技能說明'),
+    staleExportModel.heroicSkills[1].effect.includes('（變體版本不提供追加動作。）')],
+  ['潔淨月光', false, true]);
+
+// ── 2. 咒語渲染時動態查表與 selectedOptions 同步
+const staleSpellChar = {
+  ...createNewCharacter({ name: '舊咒語卡' }),
+  classes: [
+    {
+      className: '元素師',
+      level: 2,
+      skills: [
+        {
+          name: '元素魔法',
+          sl: 2,
+          selectedOptions: ['冰川覆裂\u26A1', '元素武器']
+        }
+      ]
+    }
+  ],
+  spells: [
+    {
+      name: '照明烈焰\u26A1',
+      mp: '999',
+      target: '舊目標',
+      duration: '舊持續時間',
+      isOffensive: false,
+      attr1: 'MIG',
+      attr2: 'MIG',
+      effect: '這是一段早已被修正的舊版錯誤咒語文字'
+    }
+  ]
+};
+
+const resolvedFlare = resolveSpellEntry(staleSpellChar.spells[0]);
+check('（CT-7）resolveSpellEntry：剝除舊版閃電哨兵並以 rulesData 最新數值覆蓋舊快照',
+  [resolvedFlare.name, resolvedFlare.mp, resolvedFlare.isOffensive,
+    resolvedFlare.effect.includes('這是一段早已被修正的舊版錯誤咒語文字')],
+  ['照明烈焰', '20', true, false]);
+
+const mergedSpells = resolveCharacterSpells(staleSpellChar);
+check('（CT-8）resolveCharacterSpells：合併 spells 陣列與職業技能 selectedOptions，並去重正規化',
+  mergedSpells.map((s) => s.name),
+  ['照明烈焰', '冰川覆裂', '元素武器']);
+
+const staleHudSpellsHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: staleSpellChar,
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {},
+  initialTab: 'spells'
+}));
+check('（CT-9 SSR）CharacterPlayHUD 咒語分頁不印舊快照文字，且把 selectedOptions 裡的咒語也畫出來',
+  [staleHudSpellsHtml.includes('這是一段早已被修正的舊版錯誤咒語文字'),
+    staleHudSpellsHtml.includes('照明烈焰'),
+    staleHudSpellsHtml.includes('冰川覆裂'),
+    staleHudSpellsHtml.includes('元素武器')],
+  [false, true, true, true]);
+
+const staleSpellExportModel = buildSheetModel(staleSpellChar);
+check('（CT-10）CharacterSheetExport buildSheetModel 咒語表同步包含 selectedOptions 且取最新說明',
+  [staleSpellExportModel.page2Spells.map((s) => s.name),
+    staleSpellExportModel.page2Spells[0].desc.includes('這是一段早已被修正的舊版錯誤咒語文字')],
+  [['照明烈焰', '冰川覆裂', '元素武器'], false]);
+
+// ── 3. 職業技能變體（resolveSkillDisplay）在各檢視面的一致性
+const variantSkillChar = {
+  ...createNewCharacter({ name: '變體技能卡' }),
+  classes: [
+    {
+      className: '嵌合師',
+      level: 2,
+      skills: [{ name: '咒語模仿', sl: 2, variantId: 'spellBuffet' }]
+    }
+  ]
+};
+const variantCardHtml = renderToStaticMarkup(React.createElement(CharacterCard, {
+  character: variantSkillChar,
+  themeId: 'emerald'
+}));
+const variantHudSkillsHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: variantSkillChar,
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {},
+  initialTab: 'skills'
+}));
+const variantExportModel = buildSheetModel(variantSkillChar);
+check('（CT-11 SSR）選用變體後，CharacterCard、CharacterPlayHUD 與列印匯出模型都顯示「咒語自助餐」與上限 6',
+  [variantCardHtml.includes('咒語自助餐'),
+    variantCardHtml.includes('SL 2 / 6'),
+    variantHudSkillsHtml.includes('咒語自助餐'),
+    variantHudSkillsHtml.includes('SL 2 / 6'),
+    variantExportModel.page1Classes[0].skills[0].name,
+    variantExportModel.page1Classes[0].skills[0].maxSL],
+  [true, true, true, true, '咒語自助餐', 6]);
+
+// ── 4. 載入時舊譯名遷移與快照刷新（normalizeCharacter / normalizeRosterCharacters）
+const legacySavedChar = {
+  ...createNewCharacter({ name: '遠古存檔角色' }),
+  quirk: '倖存者（自奇）',
+  classes: [
+    {
+      className: '守護者【Playtest】',
+      level: 2,
+      skills: [{ name: '護衛', sl: 2 }]
+    },
+    {
+      className: '武器大師【Playtest】',
+      level: 1,
+      skills: [{ name: '反擊', sl: 1 }]
+    },
+    {
+      className: '神射手【Playtest】',
+      level: 1,
+      skills: [{ name: '高速', sl: 1 }]
+    },
+    {
+      className: '熵師',
+      level: 1,
+      skills: [
+        { name: '熵係魔法', sl: 1, selectedOptions: ['加速\u26A1'] },
+        { name: '待會再見', sl: 1 }
+      ]
+    }
+  ],
+  technospheres: {
+    mode: 'off',
+    mnemospheres: [
+      {
+        id: 'm-legacy',
+        className: '秘儀師【Playtest】',
+        level: 1,
+        skills: [{ name: '秘術再生', sl: 1 }]
+      }
+    ],
+    hoplospheres: [],
+    equippedIds: [],
+    knapsackIds: []
+  },
+  equipment: {
+    mainHand: '闊劍',
+    offHand: '重型塔盾',
+    armor: '賢者長袍 (Sage Robe)',
+    accessory: '無'
+  },
+  heroicSkills: [
+    { name: '潔净月光', source: 'core', effect: '舊快照' }
+  ],
+  spells: [
+    { name: '照明烈焰\u26A1', mp: '999', effect: '舊咒語快照' }
+  ]
+};
+
+const normalizedChar = normalizeCharacter(legacySavedChar);
+check('（CT-12）舊職業名自動遷移（含已刪除的 6 個【Playtest】職業與【變體】秘儀師）',
+  [normalizedChar.classes.map((c) => c.className),
+    normalizedChar.technospheres.mnemospheres[0].className],
+  [['守護者', '武器大師', '神射手', '熵師'], '秘儀師【變體】']);
+check('（CT-13）舊技能名自動遷移（護衛→保鏢、高速→迅捷、熵係魔法→熵系魔法、待會再見→後會有期）',
+  normalizedChar.classes.flatMap((c) => c.skills.map((s) => s.name)),
+  ['保鏢', '反擊', '迅捷', '熵系魔法', '後會有期']);
+check('（CT-14）舊金手指後綴與舊裝備名稱（含括號英文）自動遷移',
+  [normalizedChar.quirk,
+    normalizedChar.equipment.mainHand,
+    normalizedChar.equipment.offHand,
+    normalizedChar.equipment.armor],
+  ['倖存者', '巨劍', '符文圓盾', '賢者長袍']);
+check('（CT-15）舊英雄技能名稱遷移並刷新存檔快照',
+  [normalizedChar.heroicSkills[0].name,
+    normalizedChar.heroicSkills[0].source,
+    normalizedChar.heroicSkills[0].effect === '舊快照'],
+  ['潔淨月光', 'naturalFantasy', false]);
+check('（CT-16）舊咒語名稱剝除哨兵、刷新存檔快照並補齊 selectedOptions 咒語',
+  [normalizedChar.spells.map((s) => s.name),
+    normalizedChar.spells[0].mp,
+    normalizedChar.spells[0].effect === '舊咒語快照'],
+  [['照明烈焰', '加速'], '20', false]);
+
+// ── 5. 已經乾淨的角色載入時必須保持 `===` 參照相等（避免觸發無謂寫入與重渲染）
+const alreadyCleanRoster = normalizeRosterCharacters(normalizeRosterClassNames([normalizedChar]));
+check('（CT-17）已乾淨的角色再跑一次 normalizeRosterClassNames + normalizeRosterCharacters 保持 === 參照相等',
+  [alreadyCleanRoster === normalizeRosterCharacters(alreadyCleanRoster),
+    alreadyCleanRoster[0] === normalizedChar],
+  [true, true]);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

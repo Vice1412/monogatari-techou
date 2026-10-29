@@ -44,6 +44,8 @@ import {
   applyLevelUp,
   classSkillsForClass,
   getCharacterLevel,
+  resolveSpellEntry,
+  resolveCharacterSpells,
   CLASS_MAX_LEVEL,
   MAX_NON_MASTERED_CLASSES,
   LEVEL_UP_NEW_CLASS_PREFIX,
@@ -51,7 +53,8 @@ import {
 } from '../utils/characterEngine';
 import rulesData from '../data/rulesData.json';
 import CharacterPreviewModal from './CharacterPreviewModal';
-import { STATUS_AFFLICTIONS, ATTRIBUTE_NAMES } from '../data/sourcebookConfig';
+import { STATUS_AFFLICTIONS, ATTRIBUTE_NAMES, normalizeClassName, normalizeSkillName } from '../data/sourcebookConfig';
+import { resolveSkillDisplay } from '../data/coreBookVariants';
 import { hasGreaterTheriomorphosis } from '../data/theriomorphosisVariant';
 import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
 import { isZeroPowersEnabled } from '../data/zeroPowers';
@@ -651,24 +654,17 @@ export default function CharacterPlayHUD({
 
   // Add spell to character
   const handleLearnSpell = (spell) => {
-    const currentSpells = character.spells || [];
-    if (currentSpells.some(s => s.name === spell.name)) {
+    const currentSpells = resolveCharacterSpells(character);
+    const resolved = resolveSpellEntry(spell);
+    if (currentSpells.some(s => s.name === resolved.name)) {
       showToast('已掌握此咒語');
       return;
     }
 
-    const newSpells = [...currentSpells, {
-      name: spell.name,
-      school: spell.school || '通用',
-      mp: spell.mp || '10',
-      target: spell.target || '單體',
-      duration: spell.duration || '瞬發',
-      isOffensive: !!spell.isOffensive || hasLegacyOffensiveSentinel(spell.name) || spell.effect?.includes('（o）') || spell.effect?.includes('受到'),
-      effect: spell.effect || ''
-    }];
+    const newSpells = [...currentSpells, resolved];
 
     updateField('spells', newSpells);
-    showToast(`已掌握咒語【${spell.name}】！`);
+    showToast(`已掌握咒語【${resolved.name}】！`);
     setIsSpellModalOpen(false);
   };
 
@@ -1648,7 +1644,9 @@ export default function CharacterPlayHUD({
           )}
 
           {/* TAB 2: 咒語與魔法 (Dedicated Spells Tab) */}
-          {activeTab === 'spells' && (
+          {activeTab === 'spells' && (() => {
+            const resolvedSpells = resolveCharacterSpells(character);
+            return (
             <div className="space-y-4 animate-fade-in text-xs">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
@@ -1658,7 +1656,7 @@ export default function CharacterPlayHUD({
                 {/* 清單為空時**收起**標頭這顆：空狀態裡已經有一顆講得更清楚的
                     「從規則庫選擇習得咒語」。同一屏兩顆按鈕做同一件事，
                     使用者會以為它們不一樣（§3.4 立過此例，工坊那次是反過來收空狀態那顆）。 */}
-                {(character.spells || []).length > 0 && (
+                {resolvedSpells.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setIsSpellModalOpen(true)}
@@ -1671,11 +1669,10 @@ export default function CharacterPlayHUD({
               </div>
 
               {/* Spells Cards List */}
-              {(character.spells || []).length > 0 ? (
+              {resolvedSpells.length > 0 ? (
                 <div className="space-y-2.5">
-                  {(character.spells || []).map((sp, idx) => {
-                    const rulesSpell = (rulesData.spells || []).find(s => s.name === sp.name);
-                    const isOffensive = sp.isOffensive ?? rulesSpell?.isOffensive ?? (hasLegacyOffensiveSentinel(sp.name) || sp.effect?.includes('傷害') || sp.effect?.includes('（o）'));
+                  {resolvedSpells.map((sp, idx) => {
+                    const isOffensive = Boolean(sp.isOffensive);
                     const spellCheck = parseCheckFormula('INS + WLP', stats);
                     const spellDamage = parseDamageFormula(sp.effect || '');
                     const isExpanded = !!expandedSpells[sp.name];
@@ -1811,15 +1808,18 @@ export default function CharacterPlayHUD({
                 </div>
               )}
             </div>
-          )}
+            );
+          })()}
 
           {/* TAB 3: 職業特技 (Class Skills - Streamlined) */}
           {activeTab === 'skills' && (
             <div className="space-y-4 animate-fade-in text-xs">
-              {(character.classes || []).map((cl, cIdx) => (
+              {(character.classes || []).map((cl, cIdx) => {
+                const cName = normalizeClassName(cl.className);
+                return (
                 <div key={cIdx} className="space-y-2">
                   <div className="flex items-center gap-2 border-b pb-1" style={{ borderColor: theme.border }}>
-                    <span className="font-serif font-black text-sm" style={{ color: theme.textDark }}>{withEn(cl.className)}</span>
+                    <span className="font-serif font-black text-sm" style={{ color: theme.textDark }}>{withEn(cName)}</span>
                     <JRPGBadge variant={theme.badgeVariant} size="xs">Lv {cl.level}</JRPGBadge>
                   </div>
 
@@ -1827,31 +1827,33 @@ export default function CharacterPlayHUD({
                       以前「武器與戰鬥」與「職業特技」各掛一次同一份面板（DOM 加倍），
                       而死靈術士只在「武器與戰鬥」——玩家學了【殘酷的誕生】會來這裡找，然後以為沒做。
                       現在面板只掛一次，這一頁只負責指路。文案與判斷都來自 `data/classPanels.js`。 */}
-                  {classPanelHint(character, cl.className, 'skills') ? (
+                  {classPanelHint(character, cName, 'skills') ? (
                     <p
                       className="text-t11 leading-relaxed rounded border-l-2 pl-2 py-1"
                       style={{ color: theme.textMuted, borderColor: theme.accent }}
-                      data-testid={`class-panel-hint-${cl.className}`}
+                      data-testid={`class-panel-hint-${cName}`}
                     >
-                      ※ {classPanelHint(character, cl.className, 'skills')}
+                      ※ {classPanelHint(character, cName, 'skills')}
                     </p>
                   ) : null}
 
                   <div className="space-y-2">
                     {(cl.skills || []).map((sk, sIdx) => {
-                      const classDef = rulesData.classes[cl.className];
-                      const skillDef = classDef?.skills?.find(s => s.name === sk.name);
-                      const isExpanded = !!expandedSkills[`${cl.className}_${sk.name}`];
+                      const normSkName = normalizeSkillName(sk.name);
+                      const classDef = rulesData.classes[cName];
+                      const skillDef = classDef?.skills?.find(s => s.name === normSkName);
+                      const display = resolveSkillDisplay({ ...sk, name: normSkName }, skillDef);
+                      const isExpanded = !!expandedSkills[`${cName}_${normSkName}`];
 
                       return (
                         <div key={sIdx} className="p-3 bg-white rounded border transition-all hover:border-[#3c2415]" style={{ borderColor: theme.border }}>
                           <div className="flex items-center justify-between font-bold mb-1">
                             <span className="flex items-center gap-1.5" style={{ color: theme.textDark }}>
                               <span style={{ color: theme.accent }}>✦</span>
-                              <span>{sk.name}</span>
+                              <span>{display.name}</span>
                             </span>
                             <div className="flex items-center gap-1.5">
-                              {cl.className === '修補匠' && sk.name === '小工具' && (
+                              {cName === '修補匠' && normSkName === '小工具' && (
                                 <button
                                   type="button"
                                   onClick={(e) => {
@@ -1866,19 +1868,19 @@ export default function CharacterPlayHUD({
                                 </button>
                               )}
                               <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]">
-                                SL {sk.sl} / {skillDef?.maxSL || 5}
+                                SL {sk.sl} / {display.maxSL || 5}
                               </span>
                             </div>
                           </div>
 
                           <div className="text-t12 text-[#6b5a4b] leading-relaxed">
                             <div className={isExpanded ? '' : 'line-clamp-2'}>
-                              <SkillDescription desc={skillDef?.desc || '暫無描述'} sl={sk.sl} />
+                              <SkillDescription desc={display.desc || '暫無描述'} sl={sk.sl} />
                             </div>
-                            {skillDef?.desc && skillDef.desc.length > 80 && (
+                            {display.desc && display.desc.length > 80 && (
                               <button
                                 type="button"
-                                onClick={() => toggleSkillExpand(`${cl.className}_${sk.name}`)}
+                                onClick={() => toggleSkillExpand(`${cName}_${normSkName}`)}
                                 className="text-t12 text-[#3c2415] font-bold mt-1 flex items-center gap-0.5 cursor-pointer"
                               >
                                 {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -1982,8 +1984,8 @@ export default function CharacterPlayHUD({
                                 </div>
                               ) : (
                                 <SuboptionDetailsList
-                                  className={cl.className}
-                                  skillName={sk.name}
+                                  className={cName}
+                                  skillName={normSkName}
                                   selectedOptions={sk.selectedOptions}
                                   showVolumeBlock={true}
                                   variantId={sk.variantId || null}
@@ -1992,7 +1994,7 @@ export default function CharacterPlayHUD({
                               )}
 
                               {/* 靈能者專屬靈刻時鐘 */}
-                              {cl.className === '靈能者' && sk.name === '心靈天賦' && (
+                              {cName === '靈能者' && normSkName === '心靈天賦' && (
                                 <div className="mt-2 p-2.5 bg-[#f4ebd9] rounded border border-[#d6c7ab] flex items-center justify-between gap-3 flex-wrap">
                                   <div className="flex items-center gap-3">
                                     <ClockTracker
@@ -2124,7 +2126,7 @@ export default function CharacterPlayHUD({
                     </div>
                   )}
 
-                  {cl.className === '卡牌大師' && (cl.skills || []).some(s => s.name === '魔法卡組' && s.sl > 0) && (
+                  {cName === '卡牌大師' && (cl.skills || []).some(s => normalizeSkillName(s.name) === '魔法卡組' && s.sl > 0) && (
                     <div className="mt-3">
                       <AceOfCardsTable
                         character={character}
@@ -2142,7 +2144,8 @@ export default function CharacterPlayHUD({
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
