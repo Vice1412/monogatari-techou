@@ -17,14 +17,14 @@
 印出來帶去團裡；GM 也能用它做敵人（NPC）。純前端，資料存在瀏覽器裡，沒有帳號、沒有伺服器。
 
 - 程式：`src/`，約 6 萬行，React 19 + Vite 6 + Tailwind 3
-- 測試：`tests/` 31 道關卡，`npm test`
+- 測試：`tests/` 34 道關卡，`npm test`
 - 規則本體：`GEMINI.md`（最高）＞ `AGENTS.md`（執行細則）
 - 現在做到哪：`docs/playtest/resume.md`
 - 踩過的坑：`docs/handoff.md`
 
 **最重要的一件事**：這個專案的問題向來不是「寫不出功能」，而是
 **「數字算對了，但玩家看不懂」** 和 **「同一個判斷寫在五個地方，只修了兩個」**。
-你接手後最大的價值不是加新功能，是把已經開著的 8 條缺陷收乾淨。
+你接手後最大的價值不是加新功能，是把已經開著的 2 條缺陷收乾淨（都只記錄、不排修）。
 
 ---
 
@@ -58,7 +58,7 @@
 ```bash
 npm install          # 如果 node_modules 不存在
 npm run handoff      # 生成 docs/STATE-LIVE.md（現況實測）
-npm test             # 31 道關卡，確認基準是綠的
+npm test             # 34 道關卡，確認基準是綠的
 ```
 
 然後讀：
@@ -66,7 +66,7 @@ npm test             # 31 道關卡，確認基準是綠的
 | 想知道 | 去哪 |
 |---|---|
 | 現在做到哪、下一步是哪三條 | `docs/playtest/resume.md`（續傳卡，每輪只讀這張） |
-| 29 條缺陷的總表與裁定順序 | `docs/playtest/99-summary.md` |
+| 42 條缺陷的總表與裁定順序 | `docs/playtest/99-summary.md` |
 | 每一條缺陷的斷言規格 | `docs/playtest/test-backlog.md` |
 | 完整量測數字（可能過時） | `docs/state.md` |
 
@@ -198,7 +198,11 @@ src/
 | localStorage | `src/data/store.js` | 遷移鐵律：權威鍵空才複製，永不覆寫、永不刪舊鍵 |
 | 九相屬性內聯 | `renderTextWithAffinities` | 原則「寧漏不誤」，判定在 `affinityText.js` |
 | 第 5 步標題 | `CREATION_STEPS[4].label` | 現名「英雄技能與金手指」 |
-| 術語解釋 | `data/glossary.js` + `TermHint.jsx` | 12 條，每條恰好一句。定義放 `aria-label` |
+| 術語解釋 | `data/glossary.js` + `TermHint.jsx` | 16 條，每條恰好一句。定義放 `aria-label` |
+| 攻擊性咒語計數 | `countOffensiveSpells()` | 名冊的 `isOffensive` 是**唯一真相**（38 條，20 真）。**不要**用「效果文有沒有提到傷害」推論——【遲鈍】【幻覺】【激怒】不打傷害但仍是攻擊性 |
+| 忠實夥伴物種是否符合 | `resolveCompanionSpeciesGate(required, actual)` | 物種在 `wayfarerData.companion.species`，**不是**「App 不知道」。沒選夥伴／物種名不認得 → 退回玩家；選了但不對 → 擋並寫出目前是什麼 |
+| 英雄技能「算不到的前提」 | `heroicSkillExtraPrerequisite()` / `resolveHeroicExtraRequirement()` / `isClassOnlySegment()` | 三段：職業／等級／額外前提。**不要**用 `.slice(1)` 假設「第一段一定是職業段」——【躍空】就是反例 |
+| 修補匠【小工具】的階級 | `data/gadgetBranches.js` 的節點名 | 官方是**基礎／高級／最高**（不是進階／上位）。職業技能那份原本寫錯、英雄技能那份本來就對 |
 
 **改共享資料（`rulesData`）前先問「這是誰的物件」**，一律 `{ ...obj }` 複製後再改。
 曾經因為直接改共享物件，造成「徒手傷害」被寫進全站所有武器。
@@ -219,6 +223,8 @@ src/
 | 零之元素未選完傷害類型就不畫卡片 | **刻意的**，不是漏渲染 |
 | 覺醒之力找不到觸發 chips | **搬走了**，搬到覺醒區，不是不見了 |
 | 術語解釋是 tooltip 不是辭典頁 | GM 裁定。不要提議改成獨立分頁 |
+| 勾選框有「4 條」和「6 條」兩個數字 | **兩個都對，量的層不一樣**。4 ＝ 語法上判不出來（`checkable: false`）；6 ＝ 選擇器現在真的會問你。差的是【這東西是活著的】【根源共生】——條件讀得懂，但你還沒選夥伴 |
+| 小工具寫「高級」「最高」而不是「進階」「上位」 | 官方用字，兩份獨立抽取物逐字一致。**不要**因為「進階聽起來比較順」改回去 |
 
 ---
 
@@ -229,7 +235,7 @@ src/
 大方向（截至交接時）：
 
 1. 收掉還開著的缺陷（裁定順序在 `99-summary.md` §六）
-2. 115 筆英雄技能從來沒測過（S5 沒跑），這是內容可達率的唯一缺口
+2. 115 筆核心英雄技能已於 2026-10-28 跑完（P9）；**還沒讀過的是 Playtest 43 筆 ＋ 變體秘儀師 9 筆的「效果全文」**（前提分類 P31～P33 已量過三輪）
 3. ~~真人驗證~~ **已取消（2026-10-29，GM 裁定）**——不做真人測試，所以結論永遠停在「候選缺陷」；改用護欄與實機腳本補（`00-plan.md` §10.8）
 4. 未裁定事項在 `AGENTS.md` §6.1，**未裁定前不要自行開修**
 
