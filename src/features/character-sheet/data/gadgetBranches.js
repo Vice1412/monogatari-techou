@@ -25,8 +25,8 @@
  * ## 原文位置
  *
  * - 分支宣告：p.38 `BRANCHING MAGITECH`（含「用魔導武裝就不能取【量子魔加農】」）
- * - 魔導武裝：p.39 基礎／進階／上級
- * - 魔法球：p.38 基礎／進階／上級
+ * - 魔導武裝：p.39 基礎／高級／最高
+ * - 魔法球：p.38 基礎／高級／最高
  * - 魔晶石制的改寫：科技奇幻手冊 p.133 `EQUIPMENT RULES CHANGES`
  */
 
@@ -42,19 +42,19 @@
  */
 export const MAGISPHERE_TARGET_PATTERN = /至多\s*[3三]\s*(?:個|隻)?\s*生物/;
 
-/** 官方明訂不可選為魔法球的咒語（p.38 進階與上級各寫一次）。 */
+/** 官方明訂不可選為魔法球的咒語（p.38 高級與最高各寫一次）。 */
 export const MAGISPHERE_EXCLUDED_SPELLS = Object.freeze(['毀盪']);
 
-/** 每個節點開發幾顆魔法球（基礎 2、進階再 2、上級再 2）。 */
+/** 每個節點開發幾顆魔法球（基礎 2、高級再 2、最高再 2）。 */
 export const MAGISPHERE_SPELLS_PER_TIER = 2;
 
 /** 透過魔法球施展的咒語，魔法檢定一律用這組屬性（p.38）。 */
 export const MAGISPHERE_MAGIC_CHECK = '【INS＋WLP】';
 
-/** 進階魔法球對「攻擊性咒語（O）」的魔法檢定加值（p.38）。 */
+/** 高級魔法球對「攻擊性咒語（O）」的魔法檢定加值（p.38）。 */
 export const MAGISPHERE_OFFENSIVE_BONUS = 2;
 
-/** 三個學派——基礎與上級魔法球只能從這三張表挑。 */
+/** 三個學派——基礎與最高魔法球只能從這三張表挑。 */
 export const MAGISPHERE_CORE_SCHOOLS = Object.freeze(['元素', '熵系', '靈魂']);
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -81,8 +81,8 @@ const ARMAMENT_NODES = Object.freeze([
   }),
   Object.freeze({
     tier: 2,
-    tierName: '進階益處',
-    name: '進階武裝',
+    tierName: '高級益處',
+    name: '高級武裝',
     cost: '2 IP',
     dice: '無檢定',
     summary:
@@ -95,7 +95,7 @@ const ARMAMENT_NODES = Object.freeze([
   Object.freeze({
     tier: 3,
     tierName: '最高益處',
-    name: '上級武裝',
+    name: '最高武裝',
     cost: '—',
     dice: '技能動作',
     summary:
@@ -126,8 +126,8 @@ const MAGISPHERE_NODES = Object.freeze([
   }),
   Object.freeze({
     tier: 2,
-    tierName: '進階益處',
-    name: '進階魔法球',
+    tierName: '高級益處',
+    name: '高級魔法球',
     cost: '2 IP',
     dice: `${MAGISPHERE_MAGIC_CHECK}＋2`,
     summary:
@@ -142,7 +142,7 @@ const MAGISPHERE_NODES = Object.freeze([
   Object.freeze({
     tier: 3,
     tierName: '最高益處',
-    name: '上級魔法球',
+    name: '最高魔法球',
     cost: '2 IP',
     dice: `${MAGISPHERE_MAGIC_CHECK}＋2`,
     summary:
@@ -184,7 +184,7 @@ export const MAGITECH_BRANCHES = Object.freeze({
 export const getMagitechBranch = (variantId) => MAGITECH_BRANCHES[variantId] || null;
 
 /**
- * 這條分支總共要挑幾顆魔法球（基礎 2、進階 4、上級 6）。
+ * 這條分支總共要挑幾顆魔法球（基礎 2、高級 4、最高 6）。
  * 非魔法球分支回 0。
  */
 export const getMagisphereSlotCount = (tier, branchId = 'magispheres') => {
@@ -193,7 +193,7 @@ export const getMagisphereSlotCount = (tier, branchId = 'magispheres') => {
   return t * MAGISPHERE_SPELLS_PER_TIER;
 };
 
-/** 攻擊性咒語的魔法檢定加值（進階以上才有）。 */
+/** 攻擊性咒語的魔法檢定加值（高級以上才有）。 */
 export const getMagisphereOffensiveBonus = (tier) =>
   (Number(tier) || 0) >= 2 ? MAGISPHERE_OFFENSIVE_BONUS : 0;
 
@@ -240,7 +240,7 @@ const normalizeNpcSpell = (name, sp) => ({
 });
 
 /**
- * 這條分支在**當前階級**可以挑的咒語池（累積：基礎 2 顆的池 ＋ 進階的池 ＋ 上級的池）。
+ * 這條分支在**當前階級**可以挑的咒語池（累積：基礎 2 顆的池 ＋ 高級的池 ＋ 最高的池）。
  *
  * @param {number} tier 已解鎖的節點數（0–3）
  * @param {object} sources
@@ -259,13 +259,13 @@ export const getMagispherePool = (tier, { coreSpells = [], npcSpells = {} } = {}
 
   const picked = [];
 
-  // 基礎：三學派中「目標為至多三個生物」的咒語；上級則是三學派全部
+  // 基礎：三學派中「目標為至多三個生物」的咒語；最高則是三學派全部
   if (t >= 1) {
     const corePick = t >= 3 ? core : core.filter((s) => isUpToThreeCreaturesTarget(s.target));
     picked.push(...corePick.map(normalizeCoreSpell));
   }
 
-  // 進階：NPC 咒語表（排除【毀盪】）
+  // 高級：NPC 咒語表（排除【毀盪】）
   if (t >= 2) {
     picked.push(...npcEntries);
   }
@@ -299,7 +299,7 @@ export const MAGITECH_CORE_NODES = Object.freeze([
   Object.freeze({
     id: 'magicannon',
     tier: 2,
-    tierName: '進階益處',
+    tierName: '高級益處',
     name: '魔加農火器',
     cost: '2 IP',
     dice: '【DEX + INS】+1',
@@ -332,7 +332,7 @@ export const MAGITECH_CORE_NODES = Object.freeze([
  *    Ranged • Cannot have Qualities`）。魔晶石制的裝備白名單只剩定制武器／防具／
  *    飾品／機師模組，它不在裡面；而且 `Cannot have Qualities` 意味著它**一顆魔石都
  *    鑲不了**（插槽來自 Slot α/β/γ/δ 品質）。留著只會讓玩家選一個不能用的東西。
- * 2. **魔法球原型往下兼容成「進階益處」**——原書說的是 `turn into an advanced
+ * 2. **魔法球原型往下兼容成「高級益處」**——原書說的是 `turn into an advanced
  *    magitech benefit`，不是刪除。它本來是最高檔（tier 3），魔晶石制下補上魔加農
  *    空出來的位置（tier 2），所以這一態的魔導科技**只有兩個益處**。
  *
@@ -348,7 +348,7 @@ export const resolveMagitechNodes = (technoRestrictsEquipment = false) => {
   return MAGITECH_CORE_NODES
     .filter((node) => node.id !== 'magicannon')
     .map((node) => (node.id === 'magispheres'
-      ? Object.freeze({ ...node, tier: 2, tierName: '進階益處' })
+      ? Object.freeze({ ...node, tier: 2, tierName: '高級益處' })
       : node));
 };
 

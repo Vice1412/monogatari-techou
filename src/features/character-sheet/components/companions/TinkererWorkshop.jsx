@@ -1332,7 +1332,7 @@ export default function TinkererWorkshop({
                     <GiBroadsword className="w-5 h-5 text-[#6b5a4b]" />
                     <span>武器灌注工藝</span>
                     <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] font-bold">
-                      {gadgets.infusion === 0 ? '尚未研發' : gadgets.infusion === 1 ? '基礎灌注' : gadgets.infusion === 2 ? '進階灌注' : '最高灌注'}
+                      {gadgets.infusion === 0 ? '尚未研發' : gadgets.infusion === 1 ? '基礎灌注' : gadgets.infusion === 2 ? '高級灌注' : '最高灌注'}
                     </span>
                   </h4>
                   <p className="text-t12 text-[#6b5a4b]">
@@ -1410,7 +1410,7 @@ export default function TinkererWorkshop({
                     </div>
                   ))}
 
-                  {/* 進階灌注 */}
+                  {/* 高級灌注 */}
                   {gadgets.infusion >= 2 && [
                     { name: '疾風', affinity: '風', desc: '額外造成 5 點傷害，傷害類型轉為【風】屬性。' },
                     { name: '驅邪', affinity: '光', desc: '額外造成 5 點傷害，傷害類型轉為【光】屬性。' },

@@ -40,7 +40,8 @@ import {
   calculateCharacterStats,
   HEROIC_SKILLS,
   heroicSkillExtraPrerequisite,
-  resolveHeroicExtraRequirement
+  resolveHeroicExtraRequirement,
+  countOffensiveSpells
 } from '../src/features/character-sheet/utils/characterEngine.js';
 import { resolveCreationRules } from '../src/features/character-sheet/data/creationRules.js';
 import { HeroicSkillPickerBody } from '../src/features/character-sheet/components/HeroicSkillPickerModal.jsx';
@@ -121,21 +122,27 @@ check('每一段額外前提都不是以「且」或「並」開頭（清理乾�
   withExtra.filter(({ extra }) => /^[且並]/.test(extra)).map(({ h }) => h.name), []);
 
 // ─────────────────────────────────────────────────────────── C
-section('C. 分類：28 條引擎自己判得出來，6 條交回玩家（逐條釘住）');
+section('C. 分類：31 條引擎自己判得出來，3 條交回玩家（逐條釘住）');
 
 const resolved = HS.map((h) => ({ h, r: resolveHeroicExtraRequirement(h) })).filter((x) => x.r.hasExtra);
 const auto = resolved.filter((x) => x.r.checkable);
 const manual = resolved.filter((x) => !x.r.checkable);
 
 check('有額外前提的條數', resolved.length, 34);
-check('可自動判 28 條', auto.length, 28);
-check('交回玩家 6 條', manual.length, 6);
+check('可自動判 31 條', auto.length, 31);
+check('交回玩家 3 條', manual.length, 3);
 
-// 這 6 條**點名列出**。只驗「6 條」的話，A 換成 B 也會是 6 條，測試照樣綠。
-// 三種不可判的原因：①有技能≠有那個物種 ②有技能≠拿了那個增益 ③資料沒有那個分類。
-check('交回玩家的就是這 6 條（多一條少一條都要回來看）',
+// 這 3 條**點名列出**。只驗「3 條」的話，A 換成 B 也會是 3 條，測試照樣綠。
+// 剩下的一種不可判原因：「有那個技能」≠「拿了那個增益」——
+// App 知道你有【小工具】，不知道你走了哪一軌。
+//
+// ※ 2026-10-29（P33）從 6 條變 3 條。三條**都是變成判得出來**，不是放寬：
+//   ・【奧法戰士】38 條咒語補上 `isOffensive`（官方角色卡 Excel 的 ⚡ 標記）→ 數得出來
+//   ・【這東西是活著的】【根源共生】物種存在 `wayfarerData.companion.species` → 判得出來
+//     ※ 分類上可判，但**玩家還沒設計夥伴時仍然交回玩家**（見 C3 段）。
+check('交回玩家的就是這 3 條（多一條少一條都要回來看）',
   manual.map((x) => x.h.name),
-  ['奧法戰士', '藥水霧化', '量子魔加農', '大鍋秘方', '這東西是活著的', '根源共生']);
+  ['藥水霧化', '量子魔加農', '大鍋秘方']);
 
 // 抽驗內容：不是「有命中就算」，要認對人、認對關係。
 check('瞬息之間 → 需要【招架反擊】（單一技能）',
@@ -185,24 +192,36 @@ check('「已取得【偷襲】或【個人載具】」→ any',
   [resolveOfFull('暗藏武器').mode, resolveOfFull('暗藏武器').needs.map((n) => n.name).sort()],
   ['any', ['個人載具', '偷襲'].sort()]);
 
-// 點名釘住。這 8 條是「引擎真的判不出來」的，其餘 39 條都判得出來。
+// 點名釘住。這幾條是「**解析不出來**」的，其餘 43 條都解析得出來。
 // 數字或名單一變就要回來看：多一條可能是填充詞又漏了，少一條可能是資料改了。
 //
 // ※ 2026-10-29（P32）從 9 條變 8 條：【躍空】不再交回玩家。
 //   原因不是「放寬」，而是**它原本根本沒被檢查**——舊寫法無條件丟掉第一段，
 //   把「已學會【飛天打擊】」當成職業段丟了，只剩「你便不能取得」這句團務限制，
 //   於是那一列長出勾選框，玩家勾一下就能拿一個沒學過【飛天打擊】的英雄技能。
-check('全部 167 條裡，交回玩家的是這 8 條',
+// ※ 2026-10-29（P33）再從 8 條變 4 條：奧法戰士／收割行者離開這張表（真的判得出來了），
+//   這東西是活著的／根源共生**移到 C3**——它們的「判不出來」不是解析的問題，
+//   是**資料還沒填**（玩家沒設計夥伴）。混在同一張表裡會看不出這個差別。
+check('全部 167 條裡，解析不出來的是這 4 條',
   fullManual.map((h) => h.name),
-  ['奧法戰士', '藥水霧化', '量子魔加農', '大鍋秘方', '這東西是活著的', '根源共生',
-    '爆裂藝術家', '收割行者']);
+  ['藥水霧化', '量子魔加農', '大鍋秘方', '爆裂藝術家']);
 
-// 反向控制：這兩條**看起來**應該能判，其實不行。它們是「保守」這件事的證據。
+// 反向控制：這一條**看起來**應該能判，其實不行。它是「保守」這件事的證據。
 // ※【躍空】原本也在這一段，現在移到下面「真的判得出來」那一組。
-check('收割行者 → 交回玩家（引用的【高速】在名冊裡不存在，不猜）',
-  resolveOfFull('收割行者').checkable, false);
 check('藥水霧化 → 交回玩家（引用的「高級煉金術」在名冊裡不存在，不猜）',
   resolveOfFull('藥水霧化').checkable, false);
+
+// 【收割行者】原本寫的是「已取得【高速】或【竊取時間】」，而【高速】在名冊裡不存在，
+// 於是殘字消不掉、整條交回玩家。2026-10-29 GM 裁定：**【高速】是【迅捷】，遊蕩者的技能。**
+// 對照職業也說得通：熵師→【竊取時間】、遊蕩者→【迅捷】，正好一人一招。
+check('收割行者 → 判得出來，而且是「任一個」',
+  [resolveOfFull('收割行者').checkable, resolveOfFull('收割行者').mode,
+    resolveOfFull('收割行者').needs.map((n) => n.name).sort()],
+  [true, 'any', ['竊取時間', '迅捷'].sort()]);
+check('收割行者的原文已經是【迅捷】，不再有【高速】',
+  byNameFull('收割行者').requirement.includes('【高速】'), false);
+check('收割行者的原文仍然是【迅捷】（不是把整句拿掉）',
+  byNameFull('收割行者').requirement.includes('【迅捷】'), true);
 
 // 【躍空】是 P32 抓到的「安靜的漏檢查」：它的第一段不是職業段。
 // 這三條一起守——**只改一條不夠**：只驗「不再交回玩家」，程式碼把前提丟掉也會過。
@@ -239,14 +258,73 @@ const uncoveredNames = HEROIC_SKILLS.filter((h) => {
   const needs = resolveHeroicExtraRequirement(h).needs.map((n) => n.name);
   return known.some((n) => !needs.includes(n));
 }).map((h) => h.name);
-check('條件裡【】寫到的已知技能名，needs 都要涵蓋（例外逐條點名）',
-  uncoveredNames,
-  ['收割行者']);
-// 為什麼只有這一條可以例外：
-//   收割行者 —— 引用的【高速】在名冊裡不存在（F-035），殘字消不掉。**不猜。**
+check('條件裡【】寫到的已知技能名，needs 都要涵蓋（一條例外都沒有）',
+  uncoveredNames, []);
+// ※ 這張例外清單 2026-10-29 已經清空：
+//   收割行者原本是唯一的例外（引用的【高速】在名冊裡不存在，殘字消不掉）。
+//   改成【迅捷】之後它的兩個名字都認得，`needs` 涵蓋得到，所以不再需要例外。
+//   **例外清單歸零不代表這條護欄可以刪**——它守的是「條件寫到什麼就要檢查什麼」，
+//   下一個人漏掉一段時，這裡會是唯一會叫的地方（【躍空】就是這樣被抓到的）。
+//
 // 沒有括號、但條件裡提到已知技能的兩條（這東西是活著的「忠實夥伴（構裝體物種）」、
-// 根源共生「忠實夥伴（植物物種）」）由上面「交回玩家的 8 條」點名守著——
-// 它們不是「漏檢查」，是**真的判不出來**（App 不知道你選了哪個物種）。
+// 根源共生「忠實夥伴（植物物種）」）不在這條的掃描範圍內（它們沒有【】），
+// 改由 C3 段逐條釘住：物種對得上就判得出來、對不上就講清楚差在哪。
+
+// ─────────────────────────────────────────────────────────── C3
+section('C3. 判定層：引擎「解析得出來」不等於「現在就有答案」');
+
+// 【這東西是活著的】【根源共生】在 C 段的分類是 `checkable: true`（語句解析得出來），
+// 但那不等於現在就有答案：物種存在角色卡上，**玩家沒設計夥伴之前那裡是空的**。
+// 這一節把「分類」和「實際判定」分開量——兩者混著看，就會誤以為已經不必問玩家。
+const companionGate = (name, { species = null, skills = ['忠實夥伴', '高瞻遠矚'] } = {}) =>
+  checkHeroicSkillRequirement(byNameFull(name), {
+    masteredClasses: ['旅人'], classes: ['旅人'], level: 50,
+    learnedSkills: skills.map((n) => ({ name: n, sl: 1 })),
+    companionSpecies: species
+  });
+
+check('還沒設計夥伴 → 這東西是活著的仍然交回玩家（不假裝知道）',
+  companionGate('這東西是活著的').needsPlayerConfirm, true);
+check('還沒設計夥伴 → 根源共生仍然交回玩家',
+  companionGate('根源共生').needsPlayerConfirm, true);
+check('夥伴是【構裝體】→ 這東西是活著的可以拿',
+  companionGate('這東西是活著的', { species: '構裝體' }).ok, true);
+check('夥伴是【構裝體】→ 根源共生不行，而且講清楚差在哪',
+  companionGate('根源共生', { species: '構裝體' }).reason,
+  '需忠實夥伴是【植物】物種（目前【構裝體】）');
+check('夥伴是【植物】→ 根源共生可以拿',
+  companionGate('根源共生', { species: '植物' }).ok, true);
+check('夥伴是【植物】→ 這東西是活著的講的是構裝體',
+  companionGate('這東西是活著的', { species: '植物' }).reason,
+  '需忠實夥伴是【構裝體】物種（目前【植物】）');
+check('夥伴是【野獸】→ 兩條都不行',
+  [companionGate('這東西是活著的', { species: '野獸' }).ok,
+    companionGate('根源共生', { species: '野獸' }).ok], [false, false]);
+// ※ 這一條守的是 P32【躍空】的同一個錯誤：物種那一關過了，**同一句裡的其他前提**
+//   還是要檢查。【這東西是活著的】是「忠實夥伴（構裝體物種）**和**高瞻遠矚技能」。
+check('物種對了但沒學【高瞻遠矚】→ 仍然不能拿（不能因為物種過了就整句放行）',
+  companionGate('這東西是活著的', { species: '構裝體', skills: ['忠實夥伴'] }).reason,
+  '需先學會【高瞻遠矚】');
+
+// 【奧法戰士】「至少學會兩個攻擊性咒語」：攻擊性由 `rulesData.spells[].isOffensive` 決定，
+// 那個欄位來自官方角色卡 Excel「咒語合集」的 ⚡ 標記（38 條裡 20 條）。
+const wizardGate = (spells) => checkHeroicSkillRequirement(byNameFull('奧法戰士'), {
+  masteredClasses: ['元素師'], classes: ['元素師'], level: 50,
+  learnedSkills: [], learnedSpells: spells
+});
+check('攻擊性咒語 0 個 → 不能拿', wizardGate([]).ok, false);
+check('只有 1 個 → 不能拿，而且要說出目前幾個', wizardGate(['照明烈焰']).reason,
+  '需至少學會 2 個攻擊性咒語（目前 1 個）');
+check('（對照）2 個攻擊性 → 可以拿', wizardGate(['照明烈焰', '雷霆']).ok, true);
+check('非攻擊性咒語不算數（【治癒】＋【屏障】＝ 0 個）',
+  countOffensiveSpells(['治癒', '屏障']), 0);
+check('一個攻擊性 ＋ 一個非攻擊性 ＝ 1 個',
+  countOffensiveSpells(['治癒', '雷霆']), 1);
+check('嵌合師記下的咒語（物件帶 isOffensive）也算',
+  countOffensiveSpells(['治癒', { name: '自訂吐息', isOffensive: true }]), 1);
+check('物件沒有 isOffensive、名字也不在名單裡 → 不算（不猜）',
+  countOffensiveSpells([{ name: '自訂咒語' }]), 0);
+check('混著字串與物件不會爆', countOffensiveSpells([null, '', '雷霆']), 1);
 
 // ─────────────────────────────────────────────────────────── D
 section('D. 判定：有學／沒學／「或」／「和」／技能等級／沒給「學過什麼」');
@@ -292,11 +370,16 @@ check('技能等級不夠的訊息要寫出目前幾級', asCard(2).reason, '需
 check('技能等級 3 → 可以選', asCard(3).ok, true);
 check('沒學【魔法卡組】→ 不能選（sl 當 0 算，不是當成有）', asCard(0).ok, false);
 
-// 判不出來的 6 條：`ok` 仍然是 true，但要標記「請玩家自己確認」。
-check('奧法戰士（判不出來）→ 不擋，但要求玩家確認',
-  [asCreation('奧法戰士').ok, asCreation('奧法戰士').needsPlayerConfirm], [true, true]);
-check('奧法戰士 → 帶出要確認的那段原文',
-  asCreation('奧法戰士').extraText, '至少學會兩個攻擊性咒語');
+// 判不出來的條目：`ok` 仍然是 true，但要標記「請玩家自己確認」。
+//
+// ※ 這一組原本用【奧法戰士】當樣本。2026-10-29 補上咒語的 `isOffensive` 之後它變成
+//   判得出來（見 C3），所以樣本換成【藥水霧化】——它仍然判不出來（「高級煉金術」
+//   不是一個技能名，是【小工具】的一條軌）。
+check('藥水霧化（判不出來）→ 不擋，但要求玩家確認',
+  [asCreation('藥水霧化', [], ['修補匠']).ok,
+    asCreation('藥水霧化', [], ['修補匠']).needsPlayerConfirm], [true, true]);
+check('藥水霧化 → 帶出要確認的那段原文',
+  asCreation('藥水霧化', [], ['修補匠']).extraText, '必須獲得小工具技能中的高級煉金術技能');
 check('判得出來而且通過的 → 不要要求玩家確認',
   [asCreation('瞬息之間', [{ name: '招架反擊', sl: 1 }]).ok,
     Boolean(asCreation('瞬息之間', [{ name: '招架反擊', sl: 1 }]).needsPlayerConfirm)], [true, false]);
@@ -400,26 +483,63 @@ check('瞬息之間那一列寫的是「不可選」（不是「先確認」）'
   [momentRow.includes('不可選'), momentRow.includes('先確認')], [true, false]);
 
 // 判不出來 → 才問玩家。
-const warRow = rowOf(creationHtml, '奧法戰士');
-check('奧法戰士在預設視圖裡', creationRows.includes('奧法戰士'), true);
-check('奧法戰士那一列有勾選框（引擎判不出「兩個攻擊性咒語」）', hasConfirm(warRow), true);
-check('奧法戰士的勾選框寫出要確認的那段', warRow.includes('至少學會兩個攻擊性咒語'), true);
-check('奧法戰士的勾選框說明有講「App 不會自動檢查」', warRow.includes('App 不會自動檢查'), true);
-check('奧法戰士沒勾之前按鈕停用、寫「先確認」',
-  [isBtnDisabled(pickTag(warRow, '奧法戰士')), warRow.includes('先確認')], [true, true]);
+// ※ 樣本原本是【奧法戰士】，2026-10-29 它變成判得出來之後換成【藥水霧化】
+//   （「必須獲得小工具技能中的高級煉金術技能」——App 知道你有【小工具】，不知道你走了哪一軌）。
+//   【藥水霧化】只對修補匠開放，所以要另開一個修補匠視圖來量（預設視圖是武器大師）。
+const brewHtml = renderPicker({
+  over: { classes: [{ className: '修補匠', level: 5, skills: [] }] },
+  rules: { startingHeroicSkill: true }
+});
+const brewRows = renderedNames(brewHtml);
+const brewRow = rowOf(brewHtml, '藥水霧化');
+check('藥水霧化在修補匠視圖裡', brewRows.includes('藥水霧化'), true);
+check('藥水霧化那一列有勾選框（引擎判不出「高級煉金術益處」）', hasConfirm(brewRow), true);
+check('藥水霧化的勾選框寫出要確認的那段', brewRow.includes('高級煉金術'), true);
+check('藥水霧化的勾選框說明有講「App 不會自動檢查」', brewRow.includes('App 不會自動檢查'), true);
+check('藥水霧化沒勾之前按鈕停用、寫「先確認」',
+  [isBtnDisabled(pickTag(brewRow, '藥水霧化')), brewRow.includes('先確認')], [true, true]);
 
-// 逐一驗：畫面上每一列，只有「判不出來」的才該有勾選框。
-// 這條用 `resolveHeroicExtraRequirement` 當期望值——**它與畫面讀的是同一份判定**，
-// 所以它守的是「畫面有沒有照判定走」，不是「判定對不對」（那是 C 段的事）。
-const manualNames = manual.map((x) => x.h.name);
-const expectConfirm = creationRows.filter((n) => manualNames.includes(n));
-const expectNoConfirm = creationRows.filter((n) => !manualNames.includes(n));
-check('（自我檢查）這一輪真的兩種列都有（否則下面的逐一驗等於只驗一種）',
-  [expectConfirm.length > 0, expectNoConfirm.length > 0], [true, true]);
-check('該有勾選框的列，一條都沒漏',
-  expectConfirm.filter((n) => !hasConfirm(rowOf(creationHtml, n))), []);
-check('不該有勾選框的列，一條都沒多',
-  expectNoConfirm.filter((n) => hasConfirm(rowOf(creationHtml, n))), []);
+// 逐一驗：畫面上每一列，只有「**現在**判不出來」的才該有勾選框。
+//
+// ※ 期望值要跟畫面用**同一組輸入**算，否則量到的不是同一件事：
+//   畫面的條件是 `verdict.needsPlayerConfirm && verdict.ok && !blocked`，
+//   而 `resolveHeroicExtraRequirement(...).checkable` 只是**語句層**的分類。
+//   2026-10-29 之前兩者剛好一致（沒有哪一條是「解析得出來但缺資料」），
+//   【這東西是活著的】【根源共生】改成判物種之後就不一致了：
+//   分類是 checkable、但玩家沒設計夥伴時仍然要問。
+//   用 `manual` 當期望值的話，這兩條會被判成「多出來的勾選框」——那是**量錯**，不是產品錯。
+const expectedConfirmFor = (classNames) => HEROIC_SKILLS.filter((h) => {
+  const v = checkHeroicSkillRequirement(h, {
+    masteredClasses: [], classes: classNames, level: 5, atCreation: true,
+    learnedSkills: [], learnedSpells: [], companionSpecies: null
+  });
+  return Boolean(v.needsPlayerConfirm) && v.ok;
+}).map((h) => h.name);
+
+// 兩個視圖都要量，理由不同：
+//   ・**武器大師**：它底下**一條「判不出來」都沒有**（那四條分屬修補匠／熵師／嵌合師／靈能者）。
+//     所以「該有勾選框的一條都沒漏」在這個視圖裡是**恆真的**——那是假綠燈（MEMORY 鐵則 7）。
+//     這個視圖改為釘住「它就是零條」，並量「一條都不該多」。
+//   ・**修補匠**：有【藥水霧化】，兩個方向都量得到。
+for (const view of [
+  { label: '武器大師', classNames: ['武器大師'], html: creationHtml, rows: creationRows, expectAny: false },
+  { label: '修補匠', classNames: ['修補匠'], html: brewHtml, rows: brewRows, expectAny: true }
+]) {
+  const manualNames = expectedConfirmFor(view.classNames);
+  const expectConfirm = view.rows.filter((n) => manualNames.includes(n));
+  const expectNoConfirm = view.rows.filter((n) => !manualNames.includes(n));
+  if (view.expectAny) {
+    check(`${view.label}視圖：（自我檢查）兩種列都有（否則下面的逐一驗等於只驗一種）`,
+      [expectConfirm.length > 0, expectNoConfirm.length > 0], [true, true]);
+  } else {
+    check(`${view.label}視圖：這一頁本來就沒有「判不出來」的列（把這件事釘住，免得變成假綠）`,
+      expectConfirm.length, 0);
+  }
+  check(`${view.label}視圖：該有勾選框的列，一條都沒漏`,
+    expectConfirm.filter((n) => !hasConfirm(rowOf(view.html, n))), []);
+  check(`${view.label}視圖：不該有勾選框的列，一條都沒多`,
+    expectNoConfirm.filter((n) => hasConfirm(rowOf(view.html, n))), []);
+}
 
 // 學了【招架反擊】之後，同一列要變成可以選（這是「真的在判」的正面證明）。
 const learnedHtml = renderPicker({

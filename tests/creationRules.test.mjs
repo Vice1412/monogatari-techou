@@ -694,6 +694,82 @@ check('拿了【躍空】卻沒學【飛天打擊】→ 也要講出來',
     .map((w) => w.message), ['【躍空】需先學會【飛天打擊】']);
 check('（對照）學了【飛天打擊】就沒有這個警告',
   heroicWarnings({ heroicSkills: ['躍空'], classes: master('武器大師'), spells: ['飛天打擊'] }), []);
+
+// ── P33：三條原本「交回玩家」的前提，2026-10-29 之後判得出來
+//
+// 這一段守的是 F-037 那條路徑：**判得出來之後，`validateCharacter` 有沒有把
+// 「學過哪些咒語／夥伴是什麼物種」一起傳進去。**只寫在選擇器的話，舊卡片永遠不會被發現——
+// 而 GM 2026-10-29 回報的那張卡正是「舊卡」。
+
+// 【奧法戰士】「至少學會兩個攻擊性咒語」——攻擊性來自 `rulesData.spells[].isOffensive`。
+check('拿了【奧法戰士】卻只有 1 個攻擊性咒語 → 卡片上要講出來',
+  heroicWarnings({
+    heroicSkills: ['奧法戰士'], classes: master('元素師'), spells: ['照明烈焰']
+  }).map((w) => w.message), ['【奧法戰士】需至少學會 2 個攻擊性咒語（目前 1 個）']);
+check('（對照）兩個攻擊性咒語就沒有這個警告',
+  heroicWarnings({
+    heroicSkills: ['奧法戰士'], classes: master('元素師'), spells: ['照明烈焰', '雷霆']
+  }), []);
+check('非攻擊性咒語不算數（【治癒】【屏障】仍然是 0 個）',
+  heroicWarnings({
+    heroicSkills: ['奧法戰士'], classes: master('元素師'), spells: ['治癒', '屏障']
+  }).map((w) => w.message), ['【奧法戰士】需至少學會 2 個攻擊性咒語（目前 0 個）']);
+
+// 嵌合師自己記下的咒語（`chimeristData.spells`，存物件）也要算進去，
+// 否則一個合法的【奧法戰士】會被擋掉——那是比「不擋」更糟的錯。
+check('嵌合師記下的兩個攻擊性咒語 → 算數',
+  heroicWarnings({
+    heroicSkills: ['奧法戰士'], classes: master('元素師'),
+    chimeristData: { spells: [
+      { name: '自訂吐息', isOffensive: true },
+      { name: '自訂詛咒', isOffensive: true }
+    ] }
+  }), []);
+check('（對照）一個攻擊性 ＋ 一個非攻擊性 → 仍然只有 1 個，要擋',
+  heroicWarnings({
+    heroicSkills: ['奧法戰士'], classes: master('元素師'),
+    chimeristData: { spells: [
+      { name: '自訂吐息', isOffensive: true },
+      { name: '自訂治療', isOffensive: false }
+    ] }
+  }).map((w) => w.message), ['【奧法戰士】需至少學會 2 個攻擊性咒語（目前 1 個）']);
+
+// 【這東西是活著的】【根源共生】——物種在 `wayfarerData.companion.species`。
+check('夥伴是【植物】卻拿了【這東西是活著的】→ 卡片上要講出來',
+  heroicWarnings({
+    heroicSkills: ['這東西是活著的'],
+    classes: master('旅人'),
+    wayfarerData: { companion: { species: '植物' } }
+  }).map((w) => w.message),
+  ['【這東西是活著的】需忠實夥伴是【構裝體】物種（目前【植物】）']);
+check('（對照）夥伴是【構裝體】而且學了【高瞻遠矚】→ 沒有這個警告',
+  heroicWarnings({
+    heroicSkills: ['這東西是活著的'],
+    classes: [{ className: '旅人', level: 10, skills: [{ name: '忠實夥伴', sl: 1 }, { name: '高瞻遠矚', sl: 1 }] }],
+    wayfarerData: { companion: { species: '構裝體' } }
+  }), []);
+check('夥伴是【植物】卻拿了【根源共生】→ 這一條反而不該叫',
+  heroicWarnings({
+    heroicSkills: ['根源共生'],
+    classes: [{ className: '旅人', level: 10, skills: [{ name: '忠實夥伴', sl: 1 }] }],
+    wayfarerData: { companion: { species: '植物' } }
+  }), []);
+check('還沒設計夥伴 → 不擋（交回玩家，不假裝知道）',
+  heroicWarnings({
+    heroicSkills: ['這東西是活著的'], classes: master('旅人')
+  }).filter((w) => w.field === 'heroicSkills'), []);
+
+// 【收割行者】——2026-10-29 GM 裁定【高速】是【迅捷】（遊蕩者的技能）。
+check('沒學【迅捷】也沒學【竊取時間】→ 收割行者要講出來',
+  heroicWarnings({ heroicSkills: ['收割行者'], classes: master('遊蕩者') })
+    // 訊息的順序跟著名冊（長名優先）走，不是跟著原句走——原句的順序在選擇器的
+    // 「條件」欄裡看得到，這裡只驗「兩個都點名了、而且是『或』」。
+    .map((w) => w.message), ['【收割行者】需先學會【竊取時間】或【迅捷】其中之一']);
+check('（對照）學了【迅捷】就沒有這個警告',
+  heroicWarnings({
+    heroicSkills: ['收割行者'],
+    classes: [{ className: '遊蕩者', level: 10, skills: [{ name: '迅捷', sl: 1 }] }]
+  }), []);
 check('「A或B」任一精通即可',
   checkHeroicSkillRequirement({ requirement: '狂怒鬥士或武器大師' },
     { masteredClasses: ['武器大師'], level: 5 }).ok, true);

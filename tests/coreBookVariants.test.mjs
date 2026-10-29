@@ -708,12 +708,12 @@ check('進階池的 NPC 咒語都標記需自訂化',
   pool2.filter((s) => s.source === 'npc').every((s) => s.needsCustomization === true), true);
 check('進階池含官方舉例的【詛咒之息】', pool2.some((s) => s.name === '詛咒之息'), true);
 check('進階池排除【毀盪】', pool2.some((s) => s.name === '毀盪'), false);
-check('上級池 = 核心 38 ＋ NPC 37 − 同名 24 ＝ 51', pool3.length, 51);
-check('上級池名稱不重複（同名以核心優先）',
+check('最高池 = 核心 38 ＋ NPC 37 − 同名 24 ＝ 51', pool3.length, 51);
+check('最高池名稱不重複（同名以核心優先）',
   new Set(pool3.map((s) => s.name)).size, pool3.length);
-check('上級池的【照明烈焰】來自核心', 
+check('最高池的【照明烈焰】來自核心', 
   pool3.find((s) => s.name === '照明烈焰')?.source, 'core');
-check('上級池仍排除【毀盪】', pool3.some((s) => s.name === '毀盪'), false);
+check('最高池仍排除【毀盪】', pool3.some((s) => s.name === '毀盪'), false);
 check('官方排除清單就是【毀盪】', [...MAGISPHERE_EXCLUDED_SPELLS], ['毀盪']);
 check('NPC 咒語的 {spell_xxx} 佔位符換成選項標籤',
   resolveSpellPlaceholders('造成 {spell_x} 傷害', [{ key: 'spell_x', label: '屬性' }]),
@@ -723,7 +723,7 @@ check('未知佔位符 → 〔自訂〕', resolveSpellPlaceholders('{spell_unkno
 // ── R3 顆數、檢定與加值
 check('魔法球顆數 0／2／4／6', [0, 1, 2, 3].map((t) => getMagisphereSlotCount(t)), [0, 2, 4, 6]);
 check('魔導武裝沒有咒語欄位', getMagisphereSlotCount(3, 'magitechArmament'), 0);
-check('攻擊性咒語加值：基礎 0、進階 2、上級 2',
+check('攻擊性咒語加值：基礎 0、高級 2、最高 2',
   [0, 1, 2, 3].map((t) => getMagisphereOffensiveBonus(t)), [0, 0, 2, 2]);
 check('魔法球檢定固定為【INS＋WLP】', MAGISPHERE_MAGIC_CHECK, '【INS＋WLP】');
 check('「至多三個生物」判定（兩種寫法都算）',
@@ -753,10 +753,10 @@ check('魔法球：顯示【基礎魔法球】', sphModal.includes('基礎魔法
 check('魔法球：核心三節點全數消失', CORE_NODES.some((n) => sphModal.includes(n)), false);
 check('魔法球：基礎就解鎖咒語挑選器（0 / 2 顆）', sphModal.includes('已配置 0 / 2 顆'), true);
 const sphTier3 = renderGadgets('magispheres', { alchemy: 0, infusion: 0, magitech: 3, magitechSpells: [] });
-check('魔法球：上級是 6 顆', sphTier3.includes('已配置 0 / 6 顆'), true);
-check('魔法球：上級才顯示攻擊性 +2', sphTier3.includes('攻擊性咒語 +2'), true);
-check('魔法球：上級節點全部出現',
-  ['基礎魔法球', '進階魔法球', '上級魔法球'].every((n) => sphTier3.includes(n)), true);
+check('魔法球：最高檔是 6 顆', sphTier3.includes('已配置 0 / 6 顆'), true);
+check('魔法球：最高檔才顯示攻擊性 +2', sphTier3.includes('攻擊性咒語 +2'), true);
+check('魔法球：最高檔節點全部出現',
+  ['基礎魔法球', '高級魔法球', '最高魔法球'].every((n) => sphTier3.includes(n)), true);
 
 // ── R5 跑團速查：第三軌的名稱與節點也要跟著分支走
 const renderQuickRef = (variantId, gadgets) => plain(renderToStaticMarkup(
@@ -770,12 +770,12 @@ const qrSph = renderQuickRef('magispheres', qrGadgets);
 const qrArm = renderQuickRef('magitechArmament', qrGadgets);
 check('速查核心：顯示魔科技篡奪', qrCore.includes('魔科技篡奪'), true);
 check('速查核心：第三軌標籤為「魔科技」', qrCore.includes('魔科技'), true);
-check('速查魔法球：顯示基礎與進階魔法球節點',
-  qrSph.includes('基礎【基礎魔法球】') && qrSph.includes('進階【進階魔法球】'), true);
+check('速查魔法球：顯示基礎與高級魔法球節點',
+  qrSph.includes('基礎【基礎魔法球】') && qrSph.includes('高級【高級魔法球】'), true);
 check('速查魔法球：核心節點消失',
   qrSph.includes('魔科技篡奪') || qrSph.includes('魔加農'), false);
-check('速查魔導武裝：顯示基礎與進階武裝',
-  qrArm.includes('基礎【基礎武裝】') && qrArm.includes('進階【進階武裝】'), true);
+check('速查魔導武裝：顯示基礎與高級武裝',
+  qrArm.includes('基礎【基礎武裝】') && qrArm.includes('高級【高級武裝】'), true);
 check('速查魔導武裝：核心節點消失',
   qrArm.includes('魔科技篡奪') || qrArm.includes('魔加農'), false);
 

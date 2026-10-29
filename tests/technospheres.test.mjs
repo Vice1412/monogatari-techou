@@ -1227,8 +1227,8 @@ check('魔晶石制：魔科技篡奪留著（基礎檔不受影響）',
   technoMagitech[0].id, 'magitechOverride');
 check('魔晶石制：魔法球原型補上進階檔',
   [technoMagitech[1].id, technoMagitech[1].name], ['magispheres', '魔法球原型']);
-check('魔晶石制：魔法球的檔位名是「進階益處」',
-  technoMagitech[1].tierName, '進階益處');
+check('魔晶石制：魔法球的檔位名是「高級益處」',
+  technoMagitech[1].tierName, '高級益處');
 check('核心書：魔法球原本在最高檔',
   [coreMagitech[2].tier, coreMagitech[2].tierName], [3, '最高益處']);
 check('核心書：魔加農在進階檔', coreMagitech[1].id, 'magicannon');
@@ -1313,7 +1313,7 @@ check('SSR 彈窗：核心書有魔加農節點', coreViews.modal.includes('魔�
 check('SSR 彈窗：魔晶石制沒有魔加農節點', technoViews.modal.includes('魔加農火器'), false);
 check('SSR 彈窗：魔晶石制仍有魔科技篡奪', technoViews.modal.includes('魔科技篡奪'), true);
 check('SSR 彈窗：魔晶石制仍有魔法球原型', technoViews.modal.includes('魔法球原型'), true);
-check('SSR 彈窗：魔晶石制的魔法球掛在進階檔', technoViews.modal.includes('進階益處'), true);
+check('SSR 彈窗：魔晶石制的魔法球掛在高級檔', technoViews.modal.includes('高級益處'), true);
 // 兩處：「魔法球原型」節點的 tierName ＋ 檔位狀態條（currentTier === 3 的文案）
 check('SSR 彈窗：最高益處比核心少兩個（節點 ＋ 檔位條）',
   tally(coreViews.modal, '最高益處') - tally(technoViews.modal, '最高益處'), 2);

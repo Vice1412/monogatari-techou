@@ -105,10 +105,18 @@ export function HeroicSkillPickerBody({
     () => (character?.classes || []).flatMap((c) => c.skills || []),
     [JSON.stringify((character?.classes || []).map((c) => c.skills || []))] // eslint-disable-line react-hooks/exhaustive-deps
   );
+  // 咒語：三學派（存名字）＋ 嵌合師自己記下的（存物件，帶 `isOffensive`）。
+  // 【奧法戰士】要數「攻擊性咒語」，漏掉嵌合師那一半會把合法角色擋掉。
   const learnedSpells = useMemo(
-    () => (character?.spells || []).map((s) => (typeof s === 'string' ? s : s?.name)).filter(Boolean),
-    [JSON.stringify((character?.spells || []).map((s) => (typeof s === 'string' ? s : s?.name)))] // eslint-disable-line react-hooks/exhaustive-deps
+    () => [
+      ...(character?.spells || []).map((s) => (typeof s === 'string' ? s : s?.name)).filter(Boolean),
+      ...(character?.chimeristData?.spells || [])
+    ],
+    [JSON.stringify((character?.spells || []).map((s) => (typeof s === 'string' ? s : s?.name))),
+      JSON.stringify(character?.chimeristData?.spells || [])] // eslint-disable-line react-hooks/exhaustive-deps
   );
+  /** 忠實夥伴的物種（【這東西是活著的】＝構裝體、【根源共生】＝植物）。沒設計過就是 null。 */
+  const companionSpecies = character?.wayfarerData?.companion?.species || null;
 
   // 這一張卡「自己的職業會解鎖哪些」——用來當預設過濾
   const mine = useMemo(
@@ -132,13 +140,15 @@ export function HeroicSkillPickerBody({
           .filter((x) => (x?.name || x) === h.name).length;
         const max = heroicSkillMaxAcquisitions(h);
         const verdict = checkHeroicSkillRequirement(h, {
-          masteredClasses, classes: myClasses, level, atCreation, learnedSkills, learnedSpells
+          masteredClasses, classes: myClasses, level, atCreation,
+          learnedSkills, learnedSpells, companionSpecies
         });
         const already = owned >= max;
         // 只能靠開局名額取得（精通條件還沒到）
         const needsSlot = !verdict.ok && atCreation
           && checkHeroicSkillRequirement(h, {
-            classes: myClasses, level, atCreation: true, learnedSkills, learnedSpells
+            classes: myClasses, level, atCreation: true,
+            learnedSkills, learnedSpells, companionSpecies
           }).ok;
         const blocked = already || (needsSlot && slotBlocked);
         const reason = already
@@ -151,7 +161,7 @@ export function HeroicSkillPickerBody({
         return { h, owned, max, verdict, already, blocked, reason, extra, needsConfirm, ok: verdict.ok };
       });
   }, [query, onlyMyClasses, sourceFilter, mine, character, masteredClasses.join('|'), // eslint-disable-line react-hooks/exhaustive-deps
-    level, atCreation, slotBlocked, learnedSkills, learnedSpells]);
+    level, atCreation, slotBlocked, learnedSkills, learnedSpells, companionSpecies]);
 
   const sources = useMemo(() => [...new Set(HEROIC_SKILLS.map((h) => h.source))], []);
 

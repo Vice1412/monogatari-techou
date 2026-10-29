@@ -428,7 +428,7 @@
         {
           "name": "小工具",
           "maxSL": 5,
-          "desc": "當你首次獲得此技能時，選擇一種小工具類型：**煉金術**、**灌注術**或**魔導科技**。你獲得其**基礎益處**。\n每當你再次獲得此技能時，選擇一個選項：你獲得一種新小工具類型的**基礎益處**；**或**你獲得已擁有基礎益處之小工具類型的**進階益處**；**或**你獲得已擁有進階益處之小工具類型的**上位益處**。"
+          "desc": "當你首次獲得此技能時，選擇一種小工具類型：**煉金術**、**灌注術**或**魔導科技**。你獲得其**基礎益處**。\n每當你再次獲得此技能時，選擇一個選項：你獲得一種新小工具類型的**基礎益處**；**或**你獲得已擁有基礎益處之小工具類型的**高級益處**；**或**你獲得已擁有高級益處之小工具類型的**最高益處**。"
         },
         {
           "name": "藥水雨",
@@ -945,6 +945,7 @@
     {
       "school": "元素",
       "name": "元素防護罩",
+      "isOffensive": false,
       "mp": "5 × T",
       "target": "至多3個生物",
       "duration": "場景",
@@ -953,6 +954,7 @@
     {
       "school": "元素",
       "name": "元素武器",
+      "isOffensive": false,
       "mp": "10",
       "target": "一把武器",
       "duration": "場景",
@@ -961,51 +963,52 @@
     {
       "school": "元素",
       "name": "照明烈焰",
+      "isOffensive": true,
       "mp": "20",
       "target": "1個生物",
       "duration": "瞬發",
-      "effect": "目標受到【HR + 25】火屬性傷害；此傷害無視抗性。",
-      "isOffensive": true
+      "effect": "目標受到【HR + 25】火屬性傷害；此傷害無視抗性。"
     },
     {
       "school": "元素",
       "name": "電流術",
+      "isOffensive": true,
       "mp": "10 × T",
       "target": "至多3個生物",
       "duration": "瞬發",
-      "effect": "每個被此咒語擊中的目標受到【HR + 15】電屬性傷害。\n機會：每個被此咒語擊中的目標陷入眩暈狀態。",
-      "isOffensive": true
+      "effect": "每個被此咒語擊中的目標受到【HR + 15】電屬性傷害。\n機會：每個被此咒語擊中的目標陷入眩暈狀態。"
     },
     {
       "school": "元素",
       "name": "冰川覆裂",
+      "isOffensive": true,
       "mp": "10 × T",
       "target": "至多3個生物",
       "duration": "瞬發",
-      "effect": "每個被此咒語擊中的目標受到【HR + 15】冰屬性傷害。\n機會：每個被此咒語擊中的目標陷入緩慢狀態。",
-      "isOffensive": true
+      "effect": "每個被此咒語擊中的目標受到【HR + 15】冰屬性傷害。\n機會：每個被此咒語擊中的目標陷入緩慢狀態。"
     },
     {
       "school": "元素",
       "name": "冰凍堡壘",
+      "isOffensive": true,
       "mp": "20",
       "target": "1個生物",
       "duration": "瞬發",
-      "effect": "目標受到【HR + 25】冰屬性傷害；此傷害無視抗性。",
-      "isOffensive": true
+      "effect": "目標受到【HR + 25】冰屬性傷害；此傷害無視抗性。"
     },
     {
       "school": "元素",
       "name": "伊格尼斯之火",
+      "isOffensive": true,
       "mp": "10 × T",
       "target": "至多3個生物",
       "duration": "瞬發",
-      "effect": "每個被此咒語擊中的目標受到【HR + 15】火屬性傷害。\n機會：每個被此咒語擊中的目標陷入動搖狀態。",
-      "isOffensive": true
+      "effect": "每個被此咒語擊中的目標受到【HR + 15】火屬性傷害。\n機會：每個被此咒語擊中的目標陷入動搖狀態。"
     },
     {
       "school": "元素",
       "name": "飛天打擊",
+      "isOffensive": false,
       "mp": "10",
       "target": "自己",
       "duration": "瞬發",
@@ -1014,51 +1017,52 @@
     {
       "school": "元素",
       "name": "大地震擊",
+      "isOffensive": true,
       "mp": "10 × T",
       "target": "至多3個生物",
       "duration": "瞬發",
-      "effect": "每個被此咒語擊中的目標受到【HR + 15】土屬性傷害。此咒語不能以正在飛行、漂浮、墜落或在半空中的生物為目標。\n機會：每個被此咒語擊中的目標在其下一個回合中執行的動作減少一個（最少 0 個動作）。",
-      "isOffensive": true
+      "effect": "每個被此咒語擊中的目標受到【HR + 15】土屬性傷害。此咒語不能以正在飛行、漂浮、墜落或在半空中的生物為目標。\n機會：每個被此咒語擊中的目標在其下一個回合中執行的動作減少一個（最少 0 個動作）。"
     },
     {
       "school": "元素",
       "name": "雷霆",
+      "isOffensive": true,
       "mp": "20",
       "target": "1個生物",
       "duration": "瞬發",
-      "effect": "目標受到【HR + 25】電屬性傷害；此傷害無視抗性。",
-      "isOffensive": true
+      "effect": "目標受到【HR + 25】電屬性傷害；此傷害無視抗性。"
     },
     {
       "school": "元素",
       "name": "烈風",
+      "isOffensive": true,
       "mp": "10 × T",
       "target": "至多3個生物",
       "duration": "瞬發",
-      "effect": "每個被此咒語擊中的目標受到【HR + 15】風屬性傷害。\n機會：每個被此咒語擊中的飛行目標被強制立即降落。",
-      "isOffensive": true
+      "effect": "每個被此咒語擊中的目標受到【HR + 15】風屬性傷害。\n機會：每個被此咒語擊中的飛行目標被強制立即降落。"
     },
     {
       "school": "元素",
       "name": "旋渦",
+      "isOffensive": true,
       "mp": "20",
       "target": "一個生物",
       "duration": "瞬發",
-      "effect": "目標受到【HR + 25】風屬性傷害；此傷害無視抗性。",
-      "isOffensive": true
+      "effect": "目標受到【HR + 25】風屬性傷害；此傷害無視抗性。"
     },
     {
       "school": "元素",
       "name": "地碎",
+      "isOffensive": true,
       "mp": "20",
       "target": "一個生物",
       "duration": "瞬發",
-      "effect": "目標受到【HR + 25】土屬性傷害；此傷害無視抗性。",
-      "isOffensive": true
+      "effect": "目標受到【HR + 25】土屬性傷害；此傷害無視抗性。"
     },
     {
       "school": "熵系",
       "name": "加速",
+      "isOffensive": false,
       "mp": "20",
       "target": "一個生物",
       "duration": "場景",
@@ -1067,15 +1071,16 @@
     {
       "school": "熵系",
       "name": "反常",
+      "isOffensive": true,
       "mp": "20",
       "target": "一個生物",
       "duration": "場景",
-      "effect": "在此咒語結束之前，若目標即將遭受其吸收或免疫的傷害類型，改為將該傷害類型視為其弱點屬性。一旦此效果觸發一次，此咒語結束。",
-      "isOffensive": true
+      "effect": "在此咒語結束之前，若目標即將遭受其吸收或免疫的傷害類型，改為將該傷害類型視為其弱點屬性。一旦此效果觸發一次，此咒語結束。"
     },
     {
       "school": "熵系",
       "name": "黑暗武器",
+      "isOffensive": false,
       "mp": "5",
       "target": "一把裝備中的武器",
       "duration": "場景",
@@ -1084,6 +1089,7 @@
     {
       "school": "熵系",
       "name": "驅散",
+      "isOffensive": false,
       "mp": "10",
       "target": "一個生物",
       "duration": "瞬發",
@@ -1092,6 +1098,7 @@
     {
       "school": "熵系",
       "name": "預測",
+      "isOffensive": false,
       "mp": "10",
       "target": "自己",
       "duration": "場景",
@@ -1100,24 +1107,25 @@
     {
       "school": "熵系",
       "name": "抽取精魂",
+      "isOffensive": true,
       "mp": "5",
       "target": "一個生物",
       "duration": "瞬發",
-      "effect": "目標失去【HR + 20】點 MP。隨後，你獲得相當於其所損失 MP 總量一半的 MP（若目標因故未損失任何 MP，你無法獲得任何 MP）。",
-      "isOffensive": true
+      "effect": "目標失去【HR + 20】點 MP。隨後，你獲得相當於其所損失 MP 總量一半的 MP（若目標因故未損失任何 MP，你無法獲得任何 MP）。"
     },
     {
       "school": "熵系",
       "name": "抽取活力",
+      "isOffensive": true,
       "mp": "10",
       "target": "一個生物",
       "duration": "瞬發",
-      "effect": "目標失去【HR + 15】點 HP（視為暗屬性傷害）。隨後，你獲得相當於其所損失 HP 總量一半的 HP（若目標因故未損失任何 HP，你無法獲得任何 HP）。",
-      "isOffensive": true
+      "effect": "目標失去【HR + 15】點 HP（視為暗屬性傷害）。隨後，你獲得相當於其所損失 HP 總量一半的 HP（若目標因故未損失任何 HP，你無法獲得任何 HP）。"
     },
     {
       "school": "熵系",
       "name": "賭博",
+      "isOffensive": false,
       "mp": "至多20",
       "target": "特殊",
       "duration": "瞬發",
@@ -1126,6 +1134,7 @@
     {
       "school": "熵系",
       "name": "魔鏡",
+      "isOffensive": false,
       "mp": "10",
       "target": "一個生物",
       "duration": "場景",
@@ -1134,33 +1143,34 @@
     {
       "school": "熵系",
       "name": "歐米茄終結",
+      "isOffensive": true,
       "mp": "15",
       "target": "一個生物",
       "duration": "瞬發",
-      "effect": "目標失去相當於【20 + 目標等級的一半】點 HP。",
-      "isOffensive": true
+      "effect": "目標失去相當於【20 + 目標等級的一半】點 HP。"
     },
     {
       "school": "熵系",
       "name": "停滯",
+      "isOffensive": true,
       "mp": "10",
       "target": "一個生物",
       "duration": "瞬發",
-      "effect": "目標在其下一個回合中執行的動作減少一個（最少 0 個動作）。",
-      "isOffensive": true
+      "effect": "目標在其下一個回合中執行的動作減少一個（最少 0 個動作）。"
     },
     {
       "school": "熵系",
       "name": "半影",
+      "isOffensive": true,
       "mp": "10 × T",
       "target": "至多3個生物",
       "duration": "瞬發",
-      "effect": "每個被此咒語擊中的目標受到【HR + 15】暗屬性傷害。\n機會：每個被此咒語擊中的目標陷入虛弱狀態。",
-      "isOffensive": true
+      "effect": "每個被此咒語擊中的目標受到【HR + 15】暗屬性傷害。\n機會：每個被此咒語擊中的目標陷入虛弱狀態。"
     },
     {
       "school": "靈魂",
       "name": "光環",
+      "isOffensive": false,
       "mp": "5 × T",
       "target": "至多三個生物",
       "duration": "場景",
@@ -1169,6 +1179,7 @@
     {
       "school": "靈魂",
       "name": "覺醒",
+      "isOffensive": false,
       "mp": "20",
       "target": "一個生物",
       "duration": "場景",
@@ -1177,6 +1188,7 @@
     {
       "school": "靈魂",
       "name": "屏障",
+      "isOffensive": false,
       "mp": "5 × T",
       "target": "至多三個生物",
       "duration": "場景",
@@ -1185,6 +1197,7 @@
     {
       "school": "靈魂",
       "name": "淨化",
+      "isOffensive": false,
       "mp": "5 × T",
       "target": "至多三個生物",
       "duration": "瞬發",
@@ -1193,24 +1206,25 @@
     {
       "school": "靈魂",
       "name": "激怒",
+      "isOffensive": true,
       "mp": "10",
       "target": "一個生物",
       "duration": "瞬發",
-      "effect": "目標陷入憤怒狀態，並且在其下一個回合中不能執行防禦或咒語動作。",
-      "isOffensive": true
+      "effect": "目標陷入憤怒狀態，並且在其下一個回合中不能執行防禦或咒語動作。"
     },
     {
       "school": "靈魂",
       "name": "幻覺",
+      "isOffensive": true,
       "mp": "5 × T",
       "target": "至多三個生物",
       "duration": "瞬發",
-      "effect": "選擇眩暈或動搖狀態：每個被此咒語擊中的目標陷入所選狀態效果。",
-      "isOffensive": true
+      "effect": "選擇眩暈或動搖狀態：每個被此咒語擊中的目標陷入所選狀態效果。"
     },
     {
       "school": "靈魂",
       "name": "治癒",
+      "isOffensive": false,
       "mp": "10 × T",
       "target": "至多三個生物",
       "duration": "瞬發",
@@ -1219,15 +1233,16 @@
     {
       "school": "靈魂",
       "name": "光照射線",
+      "isOffensive": true,
       "mp": "10 × T",
       "target": "至多三個生物",
       "duration": "瞬發",
-      "effect": "每個被此咒語擊中的目標受到【HR + 15】光屬性傷害。\n機會：每個被此咒語擊中的目標陷入眩暈狀態。",
-      "isOffensive": true
+      "effect": "每個被此咒語擊中的目標受到【HR + 15】光屬性傷害。\n機會：每個被此咒語擊中的目標陷入眩暈狀態。"
     },
     {
       "school": "靈魂",
       "name": "慈悲",
+      "isOffensive": false,
       "mp": "20",
       "target": "一個生物",
       "duration": "場景",
@@ -1236,6 +1251,7 @@
     {
       "school": "靈魂",
       "name": "加強",
+      "isOffensive": false,
       "mp": "5 × T",
       "target": "至多三個生物",
       "duration": "場景",
@@ -1244,6 +1260,7 @@
     {
       "school": "靈魂",
       "name": "靈魂武器",
+      "isOffensive": false,
       "mp": "5",
       "target": "一把裝備中的武器",
       "duration": "場景",
@@ -1252,15 +1269,16 @@
     {
       "school": "靈魂",
       "name": "遲鈍",
+      "isOffensive": true,
       "mp": "5 × T",
       "target": "至多三個生物",
       "duration": "瞬發",
-      "effect": "選擇緩慢或虛弱狀態：每個被此咒語擊中的目標陷入所選狀態效果。",
-      "isOffensive": true
+      "effect": "選擇緩慢或虛弱狀態：每個被此咒語擊中的目標陷入所選狀態效果。"
     },
     {
       "school": "靈魂",
       "name": "魂之帷幕",
+      "isOffensive": false,
       "mp": "5 × T",
       "target": "至多三個生物",
       "duration": "場景",

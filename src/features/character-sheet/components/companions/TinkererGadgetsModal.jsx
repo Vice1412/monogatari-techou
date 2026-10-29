@@ -49,8 +49,8 @@ export const GADGET_TRACKS = [
       },
       {
         tier: 2,
-        tierName: '進階益處',
-        name: '進階混合藥劑',
+        tierName: '高級益處',
+        name: '高級混合藥劑',
         cost: '4 IP',
         dice: '3d20',
         summary: '消耗 4 IP 擲 3 個 d20：擇二指派為目標與效果（捨棄其餘 1 顆）。',
@@ -85,8 +85,8 @@ export const GADGET_TRACKS = [
       },
       {
         tier: 2,
-        tierName: '進階益處',
-        name: '進階灌注',
+        tierName: '高級益處',
+        name: '高級灌注',
         cost: '2 IP',
         dice: '無檢定',
         summary: '追加解鎖疾風、驅邪、地震、暗影，傷害額外 +5 且轉為【風】、【光】、【土】或【暗】屬性。',
@@ -138,7 +138,7 @@ export default function TinkererGadgetsModal({
   variantId = null,
   /**
    * 魔晶石是否處於「裝備受限」的模式（`modeRestrictsEquipment`）。
-   * 為 true 時魔導科技**只剩兩個益處**：魔加農整檔刪除，魔法球原型降為進階
+   * 為 true 時魔導科技**只剩兩個益處**：魔加農整檔刪除，魔法球原型降為高級
    * （科技奇幻手冊 p.133；規則與理由見 `data/gadgetBranches.js` 的 `resolveMagitechNodes`）。
    * 不傳＝false＝逐字照核心書三檔，行為與過去完全相同。
    */
@@ -167,8 +167,8 @@ export default function TinkererGadgetsModal({
   const remainingPoints = tinkererSL - allocatedPoints;
 
   /**
-   * 魔法球的咒語是「每個節點各挑 2 顆」（基礎 2／進階 4／上級 6）；
-   * 核心【魔法球原型】才是「最高益處一次挑 3～7 顆」——魔晶石制下它降到進階，
+   * 魔法球的咒語是「每個節點各挑 2 顆」（基礎 2／高級 4／最高 6）；
+   * 核心【魔法球原型】才是「最高益處一次挑 3～7 顆」——魔晶石制下它降到高級，
    * 所以解鎖門檻跟著該軌的最高檔走，不寫死 3。
    */
   const spellPickerUnlocked = isMagispheres ? magitechTier >= 1 : magitechTier >= maxMagitechTier;
@@ -182,7 +182,7 @@ export default function TinkererGadgetsModal({
     return (rulesData.spells || []).filter(s => ['元素', '熵系', '靈魂'].includes(s.school));
   }, []);
 
-  // 魔法球分支：依當前節點數組出可挑的咒語池（基礎＝至多三個生物、進階＝NPC 咒語、上級＝全部）
+  // 魔法球分支：依當前節點數組出可挑的咒語池（基礎＝至多三個生物、高級＝NPC 咒語、最高＝全部）
   const magispherePool = useMemo(() => (
     isMagispheres
       ? getMagispherePool(magitechTier, { coreSpells: rulesData.spells, npcSpells: NPC_SPELLS_DATA })
@@ -302,7 +302,7 @@ export default function TinkererGadgetsModal({
                 {branch
                   ? `魔導科技已拆為兩條互斥分支（p.38）：煉金術與灌注術照舊，第三軌改用【${branch.name}】的三個節點`
                   : technoRestrictsEquipment
-                    ? '魔晶石制（p.133）：魔導科技只有兩個益處——魔加農整檔不存在，魔法球原型降為進階'
+                    ? '魔晶石制（p.133）：魔導科技只有兩個益處——魔加農整檔不存在，魔法球原型降為高級'
                     : '三橫線進度節點樹 · 總解鎖節點數不可超過當前特技等級 (上限 5 點)'}
               </p>
             </div>
@@ -367,7 +367,7 @@ export default function TinkererGadgetsModal({
                             {track.name}
                           </span>
                           <span className="text-t11 font-mono px-2 py-0.5 rounded bg-[#e8dcc4] text-[#3c2415] font-bold">
-                            {currentTier === 0 ? '未研發' : currentTier === 1 ? '基礎益處' : currentTier === 2 ? '進階益處' : '最高益處'}
+                            {currentTier === 0 ? '未研發' : currentTier === 1 ? '基礎益處' : currentTier === 2 ? '高級益處' : '最高益處'}
                           </span>
                         </div>
                         <p className="text-t11 text-[#6b5a4b]">

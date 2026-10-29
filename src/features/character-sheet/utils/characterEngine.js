@@ -38,6 +38,7 @@ import {
   MNEMOSPHERE_MAX_LEVEL
 } from '../data/technospheres';
 import { zeroPowerIssues } from './zeroPower';
+import { COMPANION_SPECIES } from '../data/wayfarerCompanionData';
 
 // Dice ladder for step reductions
 const DICE_STEPS = [6, 8, 10, 12];
@@ -423,11 +424,12 @@ export const checkHeroicSkillRequirement = (skill, {
   level = 5,
   atCreation = false,
   learnedSkills = null,
-  learnedSpells = null
+  learnedSpells = null,
+  companionSpecies = null
 } = {}) => {
   const base = checkClassAndLevelRequirement(skill, { masteredClasses, classes, level, atCreation });
   if (!base.ok) return base;
-  return checkExtraRequirement(skill, { learnedSkills, learnedSpells });
+  return checkExtraRequirement(skill, { learnedSkills, learnedSpells, companionSpecies });
 };
 
 /**
@@ -511,6 +513,43 @@ const checkClassAndLevelRequirement = (skill, {
 };
 
 /**
+ * 引擎「認得的攻擊性咒語」——`rulesData.spells` 裡 `isOffensive === true` 的那 20 條。
+ *
+ * 這個欄位是 2026-10-29 GM 裁定後補上的：
+ *
+ *   > 咒語去根據名字標記出攻擊性的欄位，讓你可以自動數。
+ *
+ * 依據是**官方繁中角色卡 Excel 的「咒語合集」工作表**——38 條咒語裡有 20 條的
+ * 名稱後面帶一個閃電符號（Unicode U+26A1，例：「照明烈焰」加那個符號），
+ * 那就是官方標的攻擊性咒語。逐條對照後 38 條名稱與本專案完全一致（沒有多、沒有少）。
+ * ※ 這裡刻意不寫出那個符號本身：`test:emoji` 是硬性禁止項，連註解都不放行。
+ *
+ * 為什麼不能「看效果文有沒有寫傷害」自己猜：`遲鈍`（緩慢）、`幻覺`、`激怒` 都不是傷害，
+ * 但它們都要**對魔防做施法檢定**——那才是「攻擊性（o）」的定義。猜錯的方向剛好相反。
+ */
+const OFFENSIVE_SPELL_NAMES = new Set(
+  (rulesData.spells || []).filter((s) => s.isOffensive === true).map((s) => s.name)
+);
+
+/**
+ * 這一串「學過的咒語」裡有幾個是攻擊性咒語。
+ *
+ * 吃的是**混着字串與物件**的陣列（角色卡的 `spells` 存名字，嵌合師的
+ * `chimeristData.spells` 存物件），所以兩種都要認：
+ * - 名字在 38 條攻擊性咒語名單裡 → 算；
+ * - 物件自己帶 `isOffensive === true`（嵌合師自己造的咒語）→ 算。
+ *
+ * @param {Array<string|{name?:string,isOffensive?:boolean}>} spells
+ * @returns {number}
+ */
+export const countOffensiveSpells = (spells = []) =>
+  (spells || []).filter((s) => {
+    const name = typeof s === 'string' ? s : s?.name;
+    if (name && OFFENSIVE_SPELL_NAMES.has(name)) return true;
+    return typeof s === 'object' && s !== null && s.isOffensive === true;
+  }).length;
+
+/**
  * 前提的「後半段」：額外技能前提（F-030／P31）。
  *
  * 三種結果：
@@ -522,7 +561,9 @@ const checkClassAndLevelRequirement = (skill, {
  *
  * @returns {{ok: boolean, reason: string, needsPlayerConfirm?: boolean, extraText?: string}}
  */
-const checkExtraRequirement = (skill, { learnedSkills = null, learnedSpells = null } = {}) => {
+const checkExtraRequirement = (skill, {
+  learnedSkills = null, learnedSpells = null, companionSpecies = null
+} = {}) => {
   const r = resolveHeroicExtraRequirement(skill);
   if (!r.hasExtra) return { ok: true, reason: '' };
 
@@ -545,6 +586,26 @@ const checkExtraRequirement = (skill, { learnedSkills = null, learnedSpells = nu
       };
     }
     return { ok: true, reason: '' };
+  }
+
+  // 數量前提：「至少學會兩個攻擊性咒語」（【奧法戰士】）
+  if (r.offensiveSpells) {
+    const have = countOffensiveSpells(learnedSpells || []);
+    if (have < r.offensiveSpells) {
+      return {
+        ok: false,
+        reason: `需至少學會 ${r.offensiveSpells} 個攻擊性咒語（目前 ${have} 個）`
+      };
+    }
+    return { ok: true, reason: '' };
+  }
+
+  // 物種前提：「忠實夥伴（構裝體物種）」（【這東西是活著的】【根源共生】）
+  if (r.companionSpecies) {
+    const gate = resolveCompanionSpeciesGate(r.companionSpecies, companionSpecies);
+    if (gate.needsPlayerConfirm) return handToPlayer;
+    if (!gate.ok) return gate;
+    // 物種這一關過了，**還要**繼續驗同一句裡的其他前提（【這東西是活著的】還要【高瞻遠矚】）。
   }
 
   const missing = r.needs.filter((n) => !owned.has(n.name));
@@ -696,30 +757,38 @@ const EXTRA_FILLER = /(必須|學會|習得|取得|獲得|學習了|已|技能|�
  * - **認得出來 → 直接判**，判不過就寫「需先學會【招架反擊】」，玩家知道缺什麼；
  * - **認不出來 → 交回玩家**（勾「我符合這個前提」），不假裝知道。
  *
- * ## 認不出來的三種情況（共 6 條，逐條釘在測試裡）
+ * ## 認不出來的情況（逐條釘在測試裡）
  *
  * 1. **「有那個技能」≠「有那個變體」**：【根源共生】要「忠實夥伴（植物物種）」、
  *    【這東西是活著的】要「忠實夥伴（構裝體物種）」——App 知道你有忠實夥伴，
- *    不知道你選了哪個物種。
+ *    不知道你選了哪個物種（**2026-10-29 已改成判得出來，見 `resolveCompanionSpeciesGate`**）。
  * 2. **「有那個技能」≠「拿了那個增益」**：【藥水霧化】【大鍋秘方】【量子魔加農】
  *    要「透過小工具獲得高級煉金術／高級魔科技」——App 知道你有小工具，不知道你拿了哪個。
- * 3. **資料裡沒有那個分類**：【奧法戰士】要「至少學會兩個攻擊性咒語」——
- *    38 條咒語沒有「攻擊性」欄位，數不出來。
+ * 3. **團務層面的限制**：【收割行者】的「同一團中…」與【躍空】同類，屬 `findDuplicateStartingHeroicSkills`。
+ *
+ * ※ 【奧法戰士】的「至少學會兩個攻擊性咒語」原本也在這張清單上，理由寫的是
+ *   「38 條咒語沒有攻擊性欄位，數不出來」。2026-10-29 GM 裁定補上 `isOffensive` 之後
+ *   它變成 `offensiveSpells` 分支，**這條已經不在了**——清單會過期，量一次再改。
  *
  * @returns {{
  *   text: string, hasExtra: boolean, checkable: boolean,
  *   mode: 'all'|'any', needs: Array<{kind:string,name:string}>,
- *   skillLevel: null|{name:string, level:number}
+ *   skillLevel: null|{name:string, level:number},
+ *   offensiveSpells: null|number, companionSpecies: null|string
  * }}
  */
 export const resolveHeroicExtraRequirement = (skill) => {
   const text = heroicSkillExtraPrerequisite(skill);
   const none = {
-    text: '', hasExtra: false, checkable: true, mode: 'all', needs: [], skillLevel: null
+    text: '', hasExtra: false, checkable: true, mode: 'all', needs: [],
+    skillLevel: null, offensiveSpells: null, companionSpecies: null
   };
   if (!text) return none;
 
-  const unknown = { text, hasExtra: true, checkable: false, mode: 'all', needs: [], skillLevel: null };
+  const unknown = {
+    text, hasExtra: true, checkable: false, mode: 'all', needs: [],
+    skillLevel: null, offensiveSpells: null, companionSpecies: null
+  };
 
   // ① 「【魔法卡組】達到技能等級 3」：技能等級存在角色卡裡，判得出來。
   const sl = /【([^】]+)】\s*達到技能等級\s*(\d+)/.exec(text);
@@ -730,12 +799,40 @@ export const resolveHeroicExtraRequirement = (skill) => {
       checkable: true,
       mode: 'all',
       needs: [{ kind: 'skill', name: sl[1] }],
-      skillLevel: { name: sl[1], level: Number(sl[2]) }
+      skillLevel: { name: sl[1], level: Number(sl[2]) },
+      offensiveSpells: null,
+      companionSpecies: null
     };
   }
 
-  // ② 從文字裡認出可學習的名稱（長名優先；命中後就地佔位，避免短名重複命中）。
-  let rest = text;
+  // ② 「至少學會兩個攻擊性咒語」（【奧法戰士】）：38 條咒語現在有 `isOffensive`，數得出來。
+  const off = /至少\s*(?:學會|習得|取得|獲得)?\s*([一二兩三四五六\d]+)\s*個?\s*攻擊性咒語/.exec(text);
+  if (off) {
+    return {
+      text,
+      hasExtra: true,
+      checkable: true,
+      mode: 'all',
+      needs: [],
+      skillLevel: null,
+      offensiveSpells: { 一: 1, 二: 2, 兩: 2, 三: 3, 四: 4, 五: 5, 六: 6 }[off[1][0]] || Number(off[1]) || 1,
+      companionSpecies: null
+    };
+  }
+
+  // ③ 「忠實夥伴（構裝體物種）」（【這東西是活著的】【根源共生】）：
+  //    物種存在 `character.wayfarerData.companion.species`，判得出來。
+  //
+  //    ※ 這裡**不能**直接 return。這一句是條件裡的**其中一段**：
+  //      【這東西是活著的】寫的是「已習得忠實夥伴（構裝體物種）**和**高瞻遠矚技能」，
+  //      提早回傳就等於把【高瞻遠矚】整個丟掉——那正是 P32【躍空】的同一個錯誤。
+  //      所以物種只是「先挖掉、記下來」，剩下的字繼續走下面的一般流程。
+  const speciesMatch = /忠實夥伴\s*[（(]\s*([^）)]+?)\s*[）)]/.exec(text);
+  const companionSpecies = speciesMatch ? speciesMatch[1].replace(/\s*物種\s*$/, '') : null;
+  const body = speciesMatch ? text.split(speciesMatch[0]).join('') : text;
+
+  // ④ 從文字裡認出可學習的名稱（長名優先；命中後就地佔位，避免短名重複命中）。
+  let rest = body;
   const needs = [];
   for (const k of LEARNABLE_NAMES) {
     if (!rest.includes(k.name)) continue;
@@ -743,20 +840,48 @@ export const resolveHeroicExtraRequirement = (skill) => {
     needs.push(k);
   }
 
-  // ③ 把職業名、填充詞、佔位符拿掉；還有殘留 → 有讀不懂的東西 → 交回玩家。
+  // ⑤ 把職業名、填充詞、佔位符拿掉；還有殘留 → 有讀不懂的東西 → 交回玩家。
   let residual = rest;
   for (const cn of ALL_CLASS_NAMES) residual = residual.split(cn).join('');
   residual = residual.replace(/\u0000/g, '').replace(EXTRA_FILLER, '').trim();
-  if (needs.length === 0 || residual !== '') return unknown;
+  // 「只有物種那一段」是合法的（【根源共生】就只有這一段），所以 needs 空但物種有值也算數。
+  if ((needs.length === 0 && !companionSpecies) || residual !== '') return unknown;
 
-  // ④ 「和／與」＝全部都要，「或」＝任一個。兩個都出現＝語意不明，不猜。
+  // ⑥ 「和／與」＝全部都要，「或」＝任一個。兩個都出現＝語意不明，不猜。
   const hasAnd = /和|與/.test(text);
   const hasOr = /或/.test(text);
   if (hasAnd && hasOr) return unknown;
 
   return {
-    text, hasExtra: true, checkable: true, mode: hasOr ? 'any' : 'all', needs, skillLevel: null
+    text, hasExtra: true, checkable: true, mode: hasOr ? 'any' : 'all', needs,
+    skillLevel: null, offensiveSpells: null, companionSpecies
   };
+};
+
+/**
+ * 「忠實夥伴的物種」這一段判不判得出來（【這東西是活著的】＝構裝體、【根源共生】＝植物）。
+ *
+ * 物種存在 `character.wayfarerData.companion.species`（**存的是名字**：野獸／構裝體／元素／植物，
+ * 見 `WayfarerCompanionModal` 的 `species: sp.name`）。
+ *
+ * 三種結果：
+ * - 對得上 → 通過；
+ * - 對不上 → 講清楚「需要什麼、你現在是什麼」；
+ * - **玩家還沒設計夥伴**（`actual` 是空的）→ 交回玩家。**不知道就不要假裝知道。**
+ *   注意：`createDefaultCompanionData()` 會給 `species: '野獸'`，那是**預設值不是選擇**，
+ *   所以這裡刻意看「有沒有值」而不是看那個值等於什麼。
+ *
+ * @param {string} required 條件裡寫的物種（已去掉「物種」二字，例：`構裝體`）
+ * @param {string|null} actual 角色卡上的夥伴物種名字
+ * @returns {{ok: boolean, reason?: string, needsPlayerConfirm?: boolean}}
+ */
+export const resolveCompanionSpeciesGate = (required, actual) => {
+  const wanted = String(required || '').trim();
+  const known = COMPANION_SPECIES.some((s) => s.name === wanted);
+  if (!known) return { ok: true, needsPlayerConfirm: true };
+  if (!actual) return { ok: true, needsPlayerConfirm: true };
+  if (actual === wanted) return { ok: true, reason: '' };
+  return { ok: false, reason: `需忠實夥伴是【${wanted}】物種（目前【${actual}】）` };
 };
 
 /**
@@ -2526,8 +2651,16 @@ export const validateCharacter = (char, rules = null) => {
   // 選完之後也沒有人再看一眼。GM 2026-10-29 回報的
   // 「明明沒有選【舞刀弄叉】還能拿【指節三明治】」就是這條路徑的漏洞。
   const learnedSkills = (char.classes || []).flatMap((c) => c.skills || []);
-  const learnedSpells = (char.spells || [])
-    .map((s) => (typeof s === 'string' ? s : s?.name)).filter(Boolean);
+  // 咒語：三學派的存在 `char.spells`（存名字），嵌合師自己記下的存在
+  // `char.chimeristData.spells`（存物件，帶 `isOffensive`）。兩邊都要算，
+  // 否則【奧法戰士】會漏數嵌合師記下的攻擊性咒語，把合法角色擋掉。
+  const learnedSpells = [
+    ...(char.spells || []).map((s) => (typeof s === 'string' ? s : s?.name)).filter(Boolean),
+    ...(char.chimeristData?.spells || [])
+  ];
+  // 忠實夥伴的物種（【這東西是活著的】＝構裝體、【根源共生】＝植物）。
+  // 玩家還沒設計夥伴時是 undefined → 那兩條仍然交回玩家，不假裝知道。
+  const companionSpecies = char.wayfarerData?.companion?.species || null;
   const masteryGate = (def) => checkHeroicSkillRequirement(def, {
     masteredClasses: stats.masteredClasses,
     // 「不必精通」型的技能（例：銃劍士）在精通路徑也要比對「擁有」，
@@ -2535,14 +2668,16 @@ export const validateCharacter = (char, rules = null) => {
     classes: ownedClasses,
     level: charLevel,
     learnedSkills,
-    learnedSpells
+    learnedSpells,
+    companionSpecies
   });
   const creationGate = (def) => checkHeroicSkillRequirement(def, {
     classes: ownedClasses,
     level: charLevel,
     atCreation: true,
     learnedSkills,
-    learnedSpells
+    learnedSpells,
+    companionSpecies
   });
 
   const viaCreationSlot = [];

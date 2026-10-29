@@ -439,7 +439,7 @@ ALL_STARTER_PRESETS.forEach((p) => {
       if (!spellNames.has(n)) sysErrors.push(`${p.id}：魔法球咒語不存在「${n}」`);
     });
     if ((p.gadgets.magitechSpells || []).length > 0 && p.gadgets.magitech < 3) {
-      sysErrors.push(`${p.id}：未達魔導科技上位卻帶魔法球咒語`);
+      sysErrors.push(`${p.id}：未達魔導科技最高檔卻帶魔法球咒語`);
     }
   }
 
