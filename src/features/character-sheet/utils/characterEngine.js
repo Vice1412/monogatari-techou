@@ -478,7 +478,15 @@ const checkClassAndLevelRequirement = (skill, {
   // 這種情況兩種模式都只要求**擁有**該職業，不要求精通。
   const anyClassEnough = /不必精通/.test(req);
   const owned = (atCreation || anyClassEnough) ? classes : masteredClasses;
-  if (required.some((name) => owned.includes(name))) return { ok: true, reason: '' };
+
+  // 「兩個或更多：元素師、熵師、靈師」＝這三個裡**至少要有兩個**（F-034）。
+  // 原本一律用 `required.some(...)`（任一個就夠），把「兩個」悄悄放寬成「一個」——
+  // 那是**把條件改鬆**，比擋錯人更難發現：畫面不會報錯，只會讓不合格的卡過關。
+  const minMatch = /(兩個|二個|2\s*個|三個|3\s*個)或更多/.exec(req);
+  const minCount = minMatch ? ({ 兩: 2, 二: 2, 2: 2, 三: 3, 3: 3 }[minMatch[1][0]] || 1) : 1;
+
+  const ownedHit = required.filter((name) => owned.includes(name));
+  if (ownedHit.length >= minCount) return { ok: true, reason: '' };
 
   // 錯誤訊息照原樣顯示職業名：`【變體】` 現在是玩家必須分辨的東西，
   // 剝掉它會變成「需精通【秘儀師】」，而對方缺的其實是「秘儀師【變體】」。
@@ -487,6 +495,13 @@ const checkClassAndLevelRequirement = (skill, {
   const needsList = shown.some((n) => n.includes('【'))
     ? shown.join('／')
     : `【${shown.join('／')}】`;
+  if (minCount > 1) {
+    return {
+      ok: false,
+      reason: `${atCreation ? '開局需擁有' : '需精通'}${needsList}其中 ${minCount} 個`
+        + `（目前 ${ownedHit.length} 個）`
+    };
+  }
   return {
     ok: false,
     reason: atCreation
@@ -585,14 +600,24 @@ export const heroicSkillExtraPrerequisite = (skill) => {
   // 會剩一個「你的角色」，於是那一段被當成額外前提（第一版就是這樣，多數了 2 條）。
   const LEVEL_PHRASE = /(你的?)?角色?等級必須為\s*\d+\s*或更高/g;
 
-  // 用「，」「；」「且」「並」切段。**不用「、」**——那是職業名之間的分隔，
-  // 「元素師、熵師、靈師」切開會被誤認成三個前提。
-  // 第一段是職業段落（引擎在管），後面才是額外前提。
-  return req
-    .split(/[，,；;]|且|並/)
-    .slice(1)
-    .map((s) => s.trim())
-    .filter(Boolean)
+  // ① 團務限制句先拿掉：「同一團中若有其他玩家角色已取得此英雄技能，你便不能取得」。
+  //    那不是「這個角色符不符合」，而是「這張卡在這一團裡能不能拿」，跟
+  //    `findDuplicateStartingHeroicSkills` 是同一類東西。留在這裡會讓整句變成「讀不懂」，
+  //    於是【躍空】的**真正前提【飛天打擊】被勾選框蓋掉**——玩家勾一下就能拿（P32）。
+  //    ※ 原文仍然完整顯示在選擇器的「條件」欄，這裡拿掉的只是**判定用的那一份**。
+  const TEAM_NOTE = /同一團[^。]*。?/g;
+  const body = req.replace(TEAM_NOTE, '');
+
+  // ② 用「，」「；」「。」「且」「並」切段。**不用「、」**——那是職業名之間的分隔，
+  //    「元素師、熵師、靈師」切開會被誤認成三個前提。
+  //    「。」也要切：一個句子裡可以塞兩件事（【躍空】就是）。
+  const segs = body.split(/[，,；;。]|且|並/).map((s) => s.trim()).filter(Boolean);
+
+  // ③ 丟掉「職業段」。**不能無條件丟第一段**——第一版就是 `.slice(1)`，
+  //    於是【躍空】開頭那句「已學會【飛天打擊】」被當成職業段丟掉。
+  //    改成「這一段是不是只由職業名與雜訊組成」，是才丟。
+  const rest = segs.length > 0 && isClassOnlySegment(segs[0]) ? segs.slice(1) : segs;
+  return rest
     .filter((s) => s.replace(LEVEL_PHRASE, '').trim() !== '')
     .join('、');
 };
@@ -618,6 +643,30 @@ const LEARNABLE_NAMES = (() => {
 
 /** 職業名（長名優先，`秘儀師【變體】` 先於 `秘儀師`）。判「殘留」時要一起拿掉。 */
 const ALL_CLASS_NAMES = Object.keys(rulesData.classes || {}).sort((a, b) => b.length - a.length);
+
+/**
+ * 「職業段」裡允許出現的雜訊。
+ * 這些字出現在第一段**不代表**有額外前提——它們是在描述職業條件本身：
+ * - `通用`：跟職業無關（【靈巧雙手】【額外HP】…）
+ * - `職業`／`中`：譯文的口語（「修補匠**職業**」「修補匠或旅人**中**」）
+ * - `不必精通`：【銃劍士】的放寬註記
+ * - `兩個或更多`：【雙重詠唱】的計數（判定在 `checkClassAndLevelRequirement`）
+ */
+const CLASS_SEGMENT_NOISE = /(通用|職業|不必精通|兩個或更多|或|和|與|及|、|，|,|：|:|（|）|\(|\)|中|\s)/g;
+
+/**
+ * 這一段是不是「職業段」——**只由職業名與雜訊組成**。
+ *
+ * 判準刻意寫成「拿掉職業名與雜訊之後還有沒有字」，不是「有沒有出現職業名」：
+ * 舊寫法是**直接丟掉第一段**（`.slice(1)`），連問都沒問，於是【躍空】
+ * 開頭那句「已學會【飛天打擊】」被當成職業段丟掉，真正的前提從來沒被檢查過。
+ * 這是 MEMORY 鐵則 13 的第五次：**邊界錯了不會報錯，它只會什麼都不抓。**
+ */
+const isClassOnlySegment = (seg) => {
+  let rest = String(seg || '');
+  for (const cn of ALL_CLASS_NAMES) rest = rest.split(cn).join('');
+  return rest.replace(CLASS_SEGMENT_NOISE, '').trim() === '';
+};
 
 /**
  * 條件文字裡「不是名詞」的填充詞。
@@ -2472,17 +2521,28 @@ export const validateCharacter = (char, rules = null) => {
   const heroic = char.heroicSkills || [];
   const charLevel = getCharacterLevel(char);
   const ownedClasses = (char.classes || []).map((c) => c.className);
+  // 「已經學會哪些技能／咒語」——P32 才補上。以前這裡只傳職業與等級，
+  // 於是**額外技能前提從來沒有被重審**：選的時候是勾選框（玩家自己說符合），
+  // 選完之後也沒有人再看一眼。GM 2026-10-29 回報的
+  // 「明明沒有選【舞刀弄叉】還能拿【指節三明治】」就是這條路徑的漏洞。
+  const learnedSkills = (char.classes || []).flatMap((c) => c.skills || []);
+  const learnedSpells = (char.spells || [])
+    .map((s) => (typeof s === 'string' ? s : s?.name)).filter(Boolean);
   const masteryGate = (def) => checkHeroicSkillRequirement(def, {
     masteredClasses: stats.masteredClasses,
     // 「不必精通」型的技能（例：銃劍士）在精通路徑也要比對「擁有」，
     // 所以這裡一律把現有職業一起傳進去
     classes: ownedClasses,
-    level: charLevel
+    level: charLevel,
+    learnedSkills,
+    learnedSpells
   });
   const creationGate = (def) => checkHeroicSkillRequirement(def, {
     classes: ownedClasses,
     level: charLevel,
-    atCreation: true
+    atCreation: true,
+    learnedSkills,
+    learnedSpells
   });
 
   const viaCreationSlot = [];

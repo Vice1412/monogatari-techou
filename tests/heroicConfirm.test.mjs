@@ -185,20 +185,68 @@ check('「已取得【偷襲】或【個人載具】」→ any',
   [resolveOfFull('暗藏武器').mode, resolveOfFull('暗藏武器').needs.map((n) => n.name).sort()],
   ['any', ['個人載具', '偷襲'].sort()]);
 
-// 點名釘住。這 9 條是「引擎真的判不出來」的，其餘 38 條都判得出來。
+// 點名釘住。這 8 條是「引擎真的判不出來」的，其餘 39 條都判得出來。
 // 數字或名單一變就要回來看：多一條可能是填充詞又漏了，少一條可能是資料改了。
-check('全部 167 條裡，交回玩家的是這 9 條',
+//
+// ※ 2026-10-29（P32）從 9 條變 8 條：【躍空】不再交回玩家。
+//   原因不是「放寬」，而是**它原本根本沒被檢查**——舊寫法無條件丟掉第一段，
+//   把「已學會【飛天打擊】」當成職業段丟了，只剩「你便不能取得」這句團務限制，
+//   於是那一列長出勾選框，玩家勾一下就能拿一個沒學過【飛天打擊】的英雄技能。
+check('全部 167 條裡，交回玩家的是這 8 條',
   fullManual.map((h) => h.name),
   ['奧法戰士', '藥水霧化', '量子魔加農', '大鍋秘方', '這東西是活著的', '根源共生',
-    '躍空', '爆裂藝術家', '收割行者']);
+    '爆裂藝術家', '收割行者']);
 
-// 反向控制：這三條**看起來**應該能判，其實不行。它們是「保守」這件事的證據。
-check('躍空 → 交回玩家（同一團有沒有別人拿過，App 看不到）',
-  resolveOfFull('躍空').checkable, false);
+// 反向控制：這兩條**看起來**應該能判，其實不行。它們是「保守」這件事的證據。
+// ※【躍空】原本也在這一段，現在移到下面「真的判得出來」那一組。
 check('收割行者 → 交回玩家（引用的【高速】在名冊裡不存在，不猜）',
   resolveOfFull('收割行者').checkable, false);
 check('藥水霧化 → 交回玩家（引用的「高級煉金術」在名冊裡不存在，不猜）',
   resolveOfFull('藥水霧化').checkable, false);
+
+// 【躍空】是 P32 抓到的「安靜的漏檢查」：它的第一段不是職業段。
+// 這三條一起守——**只改一條不夠**：只驗「不再交回玩家」，程式碼把前提丟掉也會過。
+check('躍空 → 判得出來（前提是【飛天打擊】，不是那句團務限制）',
+  [resolveOfFull('躍空').checkable, resolveOfFull('躍空').needs.map((n) => n.name)], [true, ['飛天打擊']]);
+check('躍空的額外前提不含團務限制句（那句不是「這個角色符不符合」）',
+  resolveOfFull('躍空').text, '已學會【飛天打擊】');
+check('躍空的完整原文仍然保留著那句團務限制（畫面上要看得到）',
+  byNameFull('躍空').requirement.includes('同一團中若有其他玩家角色'), true);
+
+// ─────────────────────────────────────────── 結構護欄：這一條會自己抓「漏檢查」
+//
+// 判準：**條件裡寫到一個已知的技能名，`needs` 就必須涵蓋它。**
+// 沒有涵蓋的只准是下面點名的這三條，而且每一條都有理由。
+//
+// 為什麼要有這一條：【躍空】原本就是這樣漏掉的——條件寫著【飛天打擊】，
+// 引擎把整句當成「職業段」丟掉，`needs` 是空的，而它在外表上**跟其他保守的例外一模一樣**
+// （都是「交回玩家」）。當時那條「交回玩家的 9 條」的斷言照樣綠燈，因為它驗的是
+// 「哪些交回玩家」，不是「該檢查的有沒有檢查」。
+// **清單型的斷言守不住「漏掉」——它只守得住「變多」。**
+const KNOWN_NAME_SET = (() => {
+  const s = new Set();
+  for (const c of Object.values(rulesData.classes || {})) for (const sk of c.skills || []) s.add(sk.name);
+  for (const sp of rulesData.spells || []) s.add(sp.name);
+  return s;
+})();
+const uncoveredNames = HEROIC_SKILLS.filter((h) => {
+  // 只掃【】裡的。**不要**改成「掃所有已知名字」——那會抓到「小工具技能」裡的
+  // 「小工具」（那是修補匠的技能名，這裡卻只是普通名詞），一次多出 5 條假陽性。
+  // 沒有括號的那兩條（這東西是活著的／根源共生）由下面「交回玩家的 8 條」守。
+  const known = [...String(h.requirement || '').matchAll(/【([^】]+)】/g)]
+    .map((m) => m[1]).filter((n) => KNOWN_NAME_SET.has(n));
+  if (known.length === 0) return false;
+  const needs = resolveHeroicExtraRequirement(h).needs.map((n) => n.name);
+  return known.some((n) => !needs.includes(n));
+}).map((h) => h.name);
+check('條件裡【】寫到的已知技能名，needs 都要涵蓋（例外逐條點名）',
+  uncoveredNames,
+  ['收割行者']);
+// 為什麼只有這一條可以例外：
+//   收割行者 —— 引用的【高速】在名冊裡不存在（F-035），殘字消不掉。**不猜。**
+// 沒有括號、但條件裡提到已知技能的兩條（這東西是活著的「忠實夥伴（構裝體物種）」、
+// 根源共生「忠實夥伴（植物物種）」）由上面「交回玩家的 8 條」點名守著——
+// 它們不是「漏檢查」，是**真的判不出來**（App 不知道你選了哪個物種）。
 
 // ─────────────────────────────────────────────────────────── D
 section('D. 判定：有學／沒學／「或」／「和」／技能等級／沒給「學過什麼」');
@@ -265,13 +313,31 @@ check('沒給 learnedSkills 但職業就不合 → 還是照職業的理由擋�
   }).reason, '開局需擁有【武器大師】其中之一');
 
 // 反向控制：20 級的元素師選不了雙重詠唱、30 級選得了（等級前提真的在擋）。
+//
+// ※ 2026-10-29（P32，F-034）改寫：舊版第三條寫「30 級**元素師**選得了」，
+//   而那正是缺陷本身——【雙重詠唱】的原文是「**兩個或更多**：元素師、熵師、靈師」，
+//   引擎卻用 `required.some(...)`（任一個就夠），把「兩個」悄悄放寬成「一個」。
+//   **斷言原本在替那個 bug 背書**，所以紅燈不是產品壞了，是這條在記錄舊行為。
+//   現在拆成三條：一個職業不行、兩個職業可以、三個職業也可以。
 check('（反向）20 級元素師選不了雙重詠唱',
   checkHeroicSkillRequirement(byName('雙重詠唱'), {
     masteredClasses: ['元素師'], classes: ['元素師'], level: 20
   }).ok, false);
-check('（反向）30 級元素師選得了雙重詠唱',
+check('（F-034）30 級但只有**一個**職業 → 選不了雙重詠唱（原文是「兩個或更多」）',
   checkHeroicSkillRequirement(byName('雙重詠唱'), {
     masteredClasses: ['元素師'], classes: ['元素師'], level: 30
+  }).ok, false);
+check('（F-034）缺的數量要講出來，不要只說「不可選」',
+  checkHeroicSkillRequirement(byName('雙重詠唱'), {
+    masteredClasses: ['元素師'], classes: ['元素師'], level: 30
+  }).reason, '需精通【元素師／熵師／靈師】其中 2 個（目前 1 個）');
+check('（F-034）30 級＋元素師與熵師 → 選得了',
+  checkHeroicSkillRequirement(byName('雙重詠唱'), {
+    masteredClasses: ['元素師', '熵師'], classes: ['元素師', '熵師'], level: 30
+  }).ok, true);
+check('（F-034）30 級＋三個職業 → 也選得了（「或更多」不是「剛好兩個」）',
+  checkHeroicSkillRequirement(byName('雙重詠唱'), {
+    masteredClasses: ['元素師', '熵師', '靈師'], classes: ['元素師', '熵師', '靈師'], level: 30
   }).ok, true);
 
 // ─────────────────────────────────────────────────────────── E
@@ -375,8 +441,9 @@ const masteryHtml = renderPicker({
 check('還沒精通任何職業時，畫面上一個勾選框都沒有（按不下去的東西不必問）',
   [...masteryHtml.matchAll(/data-testid="heroic-confirm-/g)].length, 0);
 
-// 30 級元素師：雙重詠唱 的職業前提與等級前提都過了，而它後半段只有等級
-// → **不該**長勾選框，按鈕要直接可以按。
+// 30 級元素師：等級前提過了，而它後半段只有等級 → **不該**長勾選框。
+// ※ 2026-10-29（P32，F-034）：按鈕不再「可按」——【雙重詠唱】要**兩個**職業，
+//   這張卡只有元素師一個。舊版驗「可按」是在替缺陷背書。
 const masterHtml = renderPicker({
   over: { classes: [{ className: '元素師', level: 30, skills: [] }] },
   level: 30
@@ -384,8 +451,24 @@ const masterHtml = renderPicker({
 check('30 級元素師的視圖裡有雙重詠唱', renderedNames(masterHtml).includes('雙重詠唱'), true);
 check('雙重詠唱那一列沒有勾選框（等級前提引擎已經算過）',
   hasConfirm(rowOf(masterHtml, '雙重詠唱')), false);
-check('雙重詠唱那一列的按鈕是可按的（不是停用）',
-  isBtnDisabled(pickTag(rowOf(masterHtml, '雙重詠唱'), '雙重詠唱')), false);
+check('（F-034）只有一個職業時，雙重詠唱按鈕是停用的',
+  isBtnDisabled(pickTag(rowOf(masterHtml, '雙重詠唱'), '雙重詠唱')), true);
+check('（F-034）那一列寫出「其中 2 個」，不是只寫「不可選」',
+  rowOf(masterHtml, '雙重詠唱').includes('其中 2 個'), true);
+
+// 對照組：補上第二個職業（熵師）就真的可以按了。
+// 沒有這條的話，「停用」可能只是因為別的條件沒過，而不是因為數了職業。
+const twoClassHtml = renderPicker({
+  over: {
+    classes: [
+      { className: '元素師', level: 30, skills: [] },
+      { className: '熵師', level: 10, skills: [] }
+    ]
+  },
+  level: 30
+});
+check('（F-034 對照）補上熵師之後，雙重詠唱按鈕變成可按',
+  isBtnDisabled(pickTag(rowOf(twoClassHtml, '雙重詠唱'), '雙重詠唱')), false);
 
 // 已經持有的技能：那一列本來就按不下去，不必再問。
 const ownedHtml = renderPicker({

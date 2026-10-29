@@ -671,6 +671,29 @@ check('精通守護者拿不了【背水】（需暗黑之刃）',
   ['【背水】需精通【暗黑之刃】其中之一']);
 check('精通暗黑之刃就拿得了【背水】',
   heroicWarnings({ heroicSkills: ['背水'], classes: master('暗黑之刃') }), []);
+
+// ── 已經拿到的英雄技能要**回頭重審**（P32，GM 2026-10-29 回報）
+//
+// 為什麼要這幾條：前提判定原本只寫在「選用的當下」，選完就沒有人再看它一眼。
+// 舊卡片（當時用勾選框過的）因此永遠不會被重新檢查——GM 說的
+// 「明明沒有選【舞刀弄叉】還能拿【指節三明治】」就是這樣發生的。
+const gourmet = (skills) => [{ className: '美食家', level: 10, skills }];
+check('拿了【指節三明治】卻沒學【舞刀弄叉】→ 卡片上要講出來',
+  heroicWarnings({
+    heroicSkills: ['指節三明治'],
+    classes: gourmet([{ name: '烹飪', sl: 1 }])
+  }).map((w) => w.message), ['【指節三明治】需先學會【舞刀弄叉】']);
+check('（對照）學了【舞刀弄叉】就沒有這個警告',
+  heroicWarnings({
+    heroicSkills: ['指節三明治'],
+    classes: gourmet([{ name: '烹飪', sl: 1 }, { name: '舞刀弄叉', sl: 1 }])
+  }), []);
+// 咒語版的額外前提也要重審（【躍空】要【飛天打擊】），否則只有「技能」那一半生效。
+check('拿了【躍空】卻沒學【飛天打擊】→ 也要講出來',
+  heroicWarnings({ heroicSkills: ['躍空'], classes: master('武器大師'), spells: [] })
+    .map((w) => w.message), ['【躍空】需先學會【飛天打擊】']);
+check('（對照）學了【飛天打擊】就沒有這個警告',
+  heroicWarnings({ heroicSkills: ['躍空'], classes: master('武器大師'), spells: ['飛天打擊'] }), []);
 check('「A或B」任一精通即可',
   checkHeroicSkillRequirement({ requirement: '狂怒鬥士或武器大師' },
     { masteredClasses: ['武器大師'], level: 5 }).ok, true);
