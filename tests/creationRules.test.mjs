@@ -762,9 +762,10 @@ check('還沒設計夥伴 → 不擋（交回玩家，不假裝知道）',
 // 【收割行者】——2026-10-29 GM 裁定【高速】是【迅捷】（遊蕩者的技能）。
 check('沒學【迅捷】也沒學【竊取時間】→ 收割行者要講出來',
   heroicWarnings({ heroicSkills: ['收割行者'], classes: master('遊蕩者') })
-    // 訊息的順序跟著名冊（長名優先）走，不是跟著原句走——原句的順序在選擇器的
-    // 「條件」欄裡看得到，這裡只驗「兩個都點名了、而且是『或』」。
-    .map((w) => w.message), ['【收割行者】需先學會【竊取時間】或【迅捷】其中之一']);
+    // ※ 2026-10-29（P34）順序改成**跟著條件原文**走（原文寫「【迅捷】或【竊取時間】」）。
+    //   舊版跟著名冊的「長名優先」順序，於是條件欄寫一種順序、錯誤訊息寫另一種——
+    //   同一件事兩種寫法。`needs` 現在依原文位置排序，訊息與條件欄一致。
+    .map((w) => w.message), ['【收割行者】需先學會【迅捷】或【竊取時間】其中之一']);
 check('（對照）學了【迅捷】就沒有這個警告',
   heroicWarnings({
     heroicSkills: ['收割行者'],
@@ -777,10 +778,44 @@ check('「A、B或C」任一個都沒有 → 擋',
   checkHeroicSkillRequirement({ requirement: '嵌合師、元素師、熵師或靈師' },
     { masteredClasses: ['守護者'], level: 5 }).ok, false);
 
-// 「且／並」後面的額外技能前提不猜（寧漏不誤）；等級前提抽得出來
-check('額外技能前提不猜，只判職業',
-  checkHeroicSkillRequirement({ requirement: '修補匠，且必須獲得小工具技能中的高級煉金術技能' },
-    { masteredClasses: ['修補匠'], level: 5 }).ok, true);
+// 額外前提：判得出來的就判、資料沒填就交回玩家（P34：小工具軌道也讀得到了）
+//
+// ※ 這三條原本是一條「額外技能前提不猜，只判職業」。那條在 P34 之後**已經不是真的**：
+//   「小工具【煉金術】已達高級益處」現在讀得懂，也會真的擋。
+//   所以拆成三條，把「判得出來」「資料沒填」「真的不夠」三種情況分開釘住——
+//   只把期望值改成 true 會讓這一段變成什麼都沒驗。
+const GADGET_REQ = { requirement: '修補匠，且小工具【煉金術】已達高級益處' };
+// ※ 三條都必須帶 `learnedSkills: []`：引擎的規則是「呼叫端沒給『學過什麼』就一律退回玩家」，
+//   不給的話下面三條全部會變成「交回玩家」而**看起來像通過**——
+//   那就變成在驗那條守門規則，不是在驗小工具軌道。
+const gadgetVerdict = (gadgets) => checkHeroicSkillRequirement(GADGET_REQ, {
+  masteredClasses: ['修補匠'], level: 5, learnedSkills: [], learnedSpells: [], gadgets
+});
+check('小工具軌道前提：職業對、科技樹沒資料 → 不擋，但交回玩家',
+  [gadgetVerdict(undefined).ok, gadgetVerdict(undefined).needsPlayerConfirm], [true, true]);
+check('小工具軌道前提：煉金術到高級 → 過', gadgetVerdict({ alchemy: 2 }).ok, true);
+check('小工具軌道前提：只有基礎 → 擋，並寫出你現在到哪',
+  gadgetVerdict({ alchemy: 1 }).reason, '需小工具【煉金術】達高級益處（目前基礎益處）');
+
+// 上面三條驗的是引擎函式。**卡片層**另外要驗一次：`validateCharacter` 有沒有真的
+// 把 `tinkererData.gadgets` 傳進去。少了這一段，「引擎判得對」跟「卡片會叫」是兩件事——
+// 而玩家只看得到後者。
+const gadgetCard = (alchemy) => heroicWarnings({
+  heroicSkills: ['藥水霧化'],
+  classes: [{ className: '修補匠', level: 10, skills: [] }],
+  tinkererData: { gadgets: { alchemy, infusion: 0, magitech: 0 } }
+});
+check('卡片層：煉金術只有基礎就拿了【藥水霧化】→ 要出 error',
+  gadgetCard(1).map((w) => w.type), ['error']);
+check('卡片層：訊息寫出缺的是哪一檔、你現在到哪',
+  gadgetCard(1).map((w) => w.message), ['【藥水霧化】需小工具【煉金術】達高級益處（目前基礎益處）']);
+check('（對照）煉金術到高級 → 沒有這個警告',
+  gadgetCard(2).filter((w) => w.message.includes('藥水霧化')), []);
+check('（對照）連科技樹資料都沒有 → 不擋（交回玩家，不假裝知道）',
+  heroicWarnings({
+    heroicSkills: ['藥水霧化'],
+    classes: [{ className: '修補匠', level: 10, skills: [] }]
+  }), []);
 check('等級前提抽得出來（不足 → 擋）',
   checkHeroicSkillRequirement({ requirement: '秘儀師，且你的角色等級必須為30或更高' },
     { masteredClasses: ['秘儀師'], level: 5 }).ok, false);

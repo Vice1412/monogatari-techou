@@ -425,11 +425,15 @@ export const checkHeroicSkillRequirement = (skill, {
   atCreation = false,
   learnedSkills = null,
   learnedSpells = null,
-  companionSpecies = null
+  companionSpecies = null,
+  gadgets = null,
+  technoRestrictsEquipment = false
 } = {}) => {
   const base = checkClassAndLevelRequirement(skill, { masteredClasses, classes, level, atCreation });
   if (!base.ok) return base;
-  return checkExtraRequirement(skill, { learnedSkills, learnedSpells, companionSpecies });
+  return checkExtraRequirement(skill, {
+    learnedSkills, learnedSpells, companionSpecies, gadgets, technoRestrictsEquipment
+  });
 };
 
 /**
@@ -562,7 +566,8 @@ export const countOffensiveSpells = (spells = []) =>
  * @returns {{ok: boolean, reason: string, needsPlayerConfirm?: boolean, extraText?: string}}
  */
 const checkExtraRequirement = (skill, {
-  learnedSkills = null, learnedSpells = null, companionSpecies = null
+  learnedSkills = null, learnedSpells = null, companionSpecies = null,
+  gadgets = null, technoRestrictsEquipment = false
 } = {}) => {
   const r = resolveHeroicExtraRequirement(skill);
   if (!r.hasExtra) return { ok: true, reason: '' };
@@ -598,6 +603,16 @@ const checkExtraRequirement = (skill, {
       };
     }
     return { ok: true, reason: '' };
+  }
+
+  // 小工具軌道前提：「小工具【煉金術】已達高級益處」（【藥水霧化】【量子魔加農】
+  // 【大鍋秘方】【爆裂藝術家】）。軌與檔次存在 `character.tinkererData.gadgets`，
+  // 也就是玩家在科技樹上點到哪裡——**App 一直知道**，2026-10-29 GM 指正後才去讀。
+  if (r.gadgetTier) {
+    const gate = resolveGadgetTierGate(r.gadgetTier, gadgets, { technoRestrictsEquipment });
+    if (gate.needsPlayerConfirm) return handToPlayer;
+    if (!gate.ok) return gate;
+    // 這一關過了，**還要**繼續驗同一句裡的其他前提（理由與物種段相同）。
   }
 
   // 物種前提：「忠實夥伴（構裝體物種）」（【這東西是活著的】【根源共生】）
@@ -781,13 +796,13 @@ export const resolveHeroicExtraRequirement = (skill) => {
   const text = heroicSkillExtraPrerequisite(skill);
   const none = {
     text: '', hasExtra: false, checkable: true, mode: 'all', needs: [],
-    skillLevel: null, offensiveSpells: null, companionSpecies: null
+    skillLevel: null, offensiveSpells: null, companionSpecies: null, gadgetTier: null
   };
   if (!text) return none;
 
   const unknown = {
     text, hasExtra: true, checkable: false, mode: 'all', needs: [],
-    skillLevel: null, offensiveSpells: null, companionSpecies: null
+    skillLevel: null, offensiveSpells: null, companionSpecies: null, gadgetTier: null
   };
 
   // ① 「【魔法卡組】達到技能等級 3」：技能等級存在角色卡裡，判得出來。
@@ -801,7 +816,8 @@ export const resolveHeroicExtraRequirement = (skill) => {
       needs: [{ kind: 'skill', name: sl[1] }],
       skillLevel: { name: sl[1], level: Number(sl[2]) },
       offensiveSpells: null,
-      companionSpecies: null
+      companionSpecies: null,
+      gadgetTier: null
     };
   }
 
@@ -816,7 +832,8 @@ export const resolveHeroicExtraRequirement = (skill) => {
       needs: [],
       skillLevel: null,
       offensiveSpells: { 一: 1, 二: 2, 兩: 2, 三: 3, 四: 4, 五: 5, 六: 6 }[off[1][0]] || Number(off[1]) || 1,
-      companionSpecies: null
+      companionSpecies: null,
+      gadgetTier: null
     };
   }
 
@@ -827,9 +844,31 @@ export const resolveHeroicExtraRequirement = (skill) => {
   //      【這東西是活著的】寫的是「已習得忠實夥伴（構裝體物種）**和**高瞻遠矚技能」，
   //      提早回傳就等於把【高瞻遠矚】整個丟掉——那正是 P32【躍空】的同一個錯誤。
   //      所以物種只是「先挖掉、記下來」，剩下的字繼續走下面的一般流程。
-  const speciesMatch = /忠實夥伴\s*[（(]\s*([^）)]+?)\s*[）)]/.exec(text);
+  // ※ `】?` 是必要的：條件欄現在統一寫成「已習得【忠實夥伴】（構裝體物種）」，
+  //    名稱外面有【】，所以「忠實夥伴」後面接的是】而不是（。
+  //    少了這一個字元，物種段就整段認不出來 → 那兩條會從「判得出來」退回「交回玩家」，
+  //    而且**不會報錯**（看起來只是多問一次）。P34 就是這樣被抓到的。
+  const speciesMatch = /忠實夥伴\s*】?\s*[（(]\s*([^）)]+?)\s*[）)]/.exec(text);
   const companionSpecies = speciesMatch ? speciesMatch[1].replace(/\s*物種\s*$/, '') : null;
-  const body = speciesMatch ? text.split(speciesMatch[0]).join('') : text;
+  // **只挖掉括號那一段**（「（構裝體物種）」），名稱本身要留在句子裡——
+  // 否則【忠實夥伴】不會進 `needs`，而「你有沒有這個技能」與「你的夥伴是什麼物種」
+  // 是**兩件事**，兩個都要驗。結構護欄（條件裡【】寫到的技能名都要進 needs）就是這樣抓到它的。
+  const speciesParen = speciesMatch ? /[（(][^）)]*[）)]/.exec(speciesMatch[0])[0] : '';
+  let body = speciesParen ? text.split(speciesParen).join('') : text;
+
+  // ③-b 「小工具【煉金術】已達高級益處」（【藥水霧化】【量子魔加農】【大鍋秘方】【爆裂藝術家】）：
+  //      軌與檔次存在 `character.tinkererData.gadgets = { alchemy, infusion, magitech }`，
+  //      那是玩家在科技樹上點到第幾檔——**資料一直都在**。
+  //
+  //      ※ 這裡同樣**挖掉、不提早 return**：以後若有條件寫成
+  //        「小工具【煉金術】已達高級益處 和【某技能】」，後半段才不會被丟掉。
+  //      ※ 舊寫法（「必須獲得小工具技能中的高級煉金術技能」）**刻意不支援**：
+  //        資料層已經統一成一種寫法，留兩套只會讓下一個人以為兩種都要維護。
+  const gadgetMatch = /小工具\s*【\s*([^】]+?)\s*】\s*已達\s*(基礎|高級|最高)益處/.exec(body);
+  const gadgetTier = gadgetMatch
+    ? { track: gadgetMatch[1], tier: { 基礎: 1, 高級: 2, 最高: 3 }[gadgetMatch[2]] }
+    : null;
+  if (gadgetMatch) body = body.split(gadgetMatch[0]).join('');
 
   // ④ 從文字裡認出可學習的名稱（長名優先；命中後就地佔位，避免短名重複命中）。
   let rest = body;
@@ -839,13 +878,18 @@ export const resolveHeroicExtraRequirement = (skill) => {
     rest = rest.split(k.name).join('\u0000');
     needs.push(k);
   }
+  // 依**原文出現順序**排，不要用「長名優先」的比對順序：
+  // 條件欄寫「【迅捷】或【竊取時間】」，訊息卻印「【竊取時間】或【迅捷】」，
+  // 玩家會以為是兩件事（MEMORY：同樣的內容不能有不同的寫法，也不能有不同的順序）。
+  needs.sort((a, b) => body.indexOf(a.name) - body.indexOf(b.name));
 
   // ⑤ 把職業名、填充詞、佔位符拿掉；還有殘留 → 有讀不懂的東西 → 交回玩家。
   let residual = rest;
   for (const cn of ALL_CLASS_NAMES) residual = residual.split(cn).join('');
   residual = residual.replace(/\u0000/g, '').replace(EXTRA_FILLER, '').trim();
-  // 「只有物種那一段」是合法的（【根源共生】就只有這一段），所以 needs 空但物種有值也算數。
-  if ((needs.length === 0 && !companionSpecies) || residual !== '') return unknown;
+  // 「只有物種那一段」是合法的（【根源共生】就只有這一段），
+  // 「只有小工具那一段」也合法（【藥水霧化】等四條）——所以 needs 空但有物種或軌道就算數。
+  if ((needs.length === 0 && !companionSpecies && !gadgetTier) || residual !== '') return unknown;
 
   // ⑥ 「和／與」＝全部都要，「或」＝任一個。兩個都出現＝語意不明，不猜。
   const hasAnd = /和|與/.test(text);
@@ -854,7 +898,7 @@ export const resolveHeroicExtraRequirement = (skill) => {
 
   return {
     text, hasExtra: true, checkable: true, mode: hasOr ? 'any' : 'all', needs,
-    skillLevel: null, offensiveSpells: null, companionSpecies
+    skillLevel: null, offensiveSpells: null, companionSpecies, gadgetTier
   };
 };
 
@@ -882,6 +926,69 @@ export const resolveCompanionSpeciesGate = (required, actual) => {
   if (!actual) return { ok: true, needsPlayerConfirm: true };
   if (actual === wanted) return { ok: true, reason: '' };
   return { ok: false, reason: `需忠實夥伴是【${wanted}】物種（目前【${actual}】）` };
+};
+
+/**
+ * 小工具的三條軌與三個檔次——**資料在 `GADGET_TRACKS`／`MAGITECH_CORE_NODES`，這裡只做對照**。
+ *
+ * 條件欄寫的軌名是玩家看到的字（煉金術／灌注術／魔導科技），角色卡存的是鍵
+ * （`tinkererData.gadgets = { alchemy, infusion, magitech }`，值是 0–3 的檔次）。
+ * 這兩邊的對照只寫在這裡，不要在各個元件裡各寫一份。
+ */
+const GADGET_TRACK_KEYS = Object.freeze({
+  煉金術: { key: 'alchemy', label: '煉金術' },
+  灌注術: { key: 'infusion', label: '灌注術' },
+  魔導科技: { key: 'magitech', label: '魔導科技' },
+  魔科技: { key: 'magitech', label: '魔導科技' }
+});
+
+/** 檔次 1–3 的名字。`0` ＝ 還沒點，訊息要說「尚未取得」而不是「基礎益處」。 */
+const GADGET_TIER_LABELS = Object.freeze(['尚未取得', '基礎益處', '高級益處', '最高益處']);
+
+/**
+ * 「小工具【煉金術】已達高級益處」這一段判不判得出來。
+ *
+ * ## 為什麼現在判得出來（而 F-035 當時說判不出來）
+ *
+ * F-035 立案時寫的是「App 知道你有【小工具】，不知道你走了哪一軌」。
+ * **那是錯的**：玩家在科技樹上點的每一檔都存進 `tinkererData.gadgets`，
+ * 三條軌 × 三個檔次全部有值。2026-10-29 GM 一句「小工具的軌你自己不會讀嗎？」
+ * 把這條問了回去——**資料一直都在，只是沒有人去讀**（和 F-041 的物種同一個病）。
+ *
+ * ## 三種結果
+ *
+ * - 檔次夠 → 通過；
+ * - 檔次不夠 → 講清楚「需要哪一軌的哪一檔、你現在到哪裡」；
+ * - **魔晶石制下的魔導科技** → 交回玩家。那一制把這一軌改寫了
+ *   （魔加農火器整條移除、魔法球原型從最高降成高級，見 `resolveMagitechNodes`），
+ *   同一個「高級」指的**不是同一個節點**，所以不猜。
+ *
+ * @param {{track: string, tier: number}|null} required 條件裡寫的軌與檔次
+ * @param {{alchemy?: number, infusion?: number, magitech?: number}|null} gadgets 角色卡上的科技樹進度
+ * @param {{technoRestrictsEquipment?: boolean}} options
+ * @returns {{ok: boolean, reason?: string, needsPlayerConfirm?: boolean}}
+ */
+export const resolveGadgetTierGate = (required, gadgets, { technoRestrictsEquipment = false } = {}) => {
+  const track = GADGET_TRACK_KEYS[required?.track];
+  const tier = Number(required?.tier) || 0;
+  // 認不得的軌名或檔次 → 不假裝知道。
+  if (!track || tier < 1 || tier > 3) return { ok: true, needsPlayerConfirm: true };
+  // **整份科技樹資料都沒有**（舊卡、還沒開過科技樹）→ 交回玩家。
+  // 注意這跟「有資料但檔次是 0」不同：0 是「點過，確實一檔都沒有」，可以照實擋。
+  // 分不出這兩種就擋，等於用「沒有紀錄」推定「你沒點」——那是假裝知道。
+  if (!gadgets || typeof gadgets !== 'object') return { ok: true, needsPlayerConfirm: true };
+
+  // 魔晶石制把魔導科技的「第幾檔是什麼」換掉了，同一個詞指不同節點 → 不猜。
+  if (track.key === 'magitech' && technoRestrictsEquipment && tier >= 2) {
+    return { ok: true, needsPlayerConfirm: true };
+  }
+
+  const have = Math.max(0, Math.min(3, Number(gadgets?.[track.key]) || 0));
+  if (have >= tier) return { ok: true, reason: '' };
+  return {
+    ok: false,
+    reason: `需小工具【${track.label}】達${GADGET_TIER_LABELS[tier]}（目前${GADGET_TIER_LABELS[have]}）`
+  };
 };
 
 /**
@@ -2661,6 +2768,13 @@ export const validateCharacter = (char, rules = null) => {
   // 忠實夥伴的物種（【這東西是活著的】＝構裝體、【根源共生】＝植物）。
   // 玩家還沒設計夥伴時是 undefined → 那兩條仍然交回玩家，不假裝知道。
   const companionSpecies = char.wayfarerData?.companion?.species || null;
+  // 小工具的三條軌點到第幾檔（【藥水霧化】等四條要看這個）。
+  // 玩家沒開過科技樹時是 undefined → 檔次一律算 0（「尚未取得」）。
+  const gadgets = char.tinkererData?.gadgets || null;
+  // 魔晶石制會改寫魔導科技那一軌，同一個「高級」指的不是同一個節點 → 那一條交回玩家。
+  const technoRestrictsEquipment = modeRestrictsEquipment(
+    resolveCreationRules(char?.creationRules).technospheres
+  );
   const masteryGate = (def) => checkHeroicSkillRequirement(def, {
     masteredClasses: stats.masteredClasses,
     // 「不必精通」型的技能（例：銃劍士）在精通路徑也要比對「擁有」，
@@ -2669,7 +2783,9 @@ export const validateCharacter = (char, rules = null) => {
     level: charLevel,
     learnedSkills,
     learnedSpells,
-    companionSpecies
+    companionSpecies,
+    gadgets,
+    technoRestrictsEquipment
   });
   const creationGate = (def) => checkHeroicSkillRequirement(def, {
     classes: ownedClasses,
@@ -2677,7 +2793,9 @@ export const validateCharacter = (char, rules = null) => {
     atCreation: true,
     learnedSkills,
     learnedSpells,
-    companionSpecies
+    companionSpecies,
+    gadgets,
+    technoRestrictsEquipment
   });
 
   const viaCreationSlot = [];

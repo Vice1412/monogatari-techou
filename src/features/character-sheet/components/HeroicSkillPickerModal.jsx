@@ -48,6 +48,8 @@ import {
   heroicSkillsForClass
 } from '../utils/characterEngine';
 import { resolveHeroicSkillEffect } from '../data/theriomorphosisVariant';
+import { resolveCreationRules } from '../data/creationRules';
+import { modeRestrictsEquipment } from '../data/technospheres';
 import { TERMS } from '../data/glossary';
 import { renderTextWithTerms } from '../../../components/ui/termText';
 
@@ -117,6 +119,15 @@ export function HeroicSkillPickerBody({
   );
   /** 忠實夥伴的物種（【這東西是活著的】＝構裝體、【根源共生】＝植物）。沒設計過就是 null。 */
   const companionSpecies = character?.wayfarerData?.companion?.species || null;
+  /** 小工具三條軌點到第幾檔（【藥水霧化】【量子魔加農】【大鍋秘方】【爆裂藝術家】）。 */
+  const gadgets = character?.tinkererData?.gadgets || null;
+  /**
+   * 魔晶石制把魔導科技那一軌改寫了（魔加農火器移除、魔法球原型降檔），
+   * 同一個「高級」指的不是同一個節點 → 那一條交回玩家，不猜。
+   */
+  const technoRestrictsEquipment = modeRestrictsEquipment(
+    resolveCreationRules(character?.creationRules).technospheres
+  );
 
   // 這一張卡「自己的職業會解鎖哪些」——用來當預設過濾
   const mine = useMemo(
@@ -141,14 +152,14 @@ export function HeroicSkillPickerBody({
         const max = heroicSkillMaxAcquisitions(h);
         const verdict = checkHeroicSkillRequirement(h, {
           masteredClasses, classes: myClasses, level, atCreation,
-          learnedSkills, learnedSpells, companionSpecies
+          learnedSkills, learnedSpells, companionSpecies, gadgets, technoRestrictsEquipment
         });
         const already = owned >= max;
         // 只能靠開局名額取得（精通條件還沒到）
         const needsSlot = !verdict.ok && atCreation
           && checkHeroicSkillRequirement(h, {
             classes: myClasses, level, atCreation: true,
-            learnedSkills, learnedSpells, companionSpecies
+            learnedSkills, learnedSpells, companionSpecies, gadgets, technoRestrictsEquipment
           }).ok;
         const blocked = already || (needsSlot && slotBlocked);
         const reason = already
@@ -161,7 +172,8 @@ export function HeroicSkillPickerBody({
         return { h, owned, max, verdict, already, blocked, reason, extra, needsConfirm, ok: verdict.ok };
       });
   }, [query, onlyMyClasses, sourceFilter, mine, character, masteredClasses.join('|'), // eslint-disable-line react-hooks/exhaustive-deps
-    level, atCreation, slotBlocked, learnedSkills, learnedSpells, companionSpecies]);
+    level, atCreation, slotBlocked, learnedSkills, learnedSpells, companionSpecies,
+    gadgets, technoRestrictsEquipment]);
 
   const sources = useMemo(() => [...new Set(HEROIC_SKILLS.map((h) => h.source))], []);
 
