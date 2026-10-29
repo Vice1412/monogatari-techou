@@ -1,0 +1,179 @@
+{
+  "_note": "公測英雄技能的英文原文快照（Playtest Materials ENG 2026-10-01, p.4–21）。由 scratch/heroic_raw/playtest.txt 全文抽取後，以完整標題定位切塊；用於 tests/heroicEffectText.test.mjs 的「中文效果文 vs 英文原文」比對。除非官方改版，不要手動編輯這個檔。",
+  "_source": "scratch/heroic_raw/playtest.txt（45 頁）",
+  "_extracted": "2026-10-29",
+  "blocks": {
+    "類別訓練": {
+      "head": "CATEGORY TRAINING",
+      "body": "When you acquire this Heroic Skill, choose one weapon Category among arcane, bow, brawling, dagger, firearm, flail, heavy, spear, sword, and thrown. You gain the ability to equip martial weapons (W ) that belong to the chosen Category, and gain a +2 bonus to Accuracy Checks with them. Additionally, your attacks with weapons that belong to the chosen Category deal 5 extra damage and cannot benefit from extra damage granted by the Powerful Shot and Powerful Strike Heroic Skills."
+    },
+    "銃劍士": {
+      "head": "GUNBREAKER",
+      "body": "onmaster Class (even if you have not mastered them). As long as you have a transforming custom weapon equipped, if one of its forms is melee and the other is ranged, you may use the Bone Crusher and Counterattack Skills with its ranged form, and may use the Crossfire and Warning Shot Skills with its melee form; however, you cannot use both Bone Crusher and Warning Shot with the same attack. After you use the Bone Crusher Skill or the Warning Shot Skill with a melee weapon against one or more enemies, each of those enemies becomes ruptured until the end of the scene. When a ruptured enemy suffers damage from a source other than a melee attack, they suffer 5 extra damage and stop being ruptured."
+    },
+    "樸實之力": {
+      "head": "HUMBLE STRENGTH",
+      "body": "When you acquire this Heroic Skill, choose two different Attributes among Dexterity, Insight, Might, and Willpower: when you perform an Accuracy Check with a non- martial weapon (W ), you may replace its Attributes with those you have chosen. As long as the only weapon you have equipped is a staff (the basic weapon found on page 130 of the Core Rulebook), that staff is treated as also belonging to the brawling, heavy, spear, and sword Categories for the sake of Skills and effects that require it, and your attacks with that weapon deal 10 extra damage. Additionally, when you perform an attack using an improvised weapon, you deal 5 extra damage and may have that weapon not be destroyed after the attack."
+    },
+    "躍空": {
+      "head": "SKYJUMP",
+      "body": "may not acquire this Heroic Skill if another Player Character in your group has already acquired it. You may use an action and spend 10 Mind Points to become airborne. As long as you are airborne, your melee attacks can target creatures that cannot normally be targeted by melee attacks, and other creatures are unable to see you. At the start of your turn, if you are airborne, you stop being airborne and, until the end of that turn, you may ignore the Mind Point cost of the Soaring Strike spell. If you cast Soaring Strike during that turn and attack with a spear, the attack gains multi (2) and deals another 10 extra damage."
+    },
+    "奧祕之刺": {
+      "head": "ARCANE THORNS",
+      "body": "After an enemy causes you to lose Hit Points with an attack, spell, or Skill action, if you are merged with an Arcanum, you may choose physical damage or choose one damage type that Arcanum is granting you Resistance to. If you do, deal 5 damage of the chosen type to that enemy (after the effects of that enemy's attack, spell, or action have been resolved)."
+    },
+    "戰場調查員": {
+      "head": "BATTLEFIELD INVESTIGATOR",
+      "body": "When you perform a Check to examine a creature, item or location during a conflict scene, you may memorize the High Roll of that Check. If you do, you cannot memorize High Rolls this way until the start of your next turn. When a source deals damage to one or more creatures you can see, you may forget one of your memorized High Rolls to choose one option: that source deals extra damage to each creature equal to the forgotten High Roll; or reduce damage dealt by that source to each creature by an amount equal to the forgotten High Roll (before applying Affinities). You automatically forget all memorized High Rolls at the end of each scene."
+    },
+    "廣幅筆觸": {
+      "head": "BROAD STROKES",
+      "body": "When you use the Symbolism Skill during a conflict scene, if you choose to apply the symbol to yourself or an ally you can see, you may spend up to 30 Mind Points. For every 10 Mind Points you spend this way, you also apply a copy of that symbol to another ally you can see (each copy counts as a separate symbol towards your limit of active symbols). When you perform a free attack as part of the Symbolism Skill, it gains multi (2)."
+    },
+    "暗黑祝福": {
+      "head": "DARK BLESSING",
+      "body": "When you lose Hit Points due to your Shadow Strike Skill, if doing so does not reduce you to 0 Hit Points, every ally present on the scene recovers an amount of Hit Points equal to (the amount of Hit Points you lost this way + your Skill Level in Shadow Strike). This amount increases by 10 Hit Points if you are level 30 or higher."
+    },
+    "爆裂藝術家": {
+      "head": "DETONATION ARTIST",
+      "body": "benefit from the Gadgets Skill. When you use your Alchemy to create a potion, you can always select effects 3 to 8 (you can treat those effects as if they had \"Any\" in the \"Die\" column of the table). If the potion you create is advanced or superior, its damage ignores Resistances. When you succeed on a Check to advance or turn back a Clock, if your approach relied on explosives, gunpowder or pyrotechnics, you may fill or erase 1 additional section of that Clock."
+    },
+    "地城主廚": {
+      "head": "DUNGEON CHEF",
+      "body": "You always know the Species of all creatures you can see. When you prepare a delicacy during a conflict, you may treat one or more enemies you can see as ingredients for that delicacy (doing so doesn't hurt the creature, but it still enriches your cooking!). Each enemy may only be treated as an ingredient once per scene, and their taste varies based on the Species: bitter (plant), salty (construct), sour ( demon), sweet (undead), umami ( elemental); monsters can be treated as an ingredient with a taste of your choice. On the other hand, beasts and humanoids aren't strange enough for this magical effect to work, apparently! When you rest, if you are at least one travel day away from any settlements, you may choose one option: you gain 3 ingredients, each with a random taste; or you create a single invention with a materials cost of 400 or lower, without needing any materials, zenit, special ingredients, or even progress. This invention must be a consumable food or drink, and choosing this option doesn't prevent you from working on other Projects during the same rest."
+    },
+    "快速學習": {
+      "head": "FAST LEARNER",
+      "body": "Once per conflict scene when another Player Character you can see performs the Skill or Spell action to cast a spell or activate a Skill, if you have not learned or acquired that spell or Skill, you can temporarily learn or acquire that spell or Skill until the end of the scene (this includes Heroic Skills). If you learn an offensive spell (O) this way and have also acquired the Spell Mimic Skill, you may use your Spell Mimic Attributes for its Magic Check; otherwise, you use the same Attributes as the Player Character you learned it from. If you acquire a Skill this way, you are treated as having 1 Skill Level in it, and you do not gain any of the additional benefits you would normally acquire when gaining that Skill through character progression: for instance, you would not create a companion by temporarily acquiring the Faithful Companion Skill (Core Rulebook, page 217), nor would you learn any volumes, keys, or tones by temporarily acquiring the Magichant Skill (High Fantasy Atlas, page 137)."
+    },
+    "滿口髒話": {
+      "head": "FOUL-MOUTHED",
+      "body": "After you successfully Provoke an enemy during a conflict, you may perform the Provoke Skill again, ignoring its Mind Point cost and targeting an enemy you have not attempted to Provoke during this turn (you can keep doing so as long as you succeed and there are other enemies for you to Provoke). When an enemy hits you with an attack or offensive spell (O), if that enemy is suffering from enraged, you recover 5 Mind Points."
+    },
+    "風魔手裏劍": {
+      "head": "FŪMA SHURIKEN",
+      "body": "T wo-handed thrown weapons you have equipped are treated as also belonging to the firearm Category for the sake of Skills and effects that require it. Once per turn, when you hit one or more enemies with an attack using a two-handed thrown weapon, you may choose one option, or choose up to two options if the attack was not a free attack: this attack deals 5 extra damage; or all damage dealt by this attack becomes air; or the next attack you perform with that weapon during this scene gains multi (2); or you gain a +2 bonus to Defense and Magic Defense until the start of your next turn, until you use this Skill again, or until you no longer have that weapon equipped; or fill or erase 1 section of a Clock."
+    },
+    "群舞": {
+      "head": "GROUP DANCE",
+      "body": "If you have acquired the Follow my Lead Skill, you may use it on any ally you can see, regardless of Bonds. When you use the Follow My Lead Skill on a dance other than Hydra Dance, you may extend the effect of that dance to every ally you can see (instead of using Follow My Lead's normal effect). When one or more allies suffer damage during a conflict, if each of those allies is currently affected by a dance or verse of yours that grants them Resistance to the type of that damage, you may end the effects of that dance or verse on those allies. If you do, those allies gain Immunity to that damage type until the end of this turn (this Immunity already applies to the damage that triggered this effect)."
+    },
+    "草藥學識": {
+      "head": "HERBALIST LORE",
+      "body": "When you use the Battle Gardening Skill, you may choose one of the following options instead of performing a free attack or the Spell action: you perform the Study action for free, gaining a bonus equal to (your Skill Level in Battle Gardening) to your Check; or you perform the Inventory action for free, but must use that action to create an elixir, remedy, or tonic."
+    },
+    "暗藏武器": {
+      "head": "HIDDEN WEAPON",
+      "body": "Personal Vehicle. When you acquire this Heroic Skill, choose a status effect among dazed, shaken, slow, and weak. After one or more enemies you can see lose Hit Points due to damage dealt by one of your allies, if at least one of them was Vulnerable to the type of damage dealt by your ally, you may choose one of those enemies. If you do, that enemy loses an amount of Hit Points equal to (half your level + (twice your highest Skill Level between Cheap Shot and Personal Vehicle)) and also suffers the chosen status effect. Once you use this Skill during a conflict, neither you nor any of your allies may use it again until the beginning of your next turn."
+    },
+    "內在煉金": {
+      "head": "INNER ALCHEMY",
+      "body": "When you use the Withstand Skill, you may choose any one Attribute (you are no longer restricted to Might or Willpower) and you recover an amount of Mind Points equal to (5 + (your Skill Level in Withstand, multiplied by the highest strength among your Bonds)) (in addition to the default Hit Point recovery). Additionally, the first time you deal damage before the end of your next turn, you deal extra damage equal to your Skill Level in Withstand."
+    },
+    "激勵人心": {
+      "head": "INSPIRING PRESENCE",
+      "body": "Once per turn, when you use the My Trust in You Skill during an ally's Accuracy Check or Magic Check for an offensive spell (O), you may have that attack or spell deal 5 extra damage. When you use the Unexpected Ally Skill on a creature, you may have that creature become a follower of your group until your group gains another follower. Followers are always willing to help the group in dangerous situations; during conflict scenes, they follow the rules for NPCs as Special Abilities in the Game Master's Booklet (page 17). Essentially, the NPC does not have a dedicated profile and is instead represented by a passive benefit for the group, or by an active or reactive benefit that can be used two or three times per conflict scene. The specific benefits granted by a follower are created together by the entire group, and the Game Master has final say on them."
+    },
+    "只是個謙卑的商人！": {
+      "head": "JUST A HUMBLE MERCHANT!",
+      "body": "After a creature you can see performs an Accuracy Check or a Magic Check for an attack or offensive spell (O ) that includes you among its targets, you may spend 2 Inventory Points (you do so after seeing the Result of the Check). If you do, you gain a +20 bonus to your Defense and Magic Defense until the end of this turn, and cannot use this Skill again until the start of your next turn."
+    },
+    "指節三明治": {
+      "head": "KNUCKLE SANDWICH",
+      "body": "When you perform the free attack granted by the Cooking Skill, if you combined no more than 2 ingredients, the attack gains multi (2) and, if the delicacy includes no effects that deal damage, the attack also deals 5 extra damage."
+    },
+    "瘴氣": {
+      "head": "MIASMA",
+      "body": "You learn the forbidden poison spell: Miasma. When you acquire this Skill, choose (INS + WLP) or (MIG + WLP); you will use the chosen Attributes for Miasma's Magic Check. Miasma O MP: 20 Target: One creature Duration: Instantaneous You manipulate the elemental balance within the target's body. You deal (HR + 30) poison damage to the target, and this damage ignores Resistances. Then, if the High Roll of the Magic Check was 8 or higher, or if you have acquired the Pathogenesis Skill (Core Rulebook, page 183), the target suffers poisoned."
+    },
+    "覆繪": {
+      "head": "OVERPAINT",
+      "body": "After you apply a symbol to one or more creatures during a conflict scene, you may choose one of them that was already bearing one of your symbols. If you do, choose one option: that creature may perform a free attack with a weapon they have equipped (or with a basic attack if they are an NPC); or that creature recovers 10 Mind Points; or that creature suffers dazed; or that creature suffers slow."
+    },
+    "孔雀昂首": {
+      "head": "PEACOCK STRUT",
+      "body": "When you perform a Peacock Dance (High Fantasy Atlas, page 145), you may replace its effect with \" Choose another creature that is able to see you and is suffering from one or more status effects. Until the start of your next turn, that creature must include you among the targets of its attacks and offensive spells (O), if able. \""
+    },
+    "穿刺魔法": {
+      "head": "PIERCING SORCERY",
+      "body": "Once per turn, when you use the Cataclysm Skill to increase the total MP cost of an offensive spell (O) by 10 or more Mind Points, if that spell targets exactly one creature, you may increase the extra damage granted by Cataclysm by 5. If you do, all damage dealt by the spell ignores Resistances, and if it already ignored Resistances, it also ignores Immunities; additionally, when the spell hits the target, you may choose one option: if the target is flying, you force them to land immediately; or the target suffers shaken; or the target suffers weak; or the target cannot perform the Guard action during their next turn; or the target cannot perform free attacks until the end of this turn."
+    },
+    "預言守護者": {
+      "head": "PROPHETIC DEFENDER",
+      "body": "Your maximum Hit Points are permanently increased by an amount equal to your base Insight die size (update your maximum HP if this size changes). When a conflict scene begins, if you have learned the Divination spell (Core Rulebook, page 192), you gain 1 Prophecy Point. You also gain 1 Prophecy Point at the start of each even-numbered round (regardless of whether you have learned Divination). You lose all Prophecy Points at the end of each scene. When one or more allies are threatened by a single attack, spell, or other danger, you may spend 1 Prophecy Point to take the place of all those allies (any Checks that are part of the danger will be performed against you; you may declare the use of this Skill before or after the Checks have been made). The danger will affect you once for each creature it was threatening (including yourself, if you were among those creatures). Resolve each of these instances separately."
+    },
+    "心靈昇華": {
+      "head": "PSYCHIC ASCENSION",
+      "body": "Weapons you have equipped are treated as also belonging to the arcane Category for the sake of Skills and effects that require it. At the end of your turn, if your Brainwave Clock is full, you may choose one option: you and every ally present on the scene recover from dazed, enraged, and shaken; or you and every ally present on the scene recover 5 Hit Points and 5 Mind Points; or every enemy present on the scene suffers dazed and shaken; or the Game Master reveals the current damage Affinities of your cognitive focus."
+    },
+    "懲戒架勢": {
+      "head": "PUNISHER STANCE",
+      "body": "When you perform the Guard action, if you did not perform the Guard action on your previous turn during this scene, choose ranged attacks or offensive spells (r). You gain the following benefits until the start of your next turn: w Your Counterattack Skill triggers against all melee attacks that hit or miss you, even if the Result of the Accuracy Check is an odd number. w When you perform a free attack with your Counterattack Skill, if the triggering attack or spell hit you, you deal 5 extra damage. w If you chose ranged attacks, your Counterattack Skill also triggers against ranged attacks that hit or miss you, regardless of the Accuracy Check's Result. w If you chose offensive spells (O) , your Counterattack Skill also triggers against offensive spells (O) that hit or miss you, regardless of the Magic Check's Result."
+    },
+    "震顫泰坦": {
+      "head": "QUAKING TITAN",
+      "body": "As long as your personal vehicle has a steed frame, it may have up to 2 active weap- on modules (instead of 1). As long as you have a martial armor equipped, you may use an action and spend 30 Mind Points to choose earth or physical. If you do, you deal 20 damage of the chosen type to every enemy you can see, and enemies that lose Hit Points this way cannot perform free attacks until the start of their next turn. This effect deals 10 extra damage if you are driving a personal vehicle with a mech frame, or if you have two shields equipped and are not driving a personal vehicle with a steed frame; it also deals another 10 extra damage if you are level 30 or higher."
+    },
+    "疊句": {
+      "head": "REFRAIN",
+      "body": "When the start of your turn causes the ongoing effects of your energetic, lively, or solemn verse to end, you may spend 20 Mind Points. If you do, those effects will instead end at the start of your next turn; they will also end if you sing a verse."
+    },
+    "漣漪祈喚": {
+      "head": "RIPPLING INVOCATION",
+      "body": "in Invocation. Whenever you would perform a free attack with the Ripples Skill against an enemy, you may instead use the Invocation Skill to perform a non- \"hex\" invocation you have access to, ignoring its Mind Point cost. This invocation may only target that enemy, its damage becomes of the same type dealt by your ally, and all \"hex\" invocations present on its target end immediately after it has been resolved."
+    },
+    "地獄再見": {
+      "head": "SEE YOU IN HELL",
+      "body": "As long as your current Hit Points are lower than your maximum Hit Points, you may use an action and spend 20 Mind Points to deal an amount of dark damage equal to (10 + (the difference between your maximum Hit Points and your current Hit Points, divided by two)) to one enemy you can see. The type of this damage cannot change, and it ignores Absorptions, Immunities, and Resistances."
+    },
+    "重生之種": {
+      "head": "SEEDS OF REBIRTH",
+      "body": "When one or more allies you can see are reduced to 0 Hit Points, if there is a magiseed in your garden and two or more sections of your Growth Clock are full, you may remove that magiseed from your garden. If you do, erase all sections of your Growth Clock and choose one of those allies: the chosen ally is reduced to exactly 1 Hit Point instead. When a magiseed leaves your garden, if 3 or more sections of your Growth Clock are full, you recover 20 Mind Points."
+    },
+    "穩固突變": {
+      "head": "STABILIZED MUTATION",
+      "body": "When you acquire this Heroic Skill, you learn two therioforms of your choice. When you rest, choose up to two therioforms among those you know; you cannot choose polypoda, and can only choose one among arpaktida, dynamotheria, and tachytheria. The chosen therioforms become stabilized until you rest again. As long as you are not manifesting any non-stabilized therioforms, you are treated as if you were manifesting both your stabilized therioforms and receive their benefits (these benefits do not end between scenes, nor if you perform the Guard action). As long as you are manifesting one or more of the following therioforms, you also gain Resistance to the corresponding damage type: amphibia (ice), electrophora (bolt), placophora (earth), pneumophora (air), pyrophora (fire), toxicophora (poison)."
+    },
+    "庫存過剩": {
+      "head": "SURPLUS STOCK",
+      "body": "You may use an action and spend 1 Trade Point to deal 25 physical damage to every enemy you can see. This amount increases by 5 if you are level 20 or higher, or by 10 if you are level 40 or higher. When you use this Skill, you may destroy a weapon in your backpack. If you do, this Skill deals damage of the same type as the destroyed weapon's instead of physical, and it also deals 5 extra damage."
+    },
+    "奇術師": {
+      "head": "THAUMATURGE",
+      "body": "All brawling and dagger weapons you have equipped are treated as also belonging to the arcane Category for the sake of Skills and effects that require it. You may use an action to perform a free attack with an arcane weapon you have equipped. This attack must target a single enemy, and you treat your High Roll (HR) as 0 when determining damage dealt by the attack. After this attack has been resolved, you may perform the Spell action for free, casting the Cleanse spell or the Heal spell (Core Rulebook, page 208) on exactly one creature (you must have learned the spell and must pay its MP cost)."
+    },
+    "徹底分析": {
+      "head": "THOROUGH ANALYSIS",
+      "body": "At the start of your turn during a conflict, choose one option: choose a creature you can see and the Game Master reveals one of their Traits; or name a damage type and choose a creature you can see, and the Game Master reveals that creature's Affinity towards that damage type."
+    },
+    "陷阱大師": {
+      "head": "TRAPMASTER",
+      "body": "At the start of your turn, if the number of traps present on the scene is lower than (1+ your Skill Level in Resourceful) , you may spend 2 Inventory Points to set a trap. When you set a trap, you secretly assign it a damage type among physical, air, bolt, dark, earth, fire, ice, light, and poison; a status effect among dazed, shaken, slow, and weak; and an action among Attack, Guard, Skill, and Spell. Take note of your choices in secret (such as on a piece of scrap paper). At the end of each enemy turn, if that enemy performed one or more actions you have set traps for, those traps are automatically sprung: for each trap sprung by that enemy, you deal 10 damage of that trap's type to that enemy, and that enemy suffers the status effect assigned to that trap. All traps vanish after they are sprung, or at the end of each scene. Additionally, you may initiate Projects to create unique traps and rigged devices; these are always consumable (and they have no rules in common with the traps created by the other effects of this Skill)."
+    },
+    "暮光驅散": {
+      "head": "TWILIGHT DISMISSAL",
+      "body": "When you willingly dismiss an Arcanum on your turn, if that Arcanum had not been summoned during this same turn, you may choose dark, light, or physical. If you do, you and every ally you can see gain Resistance to the chosen damage type until the start of your next turn."
+    },
+    "吸血亢奮": {
+      "head": "VAMPIRIC ELATION",
+      "body": "When you cause a creature to recover Hit Points through the Biophagy Skill (T echno Fantasy Atlas, page 155) or the Life Transference gift (T echno Fantasy Atlas, page 153), that creature recovers 10 additional Hit Points and choose one option: they gain immunity to one status of their choice among poisoned, slow, and weak until the start of your next turn; or they gain Resistance to physical and poison damage until the start of your next turn."
+    },
+    "多變戰術": {
+      "head": "VERSATILE TACTICS",
+      "body": "When you use Charging Cavalry on an ally, that ally may choose not to perform their free attack. If they do, they choose one option: they perform one action for free, chosen among Equipment, Hinder, and Study; or they perform the Spell action for free, casting a spell with a total Mind Point cost of 20 or lower (they must still pay its MP cost and perform a Magic Check if required). If that ally casts an offensive spell (O ) this way, they receive a bonus to their Accuracy Check equal to your Skill Level in Charging Cavalry, and also treat their High Roll as 0 when determining damage dealt by that spell."
+    },
+    "收割行者": {
+      "head": "WARP REAPER",
+      "body": "or Stolen Time. You gain a +5 bonus to your Accuracy Checks and Magic Checks for attacks and offensive spells (r) that include one or more enemies in Crisis among the targets. After you reduce one or more enemies to 0 Hit Points, if at least one of them is defeated this way, you recover from all status effects and may choose one option: you perform a free attack with a weapon you have equipped, and that attack deals 5 extra damage; or you perform the Spell action for free, casting an offensive spell (O) with a total MP cost equal to or lower than 10 without paying its MP cost. This attack or spell must target a single enemy; once you use this Skill during a conflict, you may not use it again until the beginning of your next turn."
+    },
+    "日月輪轉": {
+      "head": "WHEEL OF MOON AND SUN",
+      "body": "During conflict scenes, you gain access to the Moon wellspring during odd-numbered rounds, and the Sun wellspring during even-numbered rounds. These wellsprings are in addition to whatever wellsprings are already available within the scene. Moon wellspring (damage type: dark) Moon Blast You deal 20 dark damage to the target. Moon Hex Until the start of your next turn, the target suffers 5 extra damage from all sources that deal light damage. Whisper Choose dark, earth, ice, or poison. The target gains Resistance to the chosen damage type until the start of your next turn. Midnight The target recovers from poisoned, slow, and weak. Sun wellspring (damage type: light) Sun Blast You deal 20 light damage to the target. Sun Hex Until the start of your next turn, the target suffers 5 extra damage from all sources that deal dark damage. Laughter Choose air, bolt, fire, or light. The target gains Resistance to the chosen damage type until the start of your next turn. Midday The target recovers from dazed, enraged, and shaken."
+    },
+    "光之言語": {
+      "head": "WORDS OF LIGHT",
+      "body": "When you cause one or more allies to recover Hit Points during a conflict, you may choose one of those allies and choose up to two options: the chosen ally becomes immune to a single status effect of your choice until the start of your next turn; and/ or until the start of your next turn, all damage dealt by the chosen ally becomes light, its type cannot change, and it ignores Resistances."
+    }
+  }
+}
