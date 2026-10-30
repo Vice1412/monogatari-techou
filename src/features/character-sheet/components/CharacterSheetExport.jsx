@@ -588,7 +588,7 @@ const ClassSlot = ({ slot }) => (
             </div>
             {/* 效果全文：使用者要的是「丟進 TTS 給玩家隨時查」，所以不能只有技能名 */}
             {sk.desc ? (
-              <SkillDescription desc={sk.desc} sl={sk.sl} className="sheet-skill-desc" />
+              <SkillDescription desc={sk.desc} sl={sk.sl} className="sheet-skill-desc" linkRefs={false} />
             ) : null}
           </div>
         ))}
@@ -854,7 +854,7 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
         <Box title="金手指" style={{ flex: '0 0 auto' }}>
           <div style={{ fontSize: T.s10, fontWeight: 700, marginBottom: '1px' }}>{model.quirk}</div>
           {model.quirkDesc ? (
-            <SkillDescription desc={model.quirkDesc} sl={1} className="sheet-skill-desc" />
+            <SkillDescription desc={model.quirkDesc} sl={1} className="sheet-skill-desc" linkRefs={false} />
           ) : null}
           {/* F-027：原文寫「選擇一項…」時，紙上要印出你選了哪一個。
               沒選過就整行不出現（舊角色不受影響）。 */}
@@ -912,7 +912,7 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
                 ) : null}
               </div>
               {hs.effect ? (
-                <SkillDescription desc={hs.effect} sl={hs.sl || 1} className="sheet-skill-desc" />
+                <SkillDescription desc={hs.effect} sl={hs.sl || 1} className="sheet-skill-desc" linkRefs={false} />
               ) : null}
             </div>
           ))}

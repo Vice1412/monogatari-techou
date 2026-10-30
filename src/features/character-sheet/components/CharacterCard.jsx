@@ -472,7 +472,7 @@ export default function CharacterCard({
                             </span>
                           </div>
                           <div className="text-[#6b5a4b] leading-relaxed font-sans text-t11">
-                            <SkillDescription desc={display.desc || '暫無說明'} sl={sk.sl} />
+                            <SkillDescription desc={display.desc || '暫無說明'} sl={sk.sl} refSource={display.name} />
                           </div>
                         </div>
                       );

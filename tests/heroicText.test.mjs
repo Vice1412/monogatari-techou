@@ -278,6 +278,77 @@ check('瞬息之間那一格真的掛了 HR 說明', effectCell('瞬息之間').
 // 所以畫面層只驗得到 HR；另外三個由上面「真實技能文本」那一組守。
 // 這裡刻意**不寫**一條「假裝也驗了」的斷言——恆真的綠燈比沒有更糟。
 
+// ─────────────────────────────────────────────────────────── G
+// 2026-10-29：金手指的引用斷鏈。
+//
+// 神秘魔法書寫著「彗星、額外咒語、希望和火山」；同一個毛病也發生在「植物人」身上：
+// 清單裡那條叫【草木成精】（NF p.121 ARBOREAL）。
+//
+// 2026-10-30 更正：VOLCANO 的定名是【火山】，不是【超魔法】——超魔法是公測版的名字，
+// 正式版把「可改名／改屬性」寫成咒語本身的可選條款，因此恢復原定名（§BA）。
+//
+// 為什麼要釘住「這四條」而不是掃全表：金手指正文是自由散文，沒有可靠的語法能抽出
+// 「它引用了哪一條技能」。硬掃會掃出一堆「希望」「火山」這種日常詞。所以退一步——
+// 至少讓**已知會斷鏈的那一條**永遠有人守著，改壞了會紅。
+section('I. 跨表引用：神秘魔法書點名的英雄技能與金手指都查得到');
+
+const quirkByName = (n) => rulesData.quirks.find((q) => q.name === n);
+const grim = quirkByName('神秘魔法書');
+const HS_NAMES = new Set(HS.map((h) => h.name));
+const QUIRK_NAMES = new Set(rulesData.quirks.map((q) => q.name));
+
+check('神秘魔法書還在（不然下面三條都會「因為掃不到東西」而假綠）', Boolean(grim), true);
+check('引用的四條英雄技能都在表裡',
+  ['彗星', '額外咒語', '希望', '火山'].filter((n) => !HS_NAMES.has(n)), []);
+check('引用的四條金手指都在表裡',
+  ['草木成精', '機器人', '會說話的野獸', '大夢一場'].filter((n) => !QUIRK_NAMES.has(n)), []);
+check('神秘魔法書引用的是【火山】（正式版定名）', /火山/.test(grim.desc || ''), true);
+check('不再出現公測舊名「超魔法」', /超魔法/.test(grim.desc || ''), false);
+check('不再出現舊譯「植物人」（App 定名【草木成精】）', /植物人/.test(grim.desc || ''), false);
+
+// ─────────────────────────────────────────────────────────── H
+// 2026-10-29：金手指的「中文＋英文原詞」黏連（危險danger、彗星Comet、戒律commandments…）。
+// 那是漢化留下的註記，不是規則內容；留著會讓搜尋與閱讀都變糟。
+// 白名單是**遊戲縮寫與骰子記法**，不是「懶得清」的藉口——名單只有下面這些。
+section('J. 金手指文字不再夾英文原詞（縮寫與骰子記法除外）');
+
+const LATIN_OK = new Set([
+  'HP', 'MP', 'IP', 'XP', 'NPC', 'GM', 'TA', 'PC', 'HR', 'SL',
+  'MIG', 'WLP', 'INS', 'DEX', 'PUL', 'D', 'd', 'z',
+  'Aaron Callisto', 'Natalia Caiden' // 書中示例 NPC 姓名，無官方中文
+]);
+const glued = [];
+for (const q of rulesData.quirks) {
+  for (const field of ['desc', 'flavor']) {
+    const text = q[field] || '';
+    const re = /[\u4e00-\u9fff][A-Za-z][A-Za-z' ]*/g;
+    let m;
+    while ((m = re.exec(text))) {
+      const word = m[0].slice(1).trim();
+      if (!LATIN_OK.has(word)) glued.push(`${q.name}/${field} :: ${m[0]}`);
+    }
+  }
+}
+check('46 條金手指零命中', glued, []);
+check('（自檢）這條掃描真的掃得到東西：故意丟一個黏連進去會被抓到',
+  (() => {
+    const re = /[\u4e00-\u9fff][A-Za-z][A-Za-z' ]*/g;
+    return re.test('危險danger或發現');
+  })(), true);
+
+// ─────────────────────────────────────────────────────────── K
+// 2026-10-30：金手指【棄暗投明之人】的示例反派領袖，正式版英文（TF p.126
+// `REPENTANT ENFORCER`：`led by Aaron Callisto`）作 Callisto；
+// 公測中文翻譯寫的是 Felgrance。規則與專名以英文版為準（見 decisions §BB）。
+section('K. 棄暗投明之人的示例 NPC 用正式版英文名');
+const repentant = rulesData.quirks.find((q) => q.name === '棄暗投明之人');
+const repentantText = (repentant && repentant.desc) || '';
+check('棄暗投明之人還在（不然下面幾條會假綠）', Boolean(repentant), true);
+check('示例領袖作 Aaron Callisto', /Aaron Callisto/.test(repentantText), true);
+check('不再出現公測舊名 Aaron Felgrance', /Felgrance/.test(repentantText), false);
+check('句讀已清：沒有半形逗號「投降,」', /投降,/.test(repentantText), false);
+check('句讀已清：沒有半形句點「物語點）.」', /物語點\)\./.test(repentantText), false);
+
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
 console.log(`\n${'='.repeat(56)}`);

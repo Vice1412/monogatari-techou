@@ -1,6 +1,7 @@
 import { RULE_CODEX } from '../data/ruleCodexData';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
+import { resolveRefNames, hasEntry, openEntryRef } from '../data/crossRefs';
 
 /**
  * 技能公式動態解析與求值器 (Skill Formula Evaluator)
@@ -240,14 +241,21 @@ export function openRuleCodex(keyword) {
 }
 
 /**
- * 渲染單一純字串片段中的關鍵詞與攻擊性咒語圖標
+ * 渲染單一純字串片段中的關鍵詞、條目引用與攻擊性咒語圖標
+ *
+ * `refNames`：這段文字裡「確定是引用」的條目名稱（由 `resolveRefNames` 算出）。
+ * 點下去會開條目查閱視窗，而不是規則速查——見 `data/crossRefs.js` 檔頭。
  */
-function renderWordsAndKeywords(text, keyPrefix = '', linkCodex = true) {
+function renderWordsAndKeywords(text, keyPrefix = '', linkCodex = true, refNames = null) {
   if (!text || typeof text !== 'string') return text;
 
-  // 組合正則：攻擊性咒語（（o）/(o)，另相容舊版閃電哨兵 U+26A1）以及非通用規則關鍵字
+  // 組合正則：攻擊性咒語（（o）/(o)，另相容舊版閃電哨兵 U+26A1）、
+  // 條目引用（放前面：同名字時引用優先於速查），以及非通用規則關鍵字。
   const escapedKeywords = CODEX_KEYWORDS.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-  const combinedRegex = new RegExp(`(（[oO\u26A1]）|\\([oO\u26A1]\\)|${escapedKeywords})`, 'g');
+  const refAlt = refNames && refNames.length
+    ? refNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + '|'
+    : '';
+  const combinedRegex = new RegExp(`(（[oO\u26A1]）|\\([oO\u26A1]\\)|${refAlt}${escapedKeywords})`, 'g');
 
   const parts = text.split(combinedRegex);
   if (parts.length === 1) return renderTextWithAffinities(text);
@@ -267,7 +275,25 @@ function renderWordsAndKeywords(text, keyPrefix = '', linkCodex = true) {
       );
     }
 
-    // 2. 規則速查關鍵詞（`linkCodex === false` 時不連結——金手指用）
+    // 2. 條目引用：點一下開全文視窗（不跳頁、不離開當前情境）
+    if (refNames && refNames.includes(part)) {
+      return (
+        <span
+          key={k}
+          data-entry-ref={part}
+          onClick={(e) => {
+            e.stopPropagation();
+            openEntryRef(part);
+          }}
+          className="inline cursor-pointer font-semibold text-[#8c2d36] border-b border-dotted border-[#a63d40] hover:bg-[#f4ebd9] transition-colors"
+          title={`點擊查看【${part}】完整效果`}
+        >
+          {part}
+        </span>
+      );
+    }
+
+    // 3. 規則速查關鍵詞（`linkCodex === false` 時不連結——金手指用）
     if (linkCodex && CODEX_KEYWORDS.includes(part)) {
       return (
         <span
@@ -284,7 +310,7 @@ function renderWordsAndKeywords(text, keyPrefix = '', linkCodex = true) {
       );
     }
 
-    // 3. 一般文字片段進行九相傷害屬性解析
+    // 4. 一般文字片段進行九相傷害屬性解析
     return <React.Fragment key={k}>{renderTextWithAffinities(part)}</React.Fragment>;
   });
 }
@@ -292,7 +318,7 @@ function renderWordsAndKeywords(text, keyPrefix = '', linkCodex = true) {
 /**
  * 渲染行內富文字（解析 **粗體** 與其中的關鍵詞）
  */
-function renderInlineRichText(line, linePrefix = '', linkCodex = true) {
+function renderInlineRichText(line, linePrefix = '', linkCodex = true, refNames = null) {
   if (!line) return null;
 
   // 匹配 **粗體內容**
@@ -307,14 +333,14 @@ function renderInlineRichText(line, linePrefix = '', linkCodex = true) {
       const innerText = chunk.slice(2, -2);
       return (
         <strong key={k} className="font-bold text-[#2c221e]">
-          {renderWordsAndKeywords(innerText, `${k}-bold`, linkCodex)}
+          {renderWordsAndKeywords(innerText, `${k}-bold`, linkCodex, refNames)}
         </strong>
       );
     }
 
     return (
       <React.Fragment key={k}>
-        {renderWordsAndKeywords(chunk, `${k}-plain`, linkCodex)}
+        {renderWordsAndKeywords(chunk, `${k}-plain`, linkCodex, refNames)}
       </React.Fragment>
     );
   });
@@ -323,17 +349,17 @@ function renderInlineRichText(line, linePrefix = '', linkCodex = true) {
 /**
  * 完整渲染富文本區塊（解析 \n 換行、**粗體**、關鍵詞、公式）
  */
-export function renderRichTextContent(content, prefix = '', linkCodex = true) {
+export function renderRichTextContent(content, prefix = '', linkCodex = true, refNames = null) {
   if (!content || typeof content !== 'string') return content;
 
   const lines = content.split('\n');
   if (lines.length === 1) {
-    return renderInlineRichText(content, prefix);
+    return renderInlineRichText(content, prefix, linkCodex, refNames);
   }
 
   return lines.map((line, lIdx) => (
     <React.Fragment key={`${prefix}-line-${lIdx}`}>
-      {renderInlineRichText(line, `${prefix}-line-${lIdx}`, linkCodex)}
+      {renderInlineRichText(line, `${prefix}-line-${lIdx}`, linkCodex, refNames)}
       {lIdx < lines.length - 1 && <br className="my-1" />}
     </React.Fragment>
   ));
@@ -394,8 +420,26 @@ function FormulaBadge({ seg, sl }) {
  * `linkCodex`：要不要把 `CODEX_KEYWORDS` 裡的詞變成可點擊的規則速查連結。
  * **金手指一律傳 `false`**——金手指的效果文剛好含有很多規則詞，但語意上大多無關，
  * 使用者回報「有很多是剛好字對得上然後就被連過去了，實際完全沒有關係」。
+ *
+ * `refSource`：這段文字**屬於哪一個條目**（條目名稱）。給它，引用的其他技能／
+ * 金手指／咒語名稱才會變成可點連結——規則見 `data/crossRefs.js` 檔頭。
+ * 不給也能運作，但只剩「【】括號內」這一種引用抓得到。
+ *
+ * `linkRefs`：印出來的地方（PDF／匯出）要傳 `false`——紙上點不動，
+ * 連結樣式只會讓人以為可以點。
  */
-export default function SkillDescription({ desc, sl = 0, className = '', linkCodex = true }) {
+export default function SkillDescription({
+  desc, sl = 0, className = '', linkCodex = true, refSource = null, refs = null, linkRefs = true,
+}) {
+  const refNames = useMemo(() => {
+    if (!linkRefs) return [];
+    const base = resolveRefNames(desc, refSource);
+    if (!refs || refs.length === 0) return base;
+    const set = new Set(base);
+    refs.forEach((n) => { if (hasEntry(n)) set.add(n); });
+    return [...set].sort((a, b) => b.length - a.length);
+  }, [desc, refSource, refs, linkRefs]);
+
   if (!desc) return null;
 
   const segments = parseSkillFormulaSegments(desc, sl);
@@ -406,7 +450,7 @@ export default function SkillDescription({ desc, sl = 0, className = '', linkCod
         if (seg.type === 'text') {
           return (
             <React.Fragment key={idx}>
-              {renderRichTextContent(seg.content, `seg-${idx}`, linkCodex)}
+              {renderRichTextContent(seg.content, `seg-${idx}`, linkCodex, refNames)}
             </React.Fragment>
           );
         }

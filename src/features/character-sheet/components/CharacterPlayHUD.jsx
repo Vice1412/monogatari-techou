@@ -2634,9 +2634,9 @@ export default function CharacterPlayHUD({
                             </div>
                           </div>
 
-                          <div className="text-t12 text-[#6b5a4b] leading-relaxed">
+                          <div className="text-t14 text-[#6b5a4b] leading-relaxed">
                             <div className={isExpanded ? '' : 'line-clamp-2'}>
-                              <SkillDescription desc={display.desc || '暫無描述'} sl={sk.sl} />
+                              <SkillDescription desc={display.desc || '暫無描述'} sl={sk.sl} refSource={display.name} />
                             </div>
                             {display.desc && display.desc.length > 80 && (
                               <button
@@ -3598,15 +3598,16 @@ export default function CharacterPlayHUD({
                         }}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-[#3c2415]">{sk.name}</span>
+                          <span className="text-t14 font-bold text-[#3c2415]">{sk.name}</span>
                           <span className="text-t12 font-mono text-[#7c6a58] shrink-0">
                             SL {curSL} / {sk.maxSL}{maxed ? '　已升滿' : ''}
                           </span>
                         </div>
-                        <p className="text-t12 text-[#6b5a4b] leading-relaxed mt-1">
+                        <p className="text-t14 text-[#6b5a4b] leading-relaxed mt-1">
                           <SkillDescription
                             desc={sk.desc || '（無效果描述）'}
                             sl={isSel && !maxed ? curSL + 1 : curSL}
+                            refSource={sk.name}
                           />
                         </p>
                         {isSel && !maxed && (

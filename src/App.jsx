@@ -14,6 +14,7 @@ import { BOOK_CHROME } from './components/book/chapterChrome';
 import DiceRollerModal from './features/dice-roller/DiceRollerModal';
 import ChapterDevWarningModal from './components/book/ChapterDevWarningModal';
 import RuleCodexDrawer from './features/character-sheet/components/RuleCodexDrawer';
+import EntryRefModal from './features/character-sheet/components/EntryRefModal';
 import { openRuleCodex } from './features/character-sheet/utils/skillFormulaEvaluator';
 import { playPageFlipSound } from './utils/soundEffects';
 import { STORAGE_KEYS } from './data/keys';
@@ -404,6 +405,9 @@ export default function App() {
 
       {/* Global Rule Codex Drawer (規則概念速查手冊) */}
       <RuleCodexDrawer />
+
+      {/* Global Entry Reference Modal (條目交叉引用：點技能名直接看全文) */}
+      <EntryRefModal />
     </div>
   );
 }
