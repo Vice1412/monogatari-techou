@@ -2899,3 +2899,48 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 3. `@keyframes` 裡的 `transform` 會把 utility 的 `-translate-x-1/2` 整組蓋掉。
 4. 刻意破壞「沒反應」有兩種意思：**沒被執行**（P30 的死碼）與**被執行但沒有可觀測效果**
    （本輪的 `typeof`）。兩者都叫死碼，兩者都讓人以為那裡有人在守。
+
+## 2026-10-30（第五十六輪，P6）：事前可用性——「按了才知道」改成「看就知道」
+
+**起點**：使用者說操作感要「有系統互動的實感、不呆板」。量下去發現問題不是外觀，
+是**順序**：八處成本門檻全部寫成「按下之後才 `showToast` 說不行」。
+（同時重量了上一輪留下的候選 `zeroPower`／`startingFundsRolled`——**兩個都不成立**，
+前者已接 `ZeroPowerBlock`、後者只是編輯器旗標。舊台賬又過期了一次。）
+
+**新增**
+
+- `src/features/character-sheet/utils/playAvailability.js`：`describeCostGate`／`describeCostGates`／
+  `asCount`／`gateButtonAttrs`／`GATED_BUTTON_CLASS`／`GATED_SHELL_CLASS`／`GATED_LABEL_CLASS`／`GATE_UNITS`。
+  純判定、零寫入。
+- `src/features/character-sheet/components/UnavailableHint.jsx`：印一行「差 N 單位」，沒被擋回 `null`。
+- `tests/playAvailability.test.mjs`（103 條）。
+- `scratch/break-check-availability.mjs`（12 案）、`scratch/p44-console.mjs`（22 條實機）。
+- `scratch/cdp.mjs`：新增 `shotEl(file, selector, scale)`——用 CDP `clip` 截原生解析度的一塊。
+
+**修改**
+
+- `CharacterPlayHUD.jsx`：八處門檻全部接上判定（五種 IP 消耗品、咒語逐條、儀式、羈絆激勵），
+  按鈕事前灰掉並寫出還差多少；羈絆頁用**一行**全域提示（條件是全域的，六條羈絆不各掛一行）。
+  **按下後的守衛 0 條被拆。**
+- `characterDossier.js`／`CharacterPlayHUD.jsx`：三處「去第 8 步改」改成第 6 步
+  （第 8 步是原書步數，本專案編輯器只切六步）。
+
+**驗證**
+
+- `npm test`：**42 支 / 6,377 條 / 0 FAIL**，EXIT=0。
+- 刻意破壞 **12 / 12 全部轉紅**。
+- 實機 `p44-console.mjs` **22 / 22**；截圖 4 張 md5 兩兩不同，另加 1 張原生裁切
+  （`p44-zoom-consumables.png`）。
+- `npm run build` exit 0。
+
+**這一輪的教訓**
+
+1. **`opacity` 是整棵子樹相乘。** 按鈕一灰，按鈕裡的「差 3 IP」跟著變淡——
+   灰掉正好把「為什麼不能用」也灰掉。而 `getComputedStyle(提示).opacity` **仍回 1**
+   （不是繼承，是合成），量提示自己永遠看不到；要沿祖先鏈相乘。
+2. **`opacity-45` 不在 Tailwind 3 尺度裡**（…40、50…）。不生成樣式＝以為灰了其實沒灰，
+   而這種「宣告了卻沒發生」在畫面上不會報錯。
+3. **整頁截圖 1056px 寬時 12px 字只剩幾像素**，看不出有沒有被壓淡。
+   要驗「看不看得清」就得截那一塊，而且要原生解析度。
+4. 提示不能取代守衛。兩者講同一句話，只是先後不同；提示一旦變成唯一依據，
+   判定有出入就變成「按了沒反應」——那是這一輪想消滅的東西本身。
