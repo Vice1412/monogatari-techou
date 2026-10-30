@@ -103,6 +103,12 @@ import {
   describeBondEdit
 } from '../utils/bondLink';
 import NumberStepper from '../../../components/ui/NumberStepper';
+import GaugeBar from './GaugeBar';
+import { useResourceDelta, ResourceDeltaBadge } from './ResourceDeltaBadge';
+// 角色檔案（2026-10-30，P5-b）：面板要能讀到「這個角色是誰」。
+// 純推導、零寫入、零輸入框——性別與背景是玩家在創角第 8 步寫下的東西，
+// 在這一輪之前它們在跑團面板上一次都沒出現過。詳見 characterDossier.js 檔頭。
+import { buildDossier, backgroundDisplayText } from '../utils/characterDossier';
 import SkillDescription, { openRuleCodex } from '../utils/skillFormulaEvaluator';
 import ArcanistManager from './companions/ArcanistManager';
 import ChimeristManager from './companions/ChimeristManager';
@@ -300,7 +306,10 @@ export default function CharacterPlayHUD({
   // 都只能靠點擊打開，而裡面正是「名冊斷鏈」與「為什麼」唯一會出現的地方。
   // 生產端永不傳入，不傳時就是原本的 `false`／`null`。
   initialBondModalOpen = false,
-  initialEditingBondId = null
+  initialEditingBondId = null,
+  // 角色檔案（P5-b）：收合是預設，展開只能靠點擊，所以 SSR 看不到展開後的內容。
+  // 生產端永不傳入，不傳時就是原本的 `false`。
+  initialDossierOpen = false
 }) {
   // Tabs: attacks (武器與防衛) | spells (咒語與魔法) | skills (職業特技) | bonds (情感羈絆) | clocks (命刻) | notes (行囊日誌)
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -471,6 +480,26 @@ export default function CharacterPlayHUD({
   // 四維還沒指派完 → 六項數值不成立（見 `calculateCharacterStats` 的 `attributesUnset`）
   const statsUnset = Boolean(stats.attributesUnset);
   const isReadyToLevelUp = canLevelUp(character);
+
+  /* ── 資源變動的即時回饋（2026-10-30，P5-a）─────────────────────
+     每個值各一支 hook，回傳的是「剛剛那一下」的增減（0.9 秒後自己消失）。
+     刻意**不寫入任何地方**：這是視覺回饋，不是記錄——記錄是履歷的工作，
+     而履歷記的是「發生過什麼」，這裡講的是「你剛剛按了什麼」。
+
+     為什麼放在 `if (!character) return null` 之後仍然安全：這四個值都從
+     `character` 派生，而父層只在有角色時才掛這個元件（同下方既有的 useMemo）。 */
+  const hpDelta = useResourceDelta(curHp);
+  const mpDelta = useResourceDelta(curMp);
+  const ipDelta = useResourceDelta(curIp);
+  const expDelta = useResourceDelta(Number(character.exp) || 0);
+
+  /* ── 角色檔案（2026-10-30，P5-b）────────────────────────────────
+     性別與背景是玩家自己寫的散文，跑團時卻一次都看不到。
+     這裡只**讀**：`buildDossier` 沒有任何 setter，要改請去「構築與成長」第 8 步。 */
+  const [isDossierOpen, setIsDossierOpen] = useState(initialDossierOpen);
+  const dossier = buildDossier(character);
+  const dossierTeaser = dossier.teaser
+    || (dossier.backgroundEmpty ? '背景尚未填寫' : '');
 
   // 場次（2026-10-30）：進行中的那一場與它的即時小結。
   // 小結全部由這一場的記錄推導，不另存統計欄位——同 `summarizeLog` 的原則。
@@ -1392,11 +1421,24 @@ export default function CharacterPlayHUD({
           {/* LEFT WING (col-span-4): Vital Resource Gauges (HP / MP / IP) & Official 5 Consumables */}
           <div className="lg:col-span-4 flex flex-col gap-3">
             {/* HP Gauge */}
-            <div className={`rounded p-3.5 border-2 transition-all ${
+            <div className={`relative rounded p-3.5 border-2 transition-all ${
               isCrisis
                 ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40]/60'
                 : 'bg-[#fffdf9] border-[#d6c7ab]'
             }`}>
+              {/* 危機脈動（P5-a）：`.crisis-pulse-active` 從 2026-10-25 起就存在，
+                  但跑團面板的 HP 卡一直沒接上——只有名冊卡與戰鬥卡在脈動。
+                  用獨立的一層覆蓋而不是直接加在卡片上，是為了不讓動畫的
+                  `border-color`／`box-shadow` 蓋掉卡片自己的靜態紅框與 ring：
+                  在 `prefers-reduced-motion` 之下動畫會停在 45% 透明度，
+                  那時候還要看得出來「這張卡正在危機」。 */}
+              {isCrisis && (
+                <span
+                  data-testid="hp-crisis-pulse"
+                  aria-hidden="true"
+                  className="crisis-pulse-active pointer-events-none absolute inset-0 rounded border-2"
+                />
+              )}
               <div className="flex items-center justify-between text-xs mb-1">
                 <div className="flex items-center gap-1.5 font-bold text-[#8c3235]">
                   <GiHealthNormal className="w-4 h-4 text-[#8c3235]" />
@@ -1418,11 +1460,13 @@ export default function CharacterPlayHUD({
                 </button>
               </div>
 
-              <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-2.5">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}`}
-                  style={{ width: `${Math.min(100, (curHp / stats.maxHp) * 100)}%` }}
+              <div className="relative mb-2.5">
+                <GaugeBar
+                  testId="gauge-hp"
+                  percent={stats.maxHp > 0 ? (curHp / stats.maxHp) * 100 : 0}
+                  fillClassName={isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}
                 />
+                <ResourceDeltaBadge flash={hpDelta} />
               </div>
 
               <div className="flex items-center justify-between gap-1">
@@ -1482,11 +1526,13 @@ export default function CharacterPlayHUD({
                 </button>
               </div>
 
-              <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-2.5">
-                <div
-                  className="bg-gauge-mp h-full rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min(100, (curMp / stats.maxMp) * 100)}%` }}
+              <div className="relative mb-2.5">
+                <GaugeBar
+                  testId="gauge-mp"
+                  percent={stats.maxMp > 0 ? (curMp / stats.maxMp) * 100 : 0}
+                  fillClassName="bg-gauge-mp"
                 />
+                <ResourceDeltaBadge flash={mpDelta} />
               </div>
 
               <div className="flex items-center justify-between gap-1">
@@ -1537,11 +1583,13 @@ export default function CharacterPlayHUD({
                   </button>
                 </div>
 
-                <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-2.5">
-                  <div
-                    className="bg-gauge-ip h-full rounded-full transition-all duration-300"
-                    style={{ width: `${Math.min(100, (curIp / stats.maxIp) * 100)}%` }}
+                <div className="relative mb-2.5">
+                  <GaugeBar
+                    testId="gauge-ip"
+                    percent={stats.maxIp > 0 ? (curIp / stats.maxIp) * 100 : 0}
+                    fillClassName="bg-gauge-ip"
                   />
+                  <ResourceDeltaBadge flash={ipDelta} />
                 </div>
 
                 <div className="flex items-center justify-between gap-1">
@@ -1715,6 +1763,76 @@ export default function CharacterPlayHUD({
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* ── 角色檔案（2026-10-30，P5-b）───────────────────────────────
+                玩家在創角時寫下的性別與背景，在這一輪之前跑團面板一次都讀不到。
+                這裡**只讀不寫**：沒有輸入框、沒有「儲存」，要改請去第 6 步。
+
+                收合狀態也要有字（`dossierTeaser`）：一個看起來空的抽屜沒有人會去點，
+                而角色的故事如果只在「展開之後」才存在，那它跟不存在沒有兩樣。 */}
+            <div
+              data-testid="character-dossier"
+              className="w-full pt-2 border-t border-[#e8dcc4] text-left"
+            >
+              <button
+                type="button"
+                onClick={() => setIsDossierOpen((prev) => !prev)}
+                aria-expanded={isDossierOpen}
+                className="w-full flex items-center gap-1.5 text-left group"
+                title="這個角色是誰：性別、出身、身份、主題與你寫下的背景"
+              >
+                <GiScrollUnfurled className="w-3.5 h-3.5 shrink-0" style={{ color: theme.accent }} />
+                <span className="text-t11 font-bold text-[#7c6a58] shrink-0">角色檔案</span>
+                <span className="text-t11 text-[#6b5a4b] truncate flex-1 min-w-0 group-hover:text-[#3c2415]">
+                  {dossierTeaser}
+                </span>
+                <span className="text-t10 text-[#7c6a58] shrink-0" aria-hidden="true">
+                  {isDossierOpen ? '▾' : '▸'}
+                </span>
+              </button>
+
+              {isDossierOpen && (
+                <div className="mt-2 space-y-2">
+                  <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                    {dossier.rows.map((row) => (
+                      <div key={row.key} className="min-w-0">
+                        <dt className="text-t10 text-[#7c6a58]">{row.label}</dt>
+                        <dd
+                          data-testid={`dossier-${row.key}`}
+                          className={`text-t12 font-bold truncate ${row.empty ? 'text-[#7c6a58]' : 'text-[#3c2415]'}`}
+                          title={row.empty ? '' : row.value}
+                        >
+                          {row.empty ? '未填' : row.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  <div className="space-y-0.5">
+                    <span className="text-t10 text-[#7c6a58] block">背景</span>
+                    <p
+                      data-testid="dossier-background"
+                      className={`text-t12 leading-relaxed whitespace-pre-wrap ${dossier.backgroundEmpty ? 'text-[#7c6a58]' : 'text-[#3c2415]'}`}
+                    >
+                      {backgroundDisplayText(dossier)}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className="text-t10 text-[#7c6a58]">
+                      已填 {dossier.filledCount} / {dossier.totalCount} 項
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onOpenEditor(6)}
+                      className="text-t11 font-bold text-[#8c3235] hover:underline"
+                    >
+                      前往第 6 步修改
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* JRPG Command Ring: 6 Tactical Panel Buttons around the Character */}
@@ -1925,14 +2043,14 @@ export default function CharacterPlayHUD({
                     {isExpSettlementOpen ? '收合結算' : '✦ 聚會結算'}
                   </button>
                 </div>
-                <div className="w-full h-1.5 rounded-full overflow-hidden bg-[#f4ebd9]">
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                      backgroundColor: theme.accent,
-                      width: `${Math.min(100, ((character.exp || 0) / 10) * 100)}%`
-                    }}
+                <div className="relative">
+                  <GaugeBar
+                    testId="gauge-exp"
+                    height="h-1.5"
+                    percent={((Number(character.exp) || 0) / 10) * 100}
+                    fillStyle={{ backgroundColor: theme.accent }}
                   />
+                  <ResourceDeltaBadge flash={expDelta} />
                 </div>
                 <div className="flex items-center justify-between gap-1">
                   <NumberStepper

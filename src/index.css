@@ -393,3 +393,76 @@ body {
   font-size: 7px;
   line-height: 1.14;
 }
+
+/* ==========================================================================
+   資源回饋（2026-10-30，P5-a）：讓「數值變了」看得見
+   ==========================================================================
+
+   三條規則，各自解決一件具體的事：
+
+   1. `.gauge-fill` / `.gauge-trail` —— 主條快、尾影慢。
+      兩條 div 在同一次 render 拿到同一個 `width`，差別只在這裡的
+      `transition-duration` 與 `transition-delay`。於是「剛剛失去的那一段」
+      會以尾影的顏色多留 0.6 秒——**尾影不是算出來的，是「慢」出來的**，
+      所以它不可能跟主條對不上。
+
+      ※ 尾影刻意沒有 `transition` 的起始值：第一次 render 時不該有一條
+        從 0 長出來的條子（那會看起來像「載入中」）。
+
+   2. `.animate-resource-delta` —— 浮起來的 `-8`。
+      0.9 秒，前 18% 淡入、後 30% 上飄淡出。**不做彈跳**：v5 的動態語彙是
+      「120–200ms、不用彈性曲線」（見 tailwind.config.js 的 transitionDuration），
+      回彈曲線會讓面板看起來像手機遊戲的廣告。
+
+   3. `prefers-reduced-motion` —— 全站動畫的總開關。
+      這一條在本輪之前**完全不存在**（`grep -r prefers-reduced-motion src/` 是 0 筆），
+      而站上當時已經有 11 組 `@keyframes`、其中包含 1.8 秒無限循環的危機脈動與
+      0.85 秒的翻書轉場。前庭功能敏感的使用者沒有辦法關掉它們。
+   ========================================================================== */
+
+.gauge-fill {
+  transition: width 160ms ease-out;
+}
+
+.gauge-trail {
+  transition: width 620ms cubic-bezier(0.22, 1, 0.36, 1) 90ms;
+}
+
+@keyframes resourceDeltaFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(5px) scale(0.9);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.96);
+  }
+}
+
+.animate-resource-delta {
+  animation: resourceDeltaFloat 900ms ease-out forwards;
+  will-change: transform, opacity;
+}
+
+/* 總開關：放在檔案最後，`!important` 才能蓋掉上面每一組具名動畫。
+   `animation-iteration-count: 1` 是關鍵——只縮短 duration 的話，
+   `infinite` 的危機脈動會變成每秒閃 1000 次，比原本更糟。 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}

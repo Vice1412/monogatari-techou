@@ -1075,15 +1075,33 @@ check('遊戲中主畫面零任意字級（型階梯）', hudArb === 0, `${hudAr
 //     因為危機只出現在 HP 條，而且會同時觸發 crisis-pulse 邊框脈動，紅色是
 //     「形狀＋顏色」雙重訊號，不會被誤認成「HP 本來的青色」。
 // 第四條經驗條仍走 theme.accent（身份色，封閉六集），不在這條管轄內。
-const hudBars = (hudSrc.match(/h-full rounded-full transition-all duration-300/g) || []).length;
+// 2026-10-30（P5-a）：四條資源條收斂進 `GaugeBar`（主條 ＋ 尾影），
+// 所以「一條 bar 長什麼樣」不再是面板原始碼裡的一段固定字串。
+//
+// 原本這條斷言數的是 `h-full rounded-full transition-all duration-300`——
+// 那是**舊實作的字串**，不是需求。改版之後它會永遠是 0，而 0 是「紅」，
+// 於是下一個人會以為資源條壞了，其實壞的是這條斷言。
+// 這是 MEMORY §C10 的第 ② 類紅燈：**斷言一直在記錄舊行為**。
+//
+// 現在改成數 `<GaugeBar`，並**逐條點名**四個 testId。
+// 「有四條」與「是這四條」是兩件事：少了 EXP 那條、多了一條別的，總數都會是 4。
+const hudBars = (hudSrc.match(/<GaugeBar\b/g) || []).length;
+const HUD_BAR_IDS = ['gauge-hp', 'gauge-mp', 'gauge-ip', 'gauge-exp'];
+const hudBarIdMissing = HUD_BAR_IDS.filter((id) => !hudSrc.includes(`testId="${id}"`));
 const hudGaugeHp = (hudSrc.match(/bg-gauge-hp/g) || []).length;
 const hudGaugeMp = (hudSrc.match(/bg-gauge-mp/g) || []).length;
 const hudGaugeIp = (hudSrc.match(/bg-gauge-ip/g) || []).length;
-const hudCrisis = (hudSrc.match(/\$\{isCrisis \? 'bg-\[#a63d40\]' : 'bg-gauge-hp'\}/g) || []).length;
+const hudCrisis = (hudSrc.match(/isCrisis \? 'bg-\[#a63d40\]' : 'bg-gauge-hp'/g) || []).length;
 check(
   '資源條三色語意、危急才換強調紅',
-  hudBars === 4 && hudGaugeHp === 1 && hudGaugeMp === 1 && hudGaugeIp === 1 && hudCrisis === 1,
-  `bar ${hudBars} 條（HP 青 ${hudGaugeHp}＋MP 藍 ${hudGaugeMp}＋IP 金 ${hudGaugeIp}＋危急 ${hudCrisis}＋經驗 1）`
+  hudBars === 4 &&
+    hudBarIdMissing.length === 0 &&
+    hudGaugeHp === 1 &&
+    hudGaugeMp === 1 &&
+    hudGaugeIp === 1 &&
+    hudCrisis === 1,
+  `bar ${hudBars} 條（HP 青 ${hudGaugeHp}＋MP 藍 ${hudGaugeMp}＋IP 金 ${hudGaugeIp}＋危急 ${hudCrisis}）` +
+    (hudBarIdMissing.length ? `｜缺 testId：${hudBarIdMissing.join('、')}` : '')
 );
 
 // H7. 角色主題：六個主題共用同一張紙、同一階墨，只有身份色不同（第十五輪）。
@@ -4380,6 +4398,12 @@ check(
 // 「把一個檔案的 rounded-full 全部改成 rounded」只掉了 15 個中的一部分，
 // 總數 98 → 83，**沒過門檻也沒紅**。反向控制的餘裕就是它的盲區。
 // 現在兩條都是 `>= 當下值`：只能增，不能減；要減就必須來改這個數字（也就是做一次決定）。
+//
+// 2026-10-30（P5-a）做了一次這樣的決定：98 → 95。
+// 四條資源條收斂進 `GaugeBar` 之後，面板裡的 8 處（4 條 × 外框＋內層）變成元件裡的 3 處。
+// **渲染出來的圓角元素其實變多了**（4 條 × 3 層＝12，原本 4 條 × 2 層＝8）——
+// 這正是文字掃描的盲區：它數的是原始碼裡的出現次數，不是畫面上的元素。
+// 所以這裡放寬 3，交換的是同一支檔案裡「資源條逐條點名 testId」那條更強的守衛。
 const allSrcRadius = walkSrc(path.join(ROOT, 'src'))
   .map((abs) => stripComments(fs.readFileSync(abs, 'utf8')))
   .join('\n');
@@ -4387,8 +4411,8 @@ const fullRoundUses = (allSrcRadius.match(/\brounded-full\b/g) || []).length;
 const bareRoundUses = (allSrcRadius.match(/\brounded\b(?!-)/g) || []).length;
 check(
   'H34-c 全圓仍在服役（反向控制，不得減少）',
-  fullRoundUses >= 98,
-  `${fullRoundUses} 處（收斂前 98）`
+  fullRoundUses >= 95,
+  `${fullRoundUses} 處（收斂前 98；P5-a 資源條收斂後地板 95）`
 );
 check(
   'H34-c2 預設圓角仍是全站主體（反向控制，不得減少）',
