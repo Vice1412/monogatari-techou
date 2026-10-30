@@ -106,9 +106,13 @@ import NumberStepper from '../../../components/ui/NumberStepper';
 import GaugeBar from './GaugeBar';
 import { useResourceDelta, ResourceDeltaBadge } from './ResourceDeltaBadge';
 // 角色檔案（2026-10-30，P5-b）：面板要能讀到「這個角色是誰」。
-// 純推導、零寫入、零輸入框——性別與背景是玩家在創角第 8 步寫下的東西，
+// 純推導、零寫入、零輸入框——性別與背景是玩家在創角第 6 步寫下的東西，
 // 在這一輪之前它們在跑團面板上一次都沒出現過。詳見 characterDossier.js 檔頭。
 import { buildDossier, backgroundDisplayText } from '../utils/characterDossier';
+// 事前可用性（2026-10-30，P6）：把「按下才知道 MP 不足」改成「看就知道還差多少」。
+// 判定收斂在 playAvailability.js，按下後的守衛**照舊存在**而且是唯一權威。
+import { describeCostGate, gateButtonAttrs, GATED_BUTTON_CLASS, GATED_SHELL_CLASS, GATED_LABEL_CLASS, GATE_UNITS } from '../utils/playAvailability';
+import UnavailableHint from './UnavailableHint';
 import SkillDescription, { openRuleCodex } from '../utils/skillFormulaEvaluator';
 import ArcanistManager from './companions/ArcanistManager';
 import ChimeristManager from './companions/ChimeristManager';
@@ -477,6 +481,28 @@ export default function CharacterPlayHUD({
   const curMp = character.currentMp !== null && character.currentMp !== undefined ? character.currentMp : stats.maxMp;
   const curIp = character.currentIp !== null && character.currentIp !== undefined ? character.currentIp : stats.maxIp;
   const isCrisis = curHp <= stats.crisisThreshold;
+
+  /* ── 事前可用性（2026-10-30，P6）───────────────────────────────
+     同一個門檻原本在八個地方各寫一次，而且全部是「按下之後才用 toast 說不行」。
+     這裡先算一次，讓按鈕在按下去之前就灰掉並寫出還差多少。
+
+     **按下後的守衛一個都沒拆**——它們仍然是唯一權威，這裡只是提前告知。
+     這樣即使這裡的判定與守衛有出入，最壞情況也只是「提示不準」，
+     不會變成「按了沒反應」或「擋掉本來可以做得到的事」。
+
+     刻意**不擋「用了沒意義」**（HP 全滿還吃大補藥、沒有異常還喝滋補藥）：
+     那是玩家的判斷，不是系統的權限。 */
+  const fpCurrent = character.fabulaPoints !== null && character.fabulaPoints !== undefined
+    ? character.fabulaPoints
+    : 3;
+  const consumableGates = {
+    remedy: describeCostGate({ cost: 3, current: curIp, unit: GATE_UNITS.ip }),
+    elixir: describeCostGate({ cost: 3, current: curIp, unit: GATE_UNITS.ip }),
+    tonic: describeCostGate({ cost: 2, current: curIp, unit: GATE_UNITS.ip }),
+    magicTent: describeCostGate({ cost: 4, current: curIp, unit: GATE_UNITS.ip }),
+    elementalShard: describeCostGate({ cost: 2, current: curIp, unit: GATE_UNITS.ip })
+  };
+  const bondInspireGate = describeCostGate({ cost: 1, current: fpCurrent, unit: GATE_UNITS.fp });
   // 四維還沒指派完 → 六項數值不成立（見 `calculateCharacterStats` 的 `attributesUnset`）
   const statsUnset = Boolean(stats.attributesUnset);
   const isReadyToLevelUp = canLevelUp(character);
@@ -495,7 +521,7 @@ export default function CharacterPlayHUD({
 
   /* ── 角色檔案（2026-10-30，P5-b）────────────────────────────────
      性別與背景是玩家自己寫的散文，跑團時卻一次都看不到。
-     這裡只**讀**：`buildDossier` 沒有任何 setter，要改請去「構築與成長」第 8 步。 */
+     這裡只**讀**：`buildDossier` 沒有任何 setter，要改請去「構築與成長」第 6 步。 */
   const [isDossierOpen, setIsDossierOpen] = useState(initialDossierOpen);
   const dossier = buildDossier(character);
   const dossierTeaser = dossier.teaser
@@ -1618,38 +1644,58 @@ export default function CharacterPlayHUD({
                   <button
                     type="button"
                     onClick={() => handleUseConsumable('remedy')}
-                    className="px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between"
+                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.remedy.blocked ? GATED_SHELL_CLASS : ''}`}
                     title={`大補藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 HP`}
+                    {...gateButtonAttrs(consumableGates.remedy)}
                   >
-                    <span>大補藥 (+{50 + secretFormulaSL * 5}HP)</span>
-                    <span className="text-t10">3IP</span>
+                    <span className={consumableGates.remedy.blocked ? GATED_LABEL_CLASS : ''}>大補藥 (+{50 + secretFormulaSL * 5}HP)</span>
+                    {consumableGates.remedy.blocked ? (
+                      <UnavailableHint gate={consumableGates.remedy} testId="gate-consumable-remedy" />
+                    ) : (
+                      <span className="text-t10">3IP</span>
+                    )}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleUseConsumable('elixir')}
-                    className="px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between"
+                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.elixir.blocked ? GATED_SHELL_CLASS : ''}`}
                     title={`萬靈藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 MP`}
+                    {...gateButtonAttrs(consumableGates.elixir)}
                   >
-                    <span>萬靈藥 (+{50 + secretFormulaSL * 5}MP)</span>
-                    <span className="text-t10">3IP</span>
+                    <span className={consumableGates.elixir.blocked ? GATED_LABEL_CLASS : ''}>萬靈藥 (+{50 + secretFormulaSL * 5}MP)</span>
+                    {consumableGates.elixir.blocked ? (
+                      <UnavailableHint gate={consumableGates.elixir} testId="gate-consumable-elixir" />
+                    ) : (
+                      <span className="text-t10">3IP</span>
+                    )}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleUseConsumable('tonic')}
-                    className="px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between"
+                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.tonic.blocked ? GATED_SHELL_CLASS : ''}`}
                     title="滋補藥（消耗 2 IP）：解除所有異常狀態"
+                    {...gateButtonAttrs(consumableGates.tonic)}
                   >
-                    <span>滋補藥 (解全狀態)</span>
-                    <span className="text-t10">2IP</span>
+                    <span className={consumableGates.tonic.blocked ? GATED_LABEL_CLASS : ''}>滋補藥 (解全狀態)</span>
+                    {consumableGates.tonic.blocked ? (
+                      <UnavailableHint gate={consumableGates.tonic} testId="gate-consumable-tonic" />
+                    ) : (
+                      <span className="text-t10">2IP</span>
+                    )}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleUseConsumable('magicTent')}
-                    className="px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between"
+                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.magicTent.blocked ? GATED_SHELL_CLASS : ''}`}
                     title="魔法帳篷（消耗 4 IP）：野外休息回滿 HP／MP 並解除全部狀態"
+                    {...gateButtonAttrs(consumableGates.magicTent)}
                   >
-                    <span>魔法帳篷 (全滿)</span>
-                    <span className="text-t10">4IP</span>
+                    <span className={consumableGates.magicTent.blocked ? GATED_LABEL_CLASS : ''}>魔法帳篷 (全滿)</span>
+                    {consumableGates.magicTent.blocked ? (
+                      <UnavailableHint gate={consumableGates.magicTent} testId="gate-consumable-magicTent" />
+                    ) : (
+                      <span className="text-t10">4IP</span>
+                    )}
                   </button>
                 </div>
 
@@ -1658,11 +1704,16 @@ export default function CharacterPlayHUD({
                   <button
                     type="button"
                     onClick={() => handleUseConsumable('elementalShard')}
-                    className="flex-1 px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold flex items-center justify-between"
+                    className={`flex-1 px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold flex items-center justify-between ${consumableGates.elementalShard.blocked ? GATED_SHELL_CLASS : ''}`}
                     title={`元素碎片（消耗 2 IP）：對單一目標造成 ${10 + secretFormulaSL} 點【${shardElement}】傷害`}
+                    {...gateButtonAttrs(consumableGates.elementalShard)}
                   >
-                    <span>元素碎片 ({10 + secretFormulaSL}點{shardElement}傷)</span>
-                    <span className="text-t10">2IP</span>
+                    <span className={consumableGates.elementalShard.blocked ? GATED_LABEL_CLASS : ''}>元素碎片 ({10 + secretFormulaSL}點{shardElement}傷)</span>
+                    {consumableGates.elementalShard.blocked ? (
+                      <UnavailableHint gate={consumableGates.elementalShard} testId="gate-consumable-elementalShard" />
+                    ) : (
+                      <span className="text-t10">2IP</span>
+                    )}
                   </button>
                   <div className="flex items-center gap-0.5 bg-[#fbf7ee] p-0.5 rounded border border-[#d6c7ab]">
                     {['風', '電', '土', '火', '冰'].map(el => (
@@ -2680,6 +2731,9 @@ export default function CharacterPlayHUD({
                     const spellCheck = parseCheckFormula('INS + WLP', stats);
                     const spellDamage = parseDamageFormula(sp.effect || '');
                     const isExpanded = !!expandedSpells[sp.name];
+                    // 事前可用性：這一條咒語現在付不付得起。`sp.mp` 缺漏時
+                    // `describeCostGate` 回「沒有成本」→ 不擋（不知道就不嚇人）。
+                    const spellGate = describeCostGate({ cost: sp.mp, current: curMp, unit: GATE_UNITS.mp });
 
                     return (
                       <div
@@ -2704,10 +2758,12 @@ export default function CharacterPlayHUD({
 
                           {/* Action Buttons */}
                           <div className="flex items-center gap-1.5 ml-auto">
+                            <UnavailableHint gate={spellGate} testId={`gate-spell-${idx}`} />
                             <button
                               type="button"
                               onClick={() => handleCastSpell(sp)}
-                              className="px-2.5 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-xs transition-colors flex items-center gap-1"
+                              className={`px-2.5 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-xs transition-colors flex items-center gap-1 ${spellGate.blocked ? GATED_BUTTON_CLASS : ''}`}
+                              {...gateButtonAttrs(spellGate)}
                             >
                               <span>施放 (-{sp.mp})</span>
                             </button>
@@ -2846,6 +2902,7 @@ export default function CharacterPlayHUD({
                 const ar = AREA_MAP[ritualArea] || AREA_MAP.individual;
                 const rawMp = pot.mp * ar.mult;
                 const finalMp = ritualHasIngredient ? Math.floor(rawMp / 2) : rawMp;
+                const ritualGate = describeCostGate({ cost: finalMp, current: curMp, unit: GATE_UNITS.mp });
 
                 return (
                   <div
@@ -2939,6 +2996,7 @@ export default function CharacterPlayHUD({
                         </span>
                       </div>
 
+                      <UnavailableHint gate={ritualGate} testId="gate-ritual" />
                       <button
                         type="button"
                         onClick={() => {
@@ -2956,7 +3014,8 @@ export default function CharacterPlayHUD({
                             label: `施展儀式（效力${pot.label}×${ar.label}，DL ${pot.dl}）[${formulaStr}]`
                           });
                         }}
-                        className="px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1"
+                        className={`px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 ${ritualGate.blocked ? GATED_BUTTON_CLASS : ''}`}
+                        {...gateButtonAttrs(ritualGate)}
                       >
                         <GiRollingDices className="w-3.5 h-3.5" />
                         <span>扣除 {finalMp} MP 並擲儀式檢定 (DL {pot.dl})</span>
@@ -3385,6 +3444,13 @@ export default function CharacterPlayHUD({
           {/* TAB 4: 情感羈絆 (Bonds) */}
           {activeTab === 'bonds' && (
             <div className="space-y-3 animate-fade-in text-xs">
+              {/* 羈絆激勵的門檻是**全域**的（物語點共用），所以提示放一行在這裡，
+                  而不是每條羈絆各掛一個「差 1 物語點」——六條羈絆會變成六行噪音。 */}
+              {bondInspireGate.blocked && (
+                <div data-testid="gate-bonds-notice" className="px-2.5 py-1.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] text-t12 font-bold text-[#8c3235]">
+                  物語點不足（現有 {bondInspireGate.current} 點，激勵羈絆需要 1 點），下方「激勵」按鈕暫時不能用。
+                </div>
+              )}
               {/* 營地活動：休息場景的一部分（原書 p.130「進行活動與調整羈絆可以同時做」）。
                   規則沒開、金手指也沒給 → 整塊不出現（與底力技同一個原則）。 */}
               {campAccess.enabled && (
@@ -3492,8 +3558,9 @@ export default function CharacterPlayHUD({
                           });
                           showToast(`擲完骰後點【${bond.target}】套用 +${strength}（消耗 1 物語點）`);
                         }}
-                        className="px-3 py-1.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#8c3235] font-bold text-xs shrink-0"
+                        className={`px-3 py-1.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#8c3235] font-bold text-xs shrink-0 ${bondInspireGate.blocked ? GATED_BUTTON_CLASS : ''}`}
                         title="開啟擲骰器，擲完骰後套用這條羈絆的情感加值（消耗 1 物語點）"
+                        {...gateButtonAttrs(bondInspireGate)}
                       >
                         激勵 (+{bond.feelings?.length || 1})
                       </button>
