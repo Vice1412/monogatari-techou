@@ -2848,3 +2848,54 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 - `tests/characterSheetUi.test.mjs` 新增 `CU` 區段（10 組測試，594 → **604** 條通過）。SSR 測試當場抓出並修復 `describeQuirkChoice(character)` 回傳陣列卻被當字串渲染的型別問題。
 - 刻意破壞 `syncCombatantToRoster` 的 `currentHp` 回寫 → `CU-8` 與 `CU-9` 立即 FAIL → 還原後全數 PASS。
 - 全套 **36 支測試全綠**（含 `test:emoji` 0 命中、`test:uisystem` 295/295、`test:arcanist` 109/109）、`npm run build` exit 0。
+
+---
+
+## 2026-10-30（第五十五輪，P5）：角色檔案 ＋ 資源回饋
+
+**起點**：使用者重新定義了「代入感」與「操作感」——不是「從既有資料榨意義」，
+而是「這個界面就是角色的全部」與「有玩遊戲的感覺」。兩份原計畫（P5 的 `tagline`、
+「從背景推導可玩內容」）因此作廢。
+
+**新增**
+
+- `src/features/character-sheet/utils/characterDossier.js`：`buildDossier`／`buildDossierTeaser`／
+  `backgroundDisplayText`／`DOSSIER_FIELDS`／`BACKGROUND_HINT`。純推導、零寫入。
+- `src/features/character-sheet/components/GaugeBar.jsx`：主條 ＋ 尾影。
+- `src/features/character-sheet/components/ResourceDeltaBadge.jsx`：`describeResourceDelta`／
+  `useResourceDelta`／`ResourceDeltaBadge`／`DELTA_FLASH_MS`。
+- `tests/characterDossier.test.mjs`（60 條）、`tests/resourceFeedback.test.mjs`（65 條）。
+- `scratch/break-check-dossier.mjs`（8 案）、`scratch/break-check-feedback.mjs`（9 案）、
+  `scratch/p43-console.mjs`（21 條實機）。
+
+**修改**
+
+- `CharacterPlayHUD.jsx`：中央欄新增可展開的「角色檔案」（收合時顯示摘要句）；
+  四條資源條換成 `GaugeBar` ＋ `ResourceDeltaBadge`；HP 卡危機時掛獨立脈動層；
+  新增測試注入點 `initialDossierOpen`。
+- `index.css`：`.gauge-fill`／`.gauge-trail`／`@keyframes resourceDeltaFloat`／
+  `.animate-resource-delta`，以及**全站第一條 `@media (prefers-reduced-motion: reduce)`**。
+- `tests/uiSystem.test.mjs`：「資源條三色語意」改為數 `<GaugeBar` ＋ 逐條點名 `testId`；
+  `H34-c` 全圓地板 98 → 95（理由寫在斷言旁邊）。
+
+**刪除**
+
+- `describeResourceDelta` 的 `typeof` 檢查——被 `Number.isFinite` 完全覆蓋，
+  刻意破壞驗證拿掉它時**測試全綠**，證明它是一段看起來像護欄的死碼。
+
+**驗證**
+
+- `npm test`：**41 支 / 6,274 條 / 0 FAIL**，EXIT=0。
+- 刻意破壞 **17 / 17 全部轉紅**。
+- 實機 `p43-console.mjs` **21 / 21**；截圖 md5 兩兩不同（`p43-dossier-collapsed`／
+  `-expanded`／`-delta-flash`／`-crisis`）。
+- `npm run build` exit 0。
+
+**這一輪的教訓**
+
+1. 「測試全綠」不代表「看得清楚」——浮字壓在 `42 / 50` 上，所有斷言都是綠的。
+   要驗「看不看得清楚」只能驗**幾何**。
+2. `data-testid` 掛在整條寬的外層上，量到的外框是那個空盒子，不是那個數字。
+3. `@keyframes` 裡的 `transform` 會把 utility 的 `-translate-x-1/2` 整組蓋掉。
+4. 刻意破壞「沒反應」有兩種意思：**沒被執行**（P30 的死碼）與**被執行但沒有可觀測效果**
+   （本輪的 `typeof`）。兩者都叫死碼，兩者都讓人以為那裡有人在守。
