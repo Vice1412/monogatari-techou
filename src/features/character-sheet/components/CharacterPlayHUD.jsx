@@ -93,9 +93,9 @@ import {
 } from '../utils/characterLog';
 // 羈絆 ⇄ NPC 檔案庫的連結（2026-10-30，P3）。
 // 判定（含「名冊已無此人」）只寫在 bondLink.js，這裡只負責畫。
+// ※ 這裡刻意沒有「為什麼有這份情感」的輸入框：多一個空白欄位就是多一次
+//   「我該填什麼」的猶豫，而那不會讓羈絆變得更有代入感。詳見 bondLink.js 檔頭。
 import {
-  BOND_WHY_MAX,
-  normalizeBondWhy,
   resolveBondNpc,
   bondNpcSubtitle,
   buildBondLinkFields,
@@ -410,7 +410,6 @@ export default function CharacterPlayHUD({
   // `npcId` 是**選填**的：羈絆對象本來就可以是王國、一把劍、死去的人，
   // 那些不在名冊裡，硬要連結等於逼玩家先建一張 NPC 才能寫羈絆。
   const [newBondNpcId, setNewBondNpcId] = useState('');
-  const [newBondWhy, setNewBondWhy] = useState('');
   // 測試注入點用：直接把某一條羈絆擺進「編輯中」狀態，面板才會出現在 SSR 輸出裡。
   // 生產端永不傳入（`initialEditingBondId` 是 null），行為與原本完全相同。
   const seededEditingBond = initialEditingBondId
@@ -423,9 +422,6 @@ export default function CharacterPlayHUD({
   );
   const [editBondNpcId, setEditBondNpcId] = useState(
     typeof seededEditingBond?.npcId === 'string' ? seededEditingBond.npcId : ''
-  );
-  const [editBondWhy, setEditBondWhy] = useState(
-    typeof seededEditingBond?.why === 'string' ? seededEditingBond.why : ''
   );
 
   /**
@@ -911,7 +907,6 @@ export default function CharacterPlayHUD({
     setEditBondTarget(bond.target || '');
     setEditBondFeelings(Array.isArray(bond.feelings) ? [...bond.feelings] : []);
     setEditBondNpcId(typeof bond.npcId === 'string' ? bond.npcId : '');
-    setEditBondWhy(typeof bond.why === 'string' ? bond.why : '');
   };
 
   // 儲存編輯後的既有羈絆（Core p.91：休息場景可調整羈絆情感）
@@ -926,13 +921,12 @@ export default function CharacterPlayHUD({
       return;
     }
     const before = (character.bonds || []).find(b => b.id === editingBondId);
-    const linkFields = buildBondLinkFields({ npcId: editBondNpcId, why: editBondWhy });
     const target = editBondTarget.trim();
     const updatedBonds = (character.bonds || []).map(b =>
       b.id === editingBondId
-        // 「表單是完整的事實」：清掉連結就真的不再連，清掉理由就真的沒有理由。
+        // 「表單是完整的事實」：清掉連結就真的不再連。
         // 刪鍵與否的判斷在 `applyBondLinkFields`（那裡才測得到）。
-        ? applyBondLinkFields({ ...b, target, feelings: editBondFeelings }, { npcId: editBondNpcId, why: editBondWhy })
+        ? applyBondLinkFields({ ...b, target, feelings: editBondFeelings }, { npcId: editBondNpcId })
         : b
     );
     // 2026-10-30：這裡原本傳 `kind: 'bond'`，但 `LOG_KINDS` 沒有這個詞彙
@@ -941,18 +935,12 @@ export default function CharacterPlayHUD({
     const feelingText = (list) => (list || []).map(f => FEELING_LABELS[f] || f).join('、');
     updateField('bonds', updatedBonds, {
       kind: 'bond',
-      // 情感的變化與理由的變化分開寫：情感是規則層（激勵加值＝情感數），
-      // 理由是敘事層。只寫「調整羈絆」的話，兩者都看不出來。
       title: describeBondEdit({
         target,
         feelingsFrom: feelingText(before?.feelings),
-        feelingsTo: feelingText(editBondFeelings),
-        whyFrom: before?.why || '',
-        whyTo: editBondWhy
+        feelingsTo: feelingText(editBondFeelings)
       }),
-      fields: [],
-      // 把「為什麼」帶進履歷：三個月後回頭看，這一行比情感標籤有用得多。
-      note: linkFields.why || ''
+      fields: []
     });
     setEditingBondId(null);
     showToast(`已更新對【${target}】的情感羈絆！`);
@@ -1081,7 +1069,6 @@ export default function CharacterPlayHUD({
     setNewBondTarget('');
     setNewBondFeelings(['admiration']);
     setNewBondNpcId('');
-    setNewBondWhy('');
     setIsBondModalOpen(true);
   };
 
@@ -1100,19 +1087,17 @@ export default function CharacterPlayHUD({
       id: `bond_${Date.now()}`,
       target: newBondTarget.trim(),
       feelings: newBondFeelings,
-      // 空的連結與空的理由**不寫鍵**，與舊存檔的形狀保持一致。
-      ...buildBondLinkFields({ npcId: newBondNpcId, why: newBondWhy })
+      // 空的連結**不寫鍵**，與舊存檔的形狀保持一致。
+      ...buildBondLinkFields({ npcId: newBondNpcId })
     };
     updateField('bonds', [...currentBonds, newBond], {
       kind: 'bond',
       title: `締結羈絆【${newBond.target}】（${newBondFeelings.map(f => FEELING_LABELS[f] || f).join('、')}）`,
-      fields: [],
-      note: newBond.why || ''
+      fields: []
     });
     setNewBondTarget('');
     setNewBondFeelings(['admiration']);
     setNewBondNpcId('');
-    setNewBondWhy('');
     setIsBondModalOpen(false);
     showToast('已建立新情感羈絆！');
   };
@@ -3413,18 +3398,6 @@ export default function CharacterPlayHUD({
                     </div>
                   </div>
 
-                  {/* 「為什麼有這份情感」。這一行是羈絆從「六個標籤」變成「一段關係」的地方，
-                      所以它排在情感標籤下面、編輯面板上面——先讀到理由，再決定要不要改。
-                      墨色用四階墨裡的主墨（`#3c2415`）：這是內容，不是標籤。 */}
-                  {bond.why && (
-                    <div
-                      className="text-t12 text-[#3c2415] bg-[#fbf7ee] border-l-2 pl-2 py-1 leading-relaxed"
-                      style={{ borderColor: '#d6c7ab' }}
-                    >
-                      「{bond.why}」
-                    </div>
-                  )}
-
                   {isEditingThis && (
                     <div className="pt-2.5 border-t border-[#e8dcc4] bg-[#fbf7ee] p-2.5 rounded space-y-2">
                       <div className="flex items-center gap-2">
@@ -3477,20 +3450,6 @@ export default function CharacterPlayHUD({
                             </div>
                           ))}
                         </div>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-t11 font-bold text-[#6b5a4b] block">
-                          為什麼有這份情感？（選填，會寫進履歷）
-                        </span>
-                        <textarea
-                          data-testid="bond-edit-why"
-                          value={editBondWhy}
-                          onChange={e => setEditBondWhy(e.target.value)}
-                          maxLength={BOND_WHY_MAX}
-                          rows={2}
-                          placeholder="例如：他在城門前替我擋了一刀。"
-                          className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] text-t12 text-[#3c2415] resize-none"
-                        />
                       </div>
                       <div className="flex justify-end gap-1.5">
                         <button
@@ -4107,19 +4066,6 @@ export default function CharacterPlayHUD({
                 );
               })}
             </div>
-          </div>
-
-          <div>
-            <label className="font-bold text-[#3c2415] block mb-1">為什麼有這份情感？（選填，會寫進履歷）:</label>
-            <textarea
-              data-testid="bond-new-why"
-              value={newBondWhy}
-              onChange={e => setNewBondWhy(e.target.value)}
-              maxLength={BOND_WHY_MAX}
-              rows={2}
-              placeholder="例如：他在城門前替我擋了一刀。"
-              className="w-full p-2 rounded border border-[#e8dcc4] bg-white text-t12 resize-none"
-            />
           </div>
 
           <button
