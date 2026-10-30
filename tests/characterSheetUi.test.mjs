@@ -361,7 +361,7 @@ section('H. 圖示表本身的護欄（這一段是被自己的失誤逼出來�
 const iconKeys = readIconMapKeys();
 check('圖示表沒有重複的鍵（重複鍵會靜默蓋掉前者）', findDuplicateIconKeys(iconKeys), []);
 check('圖示表讀得到內容（解析沒有壞掉）', iconKeys.length > 150, true);
-check('成長履歷的 13 個圖示都登記在圖示表裡',
+check('成長履歷的每一個圖示都登記在圖示表裡（2026-10-30 起 17 種）',
   Object.values(LOG_KINDS).filter((m) => !GAME_ICONS_MAP[m.icon]).map((m) => m.icon), []);
 check('裝備圖示對照表也都登記在圖示表裡',
   Object.values(EQUIPMENT_ICONS).filter((k) => !GAME_ICONS_MAP[k]), []);

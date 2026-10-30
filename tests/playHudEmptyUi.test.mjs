@@ -355,6 +355,24 @@ check('F-020 沒有專屬面板的職業不會長出指路句',
   !render(guardian, { initialTab: 'skills' }).includes('class-panel-hint-守護者'), '指路句 0 次');
 
 /* ────────────────────────────────────────────────────────────────
+   G. 本場狀態帶（2026-10-30）：場次的分段單位真的畫得出來
+   ──────────────────────────────────────────────────────────────── */
+const notStarted = render(bare());
+check('G1 沒開場時顯示「尚未開場」', countOf(notStarted, '尚未開場'), 1);
+check('G2 沒開場時給的是「開場」按鈕，不是「收場」',
+  [countOf(notStarted, '>開場<'), countOf(notStarted, '>收場<')], [1, 0]);
+check('G3 沒開場時說出「開場之後會怎樣」（不只是兩個字）',
+  notStarted.includes('這一場的變動會自動歸在一起'), true);
+
+const startedChar = { ...bare(), activeSession: { number: 3, startedAt: '2026-10-30T03:00:00.000Z' } };
+const started = render(startedChar);
+check('G4 開場後顯示場次編號', countOf(started, '第 3 場 · 進行中'), 1);
+check('G5 開場後給的是「收場」按鈕', countOf(started, '>收場<'), 1);
+check('G6 開場後四個本場計數都在（筆數／物語點／受傷／命刻）',
+  ['筆', '物語點', '受傷', '命刻'].every((k) => started.includes(k)), true);
+check('G7 狀態帶只有一條（不是每個分頁各畫一條）', countOf(started, 'data-testid="session-strip"'), 1);
+
+/* ────────────────────────────────────────────────────────────────
    總結
    ──────────────────────────────────────────────────────────────── */
 const failed = results.filter((r) => !r.ok);

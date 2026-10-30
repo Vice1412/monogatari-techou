@@ -80,7 +80,17 @@ import {
   equippedFormIndex,
   nextFormFor
 } from '../data/customWeapons';
-import { loggableChange } from '../utils/characterLog';
+import {
+  loggableChange,
+  getLog,
+  getSessionNumber,
+  getSessionEntries,
+  summarizeSession,
+  sessionSummaryText,
+  startSession,
+  endSession,
+  formatLogDate
+} from '../utils/characterLog';
 import NumberStepper from '../../../components/ui/NumberStepper';
 import SkillDescription, { openRuleCodex } from '../utils/skillFormulaEvaluator';
 import ArcanistManager from './companions/ArcanistManager';
@@ -102,6 +112,23 @@ import { shouldRenderArcanistPanel } from '../utils/arcanist';
 import { withEn } from '../../../utils/properNouns';
 import { STORAGE_KEYS } from '../../../data/keys';
 import { readJSON, writeJSON } from '../../../data/store';
+
+/**
+ * 六種情感的顯示名（原書 p.91 的三組對立情感）。
+ *
+ * 原本只在羈絆卡的 JSX 裡用一條三元鏈寫死，而 2026-10-30 要拿它組履歷標題
+ * （「調整羈絆【X】：欽佩 → 疑忌」），所以抽成一份——兩個地方各寫一次，
+ * 總有一天會有一邊漏改。
+ */
+const FEELING_LABELS = Object.freeze({
+  admiration: '欽佩',
+  inferiority: '自卑',
+  loyalty: '忠誠',
+  mistrust: '疑忌',
+  affection: '喜愛',
+  hatred: '仇恨'
+});
+
 
 /**
  * 輔助解析武器/咒語命中檢定公式 (如 "DEX + MIG" 或 "INS + WLP")
@@ -314,6 +341,11 @@ export default function CharacterPlayHUD({
   const [newClockTitle, setNewClockTitle] = useState('');
   const [newClockSegments, setNewClockSegments] = useState(6);
 
+  // 場次收場彈窗（2026-10-30）：本場小結 ＋ 一句自由註記
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
+  const [sessionNote, setSessionNote] = useState('');
+
+
   if (!character) return null;
 
   const theme = getCharacterTheme(character.themeColor || themeId);
@@ -333,6 +365,17 @@ export default function CharacterPlayHUD({
   // 四維還沒指派完 → 六項數值不成立（見 `calculateCharacterStats` 的 `attributesUnset`）
   const statsUnset = Boolean(stats.attributesUnset);
   const isReadyToLevelUp = canLevelUp(character);
+
+  // 場次（2026-10-30）：進行中的那一場與它的即時小結。
+  // 小結全部由這一場的記錄推導，不另存統計欄位——同 `summarizeLog` 的原則。
+  // 沒有開場時是空集合，畫面顯示「尚未開場」，不會謊報一個第 0 場。
+  const activeSessionNumber = getSessionNumber(character);
+  const sessionSummary = useMemo(
+    () => summarizeSession(
+      activeSessionNumber === null ? [] : getSessionEntries(character, activeSessionNumber)
+    ),
+    [character, activeSessionNumber]
+  );
 
   /**
    * 所有數值變更的唯一出口。
@@ -452,6 +495,37 @@ export default function CharacterPlayHUD({
     }));
     showToast('已完成營地休整！HP 與 MP 全滿，所有異常狀態已解除。');
   };
+
+  /* ── 場次（2026-10-30）───────────────────────────────────────
+     為什麼要有這兩顆按鈕：玩家記得的是「第七場我們在鐘塔上」，
+     而履歷原本只有「HP 12 → 8」。場次是長期跑團唯一的分段單位。
+
+     邊界一律由玩家決定：App 不自動開場、不自動收場，也不會因為
+     「超過 N 小時」自己切一刀——那會把一次熬夜的長場切成兩場。
+     ─────────────────────────────────────────────────────────── */
+  const handleStartSession = () => {
+    const next = startSession(character);
+    if (next === character) {
+      showToast('這一場還沒收場，先收場才能開下一場');
+      return;
+    }
+    onChange(next);
+    showToast(`第 ${getSessionNumber(next)} 場開始，這一場的變動會自動歸在一起`);
+  };
+
+  const handleEndSession = () => {
+    const number = activeSessionNumber;
+    const next = endSession(character, { note: sessionNote });
+    if (next === character) {
+      showToast('現在沒有進行中的場次');
+      return;
+    }
+    onChange(next);
+    setSessionNote('');
+    setIsSessionModalOpen(false);
+    showToast(`第 ${number} 場已收場，小結寫進成長履歷`);
+  };
+
 
   // 修補匠【秘密配方】SL（Core p.210：回復 HP/MP 消耗品額外 +SL×5，傷害消耗品額外 +SL）
   const secretFormulaSL = useMemo(() => {
@@ -736,14 +810,25 @@ export default function CharacterPlayHUD({
       showToast('請至少保留 1 項情感');
       return;
     }
+    const before = (character.bonds || []).find(b => b.id === editingBondId);
     const updatedBonds = (character.bonds || []).map(b =>
       b.id === editingBondId
         ? { ...b, target: editBondTarget.trim(), feelings: editBondFeelings }
         : b
     );
+    // 2026-10-30：這裡原本傳 `kind: 'bond'`，但 `LOG_KINDS` 沒有這個詞彙
+    // → `createLogEntry` 靜默拒收 → **羈絆調整從來沒有進過履歷**。
+    // 現在詞彙補上了，而且標題寫出情感的前後變化（只寫「調整羈絆」看不出改了什麼）。
+    const feelingText = (list) => (list || []).map(f => FEELING_LABELS[f] || f).join('、');
+    const beforeFeelings = feelingText(before?.feelings);
+    const afterFeelings = feelingText(editBondFeelings);
+    const target = editBondTarget.trim();
     updateField('bonds', updatedBonds, {
       kind: 'bond',
-      title: `調整羈絆：【${editBondTarget.trim()}】`
+      title: beforeFeelings && beforeFeelings !== afterFeelings
+        ? `調整羈絆【${target}】：${beforeFeelings} → ${afterFeelings}`
+        : `調整羈絆【${target}】`,
+      fields: []
     });
     setEditingBondId(null);
     showToast(`已更新對【${editBondTarget.trim()}】的情感羈絆！`);
@@ -881,7 +966,11 @@ export default function CharacterPlayHUD({
       target: newBondTarget.trim(),
       feelings: newBondFeelings
     };
-    updateField('bonds', [...currentBonds, newBond]);
+    updateField('bonds', [...currentBonds, newBond], {
+      kind: 'bond',
+      title: `締結羈絆【${newBond.target}】（${newBondFeelings.map(f => FEELING_LABELS[f] || f).join('、')}）`,
+      fields: []
+    });
     setNewBondTarget('');
     setNewBondFeelings(['admiration']);
     setIsBondModalOpen(false);
@@ -889,8 +978,13 @@ export default function CharacterPlayHUD({
   };
 
   const handleDeleteBond = (bondId) => {
+    const target = (character.bonds || []).find(b => b.id === bondId);
     const updated = (character.bonds || []).filter(b => b.id !== bondId);
-    updateField('bonds', updated);
+    updateField('bonds', updated, {
+      kind: 'bond',
+      title: target ? `解除羈絆【${target.target}】` : '解除羈絆',
+      fields: []
+    });
     showToast('已移除羈絆');
   };
 
@@ -909,15 +1003,24 @@ export default function CharacterPlayHUD({
       theme: 'amber',
       type: 'circle'
     };
-    updateField('clocks', [...currentClocks, newClock]);
+    updateField('clocks', [...currentClocks, newClock], {
+      kind: 'clock',
+      title: `建立命刻【${newClock.title}】（${newClock.totalSegments} 格）`,
+      fields: []
+    });
     setNewClockTitle('');
     setIsClockModalOpen(false);
     showToast('已建立新個人命刻！');
   };
 
   const handleDeleteClock = (clockId) => {
+    const target = (character.clocks || []).find(c => c.id === clockId);
     const updated = (character.clocks || []).filter(c => c.id !== clockId);
-    updateField('clocks', updated);
+    updateField('clocks', updated, {
+      kind: 'clock',
+      title: target ? `刪除命刻【${target.title}】` : '刪除命刻',
+      fields: []
+    });
     showToast('已刪除個人命刻');
   };
 
@@ -1083,6 +1186,77 @@ export default function CharacterPlayHUD({
               >
                 <GiScrollQuill className="w-3.5 h-3.5" />
                 <span>履歷</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 本場狀態帶（2026-10-30）：長期跑團唯一的分段單位。
+            玩家記得的是「第七場我們在鐘塔上」，而履歷原本只記得「HP 12 → 8」。
+            沒開場時這條帶子只教一件事：按「開場」之後，變動才會歸在一起。 */}
+        <div
+          data-testid="session-strip"
+          className="rounded border px-3 py-2 flex items-center justify-between flex-wrap gap-2"
+          style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+        >
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <span className="text-t11 font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
+              <GiScrollUnfurled className="w-3.5 h-3.5 shrink-0" style={{ color: theme.accent }} />
+              <span>{activeSessionNumber === null ? '尚未開場' : `第 ${activeSessionNumber} 場 · 進行中`}</span>
+            </span>
+            {activeSessionNumber === null ? (
+              <span className="text-t11" style={{ color: theme.textMuted }}>
+                按「開場」之後，這一場的變動會自動歸在一起，收場時寫成一頁小結
+              </span>
+            ) : (
+              <>
+                <span className="text-t11" style={{ color: theme.textMuted }}>
+                  自 {formatLogDate(character.activeSession?.startedAt)} 起
+                </span>
+                <span
+                  className="text-t10 px-1.5 py-0.5 rounded border"
+                  style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
+                >
+                  {sessionSummary.count} 筆
+                </span>
+                <span
+                  className="text-t10 px-1.5 py-0.5 rounded border"
+                  style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
+                >
+                  物語點 {sessionSummary.fpDelta >= 0 ? '+' : ''}{sessionSummary.fpDelta}
+                </span>
+                <span
+                  className="text-t10 px-1.5 py-0.5 rounded border"
+                  style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
+                >
+                  受傷 {sessionSummary.hpLost}
+                </span>
+                <span
+                  className="text-t10 px-1.5 py-0.5 rounded border"
+                  style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
+                >
+                  命刻 {sessionSummary.clockSteps} 格
+                </span>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {activeSessionNumber === null ? (
+              <button
+                type="button"
+                onClick={handleStartSession}
+                className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t11 transition-colors"
+              >
+                開場
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsSessionModalOpen(true)}
+                className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t11 transition-colors"
+              >
+                收場
               </button>
             )}
           </div>
@@ -2977,7 +3151,17 @@ export default function CharacterPlayHUD({
                   mode="play"
                   allowance={campAccess.allowance}
                   quirkGrant={campAccess.quirkGrant}
-                  onChange={(campActivities) => updateField('campActivities', campActivities)}
+                  onChange={(campActivities) => {
+                    // 營地活動有兩種變動：改「選了哪兩種」與「本次休息用了哪一種」。
+                    // 兩者都是這張卡的決定，但履歷上要分得出來——標題寫一樣就等於沒寫。
+                    const beforePicked = (character.campActivities?.picked || []).join('|');
+                    const afterPicked = (campActivities?.picked || []).join('|');
+                    updateField('campActivities', campActivities, {
+                      kind: 'camp',
+                      title: beforePicked === afterPicked ? '營地活動：本次休息的使用記錄' : '調整營地活動選擇',
+                      fields: []
+                    });
+                  }}
                 />
               )}
               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -3012,12 +3196,7 @@ export default function CharacterPlayHUD({
                       <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                         {(bond.feelings || []).map(f => (
                           <span key={f} className="px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-t12 text-[#8c3235] font-bold">
-                            {f === 'admiration' ? '欽佩' :
-                             f === 'inferiority' ? '自卑' :
-                             f === 'loyalty' ? '忠誠' :
-                             f === 'mistrust' ? '疑忌' :
-                             f === 'affection' ? '喜愛' :
-                             f === 'hatred' ? '仇恨' : f}
+                            {FEELING_LABELS[f] || f}
                           </span>
                         ))}
                       </div>
@@ -3027,14 +3206,28 @@ export default function CharacterPlayHUD({
                       <button
                         type="button"
                         onClick={() => {
+                          const strength = bond.feelings?.length || 1;
                           if ((character.fabulaPoints ?? 3) <= 0) {
                             showToast('物語點不足');
                             return;
                           }
-                          adjustFp(-1);
-                          showToast(`消耗 1 FP 激活對【${bond.target}】之羈絆！檢定獲得 +${bond.feelings?.length || 1} 點加值！`);
+                          // 2026-10-30：這顆按鈕原本只扣 1 FP 並跳一句「+N 加值」，
+                          // 而**加值從來沒有加到任何地方**——真正的激勵在擲骰器裡
+                          // （`DiceRollerModal.handleInvokeBond`）。同一個規則兩個入口，
+                          // 其中一個只記帳，等於按鈕在說謊。
+                          // 現在它把玩家送到那個會真的算加值的地方，FP 也只在那裡扣一次。
+                          if (!onOpenDice) {
+                            showToast('擲骰器沒有開啟，請從上方「擲骰」進入後再激勵羈絆');
+                            return;
+                          }
+                          openCharacterDice({
+                            label: `激勵羈絆【${bond.target}】`,
+                            presetBondId: bond.id
+                          });
+                          showToast(`擲完骰後點【${bond.target}】套用 +${strength}（消耗 1 物語點）`);
                         }}
                         className="px-3 py-1.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#8c3235] font-bold text-xs shrink-0"
+                        title="開啟擲骰器，擲完骰後套用這條羈絆的情感加值（消耗 1 物語點）"
                       >
                         激勵 (+{bond.feelings?.length || 1})
                       </button>
@@ -3193,8 +3386,19 @@ export default function CharacterPlayHUD({
                       type={clk.type || 'circle'}
                       size={90}
                       onChange={newVal => {
+                        const prev = clk.filledSegments || 0;
+                        const total = clk.totalSegments || 6;
+                        if (newVal === prev) return;
                         const updated = (character.clocks || []).map(c => c.id === clk.id ? { ...c, filledSegments: newVal } : c);
-                        updateField('clocks', updated);
+                        // 命刻填滿是「目標達成」，跟「再推進一格」不是同一件事——
+                        // 履歷上要分得出來，否則完成的時刻會混在一堆推進裡。
+                        updateField('clocks', updated, {
+                          kind: 'clock',
+                          title: newVal >= total
+                            ? `命刻【${clk.title}】完成`
+                            : `命刻【${clk.title}】${newVal > prev ? '推進' : '回退'}`,
+                          changes: [{ field: `clock:${clk.title}`, from: prev, to: newVal }]
+                        });
                       }}
                     />
                     <button
@@ -3747,6 +3951,74 @@ export default function CharacterPlayHUD({
             className="w-full py-2.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs mt-2"
           >
             確認建立命刻
+          </button>
+        </div>
+      </JRPGModal>
+
+      {/* MODAL 6: 收場（場次小結）——2026-10-30 */}
+      <JRPGModal
+        isOpen={isSessionModalOpen}
+        onClose={() => setIsSessionModalOpen(false)}
+        title={activeSessionNumber === null ? '收場' : `收場 · 第 ${activeSessionNumber} 場`}
+        maxWidth="max-w-md"
+        theme={theme}
+      >
+        <div className="space-y-3.5 text-xs">
+          <p className="leading-relaxed" style={{ color: theme.textMuted }}>
+            收場只做一件事：把這一場的記錄收成一段，寫進成長履歷。EXP 入帳仍然走「聚會結算」。
+          </p>
+
+          <div className="grid grid-cols-3 gap-1.5">
+            {[
+              ['本場記錄', `${sessionSummary.count} 筆`],
+              ['EXP 入帳', `${sessionSummary.expGained >= 0 ? '+' : ''}${sessionSummary.expGained}`],
+              ['物語點', `${sessionSummary.fpDelta >= 0 ? '+' : ''}${sessionSummary.fpDelta}`],
+              ['受傷', `${sessionSummary.hpLost}`],
+              ['推進命刻', `${sessionSummary.clockSteps} 格`],
+              ['羈絆變動', `${sessionSummary.bondChanges} 次`]
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded border px-2 py-1.5 flex flex-col items-center justify-center"
+                style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
+              >
+                <span className="text-t10" style={{ color: theme.textMuted }}>{label}</span>
+                <span className="text-xs font-bold mt-0.5" style={{ color: theme.textDark }}>{value}</span>
+              </div>
+            ))}
+          </div>
+
+          {sessionSummary.expGained === 0 && (
+            <button
+              type="button"
+              onClick={() => { setIsSessionModalOpen(false); setIsExpSettlementOpen(true); }}
+              className="w-full text-left px-2.5 py-2 rounded border font-bold text-t11"
+              style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
+            >
+              這一場還沒入帳 EXP？先做聚會結算（右側「聚會結算」）
+            </button>
+          )}
+
+          <div>
+            <label className="font-bold block mb-1" style={{ color: theme.textDark }}>
+              這一場的一句話（可留白）
+            </label>
+            <input
+              type="text"
+              value={sessionNote}
+              onChange={(e) => setSessionNote(e.target.value)}
+              placeholder="例如：在鐘塔上攔下信使，代價是導師的信任"
+              className="w-full px-2.5 py-2 rounded border outline-none text-xs"
+              style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleEndSession}
+            className="w-full py-2.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs"
+          >
+            確認收場並寫入履歷
           </button>
         </div>
       </JRPGModal>

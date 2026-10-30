@@ -109,6 +109,13 @@ export default function DiceRollerModal({
   const character = initialConfig?.character || null;
   const onSpendFp = initialConfig?.onSpendFp || null;
   const onGainFp = initialConfig?.onGainFp || null;
+  // 由跑團面板的「激勵」按鈕發起時，帶上那條羈絆的 id：
+  // 擲完骰就把那一顆標出來，玩家不必在六條裡自己找。
+  // （2026-10-30：面板那顆按鈕原本只扣 FP 不加值，現在把玩家送到這裡。）
+  const presetBondId = initialConfig?.presetBondId || null;
+  const presetBondName = presetBondId
+    ? ((character?.bonds || []).find((b) => b.id === presetBondId)?.target || '')
+    : '';
   const availableFp = character
     ? Math.max(0, (character.fabulaPoints ?? 3) - fpSpentCount)
     : 0;
@@ -448,7 +455,9 @@ export default function DiceRollerModal({
                       <span>
                         {fpBonus > 0
                           ? `已激勵【${usedBondName}】獲得 +${fpBonus} 加值（每次檢定限一次）`
-                          : '消耗 1 FP 激勵情感羈絆（加上情感數）：'}
+                          : presetBondName
+                            ? `由面板發起：擲完骰後點【${presetBondName}】套用加值`
+                            : '消耗 1 FP 激勵情感羈絆（加上情感數）：'}
                       </span>
                     </span>
                     {fpBonus === 0 && (
@@ -461,6 +470,9 @@ export default function DiceRollerModal({
                               type="button"
                               disabled={availableFp <= 0}
                               onClick={() => handleInvokeBond(b)}
+                              style={b.id === presetBondId && fpBonus === 0
+                                ? { outline: '2px solid #a63d40', outlineOffset: '1px' }
+                                : undefined}
                               className="px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] disabled:opacity-40 border border-[#d6c7ab] text-[#8c3235] font-bold text-t11 transition-colors"
                             >
                               {b.target} (+{strength})

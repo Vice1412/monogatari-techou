@@ -41,6 +41,7 @@ import {
   GiDna2,
   GiSprout,
   GiCookingPot,
+  GiCampfire,
   GiPsychicWaves,
   GiFireRay,
   GiCrownCoin,
@@ -308,6 +309,7 @@ export const GAME_ICONS_MAP = {
   swords: GiCrossedSwords,
   shield: GiShield,
   clock: GiPocketWatch,
+  camp: GiCampfire,
   dice: GiRollingDices,
   search: GiMagnifyingGlass,
   check: GiCheckMark,
@@ -351,6 +353,9 @@ export const GAME_ICONS_MAP = {
   GiTrophyCup,
   GiQuillInk,
   GiPadlock,
+  GiHeartShield,
+  GiPocketWatch,
+  GiCampfire,
 
   // Equipment Items (裝備設計器逐項對照；由 equipmentRules.js 的 EQUIPMENT_ICONS 指定元件名)
   GiSpellBook,

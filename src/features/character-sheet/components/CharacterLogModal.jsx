@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { GiQuillInk, GiHazardSign } from 'react-icons/gi';
+import { GiQuillInk, GiHazardSign, GiScrollUnfurled } from 'react-icons/gi';
 import JRPGModal from '../../../components/ui/JRPGModal';
 import EmptyState from '../../../components/ui/EmptyState';
 import JRPGButton from '../../../components/ui/JRPGButton';
@@ -13,8 +13,10 @@ import {
   filterLog,
   sortLogDesc,
   summarizeLog,
+  groupLogBySession,
   formatChange,
-  formatLogTime
+  formatLogTime,
+  formatLogDate
 } from '../utils/characterLog';
 
 /**
@@ -27,6 +29,9 @@ import {
  * 3. **摘要由 changes 推導，不另存統計欄位。** 兩份事實一定會走鐘。
  * 4. **玩家可以自己補一筆。** App 不知道的事（場外協議、劇情里程碑）也要能記進來——
  *    所以「新增記錄」是自由文本加可調日期，而不是只有系統事件。
+ * 5. **有場次就分章。**（2026-10-30）一條沒有分段的長河回答不了
+ *    「上次那場做了什麼」。分組只在顯示層做，儲存層仍是同一條 append-only 陣列；
+ *    只有一組（或全部未分場）時退回平坦清單，舊存檔的畫面逐字不變。
  *
  * 內容本體 `CharacterLogBody` 與彈窗外殼分離，前者可獨立做 SSR 煙霧測試
  * （`JRPGModal` 以掛載後的 effect 為閘門，SSR 時不渲染 children）。
@@ -60,6 +65,14 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
     return sortLogDesc(filtered);
   }, [entries, kindFilter]);
 
+  // 場次分組：只有一組時不畫標頭（舊存檔與「從沒開過場」的卡看起來跟以前一樣）
+  const groups = useMemo(() => groupLogBySession(visible), [visible]);
+  const showSessionHeaders = groups.length > 1;
+  const sessionTotal = useMemo(
+    () => new Set(entries.map((e) => e.session).filter((n) => Number.isInteger(n))).size,
+    [entries]
+  );
+
   const handleAddNote = () => {
     const text = draftText.trim();
     if (!text) {
@@ -89,11 +102,59 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
     </div>
   );
 
+  const renderEntry = (entry) => {
+    const meta = LOG_KINDS[entry.kind] || { label: entry.kind, icon: 'GiQuillInk' };
+    return (
+      <div
+        key={entry.id}
+        className="rounded border p-2.5 flex gap-2.5"
+        style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+      >
+        <span
+          className="w-7 h-7 rounded border flex items-center justify-center shrink-0 mt-0.5"
+          style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.accent }}
+        >
+          <GameIcon name={meta.icon} size={15} />
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <JRPGBadge variant={theme.badgeVariant} size="xs">{meta.label}</JRPGBadge>
+            <span className="text-xs font-bold break-words" style={{ color: theme.textDark }}>
+              {entry.title}
+            </span>
+          </div>
+          {entry.changes.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {entry.changes.map((c) => (
+                <span
+                  key={c.field}
+                  className="text-t10 font-mono px-1.5 py-0.5 rounded border"
+                  style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
+                >
+                  {formatChange(c)}
+                </span>
+              ))}
+            </div>
+          )}
+          {entry.note && (
+            <p className="text-t10 mt-1 leading-relaxed" style={{ color: theme.textMuted }}>
+              {entry.note}
+            </p>
+          )}
+        </div>
+        <span className="text-t10 font-mono shrink-0 mt-0.5" style={{ color: theme.textMuted }}>
+          {formatLogTime(entry.at)}
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col gap-3">
       {/* 摘要：全部由 changes 推導，不另存統計欄位 */}
       <div className="flex flex-wrap gap-1.5">
         {tile('條目', summary.count)}
+        {sessionTotal > 0 && tile('已分場', sessionTotal)}
         {tile('累計 EXP', summary.expGained >= 0 ? `+${summary.expGained}` : summary.expGained)}
         {tile('資金增減', summary.zenitDelta >= 0 ? `+${summary.zenitDelta}z` : `${summary.zenitDelta}z`)}
         {tile('升級次數', summary.levelUpCount)}
@@ -169,52 +230,34 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
         />
       ) : (
         <div className="flex flex-col gap-1.5 max-h-[52vh] overflow-y-auto pr-0.5">
-          {visible.map((entry) => {
-            const meta = LOG_KINDS[entry.kind] || { label: entry.kind, icon: 'GiQuillInk' };
-            return (
-              <div
-                key={entry.id}
-                className="rounded border p-2.5 flex gap-2.5"
-                style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
-              >
-                <span
-                  className="w-7 h-7 rounded border flex items-center justify-center shrink-0 mt-0.5"
-                  style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.accent }}
-                >
-                  <GameIcon name={meta.icon} size={15} />
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <JRPGBadge variant={theme.badgeVariant} size="xs">{meta.label}</JRPGBadge>
-                    <span className="text-xs font-bold break-words" style={{ color: theme.textDark }}>
-                      {entry.title}
-                    </span>
-                  </div>
-                  {entry.changes.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {entry.changes.map((c) => (
-                        <span
-                          key={c.field}
-                          className="text-t10 font-mono px-1.5 py-0.5 rounded border"
-                          style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
-                        >
-                          {formatChange(c)}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {entry.note && (
-                    <p className="text-t10 mt-1 leading-relaxed" style={{ color: theme.textMuted }}>
-                      {entry.note}
-                    </p>
-                  )}
+          {showSessionHeaders ? (
+            groups.map((group) => (
+              <div key={group.number === null ? 'unfiled' : `s${group.number}`} className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2 pt-1.5 first:pt-0">
+                  <GiScrollUnfurled
+                    className="w-3.5 h-3.5 shrink-0"
+                    style={{ color: group.number === null ? theme.textMuted : theme.accent }}
+                  />
+                  <span className="text-t11 font-bold shrink-0" style={{ color: theme.textDark }}>
+                    {group.number === null ? '未分場' : `第 ${group.number} 場`}
+                  </span>
+                  <span className="text-t10 shrink-0" style={{ color: theme.textMuted }}>
+                    {group.firstAt ? formatLogDate(group.firstAt) : ''}
+                    {group.lastAt && formatLogDate(group.lastAt) !== formatLogDate(group.firstAt)
+                      ? ` ～ ${formatLogDate(group.lastAt)}`
+                      : ''}
+                  </span>
+                  <span className="text-t10 shrink-0" style={{ color: theme.textMuted }}>
+                    {group.entries.length} 筆
+                  </span>
+                  <span className="flex-1 border-t" style={{ borderColor: theme.border }} />
                 </div>
-                <span className="text-t10 font-mono shrink-0 mt-0.5" style={{ color: theme.textMuted }}>
-                  {formatLogTime(entry.at)}
-                </span>
+                {group.entries.map(renderEntry)}
               </div>
-            );
-          })}
+            ))
+          ) : (
+            visible.map(renderEntry)
+          )}
         </div>
       )}
 
