@@ -78,9 +78,9 @@ function ChoiceChip({ active, title, subtitle, onClick, theme }) {
         color: theme.textDark
       }}
     >
-      <span className="block font-serif font-black text-xs">{title}</span>
+      <span className="block font-serif font-black text-t14">{title}</span>
       {subtitle ? (
-        <span className="block text-t10 leading-tight" style={{ color: theme.textMuted }}>
+        <span className="block text-t12 leading-snug" style={{ color: theme.textMuted }}>
           {subtitle}
         </span>
       ) : null}
@@ -172,7 +172,7 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
           >
             {name || '（尚未命名）'}
           </div>
-          <div className="text-t11 font-bold" style={{ color: textMuted }}>
+          <div className="text-t14 font-bold" style={{ color: textMuted }}>
             【{effect.name}】· 觸發【{trigger.name}】
           </div>
           {label ? (
@@ -197,14 +197,14 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
           style={{ backgroundColor: accentLight, border: `1px solid ${border}` }}
         >
           <span className="block text-t10 font-bold" style={{ color: accent, letterSpacing: '0.2em' }}>觸發</span>
-          <p className="text-xs leading-6" style={{ color: textMuted }}>
+          <p className="text-t14 leading-7" style={{ color: textMuted }}>
             {renderTextWithAffinities(triggerText || trigger.desc)}
           </p>
         </div>
 
         <div className="space-y-0.5">
           <span className="block text-center text-t10 font-bold" style={{ color: accent, letterSpacing: '0.2em' }}>效果</span>
-          <p className="text-sm leading-7 text-center" style={{ color: textDark }}>
+          <p className="text-t16 leading-7 text-center" style={{ color: textDark }}>
             {renderTextWithAffinities(effectText || effect.desc)}
           </p>
         </div>
@@ -243,7 +243,7 @@ function ShowcasePlaceholder({ theme, missing, note }) {
       style={{ borderColor: border, backgroundColor: panelBg }}
       data-testid="zero-power-showcase-placeholder"
     >
-      <span className="block text-t11 font-bold" style={{ color: textMuted }}>
+      <span className="block text-t14 font-bold" style={{ color: textMuted }}>
         {note || '選好觸發與效果後，這裡會出現這一招的完整卡片'}
       </span>
       {/* F-022：`missing` 可能是空字串（覺醒之力在覺醒前只缺「觸發」，而那是**還沒輪到**，
@@ -351,10 +351,10 @@ export default function ZeroPowerBlock({
     if (state.variant !== 'awakened' || state.awakened) return null;
     return (
       <div className="rounded border p-2.5 space-y-1.5" style={{ borderColor: theme.accent, backgroundColor: theme.cardBg }}>
-        <span className="block text-t11 font-bold" style={{ color: theme.textDark }}>
+        <span className="block text-t14 font-bold" style={{ color: theme.textDark }}>
           覺醒之力：尚未覺醒
         </span>
-        <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
+        <p className="text-t14 leading-relaxed" style={{ color: theme.textMuted }}>
           角色在衝突中 HP 歸零（取代投降或犧牲），或面對重大轉折時覺醒。覺醒時回復等同危機值的 HP，並當場選定一個與事件相符的觸發。
           {mode === 'edit' ? '（HP 回復由跑團面板自動計算；在這裡覺醒只記錄狀態。）' : ''}
         </p>
@@ -365,7 +365,7 @@ export default function ZeroPowerBlock({
               type="button"
               title={t.desc}
               onClick={() => setAwakenTriggerId(awakenTriggerId === t.id ? '' : t.id)}
-              className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
+              className="text-t12 px-2 py-0.5 rounded border cursor-pointer"
               style={{
                 backgroundColor: awakenTriggerId === t.id ? theme.subpanelBg : theme.cardBg,
                 borderColor: awakenTriggerId === t.id ? theme.accent : theme.border,
@@ -413,7 +413,7 @@ export default function ZeroPowerBlock({
     return (
       <div className="rounded border p-3 space-y-2.5" style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }} data-testid="zero-power-play">
         <div className="flex items-center justify-between flex-wrap gap-1">
-          <span className="font-serif font-black text-sm flex items-center gap-1.5" style={{ color: theme.textDark }}>
+          <span className="font-serif font-black text-t16 flex items-center gap-1.5" style={{ color: theme.textDark }}>
             <GiPocketWatch className="w-4 h-4" style={{ color: theme.accent }} />
             底力命刻
           </span>
@@ -427,7 +427,7 @@ export default function ZeroPowerBlock({
           onSet={(n) => patch({ clock: n })}
         />
 
-        <p className="text-t12 leading-relaxed" style={{ color: theme.textDark }}>
+        <p className="text-t14 leading-relaxed" style={{ color: theme.textDark }}>
           {state.triggerId || activeEffectId || combined
             ? `${trigger ? trigger.name : '未選觸發'}・${effect ? effect.name : combined ? '未選配對效果' : '未選效果'}`
             : '尚未設定底力技——請在角色編輯第 5 步設定'}
@@ -437,7 +437,7 @@ export default function ZeroPowerBlock({
 
         {combined ? (
           <div className="space-y-1">
-            <label className="text-t11 font-bold" style={{ color: theme.textDark }}>要施展哪一組配對</label>
+            <label className="text-t14 font-bold" style={{ color: theme.textDark }}>要施展哪一組配對</label>
             <select
               className={inputClass}
               style={inputStyle}
@@ -493,7 +493,7 @@ export default function ZeroPowerBlock({
           </JRPGButton>
         </div>
 
-        <p className="text-t12 leading-relaxed" style={{ color: gate.ok ? theme.accent : theme.textMuted }}>
+        <p className="text-t14 leading-relaxed" style={{ color: gate.ok ? theme.accent : theme.textMuted }}>
           {gate.ok ? '命刻全滿，可執行技能動作施展底力效果（每回合一次）。' : gate.reason}
         </p>
       </div>
@@ -550,7 +550,7 @@ export default function ZeroPowerBlock({
   return (
     <div className="space-y-3" data-testid="zero-power-block">
       <div className="flex items-center justify-between flex-wrap gap-1">
-        <label className="text-xs font-bold" style={{ color: theme.textDark }}>
+        <label className="text-t14 font-bold" style={{ color: theme.textDark }}>
           底力技
         </label>
         <span className="text-t10" style={{ color: theme.textMuted }}>
@@ -558,7 +558,7 @@ export default function ZeroPowerBlock({
         </span>
       </div>
 
-      <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
+      <p className="text-t14 leading-relaxed" style={{ color: theme.textMuted }}>
         從七個觸發與十一個效果中各選一個。原文建議整團不要重複（p.124），但那是 GM 審卡時的裁定，這裡不阻止你選隊友已經選過的那一項。
       </p>
 
@@ -602,15 +602,15 @@ export default function ZeroPowerBlock({
       {/* 觸發 */}
       {state.variant === 'awakened' && !state.awakened ? (
         <div className="rounded border px-2.5 py-2 space-y-1" style={{ borderColor: theme.border, backgroundColor: theme.cardBg }}>
-          <span className="block text-t11 font-bold" style={{ color: theme.textDark }}>觸發</span>
-          <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
+          <span className="block text-t14 font-bold" style={{ color: theme.textDark }}>觸發</span>
+          <p className="text-t14 leading-relaxed" style={{ color: theme.textMuted }}>
             覺醒之力建角時不選觸發——觸發在覺醒當下才選定，所以這裡留白是正確狀態，不是漏填。
           </p>
         </div>
       ) : (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between gap-1.5 flex-wrap">
-            <span className="text-t11 font-bold" style={{ color: theme.textDark }}>觸發</span>
+            <span className="text-t14 font-bold" style={{ color: theme.textDark }}>觸發</span>
             <JRPGButton
               variant="outline"
               size="xs"
@@ -633,7 +633,7 @@ export default function ZeroPowerBlock({
             ))}
           </div>
           {trigger ? (
-            <p className="text-t11 leading-relaxed rounded border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
+            <p className="text-t14 leading-relaxed rounded border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
               {renderTextWithAffinities(trigger.desc)}
             </p>
           ) : null}
@@ -643,7 +643,7 @@ export default function ZeroPowerBlock({
       {/* 觸發．愛的綁定 */}
       {state.triggerId === 'love' ? (
         <div className="space-y-1">
-          <label className="text-t11 font-bold" style={{ color: theme.textDark }}>你所愛的玩家角色</label>
+          <label className="text-t14 font-bold" style={{ color: theme.textDark }}>你所愛的玩家角色</label>
           <select
             className={inputClass}
             style={inputStyle}
@@ -664,7 +664,7 @@ export default function ZeroPowerBlock({
       {combined ? (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between gap-1.5 flex-wrap">
-            <span className="text-t11 font-bold" style={{ color: theme.textDark }}>
+            <span className="text-t14 font-bold" style={{ color: theme.textDark }}>
               合體配對（每個其他玩家角色各一組）
             </span>
             <JRPGButton
@@ -713,7 +713,7 @@ export default function ZeroPowerBlock({
               <button
                 type="button"
                 onClick={() => removePair(index)}
-                className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
+                className="text-t12 px-2 py-0.5 rounded border cursor-pointer"
                 style={{ borderColor: theme.border, color: theme.textMuted, backgroundColor: theme.cardBg }}
               >
                 移除
@@ -729,14 +729,14 @@ export default function ZeroPowerBlock({
           >
             新增配對
           </JRPGButton>
-          <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
+          <p className="text-t14 leading-relaxed" style={{ color: theme.textMuted }}>
             四人團＝每人三組配對、全團共六個效果；效果允許重複，觸發仍應盡量不同。
           </p>
         </div>
       ) : (
         <div className="space-y-1.5">
           <div className="flex items-center justify-between gap-1.5 flex-wrap">
-            <span className="text-t11 font-bold" style={{ color: theme.textDark }}>效果</span>
+            <span className="text-t14 font-bold" style={{ color: theme.textDark }}>效果</span>
             <JRPGButton
               variant="outline"
               size="xs"
@@ -764,7 +764,7 @@ export default function ZeroPowerBlock({
       {/* 效果的必要選擇（合體之力的選擇在施展當下確認，故不在此列） */}
       {!combined && state.effectId === 'elements' ? (
         <div className="space-y-1">
-          <span className="text-t11 font-bold" style={{ color: theme.textDark }}>
+          <span className="text-t14 font-bold" style={{ color: theme.textDark }}>
             選定兩種傷害類型（施展時再從這兩種中選一種）
           </span>
           <div className="flex flex-wrap gap-1">
@@ -779,7 +779,7 @@ export default function ZeroPowerBlock({
                     const next = picked ? cur.filter((x) => x !== type) : [...cur, type].slice(-2);
                     patch({ choices: { ...state.choices, damagePair: next } });
                   }}
-                  className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
+                  className="text-t12 px-2 py-0.5 rounded border cursor-pointer"
                   style={{
                     backgroundColor: picked ? theme.subpanelBg : theme.cardBg,
                     borderColor: picked ? theme.accent : theme.border,
@@ -797,7 +797,7 @@ export default function ZeroPowerBlock({
       {!combined && state.effectId === 'scourge' ? (
         <div className="space-y-1.5">
           <div className="space-y-1">
-            <span className="text-t11 font-bold" style={{ color: theme.textDark }}>選定一種傷害類型</span>
+            <span className="text-t14 font-bold" style={{ color: theme.textDark }}>選定一種傷害類型</span>
             <div className="flex flex-wrap gap-1">
               {ZERO_DAMAGE_TYPES.map((type) => {
                 const picked = state.choices.damageType === type;
@@ -806,7 +806,7 @@ export default function ZeroPowerBlock({
                     key={type}
                     type="button"
                     onClick={() => patch({ choices: { ...state.choices, damageType: picked ? '' : type } })}
-                    className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
+                    className="text-t12 px-2 py-0.5 rounded border cursor-pointer"
                     style={{
                       backgroundColor: picked ? theme.subpanelBg : theme.cardBg,
                       borderColor: picked ? theme.accent : theme.border,
@@ -820,7 +820,7 @@ export default function ZeroPowerBlock({
             </div>
           </div>
           <div className="space-y-1">
-            <span className="text-t11 font-bold" style={{ color: theme.textDark }}>選定兩種狀態效果</span>
+            <span className="text-t14 font-bold" style={{ color: theme.textDark }}>選定兩種狀態效果</span>
             <div className="flex flex-wrap gap-1">
               {ZERO_STATUS_EFFECTS.map((status) => {
                 const picked = state.choices.statuses.includes(status);
@@ -833,7 +833,7 @@ export default function ZeroPowerBlock({
                       const next = picked ? cur.filter((x) => x !== status) : [...cur, status].slice(-2);
                       patch({ choices: { ...state.choices, statuses: next } });
                     }}
-                    className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
+                    className="text-t12 px-2 py-0.5 rounded border cursor-pointer"
                     style={{
                       backgroundColor: picked ? theme.subpanelBg : theme.cardBg,
                       borderColor: picked ? theme.accent : theme.border,
@@ -850,19 +850,19 @@ export default function ZeroPowerBlock({
       ) : null}
 
       {effect ? (
-        <p className="text-t11 leading-relaxed rounded border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
+        <p className="text-t14 leading-relaxed rounded border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
           {renderTextWithAffinities(effect.desc)}
         </p>
       ) : null}
 
       {/* 變體規則 */}
       <div className="space-y-1.5">
-        <span className="text-t11 font-bold" style={{ color: theme.textDark }}>變體規則</span>
+        <span className="text-t14 font-bold" style={{ color: theme.textDark }}>變體規則</span>
         <div className="flex flex-wrap gap-1">
           <button
             type="button"
             onClick={() => patch({ variant: '', awakened: false, combinedPairs: [] })}
-            className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
+            className="text-t12 px-2 py-0.5 rounded border cursor-pointer"
             style={{
               backgroundColor: state.variant === '' ? theme.subpanelBg : theme.cardBg,
               borderColor: state.variant === '' ? theme.accent : theme.border,
@@ -876,7 +876,7 @@ export default function ZeroPowerBlock({
               key={v.id}
               type="button"
               onClick={() => patch({ variant: v.id })}
-              className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
+              className="text-t12 px-2 py-0.5 rounded border cursor-pointer"
               style={{
                 backgroundColor: state.variant === v.id ? theme.subpanelBg : theme.cardBg,
                 borderColor: state.variant === v.id ? theme.accent : theme.border,
@@ -888,13 +888,13 @@ export default function ZeroPowerBlock({
           ))}
         </div>
         {state.variant ? (
-          <p className="text-t11 leading-relaxed" style={{ color: theme.textMuted }}>
+          <p className="text-t14 leading-relaxed" style={{ color: theme.textMuted }}>
             {ZERO_VARIANTS.find((v) => v.id === state.variant)?.desc}
           </p>
         ) : null}
         {state.variant === 'awakened' ? (
           state.awakened ? (
-            <p className="text-t12 leading-relaxed" style={{ color: theme.textDark }}>
+            <p className="text-t14 leading-relaxed" style={{ color: theme.textDark }}>
               已覺醒（每次戰役一次）：觸發已選定，可正常累積與施展。
             </p>
           ) : awakenArea()

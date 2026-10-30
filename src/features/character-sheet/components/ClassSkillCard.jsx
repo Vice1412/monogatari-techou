@@ -717,7 +717,7 @@ export default function ClassSkillCard({
         </div>
 
         {/* 風格/戰鬥畫風敘述 */}
-        <p className="text-xs text-[#6b5a4b] italic leading-relaxed pl-2 border-l-2" style={{ borderColor: theme.accent }}>
+        <p className="text-t14 text-[#6b5a4b] italic leading-relaxed pl-2 border-l-2" style={{ borderColor: theme.accent }}>
           {classInfo.tagline}
         </p>
 
@@ -740,7 +740,7 @@ export default function ClassSkillCard({
         <div className="p-3.5 sm:p-4 space-y-2.5">
           {(!classItem.skills || classItem.skills.length === 0) ? (
             <div
-              className="p-4 rounded border border-dashed text-center text-xs space-y-1.5"
+              className="p-4 rounded border border-dashed text-center text-t14 space-y-1.5"
               style={{ borderColor: theme.border, backgroundColor: theme.cardBg }}
             >
               <div className="font-bold text-[#3c2415]">尚未分配技能點數</div>
@@ -769,7 +769,7 @@ export default function ClassSkillCard({
                 return (
                   <div
                     key={sIdx}
-                    className="p-3 rounded border text-xs space-y-1.5 transition-colors shadow-e1"
+                    className="p-3 rounded border text-t14 space-y-1.5 transition-colors shadow-e1"
                     style={{
                       backgroundColor: theme.cardBg,
                       borderColor: disp.isVariant ? theme.accent : theme.border,
@@ -804,8 +804,8 @@ export default function ClassSkillCard({
                     </div>
 
                     {/* 自動算好數值的動態公式 */}
-                    <div className="text-xs sm:text-t12 text-[#3c2415] leading-relaxed font-sans pt-0.5">
-                      <SkillDescription desc={disp.desc} sl={sk.sl} />
+                    <div className="text-t14 sm:text-t16 text-[#3c2415] leading-relaxed font-sans pt-0.5">
+                      <SkillDescription desc={disp.desc} sl={sk.sl} refSource={disp.name} />
                     </div>
 
                     {/* 子項目狀態與配置條 / 個人載具條 / 忠實夥伴條 */}
@@ -873,7 +873,7 @@ export default function ClassSkillCard({
       {/* ================= 模式 B：展開點選模式 (Full Allocation / Edit Mode) ================= */}
       {isEditing && (
         <div className="p-3.5 sm:p-4 space-y-3.5 bg-[#fbf7ee]">
-          <div className="flex items-center justify-between text-xs text-[#6b5a4b] border-b pb-2" style={{ borderColor: theme.border }}>
+          <div className="flex items-center justify-between text-t14 text-[#6b5a4b] border-b pb-2" style={{ borderColor: theme.border }}>
             <span className="font-bold flex items-center gap-1">
               <GiSparkles className="w-3.5 h-3.5" style={{ color: theme.accent }} />
               點擊星星或卡片分配技能等級 (SL)，再次點擊已亮星星可降級：
@@ -929,7 +929,7 @@ export default function ClassSkillCard({
                       handleSetSkillSL(sk.name, 0);
                     }
                   }}
-                  className={`p-3.5 rounded border text-xs space-y-2 transition-all duration-200 cursor-pointer select-none ${
+                  className={`p-3.5 rounded border text-t14 space-y-2 transition-all duration-200 cursor-pointer select-none ${
                     isLearned
                       ? 'bg-[#f9f5eb] border-[#d6c7ab] ring-1 ring-[#3c2415]/30'
                       : 'bg-white/60 border-[#d6c7ab]/90 hover:bg-white hover:border-[#d6c7ab] opacity-80'
@@ -1062,12 +1062,12 @@ export default function ClassSkillCard({
 
                   {/* 動態公式求值 (未點時展示公式，點亮後展示精算結果)
                       ※ 選用變體後顯示變體描述；原版描述收起來（GM 裁定：選用之後原版要收起來）。 */}
-                  <div className="text-xs sm:text-t12 text-[#3c2415] leading-relaxed font-sans pl-4 border-l border-[#d6c7ab]">
+                  <div className="text-t14 sm:text-t16 text-[#3c2415] leading-relaxed font-sans pl-4 border-l border-[#d6c7ab]">
                     <div
                       key={disp.name /* 變體切換時重新觸發 transition */}
                       className="transition-opacity duration-200"
                     >
-                      <SkillDescription desc={disp.desc} sl={currentSL} />
+                      <SkillDescription desc={disp.desc} sl={currentSL} refSource={disp.name} />
                     </div>
                     {disp.isVariant && !isPreviewing && (
                       <div className="mt-1 text-t10 text-[#6b5a4b] font-bold">
@@ -1083,7 +1083,7 @@ export default function ClassSkillCard({
                   {showPlaytestVariants && expandedSkillName === sk.name && skillVariants.length > 0 && !activeVariant && (
                     <div
                       data-testid={`variant-picker-${sk.name}`}
-                      className="rounded border border-dashed p-2 space-y-1.5 text-xs"
+                      className="rounded border border-dashed p-2 space-y-1.5 text-t14"
                       style={{ borderColor: theme.border, backgroundColor: '#f9f5eb' }}
                       onClick={(e) => e.stopPropagation()}
                     >

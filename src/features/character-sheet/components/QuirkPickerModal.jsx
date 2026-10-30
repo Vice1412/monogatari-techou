@@ -108,7 +108,7 @@ export function QuirkPickerBody({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={`搜尋金手指名稱（共 ${quirks.length} 個）...`}
-          className="w-full pl-9 pr-3 py-2 rounded text-xs border outline-none font-sans shadow-inner"
+          className="w-full pl-9 pr-3 py-2 rounded text-t12 border outline-none font-sans shadow-inner"
           style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
         />
       </div>
@@ -119,7 +119,7 @@ export function QuirkPickerBody({
           className="w-full md:w-64 lg:w-72 shrink-0 flex flex-col border-b md:border-b-0 md:border-r pb-2 md:pb-0 md:pr-3 overflow-hidden"
           style={{ borderColor: theme.border }}
         >
-          <span className="text-t11 font-bold mb-2 shrink-0" style={{ color: theme.textMuted }}>
+          <span className="text-t12 font-bold mb-2 shrink-0" style={{ color: theme.textMuted }}>
             點名稱看詳細內容（{filtered.length} 個）
           </span>
           <div className="flex-1 overflow-y-auto space-y-1 pr-1 min-h-0">
@@ -141,7 +141,7 @@ export function QuirkPickerBody({
                       // 點回**目前已經選定**的那一個時，還原已存的選擇。
                       setChoice(q.name === selectedName ? (selectedChoice || '') : '');
                     }}
-                    className="w-full text-left px-2.5 py-2 rounded border text-xs font-bold transition-all cursor-pointer flex items-center justify-between gap-1.5"
+                    className="w-full text-left px-2.5 py-2 rounded border text-t14 font-bold transition-all cursor-pointer flex items-center justify-between gap-1.5"
                     style={
                       isOpen
                         ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' }
@@ -178,19 +178,19 @@ export function QuirkPickerBody({
                     使用者要求「適當的情況下，讓效果內容分段方便閱讀」。 */}
                 {opened.flavor && (
                   <p
-                    className="text-t11 italic leading-relaxed p-2.5 rounded border"
+                    className="text-t14 italic leading-relaxed p-2.5 rounded border"
                     style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border, color: theme.textMuted }}
                   >
-                    <SkillDescription desc={opened.flavor} linkCodex={false} />
+                    <SkillDescription desc={opened.flavor} linkCodex={false} refSource={opened.name} />
                   </p>
                 )}
-                <div className="text-xs sm:text-t12 leading-relaxed space-y-2.5" style={{ color: theme.textDark }}>
+                <div className="text-t14 sm:text-t16 leading-relaxed space-y-2.5" style={{ color: theme.textDark }}>
                   {/* 兩層分段：空行＝段落、單一換行＝同一段內的行（清單項目）。
                       見 utils/paragraphs.js 的說明。 */}
                   {splitParagraphs(opened.desc).map((block, bi) => (
                     <div key={bi} className="space-y-1">
                       {block.map((line, li) => (
-                        <p key={li}><SkillDescription desc={line} linkCodex={false} /></p>
+                        <p key={li}><SkillDescription desc={line} linkCodex={false} refSource={opened.name} /></p>
                       ))}
                     </div>
                   ))}
@@ -206,7 +206,7 @@ export function QuirkPickerBody({
                     style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}
                     data-testid="quirk-options"
                   >
-                    <span className="text-t11 font-bold" style={{ color: theme.textMuted }}>
+                    <span className="text-t12 font-bold" style={{ color: theme.textMuted }}>
                       {isMultiGroup
                         ? `這個金手指要選 ${quirkOptionGroups.length} 件事（原書：選擇選項）`
                         : '這個金手指要選一個選項（原書：選擇一個選項）'}
@@ -214,14 +214,14 @@ export function QuirkPickerBody({
                     {quirkOptionGroups.map((group) => (
                       <div key={group.id} className="space-y-1.5" data-testid={`quirk-group-${group.id}`}>
                         {isMultiGroup && group.label && (
-                          <span className="block text-t10 font-semibold" style={{ color: theme.textMuted }}>
+                          <span className="block text-t12 font-semibold" style={{ color: theme.textMuted }}>
                             {group.label}
                           </span>
                         )}
                         {group.options.map((opt) => (
                           <label
                             key={opt.id}
-                            className="flex items-start gap-2 text-xs cursor-pointer"
+                            className="flex items-start gap-2 text-t14 cursor-pointer"
                             style={{ color: theme.textDark }}
                           >
                             <input
@@ -266,7 +266,7 @@ export function QuirkPickerBody({
                 className="pt-3 mt-3 border-t flex items-center justify-between gap-3 shrink-0"
                 style={{ borderColor: theme.border }}
               >
-                <span className="text-t11" style={{ color: theme.textMuted }}>
+                <span className="text-t12" style={{ color: theme.textMuted }}>
                   一個角色只能擁有一個金手指；同一團不得有兩人選同一個。
                 </span>
                 <div className="flex items-center gap-2">
@@ -294,7 +294,7 @@ export function QuirkPickerBody({
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-6 space-y-2" style={{ color: theme.textMuted }}>
               <GiHazardSign className="w-8 h-8 opacity-40" />
-              <p className="text-xs">從左邊點一個金手指，這裡會顯示它的完整內容。</p>
+              <p className="text-t12">從左邊點一個金手指，這裡會顯示它的完整內容。</p>
               <p className="text-t12 opacity-80">
                 金手指是**選用規則**——原書只建議「想玩就用、而且開局一人一個」，不強制。
               </p>

@@ -198,7 +198,7 @@ export function HeroicSkillPickerBody({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜尋名稱、條件或效果…"
-              className="w-full pl-8 pr-3 py-1.5 rounded border text-xs outline-none"
+              className="w-full pl-8 pr-3 py-1.5 rounded border text-t12 outline-none"
               style={inputStyle}
             />
           </div>
@@ -206,7 +206,7 @@ export function HeroicSkillPickerBody({
           <select
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value)}
-            className="py-1.5 px-2 rounded border text-xs outline-none cursor-pointer"
+            className="py-1.5 px-2 rounded border text-t12 outline-none cursor-pointer"
             style={inputStyle}
           >
             <option value="all">全部出處</option>
@@ -215,7 +215,7 @@ export function HeroicSkillPickerBody({
             ))}
           </select>
 
-          <label className="flex items-center gap-1.5 cursor-pointer text-xs" style={{ color: theme.textDark }}>
+          <label className="flex items-center gap-1.5 cursor-pointer text-t12" style={{ color: theme.textDark }}>
             <input
               type="checkbox"
               checked={onlyMyClasses}
@@ -227,7 +227,7 @@ export function HeroicSkillPickerBody({
         </div>
 
         <div
-          className="flex items-center justify-between gap-2 flex-wrap text-t11"
+          className="flex items-center justify-between gap-2 flex-wrap text-t12"
           style={{ color: theme.textMuted }}
         >
           <span>
@@ -244,7 +244,7 @@ export function HeroicSkillPickerBody({
 
       {/* ==================== 表格 ==================== */}
       <div className="flex-1 overflow-y-auto min-h-0 rounded border" style={{ borderColor: theme.border }}>
-        <table className="w-full text-xs border-collapse">
+        <table className="w-full text-t12 border-collapse">
           <thead className="sticky top-0 z-10" style={{ backgroundColor: theme.subpanelBg }}>
             <tr style={{ color: theme.textDark }}>
               <th className="text-left font-bold px-3 py-2 border-b w-[15%]" style={{ borderColor: theme.border }}>名稱</th>
@@ -269,10 +269,10 @@ export function HeroicSkillPickerBody({
               const pendingConfirm = needsConfirm && !isConfirmed;
               return (
               <tr key={h.name} className="align-top" style={{ borderBottom: `1px solid ${theme.border}` }}>
-                <td className="px-3 py-2 font-bold" style={{ color: theme.textDark }}>
+                <td className="px-3 py-2 text-t14 font-bold" style={{ color: theme.textDark }}>
                   {h.name}
                   {owned > 0 && (
-                    <span className="ml-1.5 text-t10 font-normal" style={{ color: theme.accent }}>
+                    <span className="ml-1.5 text-t12 font-normal" style={{ color: theme.accent }}>
                       已持有 {owned}{max > 1 ? `/${max}` : ''}
                     </span>
                   )}
@@ -286,7 +286,7 @@ export function HeroicSkillPickerBody({
                     /* 勾選框放在「條件」欄而不是「選用」欄：它確認的是條件，不是按鈕；
                        而且 10% 寬的按鈕欄塞不下「我符合這個前提」這幾個字。 */
                     <label
-                      className="mt-1.5 flex items-start gap-1.5 cursor-pointer text-t10 leading-snug rounded px-1.5 py-1"
+                      className="mt-1.5 flex items-start gap-1.5 cursor-pointer text-t12 leading-snug rounded px-1.5 py-1"
                       style={{
                         color: theme.textDark,
                         border: `1px dashed ${theme.border}`,
@@ -310,7 +310,7 @@ export function HeroicSkillPickerBody({
                   )}
                 </td>
                 <td
-                  className="px-3 py-2 leading-relaxed whitespace-pre-line"
+                  className="px-3 py-2 text-t14 leading-relaxed whitespace-pre-line"
                   style={{ color: theme.textDark }}
                   data-testid={`heroic-effect-${h.name}`}
                 >
@@ -327,7 +327,7 @@ export function HeroicSkillPickerBody({
                       if (needsConfirm) toggleConfirm(h.name, false);
                       onPick(h);
                     }}
-                    className="text-t11 font-bold px-2.5 py-1.5 rounded border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1"
+                    className="text-t12 font-bold px-2.5 py-1.5 rounded border transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none inline-flex items-center gap-1"
                     style={{
                       backgroundColor: canPick ? (theme.accent) : (theme.cardBg),
                       borderColor: theme.border,
@@ -337,7 +337,7 @@ export function HeroicSkillPickerBody({
                     {canPick ? <><GiCheckMark className="w-3 h-3" />選用</> : (pendingConfirm ? '先確認' : '不可選')}
                   </button>
                   {(reason || pendingConfirm) && (
-                    <div className="text-t10 mt-1 leading-snug" style={{ color: theme.textMuted }}>
+                    <div className="text-t12 mt-1 leading-snug" style={{ color: theme.textMuted }}>
                       {reason || '請先勾選左邊的「我符合這個前提」'}
                     </div>
                   )}
@@ -350,7 +350,7 @@ export function HeroicSkillPickerBody({
       </div>
 
       <div className="shrink-0 flex items-center justify-between gap-3 pt-2">
-        <div className="text-t11 leading-snug min-w-0" style={{ color: theme.textMuted }}>
+        <div className="text-t12 leading-snug min-w-0" style={{ color: theme.textMuted }}>
           <div className="flex items-center gap-1.5">
             <GiLaurelCrown className="w-3.5 h-3.5 shrink-0" />
             出處與條件以官方規則書／Playtest 為準；繁中譯名取自角色卡 Excel V2.17。
@@ -367,7 +367,7 @@ export function HeroicSkillPickerBody({
           <button
             type="button"
             onClick={onClose}
-            className="text-xs font-bold px-3 py-1.5 rounded border cursor-pointer"
+            className="text-t12 font-bold px-3 py-1.5 rounded border cursor-pointer"
             style={inputStyle}
           >
             關閉

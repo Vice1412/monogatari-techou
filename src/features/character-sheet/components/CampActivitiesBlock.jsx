@@ -53,14 +53,14 @@ function ActivityChip({ activity, active, theme, onClick }) {
       }}
     >
       <span className="flex items-baseline justify-between gap-2">
-        <span className="font-serif font-black text-xs">
+        <span className="font-serif font-black text-t14">
           {active ? '✓ ' : ''}{activity.name}
         </span>
-        <span className="text-t10 shrink-0" style={{ color: theme.textMuted }}>
+        <span className="text-t11 shrink-0" style={{ color: theme.textMuted }}>
           {campActivityTargetLabel(activity)}
         </span>
       </span>
-      <span className="block text-t10 leading-tight" style={{ color: theme.textMuted }}>
+      <span className="block text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
         {activity.summary}
       </span>
     </button>
@@ -76,10 +76,10 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
     >
       <div className="flex items-start justify-between gap-2">
         <span className="min-w-0">
-          <span className="font-serif font-black text-sm" style={{ color: theme.textDark }}>
+          <span className="font-serif font-black text-t16" style={{ color: theme.textDark }}>
             {activity.name}
           </span>
-          <span className="text-t10 ml-1.5" style={{ color: theme.textMuted }}>
+          <span className="text-t11 ml-1.5" style={{ color: theme.textMuted }}>
             {campActivityTargetLabel(activity)}・{activity.page}
           </span>
         </span>
@@ -88,7 +88,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
             <button
               type="button"
               onClick={onToggleUsed}
-              className="text-t11 px-2 py-0.5 rounded border cursor-pointer"
+              className="text-t12 px-2 py-0.5 rounded border cursor-pointer"
               style={{
                 backgroundColor: theme.cardBg,
                 borderColor: used ? theme.accent : theme.border,
@@ -102,7 +102,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
             <button
               type="button"
               onClick={onRemove}
-              className="text-t11 cursor-pointer"
+              className="text-t12 cursor-pointer"
               style={{ color: theme.textMuted }}
             >
               移除
@@ -111,7 +111,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
         </span>
       </div>
 
-      <p className="text-t11 leading-relaxed" style={{ color: theme.textDark }}>
+      <p className="text-t14 leading-relaxed" style={{ color: theme.textDark }}>
         {activity.desc}
       </p>
 
@@ -120,7 +120,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
       {modeNote ? (
         <p
           data-testid={`camp-mode-note-${activity.id}`}
-          className="text-t11 leading-relaxed rounded border-l-2 pl-2 py-1"
+          className="text-t12 leading-relaxed rounded border-l-2 pl-2 py-1"
           style={{ color: theme.textDark, borderColor: theme.accent, backgroundColor: theme.cardBg }}
         >
           {modeNote}
@@ -137,7 +137,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
               >
                 {row.roll}
               </span>
-              <span className="text-t11 leading-relaxed" style={{ color: theme.textDark }}>
+              <span className="text-t14 leading-relaxed" style={{ color: theme.textDark }}>
                 {row.text}
               </span>
             </div>
@@ -146,7 +146,7 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
       ) : null}
 
       {activity.once ? (
-        <p className="text-t12" style={{ color: theme.textMuted }}>
+        <p className="text-t14" style={{ color: theme.textMuted }}>
           直到下一次休息前限一次。
         </p>
       ) : null}
@@ -191,7 +191,7 @@ export default function CampActivitiesBlock({
         data-testid="camp-activities-play"
       >
         <div className="flex items-center justify-between flex-wrap gap-1">
-          <span className="font-serif font-black text-sm flex items-center gap-1.5" style={{ color: theme.textDark }}>
+          <span className="font-serif font-black text-t16 flex items-center gap-1.5" style={{ color: theme.textDark }}>
             <GiCampfire className="w-4 h-4" style={{ color: theme.accent }} />
             營地活動
           </span>
@@ -199,12 +199,12 @@ export default function CampActivitiesBlock({
         </div>
 
         {picked.length === 0 ? (
-          <p className="text-t12" style={{ color: theme.textMuted }}>
+          <p className="text-t14" style={{ color: theme.textMuted }}>
             尚未在創角時選擇營地活動——請在角色編輯第 5 步選 {allowance} 種。
           </p>
         ) : (
           <>
-            <p className="text-t12 leading-relaxed" style={{ color: theme.textDark }}>
+            <p className="text-t14 leading-relaxed" style={{ color: theme.textDark }}>
               休息場景中，你可以進行其中一種，並把效益套用到該活動的目標上。沒有進行活動也照樣可以調整羈絆。
             </p>
             <div className="space-y-2">
@@ -224,7 +224,7 @@ export default function CampActivitiesBlock({
               type="button"
               onClick={() => commit(resetCampActivityUses(state))}
               disabled={state.used.length === 0}
-              className="text-t11 px-2.5 py-1 rounded border cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+              className="text-t12 px-2.5 py-1 rounded border cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
               style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
             >
               下一次休息（清空已使用）
@@ -239,7 +239,7 @@ export default function CampActivitiesBlock({
   return (
     <div className="space-y-2" data-testid="camp-activities-block">
       <div className="flex items-center justify-between flex-wrap gap-1">
-        <label className="text-xs font-bold flex items-center gap-1.5" style={{ color: theme.textDark }}>
+        <label className="text-t14 font-bold flex items-center gap-1.5" style={{ color: theme.textDark }}>
           <GiCampfire className="w-4 h-4" style={{ color: theme.accent }} />
           營地活動
         </label>
@@ -248,7 +248,7 @@ export default function CampActivitiesBlock({
         </span>
       </div>
 
-      <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
+      <p className="text-t14 leading-relaxed" style={{ color: theme.textMuted }}>
         原書 p.130：使用這條選用規則時，每個玩家角色在創角時選 {CAMP_ACTIVITY_BASE_COUNT} 種不同的營地活動，
         之後每次休息場景可以進行其中一種。
         {quirkGrant ? '金手指【老大哥／歐尼醬】讓你多選一種。' : ''}
@@ -279,7 +279,7 @@ export default function CampActivitiesBlock({
           ))}
         </div>
       ) : (
-        <p className="text-t12" style={{ color: theme.textMuted }}>
+        <p className="text-t14" style={{ color: theme.textMuted }}>
           尚未選擇。上面的 15 張卡片點一下就會選取，選滿 {allowance} 種為止。
         </p>
       )}

@@ -107,7 +107,7 @@ export default function ClassSkillPickerList({
 
   if (rows.length === 0) {
     return (
-      <p className="text-t12 italic" style={{ color: theme.textMuted }}>
+      <p className="text-t14 italic" style={{ color: theme.textMuted }}>
         {emptyHint || '這個職業沒有技能表'}
       </p>
     );
@@ -126,7 +126,7 @@ export default function ClassSkillPickerList({
         return (
           <div
             key={row.name}
-            className="p-2 rounded border text-xs space-y-1"
+            className="p-2 rounded border text-t14 space-y-1"
             style={{
               backgroundColor: isLearned ? theme.subpanelBg : theme.cardBg,
               borderColor: isLearned ? theme.accent : theme.border,
@@ -135,7 +135,7 @@ export default function ClassSkillPickerList({
           >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
               <span
-                className="font-bold flex items-center gap-1.5 text-t11 flex-wrap"
+                className="font-bold flex items-center gap-1.5 text-t14 flex-wrap"
                 style={{ color: theme.textDark }}
               >
                 <span style={{ color: theme.accent }}>✦</span>
@@ -180,12 +180,12 @@ export default function ClassSkillPickerList({
               </span>
             </div>
             <div
-              className="text-t10 leading-relaxed font-sans"
+              className="text-t14 leading-relaxed font-sans"
               style={{ color: theme.textDark }}
             >
               {row.orphan
                 ? '（這個名稱不在目前的技能表裡，沒有說明可顯示）'
-                : <SkillDescription desc={row.desc} sl={currentSL} />}
+                : <SkillDescription desc={row.desc} sl={currentSL} refSource={row.name} />}
             </div>
           </div>
         );

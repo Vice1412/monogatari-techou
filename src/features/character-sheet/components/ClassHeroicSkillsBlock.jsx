@@ -17,6 +17,7 @@
 import React, { useState } from 'react';
 import { GiLaurelCrown } from 'react-icons/gi';
 import { heroicSkillsForClass, HEROIC_SKILL_SOURCE_LABELS } from '../utils/characterEngine';
+import SkillDescription from '../utils/skillFormulaEvaluator';
 
 export default function ClassHeroicSkillsBlock({ className, theme = {}, locked = false }) {
   const [open, setOpen] = useState(false);
@@ -36,7 +37,7 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
       >
         <span className="flex items-center gap-2 min-w-0">
           <GiLaurelCrown className="w-4 h-4 shrink-0" style={{ color: theme.accent }} />
-          <span className="text-xs font-bold truncate" style={{ color: theme.textDark }}>
+          <span className="text-t14 font-bold truncate" style={{ color: theme.textDark }}>
             {open ? '收起英雄技能' : '顯示英雄技能'}
           </span>
           <span
@@ -50,21 +51,21 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
             {list.length}
           </span>
         </span>
-        <span className="text-t11 shrink-0" style={{ color: theme.textMuted }}>
+        <span className="text-t12 shrink-0" style={{ color: theme.textMuted }}>
           {open ? '收起' : '展開'}
         </span>
       </button>
 
       {open && (
         <div className="border-t divide-y" style={{ borderColor: theme.border }}>
-          <p className="px-3 py-1.5 text-t12 leading-snug" style={{ color: theme.textMuted }}>
+          <p className="px-3 py-1.5 text-t14 leading-relaxed" style={{ color: theme.textMuted }}>
             把這個職業練到 10 級（精通）可獲得一個英雄技能（原書 p.232）。以下每一條都必須先精通
             {className}，其他條件列在各自的「條件」欄。實際選用在第 5 步「掌握之英雄技能」。
           </p>
           {list.map((h) => (
             <div key={h.name} className="px-3 py-2 space-y-1" style={{ borderColor: theme.border }}>
               <div className="flex items-baseline gap-2 flex-wrap">
-                <span className="text-xs font-bold" style={{ color: theme.textDark }}>
+                <span className="text-t14 font-bold" style={{ color: theme.textDark }}>
                   {h.name}
                 </span>
                 <span
@@ -78,11 +79,11 @@ export default function ClassHeroicSkillsBlock({ className, theme = {}, locked =
                   {HEROIC_SKILL_SOURCE_LABELS[h.source] || h.source}
                 </span>
               </div>
-              <p className="text-t12 leading-snug" style={{ color: theme.textMuted }}>
+              <p className="text-t14 leading-relaxed" style={{ color: theme.textMuted }}>
                 <strong>條件：</strong>{h.requirement}
               </p>
-              <p className="text-t11 leading-relaxed whitespace-pre-line" style={{ color: theme.textDark }}>
-                {h.effect}
+              <p className="text-t14 leading-relaxed whitespace-pre-line" style={{ color: theme.textDark }}>
+                <SkillDescription desc={h.effect} linkCodex={false} refSource={h.name} />
               </p>
             </div>
           ))}
