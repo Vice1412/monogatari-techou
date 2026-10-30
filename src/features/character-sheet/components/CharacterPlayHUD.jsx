@@ -91,6 +91,17 @@ import {
   endSession,
   formatLogDate
 } from '../utils/characterLog';
+// 羈絆 ⇄ NPC 檔案庫的連結（2026-10-30，P3）。
+// 判定（含「名冊已無此人」）只寫在 bondLink.js，這裡只負責畫。
+import {
+  BOND_WHY_MAX,
+  normalizeBondWhy,
+  resolveBondNpc,
+  bondNpcSubtitle,
+  buildBondLinkFields,
+  applyBondLinkFields,
+  describeBondEdit
+} from '../utils/bondLink';
 import NumberStepper from '../../../components/ui/NumberStepper';
 import SkillDescription, { openRuleCodex } from '../utils/skillFormulaEvaluator';
 import ArcanistManager from './companions/ArcanistManager';
@@ -128,6 +139,63 @@ const FEELING_LABELS = Object.freeze({
   affection: '喜愛',
   hatred: '仇恨'
 });
+
+/**
+ * 羈絆對象的名冊挑選器（建立彈窗與就地編輯共用一份）。
+ *
+ * 為什麼抽成元件而不是兩處各寫一次 `<select>`：這顆控件有一個很容易漏掉的分支——
+ * **目前連結的那張卡已經不在名冊裡了**。那時 `value` 對不上任何 `option`，
+ * 瀏覽器會安靜地顯示第一個選項（「不連結名冊」），畫面上看起來像玩家自己取消了連結，
+ * 但他什麼都沒按。所以斷鏈要有一顆殘留的 disabled 選項把它顯示出來。
+ * 這段邏輯寫兩次就會有一邊漏掉。
+ */
+function BondNpcSelect({ value, pool, onChange, onPick, testId }) {
+  const list = (Array.isArray(pool) ? pool : []).filter((n) => n && n.id);
+  const current = typeof value === 'string' ? value.trim() : '';
+  const dangling = current && !list.some((n) => n.id === current);
+
+  if (list.length === 0 && !dangling) {
+    return (
+      <p className="text-t12 text-[#7c6a58] leading-relaxed" data-testid={`${testId}-empty`}>
+        名冊還沒有任何 NPC。可以先直接打名字，日後到 NPC 工坊建卡再回來連結。
+      </p>
+    );
+  }
+
+  return (
+    <select
+      data-testid={testId}
+      value={current}
+      onChange={(e) => {
+        const id = e.target.value;
+        onChange(id);
+        // 選了名冊上的卡就把名字帶進來——這是「一鍵連結」的全部意義。
+        // 只填名字，不動情感與理由：那些是玩家的判斷，不是名冊的資料。
+        if (id && onPick) {
+          const npc = list.find((n) => n.id === id);
+          if (npc) onPick(npc);
+        }
+      }}
+      className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs font-bold text-[#3c2415]"
+    >
+      <option value="">不連結名冊（自由輸入名稱）</option>
+      {dangling && (
+        <option value={current} disabled>
+          （名冊已無此人，連結已失效）
+        </option>
+      )}
+      {list.map((n) => {
+        const sub = bondNpcSubtitle(n);
+        const name = n.name || '未命名';
+        return (
+          <option key={n.id} value={n.id}>
+            {sub ? `${name}（${sub}）` : name}
+          </option>
+        );
+      })}
+    </select>
+  );
+}
 
 
 /**
@@ -211,6 +279,10 @@ export default function CharacterPlayHUD({
   onOpenLog = null,
   onOpenDice = null,
   roster = [],
+  // NPC 檔案庫（羈絆可以連到名冊上的某張卡）。
+  // 不傳時自己從 store 讀——生產端不傳，SSR 測試可以注入一組固定的名冊，
+  // 不必為了測「連結／斷鏈」去偽造 localStorage。
+  npcLibrary = null,
   onPartnerCleared = null,
   showToast = () => {},
   // 測試注入點（`AGENTS.md` §1「SSR 測不到的區塊，優先加測試注入點」）。
@@ -223,7 +295,12 @@ export default function CharacterPlayHUD({
   initialLevelUpClass = '',
   // 初始分頁：跑團面板的六個分頁各自有一段「空清單」畫面，而 SSR 不執行點擊，
   // 沒有這個入口就永遠測不到。不傳時就是原本的 `'attacks'`。
-  initialTab = 'attacks'
+  initialTab = 'attacks',
+  // 羈絆的兩個彈窗／面板（P3）。同樣是 SSR 測不到的區塊：建立彈窗與就地編輯面板
+  // 都只能靠點擊打開，而裡面正是「名冊斷鏈」與「為什麼」唯一會出現的地方。
+  // 生產端永不傳入，不傳時就是原本的 `false`／`null`。
+  initialBondModalOpen = false,
+  initialEditingBondId = null
 }) {
   // Tabs: attacks (武器與防衛) | spells (咒語與魔法) | skills (職業特技) | bonds (情感羈絆) | clocks (命刻) | notes (行囊日誌)
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -326,12 +403,45 @@ export default function CharacterPlayHUD({
   const [ritualHasIngredient, setRitualHasIngredient] = useState(false);
 
   // Bond creator & editor modal
-  const [isBondModalOpen, setIsBondModalOpen] = useState(false);
+  const [isBondModalOpen, setIsBondModalOpen] = useState(initialBondModalOpen);
   const [newBondTarget, setNewBondTarget] = useState('');
   const [newBondFeelings, setNewBondFeelings] = useState(['admiration']);
-  const [editingBondId, setEditingBondId] = useState(null);
-  const [editBondTarget, setEditBondTarget] = useState('');
-  const [editBondFeelings, setEditBondFeelings] = useState([]);
+  // 羈絆可以指向 NPC 檔案庫上的某張卡（P3）。
+  // `npcId` 是**選填**的：羈絆對象本來就可以是王國、一把劍、死去的人，
+  // 那些不在名冊裡，硬要連結等於逼玩家先建一張 NPC 才能寫羈絆。
+  const [newBondNpcId, setNewBondNpcId] = useState('');
+  const [newBondWhy, setNewBondWhy] = useState('');
+  // 測試注入點用：直接把某一條羈絆擺進「編輯中」狀態，面板才會出現在 SSR 輸出裡。
+  // 生產端永不傳入（`initialEditingBondId` 是 null），行為與原本完全相同。
+  const seededEditingBond = initialEditingBondId
+    ? (character?.bonds || []).find((b) => b.id === initialEditingBondId) || null
+    : null;
+  const [editingBondId, setEditingBondId] = useState(seededEditingBond ? seededEditingBond.id : null);
+  const [editBondTarget, setEditBondTarget] = useState(seededEditingBond?.target || '');
+  const [editBondFeelings, setEditBondFeelings] = useState(
+    Array.isArray(seededEditingBond?.feelings) ? [...seededEditingBond.feelings] : []
+  );
+  const [editBondNpcId, setEditBondNpcId] = useState(
+    typeof seededEditingBond?.npcId === 'string' ? seededEditingBond.npcId : ''
+  );
+  const [editBondWhy, setEditBondWhy] = useState(
+    typeof seededEditingBond?.why === 'string' ? seededEditingBond.why : ''
+  );
+
+  /**
+   * 名冊快照。
+   *
+   * 刻意在「開啟羈絆彈窗／開始編輯」的當下重讀，而不是 mount 時讀一次：
+   * 玩家可能剛在 NPC 工坊建了一張卡再切回來，而跑團面板不會因此重新掛載
+   * （章節切換是條件渲染，但面板在同一個章節內不會卸載）。
+   * 讀一次就定終身的話，新建的 NPC 要重新整理才看得到。
+   */
+  const [npcPool, setNpcPool] = useState(() =>
+    Array.isArray(npcLibrary) ? npcLibrary : readJSON(STORAGE_KEYS.npcLibrary, [])
+  );
+  const refreshNpcPool = () => {
+    setNpcPool(Array.isArray(npcLibrary) ? npcLibrary : readJSON(STORAGE_KEYS.npcLibrary, []));
+  };
 
   // 升級後若解鎖職業精通（Lv 10）或帶子項目的特技，給出跳轉編輯器提示橫幅
   const [postLevelUpHint, setPostLevelUpHint] = useState(null);
@@ -794,9 +904,14 @@ export default function CharacterPlayHUD({
 
   // 開啟編輯既有羈絆彈窗
   const handleOpenEditBond = (bond) => {
+    // 名冊可能在這張卡開著的期間變過（去 NPC 工坊改了名字、刪了一張卡），
+    // 所以進編輯的當下重讀一次，畫面才不會拿著舊快照判斷「連結還在」。
+    refreshNpcPool();
     setEditingBondId(bond.id);
     setEditBondTarget(bond.target || '');
     setEditBondFeelings(Array.isArray(bond.feelings) ? [...bond.feelings] : []);
+    setEditBondNpcId(typeof bond.npcId === 'string' ? bond.npcId : '');
+    setEditBondWhy(typeof bond.why === 'string' ? bond.why : '');
   };
 
   // 儲存編輯後的既有羈絆（Core p.91：休息場景可調整羈絆情感）
@@ -811,27 +926,36 @@ export default function CharacterPlayHUD({
       return;
     }
     const before = (character.bonds || []).find(b => b.id === editingBondId);
+    const linkFields = buildBondLinkFields({ npcId: editBondNpcId, why: editBondWhy });
+    const target = editBondTarget.trim();
     const updatedBonds = (character.bonds || []).map(b =>
       b.id === editingBondId
-        ? { ...b, target: editBondTarget.trim(), feelings: editBondFeelings }
+        // 「表單是完整的事實」：清掉連結就真的不再連，清掉理由就真的沒有理由。
+        // 刪鍵與否的判斷在 `applyBondLinkFields`（那裡才測得到）。
+        ? applyBondLinkFields({ ...b, target, feelings: editBondFeelings }, { npcId: editBondNpcId, why: editBondWhy })
         : b
     );
     // 2026-10-30：這裡原本傳 `kind: 'bond'`，但 `LOG_KINDS` 沒有這個詞彙
     // → `createLogEntry` 靜默拒收 → **羈絆調整從來沒有進過履歷**。
     // 現在詞彙補上了，而且標題寫出情感的前後變化（只寫「調整羈絆」看不出改了什麼）。
     const feelingText = (list) => (list || []).map(f => FEELING_LABELS[f] || f).join('、');
-    const beforeFeelings = feelingText(before?.feelings);
-    const afterFeelings = feelingText(editBondFeelings);
-    const target = editBondTarget.trim();
     updateField('bonds', updatedBonds, {
       kind: 'bond',
-      title: beforeFeelings && beforeFeelings !== afterFeelings
-        ? `調整羈絆【${target}】：${beforeFeelings} → ${afterFeelings}`
-        : `調整羈絆【${target}】`,
-      fields: []
+      // 情感的變化與理由的變化分開寫：情感是規則層（激勵加值＝情感數），
+      // 理由是敘事層。只寫「調整羈絆」的話，兩者都看不出來。
+      title: describeBondEdit({
+        target,
+        feelingsFrom: feelingText(before?.feelings),
+        feelingsTo: feelingText(editBondFeelings),
+        whyFrom: before?.why || '',
+        whyTo: editBondWhy
+      }),
+      fields: [],
+      // 把「為什麼」帶進履歷：三個月後回頭看，這一行比情感標籤有用得多。
+      note: linkFields.why || ''
     });
     setEditingBondId(null);
-    showToast(`已更新對【${editBondTarget.trim()}】的情感羈絆！`);
+    showToast(`已更新對【${target}】的情感羈絆！`);
   };
 
   // Equipments resolution
@@ -950,6 +1074,17 @@ export default function CharacterPlayHUD({
     showToast(`施放【${spell.name}】！消耗 ${mpCost} 點 MP`);
   };
 
+  // 開啟「建立羈絆」彈窗
+  const handleOpenBondModal = () => {
+    // 名冊要在玩家挑選的那一刻是新鮮的（可能剛從 NPC 工坊回來）。
+    refreshNpcPool();
+    setNewBondTarget('');
+    setNewBondFeelings(['admiration']);
+    setNewBondNpcId('');
+    setNewBondWhy('');
+    setIsBondModalOpen(true);
+  };
+
   // Add new bond
   const handleAddBond = () => {
     if (!newBondTarget.trim()) {
@@ -964,15 +1099,20 @@ export default function CharacterPlayHUD({
     const newBond = {
       id: `bond_${Date.now()}`,
       target: newBondTarget.trim(),
-      feelings: newBondFeelings
+      feelings: newBondFeelings,
+      // 空的連結與空的理由**不寫鍵**，與舊存檔的形狀保持一致。
+      ...buildBondLinkFields({ npcId: newBondNpcId, why: newBondWhy })
     };
     updateField('bonds', [...currentBonds, newBond], {
       kind: 'bond',
       title: `締結羈絆【${newBond.target}】（${newBondFeelings.map(f => FEELING_LABELS[f] || f).join('、')}）`,
-      fields: []
+      fields: [],
+      note: newBond.why || ''
     });
     setNewBondTarget('');
     setNewBondFeelings(['admiration']);
+    setNewBondNpcId('');
+    setNewBondWhy('');
     setIsBondModalOpen(false);
     showToast('已建立新情感羈絆！');
   };
@@ -3172,7 +3312,7 @@ export default function CharacterPlayHUD({
                 {(character.bonds || []).length < 6 && (
                   <button
                     type="button"
-                    onClick={() => setIsBondModalOpen(true)}
+                    onClick={handleOpenBondModal}
                     className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -3183,6 +3323,11 @@ export default function CharacterPlayHUD({
 
               {(character.bonds || []).map((bond, bIdx) => {
                 const isEditingThis = editingBondId === bond.id;
+                // 名冊關係：none（刻意不連）／linked（連得上）／missing（那張卡被刪了）。
+                // 三者要畫成三種樣子——把 none 與 missing 畫成一樣，等於每次都在
+                // 一條本來就正確的羈絆上報錯。
+                const link = resolveBondNpc(bond, npcPool);
+                const npcSubtitle = bondNpcSubtitle(link.npc);
                 const FEELING_PAIRS = [
                   [{ k: 'admiration', l: '欽佩' }, { k: 'inferiority', l: '自卑' }],
                   [{ k: 'loyalty', l: '忠誠' }, { k: 'mistrust', l: '疑忌' }],
@@ -3191,14 +3336,32 @@ export default function CharacterPlayHUD({
                 return (
                 <div key={bIdx} className="p-3.5 bg-white rounded border space-y-2.5" style={{ borderColor: theme.border }}>
                   <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div>
-                      <div className="font-bold text-sm text-[#2c221e]">{bond.target}</div>
-                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                        {(bond.feelings || []).map(f => (
-                          <span key={f} className="px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-t12 text-[#8c3235] font-bold">
-                            {FEELING_LABELS[f] || f}
-                          </span>
-                        ))}
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      {link.status === 'linked' && link.npc.avatarBase64 && (
+                        <img
+                          src={link.npc.avatarBase64}
+                          alt=""
+                          className="w-9 h-9 rounded object-cover border shrink-0"
+                          style={{ borderColor: theme.border }}
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <div className="font-bold text-sm text-[#2c221e]">{bond.target}</div>
+                        {link.status === 'linked' && npcSubtitle && (
+                          <div className="text-t11 text-[#7c6a58] mt-0.5">{npcSubtitle}</div>
+                        )}
+                        {link.status === 'missing' && (
+                          /* 名冊那張卡被刪了。**名字要留著**——那是玩家自己寫的，
+                             不是連結的附屬品。這裡只說明「連結斷了」，不代替他決定要改什麼。 */
+                          <div className="text-t11 text-[#8c3235] mt-0.5">名冊已無此人（連結已失效）</div>
+                        )}
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          {(bond.feelings || []).map(f => (
+                            <span key={f} className="px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-t12 text-[#8c3235] font-bold">
+                              {FEELING_LABELS[f] || f}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
@@ -3250,6 +3413,18 @@ export default function CharacterPlayHUD({
                     </div>
                   </div>
 
+                  {/* 「為什麼有這份情感」。這一行是羈絆從「六個標籤」變成「一段關係」的地方，
+                      所以它排在情感標籤下面、編輯面板上面——先讀到理由，再決定要不要改。
+                      墨色用四階墨裡的主墨（`#3c2415`）：這是內容，不是標籤。 */}
+                  {bond.why && (
+                    <div
+                      className="text-t12 text-[#3c2415] bg-[#fbf7ee] border-l-2 pl-2 py-1 leading-relaxed"
+                      style={{ borderColor: '#d6c7ab' }}
+                    >
+                      「{bond.why}」
+                    </div>
+                  )}
+
                   {isEditingThis && (
                     <div className="pt-2.5 border-t border-[#e8dcc4] bg-[#fbf7ee] p-2.5 rounded space-y-2">
                       <div className="flex items-center gap-2">
@@ -3259,6 +3434,16 @@ export default function CharacterPlayHUD({
                           value={editBondTarget}
                           onChange={e => setEditBondTarget(e.target.value)}
                           className="flex-1 px-2 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs font-bold text-[#3c2415]"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-t11 font-bold text-[#6b5a4b] block">對應 NPC 檔案庫（選填）:</span>
+                        <BondNpcSelect
+                          testId="bond-edit-npc"
+                          value={editBondNpcId}
+                          pool={npcPool}
+                          onChange={setEditBondNpcId}
+                          onPick={(npc) => setEditBondTarget(npc.name || '')}
                         />
                       </div>
                       <div className="space-y-1">
@@ -3292,6 +3477,20 @@ export default function CharacterPlayHUD({
                             </div>
                           ))}
                         </div>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-t11 font-bold text-[#6b5a4b] block">
+                          為什麼有這份情感？（選填，會寫進履歷）
+                        </span>
+                        <textarea
+                          data-testid="bond-edit-why"
+                          value={editBondWhy}
+                          onChange={e => setEditBondWhy(e.target.value)}
+                          maxLength={BOND_WHY_MAX}
+                          rows={2}
+                          placeholder="例如：他在城門前替我擋了一刀。"
+                          className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] text-t12 text-[#3c2415] resize-none"
+                        />
                       </div>
                       <div className="flex justify-end gap-1.5">
                         <button
@@ -3853,10 +4052,22 @@ export default function CharacterPlayHUD({
             <label className="font-bold text-[#3c2415] block mb-1">羈絆對象名稱:</label>
             <input
               type="text"
+              data-testid="bond-new-target"
               value={newBondTarget}
               onChange={e => setNewBondTarget(e.target.value)}
               placeholder="例如：王國騎士長、幼時好友、仇敵宿敵..."
               className="w-full p-2 rounded border border-[#e8dcc4] bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="font-bold text-[#3c2415] block mb-1">對應 NPC 檔案庫（選填）:</label>
+            <BondNpcSelect
+              testId="bond-new-npc"
+              value={newBondNpcId}
+              pool={npcPool}
+              onChange={setNewBondNpcId}
+              onPick={(npc) => setNewBondTarget(npc.name || '')}
             />
           </div>
 
@@ -3896,6 +4107,19 @@ export default function CharacterPlayHUD({
                 );
               })}
             </div>
+          </div>
+
+          <div>
+            <label className="font-bold text-[#3c2415] block mb-1">為什麼有這份情感？（選填，會寫進履歷）:</label>
+            <textarea
+              data-testid="bond-new-why"
+              value={newBondWhy}
+              onChange={e => setNewBondWhy(e.target.value)}
+              maxLength={BOND_WHY_MAX}
+              rows={2}
+              placeholder="例如：他在城門前替我擋了一刀。"
+              className="w-full p-2 rounded border border-[#e8dcc4] bg-white text-t12 resize-none"
+            />
           </div>
 
           <button

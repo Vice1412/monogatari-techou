@@ -470,6 +470,9 @@ export default function DiceRollerModal({
                               type="button"
                               disabled={availableFp <= 0}
                               onClick={() => handleInvokeBond(b)}
+                              // 羈絆的「為什麼」在這裡當提示：激勵的那一刻正是玩家
+                              // 需要想起「我為什麼在乎這個人」的時候（P3）。
+                              title={b.why || undefined}
                               style={b.id === presetBondId && fpBonus === 0
                                 ? { outline: '2px solid #a63d40', outlineOffset: '1px' }
                                 : undefined}
