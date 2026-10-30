@@ -25,6 +25,7 @@ import CharacterDrawer from './components/CharacterDrawer';
 import ClockTracker from '../../components/ui/ClockTracker';
 import { peerSync } from './utils/peerSync';
 import { migrateNpcState } from '../npc-workshop/utils/npcEngine';
+import { syncCombatantToRoster } from '../character-sheet/utils/characterEngine';
 import { STORAGE_KEYS } from '../../data/keys';
 import { readJSON, writeJSON } from '../../data/store';
 
@@ -120,6 +121,15 @@ export default function CombatTracker() {
 
   const handleUpdateCombatant = (updated) => {
     setCombatants(prev => prev.map(c => c.instanceId === updated.instanceId ? updated : c));
+    // 雙向同步：戰鬥中扣減的 HP／MP／IP／FP 與受到的狀態效果，同步回寫至角色卡名冊
+    if (updated?.sourceType === 'character' && updated?.sourceId) {
+      const savedRoster = readJSON(STORAGE_KEYS.characterRoster, []);
+      const { roster: nextRoster, changed } = syncCombatantToRoster(updated, savedRoster);
+      if (changed) {
+        writeJSON(STORAGE_KEYS.characterRoster, nextRoster);
+        setCharacterRoster(nextRoster);
+      }
+    }
   };
 
   const handleRemoveCombatant = (instanceId) => {

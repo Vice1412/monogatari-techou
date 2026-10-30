@@ -2820,3 +2820,31 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 - `tests/characterSheetUi.test.mjs` 新增 `CT` 區段（17 條斷言，577 → **594**），涵蓋英雄技能／咒語／技能變體的 SSR 渲染時動態查表、載入時舊名遷移與 `===` 參照相等。
 - 刻意破壞驗證發現並修正一處測試自身的錨點重疊（`CharacterCard` 同時渲染職業技能與英雄技能，改以 `staleCardHtml.slice(staleCardHtml.indexOf('英雄技能'))` 切出獨立區段），確認破壞時精準 FAIL、還原後 PASS。
 - 全套 **36 支測試全綠**、`test:emoji` 0 命中、`npm run build` exit 0。
+
+---
+
+## 第四十五輪（2026-10-29）——跑團面板 JRPG 戰術中樞改版、官方五消耗品、儀式計算器、擲骰傷害與戰鬥輪次雙向同步
+
+**起點是 GM 的指示與三點批註**：
+1. 「個人更傾向於像 JRPG 遊戲的 character 界面。以角色照片居中，顯示必要的信息。然後周圍各種功能性按鈕，點擊就去往不同的分頁去做各自的事情。讓玩家更有操作感。」
+2. 「衝突場景會直接跳轉去【戰鬥輪次】的界面，所以跑團卡可以暫時不用管這個，但兩者應該是要有互相連接的，戰鬥時扣的 HP、受到的狀態效果，必須都同步顯示在角色卡上。【戰鬥輪次】過後才處理，並非我們這次的重點。」
+3. 官方五種庫存點（IP）消耗品譯名確認「全對」（大補藥、萬靈藥、滋補藥、元素碎片、魔法帳篷）。
+
+**實作項目**：
+1. **JRPG 角色戰術主控台（`CharacterPlayHUD.jsx`，`data-testid="jrpg-character-hub"`）**：
+   - 三欄式 JRPG 角色舞台：中央大幅立繪／頭像居中（可點擊跳轉更換），呈現等級、CRISIS 危機標記、三項背景特質、職業等級徽章，並於正下方環繞 **6 顆戰術分頁指令按鈕**（武器與戰鬥、咒語與魔法、職業特技、情感羈絆、個人命刻、行囊日誌）。
+   - 左翼：HP／MP／IP 資源條與步進器，並整合**官方五種基本 IP 消耗品**（`data-testid="hud-ip-consumables"`：大補藥 3IP、萬靈藥 3IP、滋補藥 2IP、元素碎片 2IP 附 5 屬性切換器、魔法帳篷 4IP），自動計入修補匠【秘密配方】SL 加成並寫入成長履歷。
+   - 右翼：四維屬性單擊檢定＋**「首骰 → +配對」兩鍵雙屬性組合擲骰**＋常用雙屬性檢定快捷列（`DEX+INS`、`INS+WLP`、`DEX+MIG`、`MIG+WLP`），以及 EXP（含「✦ 聚會結算」計算器，核心 p.227）、金幣、物語點；頂部新增**「營地休整」**一鍵回滿 HP／MP 並解除全部異常狀態。
+2. **跑團面板 ⇄【戰鬥輪次】雙向即時同步（`characterEngine.js` ＋ `CharacterSheet.jsx` ＋ `CombatTracker.jsx`）**：
+   - 新增純函式 `syncCombatantToRoster(combatant, roster)` 與 `syncCharacterToActiveCombat(char, activeCombat)`：在【戰鬥輪次】扣減 HP／MP／IP／FP 或切換異常狀態時即時回寫至 `characterRoster`；在【跑團面板】補血、解狀態或調整資源時即時同步至 `activeCombat` 對應單位（並顯示「`● 已連動戰鬥輪次`」徽章）。數值未變時回傳 `changed: false` 避免無謂寫入。
+3. **全域擲骰器與四大分頁補完（`DiceRollerModal.jsx` ＋ `CharacterPlayHUD.jsx`）**：
+   - `DiceRollerModal.jsx`：支援武器与攻擊咒語帶入 `damageBonus`／`damageType`，即時算出 `【HR + 加值】= 總傷害 點 [屬性] 傷害`，內建**「將 HR 視為 0」**切換與額外傷害修正；支援**物語點（FP）戰術介入**（引用特質重擲單顆／雙顆、激勵羈絆 `+1～+3`、大失敗領取 `+1 FP`）。
+   - 武器分頁：主副手與徒手擲骰全面帶入傷害加值與屬性；展開顯示副手盾牌、防具、飾品的完整規則說明。
+   - 咒語分頁：內建**儀式魔法（效力 × 範圍 MP 與難度計算器）**（`data-testid="hud-ritual-calculator"`，核心 p.118–121）。
+   - 特技分頁：顯示各職免費增益、**掌握之英雄技能全文**（`data-testid="hud-heroic-skills"`）與**金手指特質全文＋已選效果**（`data-testid="hud-quirk-detail"`）；升級解鎖 Lv 10 精通或含子項目技能時顯示引導橫幅。
+   - 羈絆分頁：新增**「✎ 調整」**就地編輯面板（修改對象名稱與三維對立情感）。
+
+**護欄與破壞驗證**：
+- `tests/characterSheetUi.test.mjs` 新增 `CU` 區段（10 組測試，594 → **604** 條通過）。SSR 測試當場抓出並修復 `describeQuirkChoice(character)` 回傳陣列卻被當字串渲染的型別問題。
+- 刻意破壞 `syncCombatantToRoster` 的 `currentHp` 回寫 → `CU-8` 與 `CU-9` 立即 FAIL → 還原後全數 PASS。
+- 全套 **36 支測試全綠**（含 `test:emoji` 0 命中、`test:uisystem` 295/295、`test:arcanist` 109/109）、`npm run build` exit 0。

@@ -27,7 +27,8 @@ import {
   EXPERIENCE_POINT_RULES,
   SHEET_DISCIPLINES
 } from '../src/features/character-sheet/components/CharacterSheetExport.jsx';
-import { createNewCharacter, getProficiencies, calculateCharacterStats, deriveCreationState, shortIssueLabel, isHpMpChoiceBenefit, classSkillsForClass, suppressedSkillsForClass, describeQuirkChoice, resolveHeroicSkillEntry, resolveSpellEntry, resolveCharacterSpells, normalizeCharacter, normalizeRosterCharacters } from '../src/features/character-sheet/utils/characterEngine.js';
+import { createNewCharacter, getProficiencies, calculateCharacterStats, deriveCreationState, shortIssueLabel, isHpMpChoiceBenefit, classSkillsForClass, suppressedSkillsForClass, describeQuirkChoice, resolveHeroicSkillEntry, resolveSpellEntry, resolveCharacterSpells, normalizeCharacter, normalizeRosterCharacters, syncCombatantToRoster, syncCharacterToActiveCombat } from '../src/features/character-sheet/utils/characterEngine.js';
+import DiceRollerModal from '../src/features/dice-roller/DiceRollerModal.jsx';
 import { suppressedSkillsNote } from '../src/features/character-sheet/data/technospheres.js';
 import { EquipmentPickerBody } from '../src/features/character-sheet/components/EquipmentPickerModal.jsx';
 import { resolveCreationRules, DEFAULT_CREATION_RULES, classCountRange, classCountPhrase } from '../src/features/character-sheet/data/creationRules.js';
@@ -2651,6 +2652,240 @@ check('（CT-17）已乾淨的角色再跑一次 normalizeRosterClassNames + nor
   [alreadyCleanRoster === normalizeRosterCharacters(alreadyCleanRoster),
     alreadyCleanRoster[0] === normalizedChar],
   [true, true]);
+
+// ═══════════════════════════════════════════════════════════
+section('CU. 跑團面板升級：JRPG 戰術中樞、五消耗品、儀式計算器、英雄／金手指全文、擲骰傷害與戰鬥雙向同步（2026-10-29）');
+
+// ── 1. JRPG 角色狀態與指令中樞（肖像居中＋六大戰術分頁按鈕＋五種官方消耗品＋修補匠秘密配方）
+const jrpgHudChar = {
+  ...createNewCharacter({ name: '克勞德' }),
+  id: 'char_cloud_1',
+  identity: '前神羅戰士',
+  theme: '職責',
+  origin: '尼福爾海姆',
+  quirk: '天才的宿敵',
+  quirkChoice: 'ritual',
+  classes: [
+    {
+      className: '修補匠',
+      level: 3,
+      skills: [
+        { name: '秘密配方', sl: 2 },
+        { name: '小工具', sl: 1 }
+      ]
+    },
+    {
+      className: '元素師',
+      level: 2,
+      freeBenefitChoice: 'mp',
+      skills: [
+        { name: '元素學派儀式', sl: 1 },
+        { name: '元素魔法', sl: 1, selectedOptions: ['照明烈焰'] }
+      ]
+    }
+  ],
+  heroicSkills: [
+    { name: '大口袋', source: 'core' }
+  ],
+  equipment: {
+    mainHand: '巨劍',
+    offHand: '青銅盾',
+    armor: '旅人服',
+    accessory: '紅寶石耳環'
+  },
+  bonds: [
+    { id: 'b1', target: '蒂法', feelings: ['loyalty', 'affection'] }
+  ]
+};
+
+const jrpgHudAttacksHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: jrpgHudChar,
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {},
+  initialTab: 'attacks'
+}));
+
+check('（CU-1 SSR）JRPG 角色戰術主控台渲染出 data-testid="jrpg-character-hub" 與居中身份、營地休整、常用檢定',
+  [jrpgHudAttacksHtml.includes('data-testid="jrpg-character-hub"'),
+    jrpgHudAttacksHtml.includes('JRPG 角色戰術主控台'),
+    jrpgHudAttacksHtml.includes('營地休整'),
+    jrpgHudAttacksHtml.includes('常用檢定:'),
+    jrpgHudAttacksHtml.includes('DEX+INS'),
+    jrpgHudAttacksHtml.includes('INS+WLP')],
+  [true, true, true, true, true, true]);
+
+const consumablesStart = jrpgHudAttacksHtml.indexOf('data-testid="hud-ip-consumables"');
+const consumablesSection = jrpgHudAttacksHtml.slice(consumablesStart, consumablesStart + 4000);
+check('（CU-2 SSR）官方五種 IP 消耗品齊備且自動計入修補匠【秘密配方 SL 2】加值（大補藥 +60HP、萬靈藥 +60MP、元素碎片 12點）',
+  [consumablesSection.includes('大補藥 (+60HP)'),
+    consumablesSection.includes('萬靈藥 (+60MP)'),
+    consumablesSection.includes('滋補藥 (解全狀態)'),
+    consumablesSection.includes('魔法帳篷 (全滿)'),
+    consumablesSection.includes('元素碎片 (12點火傷)'),
+    jrpgHudAttacksHtml.includes('秘密配方 SL2')],
+  [true, true, true, true, true, true]);
+
+check('（CU-3 SSR）武器與戰鬥分頁顯示副手盾牌、防具、飾品的規則說明文字',
+  [jrpgHudAttacksHtml.includes('青銅盾'),
+    jrpgHudAttacksHtml.includes('旅人服'),
+    jrpgHudAttacksHtml.includes('紅寶石耳環')],
+  [true, true, true]);
+
+// ── 2. 咒語分頁：儀式魔法效力×範圍計算器（data-testid="hud-ritual-calculator"）
+const jrpgHudSpellsHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: jrpgHudChar,
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {},
+  initialTab: 'spells'
+}));
+const ritualCalcSec = jrpgHudSpellsHtml.slice(jrpgHudSpellsHtml.indexOf('data-testid="hud-ritual-calculator"'));
+check('（CU-4 SSR）咒語分頁內建儀式魔法計算器，顯示已掌握儀式學派與效力／範圍／稀有材料減半控制',
+  [ritualCalcSec.includes('儀式魔法（效力 × 範圍 MP 與難度計算器）'),
+    ritualCalcSec.includes('元素學派 [INS + WLP]'),
+    ritualCalcSec.includes('提供稀有材料（MP 減半）'),
+    ritualCalcSec.includes('總消耗：20 MP · 難度 DL 7 · 衝突命刻 4 格')],
+  [true, true, true, true]);
+
+// ── 3. 職業特技分頁：免費增益、英雄技能全文（data-testid="hud-heroic-skills"）、金手指全文與已選效果（data-testid="hud-quirk-detail"）
+const jrpgHudSkillsHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: jrpgHudChar,
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {},
+  initialTab: 'skills'
+}));
+check('（CU-5 SSR）職業特技分頁顯示各職免費增益、掌握之英雄技能全文與金手指特質全文（含已選效果）',
+  [jrpgHudSkillsHtml.includes('免費增益：'),
+    jrpgHudSkillsHtml.includes('data-testid="hud-heroic-skills"'),
+    jrpgHudSkillsHtml.includes('掌握之英雄技能'),
+    jrpgHudSkillsHtml.includes('大口袋'),
+    jrpgHudSkillsHtml.includes('data-testid="hud-quirk-detail"'),
+    jrpgHudSkillsHtml.includes('金手指特質：天才的宿敵'),
+    jrpgHudSkillsHtml.includes('已選效果：儀式')],
+  [true, true, true, true, true, true, true]);
+
+// ── 4. 情感羈絆分頁：支援休息場景調整羈絆按鈕
+const jrpgHudBondsHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: jrpgHudChar,
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {},
+  initialTab: 'bonds'
+}));
+check('（CU-6 SSR）情感羈絆分頁顯示羈絆激勵與「✎ 調整」按鈕',
+  [jrpgHudBondsHtml.includes('蒂法'),
+    jrpgHudBondsHtml.includes('激勵 (+2)'),
+    jrpgHudBondsHtml.includes('✎ 調整')],
+  [true, true, true]);
+
+// ── 5. 全域擲骰器（DiceRollerModal）：命中傷害直算（將 HR 視為 0）與物語點（FP）重擲／羈絆激勵
+const diceModalHtml = renderToStaticMarkup(React.createElement(DiceRollerModal, {
+  isOpen: true,
+  onClose: () => {},
+  initialConfig: {
+    die1: 10,
+    die2: 8,
+    modifier: 2,
+    damageBonus: 10,
+    damageType: '火',
+    label: '照明烈焰 魔法判定 [INS + WLP]',
+    character: jrpgHudChar,
+    initialRollResult: {
+      die1: 7,
+      die2: 5,
+      modifier: 2,
+      total: 14,
+      hr: 7,
+      isCritical: false,
+      isFumble: false
+    },
+    onSpendFp: () => {},
+    onGainFp: () => {}
+  }
+}));
+check('（CU-7 SSR）DiceRollerModal 支援命中傷害直算（含「將 HR 視為 0」與火屬性傷害）及物語點介入（引用特質重擲＋激勵羈絆）',
+  [diceModalHtml.includes('命中傷害直算'),
+    diceModalHtml.includes('將 HR 視為 0'),
+    diceModalHtml.includes('= 17 點'),
+    diceModalHtml.includes('火傷害'),
+    diceModalHtml.includes('物語點介入'),
+    diceModalHtml.includes('可引用特質：前神羅戰士 · 職責 · 尼福爾海姆'),
+    diceModalHtml.includes('雙骰重擲(-1FP)'),
+    diceModalHtml.includes('蒂法 (+2)')],
+  [true, true, true, true, true, true, true, true]);
+
+// ── 6. 跑團面板 ⇄ 戰鬥輪次（CombatTracker）雙向即時同步契約
+const rosterBeforeSync = [
+  {
+    ...jrpgHudChar,
+    currentHp: 45,
+    currentMp: 40,
+    currentIp: 6,
+    fabulaPoints: 3,
+    statusAfflictions: { dazed: false, shaken: false, slow: false, enraged: false, poisoned: false, weak: false }
+  }
+];
+const updatedCombatantFromTracker = {
+  instanceId: 'comb_1',
+  sourceId: 'char_cloud_1',
+  sourceType: 'character',
+  hp: { current: 18, max: 45, crisisThreshold: 22 },
+  mp: { current: 25, max: 40 },
+  ip: { current: 3, max: 6 },
+  fabulaPoints: 2,
+  statusEffects: { dazed: true, poisoned: true, shaken: false, slow: false, enraged: false, weak: false }
+};
+
+const { roster: rosterAfterCombatSync, changed: rosterSyncChanged } = syncCombatantToRoster(
+  updatedCombatantFromTracker,
+  rosterBeforeSync
+);
+check('（CU-8）syncCombatantToRoster：戰鬥輪次扣減 HP/MP/IP/FP 與切換異常狀態後，精準回寫至角色名冊',
+  [rosterSyncChanged,
+    rosterAfterCombatSync[0].currentHp,
+    rosterAfterCombatSync[0].currentMp,
+    rosterAfterCombatSync[0].currentIp,
+    rosterAfterCombatSync[0].fabulaPoints,
+    rosterAfterCombatSync[0].statusAfflictions.dazed,
+    rosterAfterCombatSync[0].statusAfflictions.poisoned],
+  [true, 18, 25, 3, 2, true, true]);
+
+// 數值完全未變時不觸發無謂寫入
+const { changed: noOpRosterSync } = syncCombatantToRoster(
+  updatedCombatantFromTracker,
+  rosterAfterCombatSync
+);
+check('（CU-9）syncCombatantToRoster：數值與狀態完全一致時回傳 changed: false',
+  noOpRosterSync, false);
+
+// 反向：在跑團面板喝大補藥／解狀態後，同步回寫至戰鬥輪次名單
+const activeCombatState = {
+  round: 2,
+  combatants: [updatedCombatantFromTracker]
+};
+const healedCharFromHud = {
+  ...rosterAfterCombatSync[0],
+  currentHp: 45,
+  currentIp: 0,
+  statusAfflictions: { dazed: false, poisoned: false, shaken: false, slow: false, enraged: false, weak: false }
+};
+const { activeCombat: combatAfterHudSync, changed: combatSyncChanged } = syncCharacterToActiveCombat(
+  healedCharFromHud,
+  activeCombatState
+);
+check('（CU-10）syncCharacterToActiveCombat：跑團面板恢復 HP 與解除狀態後，精準回寫至戰鬥輪次對應單位',
+  [combatSyncChanged,
+    combatAfterHudSync.combatants[0].hp.current,
+    combatAfterHudSync.combatants[0].ip.current,
+    combatAfterHudSync.combatants[0].statusEffects.dazed,
+    combatAfterHudSync.combatants[0].statusEffects.poisoned],
+  [true, 45, 0, false, false]);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

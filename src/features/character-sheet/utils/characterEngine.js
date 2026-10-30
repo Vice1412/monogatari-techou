@@ -3423,3 +3423,77 @@ export const exportCharacterToCombatant = (char) => {
     rawCharData: char
   };
 };
+
+/**
+ * 雙向同步（戰鬥輪次 → 角色名冊）：
+ * 當玩家在【戰鬥輪次】調整 HP、MP、IP、物語點或狀態異常時，
+ * 把變更同步寫回 `characterRoster` 對應的角色卡，切回跑團面板時無縫接軌。
+ */
+export const syncCombatantToRoster = (combatant, roster) => {
+  if (!combatant || combatant.sourceType !== 'character' || !combatant.sourceId || !Array.isArray(roster)) {
+    return { roster, changed: false };
+  }
+  let changed = false;
+  const nextRoster = roster.map(char => {
+    if (!char || char.id !== combatant.sourceId) return char;
+    const nextHp = combatant.hp?.current !== undefined ? combatant.hp.current : char.currentHp;
+    const nextMp = combatant.mp?.current !== undefined ? combatant.mp.current : char.currentMp;
+    const nextIp = combatant.ip?.current !== undefined ? combatant.ip.current : char.currentIp;
+    const nextFp = combatant.fabulaPoints !== undefined ? combatant.fabulaPoints : char.fabulaPoints;
+    const nextStatus = combatant.statusEffects
+      ? { ...(char.statusAfflictions || {}), ...combatant.statusEffects }
+      : char.statusAfflictions;
+
+    const statusChanged = JSON.stringify(nextStatus || {}) !== JSON.stringify(char.statusAfflictions || {});
+    if (
+      nextHp === char.currentHp &&
+      nextMp === char.currentMp &&
+      nextIp === char.currentIp &&
+      nextFp === char.fabulaPoints &&
+      !statusChanged
+    ) {
+      return char;
+    }
+    changed = true;
+    return {
+      ...char,
+      currentHp: nextHp,
+      currentMp: nextMp,
+      currentIp: nextIp,
+      fabulaPoints: nextFp,
+      statusAfflictions: nextStatus,
+      updatedAt: new Date().toISOString()
+    };
+  });
+  return { roster: changed ? nextRoster : roster, changed };
+};
+
+/**
+ * 雙向同步（角色卡 → 戰鬥輪次）：
+ * 當玩家在【跑團面板】調整 HP、MP、IP、物語點、狀態異常或換裝時，
+ * 若該角色已在 `activeCombat` 參戰名單內，同步更新其戰鬥狀態（保留 instanceId 與 hasActed）。
+ */
+export const syncCharacterToActiveCombat = (char, activeCombat) => {
+  if (!char || !char.id || !activeCombat || !Array.isArray(activeCombat.combatants)) {
+    return { activeCombat, changed: false };
+  }
+  const idx = activeCombat.combatants.findIndex(c => c && c.sourceId === char.id);
+  if (idx < 0) return { activeCombat, changed: false };
+
+  const existing = activeCombat.combatants[idx];
+  const exported = exportCharacterToCombatant(char);
+  const updatedCombatant = {
+    ...exported,
+    instanceId: existing.instanceId || exported.instanceId,
+    hasActed: Boolean(existing.hasActed)
+  };
+  const nextCombatants = [...activeCombat.combatants];
+  nextCombatants[idx] = updatedCombatant;
+  return {
+    activeCombat: {
+      ...activeCombat,
+      combatants: nextCombatants
+    },
+    changed: true
+  };
+};

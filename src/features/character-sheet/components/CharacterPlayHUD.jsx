@@ -28,7 +28,9 @@ import {
   GiRoundBottomFlask,
   GiCrystalBall,
   GiCheckMark,
-  GiCycle
+  GiCycle,
+  GiLaurelCrown,
+  GiCampfire
 } from 'react-icons/gi';
 import GameIcon from '../../../components/ui/GameIcon';
 import EmptyState from '../../../components/ui/EmptyState';
@@ -46,6 +48,10 @@ import {
   getCharacterLevel,
   resolveSpellEntry,
   resolveCharacterSpells,
+  resolveHeroicSkillEntry,
+  describeFreeBenefit,
+  describeQuirkChoice,
+  HEROIC_SKILL_SOURCE_LABELS,
   CLASS_MAX_LEVEL,
   MAX_NON_MASTERED_CLASSES,
   LEVEL_UP_NEW_CLASS_PREFIX,
@@ -53,7 +59,7 @@ import {
 } from '../utils/characterEngine';
 import rulesData from '../data/rulesData.json';
 import CharacterPreviewModal from './CharacterPreviewModal';
-import { STATUS_AFFLICTIONS, ATTRIBUTE_NAMES, normalizeClassName, normalizeSkillName } from '../data/sourcebookConfig';
+import { STATUS_AFFLICTIONS, ATTRIBUTE_NAMES, normalizeClassName, normalizeSkillName, normalizeEquipmentName } from '../data/sourcebookConfig';
 import { resolveSkillDisplay } from '../data/coreBookVariants';
 import { hasGreaterTheriomorphosis } from '../data/theriomorphosisVariant';
 import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
@@ -276,10 +282,32 @@ export default function CharacterPlayHUD({
   const [freeRollAttr2, setFreeRollAttr2] = useState('ins');
   const [freeRollModifier, setFreeRollModifier] = useState(0);
 
-  // Bond creator modal
+  // JRPG Hub 雙屬性快速組合檢定（點第一屬性、再點第二屬性即可擲骰）
+  const [comboFirstAttr, setComboFirstAttr] = useState(null);
+
+  // 聚會 EXP 結算小工具（Core p.227：基礎 5 EXP ＋ 全團消耗物語點 ÷ 人數 ＋ 反派終結點）
+  const [isExpSettlementOpen, setIsExpSettlementOpen] = useState(false);
+  const [sessionFpGain, setSessionFpGain] = useState(0);
+  const [sessionUltimaSpent, setSessionUltimaSpent] = useState(0);
+
+  // 元素碎片（2 IP）所選傷害屬性（風／電／土／火／冰，Core p.104）
+  const [shardElement, setShardElement] = useState('火');
+
+  // 儀式魔法（Core p.118）效力×範圍速查計算器狀態
+  const [ritualPotency, setRitualPotency] = useState('minor');
+  const [ritualArea, setRitualArea] = useState('individual');
+  const [ritualHasIngredient, setRitualHasIngredient] = useState(false);
+
+  // Bond creator & editor modal
   const [isBondModalOpen, setIsBondModalOpen] = useState(false);
   const [newBondTarget, setNewBondTarget] = useState('');
   const [newBondFeelings, setNewBondFeelings] = useState(['admiration']);
+  const [editingBondId, setEditingBondId] = useState(null);
+  const [editBondTarget, setEditBondTarget] = useState('');
+  const [editBondFeelings, setEditBondFeelings] = useState([]);
+
+  // 升級後若解鎖職業精通（Lv 10）或帶子項目的特技，給出跳轉編輯器提示橫幅
+  const [postLevelUpHint, setPostLevelUpHint] = useState(null);
 
   // Clock creator modal
   const [isClockModalOpen, setIsClockModalOpen] = useState(false);
@@ -386,6 +414,58 @@ export default function CharacterPlayHUD({
     });
   };
 
+  // 呼叫全域擲骰器時自動附帶角色特質、羈絆與物語點回呼（支援重擲、羈絆激勵與大失敗領取 FP）
+  const openCharacterDice = (config) => {
+    if (!onOpenDice) return;
+    onOpenDice({
+      ...config,
+      character,
+      onSpendFp: (reason) => {
+        adjustFp(-1);
+        showToast(`${reason}（消耗 1 點物語點）`);
+      },
+      onGainFp: (reason) => {
+        adjustFp(1);
+        showToast(`${reason}（獲得 1 點物語點）`);
+      }
+    });
+  };
+
+  // 營地／旅店一鍵休整（Core p.91：回滿 HP 與 MP，並解除所有異常狀態）
+  const handleCampRest = () => {
+    const clearedAff = {};
+    Object.keys(STATUS_AFFLICTIONS).forEach(k => { clearedAff[k] = false; });
+    const nextChar = {
+      ...character,
+      currentHp: stats.maxHp,
+      currentMp: stats.maxMp,
+      statusAfflictions: clearedAff,
+      updatedAt: new Date().toISOString()
+    };
+    const changes = [];
+    if (curHp !== stats.maxHp) changes.push({ field: 'currentHp', from: curHp, to: stats.maxHp });
+    if (curMp !== stats.maxMp) changes.push({ field: 'currentMp', from: curMp, to: stats.maxMp });
+    onChange(loggableChange(character, nextChar, {
+      kind: 'hp',
+      title: '營地休整：回滿 HP／MP 並解除全部異常狀態',
+      changes
+    }));
+    showToast('已完成營地休整！HP 與 MP 全滿，所有異常狀態已解除。');
+  };
+
+  // 修補匠【秘密配方】SL（Core p.210：回復 HP/MP 消耗品額外 +SL×5，傷害消耗品額外 +SL）
+  const secretFormulaSL = useMemo(() => {
+    let sl = 0;
+    (character.classes || []).forEach(cl => {
+      if (normalizeClassName(cl.className) === '修補匠') {
+        (cl.skills || []).forEach(sk => {
+          if (normalizeSkillName(sk.name) === '秘密配方') sl += (sk.sl || 0);
+        });
+      }
+    });
+    return sl;
+  }, [character.classes]);
+
   // Toggle Status Afflictions
   const handleToggleAffliction = (affKey) => {
     const curAff = character.statusAfflictions || {};
@@ -396,54 +476,105 @@ export default function CharacterPlayHUD({
     updateField('statusAfflictions', updated);
   };
 
-  // Consumable shortcut using IP
+  // 官方五種基本 IP 消耗品（Core p.104，自動計入修補匠【秘密配方】加值並記錄進成長履歷）
   const handleUseConsumable = (type) => {
-    if (type === 'potion') {
-      if (curIp < 2) { showToast('道具點不足 2 點', 'warning'); return; }
-      const nextIp = Math.max(0, curIp - 2);
-      const nextHp = Math.max(0, Math.min(stats.maxHp, curHp + 40));
-      onChange({
+    const remedyBonus = secretFormulaSL * 5;
+    const shardBonus = secretFormulaSL;
+    if (type === 'remedy' || type === 'potion') {
+      if (curIp < 3) { showToast('道具點不足 3 點（大補藥需 3 IP）', 'warning'); return; }
+      const heal = 50 + remedyBonus;
+      const nextIp = Math.max(0, curIp - 3);
+      const nextHp = Math.max(0, Math.min(stats.maxHp, curHp + heal));
+      const base = {
         ...character,
         currentIp: nextIp,
         currentHp: nextHp,
         updatedAt: new Date().toISOString()
-      });
-      showToast(`使用治療藥水！回復 40 點 HP (消耗 2 IP，剩餘 ${nextIp} IP)`, 'success');
+      };
+      onChange(loggableChange(character, base, {
+        kind: 'ip',
+        title: `使用大補藥（-3 IP，回復 ${heal} HP）`,
+        changes: [
+          { field: 'currentIp', from: curIp, to: nextIp },
+          { field: 'currentHp', from: curHp, to: nextHp }
+        ]
+      }));
+      showToast(`使用【大補藥】！回復 ${heal} 點 HP（消耗 3 IP，剩餘 ${nextIp} IP）`, 'success');
     } else if (type === 'elixir') {
-      if (curIp < 2) { showToast('道具點不足 2 點', 'warning'); return; }
-      const nextIp = Math.max(0, curIp - 2);
-      const nextMp = Math.max(0, Math.min(stats.maxMp, curMp + 40));
-      onChange({
+      if (curIp < 3) { showToast('道具點不足 3 點（萬靈藥需 3 IP）', 'warning'); return; }
+      const heal = 50 + remedyBonus;
+      const nextIp = Math.max(0, curIp - 3);
+      const nextMp = Math.max(0, Math.min(stats.maxMp, curMp + heal));
+      const base = {
         ...character,
         currentIp: nextIp,
         currentMp: nextMp,
         updatedAt: new Date().toISOString()
-      });
-      showToast(`使用魔力萬能藥！回復 40 點 MP (消耗 2 IP，剩餘 ${nextIp} IP)`, 'success');
-    } else if (type === 'antidote') {
-      if (curIp < 1) { showToast('道具點不足 1 點', 'warning'); return; }
-      const nextIp = Math.max(0, curIp - 1);
-      onChange({
+      };
+      onChange(loggableChange(character, base, {
+        kind: 'ip',
+        title: `使用萬靈藥（-3 IP，回復 ${heal} MP）`,
+        changes: [
+          { field: 'currentIp', from: curIp, to: nextIp },
+          { field: 'currentMp', from: curMp, to: nextMp }
+        ]
+      }));
+      showToast(`使用【萬靈藥】！回復 ${heal} 點 MP（消耗 3 IP，剩餘 ${nextIp} IP）`, 'success');
+    } else if (type === 'tonic' || type === 'antidote') {
+      if (curIp < 2) { showToast('道具點不足 2 點（滋補藥需 2 IP）', 'warning'); return; }
+      const nextIp = Math.max(0, curIp - 2);
+      const clearedAff = {};
+      Object.keys(STATUS_AFFLICTIONS).forEach(k => { clearedAff[k] = false; });
+      const base = {
         ...character,
         currentIp: nextIp,
-        statusAfflictions: { ...(character.statusAfflictions || {}), poisoned: false },
+        statusAfflictions: clearedAff,
         updatedAt: new Date().toISOString()
-      });
-      showToast(`使用解毒劑！解除中毒狀態 (消耗 1 IP，剩餘 ${nextIp} IP)`, 'success');
-    } else if (type === 'tonic') {
-      if (curIp < 1) { showToast('道具點不足 1 點', 'warning'); return; }
-      const nextIp = Math.max(0, curIp - 1);
-      onChange({
+      };
+      onChange(loggableChange(character, base, {
+        kind: 'ip',
+        title: '使用滋補藥（-2 IP，解除全部異常狀態）',
+        changes: [{ field: 'currentIp', from: curIp, to: nextIp }]
+      }));
+      showToast(`使用【滋補藥】！已解除所有異常狀態（消耗 2 IP，剩餘 ${nextIp} IP）`, 'success');
+    } else if (type === 'elementalShard') {
+      if (curIp < 2) { showToast('道具點不足 2 點（元素碎片需 2 IP）', 'warning'); return; }
+      const dmg = 10 + shardBonus;
+      const nextIp = Math.max(0, curIp - 2);
+      const base = {
         ...character,
         currentIp: nextIp,
-        statusAfflictions: {
-          ...(character.statusAfflictions || {}),
-          dazed: false,
-          shaken: false
-        },
         updatedAt: new Date().toISOString()
-      });
-      showToast(`使用提神藥！解除眩暈與動搖狀態 (消耗 1 IP，剩餘 ${nextIp} IP)`, 'success');
+      };
+      onChange(loggableChange(character, base, {
+        kind: 'ip',
+        title: `使用元素碎片（-2 IP，造成 ${dmg} 點${shardElement}屬性傷害）`,
+        changes: [{ field: 'currentIp', from: curIp, to: nextIp }]
+      }));
+      showToast(`投擲【元素碎片】！對單一目標造成 ${dmg} 點【${shardElement}】傷害（消耗 2 IP，剩餘 ${nextIp} IP）`, 'success');
+    } else if (type === 'magicTent') {
+      if (curIp < 4) { showToast('道具點不足 4 點（魔法帳篷需 4 IP）', 'warning'); return; }
+      const nextIp = Math.max(0, curIp - 4);
+      const clearedAff = {};
+      Object.keys(STATUS_AFFLICTIONS).forEach(k => { clearedAff[k] = false; });
+      const base = {
+        ...character,
+        currentIp: nextIp,
+        currentHp: stats.maxHp,
+        currentMp: stats.maxMp,
+        statusAfflictions: clearedAff,
+        updatedAt: new Date().toISOString()
+      };
+      onChange(loggableChange(character, base, {
+        kind: 'ip',
+        title: '使用魔法帳篷（-4 IP，野外休息回滿 HP／MP 並清狀態）',
+        changes: [
+          { field: 'currentIp', from: curIp, to: nextIp },
+          ...(curHp !== stats.maxHp ? [{ field: 'currentHp', from: curHp, to: stats.maxHp }] : []),
+          ...(curMp !== stats.maxMp ? [{ field: 'currentMp', from: curMp, to: stats.maxMp }] : [])
+        ]
+      }));
+      showToast(`搭設【魔法帳篷】完成野外休息！HP／MP 全滿且異常狀態全解（消耗 4 IP，剩餘 ${nextIp} IP）`, 'success');
     }
   };
 
@@ -563,10 +694,59 @@ export default function CharacterPlayHUD({
       title: `升級：${withEn(levelUpSelectedClassName)}【${selectedSkillForLevelUp}】${levelUpSelectedIsNew ? '（新職業）' : ''}`,
       fields: ['level', 'exp']
     }));
+
+    // 檢查升級後是否達成職業精通（Lv 10）或點了帶子項目的技能，給出跳轉編輯器提示橫幅
+    const updatedClassEntry = (updated.classes || []).find(
+      c => normalizeClassName(c.className) === normalizeClassName(levelUpSelectedClassName)
+    );
+    const reachedMastery = (updatedClassEntry?.level || 0) >= CLASS_MAX_LEVEL;
+    const skillDefAfter = (rulesData.classes?.[normalizeClassName(levelUpSelectedClassName)]?.skills || [])
+      .find(s => normalizeSkillName(s.name) === normalizeSkillName(selectedSkillForLevelUp));
+    const hasSuboptions = Boolean(skillDefAfter?.suboptions);
+    if (reachedMastery || hasSuboptions) {
+      setPostLevelUpHint({
+        className: normalizeClassName(levelUpSelectedClassName),
+        skillName: normalizeSkillName(selectedSkillForLevelUp),
+        reachedMastery,
+        hasSuboptions
+      });
+    }
+
     setIsLevelUpModalOpen(false);
     setSelectedClassForLevelUp('');
     setSelectedSkillForLevelUp('');
     showToast(`恭喜！等級提升至 Level ${updated.level}！`);
+  };
+
+  // 開啟編輯既有羈絆彈窗
+  const handleOpenEditBond = (bond) => {
+    setEditingBondId(bond.id);
+    setEditBondTarget(bond.target || '');
+    setEditBondFeelings(Array.isArray(bond.feelings) ? [...bond.feelings] : []);
+  };
+
+  // 儲存編輯後的既有羈絆（Core p.91：休息場景可調整羈絆情感）
+  const handleSaveEditedBond = () => {
+    if (!editingBondId) return;
+    if (!editBondTarget.trim()) {
+      showToast('請輸入羈絆對象名稱');
+      return;
+    }
+    if (editBondFeelings.length === 0) {
+      showToast('請至少保留 1 項情感');
+      return;
+    }
+    const updatedBonds = (character.bonds || []).map(b =>
+      b.id === editingBondId
+        ? { ...b, target: editBondTarget.trim(), feelings: editBondFeelings }
+        : b
+    );
+    updateField('bonds', updatedBonds, {
+      kind: 'bond',
+      title: `調整羈絆：【${editBondTarget.trim()}】`
+    });
+    setEditingBondId(null);
+    showToast(`已更新對【${editBondTarget.trim()}】的情感羈絆！`);
   };
 
   // Equipments resolution
@@ -760,56 +940,88 @@ export default function CharacterPlayHUD({
     return Array.from(set);
   }, []);
 
+  const isInActiveCombat = useMemo(() => {
+    const activeCombat = readJSON(STORAGE_KEYS.activeCombat, null);
+    return Array.isArray(activeCombat?.combatants) && activeCombat.combatants.some(c => c && c.sourceId === character.id);
+  }, [character.id, character.updatedAt]);
+
   return (
     <div className="space-y-4 text-[#3c2415] animate-fade-in">
-      {/* 1. Top Play HUD Dashboard Banner */}
+      {/* 升級後若解鎖職業精通（Lv 10）或子項目技能，給出明確跳轉導引 */}
+      {postLevelUpHint && (
+        <div
+          data-testid="post-levelup-banner"
+          className="p-3.5 rounded bg-[#fffdf9] border-2 border-[#a63d40] flex items-center justify-between gap-3 flex-wrap"
+        >
+          <div className="text-xs text-[#3c2415] space-y-0.5">
+            <div className="font-bold flex items-center gap-1.5 text-[#8c3235]">
+              <GiLaurelCrown className="w-4 h-4 shrink-0" />
+              <span>
+                {postLevelUpHint.reachedMastery
+                  ? `恭喜精通【${postLevelUpHint.className}】（Lv 10）！可獲得 1 個英雄技能名額`
+                  : `【${postLevelUpHint.skillName}】需要挑選對應的子項目或法術`}
+              </span>
+            </div>
+            <p className="text-t12 text-[#6b5a4b]">
+              {postLevelUpHint.reachedMastery && postLevelUpHint.hasSuboptions
+                ? '請前往「構築與成長」挑選此技能的子項目，並於第 5 步領取精通解鎖的英雄技能。'
+                : postLevelUpHint.reachedMastery
+                  ? '請前往「構築與成長」第 5 步挑選新解鎖的英雄技能。'
+                  : '請前往「構築與成長」第 2 步挑選此特技的子項目（如咒語、舞步、曲風、符號等）。'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 ml-auto">
+            {postLevelUpHint.hasSuboptions && onOpenEditor && (
+              <button
+                type="button"
+                onClick={() => { setPostLevelUpHint(null); onOpenEditor(2); }}
+                className="px-3 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#3c2415] font-bold text-xs"
+              >
+                挑選技能子項目 (步驟2)
+              </button>
+            )}
+            {postLevelUpHint.reachedMastery && onOpenEditor && (
+              <button
+                type="button"
+                onClick={() => { setPostLevelUpHint(null); onOpenEditor(5); }}
+                className="px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs"
+              >
+                領取英雄技能 (步驟5)
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setPostLevelUpHint(null)}
+              className="px-2 py-1 text-t11 text-[#7c6a58] hover:text-[#2c221e]"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 1. JRPG 角色狀態與指令中樞（以角色肖像居中，左右環繞核心資源、檢定與戰術分頁按鈕） */}
       <div
+        data-testid="jrpg-character-hub"
         className="rounded p-4 sm:p-5 space-y-4 border-2 transition-colors duration-200"
         style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
       >
-        {/* Header Profile Row */}
-        <div className="flex items-center justify-between flex-wrap gap-3 border-b pb-3" style={{ borderColor: theme.border }}>
-          <div className="flex items-center gap-3">
-            <div
-              onClick={() => onOpenEditor()}
-              className="w-11 h-11 rounded border flex items-center justify-center font-serif text-lg font-bold overflow-hidden shadow-inner shrink-0 bg-white cursor-pointer hover:ring-2 transition-all group relative"
-              style={{ borderColor: theme.border, color: theme.accent }}
-              title="點擊前往「構築與成長」更換或調整頭像"
-            >
-              {character.avatar ? (
-                character.avatar.startsWith('http') || character.avatar.startsWith('data:') ? (
-                  <img src={character.avatar} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <GameIcon name={character.avatar} className="w-7 h-7" style={{ color: theme.accent }} />
-                )
-              ) : (
-                <GameIcon name={character.classes?.[0]?.className || 'GiSparkles'} className="w-7 h-7" style={{ color: theme.accent }} />
-              )}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-t12 font-bold">
-                更換
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-serif font-black text-xl tracking-wide" style={{ color: theme.textDark }}>
-                  {character.name || '冒險者'}
-                </h3>
-                <JRPGBadge variant={theme.badgeVariant} size="sm">
-                  Lv {getCharacterLevel(character)}
-                </JRPGBadge>
-                {isCrisis && (
-                  <JRPGBadge variant="danger" size="xs" className="flex items-center gap-1 font-mono">
-                    <FUIcon name="crisis" className="text-xs leading-none" />
-                    <span>CRISIS 危機</span>
-                  </JRPGBadge>
-                )}
-              </div>
-              <p className="text-xs text-[#6b5a4b] mt-0.5">
-                {character.identity || '未設定身份'} · <strong style={{ color: theme.accent }}>{character.theme || '未設定主題'}</strong>
-                {character.origin && ` · 來自 ${character.origin}`}
-              </p>
-            </div>
+        {/* Top Utility & Sync Bar */}
+        <div className="flex items-center justify-between flex-wrap gap-2 border-b pb-3" style={{ borderColor: theme.border }}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-serif font-black text-sm tracking-wider flex items-center gap-1.5" style={{ color: theme.textDark }}>
+              <GiSparkles className="w-4 h-4" style={{ color: theme.accent }} />
+              <span>JRPG 角色戰術主控台</span>
+            </span>
+            {isInActiveCombat && (
+              <span
+                data-testid="combat-sync-badge"
+                className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] text-t11 font-bold text-[#3c2415]"
+                title="此角色目前在【戰鬥輪次】名單中，HP／MP／IP／FP 與異常狀態已啟用雙向即時同步"
+              >
+                ● 已連動戰鬥輪次
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2 flex-wrap ml-auto">
@@ -825,6 +1037,17 @@ export default function CharacterPlayHUD({
             )}
 
             <button
+              type="button"
+              onClick={handleCampRest}
+              className="px-3 py-1.5 rounded bg-[#fffdf9] hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1.5"
+              style={{ borderColor: theme.border, color: theme.textDark }}
+              title="營地或旅店休息：一鍵回滿 HP 與 MP 並解除所有異常狀態"
+            >
+              <GiCampfire className="w-3.5 h-3.5" style={{ color: theme.accent }} />
+              <span>營地休整</span>
+            </button>
+
+            <button
               onClick={handleSendToCombat}
               className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1.5 transition-colors"
               title="將角色即時狀態同步至戰鬥追蹤器"
@@ -835,7 +1058,7 @@ export default function CharacterPlayHUD({
 
             <button
               onClick={() => setIsPreviewOpen(true)}
- className="px-3 py-1.5 rounded bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
+              className="px-3 py-1.5 rounded bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
               style={{ borderColor: theme.border, color: theme.textDark }}
               title="看整張卡現在長什麼樣，也可以直接匯出 PNG／PDF"
             >
@@ -845,7 +1068,7 @@ export default function CharacterPlayHUD({
 
             <button
               onClick={() => onOpenEditor()}
- className="px-3 py-1.5 rounded bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
+              className="px-3 py-1.5 rounded bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
               style={{ borderColor: theme.border, color: theme.textDark }}
             >
               <span>構築與成長</span>
@@ -854,7 +1077,7 @@ export default function CharacterPlayHUD({
             {onOpenLog && (
               <button
                 onClick={onOpenLog}
- className="px-3 py-1.5 rounded bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
+                className="px-3 py-1.5 rounded bg-white hover:bg-[#f4ebd9] border text-xs font-bold transition-colors flex items-center gap-1"
                 style={{ borderColor: theme.border, color: theme.textDark }}
                 title="成長履歷：HP／MP／EXP／資金／升級／換裝的完整記錄"
               >
@@ -865,280 +1088,652 @@ export default function CharacterPlayHUD({
           </div>
         </div>
 
-        {/* Level Growth, Zenit Wallet, Fabula Points Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* EXP Progress */}
-          <div className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
-                <GiUpgrade className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                經驗升級
-              </span>
-              <span className="font-mono text-xs font-bold text-[#3c2415]">
-                {character.exp || 0} / 10
-              </span>
-            </div>
-            <div className="w-full h-2 rounded-full overflow-hidden mb-2 bg-[#f4ebd9]">
-              <div
-                className="h-full rounded-full transition-all duration-300"
-                style={{
-                  backgroundColor: theme.accent,
-                  width: `${Math.min(100, ((character.exp || 0) / 10) * 100)}%`
-                }}
-              />
-            </div>
-            <div className="flex items-center justify-between gap-1">
-              <NumberStepper
-                value={character.exp || 0}
-                onDelta={adjustExp}
-                ariaLabel="經驗值"
-                width="w-14"
-              />
-              <span className="text-t12 text-[#6b5a4b] font-mono">10 EXP 升 1 級</span>
-            </div>
-          </div>
-
-          {/* Zenit Wallet */}
-          <div className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
-                <GiCoins className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                金幣錢包
-              </span>
-              <span className="font-mono font-black text-sm text-[#3c2415]">
-                {character.zenit || 0} z
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 mt-auto pt-2">
-              <NumberStepper
-                value={character.zenit || 0}
-                onDelta={adjustZenit}
-                ariaLabel="金幣"
-                width="w-20"
-                inputClassName="text-[#6b5a4b]"
-              />
-              <span className="text-t12 text-[#7c6a58] font-mono">z</span>
-            </div>
-          </div>
-
-          {/* Fabula Points */}
-          <div className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
-                <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                物語點
-              </span>
-              <span className="font-mono font-black text-sm text-[#3c2415]">
-                {character.fabulaPoints ?? 3} FP
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 mt-auto pt-2">
-              <NumberStepper
-                value={character.fabulaPoints ?? 3}
-                onDelta={adjustFp}
-                ariaLabel="物語點"
-                width="w-14"
-                inputClassName="text-[#3c2415]"
-              />
-              <span className="text-t12 text-[#7c6a58] font-mono">FP</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Vital Resource Gauges (HP / MP / IP) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* HP Gauge */}
-        <div className={`rounded p-4 border-2 transition-all ${
-          isCrisis
-            ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40]/60'
-            : 'bg-[#fffdf9] border-[#d6c7ab]'
-        }`}>
-          <div className="flex items-center justify-between text-xs mb-1.5">
-            <div className="flex items-center gap-1.5 font-bold text-[#8c3235]">
-              <GiHealthNormal className="w-4 h-4 text-[#8c3235]" />
-              <span>生命值</span>
-              {isCrisis && (
-                <span className="text-t12 text-[#8c3235] font-mono font-black flex items-center gap-0.5">
-                  <FUIcon name="crisis" className="text-xs" />
-                  <span>CRISIS 危機</span>
-                </span>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => toggleFormula('hp')}
-              title="點擊查看公式"
-              className="font-mono font-black text-base text-[#8c3235] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
-            >
-              {statsUnset ? '—' : <>{curHp} <span className="text-xs text-[#7c6a58] font-normal">/ {stats.maxHp}</span></>}
-            </button>
-          </div>
-
-          <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-3">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}`}
-              style={{ width: `${Math.min(100, (curHp / stats.maxHp) * 100)}%` }}
-            />
-          </div>
-
-            <div className="flex items-center justify-between gap-1 mt-auto pt-2">
-              {/* 數值可直接填寫；輸入 +N／-N 以增減計算（見 NumberStepper） */}
-              <NumberStepper
-                value={curHp}
-                onDelta={adjustHp}
-                ariaLabel="生命值"
-                width="w-14"
-                inputClassName="text-[#8c3235]"
-              />
-              <button
-                onClick={() => updateField('currentHp', stats.maxHp)}
-                className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#8c3235] font-bold text-xs"
-              >
-                全滿
-              </button>
-            </div>
-
-          <div className="flex items-center justify-between gap-2 mt-1.5">
-            <button
-              type="button"
-              onClick={() => toggleFormula('crisis')}
-              title="點擊查看公式"
-              className="text-t12 font-mono font-bold text-[#8c3235] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
-            >
-              危機門檻 {statsUnset ? '—' : stats.crisisThreshold}
-            </button>
-          </div>
-
-          <StatFormulaPanel
-            isOpen={openFormula === 'hp'}
-            title="最大生命值"
-            breakdown={breakdown.hp}
-            note={STAT_FORMULA_NOTE}
-            onClose={() => setOpenFormula(null)}
-          />
-
-          <StatFormulaPanel
-            isOpen={openFormula === 'crisis'}
-            title="危機門檻"
-            breakdown={breakdown.crisis}
-            onClose={() => setOpenFormula(null)}
-          />
-        </div>
-
-        {/* MP Gauge */}
-        <div className="rounded p-4 border border-[#d6c7ab] bg-[#fffdf9]">
-          <div className="flex items-center justify-between text-xs mb-1.5">
-            <div className="flex items-center gap-1.5 font-bold text-[#6b5a4b]">
-              <GiLightningTear className="w-4 h-4 text-[#6b5a4b]" />
-              <span>魔力值</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => toggleFormula('mp')}
-              title="點擊查看公式"
-              className="font-mono font-black text-base text-[#3c2415] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
-            >
-              {statsUnset ? '—' : <>{curMp} <span className="text-xs text-[#7c6a58] font-normal">/ {stats.maxMp}</span></>}
-            </button>
-          </div>
-
-          <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-3">
-            <div
-              className="bg-gauge-mp h-full rounded-full transition-all duration-300"
-              style={{ width: `${Math.min(100, (curMp / stats.maxMp) * 100)}%` }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between gap-1">
-            <NumberStepper
-              value={curMp}
-              onDelta={adjustMp}
-              ariaLabel="魔力值"
-              width="w-14"
-              inputClassName="text-[#3c2415]"
-            />
-            <button
-              onClick={() => updateField('currentMp', stats.maxMp)}
-              className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-xs"
-            >
-              全滿
-            </button>
-          </div>
-
-          <StatFormulaPanel
-            isOpen={openFormula === 'mp'}
-            title="最大魔力值"
-            breakdown={breakdown.mp}
-            note={STAT_FORMULA_NOTE}
-            onClose={() => setOpenFormula(null)}
-          />
-        </div>
-
-        {/* IP Gauge & Consumables */}
-        <div className="rounded p-4 border border-[#d6c7ab] bg-[#fffdf9] flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-xs mb-1.5">
-              <div className="flex items-center gap-1.5 font-bold text-[#6b5a4b]">
-                <GiBackpack className="w-4 h-4 text-[#6b5a4b]" />
-                <span>道具點</span>
+        {/* 3-Column JRPG Hub Stage: Left Vitals & IP | Center Portrait & Command Ring | Right Attributes & Resources */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+          {/* LEFT WING (col-span-4): Vital Resource Gauges (HP / MP / IP) & Official 5 Consumables */}
+          <div className="lg:col-span-4 flex flex-col gap-3">
+            {/* HP Gauge */}
+            <div className={`rounded p-3.5 border-2 transition-all ${
+              isCrisis
+                ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40]/60'
+                : 'bg-[#fffdf9] border-[#d6c7ab]'
+            }`}>
+              <div className="flex items-center justify-between text-xs mb-1">
+                <div className="flex items-center gap-1.5 font-bold text-[#8c3235]">
+                  <GiHealthNormal className="w-4 h-4 text-[#8c3235]" />
+                  <span>生命值</span>
+                  {isCrisis && (
+                    <span className="text-t12 text-[#8c3235] font-mono font-black flex items-center gap-0.5">
+                      <FUIcon name="crisis" className="text-xs" />
+                      <span>CRISIS 危機</span>
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => toggleFormula('hp')}
+                  title="點擊查看公式"
+                  className="font-mono font-black text-base text-[#8c3235] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
+                >
+                  {statsUnset ? '—' : <>{curHp} <span className="text-xs text-[#7c6a58] font-normal">/ {stats.maxHp}</span></>}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => toggleFormula('ip')}
-                title="點擊查看公式"
-                className="font-mono font-black text-base text-[#3c2415] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
-              >
-                {curIp} <span className="text-xs text-[#7c6a58] font-normal">/ {stats.maxIp}</span>
-              </button>
+
+              <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-2.5">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}`}
+                  style={{ width: `${Math.min(100, (curHp / stats.maxHp) * 100)}%` }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-1">
+                <NumberStepper
+                  value={curHp}
+                  onDelta={adjustHp}
+                  ariaLabel="生命值"
+                  width="w-14"
+                  inputClassName="text-[#8c3235]"
+                />
+                <button
+                  type="button"
+                  onClick={() => toggleFormula('crisis')}
+                  title="點擊查看公式"
+                  className="text-t11 font-mono font-bold text-[#8c3235] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
+                >
+                  危機門檻 {statsUnset ? '—' : stats.crisisThreshold}
+                </button>
+                <button
+                  onClick={() => updateField('currentHp', stats.maxHp)}
+                  className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#8c3235] font-bold text-xs"
+                >
+                  全滿
+                </button>
+              </div>
+
+              <StatFormulaPanel
+                isOpen={openFormula === 'hp'}
+                title="最大生命值"
+                breakdown={breakdown.hp}
+                note={STAT_FORMULA_NOTE}
+                onClose={() => setOpenFormula(null)}
+              />
+
+              <StatFormulaPanel
+                isOpen={openFormula === 'crisis'}
+                title="危機門檻"
+                breakdown={breakdown.crisis}
+                onClose={() => setOpenFormula(null)}
+              />
             </div>
 
-            <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-3">
-              <div
-                className="bg-gauge-ip h-full rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(100, (curIp / stats.maxIp) * 100)}%` }}
+            {/* MP Gauge */}
+            <div className="rounded p-3.5 border border-[#d6c7ab] bg-[#fffdf9]">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <div className="flex items-center gap-1.5 font-bold text-[#6b5a4b]">
+                  <GiLightningTear className="w-4 h-4 text-[#6b5a4b]" />
+                  <span>魔力值</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => toggleFormula('mp')}
+                  title="點擊查看公式"
+                  className="font-mono font-black text-base text-[#3c2415] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
+                >
+                  {statsUnset ? '—' : <>{curMp} <span className="text-xs text-[#7c6a58] font-normal">/ {stats.maxMp}</span></>}
+                </button>
+              </div>
+
+              <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-2.5">
+                <div
+                  className="bg-gauge-mp h-full rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, (curMp / stats.maxMp) * 100)}%` }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-1">
+                <NumberStepper
+                  value={curMp}
+                  onDelta={adjustMp}
+                  ariaLabel="魔力值"
+                  width="w-14"
+                  inputClassName="text-[#3c2415]"
+                />
+                <button
+                  onClick={() => updateField('currentMp', stats.maxMp)}
+                  className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-xs"
+                >
+                  全滿
+                </button>
+              </div>
+
+              <StatFormulaPanel
+                isOpen={openFormula === 'mp'}
+                title="最大魔力值"
+                breakdown={breakdown.mp}
+                note={STAT_FORMULA_NOTE}
+                onClose={() => setOpenFormula(null)}
+              />
+            </div>
+
+            {/* IP Gauge & Official 5 Consumables (Core p.104) */}
+            <div className="rounded p-3.5 border border-[#d6c7ab] bg-[#fffdf9] space-y-2.5 flex-1 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <div className="flex items-center gap-1.5 font-bold text-[#6b5a4b]">
+                    <GiBackpack className="w-4 h-4 text-[#6b5a4b]" />
+                    <span>道具點</span>
+                    {secretFormulaSL > 0 && (
+                      <span className="text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
+                        秘密配方 SL{secretFormulaSL}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleFormula('ip')}
+                    title="點擊查看公式"
+                    className="font-mono font-black text-base text-[#3c2415] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
+                  >
+                    {curIp} <span className="text-xs text-[#7c6a58] font-normal">/ {stats.maxIp}</span>
+                  </button>
+                </div>
+
+                <div className="w-full bg-[#f4ebd9] h-2.5 rounded-full overflow-hidden mb-2.5">
+                  <div
+                    className="bg-gauge-ip h-full rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min(100, (curIp / stats.maxIp) * 100)}%` }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between gap-1">
+                  <NumberStepper
+                    value={curIp}
+                    onDelta={adjustIp}
+                    ariaLabel="物品點"
+                    width="w-14"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => updateField('currentIp', stats.maxIp)}
+                    className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-xs"
+                  >
+                    全滿
+                  </button>
+                </div>
+              </div>
+
+              {/* 官方五種基本 IP 消耗品（Core p.104） */}
+              <div data-testid="hud-ip-consumables" className="pt-2 border-t border-[#e8dcc4] space-y-1.5">
+                <div className="flex items-center justify-between text-t11 text-[#6b5a4b]">
+                  <span className="font-bold">官方消耗品捷徑 (點擊扣 IP 結算)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleUseConsumable('remedy')}
+                    className="px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between"
+                    title={`大補藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 HP`}
+                  >
+                    <span>大補藥 (+{50 + secretFormulaSL * 5}HP)</span>
+                    <span className="text-t10">3IP</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUseConsumable('elixir')}
+                    className="px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between"
+                    title={`萬靈藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 MP`}
+                  >
+                    <span>萬靈藥 (+{50 + secretFormulaSL * 5}MP)</span>
+                    <span className="text-t10">3IP</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUseConsumable('tonic')}
+                    className="px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between"
+                    title="滋補藥（消耗 2 IP）：解除所有異常狀態"
+                  >
+                    <span>滋補藥 (解全狀態)</span>
+                    <span className="text-t10">2IP</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUseConsumable('magicTent')}
+                    className="px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between"
+                    title="魔法帳篷（消耗 4 IP）：野外休息回滿 HP／MP 並解除全部狀態"
+                  >
+                    <span>魔法帳篷 (全滿)</span>
+                    <span className="text-t10">4IP</span>
+                  </button>
+                </div>
+
+                {/* 元素碎片（2 IP，選風／電／土／火／冰，10+秘密配方SL 點傷害） */}
+                <div className="flex items-center gap-1 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => handleUseConsumable('elementalShard')}
+                    className="flex-1 px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold flex items-center justify-between"
+                    title={`元素碎片（消耗 2 IP）：對單一目標造成 ${10 + secretFormulaSL} 點【${shardElement}】傷害`}
+                  >
+                    <span>元素碎片 ({10 + secretFormulaSL}點{shardElement}傷)</span>
+                    <span className="text-t10">2IP</span>
+                  </button>
+                  <div className="flex items-center gap-0.5 bg-[#fbf7ee] p-0.5 rounded border border-[#d6c7ab]">
+                    {['風', '電', '土', '火', '冰'].map(el => (
+                      <button
+                        key={el}
+                        type="button"
+                        onClick={() => setShardElement(el)}
+                        className={`px-1.5 py-0.5 rounded text-t10 font-bold transition-colors ${
+                          shardElement === el
+                            ? 'bg-[#a63d40] text-[#fffdf9]'
+                            : 'text-[#6b5a4b] hover:text-[#2c221e]'
+                        }`}
+                        title={`切換元素碎片屬性：${el}`}
+                      >
+                        {el}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <StatFormulaPanel
+                isOpen={openFormula === 'ip'}
+                title="最大道具點"
+                breakdown={breakdown.ip}
+                onClose={() => setOpenFormula(null)}
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-1 flex-wrap">
-            <NumberStepper
-              value={curIp}
-              onDelta={adjustIp}
-              ariaLabel="物品點"
-              width="w-14"
-            />
-            <div className="flex items-center gap-1 ml-auto">
-              <button
-                onClick={() => handleUseConsumable('potion')}
-                className="px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#e8dcc4] text-t12 font-bold"
-                title="治療藥水: 回復 40 HP (消耗 2 IP)"
-              >
-                藥水(2)
-              </button>
-              <button
-                onClick={() => handleUseConsumable('elixir')}
-                className="px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] border border-[#e8dcc4] text-t12 font-bold"
-                title="魔力萬能藥: 回復 40 MP (消耗 2 IP)"
-              >
-                魔藥(2)
-              </button>
-              <button
-                onClick={() => handleUseConsumable('antidote')}
-                className="px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] border border-[#e8dcc4] text-t12 font-bold"
-                title="解毒劑: 解除中毒 (消耗 1 IP)"
-              >
-                解毒(1)
-              </button>
+          {/* CENTERPIECE (col-span-4): JRPG Character Portrait Standee & Surrounding Command Buttons */}
+          <div
+            className="lg:col-span-4 rounded p-4 border-2 bg-[#fffdf9] flex flex-col items-center justify-between text-center gap-3"
+            style={{ borderColor: theme.border }}
+          >
+            {/* Portrait Frame & Identity */}
+            <div className="flex flex-col items-center w-full space-y-2">
+              <div className="relative">
+                <div
+                  onClick={() => onOpenEditor()}
+                  className="w-24 h-24 sm:w-28 sm:h-28 rounded border-2 flex items-center justify-center font-serif text-2xl font-bold overflow-hidden shadow-inner bg-[#fbf7ee] cursor-pointer hover:ring-2 transition-all group relative"
+                  style={{ borderColor: theme.accent, color: theme.accent }}
+                  title="點擊前往「構築與成長」更換或調整角色立繪／頭像"
+                >
+                  {character.avatar ? (
+                    character.avatar.startsWith('http') || character.avatar.startsWith('data:') ? (
+                      <img src={character.avatar} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <GameIcon name={character.avatar} className="w-14 h-14" style={{ color: theme.accent }} />
+                    )
+                  ) : (
+                    <GameIcon name={character.classes?.[0]?.className || 'GiSparkles'} className="w-14 h-14" style={{ color: theme.accent }} />
+                  )}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-t12 font-bold">
+                    更換肖像
+                  </div>
+                </div>
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                  <JRPGBadge variant={theme.badgeVariant} size="sm">
+                    Lv {getCharacterLevel(character)}
+                  </JRPGBadge>
+                </div>
+              </div>
+
+              <div className="pt-1.5 space-y-1 w-full">
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  <h3 className="font-serif font-black text-xl tracking-wide" style={{ color: theme.textDark }}>
+                    {character.name || '冒險者'}
+                  </h3>
+                  {isCrisis && (
+                    <JRPGBadge variant="danger" size="xs" className="flex items-center gap-1">
+                      <FUIcon name="crisis" className="text-xs leading-none" />
+                      <span>CRISIS 危機</span>
+                    </JRPGBadge>
+                  )}
+                </div>
+
+                <p className="text-xs text-[#6b5a4b] leading-relaxed">
+                  {character.identity || '未設定身份'} · <strong style={{ color: theme.accent }}>{character.theme || '未設定主題'}</strong>
+                  {character.origin && ` · 來自 ${character.origin}`}
+                </p>
+
+                {/* Classes Pills */}
+                {(character.classes || []).length > 0 && (
+                  <div className="flex items-center justify-center gap-1.5 flex-wrap pt-1">
+                    {(character.classes || []).map((cl, idx) => {
+                      const cName = normalizeClassName(cl.className);
+                      return (
+                        <span
+                          key={idx}
+                          className="text-t11 px-2 py-0.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] font-bold text-[#3c2415] flex items-center gap-1"
+                        >
+                          <GameIcon name={cName} size={12} style={{ color: theme.accent }} />
+                          <span>{cName} Lv{cl.level}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* JRPG Command Ring: 6 Tactical Panel Buttons around the Character */}
+            <div className="w-full pt-2 border-t border-[#e8dcc4] space-y-1.5">
+              <span className="text-t11 font-bold text-[#7c6a58] block">
+                ✦ 點擊指令切換下方戰術分頁 ✦
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'attacks', label: '武器與戰鬥', sub: '命中 · 防禦 · 變形', icon: GiCrossedSwords },
+                  { id: 'spells', label: `咒語與魔法 (${resolveCharacterSpells(character).length})`, sub: '施法 · 儀式計算', icon: GiSpellBook },
+                  { id: 'skills', label: '職業特技', sub: '特技 · 英雄 · 金手指', icon: GiBroadsword },
+                  { id: 'bonds', label: `情感羈絆 (${(character.bonds || []).length})`, sub: '激勵 · 編輯 · 營地', icon: GiHeartShield },
+                  { id: 'clocks', label: `個人命刻 (${(character.clocks || []).length})`, sub: '進度鐘 · 底力技', icon: GiPocketWatch },
+                  { id: 'notes', label: '行囊日誌', sub: '裝備總覽 · 筆記', icon: GiBackpack }
+                ].map(tab => {
+                  const IconComp = tab.icon;
+                  const isTabActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`p-2 rounded border text-left transition-all flex items-center gap-2 cursor-pointer ${
+                        isTabActive
+                          ? 'text-white'
+                          : 'bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]'
+                      }`}
+                      style={isTabActive ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' } : {}}
+                    >
+                      <IconComp className="w-4 h-4 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold truncate">{tab.label}</div>
+                        <div className={`text-t10 truncate ${isTabActive ? 'text-[#fffdf9]/90' : 'text-[#7c6a58]'}`}>
+                          {tab.sub}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          <StatFormulaPanel
-            isOpen={openFormula === 'ip'}
-            title="最大道具點"
-            breakdown={breakdown.ip}
-            onClose={() => setOpenFormula(null)}
-          />
+          {/* RIGHT WING (col-span-4): Four Attributes + Quick Dual-Attribute Combo, Defenses, EXP / Zenit / FP */}
+          <div className="lg:col-span-4 flex flex-col justify-between gap-3">
+            {/* Four Attributes & Dual-Attribute Quick Check */}
+            <div className="rounded p-3.5 border border-[#d6c7ab] bg-[#fffdf9] space-y-2.5">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-xs font-bold text-[#3c2415] flex items-center gap-1">
+                  <GiRollingDices className="w-4 h-4 text-[#6b5a4b]" />
+                  <span>四維屬性與雙屬性檢定</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsFreeRollModalOpen(true)}
+                  className="text-t11 font-bold text-[#6b5a4b] hover:text-[#2c221e] underline"
+                >
+                  進階修正檢定
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { key: 'dex', enName: 'DEX', zhName: ATTRIBUTE_NAMES.dex, cur: stats.currentDex, base: stats.baseDex },
+                  { key: 'ins', enName: 'INS', zhName: ATTRIBUTE_NAMES.ins, cur: stats.currentIns, base: stats.baseIns },
+                  { key: 'mig', enName: 'MIG', zhName: ATTRIBUTE_NAMES.mig, cur: stats.currentMig, base: stats.baseMig },
+                  { key: 'wlp', enName: 'WLP', zhName: ATTRIBUTE_NAMES.wlp, cur: stats.currentWlp, base: stats.baseWlp }
+                ].map(attr => {
+                  const isFirstSelected = comboFirstAttr === attr.key;
+                  return (
+                    <div key={attr.key} className="space-y-1">
+                      <div className="flex items-stretch gap-1">
+                        <button
+                          type="button"
+                          onClick={() => openCharacterDice({
+                            die1: attr.cur,
+                            die2: attr.cur,
+                            modifier: 0,
+                            label: `${attr.enName} (${attr.zhName}) 單項檢定`
+                          })}
+                          className="flex-1 rounded p-2 border flex flex-col items-center justify-center transition-all text-center group bg-[#fbf7ee] hover:bg-[#f4ebd9]"
+                          style={{ borderColor: theme.border }}
+                          title={`點擊進行【${attr.enName} + ${attr.enName}】純屬性檢定`}
+                        >
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-xs font-black tracking-wider text-[#2c221e] font-mono">
+                              {attr.enName}
+                            </span>
+                            <span className="text-t11 text-[#7c6a58] font-sans">
+                              {attr.zhName}
+                            </span>
+                          </div>
+                          <div className="text-lg font-serif font-black flex items-baseline gap-1" style={{ color: theme.textDark }}>
+                            <span>d{attr.cur}</span>
+                            {attr.cur < attr.base && (
+                              <span className="text-t11 text-[#8c3235] line-through font-mono">d{attr.base}</span>
+                            )}
+                          </div>
+                        </button>
+
+                        {/* 雙屬性配對鈕：點第 1 顆選首屬性，點第 2 顆直接組合擲骰 */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!comboFirstAttr) {
+                              setComboFirstAttr(attr.key);
+                            } else {
+                              const getDie = (k) => {
+                                if (k === 'dex') return stats.currentDex;
+                                if (k === 'ins') return stats.currentIns;
+                                if (k === 'mig') return stats.currentMig;
+                                if (k === 'wlp') return stats.currentWlp;
+                                return 8;
+                              };
+                              const firstKey = comboFirstAttr;
+                              setComboFirstAttr(null);
+                              openCharacterDice({
+                                die1: getDie(firstKey),
+                                die2: getDie(attr.key),
+                                modifier: 0,
+                                label: `組合檢定 [${firstKey.toUpperCase()} + ${attr.enName}]`
+                              });
+                            }
+                          }}
+                          className={`px-1.5 rounded border text-t10 font-bold transition-colors flex flex-col items-center justify-center ${
+                            isFirstSelected
+                              ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
+                              : comboFirstAttr
+                                ? 'bg-[#f4ebd9] border-[#a63d40] text-[#8c3235] hover:bg-[#e8dcc4]'
+                                : 'bg-[#fffdf9] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9]'
+                          }`}
+                          title={
+                            isFirstSelected
+                              ? `已選 ${attr.enName} 為第一屬性，再點一次即可擲雙 ${attr.enName}`
+                              : comboFirstAttr
+                                ? `點擊立即擲骰 [${comboFirstAttr.toUpperCase()} + ${attr.enName}]`
+                                : `選取 ${attr.enName} 作為雙屬性檢定的第一顆骰`
+                          }
+                        >
+                          <span>{isFirstSelected ? '首骰' : comboFirstAttr ? '+配對' : '配對'}</span>
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleFormula(`attr:${attr.key}`)}
+                        title="點擊查看公式"
+                        className="w-full text-t10 font-bold text-[#7c6a58] hover:text-[#3c2415] py-0.5 rounded border border-dashed border-[#d6c7ab] transition-colors cursor-pointer"
+                      >
+                        ✦ 公式
+                      </button>
+
+                      <StatFormulaPanel
+                        isOpen={openFormula === `attr:${attr.key}`}
+                        title={`${attr.enName} 當前骰`}
+                        breakdown={breakdown.attributes?.[attr.key]}
+                        onClose={() => setOpenFormula(null)}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 常用雙屬性一鍵檢定列 */}
+              <div className="flex items-center gap-1 flex-wrap pt-1 border-t border-[#e8dcc4]">
+                <span className="text-t10 text-[#7c6a58] font-bold">常用檢定:</span>
+                {[
+                  { a1: 'dex', a2: 'ins', label: 'DEX+INS' },
+                  { a1: 'ins', a2: 'wlp', label: 'INS+WLP' },
+                  { a1: 'dex', a2: 'mig', label: 'DEX+MIG' },
+                  { a1: 'mig', a2: 'wlp', label: 'MIG+WLP' }
+                ].map(pair => {
+                  const getDie = (k) => (k === 'dex' ? stats.currentDex : k === 'ins' ? stats.currentIns : k === 'mig' ? stats.currentMig : stats.currentWlp);
+                  return (
+                    <button
+                      key={pair.label}
+                      type="button"
+                      onClick={() => openCharacterDice({
+                        die1: getDie(pair.a1),
+                        die2: getDie(pair.a2),
+                        modifier: 0,
+                        label: `常用檢定 [${pair.label}]`
+                      })}
+                      className="px-1.5 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#3c2415] font-bold text-t10 transition-colors"
+                    >
+                      {pair.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* EXP / Zenit / Fabula Points Compact Cards */}
+            <div className="grid grid-cols-1 gap-2">
+              {/* EXP Progress & Session EXP Settlement */}
+              <div className="bg-[#fffdf9] rounded p-3 border space-y-1.5" style={{ borderColor: theme.border }}>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
+                    <GiUpgrade className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                    經驗升級 ({character.exp || 0} / 10)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsExpSettlementOpen(prev => !prev)}
+                    className="text-t11 font-bold text-[#8c3235] hover:underline"
+                  >
+                    {isExpSettlementOpen ? '收合結算' : '✦ 聚會結算'}
+                  </button>
+                </div>
+                <div className="w-full h-1.5 rounded-full overflow-hidden bg-[#f4ebd9]">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      backgroundColor: theme.accent,
+                      width: `${Math.min(100, ((character.exp || 0) / 10) * 100)}%`
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <NumberStepper
+                    value={character.exp || 0}
+                    onDelta={adjustExp}
+                    ariaLabel="經驗值"
+                    width="w-14"
+                  />
+                  <span className="text-t11 text-[#6b5a4b] font-mono">10 EXP 升 1 級</span>
+                </div>
+
+                {/* 聚會結束 EXP 結算器（Core p.227：5 基礎 ＋ FP 獎勵 ＋ 終結點） */}
+                {isExpSettlementOpen && (
+                  <div
+                    data-testid="exp-settlement-panel"
+                    className="mt-2 pt-2 border-t border-[#e8dcc4] space-y-2 text-t11 bg-[#fbf7ee] p-2.5 rounded"
+                  >
+                    <div className="font-bold text-[#3c2415]">聚會結束 EXP 結算（核心 p.227）</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-[#6b5a4b] block">物語點分配獎勵:</span>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <button type="button" onClick={() => setSessionFpGain(v => Math.max(0, v - 1))} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">-</button>
+                          <span className="font-bold w-6 text-center">{sessionFpGain}</span>
+                          <button type="button" onClick={() => setSessionFpGain(v => v + 1)} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">+</button>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-[#6b5a4b] block">反派花費終結點:</span>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <button type="button" onClick={() => setSessionUltimaSpent(v => Math.max(0, v - 1))} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">-</button>
+                          <span className="font-bold w-6 text-center">{sessionUltimaSpent}</span>
+                          <button type="button" onClick={() => setSessionUltimaSpent(v => v + 1)} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">+</button>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const gain = 5 + sessionFpGain + sessionUltimaSpent;
+                        adjustExp(gain);
+                        setIsExpSettlementOpen(false);
+                        setSessionFpGain(0);
+                        setSessionUltimaSpent(0);
+                        showToast(`聚會結算完成！獲得 ${gain} 點 EXP（基礎 5 + 物語點 ${sessionFpGain} + 終結點 ${sessionUltimaSpent}）`);
+                      }}
+                      className="w-full py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs"
+                    >
+                      入帳 +{5 + sessionFpGain + sessionUltimaSpent} EXP（基礎 5 + {sessionFpGain} + {sessionUltimaSpent}）
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Zenit & Fabula Points Side by Side */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
+                      <GiCoins className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                      金幣錢包
+                    </span>
+                    <span className="font-mono font-black text-xs text-[#3c2415]">
+                      {character.zenit || 0} z
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <NumberStepper
+                      value={character.zenit || 0}
+                      onDelta={adjustZenit}
+                      ariaLabel="金幣"
+                      width="w-16"
+                      inputClassName="text-[#6b5a4b]"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
+                      <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                      物語點
+                    </span>
+                    <span className="font-mono font-black text-xs text-[#3c2415]">
+                      {character.fabulaPoints ?? 3} FP
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <NumberStepper
+                      value={character.fabulaPoints ?? 3}
+                      onDelta={adjustFp}
+                      ariaLabel="物語點"
+                      width="w-12"
+                      inputClassName="text-[#3c2415]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1184,11 +1779,7 @@ export default function CharacterPlayHUD({
         </div>
       </div>
 
-      {/* 4b. 金手指相性（F-023，2026-10-26 P11）。
-          免疫／抗性／易傷／吸收只存在於 stats.quirkEffects 裡，以前只有編輯器
-          第 4 裝備配置頁畫得出來——打團時看不到，等於「書上寫了、App 算對了、
-          畫面沒說」。放這裡是因為它跟上面那排狀態一樣，都是「被打到的時候會用到」。
-          沒有任何相性時整塊不渲染（大多數金手指是純敘事）。 */}
+      {/* 4b. 金手指相性（F-023，2026-10-26 P11） */}
       {(() => {
         const fx = stats.quirkEffects || {};
         const rows = [
@@ -1197,9 +1788,6 @@ export default function CharacterPlayHUD({
           { label: '易傷', values: fx.vulnerabilities, tone: '#8c2d36' },
           { label: '吸收', values: fx.absorption, tone: '#2c221e' },
           { label: '狀態免疫', values: fx.immuneStatuses, tone: '#2c221e' },
-          // 徒手傷害加成（F-024，2026-10-27）。這一行是 P11 當時**刻意拿掉**的：
-          // 那時攻擊公式還沒接上，放進來會讓玩家看到「+6」和「[HR + 0]」並排，
-          // 比只顯示一個更難懂。現在公式已經吃了這個數字，兩邊一致，才放回來。
           { label: '徒手傷害', values: fx.unarmedDamageBonus ? [`+${fx.unarmedDamageBonus}`] : [], tone: '#2c221e' }
         ].filter((row) => Array.isArray(row.values) && row.values.length > 0);
         if (rows.length === 0) return null;
@@ -1229,68 +1817,6 @@ export default function CharacterPlayHUD({
         );
       })()}
 
-      {/* 5. Four Attributes Block (DEX / INS / MIG / WLP - Click-to-Roll) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { key: 'dex', enName: 'DEX', zhName: ATTRIBUTE_NAMES.dex, cur: stats.currentDex, base: stats.baseDex },
-          { key: 'ins', enName: 'INS', zhName: ATTRIBUTE_NAMES.ins, cur: stats.currentIns, base: stats.baseIns },
-          { key: 'mig', enName: 'MIG', zhName: ATTRIBUTE_NAMES.mig, cur: stats.currentMig, base: stats.baseMig },
-          { key: 'wlp', enName: 'WLP', zhName: ATTRIBUTE_NAMES.wlp, cur: stats.currentWlp, base: stats.baseWlp }
-        ].map(attr => (
-          <div key={attr.key} className="space-y-1.5">
-            <button
-              type="button"
-              onClick={() => onOpenDice && onOpenDice({
-                die1: attr.cur,
-                die2: attr.cur,
-                modifier: 0,
-                label: `${attr.enName} (${attr.zhName}) 單項檢定`
-              })}
- className="w-full rounded p-3.5 border flex flex-col items-center gap-1 transition-all text-center group bg-[#fffdf9] hover:"
-              style={{ borderColor: theme.border }}
-              title={`點擊使用 ${attr.enName} 擲骰`}
-            >
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-base font-black tracking-wider text-[#2c221e] font-mono">
-                  {attr.enName}
-                </span>
-                <span className="text-xs text-[#7c6a58] font-sans">
-                  {attr.zhName}
-                </span>
-              </div>
-
-              <div className="text-2xl font-serif font-black flex items-baseline gap-1 mt-0.5" style={{ color: theme.textDark }}>
-                <span>d{attr.cur}</span>
-                {attr.cur < attr.base && (
-                  <span className="text-xs text-[#8c3235] line-through font-mono">d{attr.base}</span>
-                )}
-              </div>
-
-              <span className="text-t12 text-[#7c6a58] font-sans group-hover:text-[#3c2415] flex items-center gap-1 transition-colors">
-                <GiRollingDices className="w-3 h-3" />
-                <span>點擊檢定</span>
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => toggleFormula(`attr:${attr.key}`)}
-              title="點擊查看公式"
-              className="w-full text-t12 font-bold text-[#7c6a58] hover:text-[#3c2415] py-0.5 rounded border border-dashed border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
-            >
-              ✦ 公式
-            </button>
-
-            <StatFormulaPanel
-              isOpen={openFormula === `attr:${attr.key}`}
-              title={`${attr.enName} 當前骰`}
-              breakdown={breakdown.attributes?.[attr.key]}
-              onClose={() => setOpenFormula(null)}
-            />
-          </div>
-        ))}
-      </div>
-
       {/* 6. Sub-Tabs: 武器與戰鬥 | 咒語與魔法 | 職業特技 | 情感羈絆 | 個人命刻 | 行囊日誌 */}
       <div className="bg-[#fffdf9] rounded border-2 overflow-hidden" style={{ borderColor: theme.border }}>
         <div
@@ -1299,7 +1825,7 @@ export default function CharacterPlayHUD({
         >
           {[
             { id: 'attacks', label: '武器與戰鬥', icon: GiCrossedSwords },
-            { id: 'spells', label: `咒語與魔法 (${(character.spells || []).length})`, icon: GiSpellBook },
+            { id: 'spells', label: `咒語與魔法 (${resolveCharacterSpells(character).length})`, icon: GiSpellBook },
             { id: 'skills', label: '職業特技', icon: GiBroadsword },
             { id: 'bonds', label: `情感羈絆 (${(character.bonds || []).length})`, icon: GiHeartShield },
             { id: 'clocks', label: `個人命刻 (${(character.clocks || []).length})`, icon: GiPocketWatch },
@@ -1453,14 +1979,16 @@ export default function CharacterPlayHUD({
                     {/* Check Formula Pill */}
                     <button
                       type="button"
-                      onClick={() => onOpenDice && onOpenDice({
+                      onClick={() => openCharacterDice({
                         die1: mainCheck.die1,
                         die2: mainCheck.die2,
                         modifier: mainCheck.mod,
+                        damageBonus: mainDamage.hrBonus,
+                        damageType: mainDamage.damageType,
                         label: `${mainWeapon.name} 命中判定 [${mainCheck.attr1} + ${mainCheck.attr2}]`
                       })}
                       className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all"
-                      title="點擊直接擲骰命中檢定"
+                      title="點擊直接擲骰命中檢定（自動附帶 HR 傷害計算）"
                     >
                       <GiRollingDices className="w-3.5 h-3.5 text-[#6b5a4b]" />
                       <span>[{mainCheck.attr1} + {mainCheck.attr2}]{mainCheck.mod !== 0 ? ` + ${mainCheck.mod}` : ''}</span>
@@ -1477,26 +2005,33 @@ export default function CharacterPlayHUD({
                     </span>
                   </div>
 
-                  {/* 定制武器的效果：物防提升＝視為裝備盾牌、迅捷＝打兩次、可變形＝切換型態。
-                      這些是**數字看不出來的規則**，跑團當下就要查得到，所以跟著主手卡片一起顯示。
-                      只印效果、不印規格摘要——命中與傷害上面已經有藥丸了。 */}
-                  {mainWeapon.isCustomWeapon && mainWeapon.effectText && (
+                  {/* 定制武器或制式武器的特殊規則描述 */}
+                  {mainWeapon.isCustomWeapon && mainWeapon.effectText ? (
                     <p
                       className="text-t12 mt-2 leading-relaxed"
                       style={{ color: theme.textMuted }}
                     >
                       {renderTextWithAffinities(mainWeapon.effectText)}
                     </p>
-                  )}
+                  ) : (mainWeapon.desc && mainWeapon.desc !== '無特殊效果' && (
+                    <p
+                      className="text-t12 mt-2 leading-relaxed"
+                      style={{ color: theme.textMuted }}
+                    >
+                      {renderTextWithAffinities(mainWeapon.desc)}
+                    </p>
+                  ))}
                 </div>
 
                 <div className="flex items-center gap-1.5 self-end sm:self-center">
                   <button
                     type="button"
-                    onClick={() => onOpenDice && onOpenDice({
+                    onClick={() => openCharacterDice({
                       die1: mainCheck.die1,
                       die2: mainCheck.die2,
                       modifier: mainCheck.mod,
+                      damageBonus: mainDamage.hrBonus,
+                      damageType: mainDamage.damageType,
                       label: `${mainWeapon.name} 命中檢定`
                     })}
                     className="px-3 py-1.5 rounded text-white font-bold text-xs flex items-center gap-1.5 shrink-0"
@@ -1511,7 +2046,7 @@ export default function CharacterPlayHUD({
               {/* Off Hand Weapon or Shield Pill Card */}
               {offWeapon && (
                 <div
- className="p-3.5 rounded border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdf9]"
+                  className="p-3.5 rounded border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdf9]"
                   style={{ borderColor: theme.border }}
                 >
                   <div>
@@ -1526,14 +2061,16 @@ export default function CharacterPlayHUD({
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                       <button
                         type="button"
-                        onClick={() => onOpenDice && onOpenDice({
+                        onClick={() => openCharacterDice({
                           die1: offCheck.die1,
                           die2: offCheck.die2,
                           modifier: offCheck.mod,
+                          damageBonus: offDamage.hrBonus,
+                          damageType: offDamage.damageType,
                           label: `${offWeapon.name} 命中判定 [${offCheck.attr1} + ${offCheck.attr2}]`
                         })}
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all"
-                        title="點擊直接擲骰命中檢定"
+                        title="點擊直接擲骰命中檢定（自動附帶 HR 傷害計算）"
                       >
                         <GiRollingDices className="w-3.5 h-3.5 text-[#6b5a4b]" />
                         <span>[{offCheck.attr1} + {offCheck.attr2}]{offCheck.mod !== 0 ? ` + ${offCheck.mod}` : ''}</span>
@@ -1548,15 +2085,26 @@ export default function CharacterPlayHUD({
                         <span className="text-t12 font-sans text-[#6b5a4b]">{offDamage.damageType}</span>
                       </span>
                     </div>
+
+                    {offWeapon.desc && offWeapon.desc !== '無特殊效果' && (
+                      <p
+                        className="text-t12 mt-2 leading-relaxed"
+                        style={{ color: theme.textMuted }}
+                      >
+                        {renderTextWithAffinities(offWeapon.desc)}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-1.5 self-end sm:self-center">
                     <button
                       type="button"
-                      onClick={() => onOpenDice && onOpenDice({
+                      onClick={() => openCharacterDice({
                         die1: offCheck.die1,
                         die2: offCheck.die2,
                         modifier: offCheck.mod,
+                        damageBonus: offDamage.hrBonus,
+                        damageType: offDamage.damageType,
                         label: `${offWeapon.name} 命中檢定`
                       })}
                       className="px-3 py-1.5 rounded text-white font-bold text-xs flex items-center gap-1.5 shrink-0"
@@ -1575,10 +2123,12 @@ export default function CharacterPlayHUD({
                   <span className="font-bold text-[#3c2415] font-sans">徒手/自由打擊:</span>
                   <button
                     type="button"
-                    onClick={() => onOpenDice && onOpenDice({
+                    onClick={() => openCharacterDice({
                       die1: unarmedCheck.die1,
                       die2: unarmedCheck.die2,
                       modifier: 0,
+                      damageBonus: unarmedBonus,
+                      damageType: '物理',
                       label: '徒手打擊 命中判定 [DEX + MIG]'
                     })}
                     className="px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#e8dcc4] font-bold"
@@ -1589,21 +2139,58 @@ export default function CharacterPlayHUD({
                 </div>
               </div>
 
-              {/* Equipment Breakdown */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-t12 pt-2 border-t">
-                <div className="p-2 rounded bg-[#fbf7ee] border border-[#e8dcc4]">
-                  <span className="text-[#6b5a4b] block font-sans">副手/盾牌:</span>
-                  <strong className="text-[#3c2415]">{character.equipment?.offHand || '無'}</strong>
-                </div>
-                <div className="p-2 rounded bg-[#fbf7ee] border border-[#e8dcc4]">
-                  <span className="text-[#6b5a4b] block font-sans">防具裝甲:</span>
-                  <strong className="text-[#3c2415]">{character.equipment?.armor || '無'}</strong>
-                </div>
-                <div className="p-2 rounded bg-[#fbf7ee] border border-[#e8dcc4]">
-                  <span className="text-[#6b5a4b] block font-sans">佩戴飾品:</span>
-                  <strong className="text-[#3c2415]">{character.equipment?.accessory || '無'}</strong>
-                </div>
-              </div>
+              {/* Equipment Breakdown (with special rules desc for shield, armor, and accessory) */}
+              {(() => {
+                const offHandName = normalizeEquipmentName(character.equipment?.offHand || '');
+                const armorName = normalizeEquipmentName(character.equipment?.armor || '');
+                const accName = normalizeEquipmentName(character.equipment?.accessory || '');
+                const shieldDef = offHandName
+                  ? (rulesData.equipment?.shields || []).find(s => s.name === offHandName)
+                  : null;
+                const armorDef = armorName
+                  ? (rulesData.equipment?.armors || []).find(a => a.name === armorName)
+                  : null;
+                const accDef = accName
+                  ? (rulesData.equipment?.accessories || []).find(a => a.name === accName)
+                  : null;
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-t12 pt-2 border-t">
+                    <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
+                      <span className="text-[#6b5a4b] block font-sans">副手/盾牌:</span>
+                      <strong className="text-[#3c2415] block">{offHandName || '無'}</strong>
+                      {shieldDef && (
+                        <div className="font-sans text-t11 text-[#6b5a4b] leading-snug">
+                          <span>物防 {shieldDef.def || '+0'} / 魔防 {shieldDef.mdef || '+0'}</span>
+                          {shieldDef.desc && shieldDef.desc !== '無特殊效果' && (
+                            <p className="mt-0.5 text-[#3c2415]">{renderTextWithAffinities(shieldDef.desc)}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
+                      <span className="text-[#6b5a4b] block font-sans">防具裝甲:</span>
+                      <strong className="text-[#3c2415] block">{armorName || '無'}</strong>
+                      {armorDef && (
+                        <div className="font-sans text-t11 text-[#6b5a4b] leading-snug">
+                          <span>物防 {armorDef.def} / 魔防 {armorDef.mdef}</span>
+                          {armorDef.desc && armorDef.desc !== '無特殊效果' && (
+                            <p className="mt-0.5 text-[#3c2415]">{renderTextWithAffinities(armorDef.desc)}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
+                      <span className="text-[#6b5a4b] block font-sans">佩戴飾品:</span>
+                      <strong className="text-[#3c2415] block">{accName || '無'}</strong>
+                      {accDef?.desc && accDef.desc !== '無特殊效果' && (
+                        <p className="font-sans text-t12 text-[#3c2415] leading-snug">
+                          {renderTextWithAffinities(accDef.desc)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Pilot Personal Vehicle in Combat (if active) */}
               {isClassPanelActive(character, '機師') && (
@@ -1734,14 +2321,16 @@ export default function CharacterPlayHUD({
                           {isOffensive && (
                             <button
                               type="button"
-                              onClick={() => onOpenDice && onOpenDice({
+                              onClick={() => openCharacterDice({
                                 die1: spellCheck.die1,
                                 die2: spellCheck.die2,
                                 modifier: spellCheck.mod,
+                                damageBonus: spellDamage.hrBonus,
+                                damageType: spellDamage.damageType || '無',
                                 label: `${sp.name} 魔法判定 [INS + WLP]`
                               })}
                               className="px-2.5 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1 transition-colors"
-                              title="點擊直接擲骰魔法判定"
+                              title="點擊直接擲骰魔法判定（自動附帶 HR 傷害計算）"
                             >
                               <GiRollingDices className="w-3.5 h-3.5 text-[#6b5a4b]" />
                               <span>[INS + WLP]</span>
@@ -1796,6 +2385,170 @@ export default function CharacterPlayHUD({
                 </div>
               )}
 
+              {/* 儀式魔法速查與施展計算器（Core p.118–121） */}
+              {(() => {
+                const POTENCY_MAP = {
+                  minor: { key: 'minor', label: '小', mp: 20, dl: 7, clock: '4 格' },
+                  medium: { key: 'medium', label: '中', mp: 30, dl: 10, clock: '6 格' },
+                  major: { key: 'major', label: '大', mp: 40, dl: 13, clock: '6 格' },
+                  extreme: { key: 'extreme', label: '強', mp: 50, dl: 16, clock: '8 格' }
+                };
+                const AREA_MAP = {
+                  individual: { key: 'individual', label: '個體 ×1', mult: 1 },
+                  small: { key: 'small', label: '小型 ×2', mult: 2 },
+                  large: { key: 'large', label: '大型 ×3', mult: 3 },
+                  huge: { key: 'huge', label: '巨型 ×4', mult: 4 }
+                };
+                const RITUAL_SKILLS = [
+                  { skill: '秘儀學派儀式', name: '秘儀學派', formula: 'WLP + WLP' },
+                  { skill: '嵌合學派儀式', name: '嵌合學派', formula: 'INS + WLP' },
+                  { skill: '元素學派儀式', name: '元素學派', formula: 'INS + WLP' },
+                  { skill: '熵系學派儀式', name: '熵系學派', formula: 'INS + WLP' },
+                  { skill: '靈魂學派儀式', name: '靈魂學派', formula: 'INS + WLP' },
+                  { skill: '儀式學派', name: '儀式學派', formula: 'INS + WLP' }
+                ];
+                const learnedRituals = [];
+                (character.classes || []).forEach(cl => {
+                  (cl.skills || []).forEach(sk => {
+                    if ((sk.sl || 0) <= 0) return;
+                    const normName = normalizeSkillName(sk.name);
+                    const found = RITUAL_SKILLS.find(r => r.skill === normName);
+                    if (found && !learnedRituals.some(x => x.name === found.name)) {
+                      learnedRituals.push(found);
+                    }
+                    if (normName === '儀式學派' && Array.isArray(sk.selectedOptions)) {
+                      sk.selectedOptions.forEach(opt => {
+                        if (!learnedRituals.some(x => x.name === opt)) {
+                          learnedRituals.push({ skill: '儀式學派', name: opt, formula: opt.includes('秘儀') ? 'WLP + WLP' : 'INS + WLP' });
+                        }
+                      });
+                    }
+                  });
+                });
+                const pot = POTENCY_MAP[ritualPotency] || POTENCY_MAP.minor;
+                const ar = AREA_MAP[ritualArea] || AREA_MAP.individual;
+                const rawMp = pot.mp * ar.mult;
+                const finalMp = ritualHasIngredient ? Math.floor(rawMp / 2) : rawMp;
+
+                return (
+                  <div
+                    data-testid="hud-ritual-calculator"
+                    className="p-3.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="font-bold text-xs text-[#3c2415] flex items-center gap-1.5">
+                        <GiCrystalBall className="w-4 h-4 text-[#8c3235]" />
+                        <span>儀式魔法（效力 × 範圍 MP 與難度計算器）</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => openRuleCodex('儀式魔法')}
+                        className="px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-t11 font-bold text-[#3c2415]"
+                      >
+                        儀式規則速查
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 flex-wrap text-t11">
+                      <span className="text-[#6b5a4b] font-bold">已掌握儀式學派:</span>
+                      {learnedRituals.length > 0 ? learnedRituals.map((r, rIdx) => (
+                        <span
+                          key={rIdx}
+                          className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] text-[#3c2415] font-bold"
+                        >
+                          ✦ {r.name} [{r.formula}]
+                        </span>
+                      )) : (
+                        <span className="text-[#7c6a58]">尚未習得儀式特技（同伴施展儀式時仍可參與團隊檢定協助）</span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-t11">
+                      <div className="space-y-1">
+                        <span className="text-[#6b5a4b] font-bold block">1. 儀式效力（決定基礎 MP 與難度 DL）</span>
+                        <div className="grid grid-cols-4 gap-1">
+                          {Object.values(POTENCY_MAP).map(item => (
+                            <button
+                              key={item.key}
+                              type="button"
+                              onClick={() => setRitualPotency(item.key)}
+                              className={`py-1 px-1.5 rounded border font-bold transition-colors ${
+                                ritualPotency === item.key
+                                  ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235]'
+                                  : 'bg-[#fffdf9] text-[#3c2415] border-[#d6c7ab] hover:bg-[#f4ebd9]'
+                              }`}
+                            >
+                              <div>{item.label} ({item.mp})</div>
+                              <div className="text-t10 opacity-90">DL {item.dl}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="text-[#6b5a4b] font-bold block">2. 影響範圍（決定 MP 倍率）</span>
+                        <div className="grid grid-cols-4 gap-1">
+                          {Object.values(AREA_MAP).map(item => (
+                            <button
+                              key={item.key}
+                              type="button"
+                              onClick={() => setRitualArea(item.key)}
+                              className={`py-1.5 px-1 rounded border font-bold transition-colors ${
+                                ritualArea === item.key
+                                  ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235]'
+                                  : 'bg-[#fffdf9] text-[#3c2415] border-[#d6c7ab] hover:bg-[#f4ebd9]'
+                              }`}
+                            >
+                              {item.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-1 border-t border-[#e8dcc4] flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-3 flex-wrap text-t12">
+                        <label className="inline-flex items-center gap-1.5 cursor-pointer font-bold text-[#3c2415]">
+                          <input
+                            type="checkbox"
+                            checked={ritualHasIngredient}
+                            onChange={e => setRitualHasIngredient(e.target.checked)}
+                            className="rounded border-[#d6c7ab]"
+                          />
+                          <span>提供稀有材料（MP 減半）</span>
+                        </label>
+                        <span className="font-bold text-[#8c3235]">
+                          總消耗：{finalMp} MP · 難度 DL {pot.dl} · 衝突命刻 {pot.clock}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (curMp < finalMp) {
+                            showToast(`MP 不足！施展此儀式需要 ${finalMp} 點 MP`, 'warning');
+                            return;
+                          }
+                          adjustMp(-finalMp);
+                          const formulaStr = learnedRituals[0]?.formula || 'INS + WLP';
+                          const rCheck = parseCheckFormula(formulaStr, stats);
+                          openCharacterDice({
+                            die1: rCheck.die1,
+                            die2: rCheck.die2,
+                            modifier: rCheck.mod,
+                            label: `施展儀式（效力${pot.label}×${ar.label}，DL ${pot.dl}）[${formulaStr}]`
+                          });
+                        }}
+                        className="px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1"
+                      >
+                        <GiRollingDices className="w-3.5 h-3.5" />
+                        <span>扣除 {finalMp} MP 並擲儀式檢定 (DL {pot.dl})</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Chimerist Spells in Magic Tab (if active) */}
               {isClassPanelActive(character, '嵌合師') && (
                 <div className="pt-2 border-t">
@@ -1816,11 +2569,20 @@ export default function CharacterPlayHUD({
             <div className="space-y-4 animate-fade-in text-xs">
               {(character.classes || []).map((cl, cIdx) => {
                 const cName = normalizeClassName(cl.className);
+                const classDef = rulesData.classes[cName];
+                const freeBenefitLabel = describeFreeBenefit(classDef, cl);
                 return (
                 <div key={cIdx} className="space-y-2">
-                  <div className="flex items-center gap-2 border-b pb-1" style={{ borderColor: theme.border }}>
-                    <span className="font-serif font-black text-sm" style={{ color: theme.textDark }}>{withEn(cName)}</span>
-                    <JRPGBadge variant={theme.badgeVariant} size="xs">Lv {cl.level}</JRPGBadge>
+                  <div className="flex items-center justify-between gap-2 flex-wrap border-b pb-1" style={{ borderColor: theme.border }}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-serif font-black text-sm" style={{ color: theme.textDark }}>{withEn(cName)}</span>
+                      <JRPGBadge variant={theme.badgeVariant} size="xs">Lv {cl.level}</JRPGBadge>
+                    </div>
+                    {freeBenefitLabel && (
+                      <span className="text-t11 px-2 py-0.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] text-[#6b5a4b]">
+                        免費增益：{freeBenefitLabel}
+                      </span>
+                    )}
                   </div>
 
                   {/* F-020（2026-10-27）：這個職業的面板不在這一頁時，直接說它在哪。
@@ -1840,7 +2602,6 @@ export default function CharacterPlayHUD({
                   <div className="space-y-2">
                     {(cl.skills || []).map((sk, sIdx) => {
                       const normSkName = normalizeSkillName(sk.name);
-                      const classDef = rulesData.classes[cName];
                       const skillDef = classDef?.skills?.find(s => s.name === normSkName);
                       const display = resolveSkillDisplay({ ...sk, name: normSkName }, skillDef);
                       const isExpanded = !!expandedSkills[`${cName}_${normSkName}`];
@@ -1893,7 +2654,7 @@ export default function CharacterPlayHUD({
                           {sk.selectedOptions && (Array.isArray(sk.selectedOptions) ? sk.selectedOptions.length > 0 : ((sk.selectedOptions.keys || []).length > 0 || (sk.selectedOptions.tones || []).length > 0)) && (
                             <div className="mt-2.5 pt-2 border-t border-[#e8dcc4] space-y-2.5">
                               {/* 1. 若為魔奏者【魔法演奏】，常駐渲染即時合成器 */}
-                              {cl.className === '魔奏者' && sk.name === '魔法演奏' && (
+                              {cName === '魔奏者' && normSkName === '魔法演奏' && (
                                 <ChanterComposer
                                   character={character}
                                   selectedOptions={sk.selectedOptions}
@@ -1903,7 +2664,7 @@ export default function CharacterPlayHUD({
                               )}
 
                               {/* 2. 若為植物學家【植生術】，常駐渲染花園生長盤 */}
-                              {cl.className === '植物學家' && sk.name === '植生術' && (
+                              {cName === '植物學家' && normSkName === '植生術' && (
                                 <FloristGardenTracker
                                   character={character}
                                   skillSL={sk.sl}
@@ -1923,23 +2684,23 @@ export default function CharacterPlayHUD({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const key = `${cl.className}_${sk.name}`;
+                                    const key = `${cName}_${normSkName}`;
                                     setCollapsedSuboptions(prev => ({ ...prev, [key]: !prev[key] }));
                                   }}
                                   className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] font-normal transition-colors cursor-pointer"
                                 >
-                                  {collapsedSuboptions[`${cl.className}_${sk.name}`] ? '展開效果卡片' : '收合為標籤'}
+                                  {collapsedSuboptions[`${cName}_${normSkName}`] ? '展開效果卡片' : '收合為標籤'}
                                 </button>
                               </div>
 
-                              {collapsedSuboptions[`${cl.className}_${sk.name}`] ? (
+                              {collapsedSuboptions[`${cName}_${normSkName}`] ? (
                                 <div className="flex flex-wrap gap-1.5">
                                   {Array.isArray(sk.selectedOptions) ? (
                                     sk.selectedOptions.map((optName, oIdx) => (
                                       <span
                                         key={oIdx}
                                         onClick={() => {
-                                          const key = `${cl.className}_${sk.name}`;
+                                          const key = `${cName}_${normSkName}`;
                                           setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
                                         }}
                                         title="點擊展開查看效果"
@@ -1955,7 +2716,7 @@ export default function CharacterPlayHUD({
                                         <span
                                           key={`k_${kIdx}`}
                                           onClick={() => {
-                                            const key = `${cl.className}_${sk.name}`;
+                                            const key = `${cName}_${normSkName}`;
                                             setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
                                           }}
                                           title="點擊展開查看效果"
@@ -1969,7 +2730,7 @@ export default function CharacterPlayHUD({
                                         <span
                                           key={`t_${tIdx}`}
                                           onClick={() => {
-                                            const key = `${cl.className}_${sk.name}`;
+                                            const key = `${cName}_${normSkName}`;
                                             setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
                                           }}
                                           title="點擊展開查看效果"
@@ -2058,19 +2819,11 @@ export default function CharacterPlayHUD({
                                   </div>
                                 </div>
                               )}
-
-                              {/* 植物學家專屬生長命刻：**已移除**（2026-10-16）。
-                                  這裡原本是第二個「生長命刻」控制項（讀寫 `character.growthClock` 純量），
-                                  與同一區塊上方【植生術】常駐的 `FloristGardenTracker` 並存——
-                                  同一個計數器兩套資料（`floristGarden` 陣列 vs `growthClock` 純量）、
-                                  兩個可各自設定不同數字的控制項。官方只有**一條**生長命刻
-                                  （`ruleCodexExpansion.js`「生長命刻」節），而花園生長盤是完整的那一套
-                                  （綁種子、高亮當前階級、結算離園），所以留它、移掉這裡的殘留。 */}
                             </div>
                           )}
 
                           {/* 修補匠小工具專屬戰鬥速查 */}
-                          {cl.className === '修補匠' && sk.name === '小工具' && (
+                          {cName === '修補匠' && normSkName === '小工具' && (
                             <TinkererGadgetsQuickRef
                               gadgetsData={character.tinkererData?.gadgets}
                               sl={sk.sl}
@@ -2099,13 +2852,7 @@ export default function CharacterPlayHUD({
                     </div>
                   )}
 
-                  {/* F-020（2026-10-27）：這裡原本還掛了三個面板——嵌合師（模仿咒語）、
-                      旅人（夥伴）、機師（載具）。前兩者各自在「咒語與魔法」／「武器與戰鬥」
-                      已經有一份，同一份 UI 被渲染兩次（DOM 加倍、捲動加倍）。
-                      第三個（嵌合師）的正確家在「咒語與魔法」，因為它管的是咒語清單。
-                      三個都改成上方那一行指路句，面板本身只留一份。 */}
-
-                  {cl.className === '修補匠' && (
+                  {cName === '修補匠' && (
                     <div className="mt-3">
                       <TinkererWorkshop
                         character={character}
@@ -2116,7 +2863,7 @@ export default function CharacterPlayHUD({
                     </div>
                   )}
 
-                  {cl.className === '美食家' && (cl.skills || []).some(s => s.name === '烹飪' && s.sl > 0) && (
+                  {cName === '美食家' && (cl.skills || []).some(s => normalizeSkillName(s.name) === '烹飪' && s.sl > 0) && (
                     <div className="mt-3">
                       <GourmetCookbook
                         character={character}
@@ -2146,6 +2893,75 @@ export default function CharacterPlayHUD({
                 </div>
                 );
               })}
+
+              {/* 掌握之英雄技能 (Heroic Skills) */}
+              {(character.heroicSkills || []).length > 0 && (
+                <div data-testid="hud-heroic-skills" className="pt-3 border-t space-y-2" style={{ borderColor: theme.border }}>
+                  <div className="font-serif font-black text-sm flex items-center gap-1.5 text-[#3c2415]">
+                    <GiLaurelCrown className="w-4 h-4 text-[#a63d40]" />
+                    <span>掌握之英雄技能</span>
+                  </div>
+                  <div className="space-y-2">
+                    {(character.heroicSkills || []).map((hs, idx) => {
+                      const resolved = resolveHeroicSkillEntry(hs, character);
+                      if (!resolved) return null;
+                      const sourceLabel = HEROIC_SKILL_SOURCE_LABELS[resolved.source] || '';
+                      const effectText = resolved.effect || resolved.desc || '';
+                      return (
+                        <div key={idx} className="p-3 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-1">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <span className="font-bold text-xs text-[#3c2415] flex items-center gap-1.5">
+                              <span className="text-[#a63d40]">★</span>
+                              <span>{resolved.name}</span>
+                            </span>
+                            {sourceLabel && (
+                              <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-[#6b5a4b]">
+                                {sourceLabel}{resolved.class ? ` · ${resolved.class}` : ''}
+                              </span>
+                            )}
+                          </div>
+                          {effectText && (
+                            <p className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap">
+                              {renderTextWithAffinities(effectText)}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 金手指特質全文 (Quirk Full Text & Selected Effect) */}
+              {character.quirk && character.quirk !== '無' && (() => {
+                const quirkDef = (rulesData.quirks || []).find(q => q.name === character.quirk);
+                const choiceRows = describeQuirkChoice(character);
+                const choiceSummary = choiceRows
+                  .map(r => (r.group ? `${r.group}：${r.label}` : r.label))
+                  .join('、');
+                return (
+                  <div data-testid="hud-quirk-detail" className="pt-3 border-t space-y-2" style={{ borderColor: theme.border }}>
+                    <div className="font-serif font-black text-sm flex items-center gap-1.5 text-[#3c2415]">
+                      <GiSparkles className="w-4 h-4 text-[#a63d40]" />
+                      <span>金手指特質：{character.quirk}</span>
+                    </div>
+                    <div className="p-3 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-1.5">
+                      {choiceSummary && (
+                        <div className="text-t11 font-bold text-[#8c3235] bg-[#f4ebd9] px-2 py-1 rounded border border-[#e8dcc4]">
+                          ✦ 已選效果：{choiceSummary}
+                        </div>
+                      )}
+                      {quirkDef?.effect ? (
+                        <p className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap">
+                          {renderTextWithAffinities(quirkDef.effect)}
+                        </p>
+                      ) : (
+                        <p className="text-t12 text-[#7c6a58]">已啟用金手指【{character.quirk}】。</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -2181,48 +2997,130 @@ export default function CharacterPlayHUD({
                 )}
               </div>
 
-              {(character.bonds || []).map((bond, bIdx) => (
-                <div key={bIdx} className="p-3.5 bg-white rounded border flex items-center justify-between gap-3" style={{ borderColor: theme.border }}>
-                  <div>
-                    <div className="font-bold text-sm text-[#2c221e]">{bond.target}</div>
-                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                      {(bond.feelings || []).map(f => (
-                        <span key={f} className="px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-t12 text-[#8c3235] font-bold">
-                          {f === 'admiration' ? '欽佩' :
-                           f === 'inferiority' ? '自卑' :
-                           f === 'loyalty' ? '忠誠' :
-                           f === 'mistrust' ? '疑忌' :
-                           f === 'affection' ? '喜愛' :
-                           f === 'hatred' ? '仇恨' : f}
-                        </span>
-                      ))}
+              {(character.bonds || []).map((bond, bIdx) => {
+                const isEditingThis = editingBondId === bond.id;
+                const FEELING_PAIRS = [
+                  [{ k: 'admiration', l: '欽佩' }, { k: 'inferiority', l: '自卑' }],
+                  [{ k: 'loyalty', l: '忠誠' }, { k: 'mistrust', l: '疑忌' }],
+                  [{ k: 'affection', l: '喜愛' }, { k: 'hatred', l: '仇恨' }]
+                ];
+                return (
+                <div key={bIdx} className="p-3.5 bg-white rounded border space-y-2.5" style={{ borderColor: theme.border }}>
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                      <div className="font-bold text-sm text-[#2c221e]">{bond.target}</div>
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        {(bond.feelings || []).map(f => (
+                          <span key={f} className="px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-t12 text-[#8c3235] font-bold">
+                            {f === 'admiration' ? '欽佩' :
+                             f === 'inferiority' ? '自卑' :
+                             f === 'loyalty' ? '忠誠' :
+                             f === 'mistrust' ? '疑忌' :
+                             f === 'affection' ? '喜愛' :
+                             f === 'hatred' ? '仇恨' : f}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if ((character.fabulaPoints ?? 3) <= 0) {
+                            showToast('物語點不足');
+                            return;
+                          }
+                          adjustFp(-1);
+                          showToast(`消耗 1 FP 激活對【${bond.target}】之羈絆！檢定獲得 +${bond.feelings?.length || 1} 點加值！`);
+                        }}
+                        className="px-3 py-1.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#8c3235] font-bold text-xs shrink-0"
+                      >
+                        激勵 (+{bond.feelings?.length || 1})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => isEditingThis ? setEditingBondId(null) : handleOpenEditBond(bond)}
+                        className="px-2 py-1.5 rounded bg-[#fbf7ee] hover:bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] font-bold text-xs"
+                        title="休息場景調整羈絆情感"
+                      >
+                        ✎ 調整
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteBond(bond.id)}
+                        className="p-1 rounded text-[#7c6a58] hover:text-[#8c3235] transition-colors"
+                        title="刪除羈絆"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        if ((character.fabulaPoints ?? 3) <= 0) {
-                          showToast('物語點不足');
-                          return;
-                        }
-                        adjustFp(-1);
-                        showToast(`消耗 1 FP 激活對【${bond.target}】之羈絆！檢定獲得 +${bond.feelings?.length || 1} 點加值！`);
-                      }}
-                      className="px-3 py-1.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#8c3235] font-bold text-xs shrink-0"
-                    >
-                      激勵 (+{bond.feelings?.length || 1})
-                    </button>
-                    <button
-                      onClick={() => handleDeleteBond(bond.id)}
-                      className="p-1 rounded text-[#7c6a58] hover:text-[#8c3235] transition-colors"
-                      title="刪除羈絆"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  {isEditingThis && (
+                    <div className="pt-2.5 border-t border-[#e8dcc4] bg-[#fbf7ee] p-2.5 rounded space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-t11 font-bold text-[#6b5a4b] shrink-0">對象名稱:</span>
+                        <input
+                          type="text"
+                          value={editBondTarget}
+                          onChange={e => setEditBondTarget(e.target.value)}
+                          className="flex-1 px-2 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs font-bold text-[#3c2415]"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-t11 font-bold text-[#6b5a4b] block">三維情感（每組對立情感最多選 1 項）：</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                          {FEELING_PAIRS.map((pair, pIdx) => (
+                            <div key={pIdx} className="flex items-center gap-1 bg-[#fffdf9] p-1 rounded border border-[#e8dcc4]">
+                              {pair.map(item => {
+                                const active = editBondFeelings.includes(item.k);
+                                const otherKey = pair.find(x => x.k !== item.k).k;
+                                return (
+                                  <button
+                                    key={item.k}
+                                    type="button"
+                                    onClick={() => {
+                                      setEditBondFeelings(prev => {
+                                        if (prev.includes(item.k)) return prev.filter(x => x !== item.k);
+                                        return [...prev.filter(x => x !== otherKey), item.k];
+                                      });
+                                    }}
+                                    className={`flex-1 py-1 rounded text-t11 font-bold transition-colors ${
+                                      active
+                                        ? 'bg-[#a63d40] text-[#fffdf9]'
+                                        : 'bg-[#f4ebd9] text-[#3c2415] hover:bg-[#e8dcc4]'
+                                    }`}
+                                  >
+                                    {item.l}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setEditingBondId(null)}
+                          className="px-2.5 py-1 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold text-t11"
+                        >
+                          取消
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSaveEditedBond}
+                          className="px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t11"
+                        >
+                          儲存羈絆變更
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ))}
+                );
+              })}
 
               {(character.bonds || []).length === 0 && (
                 /* 空狀態：2026-10-23（v5.1 第三輪）

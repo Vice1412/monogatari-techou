@@ -41,7 +41,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import JRPGBadge from '../../components/ui/JRPGBadge';
 import { STORAGE_KEYS } from '../../data/keys';
 import { readJSON, writeJSON } from '../../data/store';
-import { findDuplicateStartingHeroicSkills, normalizeCharacter, normalizeRosterCharacters } from './utils/characterEngine';
+import { findDuplicateStartingHeroicSkills, normalizeCharacter, normalizeRosterCharacters, syncCharacterToActiveCombat } from './utils/characterEngine';
 import { formatInitiative, isInitiativeVariant } from './data/initiativeVariant';
 import { normalizeRosterClassNames } from './data/sourcebookConfig';
 
@@ -129,6 +129,14 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
 
   const handleUpdateActiveCharacter = (updatedChar) => {
     setRoster(prev => prev.map(c => c.id === updatedChar.id ? updatedChar : c));
+    // 雙向同步：若此角色正在【戰鬥輪次】參戰中，同步更新其 HP／MP／IP／FP／異常狀態
+    const activeCombat = readJSON(STORAGE_KEYS.activeCombat, null);
+    if (activeCombat) {
+      const { activeCombat: syncedCombat, changed } = syncCharacterToActiveCombat(updatedChar, activeCombat);
+      if (changed) {
+        writeJSON(STORAGE_KEYS.activeCombat, syncedCombat);
+      }
+    }
   };
 
   const handleSendToCombatDirect = (char) => {
