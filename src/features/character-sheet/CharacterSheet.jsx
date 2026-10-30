@@ -30,6 +30,8 @@ import CharacterLogModal from './components/CharacterLogModal';
 import { createNewCharacter, calculateCharacterStats, getCharacterLevel } from './utils/characterEngine';
 // F-015（2026-10-27）：名冊卡上的「這張卡是哪個規則開的」徽章，唯一來源在 creationRules。
 import { describeRuleBadges } from './data/creationRules';
+// 里程碑（P4，2026-10-30）：全部由既有資料推導，沒有寫入端，玩家不用填任何東西。
+import { deriveMilestones, milestoneCountText } from './utils/milestones';
 import { CHARACTER_THEMES, getCharacterTheme } from './utils/characterThemes';
 import {
   isFultimatorCharacter,
@@ -792,6 +794,44 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         <span className="text-[#d6c7ab]">|</span>
                         <span className="text-[#6b5a4b]">INIT <strong className="text-[#3c2415]">{formatInitiative(stats.init, initiativeVariant)}</strong></span>
                       </div>
+
+                      {/* 4.5 里程碑（P4，2026-10-30）
+                          只印**已達成**的，而且跟上面的開卡規則徽章用同一套視覺——
+                          名冊是一眼掃過去的地方，多一種顏色就多一次「這是什麼」。
+                          沒有里程碑就整列不出現：新卡不需要一排空殼。 */}
+                      {(() => {
+                        const ms = deriveMilestones(char);
+                        if (ms.achieved.length === 0) return null;
+                        const shownMs = ms.achieved.slice(0, 2);
+                        const restMs = ms.achieved.length - shownMs.length;
+                        return (
+                          <div
+                            className="flex items-center gap-1 flex-wrap"
+                            data-testid={`roster-milestones-${char.id}`}
+                            title={ms.achieved.map((m) => `${m.label}：${m.hint}`).join('\n')}
+                          >
+                            <span className="text-t10 font-bold text-[#8c3235] flex items-center gap-0.5 shrink-0">
+                              <GiLaurelCrown className="w-3 h-3" /> {milestoneCountText(ms)}
+                            </span>
+                            {shownMs.map((m) => (
+                              <span
+                                key={m.id}
+                                className="text-t10 font-bold px-1.5 py-0.5 rounded border bg-[#f4ebd9]/70 border-[#e8dcc4] text-[#6b5a4b]"
+                              >
+                                {m.label}
+                              </span>
+                            ))}
+                            {restMs > 0 && (
+                              <span
+                                className="text-t10 font-bold px-1.5 py-0.5 rounded border bg-[#f4ebd9]/40 border-[#e8dcc4] text-[#7c6a58]"
+                                title={ms.achieved.slice(2).map((m) => m.label).join('、')}
+                              >
+                                +{restMs}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       {/* 5. 底部操作區 */}
                       <div className="pt-2 mt-auto border-t border-[#e8dcc4] flex items-center justify-between gap-1">

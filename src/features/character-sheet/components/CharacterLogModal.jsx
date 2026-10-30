@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { GiQuillInk, GiHazardSign, GiScrollUnfurled } from 'react-icons/gi';
+import { GiQuillInk, GiHazardSign, GiScrollUnfurled, GiLaurelCrown } from 'react-icons/gi';
 import JRPGModal from '../../../components/ui/JRPGModal';
 import EmptyState from '../../../components/ui/EmptyState';
 import JRPGButton from '../../../components/ui/JRPGButton';
@@ -18,6 +18,7 @@ import {
   formatLogTime,
   formatLogDate
 } from '../utils/characterLog';
+import { deriveMilestones, milestoneCountText } from '../utils/milestones';
 
 /**
  * 成長履歷 (Character Log)
@@ -53,6 +54,9 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
 
   const entries = useMemo(() => getLog(character), [character]);
   const summary = useMemo(() => summarizeLog(entries), [entries]);
+  // 里程碑與履歷吃同一份資料，但**不共用 `summary`**：那兩個數字是不同問題
+  // （履歷問「記了幾筆」，里程碑問「走到哪了」），共用一份遲早會有一邊被改歪。
+  const milestones = useMemo(() => deriveMilestones(character), [character]);
 
   // 只列出實際出現過的種類，避免一整排永遠是 0 的篩選鈕
   const presentKinds = useMemo(() => {
@@ -159,6 +163,40 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
         {tile('資金增減', summary.zenitDelta >= 0 ? `+${summary.zenitDelta}z` : `${summary.zenitDelta}z`)}
         {tile('升級次數', summary.levelUpCount)}
         {tile('換裝次數', summary.equipmentCount)}
+      </div>
+
+      {/* 這張卡走了多遠（P4，2026-10-30）：全部由既有資料推導，玩家不用填任何東西。
+          只畫已達成的——未達成的排成一列就會變成待辦清單，而那是另一種東西。 */}
+      <div
+        className="rounded border px-2.5 py-2 flex flex-col gap-1.5"
+        style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+        data-testid="log-milestones"
+      >
+        <div className="flex items-center gap-2">
+          <GiLaurelCrown className="w-3.5 h-3.5 shrink-0" style={{ color: theme.accent }} />
+          <span className="text-t11 font-bold" style={{ color: theme.textDark }}>這張卡走了多遠</span>
+          <span className="text-t10 font-mono" style={{ color: theme.accent }}>{milestoneCountText(milestones)}</span>
+          <span className="flex-1 border-t" style={{ borderColor: theme.border }} />
+        </div>
+        {milestones.achieved.length === 0 ? (
+          <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
+            還沒有任何里程碑。第一條羈絆、第一個完成的命刻、走過第一場——任何一個都會點亮第一顆；
+            這裡只記錄，不影響任何數值。
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-1">
+            {milestones.achieved.map((m) => (
+              <span
+                key={m.id}
+                title={m.hint}
+                className="text-t10 font-bold px-1.5 py-0.5 rounded border"
+                style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
+              >
+                {m.label}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 玩家自己補一筆 */}

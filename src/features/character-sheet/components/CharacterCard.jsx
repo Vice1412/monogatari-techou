@@ -28,6 +28,7 @@ import { resolveSkillDisplay } from '../data/coreBookVariants';
 import { normalizeClassName, normalizeSkillName, normalizeEquipmentName } from '../data/sourcebookConfig';
 import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
 import { withEn } from '../../../utils/properNouns';
+import { deriveMilestones, milestoneCountText } from '../utils/milestones';
 import { classCountPhrase } from '../data/creationRules';
 
 export default function CharacterCard({
@@ -62,6 +63,11 @@ export default function CharacterCard({
   // P14 再收斂一次：這句話在**四個地方**各寫過一次，編輯器那兩處當時沒改到
   // （實機截圖上還印著「3~3」）。現在四處都吃 `classCountPhrase`，寫法只有一份。
   const classCountHint = `起始需配置 ${classCountPhrase(character.creationRules)} 個職業`;
+
+  // 里程碑（P4，2026-10-30）：全部由既有資料推導，沒有任何寫入端。
+  // 只畫**已達成**的那些——把未達成的也列出來，它就從「記錄」變成「待辦清單」，
+  // 而待辦清單會讓玩家為了勾掉它去做不想做的事。
+  const milestones = deriveMilestones(character);
 
   return (
     <div
@@ -595,6 +601,32 @@ export default function CharacterCard({
             </div>
           )}
         </div>
+
+        {/* 里程碑：只畫已達成的。沒有就整列不出現——新卡不需要一排空殼。 */}
+        {milestones.achieved.length > 0 && (
+          <div className="pt-2 border-t" style={{ borderColor: theme.border }} data-testid="card-milestones">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-t10 font-mono font-bold tracking-wider flex items-center gap-1" style={{ color: theme.textDark }}>
+                <GiLaurelCrown className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 里程碑
+              </span>
+              <span className="text-t10 font-mono" style={{ color: theme.accent }}>
+                {milestoneCountText(milestones)}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {milestones.achieved.map((m) => (
+                <span
+                  key={m.id}
+                  title={m.hint}
+                  className="px-1.5 py-0.5 rounded border text-t10 font-bold"
+                  style={{ backgroundColor: '#fffdf9', borderColor: theme.border, color: theme.textDark }}
+                >
+                  {m.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
