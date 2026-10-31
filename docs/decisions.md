@@ -18026,3 +18026,97 @@ income / expense（都是正數）／ count
 教訓：這是「測試全綠不代表看得清楚」的第二次（第一次是浮字壓在數字上）。
 外觀類的產出，**看過才算驗過**。
 
+
+---
+
+### CI71　起始資金結算的履歷可讀性（P11，2026-11-01）
+
+使用者（2026-11-01）：「這個是開卡過後的結果。我完全看不到我初始買了什麼，我2d6又得到了多少」。
+
+**根因**：舊系統只寫一筆 `kind: 'zenit'`（`500 → 390`）。明細上只看到「-110z」——
+那個數字既不是「買了什麼」，也不是「擲到多少」。兩個問題混在同一筆裡，誰都回答不了。
+
+**修復**：結算時寫一條鏈，每一筆的 `from` 都是前一筆的 `to`：
+
+```
+起始裝備預算　500z　（開帳，沒有前值）
+購入 青銅劍　−200z　→ 餘 300z
+購入 旅行皮甲　−100z　→ 餘 200z
+擲起始資金 2d6 × 10　+70z　→ 餘 270z
+```
+
+這樣明細就能逐列對帳——每一列的「餘」都是那一筆之後的餘額，
+而不是現在的錢包重複印十二次。
+
+#### CI71.1　`from: null` 是「開帳」，不是「資料壞了」
+
+結算前角色身上根本沒有錢包（`zenit` 只是預算的佔位值），
+所以起始裝備預算那一筆沒有「前值」可言。硬寫 `from: 0` 會斷言「他本來有 0z」——
+那是我們不知道的事。
+
+`zenitChangeOf` 在 `from === null` 時回 `{ opening: true, delta: to }`，
+`buildMoneyLedger` 把這一列的差額印成 `+500z`（終值本身），而不是空字串或錯誤。
+舊行為是回 `null`（整列被跳過）——那會讓明細從「-200z」開始，玩家不知道為什麼有 300 可以扣。
+
+#### CI71.2　結算鏈由純函式組裝，編輯器只負責「擲骰」與「寫入」
+
+`buildStartingFundsEntries({ budget, items, extraSpend, totalSpend, rollSum, dice })`
+回傳 `{ entries, finalZenit, spent }`。編輯器只提供 `dice`（兩顆骰子的點數），
+組裝與加總全部在 util 裡——這樣 `applyPreset`（經典搭配）與 `handleRollStartingZenit`
+（自訂搭配）可以共用同一個組裝器。
+
+`applyPreset` 之前只寫 `zenit: preset.zenit, startingFundsRolled: true`，沒有履歷——
+所以套用經典搭配後，錢包有數字，明細一筆都沒有。修復後經典搭配也走同一條鏈，
+只是最後一筆的標題改成 `PRINTED_STARTING_FUNDS_TITLE`（原書印製），
+說明寫「原書 p.172–175 印製剩餘 170z；回推 2d6 × 10 ＝ 70z」或「回推不出」。
+
+#### CI71.3　舊存檔的自愈：`repairStartingFundsLog` 五道閘門
+
+名冊載入時跑 `repairRosterStartingFunds`，但**不是見一個修一個**。
+只有完全符合以下五點才重建：
+1. `startingFundsRolled === true`
+2. 履歷裡**恰好一筆** `zenit`
+3. 標題等於 `LEGACY_STARTING_FUNDS_TITLE`
+4. `change.from === rules.startingZenit`（500z）
+5. `rollSum = to − max(0, budget − totalSpend)` 是 20–120 之間的 10 的倍數
+
+重建完之後還有一條**自我驗證**：重建出來的 `finalZenit` 必須等於舊紀錄的 `to`。
+不符合就原樣退回——寧可留舊，不要推錯的。
+
+#### CI71.4　結算說明只有一份事實
+
+編輯器結算後的 `alert` 不能印「已結算為 270z」——那正是使用者抱怨的事（沒有來源的數字）。
+現在用 `describeStartingFundsSettlement(entries)` 把同一串履歷換一種排版印出來：
+
+```
+起始裝備預算　500z
+− 青銅劍　200z　→ 餘 300z
+− 旅行皮甲　100z　→ 餘 150z
+＋ 擲起始資金 2d6 × 10　70z　→ 餘 120z
+```
+
+**不維護第二份文案**：如果裝備清單改變，alert 與明細自動同步，因為兩邊讀的是同一個 `entries`。
+
+#### CI71.5　零元空槽不是一筆購買
+
+`resolveStartingEquipment` 只處理 `BUDGET_SLOTS`（`mainHand`／`offHand`／`armor`），
+而且 `cost <= 0` 就跳過。這樣「無盾牌」（0z）不會變成「購入 無盾牌 0z」——
+那讀起來像免費拿到一面盾牌，而不是「沒有買副手」。
+
+#### CI71.6　測試與驗證
+
+- 49 支關卡 / **6,944 條**（+60）/ 0 FAIL，EXIT=0
+- `npm run build` exit 0
+- 刻意破壞 **12 / 12 全部轉紅**（`scratch/break-p11-sf.mjs`）
+- 實機 `p11-sf-ui.mjs` **8 / 8**（ledger 顯示 creation + trade 鏈、2d6 說明、原書頁碼）
+- 截圖：`p11-1-ledger-creation-chain.png`
+
+#### CI71.7　量測教訓：「找不到破壞點」與「護欄不會叫」在輸出上長得一樣
+
+`break-p11-sf.mjs` 第一輪有 3 個「找不到破壞點」——因為 `characterLog.js` 是 CRLF、
+`startingFunds.js` 是 LF，多行錨點只寫 `\n` 直接不匹配。輸出是「找不到破壞點」，
+而不是「護欄沒紅」，如果不仔細看會以為通過了。
+
+修法：破壞腳本同時試 `\n` 與 `\r\n` 兩種換行；並且在「找不到」時直接標 `ok: false`，
+讓整批結果的失敗數不為零。**「找不到錨點」本身就是失敗**——要麼錨點過期、要麼替換沒發生。
+

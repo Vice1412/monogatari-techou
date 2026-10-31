@@ -599,9 +599,43 @@
   </div>
 </section>
 
+<section>
+  <h2>⑮ 起始資金結算：寫一條鏈，不是寫一筆淨額。</h2>
+  <p class="lede">
+    使用者（2026-11-01）：「這個是開卡過後的結果。我完全看不到我初始買了什麼，我2d6又得到了多少」。
+    舊系統只寫一筆 <code>zenit</code>（<code>500 → 390</code>），明細只看到「-110z」——
+    那個數字既不是買了什麼，也不是擲到多少。
+  </p>
+  <div class="panel">
+    <b>⑮ 每一筆的 <code>from</code> 都是前一筆的 <code>to</code>，明細才能逐列對帳。</b>
+    結算鏈是四筆（不是一筆）：
+    <pre>
+起始裝備預算　500z　（開帳，沒有前值）
+購入 青銅劍　−200z　→ 餘 300z
+購入 旅行皮甲　−100z　→ 餘 200z
+擲起始資金 2d6 × 10　+70z　→ 餘 270z</pre>
+    每一列右邊的「餘」是<b>那一筆之後</b>的餘額（<code>change.to</code>），
+    不是現在的錢包。印現在的值會讓四列都寫著同一個數字，而那正好是玩家已經知道的。
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <b><code>from: null</code> 是「開帳」，不是「資料壞了」。</b>
+    結算前角色身上沒有錢包（<code>zenit</code> 只是預算的佔位值），
+    所以起始裝備預算那一筆沒有前值可言。硬寫 <code>from: 0</code> 會斷言「他本來有 0z」——
+    那是我們不知道的事。<code>zenitChangeOf</code> 在 <code>from === null</code> 時回
+    <code>{ opening: true, delta: to }</code>，明細印成 <code>+500z</code>（終值本身）。
+    舊行為回 <code>null</code>（整列被跳過）→ 明細從「-200z」開始，玩家不知道為什麼有 300 可以扣。
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <b>結算說明只有一份事實。</b>
+    <code>describeStartingFundsSettlement(entries)</code> 把同一串履歷換一種排版印進
+    <code>alert</code>，不維護第二份文案。裝備清單改變時，alert 與明細自動同步——
+    因為兩邊讀的是同一個 <code>entries</code>。
+  </div>
+</section>
+
 <footer>
-  《物語手帳》設計系統 v5 ｜ 最近一次更新：P10 金幣錢包（§CI70，2026-11-01） ｜
-  完整裁決紀錄見 <code>docs/decisions.md</code> §CI1–§CI70，稽核手冊見 <code>docs/ui-review-refactoring-ui.md</code> §1–§46。
+  《物語手帳》設計系統 v5 ｜ 最近一次更新：P11 起始資金履歷（§CI71，2026-11-01） ｜
+  完整裁決紀錄見 <code>docs/decisions.md</code> §CI1–§CI71，稽核手冊見 <code>docs/ui-review-refactoring-ui.md</code> §1–§46。
 </footer>
 
 </div>

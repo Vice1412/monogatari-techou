@@ -3328,3 +3328,70 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 **一個誠實的取捨**：主面板不再有「購入裝備」（使用者要「只要兩三顆按鈕」）。
 購買入口在行囊日誌分頁（`pack-purchase`），行囊四槽打開的換裝彈窗本身也能買。
 代價是從主面板買裝備多一步——這是刻意的，不是漏掉。
+
+---
+
+## P11　起始資金結算的履歷可讀性（2026-11-01）
+
+**使用者**：「這個是開卡過後的結果。我完全看不到我初始買了什麼，我2d6又得到了多少」。
+
+**根因**：舊系統只寫一筆 `kind: 'zenit'`（`500 → 390`），明細只顯示「-110z」——
+既不是買了什麼，也不是擲到多少。
+
+**修復**：結算時寫一條鏈（`creation` + `trade` + `creation`），每筆 `from` 都是前一筆的 `to`，
+明細就能逐列對帳。
+
+### 新增檔案
+
+- `src/features/character-sheet/utils/startingFunds.js` — 核心：
+  - `resolveStartingEquipment(character)`：從裝備槽與 `customWeapons` 反推購買清單，
+    只認 `BUDGET_SLOTS`（`mainHand`／`offHand`／`armor`），`cost <= 0` 跳過。
+  - `buildStartingFundsEntries({ budget, items, extraSpend, totalSpend, rollSum, dice, rollTitle, rollNote })`：
+    純函式組裝鏈，回傳 `{ entries, finalZenit, spent }`。超支走單筆合併；
+    `totalSpend > items` 的差額補一列「其他起始裝備」。
+  - `buildPrintedStartingFundsEntries(character, printedZenit)`：經典搭配用，
+    先 `rollSum: 0` 探測餘額，再用 `printed − remaining` 回推骰值（只寫 20–120 之間的 10 的倍數）。
+  - `describeStartingFundsSettlement(entries)`：把同一串履歷換成 alert 排版，
+    不維護第二份文案。
+  - `repairStartingFundsLog(character)`：五道閘門 + 自我驗證（重建後 `finalZenit === to`）。
+  - `repairRosterStartingFunds(roster)`：名冊載入時批量修舊存檔。
+- `src/features/character-sheet/data/itemDetail.js` — 從 `PurchaseModal.jsx` 抽出
+  `PURCHASE_SOURCES` 與 `describeItem`，讓純 util 能組出 catalog 形狀的物品描述。
+- `tests/startingFunds.test.mjs` — 44 條斷言（A–F 段），覆蓋裝備解析、鏈組裝、
+  開帳語意、超支／補列分支、修補閘門與 idempotence、結算說明。
+- `scratch/p11-sf-ui.mjs` — 實機 8 步（錢包金額、明細四列、2d6 說明、原書頁碼、
+  差額正負、餘額列、唯讀）。
+- `scratch/break-p11-sf.mjs` — 12 條刻意破壞（鏈斷、骰變支出、開帳硬寫 0、
+  0z 空槽進帳、修補閘門失效、自我驗證失效、alert 重複、舊記錄誤判、空值顯示、
+  經典搭配不留痕、載入不修舊檔、alert 只剩總數）。
+
+### 修改檔案
+
+- `src/features/character-sheet/components/CharacterEditor.jsx` — `handleRollStartingZenit` 重寫：
+  擲骰後呼叫 `resolveStartingEquipment` + `buildStartingFundsEntries`，一次 `appendLog` 寫入整條鏈；
+  `alert` 改走 `describeStartingFundsSettlement(entries)`。
+- `src/features/character-sheet/utils/presetApply.js` — 經典搭配套用後也寫同一條鏈
+  （`buildPrintedStartingFundsEntries`），不再只塞 `zenit` 數字。
+- `src/features/character-sheet/CharacterSheet.jsx` — roster 初始化加入
+  `repairRosterStartingFunds`，舊存檔載入即自愈。
+- `src/features/character-sheet/utils/zenitFeedback.js` —
+  `zenitChangeOf`：missing `from` 回 `{ opening: true, delta: to }`（舊行為回 `null`，整列被跳過）。
+  `buildMoneyLedger`：row 帶上 `opening` 欄位；creation 與 trade 都進明細。
+- `src/features/character-sheet/utils/characterLog.js` — `show()` 在 `zenit` + `from == null`
+  時印「開帳 `to`z」，而不是「（空） → 500」。
+- `src/features/character-sheet/components/MoneyLedgerModal.jsx` — 給 note 欄位加上
+  `data-testid={`ledger-note-${index}`}`，讓實機腳本能讀到時間與備註。
+- `src/features/character-sheet/components/PurchaseModal.jsx` — `describeItem` 與
+  `PURCHASE_SOURCES` 搬到 `data/itemDetail.js`，改為 import。
+- `tests/zenitFeedback.test.mjs` — H6-b 改為「編輯器不再寫 `kind: 'zenit'`」
+  （舊斷言 `countOf(editorSrc, "kind: 'zenit'") === 1` 已過期）；C12 補上 `opening` 對照組。
+- `package.json` — 新增 `test:startingfunds` 腳本，併入 `npm test` 鏈。
+
+### 驗證
+
+- 49 支關卡 / **6,944 條**（+60）/ 0 FAIL，EXIT=0
+- `npm run build` exit 0
+- 刻意破壞 12 / 12 全部轉紅
+- 實機 `p11-sf-ui.mjs` 8 / 8
+- 截圖：`p11-1-ledger-creation-chain.png`
+
