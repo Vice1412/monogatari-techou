@@ -284,9 +284,11 @@ export default function RuleCodexDrawer({
                         {hit.label}{hit.count > 1 ? ` · 共 ${hit.count} 處` : ''}
                       </span>
                     </span>
-                    <span className="block text-t12 text-[#6b5a4b] truncate mt-0.5">
-                      {hit.snippet}
-                    </span>
+                    {hit.snippet ? (
+                      <span className="block text-t12 text-[#6b5a4b] truncate mt-0.5">
+                        {hit.snippet}
+                      </span>
+                    ) : null}
                   </button>
                 ))
               ) : (

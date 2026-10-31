@@ -114,6 +114,20 @@ eq('C5 count 不會超過該節的欄位數', INDEX.every((e) => {
   return !hit || hit.count <= e.fields.length;
 }), true);
 
+// C6 系列：片段不得與標題重複。
+// 實機截圖抓到過「徽記／標題 · 共 34 處／徽記」——第三行就是標題本身，
+// 看起來像渲染壞掉。先留對照組（真的有節是標題命中），否則這條會恆真。
+const titleHitRows = searchCodex(INDEX, '徽記').filter((r) => r.field === 'title');
+ok('C6 對照組：搜「徽記」時真的有節是「標題」命中（否則下面那條問不到東西）',
+  titleHitRows.length > 0);
+eq('C7 標題命中時，片段不得等於標題',
+  titleHitRows.every((r) => r.snippet !== r.title), true);
+eq('C8 任何一節的片段都不得等於自己的標題',
+  ['徽記', 'MP', '阿爾卡納', '詛咒'].every((t) =>
+    searchCodex(INDEX, t).every((r) => r.snippet !== r.title)), true);
+ok('C9 對照組：內文命中時片段仍然有內容（不是把片段一律清空）',
+  searchCodex(INDEX, 'MP').some((r) => r.field !== 'title' && r.snippet.length > 0));
+
 /* ══════════════════════════════════════════════════════════════
    D. 排序：標題命中優先，其餘照原書順序
    ══════════════════════════════════════════════════════════════ */

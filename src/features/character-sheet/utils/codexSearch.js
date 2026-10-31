@@ -139,9 +139,16 @@ export const searchCodex = (index, rawTerm) => {
 
     // 命中的欄位照 `FIELD_ORDER` 排，回報最靠近「標題」的那一層：
     // 標題命中比條文命中更接近使用者想找的東西。
-    const best = hits.slice().sort(
+    const sorted = hits.slice().sort(
       (a, b) => FIELD_ORDER.indexOf(a.field) - FIELD_ORDER.indexOf(b.field)
-    )[0];
+    );
+    const best = sorted[0];
+
+    // 片段不要跟標題重複：標題命中時 `best.text` **就是標題本身**，
+    // 拿它當片段等於把標題印兩次（實機上就是「徽記／標題 · 共 34 處／徽記」，
+    // 第三行看起來像壞掉）。改取下一個非標題的命中；沒有就留空、不印那一行。
+    // 片段的作用是「幫你判斷要不要點進去」，重複標題沒有這個作用。
+    const bodyHit = best.field === 'title' ? sorted.find((f) => f.field !== 'title') : best;
 
     results.push({
       id: entry.id,
@@ -149,7 +156,7 @@ export const searchCodex = (index, rawTerm) => {
       book: entry.book,
       field: best.field,
       label: CODEX_FIELD_LABEL[best.field] || '條文',
-      snippet: snippetOf(best.text, term),
+      snippet: bodyHit ? snippetOf(bodyHit.text, term) : '',
       count: hits.length
     });
   }
