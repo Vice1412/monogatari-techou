@@ -72,7 +72,11 @@ import { resolveCreationRules } from '../data/creationRules';
 import { modeRestrictsEquipment, isTechnosphereEnabled, isSkillSuppressedByTechnospheres, getLevelUpMnemosphereCandidates, MNEMOSPHERE_MAX_LEVEL } from '../data/technospheres';
 import ZeroPowerBlock from './ZeroPowerBlock';
 import { getCharacterTheme } from '../utils/characterThemes';
-import { getDualShieldState, withHrBonus } from '../utils/equipmentRules';
+import { getDualShieldState, withHrBonus, EQUIPMENT_SLOTS } from '../utils/equipmentRules';
+// 金錢回饋（P9，2026-10-31）：判定與金額格式的唯一來源。
+// 面板只負責畫，不在這裡自己拼 `…z` 或自己算「還差多少」。
+import { formatZenit, describePurchase, findLastZenitEvent } from '../utils/zenitFeedback';
+import PurchaseModal from './PurchaseModal';
 import {
   buildCustomWeaponEntries,
   equipCustomWeapon,
@@ -413,6 +417,11 @@ export default function CharacterPlayHUD({
   // 元素碎片（2 IP）所選傷害屬性（風／電／土／火／冰，Core p.104）
   const [shardElement, setShardElement] = useState('火');
 
+  // 購買裝備（P9，2026-10-31）：跑團中買東西的**唯一**入口。
+  // 建卡時的預算制（`CharacterEditor` 的 `startingZenit` 條）不適用於跑團——
+  // 那條算的是「還沒結算的起始預算」，不是「你現在有多少錢」。
+  const [isPurchaseOpen, setIsPurchaseOpen] = useState(false);
+
   // 儀式魔法（Core p.118）效力×範圍速查計算器狀態
   const [ritualPotency, setRitualPotency] = useState('minor');
   const [ritualArea, setRitualArea] = useState('individual');
@@ -527,6 +536,21 @@ export default function CharacterPlayHUD({
   const mpDelta = useResourceDelta(curMp);
   const ipDelta = useResourceDelta(curIp);
   const expDelta = useResourceDelta(Number(character.exp) || 0);
+
+  /* ── 錢包的回饋（2026-10-31，P9）────────────────────────────────
+     上面四條是「比率型」資源，浮字飄在條子上方的空白。
+     錢包是「存量型」：它沒有上限、沒有條、卡片上也沒有空白，
+     所以浮字改成**行內版**貼在金額右側（`inline`，見 ResourceDeltaBadge）。
+
+     `?? null` 不是防禦性寫法：`useResourceDelta` 只接受真正的數字，
+     `null` 代表「不知道」→ 不畫。傳 `|| 0` 的話，舊存檔沒有 `zenit` 時
+     會浮出一個假的 `-500`（MEMORY §D.21 的空值語意）。 */
+  const zenitDelta = useResourceDelta(character.zenit ?? null);
+
+  /* 最近一筆動到錢的履歷（推導，零寫入）。
+     錢包卡只說「現在有多少」，它不說「為什麼是這個數字」。
+     這一筆就是那句話——而且它對舊存檔一樣有效，因為它讀的是既有的 `log`。 */
+  const lastZenitEvent = useMemo(() => findLastZenitEvent(character.log), [character.log]);
 
   /* ── 角色檔案（2026-10-30，P5-b）────────────────────────────────
      性別與背景是玩家自己寫的散文，跑團時卻一次都看不到。
@@ -643,6 +667,57 @@ export default function CharacterPlayHUD({
       title: delta < 0 ? '支出資金' : '獲得資金',
       changes: [{ field: 'zenit', from: cur, to: next }]
     });
+  };
+
+  /**
+   * 購入一件裝備（P9，2026-10-31）。
+   *
+   * 這是「錢」第一次真的參與一件事：**扣款、入袋、留痕在同一次寫入裡完成**。
+   * 三個欄位（`zenit`／`equipment`／`log`）分兩次 `onChange` 會出兩種事：
+   * 第二次讀到的是這一輪開始前的角色（MEMORY §D.24），於是「UI 扣了 200、
+   * 存檔只扣一次」或「裝備進去了、錢沒扣」。
+   *
+   * 判定用 `describePurchase`（與畫面上那行算式同一個函式）——
+   * **事前提示與事後守衛必須是同一句話**，否則會出現「按鈕說買得起、
+   * 按下去說錢不夠」。
+   */
+  const handlePurchase = (item, { equip = false } = {}) => {
+    const before = characterRef.current;
+    const wallet = before.zenit;
+    const gate = describePurchase({ price: item?.cost, wallet });
+
+    // 只有「確定付得起」才結帳。`null`（錢包金額未記錄）也擋——
+    // 扣款需要算術，算不出來就不能寫入；但文案不同（見 PurchaseModal）。
+    if (gate.affordable !== true) {
+      showToast(gate.shortText ? `資金不足：${gate.shortText}` : '錢包金額尚未記錄，無法結帳', 'warning');
+      return;
+    }
+
+    const nextZenit = Math.max(0, (Number(wallet) || 0) - item.cost);
+    const nextEquipment = equip && item.slot
+      ? { ...(before.equipment || {}), [item.slot]: item.name }
+      : (before.equipment || {});
+
+    const slotLabel = equip && item.slot ? (EQUIPMENT_SLOTS[item.slot]?.label || '') : '';
+    const base = {
+      ...before,
+      zenit: nextZenit,
+      equipment: nextEquipment,
+      updatedAt: new Date().toISOString()
+    };
+
+    commit(loggableChange(before, base, {
+      // `trade` 而不是 `zenit`：這是事件，不是雜訊（見 characterLog.js 的說明）。
+      kind: 'trade',
+      // 標題**不寫金額**：履歷的 changes 那一行已經印「資金 500 → 350」，
+      // 而錢包下方的交易條會把差額另外印一次。三處都寫 -150z 等於同一個數字講三次。
+      title: `購入 ${item.name}`,
+      note: slotLabel ? `裝備到${slotLabel}` : '',
+      changes: [{ field: 'zenit', from: Number(wallet) || 0, to: nextZenit }]
+    }));
+
+    setIsPurchaseOpen(false);
+    showToast(`購入【${item.name}】-${formatZenit(item.cost)}，餘 ${formatZenit(nextZenit)}`, 'success');
   };
 
   const adjustFp = (delta) => {
@@ -2284,14 +2359,18 @@ export default function CharacterPlayHUD({
 
               {/* Zenit & Fabula Points Side by Side */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
+                <div data-testid="wallet-card" className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
                   <div className="flex items-center justify-between text-xs mb-1">
                     <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
                       <GiCoins className="w-3.5 h-3.5 text-[#6b5a4b]" />
                       金幣錢包
                     </span>
-                    <span className="font-mono font-black text-xs text-[#3c2415]">
-                      {character.zenit || 0} z
+                    <span className="flex items-baseline gap-1 shrink-0">
+                      <span data-testid="wallet-amount" className="tabular-nums font-black text-xs text-[#3c2415]">
+                        {formatZenit(character.zenit || 0)}
+                      </span>
+                      {/* 行內浮字：卡片上沒有空白可以讓浮字飄，所以貼在金額右側 */}
+                      <ResourceDeltaBadge flash={zenitDelta} inline className="text-t10" />
                     </span>
                   </div>
                   <div className="flex items-center gap-1 mt-1">
@@ -2325,6 +2404,46 @@ export default function CharacterPlayHUD({
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* 資金交易條（P9）：左邊是「最近一筆資金事件」，右邊是唯一的購買入口。
+                  兩件事放同一條，是因為它們回答同一個問題——「我的錢剛剛發生什麼事／還能做什麼」。
+                  `lastZenitEvent` 從履歷推導（`findLastZenitEvent`），不新增任何欄位；
+                  沒有記錄時不是空白，而是「尚無交易記錄」＋同一顆按鈕，
+                  否則玩家永遠不知道錢包是可以花錢的地方。 */}
+              <div
+                data-testid="wallet-trade-strip"
+                className="bg-[#fbf7ee] border rounded px-2.5 py-1.5 flex items-center justify-between gap-2"
+                style={{ borderColor: theme.border }}
+              >
+                <span className="flex items-baseline gap-1.5 min-w-0 text-t10">
+                  <GiCoins className="w-3 h-3 text-[#6b5a4b] shrink-0 self-center" />
+                  {lastZenitEvent ? (
+                    <>
+                      <span className="truncate text-[#3c2415]" title={lastZenitEvent.title}>
+                        {lastZenitEvent.title}
+                      </span>
+                      <span
+                        data-testid="wallet-last-delta"
+                        className="shrink-0 tabular-nums font-black"
+                        style={{ color: lastZenitEvent.delta < 0 ? '#8c3235' : '#245c45' }}
+                      >
+                        {lastZenitEvent.deltaText}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-[#6b5a4b]">尚無交易記錄</span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  data-testid="open-purchase"
+                  onClick={() => setIsPurchaseOpen(true)}
+                  className="shrink-0 px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t10 flex items-center gap-1 transition-colors"
+                >
+                  <GiCoins className="w-3 h-3 text-[#6b5a4b]" />
+                  購入裝備
+                </button>
               </div>
             </div>
           </div>
@@ -3864,7 +3983,25 @@ export default function CharacterPlayHUD({
           {activeTab === 'notes' && (
             <div className="space-y-4 animate-fade-in text-xs">
               <div className="p-3.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-2">
-                <span className="font-bold text-[#3c2415] block">冒險者行囊物品與武裝</span>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="font-bold text-[#3c2415] block">冒險者行囊物品與武裝</span>
+                  {/* 錢要出現在「做決定的地方」：這裡是看裝備的分頁，
+                      所以餘額與購買入口都放這裡，而不是只留在主面板。 */}
+                  <span className="flex items-center gap-2">
+                    <span data-testid="pack-wallet" className="tabular-nums font-black text-t11 text-[#3c2415]">
+                      錢包 {formatZenit(character.zenit || 0)}
+                    </span>
+                    <button
+                      type="button"
+                      data-testid="pack-purchase"
+                      onClick={() => setIsPurchaseOpen(true)}
+                      className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t10 flex items-center gap-1 transition-colors"
+                    >
+                      <GiCoins className="w-3 h-3 text-[#6b5a4b]" />
+                      購入
+                    </button>
+                  </span>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[#3c2415] font-mono">
                   <div>主手武器: <strong>{character.equipment?.mainHand || '空手'}</strong></div>
                   <div>副手武裝: <strong>{character.equipment?.offHand || '無'}</strong></div>
@@ -3888,6 +4025,16 @@ export default function CharacterPlayHUD({
           </ErrorBoundary>
         </div>
       </div>
+
+      {/* MODAL 0: 購買裝備（P9）——錢包 → 價格 → 算式 → 扣款 → 履歷，同一條路 */}
+      <PurchaseModal
+        isOpen={isPurchaseOpen}
+        onClose={() => setIsPurchaseOpen(false)}
+        theme={theme}
+        character={character}
+        wallet={character.zenit}
+        onConfirm={handlePurchase}
+      />
 
       {/* MODAL 1: Spell Picker / Learner Modal */}
       <JRPGModal

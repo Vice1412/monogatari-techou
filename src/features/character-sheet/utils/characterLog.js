@@ -62,7 +62,17 @@ export const LOG_KINDS = Object.freeze({
   // 只記大成功／大失敗與玩家手動標記的那幾擲，不是每一擲都記——
   // 全記會把履歷淹掉，那正是 `coalesce` 想解決的同一種雜訊。
   // `coalesce: 0`：兩次擲骰即使相隔 1 秒也是兩件事，合併會吃掉「哪一次大成功」。
-  dice: { label: '擲骰', icon: 'GiRollingDices', coalesce: 0 }
+  dice: { label: '擲骰', icon: 'GiRollingDices', coalesce: 0 },
+  // ── 2026-10-31 新增：交易（P9） ──
+  // **`zenit` 與 `trade` 是同一個欄位的兩種語意，不是同一種東西。**
+  // `zenit` 是「手動微調錢包」——連按四下 `-1` 是雜訊，合併成一筆才看得下去；
+  // `trade` 是「買了一件東西」——每一次都是獨立事件，標題帶品名，
+  // 合併會吃掉「我到底買了哪三樣」。
+  //
+  // 判準與 `dice` 相同：**合併是給雜訊用的，不是給事件用的。**
+  // 兩者都寫 `field: 'zenit'` 的 change，所以 `summarizeLog` 的
+  // `zenitDelta` 不必改一行——統計看的是欄位，敘事看的是 kind。
+  trade: { label: '交易', icon: 'GiTakeMyMoney', coalesce: 0 }
 });
 
 /** 欄位顯示名（`formatChange` 用） */

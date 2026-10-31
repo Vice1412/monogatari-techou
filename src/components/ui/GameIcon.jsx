@@ -46,6 +46,9 @@ import {
   GiFireRay,
   GiCrownCoin,
   GiTwoCoins,
+  // 交易（P9）：履歷的 `trade` kind 用它。沒有登記的話 `GameIcon` 會**安靜地**
+  // 退回 `GiSparkles`——圖示錯了，但沒有任何東西會紅。
+  GiTakeMyMoney,
 
   // Bond Feelings
   GiBrokenHeart,
@@ -242,6 +245,10 @@ export const GAME_ICONS_MAP = {
 
   // Direct Game-Icons.net component names support
   GiTwoCoins,
+  // 交易（P9）：`LOG_KINDS.trade.icon` 用的是**元件名**，不是語意 key，
+  // 所以它必須登記在這裡。少了這一行的話 `GameIcon` 會安靜地退回 GiSparkles，
+  // 而 `tests/characterLog.test.mjs` 的「每個 LOG_KINDS 圖示都登記了」會紅。
+  GiTakeMyMoney,
   GiPsychicWaves,
   GiFireRay,
   GiCrownCoin,
@@ -301,6 +308,8 @@ export const GAME_ICONS_MAP = {
   backpack: GiBackpack,
   zenit: GiCoins,
   coins: GiCoins,
+  trade: GiTakeMyMoney,
+  buy: GiTakeMyMoney,
   fabula: GiSparkles,
   sparkles: GiSparkles,
   exp: GiUpgrade,

@@ -122,8 +122,33 @@ export function useResourceDelta(value, { holdMs = DELTA_FLASH_MS } = {}) {
  * `aria-hidden`：這個數字是**視覺上的重複**。真正的值在旁邊那顆有 `aria-label`
  * 的輸入框裡，而且已經變了；再讓螢幕閱讀器把每個 ±1 唸一遍，只會蓋掉它真正要聽的內容。
  */
-export function ResourceDeltaBadge({ flash, className = '' }) {
+export function ResourceDeltaBadge({ flash, className = '', inline = false }) {
   if (!flash) return null;
+
+  // ── 行內版（P9，2026-10-31）──
+  // 錢包卡沒有「條」，也就沒有可以讓浮字飄過去的空白：卡片是
+  // 「標頭（名稱 ←→ 金額）」＋「步進器」兩行，兩行都塞滿了字。
+  // 照浮字版放上去，`-200` 會正好壓在金額上——那正是 P5 踩過的坑
+  // （`-8` 壓在 `42 / 50` 上，測試全綠、看起來壞掉）。
+  //
+  // 所以同一支元件出第二種形態：**在流內、緊貼金額右側**。
+  // 它不飄，改成金額自己動（`animate-resource-delta` 的縮放）。
+  // 動畫名字刻意相同：同一個「剛剛變了多少」的語彙，不因為容器形狀換一種說法。
+  if (inline) {
+    return (
+      <span
+        key={flash.key}
+        aria-hidden="true"
+        data-testid="resource-delta"
+        data-tone={flash.tone}
+        className={`animate-resource-delta pointer-events-none inline-block font-mono font-black leading-none ${className}`}
+        style={{ color: flash.tone === 'gain' ? '#245c45' : '#8c3235' }}
+      >
+        {flash.text}
+      </span>
+    );
+  }
+
   return (
     // 外層只負責「定位 ＋ 置中」，寬度是整條；內層才是那個看得見的數字。
     // 分兩層是必要的：`data-testid` 掛在外層的話，它的外框是**整條 bar 的寬度**，

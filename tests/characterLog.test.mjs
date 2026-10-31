@@ -66,8 +66,8 @@ check('每一種 kind 都有 label／icon／coalesce',
   Object.entries(LOG_KINDS).filter(([, v]) =>
     typeof v.label !== 'string' || typeof v.icon !== 'string' || typeof v.coalesce !== 'number'
   ).map(([k]) => k), []);
-check('kind 數量（原本 13 種 ＋ 羈絆／命刻／營地／場次 ＝ 17 ＋ 擲骰 ＝ 18）',
-  Object.keys(LOG_KINDS).length, 18);
+check('kind 數量（原本 13 種 ＋ 羈絆／命刻／營地／場次 ＝ 17 ＋ 擲骰 ＝ 18 ＋ 交易 ＝ 19）',
+  Object.keys(LOG_KINDS).length, 19);
 // 不能只把 13 改成 17：原本那 13 種一個都不能消失，否則有人刪掉一條，
 // 「總數 17」照樣成立，而那一類事件從此靜默不記錄（2026-10-30 真的發生過）。
 check('原本的 13 種一個都沒消失',
@@ -79,6 +79,13 @@ check('新增的四種（長期跑團的敘事事件）都在',
 // 同樣逐一點名——只把 17 改成 18 的話，有人刪掉 dice 再補一個別的，總數照樣成立。
 check('擲骰（dice）在詞彙表裡',
   ['dice'].filter((k) => !LOG_KINDS[k]), []);
+// 2026-10-31：交易（P9）。同一個欄位（`zenit`）的兩種語意——
+// `zenit` 是手動微調（雜訊，合併），`trade` 是買了一件東西（事件，不合併）。
+// 逐一點名照舊：只把 18 改成 19 的話，有人刪掉 trade 再補一個別的，總數照樣成立。
+check('交易（trade）在詞彙表裡，而且不合併',
+  [['trade'].filter((k) => !LOG_KINDS[k]), LOG_KINDS.trade.coalesce], [[], 0]);
+check('對照組：zenit 仍然合併（雜訊不該變成事件）',
+  LOG_KINDS.zenit.coalesce > 0, true);
 check('未登記的 kind 一律拒收',
   createLogEntry({ kind: '不存在的種類', title: 'x' }), null);
 check('未登記的 kind 不會寫進角色',

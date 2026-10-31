@@ -196,11 +196,27 @@ const hudSrc = stripComments(
 eq('E1 面板用了四條 GaugeBar', countOf(hudSrc, '<GaugeBar'), 4);
 eq('E2 四條各有具名 testId',
   ['gauge-hp', 'gauge-mp', 'gauge-ip', 'gauge-exp'].map((id) => countOf(hudSrc, `testId="${id}"`)), [1, 1, 1, 1]);
-eq('E3 四條都掛了浮字', countOf(hudSrc, '<ResourceDeltaBadge'), 4);
-eq('E4 四個浮字各吃自己的值',
+eq('E3 四個浮字各吃自己的值',
   ['hpDelta', 'mpDelta', 'ipDelta', 'expDelta'].map((v) => countOf(hudSrc, `flash={${v}}`)), [1, 1, 1, 1]);
-eq('E5 四支 hook 都真的被呼叫了（不是宣告了沒用）',
+// 2026-10-31（P9）：浮字從四條變成五條，第五條是**錢包**。
+//
+// 為什麼要改這條斷言：原本寫死 `4`，而錢包是「存量型」資源——它沒有條，
+// 所以它不在 E1／E2 的「四條資源條」清單裡，但它同樣需要「剛剛變了多少」。
+// 這是 MEMORY §C10 的第二類紅燈（斷言一直在記錄舊行為），不是回歸。
+//
+// 為什麼不是只把 4 改成 5（MEMORY §C11）：只改數字的話，有人刪掉「HP 浮字」、
+// 再隨便補一個新的浮字，這裡仍然是綠的——它守的其實是「那四條一條都沒消失」。
+// 所以改成**逐一點名**，另外用一條總數擋「多掛了沒人決定的第六個」。
+eq('E3-b 五個浮字逐一掛在正確的值上（含錢包）', [
+  'flash={hpDelta}', 'flash={mpDelta}', 'flash={ipDelta}', 'flash={expDelta}', 'flash={zenitDelta}'
+].map((v) => countOf(hudSrc, v)), [1, 1, 1, 1, 1]);
+eq('E3-c 浮字總數恰為五個（第六個要有人決定）', countOf(hudSrc, '<ResourceDeltaBadge'), 5);
+eq('E4 四支 hook 都真的被呼叫了（不是宣告了沒用）',
   ['curHp', 'curMp', 'curIp'].map((v) => countOf(hudSrc, `useResourceDelta(${v})`)), [1, 1, 1]);
+// 錢包那支吃的是 `character.zenit ?? null`，不是 `|| 0`——
+// `|| 0` 會讓「不知道有多少錢」變成「有 0 元」，於是浮出一個假的 -500。
+eq('E4-b 錢包的 hook 傳的是 null 而不是 0（空值語意）',
+  countOf(hudSrc, 'useResourceDelta(character.zenit ?? null)'), 1);
 
 const renderHud = (character, props = {}) =>
   renderToStaticMarkup(
