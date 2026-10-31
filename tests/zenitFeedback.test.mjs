@@ -285,10 +285,19 @@ eq('H3 兩個購買入口（主面板的錢包條 ＋ 行囊分頁）',
   [countOf(hudSrc, 'data-testid="open-purchase"'), countOf(hudSrc, 'data-testid="pack-purchase"')], [1, 1]);
 eq('H4 行囊分頁看得到餘額（錢要出現在做決定的地方）',
   countOf(hudSrc, 'data-testid="pack-wallet"'), 1);
+// H5／H6 在 P9-b 改寫過：結帳從元件搬進 `utils/moneyFlow.js`（三個入口共用）。
+// 原本守的是「結帳走 describePurchase」與「交易記成 trade 不是 zenit」——
+// 兩件事都還在守，只是**權威搬了家**，所以斷言也跟著搬：
+// 只驗 HUD 的話，`applyPurchase` 被改壞時這裡不會紅。
+const moneyFlowSrc = readSrc('src/features/character-sheet/utils/moneyFlow.js');
 eq('H5 結帳走 describePurchase（與畫面上的算式同一個函式）',
-  countOf(hudSrc, 'describePurchase({ price: item?.cost, wallet })'), 1);
-eq('H6 交易記成 trade，不是 zenit（事件 vs 雜訊）',
-  [countOf(hudSrc, "kind: 'trade'"), countOf(hudSrc, "kind: 'zenit'")], [1, 1]);
+  [countOf(hudSrc, 'applyPurchase(before, item, {'),
+   countOf(moneyFlowSrc, 'describePurchase({ price: item?.cost, wallet: before.zenit })')],
+  [1, 1]);
+// 兩邊都要在：`trade` 是事件（不合併），`zenit` 是手動微調（合併）。
+// 只驗其中一邊的話，把 `trade` 改回 `zenit` 仍然會過。
+eq('H6 交易記成 trade（事件），手動微調仍是 zenit（雜訊）',
+  [countOf(moneyFlowSrc, "kind: 'trade'"), countOf(hudSrc, "kind: 'zenit'")], [2, 1]);
 eq('H7 最近一筆由履歷推導（不新增欄位）',
   countOf(hudSrc, 'findLastZenitEvent(character.log)'), 1);
 eq('H8 不新增任何持久欄位（沒有 lastTrade／walletLog）',

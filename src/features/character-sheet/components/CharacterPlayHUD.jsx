@@ -30,7 +30,8 @@ import {
   GiCheckMark,
   GiCycle,
   GiLaurelCrown,
-  GiCampfire
+  GiCampfire,
+  GiTakeMyMoney
 } from 'react-icons/gi';
 import GameIcon from '../../../components/ui/GameIcon';
 import EmptyState from '../../../components/ui/EmptyState';
@@ -72,11 +73,16 @@ import { resolveCreationRules } from '../data/creationRules';
 import { modeRestrictsEquipment, isTechnosphereEnabled, isSkillSuppressedByTechnospheres, getLevelUpMnemosphereCandidates, MNEMOSPHERE_MAX_LEVEL } from '../data/technospheres';
 import ZeroPowerBlock from './ZeroPowerBlock';
 import { getCharacterTheme } from '../utils/characterThemes';
-import { getDualShieldState, withHrBonus, EQUIPMENT_SLOTS } from '../utils/equipmentRules';
+import { getDualShieldState, withHrBonus, EQUIPMENT_SLOTS, applyEquipmentChoice } from '../utils/equipmentRules';
 // 金錢回饋（P9，2026-10-31）：判定與金額格式的唯一來源。
 // 面板只負責畫，不在這裡自己拼 `…z` 或自己算「還差多少」。
 import { formatZenit, describePurchase, findLastZenitEvent } from '../utils/zenitFeedback';
+// 寫入層（P9-b）：扣款 → 換裝備 → 留履歷必須同一次寫入。
+// 編輯器、購買面板、收支對話框三個入口共用同一支，否則它們總有一天會算出不同的錢。
+import { applyPurchase, applyMoneyFlow, describeMoneyToast } from '../utils/moneyFlow';
 import PurchaseModal from './PurchaseModal';
+import MoneyFlowModal from './MoneyFlowModal';
+import EquipmentSlotModal from './EquipmentSlotModal';
 import {
   buildCustomWeaponEntries,
   equipCustomWeapon,
@@ -422,6 +428,15 @@ export default function CharacterPlayHUD({
   // 那條算的是「還沒結算的起始預算」，不是「你現在有多少錢」。
   const [isPurchaseOpen, setIsPurchaseOpen] = useState(false);
 
+  // 收支（P9-b）：住宿、餐費、報酬……**有原因**的金錢流動。
+  // 與購買面板分開，因為那裡只有「買裝備」一種原因，而跑團中花錢的地方遠多於裝備。
+  const [isMoneyFlowOpen, setIsMoneyFlowOpen] = useState(false);
+
+  // 行囊分頁的單槽選擇器（P9-b）：`null` ＝ 關著，其餘是槽位鍵。
+  // 存「哪一個槽」而不是「開著還是關著」，因為四顆按鈕共用同一個彈窗，
+  // 而標題與清單都取決於槽位——兩個 state 會有一天不同步。
+  const [slotPicker, setSlotPicker] = useState(null);
+
   // 儀式魔法（Core p.118）效力×範圍速查計算器狀態
   const [ritualPotency, setRitualPotency] = useState('minor');
   const [ritualArea, setRitualArea] = useState('individual');
@@ -552,6 +567,14 @@ export default function CharacterPlayHUD({
      這一筆就是那句話——而且它對舊存檔一樣有效，因為它讀的是既有的 `log`。 */
   const lastZenitEvent = useMemo(() => findLastZenitEvent(character.log), [character.log]);
 
+  /* 武器名 → 武器定義。只給「雙手武器佔滿兩個手部欄位」這一條規則用。
+     定制武器也要進來，否則在跑團面板買一把自己鍛的雙手武器時，副手不會被清空
+     ——而那正是玩家最可能買的一把（他特地鍛的）。 */
+  const weaponByName = useMemo(() => new Map([
+    ...((rulesData.equipment?.weapons) || []).map((weapon) => [weapon.name, weapon]),
+    ...buildCustomWeaponEntries(character).map((weapon) => [weapon.name, weapon])
+  ]), [character]);
+
   /* ── 角色檔案（2026-10-30，P5-b）────────────────────────────────
      性別與背景是玩家自己寫的散文，跑團時卻一次都看不到。
      這裡只**讀**：`buildDossier` 沒有任何 setter，要改請去「構築與成長」第 6 步。 */
@@ -677,47 +700,127 @@ export default function CharacterPlayHUD({
    * 第二次讀到的是這一輪開始前的角色（MEMORY §D.24），於是「UI 扣了 200、
    * 存檔只扣一次」或「裝備進去了、錢沒扣」。
    *
-   * 判定用 `describePurchase`（與畫面上那行算式同一個函式）——
-   * **事前提示與事後守衛必須是同一句話**，否則會出現「按鈕說買得起、
-   * 按下去說錢不夠」。
+   * 實際的算術與履歷格式都在 `applyPurchase`（P9-b 抽出去的純函式）——
+   * 編輯器的「已定稿角色換裝備」走的是同一支。這個函式只負責
+   * **讀最新的角色 → 存檔 → 關窗 → 說話**。
    */
   const handlePurchase = (item, { equip = false } = {}) => {
     const before = characterRef.current;
-    const wallet = before.zenit;
-    const gate = describePurchase({ price: item?.cost, wallet });
+    const result = applyPurchase(before, item, {
+      equip,
+      slotLabel: equip && item?.slot ? (EQUIPMENT_SLOTS[item.slot]?.label || '') : '',
+      // 雙手武器換上主手時副手必須空出（Core p.126）。這條判定住在 `equipmentRules`，
+      // 由呼叫端傳進來——否則同一條規則會有兩份實作。
+      resolveEquipment: (equipment, slot, name) => applyEquipmentChoice(equipment, slot, name, weaponByName)
+    });
 
-    // 只有「確定付得起」才結帳。`null`（錢包金額未記錄）也擋——
-    // 扣款需要算術，算不出來就不能寫入；但文案不同（見 PurchaseModal）。
-    if (gate.affordable !== true) {
-      showToast(gate.shortText ? `資金不足：${gate.shortText}` : '錢包金額尚未記錄，無法結帳', 'warning');
+    // `ok: false` 只有兩種原因（買不起／錢包未記錄），兩種都要說話。
+    // 說「買不起」與說「不知道你有多少錢」是兩件事，所以文案從 `gate` 來。
+    if (!result.ok) {
+      const gate = result.gate || describePurchase({ price: item?.cost, wallet: before.zenit });
+      showToast(
+        gate.shortText ? `資金不足：${gate.shortText}` : '錢包金額尚未記錄，無法結帳',
+        'warning'
+      );
       return;
     }
 
-    const nextZenit = Math.max(0, (Number(wallet) || 0) - item.cost);
-    const nextEquipment = equip && item.slot
-      ? { ...(before.equipment || {}), [item.slot]: item.name }
-      : (before.equipment || {});
-
-    const slotLabel = equip && item.slot ? (EQUIPMENT_SLOTS[item.slot]?.label || '') : '';
-    const base = {
-      ...before,
-      zenit: nextZenit,
-      equipment: nextEquipment,
-      updatedAt: new Date().toISOString()
-    };
-
-    commit(loggableChange(before, base, {
-      // `trade` 而不是 `zenit`：這是事件，不是雜訊（見 characterLog.js 的說明）。
-      kind: 'trade',
-      // 標題**不寫金額**：履歷的 changes 那一行已經印「資金 500 → 350」，
-      // 而錢包下方的交易條會把差額另外印一次。三處都寫 -150z 等於同一個數字講三次。
-      title: `購入 ${item.name}`,
-      note: slotLabel ? `裝備到${slotLabel}` : '',
-      changes: [{ field: 'zenit', from: Number(wallet) || 0, to: nextZenit }]
-    }));
-
+    commit(result.character);
     setIsPurchaseOpen(false);
-    showToast(`購入【${item.name}】-${formatZenit(item.cost)}，餘 ${formatZenit(nextZenit)}`, 'success');
+    // 同一支也會被行囊分頁的單槽選擇器呼叫；兩個彈窗都關，避免「買完之後
+    // 底下的選擇器還開著、而且還停在舊的槽位」。
+    setSlotPicker(null);
+    // 一句話講完三件事：買了什麼 → 錢動多少 → 還剩多少。
+    // 副手被清掉時要另外說：那是玩家沒有要求、但規則替他做了的改動。
+    const toast = describeMoneyToast(result);
+    showToast(
+      result.cleared
+        ? `${toast}（副手「${result.cleared}」已卸下——雙手武器佔滿兩個手部欄位）`
+        : toast,
+      'success'
+    );
+  };
+
+  /**
+   * 記一筆收支（P9-b）：住宿、餐費、報酬……**原因必填**。
+   *
+   * 與購買的差別只在「錢從哪來／為什麼走」，寫入路徑完全一樣（都走 `applyMoneyFlow`／
+   * `applyPurchase` → `loggableChange`），所以履歷上不會出現兩種記帳法。
+   */
+  const handleMoneyFlow = (input) => {
+    const before = characterRef.current;
+    const result = applyMoneyFlow(before, input);
+
+    if (!result.ok) {
+      // 三個欄位的錯誤各有各的話；這裡只挑第一個非空的說，因為 toast 只有一行。
+      const errors = result.flow?.errors || {};
+      const first = errors.amount || errors.reason || errors.wallet;
+      showToast(first || '這筆收支還沒填完', 'warning');
+      return;
+    }
+
+    commit(result.character);
+    setIsMoneyFlowOpen(false);
+    showToast(describeMoneyToast(result), 'success');
+  };
+
+  /**
+   * 行囊分頁換裝（P9-b）。
+   *
+   * 兩種情況分開處理，因為它們**不是同一件事**：
+   *   - 已持有（在別的槽）→ 只是換位置。收第二次錢會讓「守護者把盾從副手換到主手」
+   *     變成一個要付費的動作，而玩家其實一件東西都沒買。
+   *   - 沒有 → 走 `handlePurchase`，與購買面板完全同一條路（含買不起的擋法）。
+   *
+   * 換位置用 `kind: 'equipment'`（不合併、標題帶品名），
+   * 而不是 `trade`——履歷上的「交易」必須真的動到錢。
+   */
+  const handleEquipFromPack = (item, { owned = false } = {}) => {
+    const before = characterRef.current;
+
+    if (!owned) {
+      handlePurchase(item, { equip: true });
+      return;
+    }
+
+    const slotLabel = EQUIPMENT_SLOTS[item.slot]?.label || '';
+    const equipment = { ...(before.equipment || {}) };
+
+    // 同一件東西不得同時佔兩個槽：從原本那個槽拿下來。
+    // 不這樣做的話，「換到主手」之後副手還留著同一個名字，而畫面上兩格都說有盾。
+    Object.keys(EQUIPMENT_SLOTS).forEach((key) => {
+      if (key !== item.slot && equipment[key] === item.name) {
+        equipment[key] = EQUIPMENT_SLOTS[key].emptyValue;
+      }
+    });
+
+    // 再過一次規則層：這一件若是雙手武器，副手仍然要空出。
+    const { equipment: finalEquipment, clearedOffHand } = applyEquipmentChoice(
+      equipment,
+      item.slot,
+      item.name,
+      weaponByName
+    );
+
+    const from = before.equipment?.[item.slot] || '';
+    const changes = [{ field: item.slot, from, to: item.name }];
+    if (clearedOffHand) {
+      changes.push({ field: 'offHand', from: clearedOffHand, to: '無盾牌' });
+    }
+
+    commit(loggableChange(
+      before,
+      { ...before, equipment: finalEquipment, updatedAt: new Date().toISOString() },
+      {
+        kind: 'equipment',
+        title: `換上 ${item.name}`,
+        note: `裝備到${slotLabel}`,
+        changes
+      }
+    ));
+
+    setSlotPicker(null);
+    showToast(`${item.name} 已換到${slotLabel}（已持有的裝備，不另收費）`, 'success');
   };
 
   const adjustFp = (delta) => {
@@ -2435,15 +2538,30 @@ export default function CharacterPlayHUD({
                     <span className="text-[#6b5a4b]">尚無交易記錄</span>
                   )}
                 </span>
-                <button
-                  type="button"
-                  data-testid="open-purchase"
-                  onClick={() => setIsPurchaseOpen(true)}
-                  className="shrink-0 px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t10 flex items-center gap-1 transition-colors"
-                >
-                  <GiCoins className="w-3 h-3 text-[#6b5a4b]" />
-                  購入裝備
-                </button>
+                <span className="shrink-0 flex items-center gap-1">
+                  {/* 兩個入口，因為它們回答兩個不同的問題：
+                      「我要買東西」與「我剛剛花了一筆錢」。後者才是跑團中最常發生的
+                      ——住宿、餐費、情報都不在裝備表上，只走購買面板等於逼玩家
+                      為一碗湯去裝備表裡找一件不存在的東西。 */}
+                  <button
+                    type="button"
+                    data-testid="open-money-flow"
+                    onClick={() => setIsMoneyFlowOpen(true)}
+                    className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t10 flex items-center gap-1 transition-colors"
+                  >
+                    <GiTakeMyMoney className="w-3 h-3 text-[#6b5a4b]" />
+                    收支
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="open-purchase"
+                    onClick={() => setIsPurchaseOpen(true)}
+                    className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t10 flex items-center gap-1 transition-colors"
+                  >
+                    <GiCoins className="w-3 h-3 text-[#6b5a4b]" />
+                    購入裝備
+                  </button>
+                </span>
               </div>
             </div>
           </div>
@@ -3993,6 +4111,15 @@ export default function CharacterPlayHUD({
                     </span>
                     <button
                       type="button"
+                      data-testid="pack-money-flow"
+                      onClick={() => setIsMoneyFlowOpen(true)}
+                      className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t10 flex items-center gap-1 transition-colors"
+                    >
+                      <GiTakeMyMoney className="w-3 h-3 text-[#6b5a4b]" />
+                      收支
+                    </button>
+                    <button
+                      type="button"
                       data-testid="pack-purchase"
                       onClick={() => setIsPurchaseOpen(true)}
                       className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t10 flex items-center gap-1 transition-colors"
@@ -4002,11 +4129,36 @@ export default function CharacterPlayHUD({
                     </button>
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[#3c2415] font-mono">
-                  <div>主手武器: <strong>{character.equipment?.mainHand || '空手'}</strong></div>
-                  <div>副手武裝: <strong>{character.equipment?.offHand || '無'}</strong></div>
-                  <div>防具裝甲: <strong>{character.equipment?.armor || '無'}</strong></div>
-                  <div>佩戴飾品: <strong>{character.equipment?.accessory || '無'}</strong></div>
+                {/* 四個槽位改成按鈕（P9-b）。
+                    原本是四行唯讀文字——看得到、換不了，唯一的換裝入口在編輯器，
+                    而編輯器是「建卡的地方」。跑團中要換裝備不該先離開跑團面板。
+                    每一格都標「換」，因為一格空白（未裝備）與一格滿的長得一樣，
+                    沒有動詞就沒有人會去點它。 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {Object.keys(EQUIPMENT_SLOTS).map((slotKey) => {
+                    const slotMeta = EQUIPMENT_SLOTS[slotKey];
+                    const value = character.equipment?.[slotKey];
+                    return (
+                      <button
+                        key={slotKey}
+                        type="button"
+                        data-testid={`pack-slot-${slotKey}`}
+                        onClick={() => setSlotPicker(slotKey)}
+                        title={`更換${slotMeta.label}`}
+                        className="group w-full text-left px-2 py-1.5 rounded border border-[#e8dcc4] bg-[#fffdf9] hover:border-[#3c2415]/40 hover:bg-[#f4ebd9] transition-colors flex items-center justify-between gap-2"
+                      >
+                        <span className="min-w-0">
+                          <span className="block text-t10 text-[#6b5a4b]">{slotMeta.label}</span>
+                          <span className={`block font-bold truncate ${value ? 'text-[#3c2415]' : 'text-[#7c6a58]'}`}>
+                            {value || slotMeta.emptyValue}
+                          </span>
+                        </span>
+                        <span className="shrink-0 text-t10 text-[#6b5a4b] group-hover:text-[#3c2415] font-bold">
+                          換
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -4034,6 +4186,27 @@ export default function CharacterPlayHUD({
         character={character}
         wallet={character.zenit}
         onConfirm={handlePurchase}
+      />
+
+      {/* MODAL 0-b: 收支（P9-b）——住宿、餐費、報酬……原因必填 */}
+      <MoneyFlowModal
+        isOpen={isMoneyFlowOpen}
+        onClose={() => setIsMoneyFlowOpen(false)}
+        theme={theme}
+        character={character}
+        wallet={character.zenit}
+        onConfirm={handleMoneyFlow}
+      />
+
+      {/* MODAL 0-c: 單槽換裝（P9-b）——行囊分頁的四個槽共用這一個彈窗 */}
+      <EquipmentSlotModal
+        isOpen={slotPicker !== null}
+        onClose={() => setSlotPicker(null)}
+        theme={theme}
+        character={character}
+        slot={slotPicker}
+        wallet={character.zenit}
+        onConfirm={handleEquipFromPack}
       />
 
       {/* MODAL 1: Spell Picker / Learner Modal */}

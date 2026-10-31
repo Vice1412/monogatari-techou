@@ -178,3 +178,117 @@ export const findLastZenitEvent = (log) => {
 
   return null;
 };
+
+/* ─────────────────────────────────────────────────────────────
+   收支：有原因的金錢流動（P9-b，2026-10-31）
+
+   上一輪（§CI67）只補了「買裝備」。但跑團中花錢的地方遠多於買裝備：
+   住宿、餐費、賄賂、修裝、情報……這些原本只能按 `−N`，**沒有原因**。
+   而沒有原因的支出在履歷上長得一模一樣：「支出資金 350 → 300」。
+
+   所以這一節處理的是「有原因」的那一半：
+   - 金額與原因都要能判定（空字串不是 0，是「還沒填」）
+   - 裝備要用**同一個模板**記錄，否則同一次購買會有兩種寫法
+   ───────────────────────────────────────────────────────────── */
+
+/** 收支方向。用字串常數而不是布林：`isSpend: false` 讀不出是「獲得」還是「沒填」。 */
+export const MONEY_DIRECTIONS = Object.freeze({
+  spend: 'spend',
+  gain: 'gain'
+});
+
+/** 方向的顯示字（標題前綴與 toast 共用）。 */
+export const DIRECTION_LABELS = Object.freeze({
+  spend: '支出',
+  gain: '獲得'
+});
+
+/**
+ * 一筆裝備的**記錄模板**——這是「正確格式」的唯一來源。
+ *
+ * 為甚麼要有模板：同一次購買會出現在三個地方（交易條、成長履歷、匯出卡），
+ * 三處各寫一次就會有三種格式，而使用者要的是「買到的裝備以正確的格式記錄在案」。
+ * 所以格式只寫在這裡：
+ *
+ *   title：`購入 青銅劍`
+ *   note ：`近戰武器 · DEX + MIG · 【HR + 0】物理 · 200z · 裝備到主手武器`
+ *
+ * `note` 的順序是**規格 → 價格 → 去向**：先說這是什麼，再說花多少，最後說裝去哪。
+ * 價格放中間是因為它最短，放最後會讓「裝備到主手武器」被擠到看不見的地方。
+ *
+ * @param {object} item 目錄品項（`buildPurchaseCatalog` 的形狀）
+ * @param {{ equip?: boolean, slotLabel?: string }} options
+ */
+export const describeEquipmentRecord = (item, { equip = false, slotLabel = '' } = {}) => {
+  if (!item || !item.name) return { title: '', note: '' };
+
+  const detail = typeof item.detail === 'string' ? item.detail.trim() : '';
+  const parts = [detail, formatZenit(item.cost)];
+  if (equip && slotLabel) parts.push(`裝備到${slotLabel}`);
+
+  return {
+    title: `購入 ${item.name}`,
+    note: parts.filter(Boolean).join(' · ')
+  };
+};
+
+/**
+ * 判定一筆「收支」能不能寫。
+ *
+ * 與 `describePurchase` 的差別：那裡只有「錢夠不夠」，這裡還要「有沒有說原因」。
+ * 三個欄位各自回一個錯誤字串（不是一個布林），因為畫面上要**分別**標紅那一個欄位
+ * ——全部擠在底部一行「請填寫完整」等於沒說哪裡沒填。
+ *
+ * 空值語意照舊：`amount` 的 `''` 是「還沒填」（不是 0 元）；`0` 是「填了 0」，
+ * 而 0 元的收支不是一筆收支，一樣擋。
+ */
+export const describeMoneyFlow = ({ direction, amount, reason, wallet } = {}) => {
+  const dir = direction === MONEY_DIRECTIONS.gain ? MONEY_DIRECTIONS.gain : MONEY_DIRECTIONS.spend;
+  const value = asCount(amount);
+  const text = typeof reason === 'string' ? reason.trim() : '';
+
+  const errors = { amount: '', reason: '', wallet: '' };
+  if (value === null) errors.amount = '請填金額';
+  else if (value <= 0) errors.amount = '金額要大於 0';
+  if (text === '') errors.reason = '請寫下這筆錢的原因';
+
+  // 只有支出需要看錢包；獲得不需要（沒有人在收到錢之前檢查錢包）。
+  let gate = null;
+  if (dir === MONEY_DIRECTIONS.spend && value !== null && value > 0) {
+    gate = describePurchase({ price: value, wallet });
+    if (gate.affordable === false) errors.wallet = `資金不足：${gate.shortText}`;
+    if (gate.affordable === null) errors.wallet = '錢包金額尚未記錄，無法記帳';
+  }
+
+  const hasError = Boolean(errors.amount || errors.reason || errors.wallet);
+  // 餘額與算式只看**金額與錢包**，不看原因。
+  //
+  // 第一版把 `hasError` 整個算進來，於是「填了 50、還沒寫原因」時算式是空的——
+  // 而玩家正是在那一刻最想知道「這筆之後還剩多少」。原因沒填不影響算術，
+  // 它只影響能不能寫入（`ok`），那是另一件事。
+  //
+  // 錢包不知道 → 餘額算不出來（`+` 也一樣：不知道起點就不知道終點）。
+  // 支出且資金不足 → 也算不出來（硬算會得到一個負數，而畫面上那句話已經說「還差多少」）。
+  const walletKnown = asCount(wallet) !== null;
+  const base = walletKnown ? Number(wallet) : 0;
+  const next = dir === MONEY_DIRECTIONS.spend ? base - (value || 0) : base + (value || 0);
+  const computable = walletKnown && value !== null && value > 0 && !errors.wallet;
+
+  return {
+    ok: !hasError,
+    direction: dir,
+    amount: value,
+    reason: text,
+    errors,
+    // 只有「可以寫」而且「起點已知」時才算得出餘額；否則回 null，讓畫面印破折號。
+    next: computable ? next : null,
+    title: hasError ? '' : `${DIRECTION_LABELS[dir]} · ${text}`,
+    amountText: value === null ? '' : formatZenit(value),
+    mathText: computable
+      ? (dir === MONEY_DIRECTIONS.spend
+        ? `${formatZenit(base)} - ${formatZenit(value)} = ${formatZenit(next)}`
+        : `${formatZenit(base)} + ${formatZenit(value)} = ${formatZenit(next)}`)
+      : '',
+    afterText: computable ? formatZenit(next) : ''
+  };
+};

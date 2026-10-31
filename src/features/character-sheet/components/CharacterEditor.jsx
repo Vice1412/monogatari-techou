@@ -45,6 +45,10 @@ import ClassSkillCard from './ClassSkillCard';
 import ClassPickerModal from './ClassPickerModal';
 import ArcanistStarterBinding from './ArcanistStarterBinding';
 import EquipmentPickerModal from './EquipmentPickerModal';
+// 錢包制換裝（P9-b）：起始資金結算之後，換裝備就是「買裝備」，
+// 走與跑團面板完全同一支 `applyPurchase`（扣款／換裝／履歷同一次寫入）。
+import EquipmentSlotModal from './EquipmentSlotModal';
+import { applyPurchase } from '../utils/moneyFlow';
 import CustomWeaponForgeModal from './CustomWeaponForgeModal';
 import {
   CUSTOM_WEAPON_BASE,
@@ -164,6 +168,9 @@ export default function CharacterEditor({
   const [isQuirkPickerOpen, setIsQuirkPickerOpen] = useState(false);
   // 目前開啟中的裝備選擇欄位（null = 未開啟）
   const [pickerSlot, setPickerSlot] = useState(null);
+  // 錢包制換裝的槽位（null = 未開啟）。與 `pickerSlot` 是兩個彈窗，因為它們
+  // 回答兩個不同的問題：「這件東西我有沒有資格拿」與「我買不買得起」。
+  const [buySlot, setBuySlot] = useState(null);
   // 定制武器鍛造台（`forgeEditingId` 為空字串＝開一把全新的）
   const [isForgeOpen, setIsForgeOpen] = useState(false);
   const [forgeEditingId, setForgeEditingId] = useState('');
@@ -586,6 +593,89 @@ export default function CharacterEditor({
     extraSpend: techSpend
   });
   const remainingBudget = rules.startingZenit - totalEquipCost;
+
+  /**
+   * 起始資金結算了沒有（P9-b）。
+   *
+   * 這一條是「編輯器裡的裝備要不要錢」的開關，也是本輪最重要的分界：
+   *
+   *   - **未結算**：裝備花的是「500z 起始預算」，不是錢包。這是一套**額度**制度，
+   *     換掉一把劍只是把額度還回去——收費的話玩家會被收兩次。
+   *   - **已結算**：`zenit` 已經是真的錢（`handleRollStartingZenit` 把剩餘預算
+   *     ＋ 2d6×10 寫進去了）。這時候換裝備就是買裝備，必須從錢包扣。
+   *
+   * 改動前兩種情況都走預算制，於是「已定稿的角色回編輯器換一把 500z 的劍」
+   * 完全免費——而跑團面板裡同一把劍要 500z。**同一個動作，兩個價錢。**
+   */
+  const walletSettled = character.startingFundsRolled === true;
+
+  /** 四張裝備卡片的開法：結算前走預算挑選器，結算後走錢包購買面板。 */
+  const openSlot = (slotKey) => {
+    if (walletSettled) setBuySlot(slotKey);
+    else setPickerSlot(slotKey);
+  };
+
+  /**
+   * 已結算的角色在編輯器裡換裝備（P9-b）。
+   *
+   * 與跑團面板共用 `applyPurchase`，差別只有兩個：
+   *   - 這裡要再過一次 `applyEquipmentChoice`（雙手武器清空副手）——
+   *     挑選器本來就會做，所以兩邊都必須做，否則「在編輯器買雙手劍」會留下副手。
+   *   - 這裡沒有 toast 系統，`showToast` 可能是 undefined。
+   */
+  const handleBuyEquip = (item, { owned = false } = {}) => {
+    if (!buySlot) return;
+
+    if (owned) {
+      // 已持有 → 只是換位置。收第二次錢會讓「把盾從副手換到主手」變成付費動作。
+      const { equipment: nextEquipment, clearedOffHand } = applyEquipmentChoice(
+        character.equipment,
+        buySlot,
+        item.name,
+        weaponByName
+      );
+      const changes = [{ field: buySlot, from: character.equipment?.[buySlot] || '', to: item.name }];
+      if (clearedOffHand) changes.push({ field: 'offHand', from: clearedOffHand, to: '無盾牌' });
+      onChange(loggableChange(character, {
+        ...character,
+        equipment: nextEquipment,
+        updatedAt: new Date().toISOString()
+      }, {
+        kind: 'equipment',
+        title: `換上 ${item.name}`,
+        note: `裝備到${EQUIPMENT_SLOTS[buySlot].label}`,
+        changes
+      }));
+      setBuySlot(null);
+      if (showToast) showToast(`${item.name} 已換到${EQUIPMENT_SLOTS[buySlot].label}（已持有，不另收費）`);
+      return;
+    }
+
+    const result = applyPurchase(character, item, {
+      equip: true,
+      slot: buySlot,
+      slotLabel: EQUIPMENT_SLOTS[buySlot].label,
+      resolveEquipment: (equipment, slot, name) => applyEquipmentChoice(equipment, slot, name, weaponByName)
+    });
+
+    if (!result.ok) {
+      const gate = result.gate || {};
+      if (showToast) {
+        showToast(gate.shortText ? `資金不足：${gate.shortText}` : '錢包金額尚未記錄，無法結帳', 'warning');
+      }
+      return;
+    }
+
+    onChange(result.character);
+    setBuySlot(null);
+    if (showToast) {
+      showToast(
+        result.cleared
+          ? `購入【${item.name}】-${item.cost}z，副手「${result.cleared}」已卸下（雙手武器）`
+          : `購入【${item.name}】-${item.cost}z`
+      );
+    }
+  };
 
   const handleRollStartingZenit = () => {
     const d1 = Math.floor(Math.random() * 6) + 1;
@@ -1744,17 +1834,23 @@ export default function CharacterEditor({
 
                 <div className="flex items-center justify-between pt-1.5 border-t flex-wrap gap-2 text-xs" style={{ borderColor: `${theme.border}80` }}>
                   <span className="text-xs text-[#6b5a4b]">
-                    剩餘預算 + 2d6 × 10 結算為開局金幣
+                    {walletSettled
+                      // 結算之後「剩餘預算」這個數字已經沒有意義了——它算的是
+                      // 一套已經不存在的額度。留著它，玩家會以為換裝備還免費。
+                      ? `起始資金已結算（錢包 ${character.zenit ?? 0}z）。之後換裝備改由錢包扣款，與跑團面板同一條路。`
+                      : '剩餘預算 + 2d6 × 10 結算為開局金幣'}
                   </span>
-                  <button
-                    type="button"
-                    onClick={handleRollStartingZenit}
-                    className="px-2.5 py-1 rounded border text-xs font-bold transition-all shadow-e1 flex items-center gap-1 shrink-0 cursor-pointer"
-                    style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
-                  >
-                    <GiRollingDices className="w-3.5 h-3.5" style={{ color: theme.accent }} />
-                    <span>擲 2d6 × 10 結算</span>
-                  </button>
+                  {!walletSettled && (
+                    <button
+                      type="button"
+                      onClick={handleRollStartingZenit}
+                      className="px-2.5 py-1 rounded border text-xs font-bold transition-all shadow-e1 flex items-center gap-1 shrink-0 cursor-pointer"
+                      style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
+                    >
+                      <GiRollingDices className="w-3.5 h-3.5" style={{ color: theme.accent }} />
+                      <span>擲 2d6 × 10 結算</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1804,7 +1900,7 @@ export default function CharacterEditor({
                     note={mainHandNote}
                     warning={mainHandWarning}
                     mergedNote={mainTakesBothHands ? '被主手佔用（雙手武器）' : null}
-                    onOpen={() => setPickerSlot('mainHand')}
+                    onOpen={() => openSlot('mainHand')}
                   />
                 </div>
 
@@ -1828,7 +1924,7 @@ export default function CharacterEditor({
                       metrics={offHandMetrics}
                       note={offShield?.desc || null}
                       warning={offHandWarning}
-                      onOpen={() => setPickerSlot('offHand')}
+                      onOpen={() => openSlot('offHand')}
                     />
                   </div>
                 )}
@@ -1852,7 +1948,7 @@ export default function CharacterEditor({
                     metrics={armorMetrics}
                     note={armor?.desc || null}
                     warning={armorWarningText}
-                    onOpen={() => setPickerSlot('armor')}
+                    onOpen={() => openSlot('armor')}
                   />
                 </div>
 
@@ -1874,7 +1970,7 @@ export default function CharacterEditor({
                     badges={accessory ? [{ label: '稀有物品', variant: 'zinc' }] : []}
                     metrics={[]}
                     note={accessory?.desc || '飾品在原書中一律屬稀有物品，需與團員討論後取得。'}
-                    onOpen={() => setPickerSlot('accessory')}
+                    onOpen={() => openSlot('accessory')}
                   />
                 </div>
               </div>
@@ -2033,6 +2129,19 @@ export default function CharacterEditor({
                     showToast(`已卸下副手「${clearedOffHand}」——雙手武器佔滿兩個手部欄位`);
                   }
                 }}
+              />
+
+              {/* 錢包制換裝（P9-b）：起始資金結算之後，換裝備就是買裝備。
+                  與跑團面板的「更換主手武器」是同一個元件、同一支寫入函式，
+                  所以兩邊算出來的錢一定一樣。 */}
+              <EquipmentSlotModal
+                isOpen={buySlot !== null}
+                onClose={() => setBuySlot(null)}
+                theme={theme}
+                character={character}
+                slot={buySlot}
+                wallet={character.zenit}
+                onConfirm={handleBuyEquip}
               />
             </div>
           )}

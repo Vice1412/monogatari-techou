@@ -51,6 +51,9 @@ export default function EquipmentSlotCard({
           <button
             type="button"
             onClick={onOpen}
+            // 四張卡片各有一顆「更換」，靠文字找會點到第一張（MEMORY §D.20）。
+            // 槽位是這顆按鈕的身分，所以 testid 用它。
+            data-testid={`editor-slot-${slotDef.id}`}
             className="text-t11 px-2 py-1 rounded border font-bold flex items-center gap-1 shrink-0 cursor-pointer transition-all"
             style={{ backgroundColor: theme.panelBg, borderColor: theme.border, color: theme.textDark }}
           >
