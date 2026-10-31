@@ -356,6 +356,9 @@ export const GAME_ICONS_MAP = {
   GiHeartShield,
   GiPocketWatch,
   GiCampfire,
+  // 2026-10-31：擲骰留痕（`LOG_KINDS.dice`）。跑團最高頻的動作原本完全不在履歷裡，
+  // 圖示也一起沒登記——只加 kind 不加這裡，履歷上那一列就沒有圖。
+  GiRollingDices,
 
   // Equipment Items (裝備設計器逐項對照；由 equipmentRules.js 的 EQUIPMENT_ICONS 指定元件名)
   GiSpellBook,

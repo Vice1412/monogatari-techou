@@ -66,8 +66,8 @@ check('每一種 kind 都有 label／icon／coalesce',
   Object.entries(LOG_KINDS).filter(([, v]) =>
     typeof v.label !== 'string' || typeof v.icon !== 'string' || typeof v.coalesce !== 'number'
   ).map(([k]) => k), []);
-check('kind 數量（原本 13 種 ＋ 羈絆／命刻／營地／場次 ＝ 17）',
-  Object.keys(LOG_KINDS).length, 17);
+check('kind 數量（原本 13 種 ＋ 羈絆／命刻／營地／場次 ＝ 17 ＋ 擲骰 ＝ 18）',
+  Object.keys(LOG_KINDS).length, 18);
 // 不能只把 13 改成 17：原本那 13 種一個都不能消失，否則有人刪掉一條，
 // 「總數 17」照樣成立，而那一類事件從此靜默不記錄（2026-10-30 真的發生過）。
 check('原本的 13 種一個都沒消失',
@@ -75,6 +75,10 @@ check('原本的 13 種一個都沒消失',
     .filter((k) => !LOG_KINDS[k]), []);
 check('新增的四種（長期跑團的敘事事件）都在',
   ['bond', 'clock', 'camp', 'session'].filter((k) => !LOG_KINDS[k]), []);
+// 2026-10-31：擲骰。跑團最高頻的動作原本完全不在履歷裡（`DiceRollerModal` 零寫回）。
+// 同樣逐一點名——只把 17 改成 18 的話，有人刪掉 dice 再補一個別的，總數照樣成立。
+check('擲骰（dice）在詞彙表裡',
+  ['dice'].filter((k) => !LOG_KINDS[k]), []);
 check('未登記的 kind 一律拒收',
   createLogEntry({ kind: '不存在的種類', title: 'x' }), null);
 check('未登記的 kind 不會寫進角色',

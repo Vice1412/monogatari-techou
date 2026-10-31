@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti';
 import JRPGModal from '../../components/ui/JRPGModal';
 import JRPGButton from '../../components/ui/JRPGButton';
 import FUIcon from '../../components/ui/FUIcon';
-import { GiSparkles, GiRollingDices, GiHazardSign, GiTrophyCup, GiCrossedSwords, GiHeartShield, GiCycle } from 'react-icons/gi';
+import { GiSparkles, GiRollingDices, GiHazardSign, GiTrophyCup, GiCrossedSwords, GiHeartShield, GiCycle, GiScrollQuill } from 'react-icons/gi';
 
 const DICE_TIERS = [6, 8, 10, 12];
 
@@ -34,6 +34,9 @@ export default function DiceRollerModal({
   const [usedBondName, setUsedBondName] = useState('');
   const [fpSpentCount, setFpSpentCount] = useState(0);
   const [fumbleClaimed, setFumbleClaimed] = useState(false);
+  // 玩家手動按過「記下這一擲」之後就不再顯示那顆按鈕（改成一行「已記入履歷」）。
+  // 用狀態而不是 disabled：`disabled` 會吃掉 title，也讓鍵盤使用者被跳過。
+  const [manualRecorded, setManualRecorded] = useState(false);
 
   useEffect(() => {
     if (isOpen && initialConfig) {
@@ -53,6 +56,7 @@ export default function DiceRollerModal({
       setUsedBondName('');
       setFpSpentCount(0);
       setFumbleClaimed(false);
+      setManualRecorded(false);
       setRollResult(null);
     } else if (isOpen && !initialConfig) {
       setRollLabel('');
@@ -64,8 +68,14 @@ export default function DiceRollerModal({
       setUsedBondName('');
       setFpSpentCount(0);
       setFumbleClaimed(false);
+      setManualRecorded(false);
     }
   }, [isOpen, initialConfig]);
+
+  // 由跑團面板傳入：回報這一擲，讓履歷接得住。
+  // 判定與格式化在 `character-sheet/utils/rollRecord.js`——擲骰器只回報「發生了什麼」，
+  // 不決定「值不值得記」。判定只寫一份，兩邊才不會分岔。
+  const onRecordRoll = initialConfig?.onRecordRoll || null;
 
   const computeRollOutcome = (r1, r2, mod) => {
     const total = r1 + r2 + mod;
@@ -94,6 +104,7 @@ export default function DiceRollerModal({
       setFpBonus(0);
       setUsedBondName('');
       setFumbleClaimed(false);
+      setManualRecorded(false);
       setIsRolling(false);
 
       if (outcome.isCritical) {
@@ -102,6 +113,13 @@ export default function DiceRollerModal({
           spread: 70,
           origin: { y: 0.6 }
         });
+      }
+
+      // 回報這一擲。`auto: true` 只表示「這是自動發生的那一種」——
+      // 要不要真的寫進履歷由業務層的 `shouldAutoRecordRoll` 決定
+      // （大成功／大失敗才寫）。擲骰器不判斷「值不值得記」。
+      if (onRecordRoll) {
+        onRecordRoll(outcome, { label: rollLabel, die1Type, die2Type, auto: true });
       }
     }, 200);
   };
@@ -140,6 +158,20 @@ export default function DiceRollerModal({
         spread: 70,
         origin: { y: 0.6 }
       });
+    }
+
+    // 重擲讓前一次的結果變成**歷史**而不是結果——不記這一筆，
+    // 履歷上會永遠留著一個已經不成立的「大成功」（記錯比沒記更糟）。
+    // `auto: false`：重擲是玩家主動花 FP 的戰術決定，一律留痕。
+    if (onRecordRoll) {
+      onRecordRoll(outcome, {
+        label: rollLabel,
+        die1Type,
+        die2Type,
+        auto: false,
+        reroll: true
+      });
+      setManualRecorded(true);
     }
   };
 
@@ -333,6 +365,43 @@ export default function DiceRollerModal({
                 {zeroHr && <span className="text-t10 text-[#8c3235] ml-1">(視為0)</span>}
               </div>
             </div>
+
+            {/* 這一擲要不要留在履歷裡。大成功／大失敗自動記（那是回合的轉折），
+                其餘留給玩家自己決定——App 不替他判斷哪一次重要。
+                沒有 `onRecordRoll`（例如從書封開的純擲骰器）就整塊不出現。 */}
+            {onRecordRoll && !rollResult.isCritical && !rollResult.isFumble && (
+              manualRecorded ? (
+                <p data-testid="roll-recorded" className="text-t12 text-[#6b5a4b]">
+                  已記入履歷
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  data-testid="roll-record"
+                  onClick={() => {
+                    onRecordRoll(rollResult, {
+                      label: rollLabel,
+                      die1Type,
+                      die2Type,
+                      fpBonus,
+                      bondName: usedBondName,
+                      auto: false
+                    });
+                    setManualRecorded(true);
+                  }}
+                  className="px-3 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#3c2415] font-bold text-t11 flex items-center gap-1 transition-colors"
+                  title="把這一擲寫進成長履歷（大成功／大失敗會自動記，其餘由你決定）"
+                >
+                  <GiScrollQuill className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                  <span>記下這一擲</span>
+                </button>
+              )
+            )}
+            {onRecordRoll && (rollResult.isCritical || rollResult.isFumble) && (
+              <p data-testid="roll-recorded-auto" className="text-t12 text-[#6b5a4b]">
+                已自動記入履歷（{rollResult.isCritical ? '大成功' : '大失敗'}）
+              </p>
+            )}
 
             {/* 一鍵傷害結算區（武器／攻擊咒語自動帶入） */}
             {hasDamageCalc && (

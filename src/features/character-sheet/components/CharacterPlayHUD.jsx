@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   ArrowLeft,
   Plus,
@@ -91,6 +91,7 @@ import {
   endSession,
   formatLogDate
 } from '../utils/characterLog';
+import { buildRollRecord, shouldAutoRecordRoll } from '../utils/rollRecord';
 // 羈絆 ⇄ NPC 檔案庫的連結（2026-10-30，P3）。
 // 判定（含「名冊已無此人」）只寫在 bondLink.js，這裡只負責畫。
 // ※ 這裡刻意沒有「為什麼有這份情感」的輸入框：多一個空白欄位就是多一次
@@ -547,18 +548,47 @@ export default function CharacterPlayHUD({
   );
 
   /**
+   * 「跨 modal 生命週期」的 callback 要讀**當下**的角色，不是被打開那一刻的角色。
+   *
+   * 擲骰器是另一個元件的 state（`App` 的 `diceModalConfig`）：`openCharacterDice`
+   * 把 callback 塞進 config 之後，HUD 再怎麼重渲染，那份閉包都不會更新。
+   * 於是「激勵羈絆 → 重擲」兩次都從同一個 FP 值開始算——UI 顯示扣了 2 點、
+   * 存檔只扣 1 點。那不是延遲，是**兩份事實**。
+   *
+   * 一般點擊用的 `updateField` 不需要這個（每次 render 都重建閉包，永遠是最新的）。
+   */
+  const characterRef = useRef(character);
+  characterRef.current = character;
+
+  /**
+   * 寫入角色，並**同步**更新 ref。
+   *
+   * `onChange` 是 React 的 setState，要等下一次 render 才生效。而同一輪事件裡
+   * 可能連續寫兩次——重擲就是：先扣 FP（`onSpendFp`），再寫履歷（`onRecordRoll`）。
+   * 第二次若讀 `character` 閉包或「還沒 render 的 ref」，拿到的是**這一輪開始前**的角色，
+   * 於是把第一次的 FP 變化蓋掉（UI 說扣 2、存檔只扣 1）。
+   *
+   * 所以 ref 在 `commit` 就更新，不等 render。所有寫入都走這裡。
+   */
+  const commit = (next) => {
+    characterRef.current = next;
+    onChange(next);
+  };
+
+  /**
    * 所有數值變更的唯一出口。
    * `meta` 有值時會留下一筆成長履歷（見 utils/characterLog.js）——
    * HP／MP／IP／EXP／資金／物語點都是「跑團中一路記錄」的對象。
    * `from` 一律傳**顯示值**（currentHp 的 null 代表滿血，記錄裡不該出現 null）。
    */
   const updateField = (field, val, meta = null) => {
+    const before = characterRef.current;
     const base = {
-      ...character,
+      ...before,
       [field]: val,
       updatedAt: new Date().toISOString()
     };
-    onChange(meta ? loggableChange(character, base, meta) : base);
+    commit(meta ? loggableChange(before, base, meta) : base);
   };
 
   // Adjust Vital Resources
@@ -616,14 +646,50 @@ export default function CharacterPlayHUD({
   };
 
   const adjustFp = (delta) => {
-    const cur = character.fabulaPoints ?? 3;
+    // 讀 ref 而不是閉包：這個函式會被塞進擲骰器的 config（`onSpendFp`／`onGainFp`），
+    // 在 modal 開著的整段時間裡被呼叫多次。用閉包的話第二次會從同一個舊值起算，
+    // UI 說扣了 2 點、存檔只扣 1 點。
+    const latest = characterRef.current;
+    const cur = latest.fabulaPoints ?? 3;
     const next = Math.max(0, cur + delta);
     if (next === cur) return;
-    updateField('fabulaPoints', next, {
+    const base = { ...latest, fabulaPoints: next, updatedAt: new Date().toISOString() };
+    commit(loggableChange(latest, base, {
       kind: 'fp',
       title: delta < 0 ? '消耗物語點' : '獲得物語點',
       changes: [{ field: 'fabulaPoints', from: cur, to: next }]
+    }));
+  };
+
+  /**
+   * 把一擲寫進成長履歷（P8）。
+   *
+   * 「值不值得記」的判定在這裡，不在擲骰器——那邊只回報事實（`auto: true`）。
+   * 自動的只有大成功／大失敗會過關；玩家手動按「記下這一擲」的一律寫，
+   * 因為那是他的判斷，不是系統的。
+   *
+   * 擲骰**不改變任何欄位**，所以 `before` 與 `after` 是同一個物件——
+   * 靠 `title` 讓 `loggableChange` 認出「確實發生了一件事」。
+   * 讀 ref 的理由同上：這個 callback 在 modal 生命週期內被呼叫。
+   */
+  const recordRoll = (outcome, info = {}) => {
+    const isAuto = info.auto === true;
+    if (isAuto && !shouldAutoRecordRoll(outcome)) return;
+    const record = buildRollRecord(outcome, {
+      label: info.label,
+      die1Type: info.die1Type,
+      die2Type: info.die2Type,
+      fpBonus: info.fpBonus,
+      bondName: info.bondName,
+      reroll: info.reroll === true
     });
+    if (!record) return;
+    const latest = characterRef.current;
+    commit(loggableChange(latest, latest, {
+      kind: 'dice',
+      title: record.title,
+      note: record.note
+    }));
   };
 
   // 呼叫全域擲骰器時自動附帶角色特質、羈絆與物語點回呼（支援重擲、羈絆激勵與大失敗領取 FP）
@@ -632,6 +698,8 @@ export default function CharacterPlayHUD({
     onOpenDice({
       ...config,
       character,
+      // 擲骰留痕：擲骰器每次擲完都回報一次，這裡決定要不要寫進履歷。
+      onRecordRoll: recordRoll,
       onSpendFp: (reason) => {
         adjustFp(-1);
         showToast(`${reason}（消耗 1 點物語點）`);

@@ -56,7 +56,13 @@ export const LOG_KINDS = Object.freeze({
   bond: { label: '羈絆', icon: 'GiHeartShield', coalesce: 0 },
   clock: { label: '命刻', icon: 'GiPocketWatch', coalesce: 0 },
   camp: { label: '營地', icon: 'GiCampfire', coalesce: 0 },
-  session: { label: '場次', icon: 'GiScrollUnfurled', coalesce: 0 }
+  session: { label: '場次', icon: 'GiScrollUnfurled', coalesce: 0 },
+  // ── 2026-10-31 新增：擲骰 ──
+  // 跑團最高頻的動作，卻一直沒有記錄（`DiceRollerModal` 從建立起零寫回）。
+  // 只記大成功／大失敗與玩家手動標記的那幾擲，不是每一擲都記——
+  // 全記會把履歷淹掉，那正是 `coalesce` 想解決的同一種雜訊。
+  // `coalesce: 0`：兩次擲骰即使相隔 1 秒也是兩件事，合併會吃掉「哪一次大成功」。
+  dice: { label: '擲骰', icon: 'GiRollingDices', coalesce: 0 }
 });
 
 /** 欄位顯示名（`formatChange` 用） */
