@@ -175,6 +175,22 @@ eq('C11 前後值是數字字串也收（存檔匯入會給字串）',
 eq('C12 空字串是「還沒填」，不算一筆（不能當成 0）',
   buildMoneyLedger([mkEntry('2026-10-31T10:00:00.000Z', 'trade', 'x', '', 300)]).count, 0);
 
+// P11（2026-11-01）：起始裝備預算那一筆沒有前值，那是**開帳**，差額就是終值。
+const opening = buildMoneyLedger([
+  { id: 'o1', at: '2026-10-31T09:00:00.000Z', kind: 'creation', title: '起始裝備預算',
+    changes: [{ field: 'zenit', from: null, to: 500 }] }
+]);
+eq('C13 開帳（只有終值的 creation）算一筆，差額是終值本身',
+  [opening.count, opening.income, opening.rows[0].delta, opening.rows[0].opening],
+  [1, 500, 500, true]);
+// 對照組：**只有 `creation` 可以這樣讀**。同樣「只有終值」的舊記錄（`kind: 'zenit'`）
+// 是淨額或殘缺資料，讀成開帳會憑空生出收入——所以它必須仍然讀不出來。
+// 少了這一條，「from 是 null 就當開帳」會把 500z 的花費說成 500z 的收入。
+eq('C14 對照組：舊的「只有終值」記錄不讀成開帳（讀不出來就不猜）',
+  buildMoneyLedger([{ id: 'o2', at: '2026-10-31T09:00:00.000Z', kind: 'zenit',
+    title: '擲起始資金 2d6 × 10', changes: [{ field: 'zenit', from: null, to: 500 }] }]).count,
+  0);
+
 /* ────────────────────────────────────────────────────────────────
    D. kind 登記：trade 存在，而且「不合併」
    ──────────────────────────────────────────────────────────────── */
@@ -371,8 +387,13 @@ eq('H5 結帳走 describePurchase（與畫面上的算式同一個函式）',
 eq('H6 交易記成 trade（事件）；面板不再寫沒有原因的 zenit',
   [countOf(moneyFlowSrc, "kind: 'trade'"), countOf(hudSrc, "kind: 'zenit'")], [2, 0]);
 const editorSrc = readSrc('src/features/character-sheet/components/CharacterEditor.jsx');
-eq('H6-b 起始資金結算仍然留痕（唯一合法的 zenit 事件）',
-  countOf(editorSrc, "kind: 'zenit'"), 1);
+// P11（2026-11-01）改寫：結算不再寫「一筆差額」，而是 `buildStartingFundsEntries`
+// 產生的**一串**事件（預算 → 逐件購買 → 起始資金）。所以這裡守兩件事：
+// ① 編輯器不再自己拼 `kind: 'zenit'`（那正是「-110z」的來源）；
+// ② 它真的走那支共用的建構器（拿掉呼叫，履歷會安靜地什麼都不留）。
+eq('H6-b 起始資金結算仍然留痕（改走 `buildStartingFundsEntries` 的一串事件）',
+  [countOf(editorSrc, "kind: 'zenit'"), countOf(editorSrc, 'buildStartingFundsEntries(')],
+  [0, 1]);
 // 明細由履歷推導：這條路只能有一個入口，否則「最近一筆」與「明細」會各算一次。
 eq('H7 明細由履歷推導（`buildMoneyLedger`，不新增欄位）',
   [countOf(readSrc('src/features/character-sheet/components/MoneyLedgerModal.jsx'),

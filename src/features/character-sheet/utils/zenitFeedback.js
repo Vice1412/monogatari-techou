@@ -152,13 +152,27 @@ const zenitChangeOf = (entry) => {
     .find((c) => c && c.field === 'zenit');
   if (!change) return null;
 
-  const from = asCount(change.from);
+  // 終值一定要有：不知道「變成多少」就算不出任何東西（連差額都不成立）。
   const to = asCount(change.to);
-  // 兩端都要是數字才算得出差額；只有一端的話那是別人的記錄，不是一筆交易。
-  if (from === null || to === null) return null;
+  if (to === null) return null;
+
+  const from = asCount(change.from);
+  // **沒有前值＝開帳**，不是「資料壞了」。
+  // 起始資金結算前，角色身上根本沒有錢包（`zenit` 只是預算的佔位值），
+  // 所以那一筆沒有「前值」可言。硬寫 `from: 0` 會斷言「他本來有 0z」——
+  // 那是我們不知道的事。差額就是終值本身（從無到有）。
+  //
+  // **但只有 `creation` 可以這樣讀**（P11，2026-11-01）：
+  // 舊寫法也留下過「只有終值」的記錄（淨額、匯入的殘缺資料），
+  // 把那些讀成開帳會**憑空生出收入**——「擲起始資金 500」明明含著花掉的錢，
+  // 讀成 +500 收入就等於說他一毛都沒花。讀不出來就說讀不出來，不要猜。
+  if (from === null) {
+    if (entry.kind !== 'creation') return null;
+    return { from: null, to, delta: to, deltaText: formatZenitDelta(to), opening: true };
+  }
 
   const delta = to - from;
-  return { from, to, delta, deltaText: formatZenitDelta(delta) };
+  return { from, to, delta, deltaText: formatZenitDelta(delta), opening: false };
 };
 
 /**
@@ -203,6 +217,9 @@ export const buildMoneyLedger = (log) => {
       note: entry.note || '',
       delta: zenit.delta,
       deltaText: zenit.deltaText,
+      // 開帳列（起始裝備預算）與一般列的差別只在「有沒有前值」，
+      // 差額與餘額的算法完全一樣，所以畫面上不必分開畫。
+      opening: zenit.opening === true,
       // 這一筆之後的餘額。`to` 是當時的實際數字，不是「現在的錢包」——
       // 明細要回答「那時候剩多少」，不是「現在剩多少」。
       balance: zenit.to

@@ -14,6 +14,8 @@ import {
   makeMnemosphereId,
   normalizeTechnosphereState
 } from '../data/technospheres';
+import { appendLog } from './characterLog';
+import { buildPrintedStartingFundsEntries } from './startingFunds';
 
 const SPELL_SKILL_NAMES = new Set(['元素魔法', '靈魂魔法', '熵系魔法']);
 
@@ -133,6 +135,31 @@ export const applyPreset = (character, preset) => {
       ...state,
       mnemospheres: [...state.mnemospheres.filter((m) => m.id !== created.id), created]
     };
+  }
+
+  // 起始資金的履歷（P11）。
+  //
+  // 以前這裡只寫 `zenit: preset.zenit` —— 套用經典搭配之後錢包裡有一個數字，
+  // 而履歷裡**一筆都沒有**：玩家看不到買了哪三件、也看不到原書印的錢從哪來。
+  //
+  // 兩種情況要分開寫，因為它們是兩件不同的事：
+  //   ① 還沒結算過 → 這隻角色正在「開卡」，寫完整的 預算 → 逐件購買 → 起始資金 那一串。
+  //   ② 已經結算過 → 玩家是**覆寫**一個既有角色的錢包，那不是開卡，是一筆單獨的變動。
+  //      寫成購買履歷會憑空多出他其實沒買的東西，所以只留一筆「重置」。
+  const alreadySettled = base.startingFundsRolled === true;
+  if (alreadySettled) {
+    const from = base.zenit;
+    const to = preset.zenit;
+    if (from !== to) {
+      next.log = appendLog(next, {
+        kind: 'trade',
+        title: `套用經典搭配「${preset.title}」`,
+        note: '起始資金被官方印製的金額覆寫',
+        changes: [{ field: 'zenit', from, to }]
+      }).log;
+    }
+  } else {
+    next.log = appendLog(next, buildPrintedStartingFundsEntries(next, preset.zenit).entries).log;
   }
 
   return next;

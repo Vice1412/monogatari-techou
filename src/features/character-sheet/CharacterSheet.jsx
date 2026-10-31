@@ -46,6 +46,8 @@ import { readJSON, writeJSON } from '../../data/store';
 import { findDuplicateStartingHeroicSkills, normalizeCharacter, normalizeRosterCharacters, syncCharacterToActiveCombat } from './utils/characterEngine';
 import { formatInitiative, isInitiativeVariant } from './data/initiativeVariant';
 import { normalizeRosterClassNames } from './data/sourcebookConfig';
+// P11（2026-11-01）：舊存檔裡「結算只寫一筆差額」的起始資金履歷，載入時一次性補成完整的一串。
+import { repairRosterStartingFunds } from './utils/startingFunds';
 
 const STORAGE_KEY = STORAGE_KEYS.characterRoster;
 
@@ -54,7 +56,10 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
     const parsed = readJSON(STORAGE_KEY, []);
     // 舊存檔的識別字正名與快照刷新（§BF：秘儀師【Playtest】 → 秘儀師【變體】，並同步最新規則文本）。
     // 不刪任何資料，只是把舊鍵與過期快照對齊現行權威資料；下面的 writeJSON 會自然寫回。
-    return Array.isArray(parsed) ? normalizeRosterCharacters(normalizeRosterClassNames(parsed)) : [];
+    // 最後一道是 P11 的履歷修補：只動「整份履歷剛好一筆 zenit」的角色，動不了的原樣放回。
+    return Array.isArray(parsed)
+      ? repairRosterStartingFunds(normalizeRosterCharacters(normalizeRosterClassNames(parsed)))
+      : [];
   });
 
   const [activeCharId, setActiveCharId] = useState(null);

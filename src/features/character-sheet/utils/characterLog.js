@@ -143,6 +143,11 @@ export const formatChange = (change) => {
     if (Array.isArray(v)) return `${v.length} 項`;
     return String(v);
   };
+  // 資金的「沒有前值」是**開帳**（起始裝備預算），不是「本來是空的」。
+  // 印成「資金 （空） → 500」讀起來像資料壞掉，而它其實是錢包的第一筆。
+  if (change.field === 'zenit' && (change.from === null || change.from === undefined)) {
+    return `${label} 開帳 ${show(change.to)}`;
+  }
   return `${label} ${show(change.from)} → ${show(change.to)}`;
 };
 

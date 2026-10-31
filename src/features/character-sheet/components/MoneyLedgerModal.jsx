@@ -103,7 +103,11 @@ export function MoneyLedgerModalBody({ theme = {}, character, onClose }) {
                   {row.title || '（未命名）'}
                 </span>
                 {/* 時間與備註同一行：時間是次要資訊，但沒有它這一列就無法對帳。 */}
-                <span className="block text-t10 text-[#6b5a4b] truncate" title={row.note}>
+                <span
+                  data-testid={`ledger-note-${index}`}
+                  className="block text-t10 text-[#6b5a4b] truncate"
+                  title={row.note}
+                >
                   {[formatLogTime(row.at), row.note].filter(Boolean).join(' · ')}
                 </span>
               </span>

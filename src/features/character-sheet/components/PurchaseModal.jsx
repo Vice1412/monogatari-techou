@@ -11,6 +11,7 @@ import {
 import JRPGModal from '../../../components/ui/JRPGModal';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import rulesData from '../data/rulesData.json';
+import { describeItem, PURCHASE_SOURCES } from '../data/itemDetail';
 import { EQUIPMENT_SLOTS } from '../utils/equipmentRules';
 import { describePurchase, formatZenit } from '../utils/zenitFeedback';
 import WeaponTemplateFields from './WeaponTemplateFields';
@@ -48,34 +49,23 @@ import {
  * （`JRPGModal` 以掛載後的 effect 為閘門，SSR 時不渲染 children）。
  */
 
-/** 四個採購分類。`slot` 是「購入後裝備到哪裡」；`source` 對應 `rulesData.equipment` 的鍵。 */
-export const PURCHASE_CATEGORIES = Object.freeze([
-  { id: 'weapons', label: '武器', source: 'weapons', slot: 'mainHand', icon: GiCrossedSwords },
-  { id: 'shields', label: '盾牌', source: 'shields', slot: 'offHand', icon: GiRoundShield },
-  { id: 'armors', label: '防具', source: 'armors', slot: 'armor', icon: GiChest },
-  { id: 'accessories', label: '飾品', source: 'accessories', slot: 'accessory', icon: GiRing }
-]);
-
 /**
- * 一個品項的一行說明。
+ * 四個採購分類。`slot` 是「購入後裝備到哪裡」；`source` 對應 `rulesData.equipment` 的鍵。
  *
- * 刻意**不寫期望值**（那是統計量，不是規則書上的數字），也刻意不在這裡
- * 重算命中式——命中式屬於角色，屬於 `equipmentRules`，這裡只寫「這是什麼東西」。
+ * 純資料（id／label／source／slot）住在 `data/itemDetail.js`，這裡只把**圖示**接上去。
+ * 分開的理由：`utils/startingFunds.js` 也要認得同一份來源，而它是純函式、不該 import `.jsx`。
  */
-const describeItem = (item, categoryId) => {
-  if (!item) return '';
-  if (categoryId === 'weapons') {
-    return [item.category, item.attr, item.damage].filter(Boolean).join(' · ');
-  }
-  if (categoryId === 'shields') {
-    const parts = [];
-    if (item.defBonus) parts.push(`物防 +${item.defBonus}`);
-    if (item.mdefBonus) parts.push(`魔防 +${item.mdefBonus}`);
-    if (item.initMod) parts.push(`先攻 ${item.initMod > 0 ? '+' : ''}${item.initMod}`);
-    return parts.join(' · ');
-  }
-  return item.desc || '';
-};
+export const PURCHASE_CATEGORIES = Object.freeze(
+  PURCHASE_SOURCES.map((source) => ({
+    ...source,
+    icon: {
+      weapons: GiCrossedSwords,
+      shields: GiRoundShield,
+      armors: GiChest,
+      accessories: GiRing
+    }[source.id]
+  }))
+);
 
 /**
  * 把四類裝備攤平成「可以買的清單」。

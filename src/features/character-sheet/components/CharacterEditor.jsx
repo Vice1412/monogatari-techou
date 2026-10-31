@@ -67,7 +67,12 @@ import {
 import EquipmentSlotCard from './EquipmentSlotCard';
 import rulesData from '../data/rulesData.json';
 import { DEFAULT_CREATION_RULES, resolveCreationRules, PLAYTEST_SOURCEBOOK_KEY, classCountPhrase, classCountRange } from '../data/creationRules';
-import { loggableChange, formatLogTime } from '../utils/characterLog';
+import { loggableChange, appendLog, formatLogTime } from '../utils/characterLog';
+import {
+  buildStartingFundsEntries,
+  describeStartingFundsSettlement,
+  resolveStartingEquipment
+} from '../utils/startingFunds';
 import { splitParagraphs } from '../utils/paragraphs';
 import CharacterAvatarUploader from './CharacterAvatarUploader';
 import { getCharacterTheme, CHARACTER_THEMES } from '../utils/characterThemes';
@@ -691,19 +696,46 @@ export default function CharacterEditor({
     }
   };
 
+  /**
+   * 結算起始資金（原書 p.165：起始資金 ＝ 剩餘裝備預算 ＋ 2d6 × 10）。
+   *
+   * P11 改寫：原本只寫**一筆**履歷（「擲起始資金 2d6 × 10」，差額 500 → 390），
+   * 於是明細上那一列是 **-110z**——那個數字既不是「買了什麼」，也不是「擲到多少」。
+   * 使用者的原話：「我完全看不到我初始買了什麼，我2d6又得到了多少。」
+   *
+   * 現在寫成一串有先後關係的事件（預算 → 每一件裝備 → 擲骰），
+   * 每一筆的 `from` 都是前一筆的 `to`，所以明細可以逐列對帳。
+   * 仍然是**一次寫入**：`appendLog` 吃陣列，`onChange` 只呼叫一次。
+   */
   const handleRollStartingZenit = () => {
     const d1 = Math.floor(Math.random() * 6) + 1;
     const d2 = Math.floor(Math.random() * 6) + 1;
     const rollSum = (d1 + d2) * 10;
-    const finalZenit = Math.max(0, remainingBudget) + rollSum;
-    // 一次寫入兩個欄位（`updateField` 的物件形式）：`startingFundsRolled` 是
-    // 「起始資金尚未結算」那條提醒的開關，分兩次呼叫會互相蓋掉。
-    updateField(
-      { zenit: finalZenit, startingFundsRolled: true },
-      null,
-      { kind: 'zenit', title: '擲起始資金 2d6 × 10' }
+    const { items, extraSpend, totalSpend } = resolveStartingEquipment(character);
+    const { entries, finalZenit } = buildStartingFundsEntries({
+      budget: rules.startingZenit,
+      items,
+      extraSpend,
+      totalSpend,
+      rollSum,
+      dice: [d1, d2]
+    });
+    // `startingFundsRolled` 是「起始資金尚未結算」那條提醒的開關；
+    // 欄位與履歷在同一個物件裡寫完，不會有「錢改了、記錄沒寫」的中間狀態。
+    onChange(appendLog({
+      ...character,
+      zenit: finalZenit,
+      startingFundsRolled: true,
+      updatedAt: new Date().toISOString()
+    }, entries));
+    // 結算那一刻就把「買了什麼、擲到多少」印出來。
+    // 只印「已結算為 120z」的話，玩家看到的就是一個沒有來源的數字——
+    // 那正是使用者抱怨的事（「我完全看不到我初始買了什麼」）。
+    alert(
+      `[2d6 擲骰] [${d1}] + [${d2}] = ${d1 + d2}（× 10 = ${rollSum}z）\n\n`
+      + `${describeStartingFundsSettlement(entries)}\n\n`
+      + `起始儲蓄 ${finalZenit}z。以上每一筆都寫進「金錢明細」了。`
     );
-    alert(`[2d6 擲骰] [${d1}] + [${d2}] = ${d1 + d2} (× 10 = ${rollSum}z)！\n加上剩餘裝備預算 ${Math.max(0, remainingBudget)}z，角色的起始儲蓄已結算為 ${finalZenit}z！`);
   };
 
   /**
