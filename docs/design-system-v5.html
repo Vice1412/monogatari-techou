@@ -483,7 +483,7 @@
     <tr><td>HP／MP／IP／EXP</td><td>有</td><td>條 ＋ 尾影 ＋ 浮字</td><td>比率型。條子說的是「還剩幾成」，尾影露出「剛剛失去的那一段」。</td></tr>
     <tr><td>物語點 FP</td><td>有（很小）</td><td>數字 ＋ 浮字</td><td>個位數，畫成條是浪費高度；浮字足夠。</td></tr>
     <tr><td>命刻</td><td>有（分段）</td><td>鐘面</td><td>分段而不是連續，所以用格而不是用長度。</td></tr>
-    <tr><td><b>資金 zenit</b></td><td><b>沒有</b></td><td><b>金額 ＋ 行內浮字 ＋ 交易條</b></td><td>存量型。<b>畫成條會讓尾影看起來像「快沒了」</b>，那是錯的訊息——錢的「快沒了」不是幾何，是<b>能不能買</b>。</td></tr>
+    <tr><td><b>資金 zenit</b></td><td><b>沒有</b></td><td><b>金額 ＋ 行內浮字 ＋ 三顆按鈕</b></td><td>存量型。<b>畫成條會讓尾影看起來像「快沒了」</b>，那是錯的訊息——錢的「快沒了」不是幾何，是<b>能不能買</b>。</td></tr>
   </table>
 
   <h3>金錢的五條規則</h3>
@@ -502,7 +502,7 @@
 
   <h3>三層反饋：存量說「現在」、交易說「這次」、履歷說「曾經」</h3>
   <div class="grid g3">
-    <div class="card"><div class="sw-name">存量</div><div class="sw-use">錢包卡：金額 ＋ 行內浮字（卡片上沒有空白可以飄，所以浮字貼在金額右側）＋ 交易條印出最近一筆。</div></div>
+    <div class="card"><div class="sw-name">存量</div><div class="sw-use">錢包卡：金額（25px）＋ 行內浮字（卡片上沒有空白可以飄，所以浮字貼在標題右側）＋ 三顆按鈕（收入／支出／明細）。</div></div>
     <div class="card"><div class="sw-name">交易</div><div class="sw-use">購買面板：價格、餘額、算式、買不起差多少、會覆蓋哪一件。買不起<b>不隱藏</b>——隱藏會讓人以為「這東西不存在」。</div></div>
     <div class="card"><div class="sw-name">履歷</div><div class="sw-use">新 kind <code>trade</code>（<code>coalesce: 0</code>，不合併，標題帶品名）。手動微調仍是 <code>zenit</code>（合併）。<b>同一個欄位、兩種語意。</b></div></div>
   </div>
@@ -545,11 +545,63 @@
     唯一的硬欄位是<b>手數只能是 1／2</b>（清副手靠它），而<b>價格的「還沒填」是空字串、
     不是 0</b>（<code>0</code> 是「我知道，而且免費」）。
   </div>
+
+  <h3>P10：錢包只留「看」與「三顆按鈕」</h3>
+  <p class="lede">
+    使用者（2026-11-01）：「金幣錢包的部分不要有+-和自己修改內容了。下面的按鈕改大，
+    只要收入和支出和明細兩三按鈕。金錢也很重要，做明顯一點。」
+    這一輪是<b>減法</b>——而減法比加法難驗，因為拆掉的東西不會叫。
+  </p>
+  <div class="panel">
+    <b>⑪ 錢包上不給「自己改數字」：兩套記帳法不能並存。</b>
+    <code>−</code>／<code>+</code>／可編輯輸入框寫的是 <code>kind: 'zenit'</code>
+    （合併、<b>沒有原因</b>），而 P9-b 之後每一筆錢都走 <code>applyMoneyFlow</code>／
+    <code>applyPurchase</code>（<b>原因必填</b>）。兩條路寫進同一份履歷，明細上就會出現
+    一堆對不上任何一件事的列。所以 <code>adjustZenit</code> 整支刪除，
+    面板上一次都不再產生 <code>zenit</code>（唯一合法的 <code>zenit</code> 是編輯器的
+    「擲起始資金」——那是事件，只是沒有前值）。
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <b>⑫ 方向由「按下去的那一顆按鈕」決定。</b>
+    原本是一顆「收支」，點下去再選一次方向——那等於把已經決定好的事情推遲到下一步，
+    而玩家按的是「收入」、打開卻是「支出」時，那一個動作就白做了。
+    現在是兩顆：收入 → <code>direction = gain</code>、支出 → <code>direction = spend</code>；
+    方向在彈窗裡<b>仍然可改</b>，只是起點不同。
+    <br><br>
+    <b>這一條要兩邊一起守：</b>靜態護欄只能驗「有沒有把方向傳進去」
+    （<code>openMoneyFlow(MONEY_DIRECTIONS.gain)</code> 改成 <code>spend</code> 它不會紅），
+    方向對不對由實機量 <code>aria-pressed</code>。
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <b>⑬ 明細是同一份事實的另一個看法，不是第二本帳。</b>
+    <code>buildMoneyLedger(log)</code> 從成長履歷推導，不新增欄位、不寫入存檔——
+    所以舊存檔打開就有明細，而且明細與履歷<b>永遠一致</b>。它因此沒有任何寫入出口。
+    <br><br>
+    兩條容易寫錯的細節：<b>每一列的「餘」是那一筆之後的餘額</b>（<code>change.to</code>），
+    不是現在的錢包——印現在的值會讓十二列寫著同一個數字，而那正好是玩家已經知道的；
+    <b>差額 0 不進明細</b>（<code>formatZenitDelta(0)</code> 是空字串，放進去會變成一列
+    右邊什麼都沒有的帳）。
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <b>⑭ 「重要」與「大」都是量出來的，不是形容詞。</b>
+    使用者那三句話裡有兩句在講大小。護欄驗的是「testid 在不在」，而元素在、字糊在一起、
+    按鈕只有 20px 高時，測試照樣全綠。所以這一輪量的是
+    <code>getBoundingClientRect()</code> 與 <code>getComputedStyle()</code>：
+    <table>
+      <tr><th>判準</th><th>實測</th><th>改動前</th></tr>
+      <tr><td>三顆按鈕可點高度 ≥ 30px</td><td><b>37.2 / 37.2 / 37.2</b></td><td>約 20</td></tr>
+      <tr><td>三顆等寬（誤差 ≤ 1px）</td><td><b>114 / 114 / 114</b></td><td>靠字撐開</td></tr>
+      <tr><td>金額字級 ≥ 20px 且 ≥ 標籤兩倍</td><td><b>25px ／ 11px</b></td><td>12px（與旁邊屬性同級）</td></tr>
+      <tr><td>金額與按鈕不相交</td><td>金額底 819 ／ 按鈕頂 827</td><td>—</td></tr>
+    </table>
+    <b>「等寬」不是潔癖：</b>不等寬會讓「明細」看起來比「收入」重要（或相反），
+    那是沒有理由的暗示。
+  </div>
 </section>
 
 <footer>
-  《物語手帳》設計系統 v5 ｜ 第四十三輪（§CI51 顏色不是被覆蓋，是被刪掉）結束時的實測快照 ｜
-  完整裁決紀錄見 <code>docs/decisions.md</code> §CI1–§CI50，稽核手冊見 <code>docs/ui-review-refactoring-ui.md</code> §1–§46。
+  《物語手帳》設計系統 v5 ｜ 最近一次更新：P10 金幣錢包（§CI70，2026-11-01） ｜
+  完整裁決紀錄見 <code>docs/decisions.md</code> §CI1–§CI70，稽核手冊見 <code>docs/ui-review-refactoring-ui.md</code> §1–§46。
 </footer>
 
 </div>

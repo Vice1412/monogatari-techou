@@ -3271,3 +3271,60 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 工作區那份日誌是後來的輪次留下的。5 個檔案已全部改回，回推算式見 `docs/decisions.md` §CI67.6。
 
 順帶：P9-c 報的「46 支 / 6,755 條」也對不上（`fb1cd03` 鏈長 47），回推應為 47 支 / 6,801 條。
+
+## 2026-11-01（P10）金幣錢包：拿掉「自己改數字」，換成「錢去哪了」
+
+使用者：「金幣錢包的部分不要有+-和自己修改內容了。下面的按鈕改大，只要收入和支出和明細
+兩三按鈕。金錢也很重要，做明顯一點。」
+
+**新增檔案**
+- `src/features/character-sheet/components/MoneyLedgerModal.jsx` — 金錢明細。
+  三格總覽（目前餘額／累計收入／累計支出）＋ 逐列（標題／時間·備註／差額／當時餘額）。
+  **沒有任何寫入出口**（連 `onConfirm` 都不收）。
+- `scratch/break-p10.mjs` — 刻意破壞 12 條。
+- `scratch/p10-wallet-ui.mjs` — 實機 18 步，含**幾何量測**（按鈕高度／等寬／字級／不相交）。
+
+**改動**
+- `utils/zenitFeedback.js` — 新增 `buildMoneyLedger(log)`；`zenitChangeOf` 獨立成一支
+  （判斷「哪些 change 算一筆」只能有一個）；**刪除 `findLastZenitEvent`**
+  （P10 之後沒有呼叫者，留著就是第二個「從履歷推導金錢事件」的入口）。
+  差額 0 不進明細（`formatZenitDelta(0)` 是空字串，會印出一列右邊空白的帳）。
+- `components/CharacterPlayHUD.jsx` — 錢包卡重寫：
+  - **刪掉 `adjustZenit`**（`−`／`+`／可編輯輸入框）與下方那條 `py-0.5` 的交易細帶
+    （`wallet-trade-strip`／`wallet-last-delta`）。那條路寫的是 `kind: 'zenit'`（沒有原因），
+    與 P9-b 的「原因必填」是兩套記帳法。
+  - 金額改成自己一行、`text-t25`（25px）；三顆按鈕 `py-2`／`text-t12`／`grid-cols-3`：
+    收入（`GiReceiveMoney`，綠）／支出（`GiPayMoney`，紅）／明細（`GiScrollUnfurled`，紙）。
+  - 新增 `moneyFlowDirection`／`isLedgerOpen`；`openMoneyFlow(direction)` 是唯一入口
+    （**每個呼叫都自己指定方向**）。
+  - 行囊分頁的四顆（收入／支出／明細／購入）改成同一套語彙，`pack-wallet` 的
+    `formatZenit(character.zenit || 0)` 修成 `formatZenit(character.zenit)`。
+- `components/MoneyFlowModal.jsx` — 收 `initialDirection`，標題跟著起點走
+  （「記一筆收入」／「記一筆支出」）。方向仍可改，只是起點不同。
+- `tests/zenitFeedback.test.mjs` — C 段改寫成 `buildMoneyLedger`（C1–C12）；
+  H 段重寫（H1-b／H2-b／H2-c／H3-b／H3-c／H3-d／H6-b／H7）；新增 I 段（明細彈窗 SSR，7 條）。
+- `tests/moneyFlow.test.mjs` — 新增 G13–G15（`initialDirection` 三態）；H6／H7 改寫。
+- `tests/characterSheetUi.test.mjs` — B 段「六項資源」改「五項」＋反向斷言
+  （資金**刻意**不是步進器）。
+- 刪除 `scratch/p9-zenit-ui.mjs`（它驗的交易條與 `open-purchase` 已經不存在，
+  留著只會讓下一個人以為產品壞了）。
+
+**驗證**
+- 48 支關卡 / **6,884 條**（+22）/ 0 FAIL，EXIT=0；`npm run build` exit 0。
+- 刻意破壞 **12 / 12 全部轉紅**；實機 `p9b` **45 / 45**、`p10` **18 / 18**。
+- 截圖看過：`p10-1-wallet-card.png`（3×）、`p10-3-ledger-summary.png`（3×）、
+  `p10-4-ledger-rows.png`（2×）。
+
+**三個量測教訓**
+1. **容器取字抓不到東西**：`cellText(html, 'ledger-row-0')` 用 `([^<]*)`，遇到列裡第一個
+   `<span>` 就停——回空字串，`.includes()` 永遠 false。修法不是放寬正則，是
+   **給要讀的那一格自己的 testid**（`ledger-title-${i}`）。
+2. **減法比加法難驗**：拆掉的東西不會叫。所以 H2 一次驗四件事（`adjustZenit` 0 次、
+   兩個舊 testid 0 次、金額格沒有 `<input>`／`NumberStepper`／`onChange`）。
+3. **靜態測試驗不出「方向對不對」**：`openMoneyFlow(MONEY_DIRECTIONS.gain)` 改成
+   `spend` 之後，H3-b 仍然是綠的（它只驗「有沒有傳方向」）。方向由實機 W14／W16 守，
+   兩邊分工寫在 §CI70.3。
+
+**一個誠實的取捨**：主面板不再有「購入裝備」（使用者要「只要兩三顆按鈕」）。
+購買入口在行囊日誌分頁（`pack-purchase`），行囊四槽打開的換裝彈窗本身也能買。
+代價是從主面板買裝備多一步——這是刻意的，不是漏掉。
