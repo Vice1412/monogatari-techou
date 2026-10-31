@@ -3443,7 +3443,7 @@ export default function CharacterPlayHUD({
                                   title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
                                 >
                                   <GiSpellBook className="text-[#6b5a4b] text-xs" />
-                                  <span>規則概念速查</span>
+                                  <span>規則索引</span>
                                 </button>
                               )}
                               <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]">

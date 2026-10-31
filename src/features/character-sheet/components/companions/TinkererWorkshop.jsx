@@ -769,7 +769,7 @@ export default function TinkererWorkshop({
             title={activeTab === 'projects' ? '開啟造物專案官方手冊完整速查 (手冊 p.134~139)' : '開啟小工具官方手冊完整速查大表 (手冊 p.212~216)'}
           >
             <GiSpellBook className="w-4 h-4 text-[#6b5a4b]" />
-            <span>規則概念速查</span>
+            <span>規則索引</span>
           </button>
 
           {/* 標籤按鈕組 */}
@@ -866,7 +866,7 @@ export default function TinkererWorkshop({
                   title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
                 >
                   <GiSpellBook className="text-[#6b5a4b] text-xs" />
-                  <span>規則概念速查</span>
+                  <span>規則索引</span>
                 </button>
               </div>
 
@@ -1348,7 +1348,7 @@ export default function TinkererWorkshop({
                     title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
                   >
                     <GiSpellBook className="text-[#6b5a4b] text-xs" />
-                    <span>規則概念速查</span>
+                    <span>規則索引</span>
                   </button>
 
                   {activeInfusion && (
@@ -1514,7 +1514,7 @@ export default function TinkererWorkshop({
                   title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
                 >
                   <GiSpellBook className="text-[#6b5a4b] text-xs" />
-                  <span>規則概念速查</span>
+                  <span>規則索引</span>
                 </button>
               </div>
 

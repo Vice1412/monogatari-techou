@@ -101,7 +101,7 @@ export default function TinkererGadgetsQuickRef({
             title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
           >
             <GiSpellBook className="text-[#6b5a4b] text-xs" />
-            <span>規則概念速查</span>
+            <span>規則索引</span>
           </button>
 
           {totalAllocated > 0 && (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import {
   GiSpellBook,
@@ -26,6 +26,7 @@ import {
   GiCardPlay
 } from 'react-icons/gi';
 import { RULE_CODEX, findCodexRule } from '../data/ruleCodexData';
+import { buildCodexIndex, searchCodex } from '../utils/codexSearch';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
 
 /**
@@ -43,8 +44,19 @@ export default function RuleCodexDrawer({
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [activeRuleId, setActiveRuleId] = useState('arcana');
   const [searchTerm, setSearchTerm] = useState('');
+  // 目錄搜尋（跨 18 節）。與 `searchTerm` 是兩件事：`searchTerm` 篩的是**區塊內的清單**
+  // （阿爾卡納目錄、咒語），`query` 篩的是**目錄本身**。
+  const [query, setQuery] = useState('');
   const contentScrollRef = useRef(null);
   const activeTabRef = useRef(null);
+
+  // 索引只建一次：18 節、約 3 萬字。
+  // 注意：這兩個 `useMemo` **必須在所有 early return 之前**——放在
+  // `if (!internalIsOpen) return null;` 之後的話，關著的時候不會執行、開的時候才執行，
+  // React 會判定「hook 數量變了」並整個畫面掛掉（`Rendered more hooks than during the previous render`）。
+  // 這個錯 build 不會報、單元測試也不會報，只有真的把抽屜打開才看得到。
+  const codexIndex = useMemo(() => buildCodexIndex(RULE_CODEX), []);
+  const searchResults = useMemo(() => searchCodex(codexIndex, query), [codexIndex, query]);
 
   useEffect(() => {
     setMounted(true);
@@ -85,6 +97,9 @@ export default function RuleCodexDrawer({
         }
       }
       setInternalIsOpen(true);
+      // 深連結進來時把目錄搜尋清掉：帶著上一次的字串進來，目錄會只剩幾列，
+      // 而使用者要看的正是他點進來的那一節。
+      setQuery('');
     };
 
     window.addEventListener('fu:open-rule-codex', handleGlobalOpen);
@@ -128,6 +143,7 @@ export default function RuleCodexDrawer({
   const handleClose = () => {
     setInternalIsOpen(false);
     setSearchTerm('');
+    setQuery('');
     if (propOnClose) propOnClose();
   };
 
@@ -158,6 +174,24 @@ export default function RuleCodexDrawer({
     { id: 'arcanaVariant', label: '阿爾卡納（變體）', icon: GiSparkles }
   ];
 
+  // 目錄依原書分組。分組**不另外維護對照表**——`bookOfCodex` 已經從 `page` 推導，
+  // 測試也在守「變體條目掛在公測修訂下」，所以這裡只是把同一份推導排成樹。
+  const navGroups = navItems.reduce((groups, item) => {
+    const book = bookOfCodex(item.id);
+    const last = groups[groups.length - 1];
+    if (last && last.book === book) last.items.push(item);
+    else groups.push({ book, items: [item] });
+    return groups;
+  }, []);
+
+  // 點搜尋結果：切到那一節，並把同一個字串交給區塊內的篩選（阿爾卡納目錄／咒語會自動收窄）。
+  const openSearchHit = (hit) => {
+    const term = query.trim();
+    setActiveRuleId(hit.id);
+    setSearchTerm(term);
+    setQuery('');
+  };
+
   const modalContent = (
     <div className="fixed inset-0 z-[10001] flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
       {/* 點擊遮罩背景 */}
@@ -168,7 +202,7 @@ export default function RuleCodexDrawer({
 
       {/* 居中焦點典籍卡片 */}
       <div
-        className="relative w-full max-w-3xl bg-[#fffdf9] border-2 border-[#d6c7ab] rounded shadow-e3 overflow-hidden my-auto flex flex-col max-h-[88vh] text-[#2c221e] animate-modal-pop z-10"
+        className="relative w-full max-w-5xl bg-[#fffdf9] border-2 border-[#d6c7ab] rounded shadow-e3 overflow-hidden my-auto flex flex-col max-h-[88vh] text-[#2c221e] animate-modal-pop z-10"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 頂部裝飾條 */}
@@ -180,7 +214,7 @@ export default function RuleCodexDrawer({
             <GiSpellBook className="text-2xl text-[#f7f3e8]" />
             <div>
               <h2 className="text-base font-black tracking-wide flex items-center gap-2">
-                <span>規則概念速查</span>
+                <span>規則索引</span>
                 <span className="text-t12 font-normal text-[#e8dcc4] font-mono bg-[#2c221e]/60 px-2 py-0.5 rounded border border-[#7c6a58]/40">
                   {currentRule.page}
                 </span>
@@ -190,53 +224,118 @@ export default function RuleCodexDrawer({
           <button
             type="button"
             onClick={handleClose}
+            data-testid="codex-close"
             className="p-1.5 rounded text-[#e8dcc4] hover:text-[#f7f3e8] hover:bg-[#f7f3e8]/10 transition-colors"
-            title="關閉速查 (ESC)"
+            title="關閉索引 (ESC)"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* 類別切換標籤頁 (Tabs)
-            18 個分頁在 max-w-3xl 的面板裡排不進一列。sm 以上改成自動換行（全部可見、零橫向捲動，
-            並以細分隔線標出原書分界）；手機維持單列橫向滑動，另讓滑鼠滾輪也能左右滑。 */}
-        <div
-          className="flex flex-nowrap sm:flex-wrap items-center gap-1 p-2 bg-[#f7f3e8] border-b border-[#e8dcc4] overflow-x-auto sm:overflow-x-visible shrink-0"
-          onWheel={handleTabStripWheel}
-        >
-          {navItems.map((item, idx) => {
-            const Icon = item.icon;
-            const isActive = activeRuleId === item.id;
-            const book = bookOfCodex(item.id);
-            const startsBook = idx > 0 && book !== bookOfCodex(navItems[idx - 1].id);
-            return (
-              <React.Fragment key={item.id}>
-                {startsBook && (
-                  <span
-                    aria-hidden
-                    className="shrink-0 w-px self-stretch my-1 mx-1 bg-[#d6c7ab]"
-                  />
-                )}
-                <button
-                  type="button"
-                  ref={isActive ? activeTabRef : undefined}
-                  title={RULE_CODEX[item.id]?.page}
-                  onClick={() => {
-                    setActiveRuleId(item.id);
-                    setSearchTerm('');
-                  }}
-                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded text-t12 font-bold transition-all whitespace-nowrap ${ isActive ? 'bg-[#a63d40] text-[#fffdf9] shadow-e1' : 'text-[#3c2415] hover:bg-[#f4ebd9] ' }`}
-                >
-                  <Icon className="text-sm" />
-                  <span>{item.label}</span>
-                </button>
-              </React.Fragment>
-            );
-          })}
+        {/* 搜尋列：跨 18 節，命中時回報「命中在哪一層」。
+            這裡只篩目錄，不直接改內容——內容要等使用者點進那一節才換。 */}
+        <div className="shrink-0 flex items-center gap-3 px-3 py-2 bg-[#f7f3e8] border-b border-[#e8dcc4]">
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchResults.length > 0) openSearchHit(searchResults[0]);
+              }}
+              placeholder={`搜尋 ${navItems.length} 節規則…`}
+              aria-label="搜尋規則索引"
+              data-testid="codex-search"
+              className="w-full px-2.5 py-1 pr-7 text-t12 rounded border border-[#d6c7ab] bg-white text-[#3c2415] focus:outline-none focus:ring-1 focus:ring-[#3c2415]"
+            />
+            <Search className="w-3.5 h-3.5 text-[#7c6a58] absolute right-2 top-2 pointer-events-none" />
+          </div>
+          <span className="text-t12 text-[#6b5a4b] whitespace-nowrap" data-testid="codex-search-status">
+            {query.trim()
+              ? `命中 ${searchResults.length} 節`
+              : `${navItems.length} 節 · ${navGroups.length} 本原書`}
+          </span>
         </div>
 
-        {/* 內容主滾動容器 */}
-        <div ref={contentScrollRef} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 text-[#2c221e] text-t14 sm:text-t16 leading-relaxed">
+        {/* 目錄 ＋ 內容
+            sm 以上：左欄目錄（分原書組），右欄內容——切換仍是 1 次點擊。
+            手機：目錄退回單列橫向滑動（組頭隱藏），維持原本的操作。 */}
+        <div className="flex-1 flex min-h-0 flex-col sm:flex-row">
+          <nav
+            className="shrink-0 flex flex-row sm:flex-col overflow-x-auto sm:overflow-y-auto sm:w-48 bg-[#f7f3e8] border-b sm:border-b-0 sm:border-r border-[#e8dcc4]"
+            onWheel={handleTabStripWheel}
+            data-testid="codex-nav"
+          >
+            {query.trim() ? (
+              searchResults.length > 0 ? (
+                searchResults.map((hit) => (
+                  <button
+                    key={hit.id}
+                    type="button"
+                    onClick={() => openSearchHit(hit)}
+                    data-testid={`codex-hit-${hit.id}`}
+                    className="shrink-0 sm:w-full min-w-[220px] sm:min-w-0 text-left px-3 py-2 border-b border-[#e8dcc4] last:border-b-0 hover:bg-[#f4ebd9] transition-colors"
+                  >
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="text-t12 font-bold text-[#2c221e]">{hit.title}</span>
+                      <span className="text-t12 text-[#6b5a4b] whitespace-nowrap">
+                        {/* 「共 N 處」的「共」是必要的：只寫「標題 · 34 處」會被讀成
+                            「標題裡有 34 個」，而 34 是**整節**命中的欄位數。 */}
+                        {hit.label}{hit.count > 1 ? ` · 共 ${hit.count} 處` : ''}
+                      </span>
+                    </span>
+                    <span className="block text-t12 text-[#6b5a4b] truncate mt-0.5">
+                      {hit.snippet}
+                    </span>
+                  </button>
+                ))
+              ) : (
+                // 「查無」不是「空狀態」：要留在原地、保留搜尋框與已輸入的字，
+                // 所以不走 `EmptyState`（那支服務的是「從零開始」）。
+                <p className="px-3 py-4 text-t12 text-[#6b5a4b] sm:w-full" data-testid="codex-no-hit">
+                  查無「{query.trim()}」。改試技能或名詞：阿爾卡納、徽記、MP、詛咒。
+                </p>
+              )
+            ) : (
+              navGroups.map((group) => (
+                <React.Fragment key={group.book}>
+                  <div
+                    key={`group-${group.book}`}
+                    data-testid="codex-group"
+                    className="hidden sm:flex items-center justify-between gap-2 px-3 pt-2.5 pb-1 shrink-0"
+                  >
+                    <span className="text-t12 font-bold text-[#6b5a4b]">{group.book}</span>
+                    <span className="text-t12 text-[#7c6a58]">{group.items.length}</span>
+                  </div>
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeRuleId === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        ref={isActive ? activeTabRef : undefined}
+                        title={RULE_CODEX[item.id]?.page}
+                        aria-current={isActive ? 'true' : undefined}
+                        data-testid={`codex-nav-${item.id}`}
+                        onClick={() => {
+                          setActiveRuleId(item.id);
+                          setSearchTerm('');
+                        }}
+                        className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-t12 font-bold transition-colors whitespace-nowrap sm:w-full text-left ${ isActive ? 'bg-[#a63d40] text-[#fffdf9]' : 'text-[#3c2415] hover:bg-[#f4ebd9]' }`}
+                      >
+                        <Icon className="text-sm shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </React.Fragment>
+              ))
+            )}
+          </nav>
+
+          {/* 內容主滾動容器 */}
+          <div ref={contentScrollRef} className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-6 space-y-6 text-[#2c221e] text-t14 sm:text-t16 leading-relaxed">
           {/* 當前概念頭銜 */}
           <div className="border-b border-[#e8dcc4] pb-3">
             <div className="flex items-center justify-between">
@@ -985,6 +1084,7 @@ export default function RuleCodexDrawer({
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* 底部 Footer */}

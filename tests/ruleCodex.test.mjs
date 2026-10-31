@@ -444,6 +444,71 @@ const DIRECT_EQUIVALENTS = ['莫羅茲', '妮妙', '奧法尼爾', '麒麟', '�
 check('5 個「直接對應核心版」的範例阿爾卡納都在',
   DIRECT_EQUIVALENTS.filter((n) => !ARC_VAR.catalog.some((a) => a.name.includes(n))), []);
 
+// ─────────────────────────────────────────────── 規則索引：目錄與搜尋
+//
+// 這一節守的是「找得到」。2026-11-01 之前，18 節是**一顆一顆橫排的標籤**，
+// 6 個原書分組只有一條 1px 細線，而搜尋只覆蓋阿爾卡納目錄與法術書兩節
+// （`searchTerm`），其餘 16 節沒有任何入口。
+//
+// 掃原始碼的斷言會命中註解（這個檔案的註解正好在解釋 `bookOfCodex` 與 `searchCodex`），
+// 所以先剝註解再掃，並用 `DRAWER_CODE.length` 當對照組證明剝完不是空的。
+const stripComments = (src) =>
+  src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+const DRAWER_CODE = stripComments(DRAWER_SRC);
+checkTrue('剝註解後仍有實際程式碼（對照組）',
+  DRAWER_CODE.length > 2000 && DRAWER_CODE.includes('navItems'));
+
+check('名稱是「規則索引」', DRAWER_CODE.includes('規則索引'), true);
+check('舊名「規則概念速查」不再出現在抽屜裡', DRAWER_CODE.includes('規則概念速查'), false);
+check('面板加寬到 max-w-5xl（左欄要位置，內容欄不能跟著變窄）',
+  DRAWER_CODE.includes('max-w-5xl'), true);
+
+// 搜尋：一定要走純函式，不要在元件裡再寫一份比對。
+check('抽屜匯入 codexSearch 的兩個函式',
+  /import\s*\{[^}]*buildCodexIndex[^}]*searchCodex[^}]*\}\s*from\s*'\.\.\/utils\/codexSearch'/.test(DRAWER_CODE),
+  true);
+check('搜尋框真的存在（data-testid="codex-search"）',
+  DRAWER_CODE.includes('data-testid="codex-search"'), true);
+check('元件裡沒有自己寫一份 includes 比對（判定留在純函式）',
+  DRAWER_CODE.includes('.toLowerCase().includes('), false);
+check('點搜尋結果會把字串交給區塊內篩選', DRAWER_CODE.includes('setSearchTerm(term)'), true);
+
+// 目錄：分組必須由 `bookOfCodex` 推導，不能手寫一份書名清單。
+// 手寫清單的症狀是「新增一本書的條目時，它默默被歸到上一組」。
+check('分組由 bookOfCodex 推導', DRAWER_CODE.includes('bookOfCodex(item.id)'), true);
+check('沒有手寫的書名陣列（新增原書時不會漏改）',
+  /\[\s*'核心手冊'\s*,/.test(DRAWER_CODE), false);
+check('目錄在 sm 以上是直欄（sm:flex-col），不是一排標籤',
+  DRAWER_CODE.includes('sm:flex-col'), true);
+check('舊的「18 顆自動換行標籤」已經不在（sm:flex-wrap）',
+  DRAWER_CODE.includes('sm:flex-wrap'), false);
+check('手機仍可橫向滑動（overflow-x-auto 沒有被拿掉）',
+  DRAWER_CODE.includes('overflow-x-auto'), true);
+check('每個目錄項目都有 testid（截圖與實機腳本要靠它定位）',
+  DRAWER_CODE.includes('data-testid={`codex-nav-${item.id}`}'), true);
+
+// 「查無」不是「空狀態」：要留在原地、保留搜尋框與已輸入的字。
+check('查無時留在原地（有 codex-no-hit 區塊）',
+  DRAWER_CODE.includes('data-testid="codex-no-hit"'), true);
+check('查無不走 EmptyState（那支服務的是「從零開始」）',
+  DRAWER_CODE.includes('EmptyState'), false);
+
+// Hook 不得出現在 early return 之後。
+// 2026-11-01 實際踩到：`useMemo` 寫在 `if (!internalIsOpen) return null;` 之後，
+// 抽屜關著時那兩個 hook 不執行、打開時才執行 → React 判定 hook 數量改變，
+// 整個畫面被 ErrorBoundary 接住（「Rendered more hooks than during the previous render」）。
+// **build 不會報、單元測試也不會報**，只有真的把抽屜打開才看得到。
+// 錨點要用**完整的 early return**，不能只寫 `if (!internalIsOpen`——
+// 檔案裡還有另一處 `useEffect(() => { if (!internalIsOpen) return; …})` 比它更早，
+// `indexOf` 會抓到那一個，於是「後面有沒有 hook」問的是整支檔案（恆紅）。
+const EARLY_RETURN_ANCHOR = 'if (!internalIsOpen || !mounted';
+const EARLY_RETURN_AT = DRAWER_CODE.indexOf(EARLY_RETURN_ANCHOR);
+checkTrue('early return 只出現一次（錨點唯一，否則下面那條問錯地方）',
+  EARLY_RETURN_AT > 0 && DRAWER_CODE.indexOf(EARLY_RETURN_ANCHOR, EARLY_RETURN_AT + 1) === -1);
+const AFTER_EARLY_RETURN = DRAWER_CODE.slice(EARLY_RETURN_AT);
+check('early return 之後不得再出現任何 hook',
+  /\buse(State|Effect|Ref|Memo|Callback|Reducer)\(/.test(AFTER_EARLY_RETURN), false);
+
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
 console.log(`\n${'='.repeat(56)}`);

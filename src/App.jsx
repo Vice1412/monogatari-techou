@@ -100,7 +100,7 @@ export default function App() {
     setIsDiceModalOpen(true);
   };
 
-  // 規則概念速查抽屜為純事件驅動（監聽 fu:open-rule-codex），
+  // 規則索引抽屜為純事件驅動（監聽 fu:open-rule-codex），
   // 不帶關鍵字即開啟於預設條目；由章節標頭的速查按鈕派送。
   const handleOpenCodex = () => openRuleCodex();
 
@@ -403,7 +403,7 @@ export default function App() {
         onClose={handleCancelDevWarning}
       />
 
-      {/* Global Rule Codex Drawer (規則概念速查手冊) */}
+      {/* Global Rule Codex Drawer (規則索引手冊) */}
       <RuleCodexDrawer />
 
       {/* Global Entry Reference Modal (條目交叉引用：點技能名直接看全文) */}
