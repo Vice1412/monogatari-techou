@@ -3143,3 +3143,44 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 2. `/\sdisabled/` 命中 Tailwind 的 `disabled:opacity-50`（MEMORY §C.15 同一個坑，換個字串再踩一次）。
 3. **匯出了函式卻沒畫出來**：`describeHeldLabel` 測過但 JSX 沒用它，那句話一次都沒出現過。
    純函式斷言全綠，因為它驗的是函式本身。實機 S33 抓到 → 新增 H13 驗「被畫出來」。
+
+## 2026-10-31（P9-c）自由武器模板：書上沒有的那把，換得回來也算得對
+
+使用者：「武器並不是只有基礎武器而已，請你開放自由的武器模板讓玩家寫資訊。」
+
+**新增檔案**
+- `src/features/character-sheet/components/WeaponTemplateFields.jsx` — 自由武器表單
+  （名稱／類別／遠近／單雙手／命中／傷害／價格／職業武器／備註 ＋ 履歷預覽）。
+  只管填與驗，送出回 `{ item, spec }`；動作由 host 決定。
+- `tests/freeformWeapon.test.mjs` — 73 條。
+- `scratch/break-freeform.mjs` — 刻意破壞 13 條。
+- `scratch/p9c-freeform-weapon-ui.mjs` — 實機 37 步。
+- `scratch/p9c-money-creation-ui.mjs` — 開卡金錢的兩種狀態量測，14 步。
+
+**改動**
+- `data/customWeapons.js` — `FREEFORM_WEAPON_DEFAULTS`／`createFreeformWeaponSpec`／
+  `validateFreeformWeapon`／`attachCustomWeapon`／`buildFreeformWeaponItem`／`buildOwnedWeaponItems`。
+  自由武器與定制武器**共用 `customWeapons[]`**、用 `freeform: true` 分；
+  `buildCustomWeaponEntry` 的 freeform 分支**不套任何原書公式**；`validateCustomWeapon` 轉派。
+- `components/PurchaseModal.jsx` — 分類列最右邊加「自訂武器」（虛線紅框），切到表單模式。
+  **用模式而不是第五個分類**：它不是一類商品，是一張空白表格。
+- `components/EquipmentSlotModal.jsx` — 「書上沒有這把？自己寫一把」（只在接受武器的槽出現）；
+  `describeHeldState` 從三態變**四態**（新增 `owned`）；清單併入 `buildOwnedWeaponItems`。
+- `components/CharacterPlayHUD.jsx`／`components/CharacterEditor.jsx` — 兩個 host 都把 spec
+  補進 `weaponByName`（雙手武器才清得掉副手）並在**同一次寫入**裡 `attachCustomWeapon`。
+- `components/CharacterEditor.jsx` — 順手修：起始資金結算後「剩餘: Nz」換成「錢包: Nz」
+  （原本同一張卡上有兩個錢，其中一個是已經不存在的額度）；`font-mono` → `tabular-nums`。
+- `package.json` — 新增 `test:freeform`，串進 `npm test`。
+
+**驗證**
+- 46 支關卡 / **6,755 條** / 0 FAIL，EXIT=0；`npm run build` exit 0。
+- 刻意破壞 13 / 13 全紅；上一輪的 `break-moneyflow.mjs` 補到 10 / 10。
+- 實機 37 / 37 ＋ 14 / 14；截圖看過。
+
+**三個量測教訓**
+1. 斷言餵了「剛好也對」的輸入（`owned` 配 `affordable: true`，拿掉分支也回空字串）→ 破壞驗證 MISS。
+   要餵 `false`／`null` 才分得出差別。
+2. **元素截圖在內部捲動容器裡會拍到空白**：`captureBeyondViewport` 不管容器的 `scrollTop`
+   → 先 `scrollIntoView` 再拍。斷言全綠、截圖是白的。
+3. **破壞腳本會過期**：`break-moneyflow.mjs` 有一條錨點在上一輪就被改掉，一直記 MISS
+   ——那條護欄從那時起沒有被驗過，而輸出上它跟「全綠」長得一樣。
