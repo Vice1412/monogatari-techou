@@ -3237,13 +3237,13 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 
 ### 驗證
 
-- `npm test`：**48 支 / 6,858 條 / 0 FAIL**，EXIT=0（banner 48 ＝ 鏈長 48）
-- `test:codex` 352 → **374** 條；`test:codexsearch` **35** 條
-- 刻意破壞 **10 / 10 全部轉紅**（A→3 紅、J→2 紅，其餘各 1）
-- 實機 `scratch/p59-console.mjs` **30 / 30**，EXIT=0
+- `npm test`：**48 支 / 6,862 條 / 0 FAIL**，EXIT=0（banner 48 ＝ 鏈長 48）
+- `test:codex` 352 → **374** 條；`test:codexsearch` **39** 條
+- 刻意破壞 **11 / 11 全部轉紅**（A→3 紅、C→2 紅、J→2 紅、K→2 紅，其餘各 1）
+- 實機 `scratch/p59-console.mjs` **32 / 32**，EXIT=0
 - `npm run build` exit 0
 
-### 六個坑
+### 七個坑（第 7 個是截圖才看出來的）
 
 1. **Hook 寫在 early return 之後** → `Rendered more hooks than during the previous render`，
    整個畫面被 ErrorBoundary 接住，**索引根本打不開**。`npm run build` 不報、單元測試不報，
@@ -3256,6 +3256,12 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 5. **註解裡的警示符號被零 Emoji 掃描擋**（同一個坑**第六次**）。
 6. **量寬度 rect 對 rect 差 1px**：`w-full` 對的是內容盒，`getBoundingClientRect()` 少了 `border-r`。
    → 兩邊都用 `clientWidth`。
+7. **片段＝標題**（截圖才看得出來）：搜「徽記」時結果列第三行就是標題本身
+   （最佳命中欄位是 `title`，片段取 `best.text`）。**所有斷言都是綠的**——片段非空、
+   長度正常、包含查詢字。修法：片段改取**下一個非標題**的命中，沒有就留空。
+   護欄 `C6`（對照組）／`C7`／`C8` ＋ 破壞案例 `K`（→ 2 條紅）；
+   實機那條原本寫 `hitText.includes('徽記')`，**恆真**（標題就叫徽記），改成 scope 到第 3 行。
+
 
 ### 量測教訓：拿後一輪的日誌核前一輪的數字
 
