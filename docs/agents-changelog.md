@@ -3105,3 +3105,41 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 
 **未裁定**：建卡之後進編輯器改裝備仍走建卡的預算制（`startingZenit - totalEquipCost`），
 與錢包無關。三個選項見 §CI67.6，**未裁定前不要自行開修**。
+
+---
+
+## 2026-10-31（P9-b）金錢的寫入層：收支對話框、裝備模板、行囊四槽、編輯器的錢包制換裝
+
+**§CI67.6 的未裁定缺口結案。** 使用者裁定「全部走購買面板」。
+
+**新增檔案**
+- `src/features/character-sheet/utils/moneyFlow.js` — 寫入層（`applyPurchase`／`applyMoneyFlow`／`describeMoneyToast`）。
+  純函式：不碰 localStorage、不碰 React、不呼叫 `onChange`。三個入口共用同一支。
+- `src/features/character-sheet/components/MoneyFlowModal.jsx` — 收支對話框（方向／金額／**原因必填**／快捷原因／裝備模板）。
+- `src/features/character-sheet/components/EquipmentSlotModal.jsx` — 單槽換裝（三態：`current`／`elsewhere`／`none`）。
+- `tests/moneyFlow.test.mjs` — 126 條。
+- `scratch/break-moneyflow.mjs` — 刻意破壞 9 條。
+- `scratch/p9b-moneyflow-ui.mjs` — 實機 43 步。
+
+**修改**
+- `utils/zenitFeedback.js`：新增 `MONEY_DIRECTIONS`／`DIRECTION_LABELS`／`describeEquipmentRecord`／`describeMoneyFlow`。
+  修掉一個空值缺陷：`computable` 原本含 `hasError`，導致「填了金額、還沒寫原因」時算式是空的——
+  而那是玩家最想知道餘額的一刻。改成只看金額與錢包。
+- `components/CharacterPlayHUD.jsx`：`handlePurchase` 改呼叫 `applyPurchase`；新增 `handleMoneyFlow`、
+  `handleEquipFromPack`、`slotPicker`／`isMoneyFlowOpen`；交易條加「收支」；行囊四槽改成按鈕（由
+  `Object.keys(EQUIPMENT_SLOTS)` 逐一生成）；新增 `weaponByName`（含定制武器）供雙手武器判定。
+- `components/CharacterEditor.jsx`：新增 `walletSettled`（讀 `startingFundsRolled`）、`openSlot`、
+  `handleBuyEquip`；四張裝備卡片改走 `openSlot`；已結算時隱藏「擲 2d6 × 10 結算」並改口說明。
+- `components/EquipmentSlotCard.jsx`：加 `data-testid={editor-slot-<slot>}`（四顆「更換」靠文字找會點錯）。
+- `package.json`：`test:moneyflow`，串進 `npm test`。
+
+**驗證**
+- 全套 **45 支關卡 / 6,681 條 / 0 FAIL**，EXIT=0；`npm run build` exit 0。
+- 刻意破壞 **9 / 9 轉紅**。
+- 實機 **43 / 43**，6 張截圖看過。
+
+**三個量測教訓**
+1. `includes('0z')` 永遠為真（`100z` 裡就有）——要取出那一格的值再比。
+2. `/\sdisabled/` 命中 Tailwind 的 `disabled:opacity-50`（MEMORY §C.15 同一個坑，換個字串再踩一次）。
+3. **匯出了函式卻沒畫出來**：`describeHeldLabel` 測過但 JSX 沒用它，那句話一次都沒出現過。
+   純函式斷言全綠，因為它驗的是函式本身。實機 S33 抓到 → 新增 H13 驗「被畫出來」。

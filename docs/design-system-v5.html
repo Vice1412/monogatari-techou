@@ -506,6 +506,28 @@
     <div class="card"><div class="sw-name">交易</div><div class="sw-use">購買面板：價格、餘額、算式、買不起差多少、會覆蓋哪一件。買不起<b>不隱藏</b>——隱藏會讓人以為「這東西不存在」。</div></div>
     <div class="card"><div class="sw-name">履歷</div><div class="sw-use">新 kind <code>trade</code>（<code>coalesce: 0</code>，不合併，標題帶品名）。手動微調仍是 <code>zenit</code>（合併）。<b>同一個欄位、兩種語意。</b></div></div>
   </div>
+
+  <h3>P9-b：錢要「流動」，所以每次動作都要說話</h3>
+  <div class="panel">
+    <b>⑥ 原因必填，而且三個欄位的錯誤各自標紅。</b>
+    沒有原因的支出事後一定會被自己問「這 300z 花在哪」。
+    但把三個錯誤擠成底部一行「請填寫完整」等於<b>沒說哪裡沒填</b>——
+    所以要分別回三個字串，分別標紅那一格。
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <b>⑦ 模板是格式，不是內容。</b>
+    裝備的記錄格式只寫在 <code>describeEquipmentRecord</code> 一處
+    （規格 → 價格 → 去向）；但玩家自己寫的原因<b>不能因此消失</b>。
+    第一版把 <code>reason</code> 整個丟掉，於是「老闆算我便宜因為我幫他找回走失的貓」
+    只留下「200z」。
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <b>⑧ 已持有的東西換位置，不該再收一次錢。</b>
+    換裝彈窗有三種狀態、三種價錢：<b>目前裝備</b>（按了不會有事）／
+    <b>已在別的槽</b>（免費搬過來）／<b>還沒有</b>（付標價）。
+    三態不得併成兩態——守護者【雙重盾牌】把盾從副手換到主手時，
+    兩態的版本會對一件已經買過的東西收第二次錢。
+  </div>
 </section>
 
 <footer>
