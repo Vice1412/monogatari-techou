@@ -3042,7 +3042,9 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 
 **驗證**
 
-- `npm test`：**44 支 / 6,518 條 / 0 FAIL**，EXIT=0（新增 `test:rollrecord` 75 條）。
+- `npm test`：**44 支 / 6,518 條 / 0 FAIL**，EXIT=0（新增 `test:rollrecord` 75 條）
+  - 這一格當晚被「更正」成 47 支 / 6,801 條，2026-11-01 再改回：`git show eec52aa:package.json`
+    的鏈長就是 44，47 支是 P9-c（`fb1cd03`）的分母。詳見 `docs/decisions.md` §CI67.6。
 - 刻意破壞 **12 / 12 全部轉紅**（`scratch/break-check-rollrecord.mjs`）。
 - 實機 `scratch/p48-console.mjs` **25 / 25**，EXIT=0（含「普通檢定不自動記」的對照組、
   「扣兩次 FP 真的扣 2」、「重擲後是 append 不是覆蓋」）。
@@ -3174,6 +3176,7 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 
 **驗證**
 - 46 支關卡 / **6,755 條** / 0 FAIL，EXIT=0；`npm run build` exit 0。
+  - 支數有誤：`fb1cd03` 的 `test` 鏈長是 **47**，回推應為 47 支 / 6,801 條（見 §CI67.6）。
 - 刻意破壞 13 / 13 全紅；上一輪的 `break-moneyflow.mjs` 補到 10 / 10。
 - 實機 37 / 37 ＋ 14 / 14；截圖看過。
 
@@ -3184,3 +3187,81 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
    → 先 `scrollIntoView` 再拍。斷言全綠、截圖是白的。
 3. **破壞腳本會過期**：`break-moneyflow.mjs` 有一條錨點在上一輪就被改掉，一直記 MISS
    ——那條護欄從那時起沒有被驗過，而輸出上它跟「全綠」長得一樣。
+
+## 2026-10-31（P9-d）規則索引：18 顆標籤改成「左欄目錄＋跨節搜尋」
+
+使用者：「規則概念速查這裡感覺很亂，上面那排太多東西了會讓人以為全部都要看。真的想查看的時候
+又一時間找不到要看的內容。幫我想想可以怎麼解決。」「『規則概念速查』這個名字很爛，
+是以前 AI 幫我亂想的，你幫我想個適合中立工具書的用詞。」
+
+### 先量，再改
+
+量到的是**兩個病，不是一個**：
+
+| 病 | 證據 |
+|---|---|
+| **扁平**（不是「多」） | 18 顆標籤**同尺寸、同色、同字級**，6 個原書分組之間只有一條 1px 細線。眼睛沒有層級可抓，只能整片掃 |
+| **沒有入口** | 搜尋只覆蓋 **2 / 18 節**（`searchTerm` 只餵阿爾卡納目錄與法術書），其餘 16 節沒有任何查法。而標籤是名詞（徽記／天賦／魔晶石），查的時候想的是「我要召喚阿爾卡納」 |
+
+資料規模也一併量了：18 節、22 條規則、47 個條文區塊、143 個條目、240 列表格、
+38 條咒語、122 個關鍵詞、約 3.1 萬字、6 本原書（核心 6／高度 3／自然 3／科技 4／特典 1／公測 1）。
+
+### 裁定
+
+- 名稱：**規則索引**（候選：規則便覽／規則索引／規則彙編／規則附錄）
+- 版面：**左欄目錄＋跨節搜尋**（不做兩層，切換仍是 1 次點擊）
+
+### 新增檔案
+
+- `src/features/character-sheet/utils/codexSearch.js` — 純函式：
+  `CODEX_FIELD_LABEL`／`FIELD_ORDER`／`collectFields`／`buildCodexIndex`／`searchCodex`。
+  **只收已知形狀**（`title`／`book`／`page`／`keyword`／`summary`／`rules`／
+  `sections.items`／`sections.rows`／`schools.spells`／`catalog`），
+  **不遞迴整棵物件樹**——遞迴會把 `id`／`icon` 這種代號也收進來，搜 `a` 會全站命中。
+  回傳**每一節一筆**（不是每個欄位一筆），排序：標題 > 內文 > 原書名。
+- `tests/codexSearch.test.mjs` — 35 條。
+- `scratch/p59-console.mjs` — 實機 30 步（甲～庚）。
+- `scratch/break-check-codex.mjs` — 刻意破壞 10 條。
+- `scratch/sum-test-log.mjs` — `npm test` 日誌彙總器（見下方量測教訓）。
+
+### 改動
+
+- `components/RuleCodexDrawer.jsx` — 目錄搬左欄（`sm:flex-col`、`sm:w-48`、`overflow-x-auto` 保留
+  給手機）、上方加跨 18 節搜尋、面板 `max-w-3xl` → `max-w-5xl`、標題改「規則索引」。
+  分組用 `bookOfCodex(item.id)`（**從 `page` 推導，不新增資料表**），所以目錄分組不可能與頁碼漂移。
+  搜尋命中後 `openSearchHit` 同時切節、把詞餵給 `searchTerm`、清掉 `query`。
+- 名稱 `規則概念速查` → `規則索引`：8 處可見字串（`ChapterHeader`／`CharacterPlayHUD`／
+  `TinkererGadgetsQuickRef`／`TinkererWorkshop` ×4）＋ 3 處註解。
+  順帶量到 tooltip 寫「16 項官方子系統」——**實際 18 項**，寫死的數字沒有人回頭數。
+- `package.json` — 新增 `test:codexsearch`，串進 `npm test`（鏈長 47 → 48）。
+
+### 驗證
+
+- `npm test`：**48 支 / 6,858 條 / 0 FAIL**，EXIT=0（banner 48 ＝ 鏈長 48）
+- `test:codex` 352 → **374** 條；`test:codexsearch` **35** 條
+- 刻意破壞 **10 / 10 全部轉紅**（A→3 紅、J→2 紅，其餘各 1）
+- 實機 `scratch/p59-console.mjs` **30 / 30**，EXIT=0
+- `npm run build` exit 0
+
+### 六個坑
+
+1. **Hook 寫在 early return 之後** → `Rendered more hooks than during the previous render`，
+   整個畫面被 ErrorBoundary 接住，**索引根本打不開**。`npm run build` 不報、單元測試不報，
+   只有真的把抽屜打開才看到。抓法：`Runtime.enable` ＋ 監聽 `Runtime.exceptionThrown`。
+2. **護欄錨點不唯一**：`indexOf('if (!internalIsOpen')` 先命中 `useEffect` 裡那一行，
+   於是「後面有沒有 hook」問的是整支檔案（恆紅）。改成錨完整條件，並加一條「錨點只出現一次」。
+3. **`el.click()` 進不了 React** → 改座標點擊 `b.clickAt(rect.x, rect.y)`。
+4. **三個新 hex 被 H31 擋**（`#eee3d0`／`#8c7d6b`／`#a89a87`，另有 2 個近漂移）→
+   改用既有色票 `#e8dcc4`／`#6b5a4b`／`#7c6a58`。**改程式，不是改上限。**
+5. **註解裡的警示符號被零 Emoji 掃描擋**（同一個坑**第六次**）。
+6. **量寬度 rect 對 rect 差 1px**：`w-full` 對的是內容盒，`getBoundingClientRect()` 少了 `border-r`。
+   → 兩邊都用 `clientWidth`。
+
+### 量測教訓：拿後一輪的日誌核前一輪的數字
+
+本輪先「更正」了 P8 的 44 支 / 6,518 條 → 47 支 / 6,801 條，理由是「日誌少三支的輸出」。
+**那個更正本身是錯的**：`git show eec52aa:package.json` 的鏈長就是 44，
+`zenit`／`moneyflow`／`freeform` 在 P8 根本還不存在。錯在**分母有時間**——
+工作區那份日誌是後來的輪次留下的。5 個檔案已全部改回，回推算式見 `docs/decisions.md` §CI67.6。
+
+順帶：P9-c 報的「46 支 / 6,755 條」也對不上（`fb1cd03` 鏈長 47），回推應為 47 支 / 6,801 條。
