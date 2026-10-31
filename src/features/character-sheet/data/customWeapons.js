@@ -138,13 +138,128 @@ export const createCustomWeaponSpec = (overrides = {}) => ({
 /** 佔用的名額（迅捷算兩個） */
 export const usedSlots = (spec) => (spec?.customizations || [])
   .reduce((sum, key) => sum + (getCustomization(key)?.slots || 0), 0);
-
 /** 剩餘名額（不會小於 0） */
 export const remainingSlots = (spec) => Math.max(0, CUSTOM_WEAPON_SLOTS - usedSlots(spec));
 
 /** 這把武器是否為職業武器（任一訂製能力帶職業符號） */
 export const isMartialCustomWeapon = (spec) => (spec?.customizations || [])
   .some((key) => getCustomization(key)?.martial === true);
+
+/* ─────────────────────────────────────────────────────────────
+   自由武器（P9-c，2026-10-31）
+
+   使用者：「武器並不是只有基礎武器而已，請你開放自由的武器模板讓玩家寫資訊。」
+
+   上面那套【定制武器】是原書的**選用規則**（HF p.106）：300z、雙手、+5 傷害、
+   三個訂製名額。它很好，但它不是「寫一把自己的武器」——它是一張考卷。
+
+   跑團現場真正會發生的是：GM 給了一把「守墓人的鏽劍」、玩家在雜貨店買到
+   「缺角的柴刀」、公會發了一把「制式長槍」。這些武器沒有訂製能力、
+   價格不是 300z、傷害也不一定是 HR + 5。
+
+   所以這一節只做一件事：**讓玩家把欄位填滿**。
+   存進同一條 `customWeapons` 陣列（用 `freeform: true` 區分），
+   於是引擎、裝備挑選器、跑團卡、三頁匯出全部不必改就能吃下它
+   —— 做法與 `buildCustomWeaponEntry` 對官方武器表做的事一樣：
+   **不是官方表裡的東西，但長得一樣。**
+   ───────────────────────────────────────────────────────────── */
+
+/** 自由武器的預設值。全部可改，包含命中與傷害——那是「寫資訊」的意思。 */
+export const FREEFORM_WEAPON_DEFAULTS = Object.freeze({
+  name: '',
+  category: '劍',
+  range: '近戰',
+  hands: 1,
+  attr: 'DEX + MIG',
+  damage: '【HR + 0】物理',
+  // 價格的預設值是**空字串**，不是 0。
+  // `0` 是「我知道，而且這把是免費的」（GM 給的、撿到的），
+  // `''` 是「我還沒填」。預設成 0 的話，一個沒填價格的玩家會得到一把
+  // 記成 0z 的武器：履歷上寫「0z」、錢包不動，而他以為自己填過（MEMORY §D.21）。
+  cost: '',
+  note: ''
+});
+
+/** 這是不是玩家自己寫的自由武器（而不是原書的定制武器） */
+export const isFreeformWeapon = (spec) => spec?.freeform === true;
+
+/**
+ * 一件全新的自由武器。
+ *
+ * `hands` 只有 1 或 2：`applyEquipmentChoice` 靠它判斷「換上主手時要不要清空副手」，
+ * 存成別的值（例如 `'2'` 字串或 `'雙手'`）會讓那條判定安靜地失效
+ * ——武器裝上去、副手卻還留著盾。
+ */
+export const createFreeformWeaponSpec = (overrides = {}) => ({
+  id: overrides.id || `fw_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+  freeform: true,
+  name: overrides.name || FREEFORM_WEAPON_DEFAULTS.name,
+  category: overrides.category || FREEFORM_WEAPON_DEFAULTS.category,
+  range: overrides.range || FREEFORM_WEAPON_DEFAULTS.range,
+  hands: overrides.hands === 2 ? 2 : 1,
+  attr: overrides.attr !== undefined ? overrides.attr : FREEFORM_WEAPON_DEFAULTS.attr,
+  damage: overrides.damage !== undefined ? overrides.damage : FREEFORM_WEAPON_DEFAULTS.damage,
+  cost: overrides.cost !== undefined ? overrides.cost : FREEFORM_WEAPON_DEFAULTS.cost,
+  note: overrides.note || '',
+  martial: overrides.martial === true,
+  // 這兩個欄位自由武器用不到，但留著空的可以讓「同一條陣列」的其他程式碼
+  // 不必逐一判斷 freeform——少一個分支就少一個會分岔的地方。
+  customizations: [],
+  element: '',
+  transformingId: ''
+});
+
+/**
+ * 檢查一份自由武器。與 `validateCustomWeapon` 同樣回 `{ ok, issues }`，
+ * 同樣是純函式（畫面提示與測試共用同一份判定）。
+ *
+ * 價格**必填**，而且不接受空字串：`applyPurchase` 要算術，
+ * 「不知道多少錢」算不出餘額（MEMORY §D.21）。想寫 0 元就填 0。
+ */
+export const validateFreeformWeapon = (spec) => {
+  const issues = [];
+  const name = String(spec?.name || '').trim();
+
+  if (!name) issues.push({ field: 'name', message: '請為這把武器命名' });
+  if (!CUSTOM_WEAPON_CATEGORIES.includes(spec?.category)) {
+    issues.push({ field: 'category', message: '請選擇一個武器類別' });
+  }
+  if (!CUSTOM_WEAPON_RANGES.includes(spec?.range)) {
+    issues.push({ field: 'range', message: '必須是近戰或遠程' });
+  }
+  if (spec?.hands !== 1 && spec?.hands !== 2) {
+    issues.push({ field: 'hands', message: '必須選單手或雙手' });
+  }
+  if (!String(spec?.attr || '').trim()) {
+    issues.push({ field: 'attr', message: '請寫命中檢定用哪兩個屬性' });
+  }
+  if (!String(spec?.damage || '').trim()) {
+    issues.push({ field: 'damage', message: '請寫傷害式' });
+  }
+
+  const cost = spec?.cost;
+  const numeric = typeof cost === 'number' ? cost : (String(cost ?? '').trim() === '' ? null : Number(cost));
+  if (numeric === null || !Number.isFinite(numeric)) {
+    issues.push({ field: 'cost', message: '請填價格（0 也要填）' });
+  } else if (numeric < 0) {
+    issues.push({ field: 'cost', message: '價格不能是負數' });
+  }
+
+  return { ok: issues.length === 0, issues };
+};
+
+/**
+ * 把自由武器接到角色身上（不寫 localStorage、不碰 React）。
+ *
+ * 為什麼要存進 `customWeapons` 而不是只留一筆交易：
+ * 只留交易的話，玩家把這把劍換下來之後就**再也裝不回去**——
+ * 裝備欄存的是名字，而沒有任何地方記得「這把劍存在」。
+ */
+export const attachCustomWeapon = (character, spec) => ({
+  ...(character || {}),
+  customWeapons: [...((character || {}).customWeapons || []), spec],
+  updatedAt: new Date().toISOString()
+});
 
 /**
  * 成本：300z 起，可變形 +100z。
@@ -180,6 +295,11 @@ export const customWeaponAccuracyAttr = (spec) => {
  * `siblings` 用來檢查可變形的第二型態（該型態也要有可變形）。
  */
 export const validateCustomWeapon = (spec, { siblings = [] } = {}) => {
+  // 自由武器走自己那一套（沒有名額、沒有 300z、沒有固定的命中與傷害）。
+  // 不轉派的話，任何一次「把整條 customWeapons 一起驗」的呼叫都會對自由武器
+  // 噴「命中檢定必須是【DEX + INS】或【DEX + MIG】」——而那是玩家自己寫的字。
+  if (isFreeformWeapon(spec)) return validateFreeformWeapon(spec);
+
   const issues = [];
   const picks = spec?.customizations || [];
 
@@ -245,6 +365,18 @@ export const validateCustomWeapon = (spec, { siblings = [] } = {}) => {
 
 /** 給裝備列表與角色卡用的一行摘要（純中文，不含代號以外的英文） */
 export const describeCustomWeapon = (spec) => {
+  // 自由武器沒有訂製能力，摘要就是它自己的規格。
+  // 不分支的話會印成「劍、近戰、DEX + MIG」——漏掉玩家最在意的傷害式與價格。
+  if (isFreeformWeapon(spec)) {
+    return [
+      spec?.category,
+      spec?.range,
+      spec?.attr,
+      spec?.damage,
+      spec?.hands === 2 ? '雙手' : '單手'
+    ].filter(Boolean).join('、');
+  }
+
   const parts = [
     spec?.category,
     spec?.range,
@@ -298,6 +430,31 @@ export const describeCustomWeaponEffects = (spec, { siblings = [] } = {}) => {
  * `siblings` 只用來在效果文字裡寫出可變形第二型態的名字（拿不到就寫「第二型態」）。
  */
 export const buildCustomWeaponEntry = (spec, { siblings = [] } = {}) => {
+  // 自由武器：欄位全部由玩家填，所以**不要**套任何原書公式（+5 傷害、300z）。
+  // 套了的話，玩家寫「【HR + 2】火」會變成「【HR + 7】物理」——他的字被程式改掉。
+  if (isFreeformWeapon(spec)) {
+    return {
+      name: spec.name,
+      category: spec.category,
+      cost: Number(spec.cost) || 0,
+      hands: spec.hands === 2 ? 2 : 1,
+      attr: spec.attr,
+      damage: spec.damage,
+      range: spec.range,
+      martial: spec.martial === true,
+      isCustomWeapon: true,
+      isFreeform: true,
+      customWeaponId: spec.id || '',
+      note: spec.note ? `自訂武器：${spec.note}` : '自訂武器',
+      effectText: spec.note || '',
+      countsAsShield: false,
+      defBoost: 0,
+      mdefBoost: 0,
+      hasQuick: false,
+      isTransforming: false
+    };
+  }
+
   const martial = isMartialCustomWeapon(spec);
   const picks = spec?.customizations || [];
   return {
@@ -331,6 +488,56 @@ export const buildCustomWeaponEntry = (spec, { siblings = [] } = {}) => {
 export const buildCustomWeaponEntries = (character) => {
   const siblings = character?.customWeapons || [];
   return siblings.map((spec) => buildCustomWeaponEntry(spec, { siblings }));
+};
+
+/* ─────────────────────────────────────────────────────────────
+   目錄條目（給購買面板與換裝彈窗用）
+
+   形狀與 `PurchaseModal` 的 `buildPurchaseCatalog` 輸出**完全一致**：
+   `{ id, name, cost, categoryId, categoryLabel, slot, detail }`（＋`owned`）。
+
+   為什麼放在資料層而不是彈窗裡：兩個彈窗都要用它，而
+   `PurchaseModal` → `WeaponTemplateFields` → `PurchaseModal` 會成環。
+   做法與 `buildCustomWeaponEntry` 對官方武器表做的事同一個理由——
+   **讓消費端不必知道它是誰生的。**
+   ───────────────────────────────────────────────────────────── */
+
+/** 玩家剛寫好的那一把 → 目錄條目（`owned: false`，因為還沒買） */
+export const buildFreeformWeaponItem = (spec) => ({
+  id: `custom:${spec?.id || spec?.name || ''}`,
+  name: spec?.name || '',
+  cost: Number(spec?.cost) || 0,
+  categoryId: 'weapons',
+  categoryLabel: '自訂武器',
+  slot: 'mainHand',
+  detail: describeCustomWeapon(spec),
+  owned: false,
+  isFreeform: true,
+  spec
+});
+
+/** 角色身上已經有的自訂／定制武器 → 目錄條目（`owned: true`，換上去不另收費） */
+export const buildOwnedWeaponItems = (character) => {
+  const specs = character?.customWeapons || [];
+  return specs
+    .map((spec) => ({ spec, weapon: buildCustomWeaponEntry(spec, { siblings: specs }) }))
+    .filter(({ weapon }) => weapon.name)
+    .map(({ spec, weapon }) => ({
+      id: `custom:${weapon.customWeaponId || weapon.name}`,
+      name: weapon.name,
+      cost: Number(weapon.cost) || 0,
+      categoryId: 'weapons',
+      categoryLabel: weapon.isFreeform ? '自訂武器' : '定制武器',
+      slot: 'mainHand',
+      // 說明＝**規格摘要 ＋ 玩家自己寫的備註**。
+      // 第一版直接放 `weapon.note`，而那個字串本身就開頭寫著「自訂武器：」——
+      // 於是清單上讀成「自訂武器 · 自訂武器：對亡靈額外 2 點傷害」，
+      // 標籤重複了一次，還把最該看到的規格擠掉了。
+      detail: [describeCustomWeapon(spec), spec?.note].filter(Boolean).join(' · '),
+      owned: true,
+      isFreeform: Boolean(weapon.isFreeform),
+      customWeaponId: weapon.customWeaponId || ''
+    }));
 };
 
 /**

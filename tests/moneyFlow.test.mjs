@@ -485,6 +485,11 @@ eq('H11 已結算時不再顯示「擲 2d6 × 10 結算」按鈕',
   editorSrc.includes('{!walletSettled && ('), true);
 eq('H12 已結算時那一段改口說明「換裝備改由錢包扣款」',
   editorSrc.includes('之後換裝備改由錢包扣款'), true);
+// 文案改口了，但上面那兩個數字還在算「預算」——於是同一張卡上出現兩個錢：
+// 「剩餘 250z」與「錢包 380z」，而其中一個是假的（P9-c 實機量測抓到的）。
+eq('H14 已結算時「剩餘: Nz」那一格換成錢包（同一張卡不能有兩個錢）',
+  [editorSrc.includes('walletSettled ? ('), countOf(editorSrc, '剩餘: {remainingBudget}z')],
+  [true, 1]);
 
 // `describeHeldLabel` 一定要**被畫出來**。
 // 第一版匯出了它卻沒有在 JSX 裡用——於是「已在副手武裝，換過來不收費」這句話

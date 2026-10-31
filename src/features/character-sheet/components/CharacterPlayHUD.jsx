@@ -85,6 +85,8 @@ import MoneyFlowModal from './MoneyFlowModal';
 import EquipmentSlotModal from './EquipmentSlotModal';
 import {
   buildCustomWeaponEntries,
+  buildCustomWeaponEntry,
+  attachCustomWeapon,
   equipCustomWeapon,
   groupCustomWeapons,
   equippedFormIndex,
@@ -704,14 +706,23 @@ export default function CharacterPlayHUD({
    * 編輯器的「已定稿角色換裝備」走的是同一支。這個函式只負責
    * **讀最新的角色 → 存檔 → 關窗 → 說話**。
    */
-  const handlePurchase = (item, { equip = false } = {}) => {
+  const handlePurchase = (item, { equip = false, spec = null } = {}) => {
     const before = characterRef.current;
     const result = applyPurchase(before, item, {
       equip,
       slotLabel: equip && item?.slot ? (EQUIPMENT_SLOTS[item.slot]?.label || '') : '',
       // 雙手武器換上主手時副手必須空出（Core p.126）。這條判定住在 `equipmentRules`，
       // 由呼叫端傳進來——否則同一條規則會有兩份實作。
-      resolveEquipment: (equipment, slot, name) => applyEquipmentChoice(equipment, slot, name, weaponByName)
+      //
+      // 現場寫的那把武器**還沒進 `character.customWeapons`**，所以不在 `weaponByName` 裡。
+      // 不補進去的話「買一把雙手的自訂武器」會漏掉清空副手這一步——
+      // 而且會安靜地漏：武器裝上去了、盾也還在，畫面上兩個格子都有東西。
+      resolveEquipment: (equipment, slot, name) => {
+        const map = spec
+          ? new Map([...weaponByName, [spec.name, buildCustomWeaponEntry(spec)]])
+          : weaponByName;
+        return applyEquipmentChoice(equipment, slot, name, map);
+      }
     });
 
     // `ok: false` 只有兩種原因（買不起／錢包未記錄），兩種都要說話。
@@ -725,7 +736,10 @@ export default function CharacterPlayHUD({
       return;
     }
 
-    commit(result.character);
+    // 現場寫的那把武器要**同時**存進 `customWeapons`，而且要在同一次 `commit` 裡：
+    // 只留一筆交易的話，玩家把這把劍換下來之後就再也裝不回去——
+    // 裝備欄存的是名字，而沒有任何地方記得「這把劍存在」。
+    commit(spec ? attachCustomWeapon(result.character, spec) : result.character);
     setIsPurchaseOpen(false);
     // 同一支也會被行囊分頁的單槽選擇器呼叫；兩個彈窗都關，避免「買完之後
     // 底下的選擇器還開著、而且還停在舊的槽位」。
@@ -775,11 +789,11 @@ export default function CharacterPlayHUD({
    * 換位置用 `kind: 'equipment'`（不合併、標題帶品名），
    * 而不是 `trade`——履歷上的「交易」必須真的動到錢。
    */
-  const handleEquipFromPack = (item, { owned = false } = {}) => {
+  const handleEquipFromPack = (item, { owned = false, spec = null } = {}) => {
     const before = characterRef.current;
 
     if (!owned) {
-      handlePurchase(item, { equip: true });
+      handlePurchase(item, { equip: true, spec });
       return;
     }
 

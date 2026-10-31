@@ -5,13 +5,15 @@ import {
   GiCrossedSwords,
   GiRoundShield,
   GiChest,
-  GiRing
+  GiRing,
+  GiQuillInk
 } from 'react-icons/gi';
 import JRPGModal from '../../../components/ui/JRPGModal';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import rulesData from '../data/rulesData.json';
 import { EQUIPMENT_SLOTS } from '../utils/equipmentRules';
 import { describePurchase, formatZenit } from '../utils/zenitFeedback';
+import WeaponTemplateFields from './WeaponTemplateFields';
 import {
   GATED_BUTTON_CLASS,
   GATED_LABEL_CLASS,
@@ -140,6 +142,10 @@ export function PurchaseModalBody({
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState(null);
   const [equipAfter, setEquipAfter] = useState(true);
+  // `'list'` ＝ 書上的品項；`'custom'` ＝ 自己寫一把（P9-c）。
+  // 用模式而不是第五個分類，因為它不是「一類商品」——它沒有價格、沒有規格，
+  // 它是一個**空白的表格**。放進分類列會讓它看起來像「書上有一類叫自訂武器」。
+  const [mode, setMode] = useState('list');
 
   const catalog = useMemo(() => buildPurchaseCatalog(rulesData.equipment), []);
   const visible = useMemo(
@@ -191,134 +197,160 @@ export function PurchaseModalBody({
         </div>
       </div>
 
-      {/* 分類 */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        {[{ id: 'all', label: '全部' }, ...PURCHASE_CATEGORIES].map((cat) => {
-          const active = categoryId === cat.id;
-          const IconComp = cat.icon;
-          return (
-            <button
-              key={cat.id}
-              type="button"
-              data-testid={`purchase-cat-${cat.id}`}
-              aria-pressed={active}
-              onClick={() => setCategoryId(cat.id)}
-              className={`px-2.5 py-1 rounded border font-bold flex items-center gap-1 transition-colors ${
-                active
-                  ? 'bg-[#3c2415] text-[#fffdf9] border-[#3c2415]'
-                  : 'bg-[#fbf7ee] text-[#6b5a4b] border-[#d6c7ab] hover:bg-[#f4ebd9]'
-              }`}
-            >
-              {IconComp ? <IconComp className="w-3.5 h-3.5" /> : null}
-              <span>{cat.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* 自己寫一把（P9-c）：書上只有基礎武器，而跑團現場會出現書上沒有的東西。 */}
+      {mode === 'custom' && (
+        <WeaponTemplateFields
+          theme={theme}
+          wallet={wallet}
+          submitLabel="購入並裝備"
+          onSubmit={({ item, spec }) => onConfirm(item, { equip: true, spec })}
+          onBack={() => setMode('list')}
+        />
+      )}
 
-      {/* 清單 */}
-      <div data-testid="purchase-list" className="max-h-[320px] overflow-y-auto space-y-1 pr-1">
-        {visible.length === 0 ? (
-          <div className="py-8 text-center text-[#6b5a4b]">沒有符合條件的品項。</div>
-        ) : visible.map((item) => {
-          const active = item.id === selectedId;
-          const rowGate = describePurchase({ price: item.cost, wallet });
-          const affordable = rowGate.affordable !== false;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              data-testid={`purchase-item-${item.name}`}
-              aria-pressed={active}
-              onClick={(e) => {
-                setSelectedId(item.id);
-                // 選了就把那一列帶進視野：鍵盤使用者按 Enter 之後，
-                // 清單不一定停在那一列，而結帳條在下方——不帶進視野就等於
-                // 「按了沒反應」。`nearest` 才不會把整頁捲走。
-                e.currentTarget.scrollIntoView({ block: 'nearest' });
-              }}
-              className={`w-full text-left px-2.5 py-1.5 rounded border flex items-center justify-between gap-2 transition-colors ${
-                active
-                  ? 'bg-[#f4ebd9] border-[#3c2415]'
-                  : 'bg-[#fffdf9] border-[#e8dcc4] hover:border-[#3c2415]/40'
-              }`}
-            >
-              <span className="min-w-0 flex-1">
-                <span className="font-bold text-[#3c2415]">{item.name}</span>
-                <span className="block text-t10 text-[#6b5a4b] truncate" title={item.detail}>
-                  {item.categoryLabel} · {item.detail || '—'}
-                </span>
-              </span>
-              <span className="shrink-0 text-right">
-                <span className="block tabular-nums font-black text-[#3c2415]">{formatZenit(item.cost)}</span>
-                {/* 買不起的短少量印在列上，不是等按下去才知道 */}
-                {!affordable && (
-                  <span className="block text-t10 text-[#8c3235]">{rowGate.shortText}</span>
-                )}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* 結帳條：算式 ＋ 後果 ＋ 動作 */}
-      <div className="pt-2.5 border-t space-y-2" style={{ borderColor: theme.border }}>
-        {selected ? (
-          <>
-            <div className="flex items-baseline justify-between gap-2 flex-wrap">
-              <span className="text-[#6b5a4b]">
-                已選 <strong className="text-[#3c2415]">{selected.name}</strong>
-              </span>
-              <span
-                data-testid="purchase-math"
-                className="tabular-nums font-black text-[#3c2415]"
+      {mode === 'list' && (
+        <>
+        {/* 分類 */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {[{ id: 'all', label: '全部' }, ...PURCHASE_CATEGORIES].map((cat) => {
+            const active = categoryId === cat.id;
+            const IconComp = cat.icon;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                data-testid={`purchase-cat-${cat.id}`}
+                aria-pressed={active}
+                onClick={() => setCategoryId(cat.id)}
+                className={`px-2.5 py-1 rounded border font-bold flex items-center gap-1 transition-colors ${
+                  active
+                    ? 'bg-[#3c2415] text-[#fffdf9] border-[#3c2415]'
+                    : 'bg-[#fbf7ee] text-[#6b5a4b] border-[#d6c7ab] hover:bg-[#f4ebd9]'
+                }`}
               >
-                {gate.mathText || '—'}
-              </span>
+                {IconComp ? <IconComp className="w-3.5 h-3.5" /> : null}
+                <span>{cat.label}</span>
+              </button>
+            );
+          })}
+          {/* 第五顆不是分類，是「書上沒有的東西」的出口。
+              放在分類列的最右邊，因為玩家的心智動線是「我要買武器 → 找不到 → 那我自己寫」。 */}
+          <button
+            type="button"
+            data-testid="purchase-cat-custom"
+            onClick={() => setMode('custom')}
+            className="px-2.5 py-1 rounded border border-dashed border-[#a63d40] bg-[#fffdf9] text-[#8c3235] font-bold flex items-center gap-1 hover:bg-[#f9f5eb] transition-colors"
+          >
+            <GiQuillInk className="w-3.5 h-3.5" />
+            <span>自訂武器</span>
+          </button>
+        </div>
+
+        {/* 清單 */}
+        <div data-testid="purchase-list" className="max-h-[320px] overflow-y-auto space-y-1 pr-1">
+          {visible.length === 0 ? (
+            <div className="py-8 text-center text-[#6b5a4b]">沒有符合條件的品項。</div>
+          ) : visible.map((item) => {
+            const active = item.id === selectedId;
+            const rowGate = describePurchase({ price: item.cost, wallet });
+            const affordable = rowGate.affordable !== false;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                data-testid={`purchase-item-${item.name}`}
+                aria-pressed={active}
+                onClick={(e) => {
+                  setSelectedId(item.id);
+                  // 選了就把那一列帶進視野：鍵盤使用者按 Enter 之後，
+                  // 清單不一定停在那一列，而結帳條在下方——不帶進視野就等於
+                  // 「按了沒反應」。`nearest` 才不會把整頁捲走。
+                  e.currentTarget.scrollIntoView({ block: 'nearest' });
+                }}
+                className={`w-full text-left px-2.5 py-1.5 rounded border flex items-center justify-between gap-2 transition-colors ${
+                  active
+                    ? 'bg-[#f4ebd9] border-[#3c2415]'
+                    : 'bg-[#fffdf9] border-[#e8dcc4] hover:border-[#3c2415]/40'
+                }`}
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="font-bold text-[#3c2415]">{item.name}</span>
+                  <span className="block text-t10 text-[#6b5a4b] truncate" title={item.detail}>
+                    {item.categoryLabel} · {item.detail || '—'}
+                  </span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block tabular-nums font-black text-[#3c2415]">{formatZenit(item.cost)}</span>
+                  {/* 買不起的短少量印在列上，不是等按下去才知道 */}
+                  {!affordable && (
+                    <span className="block text-t10 text-[#8c3235]">{rowGate.shortText}</span>
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 結帳條：算式 ＋ 後果 ＋ 動作 */}
+        <div className="pt-2.5 border-t space-y-2" style={{ borderColor: theme.border }}>
+          {selected ? (
+            <>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                <span className="text-[#6b5a4b]">
+                  已選 <strong className="text-[#3c2415]">{selected.name}</strong>
+                </span>
+                <span
+                  data-testid="purchase-math"
+                  className="tabular-nums font-black text-[#3c2415]"
+                >
+                  {gate.mathText || '—'}
+                </span>
+              </div>
+
+              <label className="flex items-center gap-1.5 text-[#6b5a4b] cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  data-testid="purchase-equip-toggle"
+                  checked={equipAfter}
+                  onChange={(e) => setEquipAfter(e.target.checked)}
+                  className="accent-[#a63d40]"
+                />
+                <span>購入後裝備到{slotLabel}</span>
+                {willReplace && (
+                  <span className="text-t10 text-[#8c3235]">（會覆蓋目前的 {currentInSlot}）</span>
+                )}
+              </label>
+            </>
+          ) : (
+            <div className="text-[#6b5a4b]">選一件品項，這裡會算出買完還剩多少。</div>
+          )}
+
+          <div className="flex items-center justify-between gap-2">
+            <span data-testid="purchase-blocked-reason" className="text-t11 text-[#8c3235]">
+              {blockedReason}
+            </span>
+            <div className="flex items-center gap-2">
+              <JRPGButton variant="outline" size="sm" onClick={onClose}>
+                取消
+              </JRPGButton>
+              <JRPGButton
+                variant="primary"
+                size="sm"
+                onClick={handleConfirm}
+                className={gate.affordable === true ? '' : `${GATED_SHELL_CLASS} border-[#d6c7ab] bg-[#e8dcc4] text-[#6b5a4b] hover:bg-[#e8dcc4]`}
+                {...(gate.affordable === true
+                  ? {}
+                  : { 'aria-disabled': 'true', 'data-blocked': 'true', title: blockedReason })}
+              >
+                <span className={gate.affordable === true ? '' : GATED_LABEL_CLASS}>
+                  購入{selected ? ` ${gate.priceText}` : ''}
+                </span>
+              </JRPGButton>
             </div>
-
-            <label className="flex items-center gap-1.5 text-[#6b5a4b] cursor-pointer select-none">
-              <input
-                type="checkbox"
-                data-testid="purchase-equip-toggle"
-                checked={equipAfter}
-                onChange={(e) => setEquipAfter(e.target.checked)}
-                className="accent-[#a63d40]"
-              />
-              <span>購入後裝備到{slotLabel}</span>
-              {willReplace && (
-                <span className="text-t10 text-[#8c3235]">（會覆蓋目前的 {currentInSlot}）</span>
-              )}
-            </label>
-          </>
-        ) : (
-          <div className="text-[#6b5a4b]">選一件品項，這裡會算出買完還剩多少。</div>
-        )}
-
-        <div className="flex items-center justify-between gap-2">
-          <span data-testid="purchase-blocked-reason" className="text-t11 text-[#8c3235]">
-            {blockedReason}
-          </span>
-          <div className="flex items-center gap-2">
-            <JRPGButton variant="outline" size="sm" onClick={onClose}>
-              取消
-            </JRPGButton>
-            <JRPGButton
-              variant="primary"
-              size="sm"
-              onClick={handleConfirm}
-              className={gate.affordable === true ? '' : `${GATED_SHELL_CLASS} border-[#d6c7ab] bg-[#e8dcc4] text-[#6b5a4b] hover:bg-[#e8dcc4]`}
-              {...(gate.affordable === true
-                ? {}
-                : { 'aria-disabled': 'true', 'data-blocked': 'true', title: blockedReason })}
-            >
-              <span className={gate.affordable === true ? '' : GATED_LABEL_CLASS}>
-                購入{selected ? ` ${gate.priceText}` : ''}
-              </span>
-            </JRPGButton>
           </div>
         </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }

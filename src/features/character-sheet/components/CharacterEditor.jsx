@@ -53,6 +53,10 @@ import CustomWeaponForgeModal from './CustomWeaponForgeModal';
 import {
   CUSTOM_WEAPON_BASE,
   buildCustomWeaponEntries,
+  // 自由武器（P10）：玩家自己寫的武器與定制武器共用同一個 customWeapons 陣列，
+  // 買下來的同時把 spec 存進去，換裝才找得到這把武器（雙手武器要清副手也靠它）。
+  buildCustomWeaponEntry,
+  attachCustomWeapon,
   describeCustomWeapon,
   equipCustomWeapon,
   groupCustomWeapons,
@@ -623,7 +627,7 @@ export default function CharacterEditor({
    *     挑選器本來就會做，所以兩邊都必須做，否則「在編輯器買雙手劍」會留下副手。
    *   - 這裡沒有 toast 系統，`showToast` 可能是 undefined。
    */
-  const handleBuyEquip = (item, { owned = false } = {}) => {
+  const handleBuyEquip = (item, { owned = false, spec = null } = {}) => {
     if (!buySlot) return;
 
     if (owned) {
@@ -655,7 +659,14 @@ export default function CharacterEditor({
       equip: true,
       slot: buySlot,
       slotLabel: EQUIPMENT_SLOTS[buySlot].label,
-      resolveEquipment: (equipment, slot, name) => applyEquipmentChoice(equipment, slot, name, weaponByName)
+      // 現場寫的那把武器還沒進 `customWeapons`，所以不在 `weaponByName` 裡。
+      // 不補進去的話「買一把雙手的自訂武器」會漏掉清空副手這一步。
+      resolveEquipment: (equipment, slot, name) => {
+        const map = spec
+          ? new Map([...weaponByName, [spec.name, buildCustomWeaponEntry(spec)]])
+          : weaponByName;
+        return applyEquipmentChoice(equipment, slot, name, map);
+      }
     });
 
     if (!result.ok) {
@@ -666,7 +677,10 @@ export default function CharacterEditor({
       return;
     }
 
-    onChange(result.character);
+    // 同一次寫入：扣款 ＋ 換裝 ＋ 把這把武器存進 `customWeapons`。
+    // 分兩次的話第二次讀到的是舊角色（§D.24），而且只留交易不存規格的話，
+    // 玩家換下來之後就再也裝不回去了。
+    onChange(spec ? attachCustomWeapon(result.character, spec) : result.character);
     setBuySlot(null);
     if (showToast) {
       showToast(
@@ -1824,11 +1838,21 @@ export default function CharacterEditor({
                     <GiCoins className="w-4 h-4" style={{ color: theme.accent }} />
                     <span>起始裝備預算 {rules.startingZenit}z</span>
                   </div>
-                  <div className="flex items-center gap-3 font-mono text-xs">
+                  <div className="flex items-center gap-3 tabular-nums text-xs">
                     <span>已花費: <strong style={{ color: theme.accent }}>{totalEquipCost}z</strong> / {rules.startingZenit}z</span>
-                    <span className={remainingBudget < 0 ? 'text-[#8c2d36] font-bold' : 'font-bold'} style={remainingBudget >= 0 ? { color: theme.accent } : undefined}>
-                      剩餘: {remainingBudget}z
-                    </span>
+                    {/* 結算之後「剩餘預算」就沒有意義了——它算的是一套已經不存在的額度。
+                        留著它，玩家會在同一張卡上看到兩個不同的錢（剩餘 250z／錢包 380z），
+                        而其中一個是假的（P9-c 實機量測抓到的：下面的文案已經改口，
+                        上面這個數字卻還在講預算）。所以結算後這一格換成錢包。 */}
+                    {walletSettled ? (
+                      <span className="font-bold" style={{ color: theme.accent }}>
+                        錢包: {character.zenit ?? 0}z
+                      </span>
+                    ) : (
+                      <span className={remainingBudget < 0 ? 'text-[#8c2d36] font-bold' : 'font-bold'} style={remainingBudget >= 0 ? { color: theme.accent } : undefined}>
+                        剩餘: {remainingBudget}z
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -1837,7 +1861,9 @@ export default function CharacterEditor({
                     {walletSettled
                       // 結算之後「剩餘預算」這個數字已經沒有意義了——它算的是
                       // 一套已經不存在的額度。留著它，玩家會以為換裝備還免費。
-                      ? `起始資金已結算（錢包 ${character.zenit ?? 0}z）。之後換裝備改由錢包扣款，與跑團面板同一條路。`
+                      // 金額只在上面那一格印一次（`錢包: 380z`），這裡不再重複一次——
+                      // 兩行相鄰都寫 380z 只是噪音。
+                      ? '起始資金已結算。之後換裝備改由錢包扣款，與跑團面板同一條路。'
                       : '剩餘預算 + 2d6 × 10 結算為開局金幣'}
                   </span>
                   {!walletSettled && (
