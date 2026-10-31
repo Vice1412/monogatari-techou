@@ -3057,3 +3057,51 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
    要驗「履歷上看得到」，就得 scope 到履歷面板。
 3. **實機腳本只在 FAIL 時 `process.exit(1)`，於是全綠的那一次永遠不結束。**
    跑完 25/25 之後行程還掛著，看起來像還在跑，其實早就跑完。
+
+## 2026-10-31（第五十九輪，P9）：金錢回饋——錢第一次參與「買東西」
+
+**起因**：使用者說「目前角色卡買裝備或者中途買東西的時候，金錢並沒有明顯的表現出來」。
+
+**量到的四件事**（實測，`src/` 全掃）
+
+1. 錢包只有一個 `NumberStepper`；同面板 HP／MP／IP／EXP 四條都有浮字，**只有錢沒有**。
+2. **全站沒有「交易」這個動作**——68 件裝備的 `cost` 只出現在建卡的預算條裡，
+   跑團中買東西＝心算 → 按 `−N` → 自己記住買了什麼。
+3. `LOG_KINDS.zenit` 的 `coalesce: 120000` 會把兩分鐘內的交易併成一筆「支出資金」，沒有品名。
+4. 買不起沒有守衛。
+
+**做了什麼**
+
+| 檔案 | 變更 |
+|---|---|
+| `utils/zenitFeedback.js` | 新增。`formatZenit`／`formatZenitDelta`／`describePurchase`／`findLastZenitEvent`，純函式、零寫入 |
+| `components/PurchaseModal.jsx` | 新增。63 件可購買品項、四類頁籤、搜尋、算式、買不起的短少量、會覆蓋哪一件 |
+| `components/CharacterPlayHUD.jsx` | 錢包卡改用 `formatZenit` ＋ 行內浮字；新增「交易條」（最近一筆 ＋ 購買入口）；行囊分頁加餘額與購買入口；`handlePurchase` 單次 `commit` |
+| `utils/characterLog.js` | 新增 kind `trade`（`coalesce: 0`） |
+| `components/ResourceDeltaBadge.jsx` | 新增 `inline` 形態（錢包卡沒有空白可以飄） |
+| `components/ui/GameIcon.jsx` | 登記 `GiTakeMyMoney`（元件名與語意 key 兩處） |
+| `docs/design-system-v5.html` | 新增 §09「資源反饋的形態」——原本沒有這條線，所以錢沒有回饋也沒人覺得不對 |
+
+**五個判斷**（完整版見 `docs/decisions.md` §CI67）
+
+1. `zenit` 與 `trade` 是**同一個欄位的兩種語意**：手動微調是雜訊（合併），交易是事件（不合併）。
+2. **金錢不畫 GaugeBar**：沒有上限的資源畫成條，尾影會被讀成「快沒了」。
+3. **算式要寫出來**（`500z - 200z = 300z`），因為玩家要確認的是「買完還剩多少」。
+4. **空值三態**：`null`（不知道）≠ `false`（買不起），結帳鈕三句話必須分得開。
+5. **扣款／入袋／留痕同一次寫入**（`commit` 單一出口）。
+
+**驗證**
+
+- `npm test`：**45 支關卡 / 可計數 44 支合計 6,555 條 / 0 FAIL**，EXIT=0（新增 `test:zenit` 83 條）。
+- 刻意破壞 **6 / 6 全部轉紅**（`scratch/break-zenit.mjs`）。
+- 實機 `scratch/p9-zenit-ui.mjs` **27 / 27**，連跑三次穩定，EXIT=0；9 張截圖看過。
+- `npm run build` exit 0。
+
+**三個量測教訓**
+
+1. **固定毫秒數等畫面＝假紅燈**：第二次跑 S0～S4 全紅而程式碼一行沒改。改成輪詢，條件不成立就拋錯。
+2. **截圖看出來的重複**：`-150z` 印了兩次（標題與交易條），測試全綠。修法是標題不寫金額，不是拿掉有顏色的差額。
+3. **`replace(/\n/g)` 在樣板字串裡會被吃掉一層轉義**，於是瀏覽器收到「斜線＋真換行＋斜線」。
+
+**未裁定**：建卡之後進編輯器改裝備仍走建卡的預算制（`startingZenit - totalEquipCost`），
+與錢包無關。三個選項見 §CI67.6，**未裁定前不要自行開修**。

@@ -469,6 +469,45 @@
   </div>
 </section>
 
+<section>
+  <h2><span class="no">09</span>附錄：資源反饋的形態——為甚麼金錢沒有條</h2>
+  <p class="lede">
+    第五十九輪（§CI67）補的是「錢」這一格。原本的設計系統有顏色、有字階、有形狀、有動效，
+    但<b>沒有「哪一種資源該用哪一種回饋」這條線</b>——於是四條資源條都有浮字，
+    而錢包只有一個數字，沒有人覺得不對，因為沒有任何一條規則說它該有。
+  </p>
+
+  <h3>形態取決於「有沒有上限」，不是取決於「重不重要」</h3>
+  <table>
+    <tr><th>資源</th><th>上限</th><th>形態</th><th>為甚麼</th></tr>
+    <tr><td>HP／MP／IP／EXP</td><td>有</td><td>條 ＋ 尾影 ＋ 浮字</td><td>比率型。條子說的是「還剩幾成」，尾影露出「剛剛失去的那一段」。</td></tr>
+    <tr><td>物語點 FP</td><td>有（很小）</td><td>數字 ＋ 浮字</td><td>個位數，畫成條是浪費高度；浮字足夠。</td></tr>
+    <tr><td>命刻</td><td>有（分段）</td><td>鐘面</td><td>分段而不是連續，所以用格而不是用長度。</td></tr>
+    <tr><td><b>資金 zenit</b></td><td><b>沒有</b></td><td><b>金額 ＋ 行內浮字 ＋ 交易條</b></td><td>存量型。<b>畫成條會讓尾影看起來像「快沒了」</b>，那是錯的訊息——錢的「快沒了」不是幾何，是<b>能不能買</b>。</td></tr>
+  </table>
+
+  <h3>金錢的五條規則</h3>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0">① 千分位，單位緊貼</h3><div class="sw-use"><code>1,500z</code>，不是 <code>1500 z</code> 也不是 <code>1500 Zenit</code>。改動前全站三種寫法並存；四位數以上沒有千分位時，12px 下 <code>2500z</code> 與 <code>25000z</code> 一樣長。唯一出口 <code>formatZenit()</code>。</div></div>
+    <div class="card"><h3 style="margin-top:0">② 對齊用 <code>tabular-nums</code>，不用 <code>font-mono</code></h3><div class="sw-use"><b>「數字要對齊」與「用等寬字型」是兩件事。</b>等寬字是給識別字與程式碼的；一排數字要的是等寬數字。第一版寫 <code>font-mono</code> 直接撞上 <code>font-mono</code> 預算（481 → 487），改成 <code>tabular-nums</code> 之後總量反而降 1。</div></div>
+    <div class="card"><h3 style="margin-top:0">③ 不知道就印 <code>—</code></h3><div class="sw-use"><code>0z</code> 是一句斷言（你真的沒錢），<code>—</code> 是一句實話（我不知道）。<code>affordable</code> 是三態：<code>true</code>／<code>false</code>／<code>null</code>。</div></div>
+    <div class="card"><h3 style="margin-top:0">④ 算式寫出來，不只寫結果</h3><div class="sw-use"><code>500z - 200z = 300z</code>。玩家要確認的是「買完還剩多少」，不是「現在剩多少」。買不起時同一行改寫成 <code>= 還差 300z</code>，不印負數。</div></div>
+  </div>
+  <div class="panel" style="margin-top:12px">
+    <b>⑤ 結帳鈕的三句話必須分得開。</b>
+    「先選一件品項」（還沒決定）／「錢包金額尚未記錄」（<b>我不知道你有多少錢</b>）／
+    「資金不足：還差 300z」（知道，而且不夠）。
+    把前兩句併成一句不會讓任何畫面壞掉，只會讓玩家一打開彈窗就被告知「錢包金額尚未記錄」——而錢包就寫在左上角。
+  </div>
+
+  <h3>三層反饋：存量說「現在」、交易說「這次」、履歷說「曾經」</h3>
+  <div class="grid g3">
+    <div class="card"><div class="sw-name">存量</div><div class="sw-use">錢包卡：金額 ＋ 行內浮字（卡片上沒有空白可以飄，所以浮字貼在金額右側）＋ 交易條印出最近一筆。</div></div>
+    <div class="card"><div class="sw-name">交易</div><div class="sw-use">購買面板：價格、餘額、算式、買不起差多少、會覆蓋哪一件。買不起<b>不隱藏</b>——隱藏會讓人以為「這東西不存在」。</div></div>
+    <div class="card"><div class="sw-name">履歷</div><div class="sw-use">新 kind <code>trade</code>（<code>coalesce: 0</code>，不合併，標題帶品名）。手動微調仍是 <code>zenit</code>（合併）。<b>同一個欄位、兩種語意。</b></div></div>
+  </div>
+</section>
+
 <footer>
   《物語手帳》設計系統 v5 ｜ 第四十三輪（§CI51 顏色不是被覆蓋，是被刪掉）結束時的實測快照 ｜
   完整裁決紀錄見 <code>docs/decisions.md</code> §CI1–§CI50，稽核手冊見 <code>docs/ui-review-refactoring-ui.md</code> §1–§46。
