@@ -139,44 +139,77 @@ export const describePurchase = ({ price, wallet } = {}) => {
 };
 
 /**
- * 最近一筆**動到錢**的履歷條目（推導，不新增任何欄位）。
+ * 一條履歷條目裡「動到錢」的那一段（沒有就回 `null`）。
  *
- * 為什麼要從履歷推導而不是記一個 `lastTrade` 欄位：
- * 多一個欄位就多一份會與履歷分岔的事實（MEMORY §D.22「兩份事實」），
- * 而且它會在匯入舊存檔時永遠是空的——推導版對舊存檔一樣有效。
+ * P9 時它被 `findLastZenitEvent` 與 `buildMoneyLedger` 共用；P10 把錢包下方那條
+ * 「最近一筆」換成一顆「明細」按鈕之後，只剩 `buildMoneyLedger` 一個呼叫者。
+ * 仍然獨立成一支，是因為**「哪些 change 算一筆交易」只能有一個判斷**：
+ * 判斷散在兩處，遲早會有一邊把 `0` 或字串判成數字——而那種分岔在畫面上
+ * 長得一樣（少一列），不會報錯。
+ */
+const zenitChangeOf = (entry) => {
+  const change = (entry && Array.isArray(entry.changes) ? entry.changes : [])
+    .find((c) => c && c.field === 'zenit');
+  if (!change) return null;
+
+  const from = asCount(change.from);
+  const to = asCount(change.to);
+  // 兩端都要是數字才算得出差額；只有一端的話那是別人的記錄，不是一筆交易。
+  if (from === null || to === null) return null;
+
+  const delta = to - from;
+  return { from, to, delta, deltaText: formatZenitDelta(delta) };
+};
+
+/**
+ * 金錢明細：把履歷裡**動到錢**的條目整理成一張帳（新到舊）。
+ *
+ * 為什麼從履歷推導而不是另開一本帳：`zenit` 的每一次變動都已經寫進履歷了
+ * （`applyPurchase`／`applyMoneyFlow`／編輯器的起始資金結算都走 `loggableChange`）。
+ * 另開一本帳＝兩份事實，而兩份事實一定會分岔（MEMORY §D.22）。
+ *
+ * 這是「明細」按鈕背後的資料，也是為什麼錢包卡不再需要 `−`／`+`：
+ * **玩家要的不是改數字，是知道錢去哪了。**
  *
  * @param {Array} log 角色的成長履歷（`character.log`）
- * @returns {{ id:string, at:string, kind:string, title:string,
- *             delta:number, deltaText:string } | null}
+ * @returns {{ rows:Array<{id,at,kind,title,note,delta,deltaText,balance}>,
+ *             income:number, expense:number, count:number }}
+ *   `income`／`expense` 都是**正數**（支出不再帶負號），合計要顯示時才好讀。
  */
-export const findLastZenitEvent = (log) => {
+export const buildMoneyLedger = (log) => {
   const entries = Array.isArray(log) ? log : [];
+  const rows = [];
+  let income = 0;
+  let expense = 0;
 
-  // 從尾端找：履歷是時間正序，最後一筆才是「最近」。
-  // 不用 `filter(...).at(-1)`——那會先複製一份陣列，而這個函式每個 render 都會跑。
+  // 新到舊：履歷儲存是時間正序，明細要從最近一筆開始讀。
   for (let i = entries.length - 1; i >= 0; i -= 1) {
     const entry = entries[i];
-    const change = (entry && Array.isArray(entry.changes) ? entry.changes : [])
-      .find((c) => c && c.field === 'zenit');
-    if (!change) continue;
+    const zenit = zenitChangeOf(entry);
+    if (!zenit) continue;
 
-    const from = asCount(change.from);
-    const to = asCount(change.to);
-    // 兩端都要是數字才算得出差額；只有一端的話那是別人的記錄，不是一筆交易。
-    if (from === null || to === null) continue;
+    // 差額 0 不算一筆：`formatZenitDelta(0)` 回空字串（那是給浮字用的「沒有變化」），
+    // 放進明細會變成**一列右邊什麼都沒有的帳**。免費品、被取消的交易都落在這裡。
+    if (zenit.delta === 0) continue;
 
-    const delta = to - from;
-    return {
+    if (zenit.delta > 0) income += zenit.delta;
+    else expense += -zenit.delta;
+
+    rows.push({
       id: entry.id || '',
       at: entry.at || '',
       kind: entry.kind || '',
       title: entry.title || '',
-      delta,
-      deltaText: formatZenitDelta(delta)
-    };
+      note: entry.note || '',
+      delta: zenit.delta,
+      deltaText: zenit.deltaText,
+      // 這一筆之後的餘額。`to` 是當時的實際數字，不是「現在的錢包」——
+      // 明細要回答「那時候剩多少」，不是「現在剩多少」。
+      balance: zenit.to
+    });
   }
 
-  return null;
+  return { rows, income, expense, count: rows.length };
 };
 
 /* ─────────────────────────────────────────────────────────────

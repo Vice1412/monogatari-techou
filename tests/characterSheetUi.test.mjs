@@ -124,19 +124,28 @@ check('disabled 時輸入框與按鈕都停用',
   3);
 
 // ─────────────────────────────────────────────────────────── B
-section('B. 六項資源都必須是可自己填寫的步進器（使用者回報）');
+section('B. 五項資源是可自己填寫的步進器；資金不是（P10 改口）');
 
+// ⚠️ 這一節原本是「六項」，包含資金。2026-11-01 使用者改口：
+//   「金幣錢包的部分不要有 +- 和自己修改內容了。」
+// 所以資金**刻意**從清單裡移除，並在下面補一條反向斷言。
+// 移除的理由不是「測起來麻煩」，是**錢的每一次變動都必須有原因**：
+// 步進器寫的是 `kind: 'zenit'`（合併、沒有事由），而 P9-b 之後每一筆錢
+// 都走 `applyMoneyFlow`／`applyPurchase`（原因必填）。兩套記帳法不能並存。
+// 反向斷言留著，否則下一個人會以為「漏了資金」，順手把它加回來。
 const resourceCalls = [
   ['HP', /<NumberStepper\s+value=\{curHp\}/],
   ['MP', /<NumberStepper\s+value=\{curMp\}/],
   ['IP', /<NumberStepper\s+value=\{curIp\}/],
   ['EXP', /<NumberStepper\s+value=\{character\.exp \|\| 0\}/],
-  ['資金', /<NumberStepper\s+value=\{character\.zenit \|\| 0\}/],
   // `??` 不是 `||`：物語點 0 是合法值，不能被當成缺值（2026-10-06 修）
   ['物語點', /<NumberStepper\s+value=\{character\.fabulaPoints \?\? 3\}/]
 ];
-check('六項資源都改用 NumberStepper',
+check('五項資源都改用 NumberStepper',
   resourceCalls.filter(([, re]) => !re.test(hud)).map(([name]) => name), []);
+check('資金刻意不是步進器（每次變動都要有原因，走收支／購買）',
+  [/<NumberStepper\s+value=\{character\.zenit/.test(hud), hud.includes('adjustZenit')],
+  [false, false]);
 check('舊的固定 ±1／±5 按鈕已移除',
   ['adjustHp(-5)', 'adjustMp(5)', 'adjustExp(5)', 'adjustZenit(100)', 'adjustIp(-1)'].filter((s) => hud.includes(s)),
   []);

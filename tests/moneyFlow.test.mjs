@@ -435,6 +435,31 @@ eq('G12 裝備模板預設是關的（不勾就不會突然多一件裝備）',
   flowHtml.includes('data-testid="moneyflow-item-toggle"') &&
   !flowHtml.includes('data-testid="moneyflow-item"'), true);
 
+// P10：方向由「打開它的那顆按鈕」決定，不由玩家在彈窗裡再選一次。
+// 這兩條守的是**起點**——按「收入」卻看到「支出」，那一個動作就白做了，
+// 而且畫面完全正常（只是預設值錯了），不會有任何錯誤訊息。
+const gainHtml = renderToStaticMarkup(
+  React.createElement(MoneyFlowModalBody, {
+    theme: {}, character: baseChar(), wallet: 500, onConfirm: noop, onClose: noop,
+    initialDirection: MONEY_DIRECTIONS.gain
+  })
+);
+/** 哪一顆方向鈕是按下狀態。用 `aria-pressed` 而不是 class——class 會隨樣式改。 */
+const pressedDir = (html) => {
+  const m = html.match(/data-testid="moneyflow-direction-(spend|gain)"[^>]*aria-pressed="true"/);
+  return m ? m[1] : null;
+};
+eq('G13 從「收入」打開時，方向一開始就是獲得（不是預設支出）',
+  [pressedDir(gainHtml), pressedDir(flowHtml)], ['gain', 'spend']);
+// 快捷原因跟著方向換：「住宿」不會是收入、「任務報酬」不會是支出。
+eq('G14 起點是獲得時，快捷原因換成收入那一組',
+  [gainHtml.includes('data-testid="moneyflow-preset-任務報酬"'),
+    gainHtml.includes('data-testid="moneyflow-preset-住宿"')],
+  [true, false]);
+// 對照組：不給 `initialDirection` 時仍然是支出（行囊分頁那種「從上往下寫」的入口）。
+eq('G15 沒給方向時仍然是支出（不是隨機、也不是空白）',
+  [pressedDir(flowHtml), flowHtml.includes('data-testid="moneyflow-preset-住宿"')], ['spend', true]);
+
 /* ────────────────────────────────────────────────────────────────
    H. 結構護欄（掃原始碼）
    ──────────────────────────────────────────────────────────────── */
@@ -467,8 +492,17 @@ eq('H4 四個槽由同一個出口生成（不是四個手寫的 div）',
 // 舊的唯讀寫法不得回來（`主手武器:` 這種標籤後面直接接值）。
 eq('H5 舊的唯讀四行沒有回來',
   [/主手武器:\s*<strong>/.test(hudSrc), /副手武裝:\s*<strong>/.test(hudSrc)], [false, false]);
-eq('H6 行囊分頁也有收支入口', countOf(hudSrc, 'data-testid="pack-money-flow"'), 1);
-eq('H7 主面板的收支入口存在', countOf(hudSrc, 'data-testid="open-money-flow"'), 1);
+eq('H6 行囊分頁也有收支入口（P10 拆成收入／支出／明細／購入四顆）',
+  [countOf(hudSrc, 'data-testid="pack-money-flow"'), countOf(hudSrc, 'data-testid="pack-money-spend"'),
+    countOf(hudSrc, 'data-testid="pack-ledger"')],
+  [1, 1, 1]);
+// P10：主面板的錢包卡是「收入／支出／明細」三顆。
+// 舊的 `open-money-flow`（一顆按鈕包兩種方向）必須**消失**——
+// 留著它就等於留著一條「點下去還要再選一次」的路。
+eq('H7 主面板三顆按鈕，而且舊的「收支」單顆入口已經拆掉',
+  [countOf(hudSrc, 'data-testid="wallet-income"'), countOf(hudSrc, 'data-testid="wallet-expense"'),
+    countOf(hudSrc, 'data-testid="wallet-ledger"'), countOf(hudSrc, 'data-testid="open-money-flow"')],
+  [1, 1, 1, 0]);
 
 // 編輯器：四張卡片走 `openSlot`，而 `openSlot` 依 `walletSettled` 分流。
 eq('H8 四張裝備卡片都走 openSlot（不是直接開預算挑選器）',

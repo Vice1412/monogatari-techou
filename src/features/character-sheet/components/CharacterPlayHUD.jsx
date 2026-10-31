@@ -31,7 +31,10 @@ import {
   GiCycle,
   GiLaurelCrown,
   GiCampfire,
-  GiTakeMyMoney
+  // P10：錢包上的三顆按鈕（收入／支出／明細）。收入與支出用一對鏡像圖示，
+  // 明細用卷軸——三顆長得一樣的話，玩家要靠讀字才知道哪一顆是哪一顆。
+  GiReceiveMoney,
+  GiPayMoney
 } from 'react-icons/gi';
 import GameIcon from '../../../components/ui/GameIcon';
 import EmptyState from '../../../components/ui/EmptyState';
@@ -76,12 +79,13 @@ import { getCharacterTheme } from '../utils/characterThemes';
 import { getDualShieldState, withHrBonus, EQUIPMENT_SLOTS, applyEquipmentChoice } from '../utils/equipmentRules';
 // 金錢回饋（P9，2026-10-31）：判定與金額格式的唯一來源。
 // 面板只負責畫，不在這裡自己拼 `…z` 或自己算「還差多少」。
-import { formatZenit, describePurchase, findLastZenitEvent } from '../utils/zenitFeedback';
+import { formatZenit, describePurchase, MONEY_DIRECTIONS } from '../utils/zenitFeedback';
 // 寫入層（P9-b）：扣款 → 換裝備 → 留履歷必須同一次寫入。
 // 編輯器、購買面板、收支對話框三個入口共用同一支，否則它們總有一天會算出不同的錢。
 import { applyPurchase, applyMoneyFlow, describeMoneyToast } from '../utils/moneyFlow';
 import PurchaseModal from './PurchaseModal';
 import MoneyFlowModal from './MoneyFlowModal';
+import MoneyLedgerModal from './MoneyLedgerModal';
 import EquipmentSlotModal from './EquipmentSlotModal';
 import {
   buildCustomWeaponEntries,
@@ -434,6 +438,15 @@ export default function CharacterPlayHUD({
   // 與購買面板分開，因為那裡只有「買裝備」一種原因，而跑團中花錢的地方遠多於裝備。
   const [isMoneyFlowOpen, setIsMoneyFlowOpen] = useState(false);
 
+  // 收支對話框從哪個方向開始（P10）。
+  // 錢包上有「收入」與「支出」兩顆按鈕——按了「收入」卻打開一個預設「支出」的對話框，
+  // 那一下點擊就白做了。方向仍然可以在對話框裡改（按鈕就在上面），這只是起點。
+  const [moneyFlowDirection, setMoneyFlowDirection] = useState(MONEY_DIRECTIONS.spend);
+
+  // 金錢明細（P10）：把履歷裡動到錢的條目整理成一張帳。
+  // 它是錢包下方「明細」按鈕的內容，取代原本只印最近一筆的那一條。
+  const [isLedgerOpen, setIsLedgerOpen] = useState(false);
+
   // 行囊分頁的單槽選擇器（P9-b）：`null` ＝ 關著，其餘是槽位鍵。
   // 存「哪一個槽」而不是「開著還是關著」，因為四顆按鈕共用同一個彈窗，
   // 而標題與清單都取決於槽位——兩個 state 會有一天不同步。
@@ -567,7 +580,6 @@ export default function CharacterPlayHUD({
   /* 最近一筆動到錢的履歷（推導，零寫入）。
      錢包卡只說「現在有多少」，它不說「為什麼是這個數字」。
      這一筆就是那句話——而且它對舊存檔一樣有效，因為它讀的是既有的 `log`。 */
-  const lastZenitEvent = useMemo(() => findLastZenitEvent(character.log), [character.log]);
 
   /* 武器名 → 武器定義。只給「雙手武器佔滿兩個手部欄位」這一條規則用。
      定制武器也要進來，否則在跑團面板買一把自己鍛的雙手武器時，副手不會被清空
@@ -683,15 +695,15 @@ export default function CharacterPlayHUD({
     });
   };
 
-  const adjustZenit = (delta) => {
-    const cur = character.zenit || 0;
-    const next = Math.max(0, cur + delta);
-    if (next === cur) return;
-    updateField('zenit', next, {
-      kind: 'zenit',
-      title: delta < 0 ? '支出資金' : '獲得資金',
-      changes: [{ field: 'zenit', from: cur, to: next }]
-    });
+  // 錢包上的 `−`／`+` 步進器在 P10 移除（使用者：「不要有 +- 和自己修改內容了」）。
+  // 這不只是「使用者說要」：那顆按鈕寫的是 `kind: 'zenit'`（合併成一筆「支出資金 350 → 300」），
+  // **沒有原因**；而 P9-b 之後每一筆錢都走 `applyMoneyFlow`／`applyPurchase`（原因必填）。
+  // 留著它等於留著第二條寫入路，而那條路寫出來的帳對不上明細。
+
+  /** 打開收支對話框，並決定它從哪個方向開始（錢包上的「收入」／「支出」共用這一個）。 */
+  const openMoneyFlow = (direction) => {
+    setMoneyFlowDirection(direction === MONEY_DIRECTIONS.gain ? MONEY_DIRECTIONS.gain : MONEY_DIRECTIONS.spend);
+    setIsMoneyFlowOpen(true);
   };
 
   /**
@@ -2474,107 +2486,93 @@ export default function CharacterPlayHUD({
                 )}
               </div>
 
-              {/* Zenit & Fabula Points Side by Side */}
-              <div className="grid grid-cols-2 gap-2">
-                <div data-testid="wallet-card" className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
-                      <GiCoins className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                      金幣錢包
-                    </span>
-                    <span className="flex items-baseline gap-1 shrink-0">
-                      <span data-testid="wallet-amount" className="tabular-nums font-black text-xs text-[#3c2415]">
-                        {formatZenit(character.zenit || 0)}
-                      </span>
-                      {/* 行內浮字：卡片上沒有空白可以讓浮字飄，所以貼在金額右側 */}
-                      <ResourceDeltaBadge flash={zenitDelta} inline className="text-t10" />
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 mt-1">
-                    <NumberStepper
-                      value={character.zenit || 0}
-                      onDelta={adjustZenit}
-                      ariaLabel="金幣"
-                      width="w-16"
-                      inputClassName="text-[#6b5a4b]"
-                    />
-                  </div>
+              {/* 金幣錢包 ＋ 物語點（P10 重排）
+                  ─────────────────────────────────────────────────────────────
+                  使用者：「金幣錢包的部分不要有 +- 和自己修改內容了。下面的按鈕改大，
+                  只要收入和支出和明細兩三按鈕。金錢也很重要，做明顯一點。」
+
+                  三件事各自有理由，不只是照做：
+                  1. **拿掉 `−`／`+` 與可編輯輸入框**：那條路寫的是 `kind: 'zenit'`（合併、
+                     沒有原因），與 P9-b 的「原因必填」是兩套記帳法。留著它，明細上就會出現
+                     一堆沒有事由的「支出資金 350 → 300」，而那些列**對不上任何一件事**。
+                  2. **三顆按鈕放進卡片裡**：原本它們擠在卡片下方的一條細帶上（與「最近一筆」
+                     共用一行），高度只有 `py-0.5`——那不是「按得到」，是「看得到」。
+                  3. **金額 25px**：面板上其他數字都是 12–16px。錢包是玩家最常低頭看的一格，
+                     它應該比旁邊的屬性更顯眼，而不是一樣大。
+                  ───────────────────────────────────────────────────────────── */}
+              <div data-testid="wallet-card" className="bg-[#fffdf9] rounded p-3 border space-y-2" style={{ borderColor: theme.border }}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                    <GiCoins className="w-4 h-4" style={{ color: theme.accent }} />
+                    金幣錢包
+                  </span>
+                  {/* 行內浮字：卡片上沒有空白可以讓浮字飄，所以貼在標題右側 */}
+                  <ResourceDeltaBadge flash={zenitDelta} inline className="text-t11" />
                 </div>
 
-                <div className="bg-[#fffdf9] rounded p-3 border flex flex-col justify-between" style={{ borderColor: theme.border }}>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
-                      <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                      物語點
-                    </span>
-                    <span className="font-mono font-black text-xs text-[#3c2415]">
-                      {character.fabulaPoints ?? 3} FP
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 mt-1">
-                    <NumberStepper
-                      value={character.fabulaPoints ?? 3}
-                      onDelta={adjustFp}
-                      ariaLabel="物語點"
-                      width="w-12"
-                      inputClassName="text-[#3c2415]"
-                    />
-                  </div>
+                {/* 金額自己一行、自己一個尺寸。`formatZenit(null)` 印破折號而不是 `0z`——
+                    沒有 `zenit` 欄位的舊存檔是「不知道」，不是「沒錢」。 */}
+                <span
+                  data-testid="wallet-amount"
+                  className="block tabular-nums font-black text-t25 leading-none text-[#3c2415]"
+                >
+                  {formatZenit(character.zenit)}
+                </span>
+
+                {/* 三顆按鈕：收入／支出／明細。點擊高度 `py-2`（原本 0.5），字級 t12（原本 t10）。 */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    data-testid="wallet-income"
+                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.gain)}
+                    title="記一筆進帳（報酬、戰利品、借貸……）"
+                    className="py-2 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiReceiveMoney className="w-3.5 h-3.5" />
+                    收入
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="wallet-expense"
+                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.spend)}
+                    title="記一筆花費（住宿、餐費、修裝……）"
+                    className="py-2 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiPayMoney className="w-3.5 h-3.5" />
+                    支出
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="wallet-ledger"
+                    onClick={() => setIsLedgerOpen(true)}
+                    title="看這筆錢是怎麼進出的（由成長履歷推導）"
+                    className="py-2 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiScrollUnfurled className="w-3.5 h-3.5" />
+                    明細
+                  </button>
                 </div>
               </div>
 
-              {/* 資金交易條（P9）：左邊是「最近一筆資金事件」，右邊是唯一的購買入口。
-                  兩件事放同一條，是因為它們回答同一個問題——「我的錢剛剛發生什麼事／還能做什麼」。
-                  `lastZenitEvent` 從履歷推導（`findLastZenitEvent`），不新增任何欄位；
-                  沒有記錄時不是空白，而是「尚無交易記錄」＋同一顆按鈕，
-                  否則玩家永遠不知道錢包是可以花錢的地方。 */}
-              <div
-                data-testid="wallet-trade-strip"
-                className="bg-[#fbf7ee] border rounded px-2.5 py-1.5 flex items-center justify-between gap-2"
-                style={{ borderColor: theme.border }}
-              >
-                <span className="flex items-baseline gap-1.5 min-w-0 text-t10">
-                  <GiCoins className="w-3 h-3 text-[#6b5a4b] shrink-0 self-center" />
-                  {lastZenitEvent ? (
-                    <>
-                      <span className="truncate text-[#3c2415]" title={lastZenitEvent.title}>
-                        {lastZenitEvent.title}
-                      </span>
-                      <span
-                        data-testid="wallet-last-delta"
-                        className="shrink-0 tabular-nums font-black"
-                        style={{ color: lastZenitEvent.delta < 0 ? '#8c3235' : '#245c45' }}
-                      >
-                        {lastZenitEvent.deltaText}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-[#6b5a4b]">尚無交易記錄</span>
-                  )}
+              {/* 物語點：與錢包同一個區塊，但**不搶同樣的重量**。
+                  使用者要的是「錢明顯一點」，所以它從半寬卡改成一行——
+                  標籤、數值、步進器同一行，佔用的高度只有錢包的三分之一。 */}
+              <div className="bg-[#fffdf9] rounded px-3 py-2 border flex items-center justify-between gap-2" style={{ borderColor: theme.border }}>
+                <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                  <GiSparkles className="w-4 h-4 text-[#6b5a4b]" />
+                  物語點
                 </span>
-                <span className="shrink-0 flex items-center gap-1">
-                  {/* 兩個入口，因為它們回答兩個不同的問題：
-                      「我要買東西」與「我剛剛花了一筆錢」。後者才是跑團中最常發生的
-                      ——住宿、餐費、情報都不在裝備表上，只走購買面板等於逼玩家
-                      為一碗湯去裝備表裡找一件不存在的東西。 */}
-                  <button
-                    type="button"
-                    data-testid="open-money-flow"
-                    onClick={() => setIsMoneyFlowOpen(true)}
-                    className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t10 flex items-center gap-1 transition-colors"
-                  >
-                    <GiTakeMyMoney className="w-3 h-3 text-[#6b5a4b]" />
-                    收支
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="open-purchase"
-                    onClick={() => setIsPurchaseOpen(true)}
-                    className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t10 flex items-center gap-1 transition-colors"
-                  >
-                    <GiCoins className="w-3 h-3 text-[#6b5a4b]" />
-                    購入裝備
-                  </button>
+                <span className="flex items-center gap-2">
+                  <span className="tabular-nums font-black text-t14 text-[#3c2415]">
+                    {character.fabulaPoints ?? 3} FP
+                  </span>
+                  <NumberStepper
+                    value={character.fabulaPoints ?? 3}
+                    onDelta={adjustFp}
+                    ariaLabel="物語點"
+                    width="w-12"
+                    inputClassName="text-[#3c2415]"
+                  />
                 </span>
               </div>
             </div>
@@ -4118,30 +4116,59 @@ export default function CharacterPlayHUD({
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="font-bold text-[#3c2415] block">冒險者行囊物品與武裝</span>
                   {/* 錢要出現在「做決定的地方」：這裡是看裝備的分頁，
-                      所以餘額與購買入口都放這裡，而不是只留在主面板。 */}
-                  <span className="flex items-center gap-2">
-                    <span data-testid="pack-wallet" className="tabular-nums font-black text-t11 text-[#3c2415]">
-                      錢包 {formatZenit(character.zenit || 0)}
-                    </span>
-                    <button
-                      type="button"
-                      data-testid="pack-money-flow"
-                      onClick={() => setIsMoneyFlowOpen(true)}
-                      className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t10 flex items-center gap-1 transition-colors"
-                    >
-                      <GiTakeMyMoney className="w-3 h-3 text-[#6b5a4b]" />
-                      收支
-                    </button>
-                    <button
-                      type="button"
-                      data-testid="pack-purchase"
-                      onClick={() => setIsPurchaseOpen(true)}
-                      className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t10 flex items-center gap-1 transition-colors"
-                    >
-                      <GiCoins className="w-3 h-3 text-[#6b5a4b]" />
-                      購入
-                    </button>
+                      所以餘額與購買入口都放這裡，而不是只留在主面板。
+                      `formatZenit` 自己處理 `null`（＝不知道）→ 破折號。
+                      原本寫 `character.zenit || 0`，那會把「還沒記錄」印成 `0z`，
+                      而 `0z` 是一個合法的「你沒錢」——兩件事不該長得一樣。 */}
+                  <span data-testid="pack-wallet" className="tabular-nums font-black text-t14 text-[#3c2415]">
+                    錢包 {formatZenit(character.zenit)}
                   </span>
+                </div>
+                {/* 四顆按鈕（P10）：與主面板的錢包卡同一套語彙。
+                    這裡不放「收支」那種一顆按鈕包兩種方向的做法——
+                    點下去還要再選一次「這是收入還是支出」，等於把決定推遲到下一步。
+                    購入獨立一顆，因為它走的是 `applyPurchase`（裝備模板、算式、履歷），
+                    與 `applyMoneyFlow` 是兩條路，不該共用一顆按鈕。 */}
+                <div className="grid grid-cols-4 gap-1.5">
+                  <button
+                    type="button"
+                    data-testid="pack-money-flow"
+                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.gain)}
+                    title="記一筆進帳（報酬、戰利品、借貸……）"
+                    className="py-1.5 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiReceiveMoney className="w-3 h-3" />
+                    收入
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="pack-money-spend"
+                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.spend)}
+                    title="記一筆花費（住宿、餐費、修裝……）"
+                    className="py-1.5 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiPayMoney className="w-3 h-3" />
+                    支出
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="pack-ledger"
+                    onClick={() => setIsLedgerOpen(true)}
+                    title="看這筆錢是怎麼進出的（由成長履歷推導）"
+                    className="py-1.5 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiScrollUnfurled className="w-3 h-3 text-[#6b5a4b]" />
+                    明細
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="pack-purchase"
+                    onClick={() => setIsPurchaseOpen(true)}
+                    className="py-1.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiCoins className="w-3 h-3 text-[#6b5a4b]" />
+                    購入
+                  </button>
                 </div>
                 {/* 四個槽位改成按鈕（P9-b）。
                     原本是四行唯讀文字——看得到、換不了，唯一的換裝入口在編輯器，
@@ -4202,14 +4229,26 @@ export default function CharacterPlayHUD({
         onConfirm={handlePurchase}
       />
 
-      {/* MODAL 0-b: 收支（P9-b）——住宿、餐費、報酬……原因必填 */}
+      {/* MODAL 0-b: 收支（P9-b）——住宿、餐費、報酬……原因必填。
+          P10：方向由外面決定（錢包上「收入」／「支出」各一顆），彈窗不再問一次。 */}
       <MoneyFlowModal
         isOpen={isMoneyFlowOpen}
         onClose={() => setIsMoneyFlowOpen(false)}
         theme={theme}
         character={character}
         wallet={character.zenit}
+        initialDirection={moneyFlowDirection}
         onConfirm={handleMoneyFlow}
+      />
+
+      {/* MODAL 0-b-2: 金錢明細（P10）——不是另一份帳，是把成長履歷裡
+          所有動到 `zenit` 的事件倒著列出來（`buildMoneyLedger`）。
+          所以這裡**沒有任何寫入**：能看不能改，帳才不會有第二個版本。 */}
+      <MoneyLedgerModal
+        isOpen={isLedgerOpen}
+        onClose={() => setIsLedgerOpen(false)}
+        theme={theme}
+        character={character}
       />
 
       {/* MODAL 0-c: 單槽換裝（P9-b）——行囊分頁的四個槽共用這一個彈窗 */}

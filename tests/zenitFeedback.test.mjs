@@ -40,7 +40,7 @@ import {
   formatZenit,
   formatZenitDelta,
   describePurchase,
-  findLastZenitEvent,
+  buildMoneyLedger,
   ZENIT_SUFFIX
 } from '../src/features/character-sheet/utils/zenitFeedback.js';
 import {
@@ -51,6 +51,7 @@ import {
   PURCHASE_CATEGORIES
 } from '../src/features/character-sheet/components/PurchaseModal.jsx';
 import { LOG_KINDS, loggableChange } from '../src/features/character-sheet/utils/characterLog.js';
+import { MoneyLedgerModalBody } from '../src/features/character-sheet/components/MoneyLedgerModal.jsx';
 import rulesData from '../src/features/character-sheet/data/rulesData.json';
 
 let results = [];
@@ -118,7 +119,13 @@ eq('B17 什麼都沒給也不炸（回一個完整的空殼）', buy().tone, 'un
 eq('B18 錢包 0 元是「知道且不夠」（與 null 不同）', buy(200, 0).affordable, false);
 
 /* ────────────────────────────────────────────────────────────────
-   C. findLastZenitEvent：從履歷推導「最近一筆資金事件」
+   C. buildMoneyLedger：把履歷整理成一張帳（P10）
+   ────────────────────────────────────────────────────────────────
+   這一節取代了 P9 的 `findLastZenitEvent`（錢包下方那條「最近一筆」）。
+   換掉的理由不是它壞了，是**它回答的問題太小**：玩家問的是「錢去哪了」，
+   而一行字只能回答「剛剛那筆」。P10 把那一行變成一顆「明細」按鈕，
+   於是推導也從「取最後一筆」變成「整張帳」——但判斷「哪些 change 算一筆」
+   仍然是同一支 `zenitChangeOf`，所以下面這些邊界仍然逐條驗。
    ──────────────────────────────────────────────────────────────── */
 const mkEntry = (at, kind, title, from, to) => ({
   id: `e-${at}`,
@@ -128,30 +135,45 @@ const mkEntry = (at, kind, title, from, to) => ({
   changes: from === undefined ? [] : [{ field: 'zenit', from, to }]
 });
 
-eq('C1 空履歷回 null', findLastZenitEvent([]), null);
-eq('C2 不是陣列也不炸', findLastZenitEvent(null), null);
-eq('C3 取最後一筆（不是第一筆）',
-  findLastZenitEvent([
-    mkEntry('2026-10-31T10:00:00.000Z', 'trade', '購入 青銅劍', 500, 300),
-    mkEntry('2026-10-31T10:05:00.000Z', 'trade', '購入 短匕首', 300, 150)
-  ]).title,
-  '購入 短匕首');
-eq('C4 差額由前後值算出來（不是另存的欄位）',
-  findLastZenitEvent([mkEntry('2026-10-31T10:00:00.000Z', 'trade', 'x', 500, 300)]).delta, -200);
-eq('C5 差額帶單位',
-  findLastZenitEvent([mkEntry('2026-10-31T10:00:00.000Z', 'trade', 'x', 500, 300)]).deltaText, '-200z');
-eq('C6 沒有動到錢的記錄要跳過',
-  findLastZenitEvent([
-    mkEntry('2026-10-31T10:00:00.000Z', 'trade', '購入 青銅劍', 500, 300),
-    mkEntry('2026-10-31T10:01:00.000Z', 'hp', '承受傷害')
-  ]).title,
-  '購入 青銅劍');
-eq('C7 只有一端是數字（舊資料）不算一筆交易',
-  findLastZenitEvent([{ id: 'x', at: '2026-10-31T10:00:00.000Z', kind: 'zenit', title: 't', changes: [{ field: 'zenit', from: null, to: 300 }] }]),
-  null);
-eq('C8 沒有 changes 的記錄不會炸',
-  findLastZenitEvent([{ id: 'x', at: '2026-10-31T10:00:00.000Z', kind: 'note', title: '記事' }]),
-  null);
+// 一份刻意混雜的履歷：有收入、有支出、有沒動到錢的、有舊資料只有一端數字的、
+// 有根本不是金錢記錄的。**只有 2 筆該進帳**。
+const LEDGER_LOG = [
+  mkEntry('2026-10-31T10:00:00.000Z', 'trade', '購入 青銅劍', 500, 300),
+  mkEntry('2026-10-31T10:01:00.000Z', 'hp', '承受傷害'),
+  mkEntry('2026-10-31T10:05:00.000Z', 'trade', '任務報酬', 300, 800),
+  { id: 'e-old', at: '2026-10-31T09:00:00.000Z', kind: 'zenit', title: '擲起始資金 2d6 × 10', changes: [{ field: 'zenit', from: null, to: 500 }] },
+  { id: 'e-note', at: '2026-10-31T10:06:00.000Z', kind: 'note', title: '記事' }
+];
+const ledger = buildMoneyLedger(LEDGER_LOG);
+
+eq('C1 空履歷是空帳（不是 null，呼叫端不必判斷）',
+  buildMoneyLedger([]), { rows: [], income: 0, expense: 0, count: 0 });
+eq('C2 不是陣列也不炸', buildMoneyLedger(null), { rows: [], income: 0, expense: 0, count: 0 });
+// 5 筆裡只有 2 筆動到錢：hp 沒動、只有一端數字（舊資料）不算、note 沒有 changes。
+eq('C3 只收「兩端都是數字」的金錢變動', ledger.count, 2);
+// 新到舊。**這一條特別重要**：履歷存的是正序，明細要從最近一筆開始讀，
+// 而「順序反了」在畫面上完全正常（每一列都對，只是時間倒著長），不會有任何錯誤訊息。
+eq('C4 新到舊（第一列是最近一筆）', ledger.rows.map((r) => r.title), ['任務報酬', '購入 青銅劍']);
+eq('C5 支出是正數（合計要能直接相加，不要負負得正）',
+  [ledger.income, ledger.expense], [500, 200]);
+eq('C6 每一列的餘額是「那一筆之後」（不是現在的錢包）',
+  ledger.rows.map((r) => r.balance), [800, 300]);
+eq('C7 差額由前後值算出來，而且帶號',
+  [ledger.rows[1].delta, ledger.rows[1].deltaText], [-200, '-200z']);
+// 沒有 changes 的條目、以及 changes 裡沒有 zenit 的條目，都不能讓它炸。
+eq('C8 沒有 changes 的記錄被跳過（不是拋錯）',
+  buildMoneyLedger([{ id: 'x', at: '2026-10-31T10:00:00.000Z', kind: 'note', title: '記事' }]).count, 0);
+// 差額 0 不是一筆帳：`formatZenitDelta(0)` 是空字串，印出來會是一列右邊空白的帳。
+eq('C9 差額 0 不進明細（免費品、取消的交易）',
+  buildMoneyLedger([mkEntry('2026-10-31T10:00:00.000Z', 'trade', '免費取得', 300, 300)]).count, 0);
+// 對照組：差額 1z 就要進。否則「跳過 0」很容易被寫成「跳過很小的」。
+eq('C10 差額 1z 仍然要進明細（不是「太小就丟掉」）',
+  buildMoneyLedger([mkEntry('2026-10-31T10:00:00.000Z', 'trade', '找零', 300, 301)]).count, 1);
+// 字串數字（存檔匯入）要能收；`''` 是「還沒填」，不是 0。
+eq('C11 前後值是數字字串也收（存檔匯入會給字串）',
+  buildMoneyLedger([mkEntry('2026-10-31T10:00:00.000Z', 'trade', 'x', '500', '300')]).rows[0].delta, -200);
+eq('C12 空字串是「還沒填」，不算一筆（不能當成 0）',
+  buildMoneyLedger([mkEntry('2026-10-31T10:00:00.000Z', 'trade', 'x', '', 300)]).count, 0);
 
 /* ────────────────────────────────────────────────────────────────
    D. kind 登記：trade 存在，而且「不合併」
@@ -274,15 +296,61 @@ eq('G11 彈窗不寫入（結帳交給面板的單一出口）',
   [/onChange\s*\(/.test(modalSrc), /localStorage/.test(modalSrc)], [false, false]);
 
 /* ────────────────────────────────────────────────────────────────
-   H. 面板接線：錢包 → 交易條 → 購買 → 履歷
+   H. 面板接線：錢包 → 三顆按鈕 → 購買 → 明細 → 履歷
+   ────────────────────────────────────────────────────────────────
+   P10 的改動是**減法**：錢包卡上的 `−`／`+` 步進器、可編輯輸入框、
+   以及「最近一筆」那一行全部拿掉，換成「收入／支出／明細」三顆按鈕。
+   減法最難驗的地方是「有沒有真的減掉」——所以下面不是只驗「新東西在」，
+   而是同時驗「舊東西不在」。只驗其中一半的話，兩套記帳法可以並存。
    ──────────────────────────────────────────────────────────────── */
 const hudSrc = readSrc('src/features/character-sheet/components/CharacterPlayHUD.jsx');
+
 eq('H1 錢包金額走 formatZenit（不是手寫 `{n} z`）',
   [countOf(hudSrc, 'data-testid="wallet-amount"'), countOf(hudSrc, '} z')], [1, 0]);
-eq('H2 交易條存在，而且會顯示最近一筆',
-  [countOf(hudSrc, 'data-testid="wallet-trade-strip"'), countOf(hudSrc, 'data-testid="wallet-last-delta"')], [1, 1]);
-eq('H3 兩個購買入口（主面板的錢包條 ＋ 行囊分頁）',
-  [countOf(hudSrc, 'data-testid="open-purchase"'), countOf(hudSrc, 'data-testid="pack-purchase"')], [1, 1]);
+// `|| 0` 會把「不知道」（舊存檔沒有 zenit）印成 `0z`——而 `0z` 是一句斷言。
+// 兩處都驗（主面板＋行囊分頁），因為那個寫法很容易只改一邊。
+eq('H1-b 錢包金額不把「不知道」變成 0（沒有 `zenit || 0`）',
+  [countOf(hudSrc, 'formatZenit(character.zenit)'),
+    /formatZenit\(character\.zenit \|\| 0\)/.test(hudSrc)],
+  [2, false]);
+eq('H2 手動加減整條路已經拆掉（`adjustZenit`、交易條、最近一筆都不在了）',
+  [countOf(hudSrc, 'adjustZenit'), countOf(hudSrc, 'data-testid="wallet-trade-strip"'),
+    countOf(hudSrc, 'data-testid="wallet-last-delta"')],
+  [0, 0, 0]);
+// 金額那一格必須是**唯讀的**（span），不是輸入框、也不是步進器。
+// 用位置切出「金額 → 收入按鈕」那一段再掃，而不是掃整支檔案——
+// 整支檔案裡當然還有別的 `NumberStepper`（物語點、HP、MP…），掃整支會恆紅。
+// 錨點唯一性另外驗（MEMORY §D.19-b：錨點不唯一，問的就是整支檔案）。
+const amountAt = hudSrc.indexOf('data-testid="wallet-amount"');
+const incomeAt = hudSrc.indexOf('data-testid="wallet-income"');
+const amountBlock = hudSrc.slice(amountAt, incomeAt);
+eq('H2-b 金額那一格是唯讀的（span，不是輸入框或步進器）',
+  [amountAt > 0, incomeAt > amountAt,
+    /<input/.test(amountBlock), /NumberStepper/.test(amountBlock), /onChange/.test(amountBlock)],
+  [true, true, false, false, false]);
+// 「做明顯一點」不是形容詞：金額的級數必須大於面板上的一般文字（12–14px）。
+// 改回 t12 就會紅——這正是使用者抱怨的那個狀態。
+eq('H2-c 金額的字級明顯大於旁邊的說明文字',
+  [amountBlock.includes('text-t25'), amountBlock.includes('tabular-nums')], [true, true]);
+eq('H3 三顆按鈕：收入／支出／明細（各一顆，不多不少）',
+  [countOf(hudSrc, 'data-testid="wallet-income"'), countOf(hudSrc, 'data-testid="wallet-expense"'),
+    countOf(hudSrc, 'data-testid="wallet-ledger"')],
+  [1, 1, 1]);
+// 方向由按鈕決定。**每一個呼叫都要自己指定方向**：漏掉的那一個會安靜地變成「支出」
+// （`openMoneyFlow` 把非 gain 一律歸成 spend），而那筆錢會記錯邊。
+const flowCalls = countOf(hudSrc, 'openMoneyFlow(');
+const directedCalls = countOf(hudSrc, 'openMoneyFlow(MONEY_DIRECTIONS.');
+eq('H3-b 每一個 openMoneyFlow 呼叫都自己指定方向（漏掉會安靜變成支出）',
+  [flowCalls > 0, flowCalls === directedCalls], [true, true]);
+eq('H3-c 明細按鈕真的會打開明細彈窗（不是只匯出了一個元件）',
+  [countOf(hudSrc, 'setIsLedgerOpen(true)'), countOf(hudSrc, 'isOpen={isLedgerOpen}'),
+    countOf(hudSrc, '<MoneyLedgerModal')],
+  [2, 1, 1]);
+// 面板要把「哪一顆按鈕按的」傳進彈窗。漏掉這一行，彈窗永遠從「支出」開始——
+// 按「收入」卻打開支出，畫面完全正常（只是預設值錯了），只有實機才看得到。
+// 所以靜態這一條守「有沒有接線」，方向對不對由 `p10-wallet-ui.mjs` 的 W14／W16 守。
+eq('H3-d 面板把方向傳進收支彈窗',
+  countOf(hudSrc, 'initialDirection={moneyFlowDirection}'), 1);
 eq('H4 行囊分頁看得到餘額（錢要出現在做決定的地方）',
   countOf(hudSrc, 'data-testid="pack-wallet"'), 1);
 // H5／H6 在 P9-b 改寫過：結帳從元件搬進 `utils/moneyFlow.js`（三個入口共用）。
@@ -296,12 +364,76 @@ eq('H5 結帳走 describePurchase（與畫面上的算式同一個函式）',
   [1, 1]);
 // 兩邊都要在：`trade` 是事件（不合併），`zenit` 是手動微調（合併）。
 // 只驗其中一邊的話，把 `trade` 改回 `zenit` 仍然會過。
-eq('H6 交易記成 trade（事件），手動微調仍是 zenit（雜訊）',
-  [countOf(moneyFlowSrc, "kind: 'trade'"), countOf(hudSrc, "kind: 'zenit'")], [2, 1]);
-eq('H7 最近一筆由履歷推導（不新增欄位）',
-  countOf(hudSrc, 'findLastZenitEvent(character.log)'), 1);
+// P10 之後 HUD **不再**產生 `kind: 'zenit'`——那條沒有原因的路已經拆掉。
+// 剩下的 `zenit` 只有編輯器的「擲起始資金」（那是一個事件，只是沒有前值）。
+// 所以這裡的期望值從 1 變成 0，並且另外驗「起始資金那一筆還在」——
+// 否則「全部都不寫 zenit」也會過，而那會讓起始資金結算不留痕。
+eq('H6 交易記成 trade（事件）；面板不再寫沒有原因的 zenit',
+  [countOf(moneyFlowSrc, "kind: 'trade'"), countOf(hudSrc, "kind: 'zenit'")], [2, 0]);
+const editorSrc = readSrc('src/features/character-sheet/components/CharacterEditor.jsx');
+eq('H6-b 起始資金結算仍然留痕（唯一合法的 zenit 事件）',
+  countOf(editorSrc, "kind: 'zenit'"), 1);
+// 明細由履歷推導：這條路只能有一個入口，否則「最近一筆」與「明細」會各算一次。
+eq('H7 明細由履歷推導（`buildMoneyLedger`，不新增欄位）',
+  [countOf(readSrc('src/features/character-sheet/components/MoneyLedgerModal.jsx'),
+    'buildMoneyLedger(character?.log)'),
+   countOf(hudSrc, 'findLastZenitEvent')],
+  [1, 0]);
 eq('H8 不新增任何持久欄位（沒有 lastTrade／walletLog）',
   [/lastTrade\s*:/.test(hudSrc), /walletLog\s*:/.test(hudSrc)], [false, false]);
+
+/* ────────────────────────────────────────────────────────────────
+   I. 明細彈窗：真的畫得出來，而且「有一本帳」與「沒有帳」是兩種畫面
+   ────────────────────────────────────────────────────────────────
+   純函式的斷言全綠，不代表畫面上看得到（MEMORY §C.12）。
+   所以這裡把元件畫一次，再從 HTML 裡**取出那一格的值**來比。
+   ──────────────────────────────────────────────────────────────── */
+const cellText = (html, testid) => {
+  const m = html.match(new RegExp(`data-testid="${testid}"[^>]*>([^<]*)<`));
+  return m ? m[1] : null;
+};
+const renderLedger = (character) => renderToStaticMarkup(
+  React.createElement(MoneyLedgerModalBody, { theme: {}, character, onClose: () => {} })
+);
+const ledgerHtml = renderLedger({ zenit: 800, log: LEDGER_LOG });
+
+eq('I1 明細畫得出來：總覽 ＋ 兩列（不是兩列都印成一樣的東西）',
+  [ledgerHtml.includes('data-testid="ledger-summary"'),
+    ledgerHtml.includes('data-testid="ledger-row-0"'),
+    ledgerHtml.includes('data-testid="ledger-row-1"'),
+    ledgerHtml.includes('data-testid="ledger-row-2"')],
+  [true, true, true, false]);
+// 三格各自取出來比。只驗「有 income 這個字」的話，三個數字全錯也會過。
+eq('I2 三格的值：目前餘額／累計收入／累計支出',
+  [cellText(ledgerHtml, 'ledger-balance'), cellText(ledgerHtml, 'ledger-income'),
+    cellText(ledgerHtml, 'ledger-expense')],
+  ['800z', '+500z', '-200z']);
+// 每一列印的是履歷的標題，不是「支出／收入」——後者會讓十二列長得一樣，
+// 而玩家打開明細就是為了知道「哪一筆」。
+eq('I3 每一列寫的是那一筆是什麼（不是「支出」「收入」）',
+  [cellText(ledgerHtml, 'ledger-title-0'), cellText(ledgerHtml, 'ledger-title-1')],
+  ['任務報酬', '購入 青銅劍']);
+eq('I4 每一列的差額帶號，而且與顏色語意一致（支出為負）',
+  [cellText(ledgerHtml, 'ledger-delta-0'), cellText(ledgerHtml, 'ledger-delta-1')],
+  ['+500z', '-200z']);
+// 對照組：**沒有帳**的時候要說「還沒有任何金錢記錄」，而不是畫一個空清單。
+// 只驗「有帳」那一態的話，空清單（看起來像壞掉）也會過（MEMORY §C.14）。
+// 空狀態走 `EmptyState`（全站唯一語法），所以定位用 `data-empty-state` 而不是自己取的 testid。
+const emptyLedgerHtml = renderLedger({ zenit: null, log: [] });
+eq('I5 沒有帳時說「還沒有」，而且不畫空清單',
+  [emptyLedgerHtml.includes('data-empty-state="money-ledger"'),
+    emptyLedgerHtml.includes('data-testid="ledger-list"'),
+    emptyLedgerHtml.includes('還沒有任何金錢記錄')],
+  [true, false, true]);
+// 錢包未記錄時，總覽那一格是破折號（不知道），不是 0z（沒錢）。
+eq('I6 錢包未記錄時「目前餘額」印破折號（不是 0z）',
+  [cellText(emptyLedgerHtml, 'ledger-balance'), cellText(emptyLedgerHtml, 'ledger-income')],
+  ['—', '0z']);
+// 明細只能看，不能改：它沒有寫入出口，也不碰儲存。
+const ledgerSrc = readSrc('src/features/character-sheet/components/MoneyLedgerModal.jsx');
+eq('I7 明細不寫入（沒有 onChange／localStorage，只有 onClose）',
+  [/onChange/.test(ledgerSrc), /localStorage/.test(ledgerSrc), /onConfirm/.test(ledgerSrc)],
+  [false, false, false]);
 
 /* ────────────────────────────────────────────────────────────────
    Z. 斷言器自我體檢

@@ -75,9 +75,15 @@ export function MoneyFlowModalBody({
   character,
   wallet,
   onConfirm,
-  onClose
+  onClose,
+  // 從「收入」按鈕打開時，方向就已經決定了——不該讓玩家再選一次。
+  // 方向仍然是可改的（按鈕就在上面），只是起點不同：玩家按的是「收入」，
+  // 打開卻是「支出」，那一個動作就白做了。
+  initialDirection = MONEY_DIRECTIONS.spend
 }) {
-  const [direction, setDirection] = useState(MONEY_DIRECTIONS.spend);
+  const [direction, setDirection] = useState(
+    initialDirection === MONEY_DIRECTIONS.gain ? MONEY_DIRECTIONS.gain : MONEY_DIRECTIONS.spend
+  );
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [wantsItem, setWantsItem] = useState(false);
@@ -349,16 +355,21 @@ export default function MoneyFlowModal({
   theme,
   character,
   wallet,
-  onConfirm
+  onConfirm,
+  initialDirection
 }) {
+  // 標題跟著起點走：按「收入」打開時標題寫「記一筆收入」。
+  // 這裡不判斷方向，只轉發——判斷在 body（`describeMoneyFlow` 那一側）。
+  const title = initialDirection === MONEY_DIRECTIONS.gain ? '記一筆收入' : '記一筆支出';
   return (
-    <JRPGModal isOpen={isOpen} onClose={onClose} title="記一筆收支" maxWidth="max-w-lg" theme={theme}>
+    <JRPGModal isOpen={isOpen} onClose={onClose} title={title} maxWidth="max-w-lg" theme={theme}>
       <MoneyFlowModalBody
         theme={theme}
         character={character}
         wallet={wallet}
         onConfirm={onConfirm}
         onClose={onClose}
+        initialDirection={initialDirection}
       />
     </JRPGModal>
   );
