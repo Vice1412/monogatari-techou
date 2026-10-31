@@ -867,6 +867,31 @@ export const STATUS_AFFLICTIONS = {
 };
 
 /**
+ * 六大狀態異常的**介面順序**（2026-10-30，P7）。
+ *
+ * 排序依據＝**受影響的屬性**，不是名稱、不是英文版字母序：
+ * 單屬性在前（DEX → INS → MIG → WLP），雙屬性在後（DEX·INS、MIG·WLP）。
+ *
+ * 為什麼值得一個常數：面板把它排在四維格子正下方、同樣兩欄，於是前兩列**逐格對齊**——
+ * 緩慢↔DEX、眩暈↔INS、虛弱↔MIG、動搖↔WLP。玩家看到 DEX 從 d10 被劃掉，
+ * 眼睛往下移一格就是原因，不必再讀一次名稱去回想「眩暈是哪一項」。
+ *
+ * 這一條刻意**不靠物件字面值的順序**（那是 `dazed` 開頭的英文版字母序，與四維無關），
+ * 也刻意不動 `STATUS_AFFLICTIONS` 本身的排列——`calculateCharacterStats` 用它推導
+ * 每項減值的**來源名稱**，動它會連帶改掉公式面板裡「（緩慢）（憤怒）」的排列。
+ * 介面順序歸介面，資料順序歸資料；兩者要一致的地方由 `tests/afflictionOrder.test.mjs`
+ * 逐字比對（集合必須完全相同，不多不少）。
+ */
+export const STATUS_AFFLICTION_ORDER = Object.freeze([
+  'slow',
+  'dazed',
+  'weak',
+  'shaken',
+  'enraged',
+  'poisoned'
+]);
+
+/**
  * 官方十個主題（Core p.158／核心規則漢化 p.158）。
  *
  * 譯名一律照官方核心規則漢化 PDF：`野心 憤怒 歸屬 懷疑 責任 內疚 希望 正義 慈悲 復仇`。

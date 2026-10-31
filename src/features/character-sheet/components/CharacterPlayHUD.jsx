@@ -113,6 +113,8 @@ import { buildDossier, backgroundDisplayText } from '../utils/characterDossier';
 // 判定收斂在 playAvailability.js，按下後的守衛**照舊存在**而且是唯一權威。
 import { describeCostGate, gateButtonAttrs, GATED_BUTTON_CLASS, GATED_SHELL_CLASS, GATED_LABEL_CLASS, GATE_UNITS } from '../utils/playAvailability';
 import UnavailableHint from './UnavailableHint';
+// 狀態異常的效果碼（2026-10-30，P7）：一律由 affectedStats 推導，不另立對照表。
+import { buildAfflictionRows } from '../utils/afflictionDisplay';
 import SkillDescription, { openRuleCodex } from '../utils/skillFormulaEvaluator';
 import ArcanistManager from './companions/ArcanistManager';
 import ChimeristManager from './companions/ChimeristManager';
@@ -506,6 +508,12 @@ export default function CharacterPlayHUD({
   // 四維還沒指派完 → 六項數值不成立（見 `calculateCharacterStats` 的 `attributesUnset`）
   const statsUnset = Boolean(stats.attributesUnset);
   const isReadyToLevelUp = canLevelUp(character);
+
+  /* ── 狀態異常的顯示列（2026-10-30，P7）─────────────────────────
+     順序與效果碼**全部從資料層推導**（`STATUS_AFFLICTION_ORDER` ＋ `affectedStats`），
+     這裡不決定任何一個字。所以改資料就會改畫面，不會出現「畫面寫 A、資料是 B」。
+     這一支沒有任何 setter，切換仍然走既有的 `handleToggleAffliction`。 */
+  const afflictionRows = buildAfflictionRows();
 
   /* ── 資源變動的即時回饋（2026-10-30，P5-a）─────────────────────
      每個值各一支 hook，回傳的是「剛剛那一下」的增減（0.9 秒後自己消失）。
@@ -2075,6 +2083,56 @@ export default function CharacterPlayHUD({
                   );
                 })}
               </div>
+
+              {/* ── 狀態異常（2026-10-30，P7）─────────────────────────────────
+                  這一塊原本在整頁最下方、滿版寬，跟四維之間隔了整個左翼與中央立繪。
+                  「DEX 為什麼從 d10 掉到 d8」的答案就在四維正下方，眼睛往下移一格就有。
+
+                  兩欄排列不是隨便挑的：`STATUS_AFFLICTION_ORDER` 按**受影響的屬性**排
+                  （單屬性 DEX→INS→MIG→WLP，雙屬性在後），所以前兩列與上方四維格子
+                  **逐格對齊**——緩慢↔DEX、眩暈↔INS、虛弱↔MIG、動搖↔WLP。
+
+                  每個按鈕右側寫出它打哪幾個屬性（`↓`＝骰階下降 1 級，完整說明在 title）。
+                  原本的「(-1階)」從按鈕上拿掉：六個狀態全都是 1 階，寫六次是噪音；
+                  實際降了多少在上方（d10 被劃掉、旁邊是 d8）與公式面板裡都看得到。 */}
+              <div
+                data-testid="hud-afflictions"
+                className="pt-2 border-t border-[#e8dcc4] space-y-1.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-t11 font-bold text-[#3c2415] flex items-center gap-1">
+                    <GiHazardSign className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                    <span>狀態異常監控</span>
+                  </span>
+                  <span className="text-t10 text-[#7c6a58]">點擊切換</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {afflictionRows.map((row) => {
+                    const isActive = !!character.statusAfflictions?.[row.key];
+                    return (
+                      <button
+                        key={row.key}
+                        type="button"
+                        data-testid={`affliction-${row.key}`}
+                        aria-pressed={isActive}
+                        onClick={() => handleToggleAffliction(row.key)}
+                        className={`py-1.5 px-2 rounded border text-xs font-bold transition-all flex items-center justify-between gap-1 ${
+                          isActive
+                            ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
+                            : 'bg-[#f4ebd9] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#e8dcc4]'
+                        }`}
+                        title={`${row.name}：${row.desc}`}
+                      >
+                        <span className="min-w-0 truncate">{row.short}</span>
+                        <span className={`shrink-0 font-mono ${isActive ? 'opacity-90' : 'text-[#7c6a58]'}`}>
+                          {row.effect}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* EXP / Zenit / Fabula Points Compact Cards */}
@@ -2212,42 +2270,7 @@ export default function CharacterPlayHUD({
         showToast={showToast}
       />
 
-      {/* 4. Status Afflictions (六大狀態異常) */}
-      <div className="p-3.5 rounded bg-white border border-[#e8dcc4] space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="font-bold text-[#3c2415] flex items-center gap-1">
-            <GiHazardSign className="w-3.5 h-3.5 text-[#6b5a4b]" />
-            <span>狀態異常監控</span>
-          </span>
-          <span className="text-t12 text-[#6b5a4b] font-mono">點擊直接切換狀態</span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
-          {Object.keys(STATUS_AFFLICTIONS).map(key => {
-            const aff = STATUS_AFFLICTIONS[key];
-            const isActive = !!character.statusAfflictions?.[key];
-
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => handleToggleAffliction(key)}
-                className={`py-1.5 px-2 rounded border text-xs font-bold transition-all flex items-center justify-center gap-1 ${
-                  isActive
-                    ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
-                    : 'bg-[#f4ebd9] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#e8dcc4]'
-                }`}
-                title={aff.desc}
-              >
-                <span>{aff.short}</span>
-                {isActive && <span className="text-t12 opacity-90 font-mono">(-1階)</span>}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 4b. 金手指相性（F-023，2026-10-26 P11） */}
+      {/* 4. 金手指相性（F-023，2026-10-26 P11） */}
       {(() => {
         const fx = stats.quirkEffects || {};
         const rows = [
