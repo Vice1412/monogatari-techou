@@ -3489,6 +3489,6 @@ P5 留下的三處註解寫「去構築與成長**第 8 步**改」——那是*
 
 - 全套 **43 支測試 / 6,442 條斷言 / 0 FAIL**（新增 `test:affliction` 65 條）
 - 刻意破壞 **13 / 13 全部轉紅**（`scratch/break-check-affliction.mjs`）
-- 實機 `scratch/p47-console.mjs` **34 / 34**（含 6 條逐格對齊的幾何斷言）；截圖 5 張
+- 實機 `scratch/p47-console.mjs` **34 / 34**（含 6 條逐格對齊的幾何斷言）；截圖 4 張 md5 兩兩不同
 - `npm run build` exit 0
 - 新增模組 1 個（`afflictionDisplay.js`）；新增輸入框 **0 個**、新增寫入路徑 **0 條**
