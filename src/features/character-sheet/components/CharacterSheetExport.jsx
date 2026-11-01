@@ -588,7 +588,7 @@ const ClassSlot = ({ slot }) => (
             </div>
             {/* 效果全文：使用者要的是「丟進 TTS 給玩家隨時查」，所以不能只有技能名 */}
             {sk.desc ? (
-              <SkillDescription desc={sk.desc} sl={sk.sl} className="sheet-skill-desc" linkRefs={false} />
+              <SkillDescription desc={sk.desc} sl={sk.sl} className="sheet-skill-desc" />
             ) : null}
           </div>
         ))}
@@ -799,17 +799,17 @@ export const OfficialSheetPage1 = ({ model, vars = null }) => (
                 {[['hp', 'HP', '生命值'], ['mp', 'MP', '魔力值'], ['ip', 'IP', '物品點']].map(([key, en, cn]) => (
                   <React.Fragment key={key}>
                     <span style={{ fontSize: T.s10, fontWeight: 700 }}>{en}</span>
-              <span style={{ fontSize: T.s12, fontWeight: 700 }}>{model.attributesUnset ? '—' : model.pools[key].max}</span>
-              <span style={{ fontSize: T.s13, fontWeight: 700 }}>
-                {model.attributesUnset ? '—' : model.pools[key].current}
-                {key === 'hp' && !model.attributesUnset ? (
-                  <span style={{ ...S.faint, fontSize: T.s8, marginLeft: '6px' }}>
-                    危機 {model.crisisThreshold}
-                  </span>
-                ) : null}
-              </span>
-            </React.Fragment>
-          ))}
+                    <span style={{ fontSize: T.s12, fontWeight: 700 }}>{model.attributesUnset ? '—' : model.pools[key].max}</span>
+                    <span style={{ fontSize: T.s13, fontWeight: 700 }}>
+                      {model.attributesUnset ? '—' : model.pools[key].current}
+                      {key === 'hp' && !model.attributesUnset ? (
+                        <span style={{ ...S.faint, fontSize: T.s8, marginLeft: '6px' }}>
+                          危機 {model.crisisThreshold}
+                        </span>
+                      ) : null}
+                    </span>
+                  </React.Fragment>
+                ))}
               </div>
             </div>
           </div>
@@ -854,7 +854,7 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
         <Box title="金手指" style={{ flex: '0 0 auto' }}>
           <div style={{ fontSize: T.s10, fontWeight: 700, marginBottom: '1px' }}>{model.quirk}</div>
           {model.quirkDesc ? (
-            <SkillDescription desc={model.quirkDesc} sl={1} className="sheet-skill-desc" linkRefs={false} />
+            <SkillDescription desc={model.quirkDesc} sl={1} className="sheet-skill-desc" />
           ) : null}
           {/* F-027：原文寫「選擇一項…」時，紙上要印出你選了哪一個。
               沒選過就整行不出現（舊角色不受影響）。 */}
@@ -902,21 +902,21 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
       ) : null}
 
       <Box title="英雄技能" style={{ flex: '0 0 auto' }}>        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minHeight: '40px' }}>
-          {model.heroicSkills.map((hs) => (
-            <div key={hs.name}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: T.s9, fontWeight: 700 }}>{hs.name}</span>
-                {hs.sl ? <span style={{ fontSize: T.s8, color: C.faint }}>SL {hs.sl}</span> : null}
-                {hs.requirement ? (
-                  <span style={{ fontSize: T.s8, color: C.faint }}>（{hs.requirement}）</span>
-                ) : null}
-              </div>
-              {hs.effect ? (
-                <SkillDescription desc={hs.effect} sl={hs.sl || 1} className="sheet-skill-desc" linkRefs={false} />
+        {model.heroicSkills.map((hs) => (
+          <div key={hs.name}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: T.s9, fontWeight: 700 }}>{hs.name}</span>
+              {hs.sl ? <span style={{ fontSize: T.s8, color: C.faint }}>SL {hs.sl}</span> : null}
+              {hs.requirement ? (
+                <span style={{ fontSize: T.s8, color: C.faint }}>（{hs.requirement}）</span>
               ) : null}
             </div>
-          ))}
-        </div>
+            {hs.effect ? (
+              <SkillDescription desc={hs.effect} sl={hs.sl || 1} className="sheet-skill-desc" />
+            ) : null}
+          </div>
+        ))}
+      </div>
       </Box>
     </div>
     <div style={{ ...S.col, flex: '1 1 auto' }}>

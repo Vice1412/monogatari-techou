@@ -1566,11 +1566,20 @@ export default function CharacterPlayHUD({
       {/* 1. JRPG 角色狀態與指令中樞（以角色肖像居中，左右環繞核心資源、檢定與戰術分頁按鈕） */}
       <div
         data-testid="jrpg-character-hub"
-        className="rounded p-4 sm:p-5 space-y-4 border-2 transition-colors duration-200"
+        className="rounded p-4 sm:p-5 space-y-4 border-2 transition-colors duration-200 overflow-hidden"
         style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
       >
+        <div
+          data-testid="hud-theme-bar"
+          className="h-1.5 -mx-4 sm:-mx-5 -mt-4 sm:-mt-5 transition-colors duration-200"
+          style={{ backgroundColor: theme.accent }}
+        />
         {/* Top Utility & Sync Bar */}
-        <div className="flex items-center justify-between flex-wrap gap-2 border-b pb-3" style={{ borderColor: theme.border }}>
+        <div
+          data-testid="hud-utility-bar"
+          className="flex items-center justify-between flex-wrap gap-2 border-b -mx-4 sm:-mx-5 -mt-4 px-4 sm:px-5 py-2.5 transition-colors duration-200"
+          style={{ backgroundColor: theme.accentLight, borderColor: theme.border }}
+        >
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-serif font-black text-sm tracking-wider flex items-center gap-1.5" style={{ color: theme.textDark }}>
               <GiSparkles className="w-4 h-4" style={{ color: theme.accent }} />
@@ -2026,16 +2035,20 @@ export default function CharacterPlayHUD({
 
           {/* CENTERPIECE (col-span-4): JRPG Character Portrait Standee & Surrounding Command Buttons */}
           <div
-            className="lg:col-span-4 rounded p-4 border-2 bg-[#fffdf9] flex flex-col items-center justify-between text-center gap-3"
+            className="lg:col-span-4 rounded p-4 border-2 bg-[#fffdf9] flex flex-col items-center justify-between text-center gap-3 overflow-hidden"
             style={{ borderColor: theme.border }}
           >
+            <div
+              className="h-1 w-full -mt-4 mb-1 shrink-0 transition-colors duration-200"
+              style={{ backgroundColor: theme.accent, width: 'calc(100% + 2rem)' }}
+            />
             {/* Portrait Frame & Identity */}
             <div className="flex flex-col items-center w-full space-y-2">
               <div className="relative">
                 <div
                   onClick={() => onOpenEditor()}
-                  className="w-24 h-24 sm:w-28 sm:h-28 rounded border-2 flex items-center justify-center font-serif text-2xl font-bold overflow-hidden shadow-inner bg-[#fbf7ee] cursor-pointer hover:ring-2 transition-all group relative"
-                  style={{ borderColor: theme.accent, color: theme.accent }}
+                  className="w-24 h-24 sm:w-28 sm:h-28 rounded border-2 flex items-center justify-center font-serif text-2xl font-bold overflow-hidden shadow-inner cursor-pointer hover:ring-2 transition-all group relative"
+                  style={{ borderColor: theme.accent, backgroundColor: theme.accentLight, color: theme.accent }}
                   title="點擊前往「構築與成長」更換或調整角色立繪／頭像"
                 >
                   {character.avatar ? (
@@ -2084,7 +2097,9 @@ export default function CharacterPlayHUD({
                       return (
                         <span
                           key={idx}
-                          className="text-t11 px-2 py-0.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] font-bold text-[#3c2415] flex items-center gap-1"
+                          data-testid="hud-class-pill"
+                          className="text-t11 px-2 py-0.5 rounded border font-bold flex items-center gap-1 transition-colors"
+                          style={{ backgroundColor: theme.accentLight, borderColor: theme.accent, color: theme.accentDark }}
                         >
                           <GameIcon name={cName} size={12} style={{ color: theme.accent }} />
                           <span>{cName} Lv{cl.level}</span>
@@ -2628,8 +2643,9 @@ export default function CharacterPlayHUD({
       {/* 6. Sub-Tabs: 武器與戰鬥 | 咒語與魔法 | 職業特技 | 情感羈絆 | 個人命刻 | 行囊日誌 */}
       <div className="bg-[#fffdf9] rounded border-2 overflow-hidden" style={{ borderColor: theme.border }}>
         <div
+          data-testid="hud-subtabs-bar"
           className="flex items-center gap-1 p-2 border-b overflow-x-auto transition-colors duration-200"
-          style={{ backgroundColor: theme.headerBg, borderColor: theme.border }}
+          style={{ backgroundColor: theme.accentLight, borderColor: theme.border }}
         >
           {[
             { id: 'attacks', label: '武器與戰鬥', icon: GiCrossedSwords },

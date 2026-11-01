@@ -53,7 +53,10 @@ import CharacterEditor from '../src/features/character-sheet/components/Characte
 import { GLOSSARY, TERMS as TERM_ENTRIES } from '../src/features/character-sheet/data/glossary.js';
 import CharacterCard from '../src/features/character-sheet/components/CharacterCard.jsx';
 import ClassSkillCard from '../src/features/character-sheet/components/ClassSkillCard.jsx';
-import { getCharacterTheme } from '../src/features/character-sheet/utils/characterThemes.js';
+import { CHARACTER_THEMES, getCharacterTheme } from '../src/features/character-sheet/utils/characterThemes.js';
+import CharacterSheet from '../src/features/character-sheet/CharacterSheet.jsx';
+import { STORAGE_KEYS } from '../src/data/keys.js';
+import { writeJSON } from '../src/data/store.js';
 import AttributeMatrixPicker from '../src/features/character-sheet/components/AttributeMatrixPicker.jsx';
 import ClassPickerModal from '../src/features/character-sheet/components/ClassPickerModal.jsx';
 import MnemosphereSection from '../src/features/character-sheet/components/MnemosphereSection.jsx';
@@ -2895,6 +2898,89 @@ check('（CU-10）syncCharacterToActiveCombat：跑團面板恢復 HP 與解除�
     combatAfterHudSync.combatants[0].statusEffects.dazed,
     combatAfterHudSync.combatants[0].statusEffects.poisoned],
   [true, 45, 0, false, false]);
+
+// ─────────────────────────────────────────────────────────── CV
+section('CV. 角色主題色辨識度與名冊直接換色（方案 3 與方案 4，2026-11-01）');
+
+// 1. 名冊卡片 SSR：頂部 h-2 主題色條、未上傳立繪底色 accentLight、6 點直接換色器（無中二色名註釋）、職業標籤染主題色
+writeJSON(STORAGE_KEYS.characterRoster, [
+  createNewCharacter({
+    id: 'char_theme_test_purple',
+    name: '紫晶測試者',
+    themeColor: 'purple',
+    classes: [{ className: '元素師', level: 2, skills: [] }]
+  })
+]);
+const rosterThemeHtml = renderToStaticMarkup(React.createElement(CharacterSheet));
+writeJSON(STORAGE_KEYS.characterRoster, []);
+
+const purpleTheme = getCharacterTheme('purple');
+const pickerIdx = rosterThemeHtml.indexOf('data-testid="roster-theme-picker-char_theme_test_purple"');
+const pickerSlice = pickerIdx >= 0 ? rosterThemeHtml.slice(pickerIdx, pickerIdx + 1800) : '';
+
+check('（CV-1 SSR）名冊卡片頂部渲染 h-2 主題識別色條（purple accent）',
+  [rosterThemeHtml.includes('data-testid="roster-theme-bar-char_theme_test_purple"'),
+    rosterThemeHtml.includes(`data-testid="roster-theme-bar-char_theme_test_purple" class="h-2 shrink-0 transition-colors" style="background-color:${purpleTheme.accent}"`)],
+  [true, true]);
+check('（CV-2 SSR）名冊卡片未上傳立繪時底色使用 charTheme.accentLight（#eee5f5）',
+  /data-testid="roster-portrait-placeholder-char_theme_test_purple"[^>]*style="background-color:#eee5f5"/.test(rosterThemeHtml),
+  true);
+check('（CV-3 SSR）名冊卡片左上提供 6 色圓點直接換色器，且不含多餘文字或中二色名註釋',
+  [pickerIdx >= 0,
+    Object.values(CHARACTER_THEMES).every((t) => pickerSlice.includes(`background-color:${t.accent}`)),
+    Object.values(CHARACTER_THEMES).some((t) => rosterThemeHtml.includes(t.name))],
+  [true, true, false]);
+check('（CV-4 SSR）名冊卡片職業標籤套用 charTheme.accentLight 底色與 charTheme.accentDark 字色',
+  rosterThemeHtml.includes(`style="background-color:${purpleTheme.accentLight};color:${purpleTheme.accentDark}">【元素師 Lv2】</span>`),
+  true);
+
+// 2. 跑團面板（CharacterPlayHUD）主題色回饋：頂部色條、工具列底色、職業膠囊、戰術分頁列底色隨 themeId 切換
+const hudEmeraldHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: jrpgHudChar,
+  themeId: 'emerald',
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {}
+}));
+const hudCrimsonHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: jrpgHudChar,
+  themeId: 'crimson',
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {}
+}));
+const emeraldTheme = getCharacterTheme('emerald');
+const crimsonTheme = getCharacterTheme('crimson');
+
+check('（CV-5 SSR）CharacterPlayHUD 渲染頂部主題色條（hud-theme-bar）並隨 themeId 改變顏色',
+  [hudEmeraldHtml.includes(`data-testid="hud-theme-bar"`) && hudEmeraldHtml.includes(`background-color:${emeraldTheme.accent}`),
+    hudCrimsonHtml.includes(`data-testid="hud-theme-bar"`) && hudCrimsonHtml.includes(`background-color:${crimsonTheme.accent}`)],
+  [true, true]);
+check('（CV-6 SSR）CharacterPlayHUD 頂部工具列與六大戰術分頁列底色套用 theme.accentLight',
+  [/data-testid="hud-utility-bar"[^>]*style="background-color:#e1eee7/.test(hudEmeraldHtml),
+    /data-testid="hud-subtabs-bar"[^>]*style="background-color:#e1eee7/.test(hudEmeraldHtml),
+    /data-testid="hud-utility-bar"[^>]*style="background-color:#f5e6e7/.test(hudCrimsonHtml),
+    /data-testid="hud-subtabs-bar"[^>]*style="background-color:#f5e6e7/.test(hudCrimsonHtml)],
+  [true, true, true, true]);
+check('（CV-7 SSR）CharacterPlayHUD 立繪中樞職業膠囊套用 theme.accentLight／accent／accentDark',
+  hudEmeraldHtml.includes(`data-testid="hud-class-pill"`) &&
+    hudEmeraldHtml.includes(`style="background-color:${emeraldTheme.accentLight};border-color:${emeraldTheme.accent};color:${emeraldTheme.accentDark}"`),
+  true);
+
+// 3. 構築工坊（CharacterEditor）左側角色身分小卡頂部主題色條與頭像底色
+const editorBlueHtml = renderToStaticMarkup(React.createElement(CharacterEditor, {
+  character: createNewCharacter({ name: '蒼藍測試者' }),
+  themeId: 'blue',
+  onChange: () => {},
+  showToast: () => {}
+}));
+const blueTheme = getCharacterTheme('blue');
+check('（CV-8 SSR）CharacterEditor 左側角色身分小卡渲染頂部主題色條與 accentLight 頭像框底色',
+  [editorBlueHtml.includes(`data-testid="editor-identity-theme-bar"`) && editorBlueHtml.includes(`style="background-color:${blueTheme.accent}"`),
+    editorBlueHtml.includes(`style="border-color:${blueTheme.border};background-color:${blueTheme.accentLight}"`)],
+  [true, true]);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

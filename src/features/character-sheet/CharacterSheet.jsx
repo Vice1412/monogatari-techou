@@ -356,15 +356,19 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
   }, [roster, searchQuery, classFilter, sortBy]);
 
   // Update only themeColor to prevent overwriting modified character data with stale closures
-  const handleUpdateActiveCharacterTheme = (themeId) => {
-    const targetId = activeChar?.id || activeCharId;
+  const handleUpdateCharacterTheme = (targetId, themeId) => {
     if (!targetId) return;
     setRoster(prev => prev.map(c => {
       if (c.id === targetId) {
-        return { ...c, themeColor: themeId, updatedAt: new Date().toISOString() };
+        return { ...c, themeColor: themeId };
       }
       return c;
     }));
+  };
+
+  const handleUpdateActiveCharacterTheme = (themeId) => {
+    const targetId = activeChar?.id || activeCharId;
+    handleUpdateCharacterTheme(targetId, themeId);
   };
 
   // Persistent 6 Theme Color Circles for top right header
@@ -396,7 +400,6 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 borderColor: t.accentDark,
                 boxShadow: isSelected ? `0 0 0 2px #fff, 0 0 0 4px ${t.accent}` : undefined
               }}
-              title={`切換主題：${t.name}`}
             >
               {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white block shadow-e1" />}
             </button>
@@ -604,12 +607,17 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                     className="bg-[#fffdf9] rounded hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col group relative border"
                     style={{ borderColor: isCrisis ? '#8c2d36' : charTheme.border }}
                   >
-                    <div className="h-1 shrink-0" style={{ backgroundColor: charTheme.accent }} />
+                    <div
+                      data-testid={`roster-theme-bar-${char.id}`}
+                      className="h-2 shrink-0 transition-colors"
+                      style={{ backgroundColor: charTheme.accent }}
+                    />
 
                     {/* 頂部半身/全身立繪區（約佔 40%-50% 高度） */}
                     <div
                       onClick={() => handleOpenEditorMode(char)}
-                      className="relative w-full h-64 sm:h-72 overflow-hidden bg-[#f4ebd9]/40 flex items-center justify-center shrink-0 cursor-pointer group/portrait"
+                      className="relative w-full h-64 sm:h-72 overflow-hidden flex items-center justify-center shrink-0 cursor-pointer group/portrait transition-colors"
+                      style={{ backgroundColor: charTheme.accentLight }}
                       title="點擊前往編輯此角色與肖像"
                     >
                       {/* 立繪圖片或 GameIcon 象徵 */}
@@ -620,7 +628,11 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                           className="w-full h-full object-cover object-top transition-transform duration-500 group-hover/portrait:scale-105"
                         />
                       ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-[#f4ebd9]/40">
+                        <div
+                          data-testid={`roster-portrait-placeholder-${char.id}`}
+                          className="w-full h-full flex flex-col items-center justify-center transition-colors"
+                          style={{ backgroundColor: charTheme.accentLight }}
+                        >
                           <GameIcon
                             name={char.avatar || char.classes?.[0]?.className || 'GiSparkles'}
                             className="w-16 h-16 opacity-75 transition-transform duration-300 group-hover/portrait:scale-110"
@@ -629,6 +641,37 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                           <span className="text-t10 text-[#7c6a58] mt-2 font-mono">未上傳立繪</span>
                         </div>
                       )}
+
+                      {/* 左上浮層：名冊直接切換主題色（無文字圓點） */}
+                      <div
+                        data-testid={`roster-theme-picker-${char.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 px-1.5 py-1 rounded-full bg-[#fffdf9]/90 border"
+                        style={{ borderColor: charTheme.border }}
+                      >
+                        {Object.values(CHARACTER_THEMES).map((t) => {
+                          const isSelected = (char.themeColor || 'amber') === t.id;
+                          return (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUpdateCharacterTheme(char.id, t.id);
+                              }}
+                              className={`w-3.5 h-3.5 rounded-full transition-all flex items-center justify-center cursor-pointer ${
+                                isSelected ? 'scale-110' : 'opacity-65 hover:opacity-100'
+                              }`}
+                              style={{
+                                backgroundColor: t.accent,
+                                boxShadow: isSelected ? `0 0 0 1.5px #fffdf9, 0 0 0 3px ${t.accent}` : undefined
+                              }}
+                            >
+                              {isSelected && <span className="w-1 h-1 rounded-full bg-[#fffdf9] block" />}
+                            </button>
+                          );
+                        })}
+                      </div>
 
                       {/* 頂部浮層：等級徽章與危機標籤 */}
                       <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
@@ -731,7 +774,11 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                         <span className="font-bold text-[#3c2415]">職業</span>
                         {char.classes && char.classes.length > 0 ? (
                           char.classes.map((c, i) => (
-                            <span key={i} className="text-[#3c2415] font-medium">
+                            <span
+                              key={i}
+                              className="px-1.5 py-0.5 rounded font-bold transition-colors"
+                              style={{ backgroundColor: charTheme.accentLight, color: charTheme.accentDark }}
+                            >
                               【{c.className} Lv{c.level}】
                             </span>
                           ))

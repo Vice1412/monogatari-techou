@@ -906,14 +906,15 @@ export default function CharacterEditor({
         <div className="hidden md:flex w-60 shrink-0 flex-col gap-3 sticky top-4">
           {/* 角色卡身分小卡 */}
           <div
-            className="rounded p-3.5 border shadow-e1 transition-colors"
+            className="rounded p-3.5 border shadow-e1 transition-colors overflow-hidden"
             style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
           >
+            <div data-testid="editor-identity-theme-bar" className="h-1.5 -mx-3.5 -mt-3.5 mb-3 transition-colors" style={{ backgroundColor: theme.accent }} />
             <div className="flex items-center gap-3">
               <div
                 onClick={() => setActiveTab(1)}
-                className="w-11 h-11 rounded bg-white border overflow-hidden shrink-0 flex items-center justify-center font-serif shadow-inner cursor-pointer group relative"
-                style={{ borderColor: theme.border }}
+                className="w-11 h-11 rounded border overflow-hidden shrink-0 flex items-center justify-center font-serif shadow-inner cursor-pointer group relative transition-colors"
+                style={{ borderColor: theme.border, backgroundColor: theme.accentLight }}
                 title="點擊前往基礎身世設定更換或調整頭像"
               >
                 {character.avatar && (character.avatar.startsWith('http') || character.avatar.startsWith('data:')) ? (

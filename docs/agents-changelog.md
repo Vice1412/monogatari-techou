@@ -3395,3 +3395,31 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 - 實機 `p11-sf-ui.mjs` 8 / 8
 - 截圖：`p11-1-ledger-creation-chain.png`
 
+---
+
+## 2026-11-01 — 角色主題色辨識度與名冊直接換色（方案 3 ＋ 方案 4）
+
+### 背景與使用者裁決
+
+使用者指出角色卡切換主題色的功能不夠明顯，並在審閱四個方案後明確裁定：
+- **否決方案 1**：不在主題色圓點旁加文字標籤或中二色名註釋（並移除 `renderThemeCircles` 殘留的 `title` 中二色名）。
+- **否決方案 2**：不把主題色選擇器塞進創角步驟（主題色非跑團核心流程，不喧賓奪主）。
+- **執行方案 3（名冊卡片直接換色與主題色辨識）** 與 **方案 4（強化跑團面板與構築工坊的主題色面積回饋）**。
+
+### 修改檔案
+
+- `src/features/character-sheet/CharacterSheet.jsx`
+  - 新增 `handleUpdateCharacterTheme(targetId, themeId)`，供名冊上任一角色直接切換主題色（且不改動 `updatedAt`，避免在「最近更新」排序下點選顏色時卡片跳位）。
+  - 名冊卡片頂部識別色條由 `h-1`（4px）加厚為 `h-2`（8px，`data-testid="roster-theme-bar-..."`）。
+  - 未上傳立繪時的預設圖示底色由固定米色改為 `charTheme.accentLight`（`data-testid="roster-portrait-placeholder-..."`）。
+  - 名冊卡片立繪左上角新增無文字 6 色圓點切換器（`data-testid="roster-theme-picker-..."`），並移除頂部 `renderThemeCircles` 殘留的中二色名 `title`。
+  - 名冊卡片的職業標籤套用 `charTheme.accentLight` 底色與 `charTheme.accentDark` 字色。
+- `src/features/character-sheet/components/CharacterPlayHUD.jsx`
+  - `jrpg-character-hub` 頂部新增 `h-1.5` 主題識別色條（`data-testid="hud-theme-bar"`），頂部工具列（`data-testid="hud-utility-bar"`）與下方六大戰術分頁列（`data-testid="hud-subtabs-bar"`）底色改用 `theme.accentLight`。
+  - 中央立繪卡頂部加 `h-1` 主題色細條、頭像框底色改用 `theme.accentLight`，職業膠囊（`data-testid="hud-class-pill"`）套用 `theme.accentLight`／`theme.accent`／`theme.accentDark`。
+- `src/features/character-sheet/components/CharacterEditor.jsx`
+  - 左側邊欄「角色卡身分小卡」頂部新增 `h-1.5` 主題識別色條（`data-testid="editor-identity-theme-bar"`），頭像框底色改用 `theme.accentLight`。
+- `tests/characterSheetUi.test.mjs`
+  - 新增 CV 節（CV-1 至 CV-8，8 條 SSR 斷言），並完成刻意破壞驗證（改壞 `h-2` 與 `hud-subtabs-bar` → 確認 CV-1、CV-6 轉紅 → 還原全綠）。
+
+
