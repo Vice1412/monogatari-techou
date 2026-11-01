@@ -35,7 +35,11 @@ import React, { useState } from 'react';
 import { GiSparkles, GiPocketWatch, GiRollingDices, GiScrollUnfurled, GiSpellBook } from 'react-icons/gi';
 import JRPGButton from '../../../components/ui/JRPGButton';
 import { JRPGInput } from '../../../components/ui/JRPGInput';
+import CopyTextButton from '../../../components/ui/CopyTextButton';
+import { formatZeroPowerCopyText } from '../utils/playCopyFormat';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
+import SkillDescription from '../utils/skillFormulaEvaluator';
+import { getCharacterLevel } from '../utils/characterEngine';
 import {
   ZERO_TRIGGERS,
   ZERO_EFFECTS,
@@ -105,7 +109,7 @@ function ChoiceChip({ active, title, subtitle, onClick, theme }) {
  * 效果名與觸發名一行（那是規則），效果全文（那是判給桌上聽的），
  * 施展條件最小（那是提醒，不是重點）。
  */
-function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectText = '', label = '', max, combined = false }) {
+function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectText = '', label = '', max, combined = false, characterLevel = null, character = null }) {
   /**
    * 呼叫端已經先判斷過 `showcaseReady`，這裡仍然擋一次：
    * 卡片讀 `effect.name`／`trigger.name`，少一個就是整頁白畫面。
@@ -198,14 +202,14 @@ function ShowcaseCard({ theme, name, trigger, effect, triggerText = '', effectTe
         >
           <span className="block text-t10 font-bold" style={{ color: accent, letterSpacing: '0.2em' }}>觸發</span>
           <p className="text-t14 leading-7" style={{ color: textMuted }}>
-            {renderTextWithAffinities(triggerText || trigger.desc)}
+            <SkillDescription desc={triggerText || trigger.desc} characterLevel={characterLevel} character={character} linkCodex={false} />
           </p>
         </div>
 
         <div className="space-y-0.5">
           <span className="block text-center text-t10 font-bold" style={{ color: accent, letterSpacing: '0.2em' }}>效果</span>
           <p className="text-t16 leading-7 text-center" style={{ color: textDark }}>
-            {renderTextWithAffinities(effectText || effect.desc)}
+            <SkillDescription desc={effectText || effect.desc} characterLevel={characterLevel} character={character} linkCodex={false} />
           </p>
         </div>
 
@@ -292,6 +296,7 @@ export default function ZeroPowerBlock({
   showToast = null
 }) {
   const state = normalizeZeroPower(character && character.zeroPower);
+  const charLevel = getCharacterLevel(character);
   /** 命名表彈窗（`ZeroPowerNameTablesModal`）——與身份表同一個入口形狀：按鈕開表。 */
   const [nameTablesOpen, setNameTablesOpen] = useState(false);
   /**
@@ -417,7 +422,35 @@ export default function ZeroPowerBlock({
             <GiPocketWatch className="w-4 h-4" style={{ color: theme.accent }} />
             底力命刻
           </span>
-          <span className="text-t10" style={{ color: theme.textMuted }}>{ZERO_POWER_SOURCE}</span>
+          <span className="flex items-center gap-1.5">
+            <span className="text-t10" style={{ color: theme.textMuted }}>{ZERO_POWER_SOURCE}</span>
+            {(trigger || effect) ? (
+              <CopyTextButton
+                getText={() => {
+                  const playTriggerText = describeZeroTrigger(state, { roster });
+                  const playEffectText = describeZeroEffect(state, activeEffectId);
+                  const activePair = combined && partnerId ? state.combinedPairs.find((p) => p.partnerId === partnerId) : null;
+                  const copyDisplayName = (activePair && activePair.nickname) || state.name;
+                  return formatZeroPowerCopyText({
+                    name: copyDisplayName,
+                    triggerName: trigger ? trigger.name : '',
+                    triggerText: playTriggerText || (trigger ? trigger.desc : ''),
+                    effectName: effect ? effect.name : '',
+                    effectText: playEffectText || (effect ? effect.desc : ''),
+                    clockFilled: state.clock,
+                    clockMax: max,
+                    partnerName: partnerChar ? partnerChar.name || partnerChar.id : '',
+                    characterName: character ? character.name : '',
+                    characterLevel: charLevel,
+                    character
+                  });
+                }}
+                toastLabel={state.name || (effect ? effect.name : '底力技')}
+                showToast={showToast}
+                testId="copy-zero-power"
+              />
+            ) : null}
+          </span>
         </div>
 
         <ClockStrip
@@ -851,7 +884,7 @@ export default function ZeroPowerBlock({
 
       {effect ? (
         <p className="text-t14 leading-relaxed rounded border px-2.5 py-2" style={{ color: theme.textDark, borderColor: theme.border, backgroundColor: theme.cardBg }}>
-          {renderTextWithAffinities(effect.desc)}
+          <SkillDescription desc={effect.desc} characterLevel={charLevel} character={character} linkCodex={false} />
         </p>
       ) : null}
 
@@ -925,6 +958,8 @@ export default function ZeroPowerBlock({
                 label={`與 ${row.partner ? row.partner.name || row.partner.id : row.pair.partnerId || '未指定伙伴'} 共用`}
                 max={max}
                 combined
+                characterLevel={charLevel}
+                character={character}
               />
             ))}
           </div>
@@ -937,6 +972,8 @@ export default function ZeroPowerBlock({
             triggerText={showcaseTriggerText}
             effectText={describeZeroEffect(state)}
             max={max}
+            characterLevel={charLevel}
+            character={character}
           />
         )
       ) : (

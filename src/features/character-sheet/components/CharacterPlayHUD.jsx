@@ -152,6 +152,15 @@ import { shouldRenderArcanistPanel } from '../utils/arcanist';
 import { withEn } from '../../../utils/properNouns';
 import { STORAGE_KEYS } from '../../../data/keys';
 import { readJSON, writeJSON } from '../../../data/store';
+import CopyTextButton from '../../../components/ui/CopyTextButton';
+import {
+  formatSkillCopyText,
+  formatHeroicSkillCopyText,
+  formatQuirkCopyText,
+  formatSpellCopyText,
+  formatWeaponCopyText,
+  formatEquipmentCopyText
+} from '../utils/playCopyFormat';
 
 /**
  * 六種情感的顯示名（原書 p.91 的三組對立情感）。
@@ -336,6 +345,7 @@ export default function CharacterPlayHUD({
 }) {
   // Tabs: attacks (武器與防衛) | spells (咒語與魔法) | skills (職業特技) | bonds (情感羈絆) | clocks (命刻) | notes (行囊日誌)
   const [activeTab, setActiveTab] = useState(initialTab);
+  const characterLevel = getCharacterLevel(character);
 
   // Level up modal
   const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(initialLevelUpOpen);
@@ -2848,6 +2858,29 @@ export default function CharacterPlayHUD({
                 </div>
 
                 <div className="flex items-center gap-1.5 self-end sm:self-center">
+                  <CopyTextButton
+                    testId="copy-main-weapon"
+                    toastLabel={mainWeapon.name}
+                    showToast={showToast}
+                    getText={() =>
+                      formatWeaponCopyText({
+                        weapon: {
+                          ...mainWeapon,
+                          type: mainWeapon.range || mainWeapon.type || '近戰'
+                        },
+                        slotLabel: '主手武裝',
+                        check: {
+                          formula: `[${mainCheck.attr1} + ${mainCheck.attr2}]${mainCheck.mod !== 0 ? ` + ${mainCheck.mod}` : ''}`,
+                          diceStr: `d${mainCheck.die1}+d${mainCheck.die2}`
+                        },
+                        damage: {
+                          text: `[HR + ${mainDamage.hrBonus}]`,
+                          type: mainDamage.damageType
+                        },
+                        characterName: character.name
+                      })
+                    }
+                  />
                   <button
                     type="button"
                     onClick={() => openCharacterDice({
@@ -2921,6 +2954,29 @@ export default function CharacterPlayHUD({
                   </div>
 
                   <div className="flex items-center gap-1.5 self-end sm:self-center">
+                    <CopyTextButton
+                      testId="copy-off-weapon"
+                      toastLabel={offWeapon.name}
+                      showToast={showToast}
+                      getText={() =>
+                        formatWeaponCopyText({
+                          weapon: {
+                            ...offWeapon,
+                            type: offWeapon.range || offWeapon.type || '近戰'
+                          },
+                          slotLabel: '副手武裝',
+                          check: {
+                            formula: `[${offCheck.attr1} + ${offCheck.attr2}]${offCheck.mod !== 0 ? ` + ${offCheck.mod}` : ''}`,
+                            diceStr: `d${offCheck.die1}+d${offCheck.die2}`
+                          },
+                          damage: {
+                            text: `[HR + ${offDamage.hrBonus}]`,
+                            type: offDamage.damageType
+                          },
+                          characterName: character.name
+                        })
+                      }
+                    />
                     <button
                       type="button"
                       onClick={() => openCharacterDice({
@@ -2980,7 +3036,23 @@ export default function CharacterPlayHUD({
                 return (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-t12 pt-2 border-t">
                     <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
-                      <span className="text-[#6b5a4b] block font-sans">副手/盾牌:</span>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[#6b5a4b] block font-sans">副手/盾牌:</span>
+                        {shieldDef && (
+                          <CopyTextButton
+                            testId="copy-shield"
+                            toastLabel={offHandName}
+                            showToast={showToast}
+                            getText={() =>
+                              formatEquipmentCopyText({
+                                slotLabel: '副手盾牌',
+                                item: shieldDef,
+                                characterName: character.name
+                              })
+                            }
+                          />
+                        )}
+                      </div>
                       <strong className="text-[#3c2415] block">{offHandName || '無'}</strong>
                       {shieldDef && (
                         <div className="font-sans text-t11 text-[#6b5a4b] leading-snug">
@@ -2992,7 +3064,23 @@ export default function CharacterPlayHUD({
                       )}
                     </div>
                     <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
-                      <span className="text-[#6b5a4b] block font-sans">防具裝甲:</span>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[#6b5a4b] block font-sans">防具裝甲:</span>
+                        {armorDef && (
+                          <CopyTextButton
+                            testId="copy-armor"
+                            toastLabel={armorName}
+                            showToast={showToast}
+                            getText={() =>
+                              formatEquipmentCopyText({
+                                slotLabel: '防具裝甲',
+                                item: armorDef,
+                                characterName: character.name
+                              })
+                            }
+                          />
+                        )}
+                      </div>
                       <strong className="text-[#3c2415] block">{armorName || '無'}</strong>
                       {armorDef && (
                         <div className="font-sans text-t11 text-[#6b5a4b] leading-snug">
@@ -3004,7 +3092,23 @@ export default function CharacterPlayHUD({
                       )}
                     </div>
                     <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
-                      <span className="text-[#6b5a4b] block font-sans">佩戴飾品:</span>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[#6b5a4b] block font-sans">佩戴飾品:</span>
+                        {(accDef || accName) && (
+                          <CopyTextButton
+                            testId="copy-accessory"
+                            toastLabel={accName}
+                            showToast={showToast}
+                            getText={() =>
+                              formatEquipmentCopyText({
+                                slotLabel: '佩戴飾品',
+                                item: accDef || { name: accName, desc: '無特殊效果' },
+                                characterName: character.name
+                              })
+                            }
+                          />
+                        )}
+                      </div>
                       <strong className="text-[#3c2415] block">{accName || '無'}</strong>
                       {accDef?.desc && accDef.desc !== '無特殊效果' && (
                         <p className="font-sans text-t12 text-[#3c2415] leading-snug">
@@ -3114,6 +3218,24 @@ export default function CharacterPlayHUD({
 
                           {/* Action Buttons */}
                           <div className="flex items-center gap-1.5 ml-auto">
+                            <CopyTextButton
+                              testId={`copy-spell-${idx}`}
+                              toastLabel={sp.name}
+                              showToast={showToast}
+                              getText={() =>
+                                formatSpellCopyText({
+                                  spell: sp,
+                                  checkFormula: isOffensive
+                                    ? `[INS + WLP] (d${spellCheck.die1}+d${spellCheck.die2})${spellCheck.mod !== 0 ? ` + ${spellCheck.mod}` : ''}`
+                                    : '',
+                                  damageFormula:
+                                    isOffensive && spellDamage.damageType
+                                      ? `[HR + ${spellDamage.hrBonus}] ${spellDamage.damageType}`
+                                      : '',
+                                  characterName: character.name
+                                })
+                              }
+                            />
                             <UnavailableHint gate={spellGate} testId={`gate-spell-${idx}`} />
                             <button
                               type="button"
@@ -3460,6 +3582,23 @@ export default function CharacterPlayHUD({
                                   <span>規則索引</span>
                                 </button>
                               )}
+                              <CopyTextButton
+                                testId={`copy-skill-${cName}-${normSkName}`}
+                                toastLabel={display.name}
+                                showToast={showToast}
+                                getText={() =>
+                                  formatSkillCopyText({
+                                    className: cName,
+                                    name: display.name,
+                                    sl: sk.sl,
+                                    maxSL: display.maxSL || 5,
+                                    desc: display.desc || '',
+                                    characterName: character.name,
+                                    characterLevel,
+                                    character
+                                  })
+                                }
+                              />
                               <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]">
                                 SL {sk.sl} / {display.maxSL || 5}
                               </span>
@@ -3468,7 +3607,7 @@ export default function CharacterPlayHUD({
 
                           <div className="text-t14 text-[#6b5a4b] leading-relaxed">
                             <div className={isExpanded ? '' : 'line-clamp-2'}>
-                              <SkillDescription desc={display.desc || '暫無描述'} sl={sk.sl} refSource={display.name} />
+                              <SkillDescription desc={display.desc || '暫無描述'} sl={sk.sl} characterLevel={characterLevel} character={character} refSource={display.name} />
                             </div>
                             {display.desc && display.desc.length > 80 && (
                               <button
@@ -3583,6 +3722,8 @@ export default function CharacterPlayHUD({
                                   showVolumeBlock={true}
                                   variantId={sk.variantId || null}
                                   hasGreaterTheriomorphosis={hasGreaterTheriomorphosis(character)}
+                                  characterName={character.name}
+                                  showToast={showToast}
                                 />
                               )}
 
@@ -3661,6 +3802,8 @@ export default function CharacterPlayHUD({
                               sl={sk.sl}
                               onOpenCodex={() => openRuleCodex('小工具')}
                               characterLevel={getCharacterLevel(character)}
+                              characterName={character.name}
+                              showToast={showToast}
                               variantId={sk.variantId || null}
                               technoRestrictsEquipment={
                                 modeRestrictsEquipment(resolveCreationRules(character?.creationRules).technospheres)
@@ -3746,16 +3889,34 @@ export default function CharacterPlayHUD({
                               <span className="text-[#a63d40]">★</span>
                               <span>{resolved.name}</span>
                             </span>
-                            {sourceLabel && (
-                              <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-[#6b5a4b]">
-                                {sourceLabel}{resolved.class ? ` · ${resolved.class}` : ''}
-                              </span>
-                            )}
+                            <div className="flex items-center gap-1.5">
+                              {sourceLabel && (
+                                <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-[#6b5a4b]">
+                                  {sourceLabel}{resolved.class ? ` · ${resolved.class}` : ''}
+                                </span>
+                              )}
+                              <CopyTextButton
+                                testId={`copy-heroic-${idx}`}
+                                toastLabel={resolved.name}
+                                showToast={showToast}
+                                getText={() =>
+                                  formatHeroicSkillCopyText({
+                                    name: resolved.name,
+                                    className: resolved.class || '',
+                                    sourceLabel,
+                                    effect: effectText,
+                                    characterName: character.name,
+                                    characterLevel,
+                                    character
+                                  })
+                                }
+                              />
+                            </div>
                           </div>
                           {effectText && (
-                            <p className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap">
-                              {renderTextWithAffinities(effectText)}
-                            </p>
+                            <div className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap">
+                              <SkillDescription desc={effectText} characterLevel={characterLevel} character={character} linkCodex={false} refSource={resolved.name} />
+                            </div>
                           )}
                         </div>
                       );
@@ -3773,9 +3934,26 @@ export default function CharacterPlayHUD({
                   .join('、');
                 return (
                   <div data-testid="hud-quirk-detail" className="pt-3 border-t space-y-2" style={{ borderColor: theme.border }}>
-                    <div className="font-serif font-black text-sm flex items-center gap-1.5 text-[#3c2415]">
-                      <GiSparkles className="w-4 h-4 text-[#a63d40]" />
-                      <span>金手指特質：{character.quirk}</span>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="font-serif font-black text-sm flex items-center gap-1.5 text-[#3c2415]">
+                        <GiSparkles className="w-4 h-4 text-[#a63d40]" />
+                        <span>金手指特質：{character.quirk}</span>
+                      </div>
+                      <CopyTextButton
+                        testId="copy-quirk"
+                        toastLabel={character.quirk}
+                        showToast={showToast}
+                        getText={() =>
+                          formatQuirkCopyText({
+                            name: character.quirk,
+                            choiceSummary,
+                            effect: quirkDef?.effect || `已啟用金手指【${character.quirk}】。`,
+                            characterName: character.name,
+                            characterLevel,
+                            character
+                          })
+                        }
+                      />
                     </div>
                     <div className="p-3 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-1.5">
                       {choiceSummary && (
@@ -3784,9 +3962,9 @@ export default function CharacterPlayHUD({
                         </div>
                       )}
                       {quirkDef?.effect ? (
-                        <p className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap">
-                          {renderTextWithAffinities(quirkDef.effect)}
-                        </p>
+                        <div className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap">
+                          <SkillDescription desc={quirkDef.effect} characterLevel={characterLevel} character={character} linkCodex={false} refSource={character.quirk} />
+                        </div>
                       ) : (
                         <p className="text-t12 text-[#7c6a58]">已啟用金手指【{character.quirk}】。</p>
                       )}
@@ -3827,6 +4005,7 @@ export default function CharacterPlayHUD({
                       fields: []
                     });
                   }}
+                  showToast={showToast}
                 />
               )}
               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -4634,6 +4813,8 @@ export default function CharacterPlayHUD({
                           <SkillDescription
                             desc={sk.desc || '（無效果描述）'}
                             sl={isSel && !maxed ? curSL + 1 : curSL}
+                            characterLevel={isSel && !maxed ? characterLevel + 1 : characterLevel}
+                            character={character}
                             refSource={sk.name}
                           />
                         </p>

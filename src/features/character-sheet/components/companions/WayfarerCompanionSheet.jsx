@@ -19,6 +19,8 @@ import {
 } from '../../data/wayfarerCompanionData';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 import { ATTRIBUTE_COLORS } from '../../data/sourcebookConfig';
+import CopyTextButton from '../../../../components/ui/CopyTextButton';
+import { formatCompanionItemCopyText } from '../../utils/playCopyFormat';
 
 export default function WayfarerCompanionSheet({
   character,
@@ -101,14 +103,48 @@ export default function WayfarerCompanionSheet({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsEditModalOpen(true)}
-          className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab]"
-        >
-          <GiQuillInk className="w-3.5 h-3.5 text-[#6b5a4b]" />
-          <span>編輯隨從設定</span>
-        </button>
+        <div className="flex items-center gap-1.5">
+          <CopyTextButton
+            label="複製隨從"
+            getText={() => {
+              const lines = [
+                `HP：${currentHp} / ${maxHp}（危機 ≤ ${crisisHp}）｜DEF d${dexDie}｜M.DEF d${insDie}`,
+                `屬性：DEX d${dexDie} · INS d${insDie} · MIG d${migDie} · WLP d${wlpDie}`
+              ];
+              for (const atk of comp.attacks || []) {
+                const rangeLabel = atk.range === 'melee' || atk.type === 'melee' ? '近戰' : '遠程';
+                lines.push(`• 【攻擊】${atk.name}（${rangeLabel}）：【${atk.attr1} + ${atk.attr2}】+${companionSL}｜${atk.damageText || atk.damage || '【HR + 5】物理'}${atk.specialEffect ? ` — ${atk.specialEffect}` : ''}`);
+              }
+              for (const sp of comp.spells || []) {
+                lines.push(`• 【咒語】${sp.name || '未命名咒語'}（MP ${sp.mp || 10} · ${sp.target || '一個生物'} · ${sp.duration || '瞬發'}）：${sp.effect || ''}`);
+              }
+              for (const act of comp.otherActions || []) {
+                lines.push(`• 【行動】${act.name || '未命名行動'}：${act.effect || ''}`);
+              }
+              for (const rule of comp.specialRules || []) {
+                lines.push(`• 【特殊規則】${rule.name || '未命名規則'}：${rule.effect || ''}`);
+              }
+              return formatCompanionItemCopyText({
+                category: '旅人忠實夥伴',
+                name: comp.name || '忠實夥伴',
+                subtitle: `5 級 ${comp.species || '野獸'}｜SL ${companionSL}`,
+                lines,
+                characterName: character?.name || ''
+              });
+            }}
+            toastLabel={comp.name || '忠實夥伴'}
+            showToast={showToast}
+            testId="copy-wayfarer-companion"
+          />
+          <button
+            type="button"
+            onClick={() => setIsEditModalOpen(true)}
+            className="px-2.5 py-1 rounded text-xs font-bold transition-all flex items-center gap-1 cursor-pointer bg-white hover:bg-[#f4ebd9] text-[#2c221e] border border-[#d6c7ab]"
+          >
+            <GiQuillInk className="w-3.5 h-3.5 text-[#6b5a4b]" />
+            <span>編輯隨從設定</span>
+          </button>
+        </div>
       </div>
 
       {/* 生命值與危機儀表 */}

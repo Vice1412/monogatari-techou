@@ -3,6 +3,8 @@ import { GiSprout, GiFlowerPot, GiSparkles, GiCheckMark, GiHazardSign, GiPlantRo
 import EmptyState from '../../../../components/ui/EmptyState';
 import { Plus, Trash2, RotateCcw } from 'lucide-react';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
+import CopyTextButton from '../../../../components/ui/CopyTextButton';
+import { formatFloristSeedCopyText } from '../../utils/playCopyFormat';
 import { FLORIST_MAGISEEDS, isSeedEffectActiveAt } from '../../data/skillSuboptionsData';
 
 /**
@@ -196,6 +198,19 @@ export default function FloristGardenTracker({
 
                   {/* 命刻步進與移出操作 */}
                   <div className="flex items-center gap-1.5 ml-auto">
+                    <CopyTextButton
+                      testId="copy-florist-seed"
+                      toastLabel={item.seedName}
+                      showToast={showToast}
+                      getText={() =>
+                        formatFloristSeedCopyText({
+                          seedName: item.seedName,
+                          clock,
+                          seedDef,
+                          characterName: character?.name || ''
+                        })
+                      }
+                    />
                     <button
                       type="button"
                       onClick={() => handleStepClock(item.instanceId, -1)}

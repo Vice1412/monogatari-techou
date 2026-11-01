@@ -37,6 +37,8 @@ import {
   toggleCampActivity
 } from '../data/campActivities';
 import { resolveCreationRules } from '../data/creationRules';
+import CopyTextButton from '../../../components/ui/CopyTextButton';
+import { formatCampActivityCopyText } from '../utils/playCopyFormat';
 
 /** 一張可選的活動卡（名稱＋目標＋一句話）。 */
 function ActivityChip({ activity, active, theme, onClick }) {
@@ -68,7 +70,7 @@ function ActivityChip({ activity, active, theme, onClick }) {
 }
 
 /** 規則全文（含 1d6 表格）。 */
-function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsage = false, modeNote = '' }) {
+function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsage = false, modeNote = '', characterName = '', showToast = null }) {
   return (
     <div
       className="rounded border p-3 space-y-1.5"
@@ -98,6 +100,23 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
               {used ? '本次休息已使用' : '標記使用'}
             </button>
           ) : null}
+          <CopyTextButton
+            getText={() =>
+              formatCampActivityCopyText({
+                name: activity.name,
+                targetLabel: campActivityTargetLabel(activity),
+                page: activity.page,
+                desc: activity.desc,
+                table: activity.table,
+                once: activity.once,
+                used: Boolean(used),
+                characterName
+              })
+            }
+            toastLabel={`營地活動【${activity.name}】`}
+            showToast={showToast}
+            testId={`copy-camp-${activity.id}`}
+          />
           {onRemove ? (
             <button
               type="button"
@@ -216,6 +235,8 @@ export default function CampActivitiesBlock({
                   showUsage
                   used={state.used.includes(activity.id)}
                   modeNote={campActivityModeNote(activity.id, techMode)}
+                  characterName={character && character.name}
+                  showToast={showToast}
                   onToggleUsed={() => commit(setCampActivityUsed(state, activity.id, !state.used.includes(activity.id)))}
                 />
               ))}
@@ -274,6 +295,8 @@ export default function CampActivitiesBlock({
               activity={activity}
               theme={theme}
               modeNote={campActivityModeNote(activity.id, techMode)}
+              characterName={character && character.name}
+              showToast={showToast}
               onRemove={() => commit(toggleCampActivity(state, activity.id, allowance))}
             />
           ))}

@@ -1184,7 +1184,7 @@ const scourgeState = {
 const scourgeDone = cardOf({ ...fresh, zeroPower: scourgeState });
 check(
   '零之天災選好後寫出已選的傷害類型（純函式）',
-  describeZeroEffect(scourgeState).includes('等級一半的【火】傷害'),
+  describeZeroEffect(scourgeState).includes('【火】傷害'),
   true
 );
 check('零之天災選好後寫出已選的兩個狀態', scourgeDone.includes('承受【眩暈】與【虛弱】'), true);

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { GiSpellBook, GiCancel, GiRollingDices, GiBiohazard } from 'react-icons/gi';
 import { Plus, ClipboardPaste } from 'lucide-react';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
+import CopyTextButton from '../../../../components/ui/CopyTextButton';
+import { formatChimeristSpellCopyText } from '../../utils/playCopyFormat';
 import { calculateCharacterStats } from '../../utils/characterEngine';
 import { hasLegacyOffensiveSentinel } from '../../../npc-workshop/data/spells';
 
@@ -277,9 +279,9 @@ export default function ChimeristManager({
 
       {/* 咒語列表 */}
       <div className="space-y-2.5">
-        {spells.map((sp) => (
+        {spells.map((sp, idx) => (
           <div
-            key={sp.id}
+            key={sp.id || idx}
             className="p-3.5 rounded bg-white border border-[#e8dcc4] space-y-2"
           >
             <div className="flex items-center justify-between flex-wrap gap-2 border-b border-[#d6c7ab] pb-1.5">
@@ -301,6 +303,19 @@ export default function ChimeristManager({
               </div>
 
               <div className="flex items-center gap-1.5">
+                <CopyTextButton
+                  testId={`copy-chimerist-${sp.id || idx}`}
+                  toastLabel={sp.name}
+                  showToast={showToast}
+                  getText={() =>
+                    formatChimeristSpellCopyText({
+                      spell: sp,
+                      checkFormula: sp.isOffensive ? `【${currentFormula}】` : '',
+                      hasViciousCycle,
+                      characterName: character.name
+                    })
+                  }
+                />
                 <button
                   type="button"
                   onClick={() => handleCastSpell(sp)}

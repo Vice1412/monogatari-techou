@@ -10,6 +10,8 @@ import {
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 import { getMagitechBranch, magitechMaxTier } from '../../data/gadgetBranches';
+import CopyTextButton from '../../../../components/ui/CopyTextButton';
+import { formatCompanionItemCopyText } from '../../utils/playCopyFormat';
 
 /**
  * 跑團卡【小工具】技能即時戰鬥效果速查組件 (TinkererGadgetsQuickRef)
@@ -28,6 +30,8 @@ export default function TinkererGadgetsQuickRef({
   onOpenCodex = () => {},
   onOpenWorkshop = null,
   characterLevel = 5,
+  characterName = '',
+  showToast = null,
   variantId = null,
   technoRestrictsEquipment = false,
   /**
@@ -235,6 +239,40 @@ export default function TinkererGadgetsQuickRef({
                 </div>
                 <span className="text-t11 text-[#6b5a4b]">
                   武器攻擊命中後花費 <strong>2 道具點</strong> 注入特殊效果
+                  <CopyTextButton
+                    className="ml-1.5 align-middle"
+                    getText={() => {
+                      const tiers = [
+                        '• 低溫（2 IP）：額外造成 5 點傷害，傷害類型轉為【冰】屬性。',
+                        '• 焦火（2 IP）：額外造成 5 點傷害，傷害類型轉為【火】屬性。',
+                        '• 電壓（2 IP）：額外造成 5 點傷害，傷害類型轉為【電】屬性。'
+                      ];
+                      if (infusion >= 2) {
+                        tiers.push(
+                          '• 疾風（2 IP）：額外造成 5 點傷害，傷害類型轉為【風】屬性。',
+                          '• 驅邪（2 IP）：額外造成 5 點傷害，傷害類型轉為【光】屬性。',
+                          '• 地震（2 IP）：額外造成 5 點傷害，傷害類型轉為【土】屬性。',
+                          '• 暗影（2 IP）：額外造成 5 點傷害，傷害類型轉為【暗】屬性。'
+                        );
+                      }
+                      if (infusion >= 3) {
+                        tiers.push(
+                          '• 吸血（2 IP，限單一目標）：恢復相當於目標所受傷害總量一半的 HP 或 MP。',
+                          '• 毒液（2 IP）：額外造成 5 點傷害，傷害類型轉為【毒】屬性，且目標陷入中毒狀態。'
+                        );
+                      }
+                      return formatCompanionItemCopyText({
+                        category: '修補匠小工具',
+                        name: `灌注術工藝 (Tier ${infusion})`,
+                        subtitle: '武器攻擊命中後花費 2 IP 注入',
+                        lines: tiers,
+                        characterName
+                      });
+                    }}
+                    toastLabel="灌注術工藝"
+                    showToast={showToast}
+                    testId="copy-gadget-infusion"
+                  />
                 </span>
               </div>
 
@@ -380,6 +418,20 @@ export default function TinkererGadgetsQuickRef({
                 <div className="p-2 rounded bg-white/90 border border-[#e8dcc4] space-y-0.5">
                   <div className="flex justify-between items-center font-bold">
                     <span className="text-[#3c2415]">基礎【魔科技篡奪】</span>
+                    <CopyTextButton
+                      getText={() =>
+                        formatCompanionItemCopyText({
+                          category: '魔導科技',
+                          name: '魔科技篡奪',
+                          subtitle: '基礎｜10 MP',
+                          lines: ['花費 10 MP 選擇一名處於狀態效果下的構裝體或元素體敵人，解除其所有異常狀態，揭露其完整數據，並強制其作為盟友立即執行一項自選動作。'],
+                          characterName
+                        })
+                      }
+                      toastLabel="魔科技篡奪"
+                      showToast={showToast}
+                      testId="copy-gadget-override"
+                    />
                     <span className="font-mono text-[#6b5a4b] font-bold text-t10">10 MP</span>
                   </div>
                   <p className="text-t12 text-[#6b5a4b] leading-relaxed">
@@ -392,6 +444,20 @@ export default function TinkererGadgetsQuickRef({
                   <div className="p-2 rounded bg-white/90 border border-[#e8dcc4]/70 space-y-1">
                     <div className="flex justify-between items-center font-bold">
                       <span className="text-[#2c221e]">高級【魔加農】</span>
+                      <CopyTextButton
+                        getText={() =>
+                          formatCompanionItemCopyText({
+                            category: '魔導科技',
+                            name: '魔加農',
+                            subtitle: '高級｜2 IP',
+                            lines: ['花費 2 IP 製造一把魔加農火器。若兩手為空，可立即裝備並進行一次自由攻擊。命中【DEX + INS】+1，傷害【HR + 10】自選屬性傷害。'],
+                            characterName
+                          })
+                        }
+                        toastLabel="魔加農"
+                        showToast={showToast}
+                        testId="copy-gadget-magicannon"
+                      />
                       <span className="font-mono text-[#6b5a4b] font-bold text-t10">2 IP</span>
                     </div>
                     <div className="text-t11 text-[#6b5a4b] leading-relaxed">
@@ -438,6 +504,25 @@ export default function TinkererGadgetsQuickRef({
                 </div>
                 <span className="text-t11 text-[#6b5a4b]">
                   {alchemy === 1 ? '基礎混合：擲 2d20 · 消耗 3 IP' : alchemy === 2 ? '高級混合：擲 3d20 · 消耗 4 IP' : '最高混合：擲 4d20 · 消耗 5 IP'}
+                  <CopyTextButton
+                    className="ml-1.5 align-middle"
+                    getText={() =>
+                      formatCompanionItemCopyText({
+                        category: '修補匠小工具',
+                        name: `即席煉金術 (Tier ${alchemy})`,
+                        subtitle: alchemy === 1 ? '基礎混合：擲 2d20 · 消耗 3 IP' : alchemy === 2 ? '高級混合：擲 3d20 · 消耗 4 IP' : '最高混合：擲 4d20 · 消耗 5 IP',
+                        lines: [
+                          '常駐任意保底選項（任何出目皆可選，手冊 p.213）：',
+                          `• 受到 ${dmg} 點毒屬性傷害`,
+                          '• 恢復 30 點 HP'
+                        ],
+                        characterName
+                      })
+                    }
+                    toastLabel="即席煉金術"
+                    showToast={showToast}
+                    testId="copy-gadget-alchemy"
+                  />
                 </span>
               </div>
 

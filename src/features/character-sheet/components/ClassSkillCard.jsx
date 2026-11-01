@@ -805,7 +805,7 @@ export default function ClassSkillCard({
 
                     {/* 自動算好數值的動態公式 */}
                     <div className="text-t14 sm:text-t16 text-[#3c2415] leading-relaxed font-sans pt-0.5">
-                      <SkillDescription desc={disp.desc} sl={sk.sl} refSource={disp.name} />
+                      <SkillDescription desc={disp.desc} sl={sk.sl} characterLevel={getCharacterLevel(character)} character={character} refSource={disp.name} />
                     </div>
 
                     {/* 子項目狀態與配置條 / 個人載具條 / 忠實夥伴條 */}
@@ -1067,7 +1067,7 @@ export default function ClassSkillCard({
                       key={disp.name /* 變體切換時重新觸發 transition */}
                       className="transition-opacity duration-200"
                     >
-                      <SkillDescription desc={disp.desc} sl={currentSL} refSource={disp.name} />
+                      <SkillDescription desc={disp.desc} sl={currentSL} characterLevel={getCharacterLevel(character)} character={character} refSource={disp.name} />
                     </div>
                     {disp.isVariant && !isPreviewing && (
                       <div className="mt-1 text-t10 text-[#6b5a4b] font-bold">

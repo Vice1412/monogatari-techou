@@ -563,7 +563,7 @@ const RulesList = ({ lines }) => (
   </ul>
 );
 
-const ClassSlot = ({ slot }) => (
+const ClassSlot = ({ slot, characterLevel }) => (
   <div style={{ ...S.box, display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: '104px' }}>
     {/* 標題列與數值列合併成一列——固定版面裡每一列都很貴，省下來給技能效果 */}
     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: `1px solid ${C.border}`, padding: '2px 6px' }}>
@@ -588,7 +588,7 @@ const ClassSlot = ({ slot }) => (
             </div>
             {/* 效果全文：使用者要的是「丟進 TTS 給玩家隨時查」，所以不能只有技能名 */}
             {sk.desc ? (
-              <SkillDescription desc={sk.desc} sl={sk.sl} className="sheet-skill-desc" />
+              <SkillDescription desc={sk.desc} sl={sk.sl} characterLevel={characterLevel} className="sheet-skill-desc" />
             ) : null}
           </div>
         ))}
@@ -824,7 +824,7 @@ export const OfficialSheetPage1 = ({ model, vars = null }) => (
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '1 1 auto' }}>
           {blanks(3).map((_, i) => (
-            <ClassSlot key={i} slot={model.page1Classes[i]} />
+            <ClassSlot key={i} slot={model.page1Classes[i]} characterLevel={model.level} />
           ))}
         </div>
       </Box>
@@ -844,7 +844,7 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '1 1 auto' }}>
           {blanks(4).map((_, i) => (
-            <ClassSlot key={i} slot={model.otherClasses[i]} />
+            <ClassSlot key={i} slot={model.otherClasses[i]} characterLevel={model.level} />
           ))}
         </div>
       </Box>
@@ -854,7 +854,7 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
         <Box title="金手指" style={{ flex: '0 0 auto' }}>
           <div style={{ fontSize: T.s10, fontWeight: 700, marginBottom: '1px' }}>{model.quirk}</div>
           {model.quirkDesc ? (
-            <SkillDescription desc={model.quirkDesc} sl={1} className="sheet-skill-desc" />
+            <SkillDescription desc={model.quirkDesc} sl={1} characterLevel={model.level} className="sheet-skill-desc" />
           ) : null}
           {/* F-027：原文寫「選擇一項…」時，紙上要印出你選了哪一個。
               沒選過就整行不出現（舊角色不受影響）。 */}
@@ -912,7 +912,7 @@ export const OfficialSheetPage2 = ({ model, vars = null }) => (
               ) : null}
             </div>
             {hs.effect ? (
-              <SkillDescription desc={hs.effect} sl={hs.sl || 1} className="sheet-skill-desc" />
+              <SkillDescription desc={hs.effect} sl={hs.sl || 1} characterLevel={model.level} className="sheet-skill-desc" />
             ) : null}
           </div>
         ))}

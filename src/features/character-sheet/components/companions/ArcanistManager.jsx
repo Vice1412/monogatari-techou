@@ -13,6 +13,8 @@ import {
   getStartingArcanaQuota
 } from '../../utils/arcanist';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
+import CopyTextButton from '../../../../components/ui/CopyTextButton';
+import { formatArcanaCopyText } from '../../utils/playCopyFormat';
 
 export default function ArcanistManager({
   character,
@@ -294,7 +296,7 @@ export default function ArcanistManager({
           `#27527a` 承擔身份，面與字全部回到登記色；內凹槽只放二級墨。 */}
       {activeArcana ? (
         <div className="p-3.5 rounded bg-[#fffdf9] border border-[#27527a] space-y-2 animate-fadeIn">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap min-w-0">
               <span className="w-2.5 h-2.5 rounded-full bg-[#27527a]" />
               <span className="font-bold text-sm tracking-wide text-[#27527a]">
@@ -307,13 +309,28 @@ export default function ArcanistManager({
                 召喚費 {costInfo.base} 點 MP
               </span>
             </div>
-            <button
-              type="button"
-              onClick={handleDismiss}
-              className="px-3 py-1 bg-[#8c2d36] hover:bg-[#76252d] text-[#fffdf9] font-bold text-xs rounded transition-colors flex items-center gap-1"
-            >
-              <span>自願解除</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <CopyTextButton
+                testId="copy-active-arcana"
+                toastLabel={activeArcana.name}
+                showToast={showToast}
+                getText={() =>
+                  formatArcanaCopyText({
+                    arcana: activeArcana,
+                    usesVariant: usesVariantArcanist,
+                    charLevel,
+                    characterName: character.name
+                  })
+                }
+              />
+              <button
+                type="button"
+                onClick={handleDismiss}
+                className="px-3 py-1 bg-[#8c2d36] hover:bg-[#76252d] text-[#fffdf9] font-bold text-xs rounded transition-colors flex items-center gap-1"
+              >
+                <span>自願解除</span>
+              </button>
+            </div>
           </div>
 
           <div className="text-xs space-y-1 bg-[#f4ebd9] p-2.5 rounded border border-[#e8dcc4]">
@@ -368,7 +385,7 @@ export default function ArcanistManager({
                 key={arcana.id}
                 className={`p-3 rounded border transition-all text-xs space-y-1.5 ${ isActive ? 'bg-[#f4ebd9]/80 border-[#27527a]' : isBound ? 'bg-white border-[#9c4d16] ' : 'bg-[#fbf7ee]/60 border-[#d6c7ab] opacity-60' }`}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-1 flex-wrap">
                   <div className="flex items-center gap-1.5">
                     <input
                       type="checkbox"
@@ -388,6 +405,21 @@ export default function ArcanistManager({
                   </div>
 
                   <div className="flex items-center gap-1">
+                    {isBound && (
+                      <CopyTextButton
+                        testId={`copy-arcana-${arcana.id}`}
+                        toastLabel={arcana.name}
+                        showToast={showToast}
+                        getText={() =>
+                          formatArcanaCopyText({
+                            arcana,
+                            usesVariant: usesVariantArcanist,
+                            charLevel,
+                            characterName: character.name
+                          })
+                        }
+                      />
+                    )}
                     {isBound && (
                       <button
                         type="button"

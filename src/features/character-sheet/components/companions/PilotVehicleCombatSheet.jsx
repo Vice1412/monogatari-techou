@@ -18,6 +18,8 @@ import {
 } from '../../data/pilotVehicleData';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 import { calculateCharacterStats } from '../../utils/characterEngine';
+import CopyTextButton from '../../../../components/ui/CopyTextButton';
+import { formatCompanionItemCopyText } from '../../utils/playCopyFormat';
 
 export default function PilotVehicleCombatSheet({
   character,
@@ -147,15 +149,50 @@ export default function PilotVehicleCombatSheet({
           </div>
         </div>
 
-        {/* 搭乘開關按鈕 */}
-        <button
-          type="button"
-          onClick={toggleMounted}
- className={`px-3 py-1.5 rounded font-bold text-xs flex items-center gap-1.5 transition cursor-pointer ${ isMounted ? 'bg-[#27527a] hover:bg-[#214365] text-white ring-2 ring-[#27527a]/40' : 'bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] ' }`}
-        >
-          <GiSteeringWheel className="text-sm" />
-          <span>{isMounted ? '駕駛中（點擊離開）' : '步行中（點擊搭乘）'}</span>
-        </button>
+        <div className="flex items-center gap-1.5">
+          <CopyTextButton
+            label="複製載具"
+            getText={() => {
+              const lines = [
+                `骨架：${frame.name}（乘客 ${frame.passengers} 名｜距離 ×${frame.distanceModifier}）— ${frame.specialRule || ''}`
+              ];
+              if (activeArmor.length > 0) {
+                lines.push(`• 【防具模組】${activeArmor[0].name}：${activeArmor[0].description || ''}`);
+              }
+              for (const w of activeWeapons) {
+                if (w.isShield) {
+                  lines.push(`• 【盾牌模組】${w.name}：DEF +2 | M.DEF +2`);
+                } else {
+                  lines.push(`• 【武裝模組】${w.name}（${w.category} · ${w.range === 'melee' ? '近戰' : '遠程'}）：【${w.attr1} + ${w.attr2}】${w.modifier > 0 ? `+${w.modifier}` : ''}｜${w.damage}`);
+                }
+              }
+              for (const s of activeSupport) {
+                const extra = s.id === 'anti_element_module' ? `（${vehicle.antiElementChoice || '風'}抗性）` : '';
+                lines.push(`• 【支援模組】${s.name}${extra}：${s.description || ''}`);
+              }
+              return formatCompanionItemCopyText({
+                category: '機師個人載具',
+                name: vehicle.name || '個人載具',
+                subtitle: `${frame.name}｜機師 SL ${pilotSl}｜${isMounted ? '駕駛中' : '步行中'}`,
+                lines,
+                characterName: character?.name || ''
+              });
+            }}
+            toastLabel={vehicle.name || '個人載具'}
+            showToast={showToast}
+            testId="copy-pilot-vehicle"
+          />
+
+          {/* 搭乘開關按鈕 */}
+          <button
+            type="button"
+            onClick={toggleMounted}
+            className={`px-3 py-1.5 rounded font-bold text-xs flex items-center gap-1.5 transition cursor-pointer ${ isMounted ? 'bg-[#27527a] hover:bg-[#214365] text-white ring-2 ring-[#27527a]/40' : 'bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] ' }`}
+          >
+            <GiSteeringWheel className="text-sm" />
+            <span>{isMounted ? '駕駛中（點擊離開）' : '步行中（點擊搭乘）'}</span>
+          </button>
+        </div>
       </div>
 
       {/* 駕駛狀態橫幅提示 */}

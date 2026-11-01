@@ -3,6 +3,8 @@ import confetti from 'canvas-confetti';
 import JRPGModal from '../../components/ui/JRPGModal';
 import JRPGButton from '../../components/ui/JRPGButton';
 import FUIcon from '../../components/ui/FUIcon';
+import CopyTextButton from '../../components/ui/CopyTextButton';
+import { formatRollResultCopyText } from '../character-sheet/utils/playCopyFormat';
 import { GiSparkles, GiRollingDices, GiHazardSign, GiTrophyCup, GiCrossedSwords, GiHeartShield, GiCycle, GiScrollQuill } from 'react-icons/gi';
 
 const DICE_TIERS = [6, 8, 10, 12];
@@ -366,6 +368,36 @@ export default function DiceRollerModal({
               </div>
             </div>
 
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <CopyTextButton
+                label="複製結果"
+                size="sm"
+                testId="roll-copy"
+                toastLabel={rollLabel || '檢定結果'}
+                getText={() =>
+                  formatRollResultCopyText({
+                    label: rollLabel,
+                    die1Type,
+                    die2Type,
+                    die1: rollResult.die1,
+                    die2: rollResult.die2,
+                    modifier: rollResult.modifier,
+                    fpBonus,
+                    bondName: usedBondName,
+                    total: finalCheckTotal,
+                    hr: effectiveHr,
+                    zeroHr,
+                    isCritical: rollResult.isCritical,
+                    isFumble: rollResult.isFumble,
+                    damageBonus: hasDamageCalc ? Number(damageBonus) : null,
+                    extraDamage,
+                    totalDamage,
+                    damageType,
+                    characterName: character?.name || ''
+                  })
+                }
+              />
+
             {/* 這一擲要不要留在履歷裡。大成功／大失敗自動記（那是回合的轉折），
                 其餘留給玩家自己決定——App 不替他判斷哪一次重要。
                 沒有 `onRecordRoll`（例如從書封開的純擲骰器）就整塊不出現。 */}
@@ -402,6 +434,7 @@ export default function DiceRollerModal({
                 已自動記入履歷（{rollResult.isCritical ? '大成功' : '大失敗'}）
               </p>
             )}
+            </div>
 
             {/* 一鍵傷害結算區（武器／攻擊咒語自動帶入） */}
             {hasDamageCalc && (

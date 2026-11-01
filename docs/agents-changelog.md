@@ -3448,5 +3448,125 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 - `tests/characterSheetUi.test.mjs`
   - 新增 CW 節（CW-1 至 CW-5 共 5 條斷言），驗證 `LOADING_MESSAGES`、`<LoadingScreen />` SSR 渲染、首屏 `index.html` 載入器與 `App.jsx` 整合，並完成刻意破壞驗證。
 
+---
+
+## 2026-11-01 — 跑團面板與隨身系統 Discord 文字團複製格式器（playCopyFormat）
+
+### 背景與使用者需求
+
+使用者在 Discord（DC）跑文字團，時常需要在對話頻道向隊友與 GM 快速展示技能、咒語、裝備、隨身子系統或擲骰結果的效果說明，提出：「能給跑團卡上面放各種複製文字的功能嗎？該怎麼處理比較好？」
+
+### 設計決策與核心考量
+
+1. **格式單一入口（Single Source of Truth）**：
+   - 建立 `src/features/character-sheet/utils/playCopyFormat.js` 純函式模組，提供 14 個標準格式器（技能、子項目、英雄技能、金手指、咒語、武器、裝備、阿爾卡納、青魔法、花園魔種、底力技、營地活動、隨身模組、擲骰結果）。
+   - 所有點擊複製的文字組裝皆經由此處，避免散落於 JSX `onClick` 閉包內導致無法脫機單元測試。
+2. **動態數值代入展開（SL Formula Expansion）**：
+   - 技能說明內的 `【SL × N】`、`【SL + N】` 等算式，於點擊複製時直接代入角色當前 SL 算好數值（如 SL=3 時直接展開為 `**【6】**`），使 Discord 頻道成員一眼看懂最終數值，不需額外心算。
+3. **Discord Markdown 排印與純中文、零 Emoji 鐵律**：
+   - 標頭採 `**角色名 ▸ 【分類｜名稱】**（說明標籤）` 粗體格式，效果正文轉換為 Discord 引用塊（`> 內文`）。
+   - 徹底剝除歷史殘留的攻擊性咒語哨兵（`\u26A1`），並將 `(o)` 清理為純中文標籤；嚴格禁絕彩色 Emoji，僅使用符合規範之封閉排版字符（`★`、`✦`、`❖`、`·`、`▸` 等）。
+4. **低侵略性靜態 UI 控件**：
+   - 封裝通用組件 `<CopyTextButton />`（`src/components/ui/CopyTextButton.jsx`），依循 `GEMINI.md` 軌道 2 功能性控件豁免原則使用 Lucide `Copy` 圖標與純排版字元 `✓`，點擊即時觸發視覺已複製提示並呼叫 `showToast`。
+
+### 修改與新增檔案
+
+- `src/features/character-sheet/utils/playCopyFormat.js`（新增）
+  - 14 個純字串格式器、`cleanCopyInlineText`、`toDiscordQuoteBlock`、`evaluateSkillDescForCopy`、`copyTextToClipboard`。
+- `src/components/ui/CopyTextButton.jsx`（新增）
+  - 複用性功能按鈕，支援 `e.stopPropagation()`、自訂尺寸、`data-testid`、即時打勾狀態與 Toast 連動。
+- `src/features/character-sheet/components/CharacterPlayHUD.jsx`
+  - 攻擊分頁（主手武器、副手武器、盾牌、護甲、飾品）、咒語分頁（各法術）、技能分頁（職業特技、英雄技能、金手指特質）全面置入 `<CopyTextButton />`。
+- `src/features/character-sheet/components/SuboptionDetailsList.jsx`
+  - 舞步、音調、曲風、心靈天賦、突變形態、種子等子項目卡片右側加入複製按鈕。
+- 各職業隨身子系統面板：
+  - `ArcanistManager.jsx`（已召喚阿爾卡納、契約阿爾卡納清單）
+  - `ChimeristManager.jsx`（已習得怪獸青魔法咒語）
+  - `FloristGardenTracker.jsx`（花園培育中魔種）
+  - `ZeroPowerBlock.jsx`（跑團模式底力技）
+  - `CampActivitiesBlock.jsx`（各項營地休整活動詳細說明與 d6 表格）
+  - `TinkererGadgetsQuickRef.jsx`（小工具灌注術、魔科技改裝、魔加農砲、煉金術）
+  - `WayfarerCompanionSheet.jsx`（忠實夥伴隨從資訊與招式）
+  - `PilotVehicleCombatSheet.jsx`（個人載具與模組）
+  - `NecromancerMinionSheet.jsx`（亡靈僕從資訊）
+- `src/features/dice-roller/DiceRollerModal.jsx`
+  - 擲骰結算彈窗頂部加入「複製結果」按鈕，支援大成功、大失敗、羈絆激勵與傷害直算文本輸出。
+- `tests/playCopyFormat.test.mjs`（新增）
+  - 52 項斷言全方位覆蓋純函式格式化、SL 動態展開、SSR 渲染與按鈕 testId 驗證、零 Emoji 檢驗。
+- `package.json`
+  - 新增 `test:playcopy` 腳本並串入 `npm test`（總關卡達 50 道）。
+
+### 驗證
+
+- `npm run test:playcopy`：52 / 52 PASS
+- 刻意破壞驗證：故意破壞 `evaluateSkillDescForCopy` 與元件渲染，確認 `test:playcopy` 立即 FAIL（紅燈）並於還原後 PASS（綠燈）。
+- `npm run test:emoji`：179 檔掃描，0 命中，全數通過。
+- `npm run test:uisystem`：295 / 295 PASS。
+- `npm test`：50 支測試全部 PASS。
+- `npm run build`：Vite 6 編譯 exit 0。
+
+---
+
+## 2026-11-01（角色等級與跨特技動態算式求值與跑團複製全面支援）
+
+### 背景與使用者回報
+
+使用者發現：商人職業技能【貿易之風】說明中的 `【你的等級乘以 30】Z` 即使角色已經達 5 級或更高等級，介面上依然顯示原始算式文字，且跑團複製到 Discord 時也未即時算出具體金幣數字。使用者懷疑全書中還有其他職業、金手指、底力技、英雄特技存在遺漏計算等級相關算式的情況，要求進行全書盤點並徹底實裝修復。
+
+### 全書盤點結果（官方 Core、三本 Atlas、特典合輯、規則資料層）
+
+經客製腳本與原書核對，全書公式計算分佈如下：
+1. **角色等級乘除算**：
+   - 商人【貿易之風】：`【你的等級乘以 30】z`（原 rulesData 誤植為大寫 Z，已校準為官方小寫 z）。
+   - 靈媒英雄特技【靈氣掌握】：`【你的等級除以 10】`、`【你靈媒職業等級的一半】`。
+2. **角色半等級（嚴格依 Core p.34 向下取整）**：
+   - 商人【過期食品】：`【你等級的一半 + (SL × 10)】`。
+   - 旅人【忠實夥伴】：`【(SL × 夥伴基礎 MIG 骰尺寸) + 你的等級的一半】`。
+   - 英雄特技【小憩片刻】：`【20+你的等級的一半】`。
+   - 英雄特技【陰陽流轉】：`【你等級的一半】`、`【你的等級】`。
+   - 英雄特技【短瞬間的安息】：`【你角色等級/2+10×以此方式恢復狀態數】`。
+   - 金手指【富家子弟】：`【5+你的等級一半】`。
+   - 金手指【信魔使徒】：`【其MIG骰子尺寸×5+你等級的一半】`。
+   - 底力技【零之機運】：`【30 + 等級的一半】`。
+   - 底力技【零之救濟】：`【40 + 等級的一半】`。
+   - 底力技【零之天災】：`【30 + 等級的一半】`。
+3. **跨技能 SL 引用**：
+   - 神射手英雄特技【誘餌】：`【你的鷹眼SL】`、`【3+你的鷹眼SL】`、`【你等級的一半+（你的鷹眼SL×5）】`。
+4. **目標等級豁免（不被替換）**：
+   - 機師英雄特技【歐米茄終結】：`【20 + 目標等級的一半】`。
+   - 突變體英雄特技【靈魂竊取】：`【目標等級 × 30 z，若為反派則 × 50 z】`。目標等級隨遇敵浮動，嚴格保持不被替換。
+
+### 修改與實裝
+
+1. `src/features/character-sheet/utils/skillFormulaEvaluator.jsx`
+   - 擴充正則支援所有等級關鍵詞：`/【([^】]*(?:SL|等級|等级|level|Level)[^】]*)】/gi`。
+   - 導出並升級 `evaluateFormulaString(formulaStr, sl, options)`：支援角色等級、半等級向下取整、常數乘除算、跨特技 SL 動態查找、目標等級豁免。
+   - 導出 `getSkillLevel(character, skillName)`。
+   - 更新 `parseSkillFormulaSegments` 與 `<SkillDescription>` 接收 `characterLevel` 與 `character`，即時渲染動態數值徽章並支援點擊切換公式。
+2. `src/features/character-sheet/utils/playCopyFormat.js`
+   - `evaluateSkillDescForCopy` 與 `formatSkillCopyText`、`formatHeroicSkillCopyText`、`formatQuirkCopyText`、`formatZeroPowerCopyText` 升級支援 `characterLevel` 與 `character`，輸出時自動精算為 Discord 粗體數字（如 `**【150】**z`、`**【22】**`）。
+3. UI 呼叫端全面連線
+   - `CharacterPlayHUD.jsx`：特技清單、複製按鈕、升級預覽、英雄特技全文、金手指全文全數帶入當前等級與角色上下文。
+   - `ZeroPowerBlock.jsx`：底力技觸發、效果、ShowcaseCard 完整大招卡、複製按鈕帶入角色等級。
+   - `ClassSkillCard.jsx`、`CharacterCard.jsx`、`CharacterSheetExport.jsx`：同步帶入等級求值。
+4. 資料層標記校準
+   - `rulesData.json`：修正商人【貿易之風】單位 `Z` → `z`。
+   - `zeroPowers.js`：為零之機運、零之救濟、零之天災補上動態求值括號 `【30 + 等級的一半】`、`【40 + 等級的一半】`。
+5. 護欄與自動化測試
+   - 新增 `tests/levelFormulaEvaluator.test.mjs`，包含 30 項斷言，覆蓋求值核心、跨特技引用、目標等級豁免、Discord 複製格式與資料層規範。
+   - 串入 `package.json`（測試總關卡擴增為 51 道）。
+
+### 驗證
+
+- `npm run test:levelformula`：30 / 30 PASS。
+- 刻意破壞驗證：故意修改預期數值確認 `test:levelformula` 立即紅燈（exit 1），還原後綠燈（exit 0）。
+- `npm run test:emoji`：179 檔掃描，0 命中，全數通過。
+- `npm run test:uisystem`：295 / 295 PASS。
+- `npm test`：51 支測試全部 PASS。
+- `npm run build`：Vite 6 編譯 exit 0。
+- `npm run handoff`：成功更新 `docs/STATE-LIVE.md`。
+
+
+
 
 

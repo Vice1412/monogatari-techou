@@ -1,6 +1,8 @@
 import React from 'react';
 import { GiSparkles, GiMusicalNotes, GiCheckMark, GiDna2 } from 'react-icons/gi';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
+import CopyTextButton from '../../../components/ui/CopyTextButton';
+import { formatSuboptionCopyText } from '../utils/playCopyFormat';
 import { getSuboptionDetails, CHANTER_DATA } from '../data/skillSuboptionsData';
 import {
   getTheriomorphosisRules,
@@ -22,7 +24,9 @@ export default function SuboptionDetailsList({
   showVolumeBlock = true,
   classNameCustom = '',
   variantId = null,
-  hasGreaterTheriomorphosis = false
+  hasGreaterTheriomorphosis = false,
+  characterName = '',
+  showToast = null
 }) {
   // 解析已掌握清單
   let rawList = [];
@@ -152,7 +156,7 @@ export default function SuboptionDetailsList({
                     )}
                   </div>
 
-                  {/* 右側數值標籤群 */}
+                  {/* 右側數值標籤群與複製鈕 */}
                   <div className="flex items-center gap-1 shrink-0 text-t10 font-mono flex-wrap">
                     {detail.mp && (
                       <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
@@ -174,6 +178,20 @@ export default function SuboptionDetailsList({
                         時機：{detail.event}
                       </span>
                     )}
+                    <CopyTextButton
+                      testId={`copy-suboption-${idx}`}
+                      toastLabel={detail.name}
+                      showToast={showToast}
+                      getText={() =>
+                        formatSuboptionCopyText({
+                          className,
+                          skillName,
+                          categoryLabel: isChanterKey ? '音調' : isChanterTone ? '曲風' : '',
+                          detail,
+                          characterName
+                        })
+                      }
+                    />
                   </div>
                 </div>
 

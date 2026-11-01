@@ -13,6 +13,8 @@ import JRPGButton from '../../../../components/ui/JRPGButton';
 import EmptyState from '../../../../components/ui/EmptyState';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 import { getCharacterLevel } from '../../utils/characterEngine';
+import CopyTextButton from '../../../../components/ui/CopyTextButton';
+import { formatCompanionItemCopyText } from '../../utils/playCopyFormat';
 import {
   createDefaultMinion,
   MINION_SPECIES,
@@ -196,17 +198,41 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
             {MINION_SPECIES}／{MINION_RANK}（{charLevel} 級持有者）
           </span>
         </span>
-        <button
-          type="button"
-          onClick={() => {
-            update({ active: false });
-            showToast('僕從已摧毀——你的 HP／MP 上限已恢復正常', 'info');
-          }}
-          className="text-t11 text-[#6b5a4b] hover:text-[#8c2d36] flex items-center gap-1 cursor-pointer"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          摧毀僕從
-        </button>
+        <div className="flex items-center gap-1.5">
+          <CopyTextButton
+            label="複製僕從"
+            getText={() => {
+              const lines = [
+                `HP：${hp}｜MP：${mp}｜持有者 HP/MP 上限各 −${cost}`,
+                `原生物：${minion.originName || '未記錄'}（${minion.originSpecies || '—'} · ${minion.originRank || '士兵'} · Lv.${cost}）`,
+                `親和力：${MINION_AFFINITIES.join('、')}`
+              ];
+              if (minion.equipment) lines.push(`裝備：${minion.equipment}`);
+              if (minion.notes) lines.push(`備註：${minion.notes}`);
+              return formatCompanionItemCopyText({
+                category: '死靈術士僕從',
+                name: minion.name || '未命名僕從',
+                subtitle: `${MINION_SPECIES}／${MINION_RANK}`,
+                lines,
+                characterName: character?.name || ''
+              });
+            }}
+            toastLabel={minion.name || '僕從'}
+            showToast={showToast}
+            testId="copy-necro-minion"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              update({ active: false });
+              showToast('僕從已摧毀——你的 HP／MP 上限已恢復正常', 'info');
+            }}
+            className="text-t11 text-[#6b5a4b] hover:text-[#8c2d36] flex items-center gap-1 cursor-pointer"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            摧毀僕從
+          </button>
+        </div>
       </div>
 
       {/* 上限懲罰：這一條由 characterEngine 自動套用，不是只寫在這裡 */}

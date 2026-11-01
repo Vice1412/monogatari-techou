@@ -1,3 +1,21 @@
+export function getSkillLevel(character, skillName) {
+  if (!character || !Array.isArray(character.classes)) return 0;
+  const cleanTarget = String(skillName || '').trim();
+  for (const c of character.classes) {
+    if (!Array.isArray(c.skills)) continue;
+    const found = c.skills.find(s => s.name === cleanTarget);
+    if (found) return Number(found.sl) || 0;
+  }
+  if (Array.isArray(character.customClasses)) {
+    for (const c of character.customClasses) {
+      if (!Array.isArray(c.skills)) continue;
+      const found = c.skills.find(s => s.name === cleanTarget);
+      if (found) return Number(found.sl) || 0;
+    }
+  }
+  return 0;
+}
+
 import { RULE_CODEX } from '../data/ruleCodexData';
 import React, { useMemo, useState } from 'react';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
@@ -25,7 +43,7 @@ const CODEX_KEYWORDS = [
   ...new Set(Object.values(RULE_CODEX).flatMap((r) => r.keywords || []))
 ].sort((a, b) => b.length - a.length);
 
-export function parseSkillFormulaSegments(text, sl = 0) {
+export function parseSkillFormulaSegments(text, sl = 0, options = {}) {
   if (!text) return [];
 
   // 防禦性標準化：若出現常數與括號分離（如 10+【SL×5】或 【SL×5】+10），自動合併為標準複合算式
@@ -34,7 +52,7 @@ export function parseSkillFormulaSegments(text, sl = 0) {
     .replace(/【([^】]*SL[^】]*)】\s*([+＋])\s*(\d+)/g, '【($1) + $3】');
 
   // 匹配所有【...SL...】或【SL】公式區塊
-  const regex = /【([^】]*SL[^】]*)】/gi;
+  const regex = /【([^】]*(?:SL|等級|等级|level|Level)[^】]*)】/gi;
   const segments = [];
   let lastIndex = 0;
   let match;
@@ -49,7 +67,7 @@ export function parseSkillFormulaSegments(text, sl = 0) {
     }
 
     const rawFormula = match[1].replace(/\*\*/g, '');
-    const evaluated = evaluateFormulaString(rawFormula, sl);
+    const evaluated = evaluateFormulaString(rawFormula, sl, options);
 
     segments.push({
       type: 'formula',
@@ -59,7 +77,7 @@ export function parseSkillFormulaSegments(text, sl = 0) {
       evaluatedText: evaluated.text,
       computedValue: evaluated.value,
       formulaNote: evaluated.note,
-      isCalculated: sl > 0 && evaluated.isCalculated
+      isCalculated: evaluated.isCalculated
     });
 
     lastIndex = regex.lastIndex;
@@ -76,10 +94,237 @@ export function parseSkillFormulaSegments(text, sl = 0) {
   return segments;
 }
 
-function evaluateFormulaString(formulaStr, sl) {
+export function evaluateFormulaString(formulaStr, sl = 0, options = {}) {
   const trimmed = formulaStr.trim();
+  const context = typeof options === 'number' ? { level: options } : (options || {});
+  const character = context.character || null;
+  const level = Math.max(
+    0,
+    Number(context.characterLevel ?? context.level ?? (character ? getCharacterLevel(character) : 0)) || 0
+  );
 
-  // 若 SL 為 0，不計算直接展示公式
+  // 1. 若明確提及目標等級、敵方等級，屬目標可變數值，不以自身角色等級結算
+  if (/(?:目標|目标|敵方|敌方)(?:的)?(?:角色)?(?:等級|等级)/.test(trimmed)) {
+    return {
+      text: `【${trimmed}】`,
+      value: null,
+      rawFormula: trimmed,
+      note: `依目標等級計算：${trimmed}`,
+      isCalculated: false
+    };
+  }
+
+  // 符號正規化：將全形括號、全形加減符號標準化
+  let norm = trimmed
+    .replace(/[（]/g, '(')
+    .replace(/[）]/g, ')')
+    .replace(/[＋]/g, '+')
+    .replace(/[－]/g, '-')
+    .replace(/[×*xX]/g, '×');
+
+  const halfLevel = level > 0 ? Math.floor(level / 2) : 0;
+  const tenthLevel = level > 0 ? Math.floor(level / 10) : 0;
+
+  // 2. 角色等級運算
+  // 2.1 等級乘法：例如「你的等級乘以 30」、「等級 × 30」、「等級*30」
+  const levelMultMatch = norm.match(/^(?:你的?|你角色|角色)?(?:等級|等级)\s*(?:乘以|×)\s*(\d+)$/) ||
+                         norm.match(/^(\d+)\s*(?:乘以|×)\s*(?:你的?|你角色|角色)?(?:等級|等级)$/);
+  if (levelMultMatch) {
+    const mult = Number(levelMultMatch[1]);
+    if (level > 0) {
+      const res = level * mult;
+      return {
+        text: `【${res}】`,
+        value: res,
+        rawFormula: trimmed,
+        note: `角色等級 ${level} × ${mult} = ${res}`,
+        isCalculated: true
+      };
+    }
+    return {
+      text: `【${trimmed}】`,
+      value: null,
+      rawFormula: trimmed,
+      note: `公式基準：${trimmed}（角色等級未提供）`,
+      isCalculated: false
+    };
+  }
+
+  // 2.2 等級除以 10：例如「你的等級除以 10」
+  if (/^(?:你的?|你角色|角色)?(?:等級|等级)\s*(?:除以|\/|÷)\s*10$/.test(norm)) {
+    if (level > 0) {
+      return {
+        text: `【${tenthLevel}】`,
+        value: tenthLevel,
+        rawFormula: trimmed,
+        note: `角色等級 ${level} ÷ 10 = ${tenthLevel}`,
+        isCalculated: true
+      };
+    }
+    return {
+      text: `【${trimmed}】`,
+      value: null,
+      rawFormula: trimmed,
+      note: `公式基準：${trimmed}（角色等級未提供）`,
+      isCalculated: false
+    };
+  }
+
+  // 2.3 等級一半 + (SL × N) 或 (SL × N) + 等級一半
+  const halfLvlPlusSlMult = norm.match(/^(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半\s*\+\s*\(?SL\s*×\s*(\d+)\)?$/) ||
+                           norm.match(/^\(?SL\s*×\s*(\d+)\)?\s*\+\s*(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半$/);
+  if (halfLvlPlusSlMult) {
+    const mult = Number(halfLvlPlusSlMult[1]);
+    if (level > 0 && sl > 0) {
+      const res = halfLevel + (sl * mult);
+      return {
+        text: `【${res}】`,
+        value: res,
+        rawFormula: trimmed,
+        note: `等級一半 ${halfLevel} + (SL ${sl} × ${mult}) = ${res}`,
+        isCalculated: true
+      };
+    }
+    if (level > 0 && sl <= 0) {
+      return {
+        text: `【${halfLevel} + (SL × ${mult})】`,
+        value: null,
+        rawFormula: trimmed,
+        note: `等級一半 = ${halfLevel}，特技尚未點亮`,
+        isCalculated: false
+      };
+    }
+    return {
+      text: `【${trimmed}】`,
+      value: null,
+      rawFormula: trimmed,
+      note: `公式基準：${trimmed}`,
+      isCalculated: false
+    };
+  }
+
+  // 2.4 常數 + 等級一半：例如「20+你的等級的一半」、「30 + 等級的一半」、「5+你的等級一半」
+  const basePlusHalfLvl = norm.match(/^(\d+)\s*\+\s*(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半$/) ||
+                          norm.match(/^(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半\s*\+\s*(\d+)$/);
+  if (basePlusHalfLvl) {
+    const base = Number(basePlusHalfLvl[1]);
+    if (level > 0) {
+      const res = base + halfLevel;
+      return {
+        text: `【${res}】`,
+        value: res,
+        rawFormula: trimmed,
+        note: `${base} + 等級一半 ${halfLevel} = ${res}`,
+        isCalculated: true
+      };
+    }
+    return {
+      text: `【${trimmed}】`,
+      value: null,
+      rawFormula: trimmed,
+      note: `公式基準：${trimmed}（角色等級未提供）`,
+      isCalculated: false
+    };
+  }
+
+  // 2.5 純等級一半：例如「你等級的一半」、「等級的一半」、「你角色等級/2」
+  if (/^(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半$/.test(norm) || /^(?:你的?|你角色|角色)?(?:等級|等级)\s*[\/÷]\s*2$/.test(norm)) {
+    if (level > 0) {
+      return {
+        text: `【${halfLevel}】`,
+        value: halfLevel,
+        rawFormula: trimmed,
+        note: `角色等級 ${level} 的一半 = ${halfLevel}`,
+        isCalculated: true
+      };
+    }
+    return {
+      text: `【${trimmed}】`,
+      value: null,
+      rawFormula: trimmed,
+      note: `公式基準：${trimmed}（角色等級未提供）`,
+      isCalculated: false
+    };
+  }
+
+  // 2.6 純等級：例如「你的等級」、「角色等級」
+  if (/^(?:你的?|你角色|角色)?(?:等級|等级)$/.test(norm)) {
+    if (level > 0) {
+      return {
+        text: `【${level}】`,
+        value: level,
+        rawFormula: trimmed,
+        note: `角色等級 = ${level}`,
+        isCalculated: true
+      };
+    }
+    return {
+      text: `【${trimmed}】`,
+      value: null,
+      rawFormula: trimmed,
+      note: `公式基準：${trimmed}（角色等級未提供）`,
+      isCalculated: false
+    };
+  }
+
+  // 2.7 複合等級與變數式：例如「你角色等級/2+10×以此方式恢復狀態數」
+  if (/^(?:你的?|你角色|角色)?(?:等級|等级)(?:\/2|(?:的)?一半)\s*\+\s*10\s*×\s*以此方式恢復狀態數$/.test(norm)) {
+    if (level > 0) {
+      const resText = `${halfLevel} + 10 × 以此方式恢復狀態數`;
+      return {
+        text: `【${resText}】`,
+        value: resText,
+        rawFormula: trimmed,
+        note: `等級一半 ${halfLevel} + 10 × 狀態數`,
+        isCalculated: true
+      };
+    }
+    return {
+      text: `【${trimmed}】`,
+      value: null,
+      rawFormula: trimmed,
+      note: `公式基準：${trimmed}（角色等級未提供）`,
+      isCalculated: false
+    };
+  }
+
+  // 3. 跨特技 SL 參照運算（如「你的鷹眼SL」、「你迅捷SL×5」、「你的閃避SL+你的竊取時間SL」）
+  if (character && /(?:你的?|你)?([^\s+×*xX()]+)\s*SL/.test(norm)) {
+    let resolvedFormula = norm;
+    let anyResolved = false;
+    resolvedFormula = resolvedFormula.replace(/(?:你的?|你|你在「)?([^「」\s+×*xX()]+?)(?:」技能上的|技能上的|上的)?\s*SL/g, (_match, skillName) => {
+      const cleanName = skillName.trim();
+      const refSl = getSkillLevel(character, cleanName);
+      anyResolved = true;
+      return String(refSl);
+    });
+
+    if (anyResolved) {
+      if (level > 0) {
+        resolvedFormula = resolvedFormula.replace(/(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半/g, String(halfLevel));
+        resolvedFormula = resolvedFormula.replace(/(?:你的?|你角色|角色)?(?:等級|等级)/g, String(level));
+      }
+      const evalSafe = resolvedFormula.replace(/×/g, '*');
+      if (/^[0-9+\-* /()]+$/.test(evalSafe)) {
+        try {
+          const res = Function(`"use strict"; return Math.floor(${evalSafe});`)();
+          if (Number.isFinite(res)) {
+            return {
+              text: `【${res}】`,
+              value: res,
+              rawFormula: trimmed,
+              note: `${trimmed} = ${res}`,
+              isCalculated: true
+            };
+          }
+        } catch {
+          // fall through
+        }
+      }
+    }
+  }
+
+  // 4. 若不涉及特技等級（sl <= 0），且前方等級運算未命中，回傳未計算
   if (sl <= 0) {
     return {
       text: `【${trimmed}】`,
@@ -90,15 +335,8 @@ function evaluateFormulaString(formulaStr, sl) {
     };
   }
 
-  // 符號正規化：將全形括號、全形加減符號標準化
-  const norm = trimmed
-    .replace(/[（]/g, '(')
-    .replace(/[）]/g, ')')
-    .replace(/[＋]/g, '+')
-    .replace(/[－]/g, '-')
-    .replace(/[×*xX]/g, '×');
-
-  // 1. 複合乘加：如 10 + (SL × 5)、10 + SL × 5、5 + (SL × 5)
+  // 5. 標準 SL 算式
+  // 5.1 複合乘加：如 10 + (SL × 5)、10 + SL × 5、5 + (SL × 5)
   const compoundMatch1 = norm.match(/^(\d+)\s*\+\s*\(?SL\s*×\s*(\d+)\)?$/i);
   if (compoundMatch1) {
     const base = Number(compoundMatch1[1]);
@@ -126,7 +364,7 @@ function evaluateFormulaString(formulaStr, sl) {
     };
   }
 
-  // 2. 乘法：如 SL × 5, SL × 10, SL × 2, SL × 20, SL × 100
+  // 5.2 乘法：如 SL × 5, SL × 10, SL × 2, SL × 20, SL × 100
   const multMatch = norm.match(/^SL\s*×\s*(\d+)$/i);
   if (multMatch) {
     const mult = Number(multMatch[1]);
@@ -140,10 +378,10 @@ function evaluateFormulaString(formulaStr, sl) {
     };
   }
 
-  // 3. 乘法反向：如 10 × SL
-  const revMultMatch = norm.match(/^(\d+)\s*×\s*SL$/i);
-  if (revMultMatch) {
-    const mult = Number(revMultMatch[1]);
+  // 5.3 乘法反序：如 5 × SL, 10 × SL, 20 × SL
+  const multMatchRev = norm.match(/^(\d+)\s*×\s*SL$/i);
+  if (multMatchRev) {
+    const mult = Number(multMatchRev[1]);
     const res = sl * mult;
     return {
       text: `【${res}】`,
@@ -154,7 +392,7 @@ function evaluateFormulaString(formulaStr, sl) {
     };
   }
 
-  // 4. 加法：如 SL + 1, SL + 2, SL + 3
+  // 5.4 純加法：如 SL + 2, SL + 1
   const addMatch = norm.match(/^SL\s*\+\s*(\d+)$/i);
   if (addMatch) {
     const add = Number(addMatch[1]);
@@ -168,7 +406,21 @@ function evaluateFormulaString(formulaStr, sl) {
     };
   }
 
-  // 5. 純 SL：如 【SL】
+  // 5.5 加法反序：如 2 + SL, 1 + SL
+  const addMatchRev = norm.match(/^(\d+)\s*\+\s*SL$/i);
+  if (addMatchRev) {
+    const add = Number(addMatchRev[1]);
+    const res = sl + add;
+    return {
+      text: `【${res}】`,
+      value: res,
+      rawFormula: trimmed,
+      note: `${add} + SL ${sl} = ${res}`,
+      isCalculated: true
+    };
+  }
+
+  // 5.6 純 SL：如 【SL】
   if (/^SL$/i.test(norm)) {
     return {
       text: `【${sl}】`,
@@ -179,54 +431,35 @@ function evaluateFormulaString(formulaStr, sl) {
     };
   }
 
-  // 6. 包含 SL × 數字 的混合文字公式：如 【你等級的一半 + (SL × 10)】
-  if (/\bSL\s*×\s*(\d+)/i.test(norm)) {
-    const subbedFormula = norm.replace(/\(?\bSL\s*×\s*(\d+)\)?/gi, (_, mStr) => {
-      const multVal = Number(mStr);
-      return String(sl * multVal);
-    });
-    return {
-      text: `【${subbedFormula}】`,
-      value: null,
-      rawFormula: trimmed,
-      note: `公式代入：${trimmed}（SL ${sl}）`,
-      isCalculated: true
-    };
+  // 5.7 其他含 SL 的複雜式嘗試安全運算
+  if (/SL/i.test(norm)) {
+    const evalSafe = norm
+      .replace(/SL/gi, String(sl))
+      .replace(/×/g, '*');
+    if (/^[0-9+\-* /()]+$/.test(evalSafe)) {
+      try {
+        const res = Function(`"use strict"; return Math.floor(${evalSafe});`)();
+        if (Number.isFinite(res)) {
+          return {
+            text: `【${res}】`,
+            value: res,
+            rawFormula: trimmed,
+            note: `公式代入 SL ${sl} = ${res}`,
+            isCalculated: true
+          };
+        }
+      } catch {
+        // fall through
+      }
+    }
   }
 
-  // 7. 帶變數的加法：如 SL + 力量骰數值、SL + 目標身上狀態效果數量
-  const varAddMatch = norm.match(/^SL\s*\+\s*(.+)$/i);
-  if (varAddMatch) {
-    const varName = varAddMatch[1];
-    return {
-      text: `【${sl} + ${varName}】`,
-      value: null,
-      rawFormula: trimmed,
-      note: `公式：SL(${sl}) + ${varName}`,
-      isCalculated: true
-    };
-  }
-
-  // 8. 帶變數的乘法：如 SL × 夥伴基礎力量骰尺寸
-  const varMultMatch = norm.match(/^SL\s*×\s*(.+)$/i);
-  if (varMultMatch) {
-    const varName = varMultMatch[1];
-    return {
-      text: `【${sl} × ${varName}】`,
-      value: null,
-      rawFormula: trimmed,
-      note: `公式：SL(${sl}) × ${varName}`,
-      isCalculated: true
-    };
-  }
-
-  // 9. 預設替換所有的單獨 SL 詞彙
-  const dynamicSubbed = norm.replace(/\bSL\b/g, String(sl));
+  // 6. 無法辨識之算式
   return {
-    text: `【${dynamicSubbed}】`,
+    text: `【${trimmed}】`,
     value: null,
     rawFormula: trimmed,
-    note: `公式計算替換：${trimmed} -> ${dynamicSubbed}`,
+    note: `公式代入：${trimmed}（SL ${sl}）`,
     isCalculated: true
   };
 }
@@ -369,7 +602,7 @@ export function renderRichTextContent(content, prefix = '', linkCodex = true, re
  * 技能公式數值徽章 (點擊可在『計算結果』與『原始算式』之間平滑切換)
  * 嚴格遵循官方字型與排印基線 0px 偏差鐵律（使用 inline-block align-baseline，禁絕 inline-flex）
  */
-function FormulaBadge({ seg, sl }) {
+function FormulaBadge({ seg, sl, level }) {
   const [showFormula, setShowFormula] = useState(false);
 
   // 未點亮 (SL = 0) 或純公式展示
@@ -429,7 +662,7 @@ function FormulaBadge({ seg, sl }) {
  * 連結樣式只會讓人以為可以點。
  */
 export default function SkillDescription({
-  desc, sl = 0, className = '', linkCodex = true, refSource = null, refs = null, linkRefs = true,
+  desc, sl = 0, characterLevel = null, character = null, className = '', linkCodex = true, refSource = null, refs = null, linkRefs = true,
 }) {
   const refNames = useMemo(() => {
     if (!linkRefs) return [];
@@ -442,7 +675,7 @@ export default function SkillDescription({
 
   if (!desc) return null;
 
-  const segments = parseSkillFormulaSegments(desc, sl);
+  const segments = parseSkillFormulaSegments(desc, sl, { characterLevel, character });
 
   return (
     <span className={`inline leading-relaxed ${className}`}>
@@ -455,7 +688,7 @@ export default function SkillDescription({
           );
         }
 
-        return <FormulaBadge key={idx} seg={seg} sl={sl} />;
+        return <FormulaBadge key={idx} seg={seg} sl={sl} level={characterLevel} />;
       })}
     </span>
   );
