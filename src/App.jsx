@@ -15,6 +15,7 @@ import DiceRollerModal from './features/dice-roller/DiceRollerModal';
 import ChapterDevWarningModal from './components/book/ChapterDevWarningModal';
 import RuleCodexDrawer from './features/character-sheet/components/RuleCodexDrawer';
 import EntryRefModal from './features/character-sheet/components/EntryRefModal';
+import LoadingScreen from './components/ui/LoadingScreen';
 import { openRuleCodex } from './features/character-sheet/utils/skillFormulaEvaluator';
 import { playPageFlipSound } from './utils/soundEffects';
 import { STORAGE_KEYS } from './data/keys';
@@ -49,11 +50,7 @@ const FateClockPage = lazy(CHAPTER_LOADERS.clocks);
  * 正常情況下**看不到**——翻頁動畫有 550ms，而 `proceedToChapter` 會在那段時間
  * 先偷跑下載（見該函式）。只有在網路極慢時才會短暫出現，故做成安靜的置中文字。
  */
-const ChapterLoading = () => (
-  <div className="flex-1 flex items-center justify-center py-16 text-t12 text-ink-3 font-serif">
-    正在展開章節……
-  </div>
-);
+const ChapterLoading = () => <LoadingScreen />;
 
 const CHAPTER_METAS = {
   character: {

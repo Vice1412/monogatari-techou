@@ -3422,4 +3422,31 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 - `tests/characterSheetUi.test.mjs`
   - 新增 CV 節（CV-1 至 CV-8，8 條 SSR 斷言），並完成刻意破壞驗證（改壞 `h-2` 與 `hud-subtabs-bar` → 確認 CV-1、CV-6 轉紅 → 還原全綠）。
 
+---
+
+## 2026-11-01 — 全站通用載入畫面（LoadingScreen 與首屏載入過場）
+
+### 背景與使用者需求
+
+使用者希望在第一次開啟網站或任何需要載入等待的時候，顯示一個統一的長條 Loading 畫面，並在下方輪播四句敘事文字：
+- `正在繪製圖紙……`
+- `正在雕刻棋子……`
+- `正在冶煉金屬……`
+- `正在構造世界……`
+
+### 修改檔案
+
+- `src/components/ui/LoadingScreen.jsx`
+  - 新增全站通用載入元件 `<LoadingScreen />` 與權威文案清單 `LOADING_MESSAGES`。
+  - 採用 v5 暖羊皮紙設計權杖（`#e8dcc4` 內凹軌道、`#d6c7ab` 細框、`#a63d40` 酒紅滑塊、2px 圓角、襯線字體），支援 `fullScreen` 全螢幕模式與自訂 `message` 覆寫；預設每 1.6 秒自動輪播四句造物敘事文案。
+- `src/index.css`
+  - 新增 `@keyframes loadingBarSlide` 與 `.animate-loading-bar`，置於 `@media (prefers-reduced-motion: reduce)` 總開關之前以支援前庭減敏無障礙設定。
+- `src/App.jsx`
+  - `ChapterLoading`（章節按需下載 `Suspense` fallback）改用 `<LoadingScreen />`，取代原本單調的單行文字。
+- `index.html`
+  - `<body>` 預設底色對齊為暖羊皮紙 `#fbf7ee`（消除載入前的冷灰閃爍），並在 `<div id="root">` 內嵌靜態首屏長條載入畫面與四句輪播腳本；當 React 主程式下載並執行 `createRoot().render()` 時自動無縫接管。
+- `tests/characterSheetUi.test.mjs`
+  - 新增 CW 節（CW-1 至 CW-5 共 5 條斷言），驗證 `LOADING_MESSAGES`、`<LoadingScreen />` SSR 渲染、首屏 `index.html` 載入器與 `App.jsx` 整合，並完成刻意破壞驗證。
+
+
 

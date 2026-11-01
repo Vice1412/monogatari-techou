@@ -455,6 +455,21 @@ body {
 /* 總開關：放在檔案最後，`!important` 才能蓋掉上面每一組具名動畫。
    `animation-iteration-count: 1` 是關鍵——只縮短 duration 的話，
    `infinite` 的危機脈動會變成每秒閃 1000 次，比原本更糟。 */
+/* 通用長條載入動畫（LoadingScreen）：酒紅滑塊於暖紙軌道內平滑橫移 */
+@keyframes loadingBarSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+.animate-loading-bar {
+  animation: loadingBarSlide 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

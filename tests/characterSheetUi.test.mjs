@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import NumberStepper, { parseStepperInput } from '../src/components/ui/NumberStepper.jsx';
+import LoadingScreen, { LOADING_MESSAGES } from '../src/components/ui/LoadingScreen.jsx';
 import {
   buildSheetModel,
   OfficialSheetPage1,
@@ -2980,6 +2981,60 @@ const blueTheme = getCharacterTheme('blue');
 check('（CV-8 SSR）CharacterEditor 左側角色身分小卡渲染頂部主題色條與 accentLight 頭像框底色',
   [editorBlueHtml.includes(`data-testid="editor-identity-theme-bar"`) && editorBlueHtml.includes(`style="background-color:${blueTheme.accent}"`),
     editorBlueHtml.includes(`style="border-color:${blueTheme.border};background-color:${blueTheme.accentLight}"`)],
+  [true, true]);
+
+// ═══════════════════════════════════════════════════════════════════
+// CW. 全站通用載入畫面（LoadingScreen 與首屏 HTML，2026-11-01）
+// ═══════════════════════════════════════════════════════════════════
+lines.push('\n=== CW. 全站通用載入畫面（LoadingScreen 與首屏 HTML，2026-11-01） ===');
+
+check('（CW-1）LOADING_MESSAGES 權威清單恰好包含四句造物敘事文案',
+  LOADING_MESSAGES,
+  [
+    '正在繪製圖紙……',
+    '正在雕刻棋子……',
+    '正在冶煉金屬……',
+    '正在構造世界……',
+  ]);
+
+const loadingDefaultHtml = renderToStaticMarkup(React.createElement(LoadingScreen));
+const loadingCustomHtml = renderToStaticMarkup(React.createElement(LoadingScreen, {
+  fullScreen: true,
+  message: '正在讀取備份……',
+  title: null,
+}));
+
+check('（CW-2 SSR）LoadingScreen 渲染長條載入軌道、滑塊與預設首句文案',
+  [
+    loadingDefaultHtml.includes('data-testid="loading-screen"'),
+    loadingDefaultHtml.includes('data-testid="loading-bar-track"'),
+    loadingDefaultHtml.includes('data-testid="loading-bar-fill"') && loadingDefaultHtml.includes('animate-loading-bar'),
+    loadingDefaultHtml.includes('正在繪製圖紙……'),
+  ],
+  [true, true, true, true]);
+
+check('（CW-3 SSR）LoadingScreen 支援 fullScreen 與自訂 message 覆寫',
+  [
+    loadingCustomHtml.includes('min-h-screen'),
+    loadingCustomHtml.includes('正在讀取備份……'),
+    !loadingCustomHtml.includes('《物語手帳》'),
+  ],
+  [true, true, true]);
+
+const indexHtmlRaw = read('../index.html');
+check('（CW-4）index.html 首屏 #root 內建長條載入畫面與相同四句輪播文案（消除首次開啟空白等待）',
+  [
+    indexHtmlRaw.includes('fu-initial-loading-bar'),
+    LOADING_MESSAGES.every((msg) => indexHtmlRaw.includes(msg)),
+  ],
+  [true, true]);
+
+const appRawForLoading = read('../src/App.jsx');
+check('（CW-5）App.jsx 的 ChapterLoading 統一使用 LoadingScreen（不再殘留單行過場文字）',
+  [
+    appRawForLoading.includes('<LoadingScreen />'),
+    !appRawForLoading.includes('正在展開章節……'),
+  ],
   [true, true]);
 
 // ─────────────────────────────────────────────────────────── 結果
