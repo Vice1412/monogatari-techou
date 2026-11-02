@@ -128,7 +128,7 @@ check('disabled 時輸入框與按鈕都停用',
   3);
 
 // ─────────────────────────────────────────────────────────── B
-section('B. 五項資源是可自己填寫的步進器；資金不是（P10 改口）');
+section('B. 四項資源是可自己填寫的步進器；資金與物語點不是（P10／P12 兩次改口）');
 
 // ⚠️ 這一節原本是「六項」，包含資金。2026-11-01 使用者改口：
 //   「金幣錢包的部分不要有 +- 和自己修改內容了。」
@@ -136,25 +136,48 @@ section('B. 五項資源是可自己填寫的步進器；資金不是（P10 改�
 // 移除的理由不是「測起來麻煩」，是**錢的每一次變動都必須有原因**：
 // 步進器寫的是 `kind: 'zenit'`（合併、沒有事由），而 P9-b 之後每一筆錢
 // 都走 `applyMoneyFlow`／`applyPurchase`（原因必填）。兩套記帳法不能並存。
-// 反向斷言留著，否則下一個人會以為「漏了資金」，順手把它加回來。
+//
+// 2026-11-02 第二次改口（使用者裁定「拆」），物語點也移出清單：
+//   它是全卡最後一個「有數字、沒原因」的資源。書上七條用途裡三條要花 1 點
+//   （重擲／激勵羈絆／改變故事），價錢完全一樣——履歷只寫「消耗物語點 3 → 2」時，
+//   玩家分不出那 1 點是為了什麼。現在它與錢包同一個形狀（獲得／消耗／明細），
+//   原因必填，走 `applyFabulaPointsFlow`。
+// 兩條反向斷言都留著，否則下一個人會以為「漏了」，順手把它們加回來。
 const resourceCalls = [
   ['HP', /<NumberStepper\s+value=\{curHp\}/],
   ['MP', /<NumberStepper\s+value=\{curMp\}/],
   ['IP', /<NumberStepper\s+value=\{curIp\}/],
-  ['EXP', /<NumberStepper\s+value=\{character\.exp \|\| 0\}/],
-  // `??` 不是 `||`：物語點 0 是合法值，不能被當成缺值（2026-10-06 修）
-  ['物語點', /<NumberStepper\s+value=\{character\.fabulaPoints \?\? 3\}/]
+  ['EXP', /<NumberStepper\s+value=\{character\.exp \|\| 0\}/]
 ];
-check('五項資源都改用 NumberStepper',
+check('四項資源都改用 NumberStepper',
   resourceCalls.filter(([, re]) => !re.test(hud)).map(([name]) => name), []);
 check('資金刻意不是步進器（每次變動都要有原因，走收支／購買）',
   [/<NumberStepper\s+value=\{character\.zenit/.test(hud), hud.includes('adjustZenit')],
   [false, false]);
+check('物語點刻意不是步進器（P12：每次變動都要有原因，走獲得／消耗）',
+  [/<NumberStepper\s+value=\{character\.fabulaPoints/.test(hud), /onDelta=\{adjustFp\}/.test(hud)],
+  [false, false]);
+// `??` 不是 `||` 的那條守衛（2026-10-06）**搬家了**，不是消失了：
+// 物語點的 0 仍然是合法值，只是判斷從 JSX 裡移到 `resolveFabulaPoints`。
+// 這裡驗「顯示值走那一個函式」，值本身在 `tests/fabulaPointsFlow.test.mjs` 驗。
+check('物語點顯示值走單一解析（0 不會被還原成 3）',
+  [hud.includes('resolveFabulaPoints(character)'), /character\.fabulaPoints \?\? 3\} FP/.test(hud)],
+  [true, false]);
 check('舊的固定 ±1／±5 按鈕已移除',
   ['adjustHp(-5)', 'adjustMp(5)', 'adjustExp(5)', 'adjustZenit(100)', 'adjustIp(-1)'].filter((s) => hud.includes(s)),
   []);
-check('夾制後沒有變化時不寫入（避免 0 → 0 的空記錄）',
-  (hud.match(/if \(next === cur/g) || []).length >= 5, true);
+// 逐項點名而不是數個數：數字會在下一個人刪掉一條時「看起來差不多」。
+// 四條字串各自唯一（`curHp`／`curMp`／`curIp`／`cur`），所以順便驗錨點唯一。
+const clampSites = [
+  ['HP', 'if (next === curHp) return;'],
+  ['MP', 'if (next === curMp) return;'],
+  ['IP', 'if (next === curIp) return;'],
+  ['EXP', 'if (next === cur) return;']
+];
+check('夾制後沒有變化時不寫入（四項各自點名）',
+  clampSites.filter(([, s]) => !hud.includes(s)).map(([name]) => name), []);
+check('上面四個錨點各自只出現一次（重複的錨點會讓上一條假綠）',
+  clampSites.filter(([, s]) => (hud.split(s).length - 1) !== 1).map(([name]) => name), []);
 check('跑團卡有引入步進器', hud.includes("from '../../../components/ui/NumberStepper'"), true);
 
 // ─────────────────────────────────────────────────────────── C
@@ -3036,6 +3059,55 @@ check('（CW-5）App.jsx 的 ChapterLoading 統一使用 LoadingScreen（不再�
     !appRawForLoading.includes('正在展開章節……'),
   ],
   [true, true]);
+
+// ─────────────────────────────────────────────────────────── CX
+section('CX. 分頁列釘住（P12，2026-11-02：使用者裁定「釘住」）');
+
+// 量到的問題：桌面 1414×1100 時分頁列在 1064px（第一屏看得到標籤、看不到內容）；
+// 手機要滾 2.6 屏才碰到「武器與戰鬥」。而跑團時每 30 秒就要按一次攻擊。
+//
+// 這一節守的是**兩個實作細節**，少一個 sticky 就完全沒作用，而且不會報錯：
+//   1. `sticky` 與正確的 `top`（要避開 52px 的章節標頭，否則被蓋住＝按不到）
+//   2. 外層不能是 `overflow-hidden`（它會讓 sticky「在一個不會滾動的容器裡黏住」）
+//      ——這是 sticky 最常見的假成功，畫面看起來完全正常，只是不會跟著滾。
+check('（CX-1）分頁列是 sticky，且 top 讀標頭的實際高度（不是寫死 52）',
+  [
+    /data-testid="hud-subtabs-bar"[\s\S]{0,200}?className="[^"]*\bsticky\b/.test(hud),
+    /data-testid="hud-subtabs-bar"[\s\S]{0,200}?className="[^"]*\btop-\[var\(--chapter-header-h,52px\)\]/.test(hud),
+  ],
+  [true, true]);
+// 標頭是 `min-h-[52px]`：52 是下限，實測 55。所以那個變數一定要有人寫，
+// 否則 fallback 52 會讓分頁列的上緣被標頭蓋掉 3px（實機驗證抓到的）。
+const chapterHeaderSrc = read('../src/components/book/ChapterHeader.jsx');
+check('（CX-1b）ChapterHeader 真的把實際高度寫進 --chapter-header-h',
+  [
+    chapterHeaderSrc.includes("setProperty('--chapter-header-h'"),
+    chapterHeaderSrc.includes('new ResizeObserver'),
+    chapterHeaderSrc.includes('ref={headerRef}')
+  ],
+  [true, true, true]);
+check('（CX-2）分頁列 z-index 低於標頭的 z-40（不然會蓋住標頭）',
+  /data-testid="hud-subtabs-bar"[\s\S]{0,160}?className="[^"]*\bz-30\b/.test(hud), true);
+
+// 兩個外層都不能是 overflow-hidden：分頁列自己那張卡，以及更外層的角色中樞。
+// 用 `overflow-clip` 取代——一樣裁切圓角，但不建立滾動容器。
+// ⚠️ 切片要**只取那一個開標籤**，兩個坑都踩過：
+//   ① 用「前 400 字」會把上面那段說明註解讀進來（裡面同時寫著兩個字串）→ 永遠紅；
+//   ② 用 `lastIndexOf('<div')` 會抓到分頁列**自己**的 `<div`（testid 寫在下一行）。
+// 所以直接抓那張卡的 class 字串。這個前綴在檔案裡唯一（下面順便驗這件事）。
+const subtabCardClasses = (hud.match(/<div className="bg-\[#fffdf9\] rounded border-2 ([^"]*)"/) || [])[1] || '';
+check('（CX-3）分頁列所在的那張卡不是 overflow-hidden（改用 overflow-clip）',
+  [subtabCardClasses.includes('overflow-hidden'), subtabCardClasses.includes('overflow-clip')],
+  [false, true]);
+check('（CX-3b）上面那個 class 錨點只出現一次（重複會讓前一條假綠）',
+  (hud.match(/bg-\[#fffdf9\] rounded border-2/g) || []).length, 1);
+const hubTag = (hud.match(/data-testid="jrpg-character-hub"[\s\S]{0,220}?>/) || [''])[0];
+check('（CX-4）角色中樞（分頁列的祖先）也不是 overflow-hidden',
+  [hubTag.includes('overflow-hidden'), hubTag.includes('overflow-clip')],
+  [false, true]);
+// 對照組：整份檔案仍然有別的地方用 overflow-hidden（不是把全站都改掉了）。
+check('（CX-5）對照組：其他容器仍保留 overflow-hidden（證明上面兩條不是全域替換）',
+  (hud.match(/overflow-hidden/g) || []).length >= 1, true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

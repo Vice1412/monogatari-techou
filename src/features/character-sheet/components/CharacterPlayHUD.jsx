@@ -87,6 +87,18 @@ import PurchaseModal from './PurchaseModal';
 import MoneyFlowModal from './MoneyFlowModal';
 import MoneyLedgerModal from './MoneyLedgerModal';
 import EquipmentSlotModal from './EquipmentSlotModal';
+// 物語點（P12，2026-11-02）：與錢包同一條路——有原因才寫，明細從履歷推導。
+// 步進器移除之後，這裡是物語點**唯一**的寫入入口（擲骰器也走這支）。
+import FabulaPointsModal from './FabulaPointsModal';
+import FabulaPointLedgerModal from './FabulaPointLedgerModal';
+import {
+  FP_DIRECTIONS,
+  applyFabulaPointsFlow,
+  describeFabulaPointsToast,
+  resolveFabulaPoints
+} from '../utils/fabulaPointsFlow';
+// 守衛（P12）：跨回合的 +2。狀態進存檔，且**只有玩家按的那一下會改變它**。
+import { describeGuardState, guardBonusOf, isGuarding, setGuard } from '../utils/guardState';
 import {
   buildCustomWeaponEntries,
   buildCustomWeaponEntry,
@@ -457,6 +469,13 @@ export default function CharacterPlayHUD({
   // 它是錢包下方「明細」按鈕的內容，取代原本只印最近一筆的那一條。
   const [isLedgerOpen, setIsLedgerOpen] = useState(false);
 
+  // 物語點（P12，2026-11-02）：與錢包同一個形狀——獲得／消耗／明細三顆按鈕。
+  // 步進器在這一輪移除：它寫出的履歷沒有原因，而物語點的三種用途價錢都是 1 點，
+  // 沒有原因就等於三件事在履歷上長得一模一樣。
+  const [isFpFlowOpen, setIsFpFlowOpen] = useState(false);
+  const [fpFlowDirection, setFpFlowDirection] = useState(FP_DIRECTIONS.spend);
+  const [isFpLedgerOpen, setIsFpLedgerOpen] = useState(false);
+
   // 行囊分頁的單槽選擇器（P9-b）：`null` ＝ 關著，其餘是槽位鍵。
   // 存「哪一個槽」而不是「開著還是關著」，因為四顆按鈕共用同一個彈窗，
   // 而標題與清單都取決於槽位——兩個 state 會有一天不同步。
@@ -547,6 +566,11 @@ export default function CharacterPlayHUD({
   const fpCurrent = character.fabulaPoints !== null && character.fabulaPoints !== undefined
     ? character.fabulaPoints
     : 3;
+
+  // 守衛（P12）：跨回合的 +2。加成**不併進 `stats`**——`StatFormulaPanel` 展開的是
+  // 「DEX + 盾/裝甲」，把 +2 混進去那條算式就對不上了。所以加成留在畫面上。
+  const guard = describeGuardState(character);
+  const guardBonus = guardBonusOf(character);
   const consumableGates = {
     remedy: describeCostGate({ cost: 3, current: curIp, unit: GATE_UNITS.ip }),
     elixir: describeCostGate({ cost: 3, current: curIp, unit: GATE_UNITS.ip }),
@@ -859,20 +883,52 @@ export default function CharacterPlayHUD({
     showToast(`${item.name} 已換到${slotLabel}（已持有的裝備，不另收費）`, 'success');
   };
 
-  const adjustFp = (delta) => {
-    // 讀 ref 而不是閉包：這個函式會被塞進擲骰器的 config（`onSpendFp`／`onGainFp`），
-    // 在 modal 開著的整段時間裡被呼叫多次。用閉包的話第二次會從同一個舊值起算，
-    // UI 說扣了 2 點、存檔只扣 1 點。
+  /**
+   * 物語點的**唯一**寫入出口（P12，2026-11-02）。
+   *
+   * 以前這裡是 `adjustFp(delta)`——一個沒有原因的 `−1`／`+1`。
+   * 現在連擲骰器的回呼都走這支，所以「重擲」與「激勵羈絆」留下的履歷
+   * 真的寫著它們的名字，而不是兩筆一模一樣的「消耗物語點 3 → 2」。
+   *
+   * 讀 ref 而不是閉包：這個函式會被塞進擲骰器的 config（`onSpendFp`／`onGainFp`），
+   * 在 modal 開著的整段時間裡被呼叫多次。用閉包的話第二次會從同一個舊值起算，
+   * UI 說扣了 2 點、存檔只扣 1 點。
+   *
+   * 失敗時**什麼都不寫**，也不靜默——把第一個錯誤丟給 toast。
+   * 靜默失敗會讓玩家以為扣到了（畫面沒變，但他已經按下去了）。
+   */
+  const applyFpFlow = (input) => {
+    const result = applyFabulaPointsFlow(characterRef.current, input);
+    if (!result.ok) {
+      const reason = result.flow.errors.amount
+        || result.flow.errors.reason
+        || result.flow.errors.current
+        || '物語點沒有變動';
+      showToast(reason, 'error');
+      return result;
+    }
+    commit(result.character);
+    return result;
+  };
+
+  /** 打開物語點對話框，並決定它從哪個方向開始（卡片上的「獲得」／「消耗」共用一個）。 */
+  const openFpFlow = (direction) => {
+    setFpFlowDirection(direction === FP_DIRECTIONS.gain ? FP_DIRECTIONS.gain : FP_DIRECTIONS.spend);
+    setIsFpFlowOpen(true);
+  };
+
+  /**
+   * 守衛（P12）：跨回合的 +2，**不自動解除**。
+   *
+   * App 不知道「你的下一回合」什麼時候開始（回合在另一頁、而且常常是 GM 在數），
+   * 自動清掉等於用一個猜測蓋掉玩家手上的事實。所以它留著，由玩家按掉。
+   */
+  const handleToggleGuard = () => {
     const latest = characterRef.current;
-    const cur = latest.fabulaPoints ?? 3;
-    const next = Math.max(0, cur + delta);
-    if (next === cur) return;
-    const base = { ...latest, fabulaPoints: next, updatedAt: new Date().toISOString() };
-    commit(loggableChange(latest, base, {
-      kind: 'fp',
-      title: delta < 0 ? '消耗物語點' : '獲得物語點',
-      changes: [{ field: 'fabulaPoints', from: cur, to: next }]
-    }));
+    const next = setGuard(latest, !isGuarding(latest));
+    if (next === latest) return;
+    commit(next);
+    showToast(describeGuardState(next).label, 'success');
   };
 
   /**
@@ -915,12 +971,12 @@ export default function CharacterPlayHUD({
       // 擲骰留痕：擲骰器每次擲完都回報一次，這裡決定要不要寫進履歷。
       onRecordRoll: recordRoll,
       onSpendFp: (reason) => {
-        adjustFp(-1);
-        showToast(`${reason}（消耗 1 點物語點）`);
+        const result = applyFpFlow({ direction: FP_DIRECTIONS.spend, amount: 1, reason });
+        if (result.ok) showToast(describeFabulaPointsToast(result), 'success');
       },
       onGainFp: (reason) => {
-        adjustFp(1);
-        showToast(`${reason}（獲得 1 點物語點）`);
+        const result = applyFpFlow({ direction: FP_DIRECTIONS.gain, amount: 1, reason });
+        if (result.ok) showToast(describeFabulaPointsToast(result), 'success');
       }
     });
   };
@@ -1576,7 +1632,7 @@ export default function CharacterPlayHUD({
       {/* 1. JRPG 角色狀態與指令中樞（以角色肖像居中，左右環繞核心資源、檢定與戰術分頁按鈕） */}
       <div
         data-testid="jrpg-character-hub"
-        className="rounded p-4 sm:p-5 space-y-4 border-2 transition-colors duration-200 overflow-hidden"
+        className="rounded p-4 sm:p-5 space-y-4 border-2 transition-colors duration-200 overflow-clip"
         style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
       >
         <div
@@ -2579,26 +2635,59 @@ export default function CharacterPlayHUD({
                 </div>
               </div>
 
-              {/* 物語點：與錢包同一個區塊，但**不搶同樣的重量**。
-                  使用者要的是「錢明顯一點」，所以它從半寬卡改成一行——
-                  標籤、數值、步進器同一行，佔用的高度只有錢包的三分之一。 */}
-              <div className="bg-[#fffdf9] rounded px-3 py-2 border flex items-center justify-between gap-2" style={{ borderColor: theme.border }}>
-                <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
-                  <GiSparkles className="w-4 h-4 text-[#6b5a4b]" />
-                  物語點
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="tabular-nums font-black text-t14 text-[#3c2415]">
-                    {character.fabulaPoints ?? 3} FP
+              {/* 物語點（P12，2026-11-02）：從「一行數字＋步進器」改成**第二個錢包**。
+                  ─────────────────────────────────────────────────────────────
+                  為什麼要拆掉步進器（這是使用者裁定的第 2 題）：
+                  物語點是這張卡最後一個「有數字、沒原因」的資源。書上七條用途裡
+                  三條要花 1 點（重擲／激勵羈絆／改變故事），價錢完全一樣——
+                  所以履歷只寫「消耗物語點 3 → 2」時，玩家分不出那 1 點是為了什麼。
+                  而擲骰器其實**早就把原因傳進來了**（`onSpendFp('引用特質重擲檢定')`），
+                  只是那句話進了 toast 就消失。現在它寫進履歷的 `note`。
+                  ───────────────────────────────────────────────────────────── */}
+              <div data-testid="fp-card" className="bg-[#fffdf9] rounded px-3 py-2 border space-y-2" style={{ borderColor: theme.border }}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                    <GiSparkles className="w-4 h-4 text-[#6b5a4b]" />
+                    物語點
                   </span>
-                  <NumberStepper
-                    value={character.fabulaPoints ?? 3}
-                    onDelta={adjustFp}
-                    ariaLabel="物語點"
-                    width="w-12"
-                    inputClassName="text-[#3c2415]"
-                  />
-                </span>
+                  <span data-testid="fp-amount" className="tabular-nums font-black text-t16 text-[#3c2415]">
+                    {resolveFabulaPoints(character)} FP
+                  </span>
+                </div>
+                {/* 三顆按鈕與錢包同一個排法：獲得（綠）／消耗（紅）／明細（米）。
+                    高度 `py-1.5` 比錢包的 `py-2` 矮一級——物語點不搶錢包的重量。 */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    data-testid="fp-gain"
+                    onClick={() => openFpFlow(FP_DIRECTIONS.gain)}
+                    title="記一筆獲得（反派登場、大失敗、投降……）"
+                    className="py-1.5 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiReceiveMoney className="w-3.5 h-3.5" />
+                    獲得
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="fp-spend"
+                    onClick={() => openFpFlow(FP_DIRECTIONS.spend)}
+                    title="記一筆消耗（重擲、激勵羈絆、改變故事）"
+                    className="py-1.5 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiPayMoney className="w-3.5 h-3.5" />
+                    消耗
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="fp-ledger"
+                    onClick={() => setIsFpLedgerOpen(true)}
+                    title="看每一點是為了什麼花掉的（由成長履歷推導）"
+                    className="py-1.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiScrollUnfurled className="w-3.5 h-3.5" />
+                    明細
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -2650,11 +2739,27 @@ export default function CharacterPlayHUD({
         );
       })()}
 
-      {/* 6. Sub-Tabs: 武器與戰鬥 | 咒語與魔法 | 職業特技 | 情感羈絆 | 個人命刻 | 行囊日誌 */}
-      <div className="bg-[#fffdf9] rounded border-2 overflow-hidden" style={{ borderColor: theme.border }}>
+      {/* 6. Sub-Tabs: 武器與戰鬥 | 咒語與魔法 | 職業特技 | 情感羈絆 | 個人命刻 | 行囊日誌
+          ─────────────────────────────────────────────────────────────────────────
+          P12（2026-11-02）：分頁列**釘住**（使用者裁定的第 1 題）。
+          量到的問題：桌面 1414×1100 時分頁列在 1064px——第一屏看得到標籤，
+          看不到標籤底下的內容；手機要滾 2.6 屏才碰到「武器與戰鬥」。
+          而跑團時每 30 秒就要按一次攻擊，那顆按鈕永遠在最下面。
+          ─────────────────────────────────────────────────────────────────────────
+          兩個實作細節，少一個就沒效：
+          1. 外層**不能是 `overflow-hidden`**——那會讓 sticky 變成「在一個不會滾動的
+             容器裡黏住」，等於完全沒作用。改用 `overflow-clip`：一樣裁切圓角，
+             但不建立滾動容器（`overflow-clip` 不影響 sticky 的參照）。
+             上面 `jrpg-character-hub` 的 `overflow-hidden` 同理，一起改掉了。
+          2. `top` 要避開章節標頭（`ChapterHeader` 是 `sticky top-0 z-40`）。
+             寫死 52 會差 3px——標頭是 `min-h-[52px]`，52 是**下限**，實測 55px，
+             於是分頁列的上緣被標頭蓋掉，看起來像「邊框不見了」。
+             所以讀 `--chapter-header-h`（`ChapterHeader` 用 ResizeObserver 寫上去，
+             fallback 52）。`top-0` 更糟：整條被標頭蓋住＝按不到。 */}
+      <div className="bg-[#fffdf9] rounded border-2 overflow-clip" style={{ borderColor: theme.border }}>
         <div
           data-testid="hud-subtabs-bar"
-          className="flex items-center gap-1 p-2 border-b overflow-x-auto transition-colors duration-200"
+          className="sticky top-[var(--chapter-header-h,52px)] z-30 flex items-center gap-1 p-2 border-b overflow-x-auto transition-colors duration-200"
           style={{ backgroundColor: theme.accentLight, borderColor: theme.border }}
         >
           {[
@@ -2713,6 +2818,13 @@ export default function CharacterPlayHUD({
                   >
                     <span className="text-[#7c6a58] block text-t12 font-sans font-medium">物理防禦</span>
                     <span className="text-2xl font-black" style={{ color: theme.textDark }}>{statsUnset ? '—' : stats.def}</span>
+                    {/* 守衛的 +2 只畫在數字旁邊，不加進 `stats.def`——
+                        否則點開公式會看到「12 = d8 + 2 + 2」，多出來的 2 沒有出處。 */}
+                    {guardBonus > 0 && !statsUnset && (
+                      <span data-testid="guard-bonus-def" className="ml-1 align-top text-t12 font-black text-[#245c45]">
+                        +{guardBonus}
+                      </span>
+                    )}
                     <span className="text-t12 text-[#6b5a4b] block mt-0.5 leading-tight">
                       {stats.currentDex !== stats.def ? `DEX(d${stats.currentDex}) + 盾/裝甲` : `當前 DEX(d${stats.currentDex})`}
                     </span>
@@ -2725,6 +2837,11 @@ export default function CharacterPlayHUD({
                   >
                     <span className="text-[#6b5a4b] block text-t12 font-sans font-medium">魔法防禦</span>
                     <span className="text-2xl font-black text-[#3c2415]">{stats.mdef}</span>
+                    {guardBonus > 0 && (
+                      <span data-testid="guard-bonus-mdef" className="ml-1 align-top text-t12 font-black text-[#245c45]">
+                        +{guardBonus}
+                      </span>
+                    )}
                     <span className="text-t12 text-[#6b5a4b] block mt-0.5 leading-tight">
                       {stats.currentIns !== stats.mdef ? `INS(d${stats.currentIns}) + 盾/加值` : `當前 INS(d${stats.currentIns})`}
                     </span>
@@ -2742,6 +2859,25 @@ export default function CharacterPlayHUD({
                     </span>
                   </button>
                 </div>
+
+                {/* 守衛（P12）：一顆跨回合的狀態，不是一次性加成。
+                    放在防禦三格的正下方——玩家宣告守衛的那一刻，眼睛就在這三格上。
+                    `aria-pressed` 而不是 `disabled`：按下去是切換，不是「不能按」。 */}
+                <button
+                  type="button"
+                  data-testid="guard-toggle"
+                  aria-pressed={guard.active}
+                  onClick={handleToggleGuard}
+                  title={guard.title}
+                  className={`w-full py-1.5 rounded border font-bold text-t12 flex items-center justify-center gap-1.5 transition-colors ${
+                    guard.active
+                      ? 'bg-[#245c45] border-[#245c45] text-[#fffdf9] hover:bg-[#1e4b39]'
+                      : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9]'
+                  }`}
+                >
+                  <GiHeartShield className="w-3.5 h-3.5" />
+                  <span>{guard.label}</span>
+                </button>
 
                 <StatFormulaPanel
                   isOpen={openFormula === 'def'}
@@ -4442,6 +4578,32 @@ export default function CharacterPlayHUD({
       <MoneyLedgerModal
         isOpen={isLedgerOpen}
         onClose={() => setIsLedgerOpen(false)}
+        theme={theme}
+        character={character}
+      />
+
+      {/* MODAL 0-b-3: 物語點收支（P12）——原因必填，與錢包同一個形狀。
+          擲骰器的重擲／羈絆激勵**不開這個窗**：那兩件事的原因由擲骰器自己講
+          （`onSpendFp('引用特質重擲檢定')`），再問一次只是多一次點擊。 */}
+      <FabulaPointsModal
+        isOpen={isFpFlowOpen}
+        onClose={() => setIsFpFlowOpen(false)}
+        theme={theme}
+        current={resolveFabulaPoints(character)}
+        initialDirection={fpFlowDirection}
+        onConfirm={(input) => {
+          const result = applyFpFlow(input);
+          if (result.ok) {
+            showToast(describeFabulaPointsToast(result), 'success');
+            setIsFpFlowOpen(false);
+          }
+        }}
+      />
+
+      {/* MODAL 0-b-4: 物語點明細（P12）——同樣是履歷的另一個看法，只讀不寫。 */}
+      <FabulaPointLedgerModal
+        isOpen={isFpLedgerOpen}
+        onClose={() => setIsFpLedgerOpen(false)}
         theme={theme}
         character={character}
       />

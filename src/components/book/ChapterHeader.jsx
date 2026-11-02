@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import {
   GiSpellBook,
@@ -44,8 +44,36 @@ export default function ChapterHeader({
   const exitLabelLong = backOverride ? backOverride.label : '合上書本 · 返回封面';
   const exitLabelShort = backOverride ? backOverride.label : '返回封面';
 
+  /**
+   * 把標頭**實際**高度寫進 `--chapter-header-h`（2026-11-02，P12）。
+   *
+   * 為什麼需要：跑團卡的分頁列要釘在標頭下面（`sticky top-[var(--chapter-header-h)]`），
+   * 而標頭是 `min-h-[52px]`——**52 是下限，不是高度**。實測 55px，
+   * 於是寫死 52 的分頁列上緣被標頭蓋掉 3px（標頭 z-40、分頁列 z-30），
+   * 看起來像「那條邊框不見了」，而這種事只有在實機量才看得到。
+   *
+   * 用 ResizeObserver 而不是寫死一個常數：標頭在手機／桌面／有無副導覽時高度不同，
+   * 常數只是把「猜錯」換一個地方發生。沒有 ResizeObserver 的環境（舊瀏覽器、SSR）
+   * 就保留 fallback 52——那仍然是可用值，只是可能差幾 px。
+   */
+  const headerRef = useRef(null);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return undefined;
+    const publish = () => {
+      const h = Math.round(el.getBoundingClientRect().height);
+      if (h > 0) document.documentElement.style.setProperty('--chapter-header-h', `${h}px`);
+    };
+    publish();
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <header
+      ref={headerRef}
       className={`border-b ${customTheme ? '' : theme.headerBorder} ${customTheme ? 'backdrop-blur-md' : theme.headerBg} px-3 sm:px-6 py-2 flex items-center justify-between sticky top-0 z-40 shadow-sm transition-colors duration-300 min-h-[52px]`}
       style={customTheme ? { backgroundColor: `${customTheme.headerBg}f2`, borderColor: customTheme.border } : {}}
     >

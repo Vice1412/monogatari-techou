@@ -66,8 +66,8 @@ check('每一種 kind 都有 label／icon／coalesce',
   Object.entries(LOG_KINDS).filter(([, v]) =>
     typeof v.label !== 'string' || typeof v.icon !== 'string' || typeof v.coalesce !== 'number'
   ).map(([k]) => k), []);
-check('kind 數量（原本 13 種 ＋ 羈絆／命刻／營地／場次 ＝ 17 ＋ 擲骰 ＝ 18 ＋ 交易 ＝ 19）',
-  Object.keys(LOG_KINDS).length, 19);
+check('kind 數量（13 ＋ 羈絆／命刻／營地／場次 ＝ 17 ＋ 擲骰 ＝ 18 ＋ 交易 ＝ 19 ＋ 架勢 ＝ 20）',
+  Object.keys(LOG_KINDS).length, 20);
 // 不能只把 13 改成 17：原本那 13 種一個都不能消失，否則有人刪掉一條，
 // 「總數 17」照樣成立，而那一類事件從此靜默不記錄（2026-10-30 真的發生過）。
 check('原本的 13 種一個都沒消失',
@@ -84,6 +84,15 @@ check('擲骰（dice）在詞彙表裡',
 // 逐一點名照舊：只把 18 改成 19 的話，有人刪掉 trade 再補一個別的，總數照樣成立。
 check('交易（trade）在詞彙表裡，而且不合併',
   [['trade'].filter((k) => !LOG_KINDS[k]), LOG_KINDS.trade.coalesce], [[], 0]);
+// 2026-11-02：架勢（P12 的守衛）。守衛跨回合存在，而「什麼時候宣告的」
+// 在爭執時是唯一查得到的東西。逐一點名照舊：只把 19 改成 20 的話，
+// 有人刪掉 stance 再補一個別的，總數照樣成立。
+check('架勢（stance）在詞彙表裡，而且不合併',
+  [['stance'].filter((k) => !LOG_KINDS[k]), LOG_KINDS.stance.coalesce], [[], 0]);
+// 同一次改動的另一半：`fp` 從合併改成不合併。合併的實作是「保留最新的 note」，
+// 於是兩分鐘內重擲再激勵羈絆，明細上只剩一個原因——而那正是要讀的那一行。
+check('物語點（fp）不再合併（原因不能被吃掉）',
+  LOG_KINDS.fp.coalesce, 0);
 check('對照組：zenit 仍然合併（雜訊不該變成事件）',
   LOG_KINDS.zenit.coalesce > 0, true);
 check('未登記的 kind 一律拒收',
@@ -296,9 +305,17 @@ const editor = read('../src/features/character-sheet/components/CharacterEditor.
 const sheet = read('../src/features/character-sheet/CharacterSheet.jsx');
 const engine = read('../src/features/character-sheet/utils/characterEngine.js');
 
-check('跑團卡的六項資源變更都帶記錄種類',
-  ["kind: 'hp'", "kind: 'mp'", "kind: 'ip'", "kind: 'exp'", "kind: 'zenit'", "kind: 'fp'"].filter((k) => !hud.includes(k)),
+// 2026-11-02（P12）：物語點的寫入**搬家**到 `utils/fabulaPointsFlow.js`——
+// 與錢包同一條路（原因必填、明細從履歷推導）。所以 `kind: 'fp'` 不在這份檔案裡了，
+// 那不是漏掉，是搬走。因此這一條拆成兩半：跑團卡自己的五種，
+// 以及「物語點那一支真的存在，而且跑團卡真的呼叫它」。
+check('跑團卡的五項資源變更都帶記錄種類',
+  ["kind: 'hp'", "kind: 'mp'", "kind: 'ip'", "kind: 'exp'", "kind: 'zenit'"].filter((k) => !hud.includes(k)),
   []);
+const fpFlowSrc = read('../src/features/character-sheet/utils/fabulaPointsFlow.js');
+check('物語點的寫入走 fabulaPointsFlow（`kind: fp` 在那裡，跑團卡呼叫它）',
+  [fpFlowSrc.includes("kind: 'fp'"), hud.includes('applyFabulaPointsFlow(')],
+  [true, true]);
 check('跑團卡的升級會留下記錄', hud.includes("kind: 'levelup'"), true);
 check('跑團卡的數值出口支援 meta', /const updateField = \(field, val, meta = null\)/.test(hud), true);
 // 2026-10-06：等級與初始金額在編輯器改成**唯讀顯示**（由開卡規則決定，GM 在

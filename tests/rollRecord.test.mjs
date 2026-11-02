@@ -261,8 +261,14 @@ check('E21 有 commit（同步更新 ref 的寫入出口）',
 // 只要別處多一個，總數照樣過關。
 check('E22 updateField 走 commit',
   countOf(hudCode, 'commit(meta ? loggableChange(before, base, meta) : base)') === 1);
-check('E23 adjustFp 走 commit（扣 FP 是 modal 內會連續觸發的寫入）',
-  countOf(hudCode, 'commit(loggableChange(latest, base, {') === 1);
+// 2026-11-02（P12）：物語點的寫入從 `adjustFp` 換成 `applyFpFlow`（原因必填），
+// 所以錨點跟著換——但**守的東西沒變**：扣 FP 仍然走 `commit`，而且仍然讀 ref。
+// 這是重擲的第二步（先扣 FP、再寫履歷），它一旦讀到舊值就會「UI 扣 2、存檔扣 1」。
+// `commit(result.character)` 在檔案裡出現兩次（收支對話框也有一顆），
+// 所以不能數它——要驗的是「物語點那一段是『讀 ref → 寫入 → commit』的連續三句」。
+check('E23 物語點的寫入走 commit（扣 FP 是 modal 內會連續觸發的寫入）',
+  countOf(hudCode, 'applyFabulaPointsFlow(characterRef.current, input)') === 1
+  && /applyFabulaPointsFlow\(characterRef\.current, input\);[\s\S]{0,400}?commit\(result\.character\);/.test(hudCode));
 check('E24 recordRoll 走 commit（重擲＝同一輪事件裡先扣 FP 再寫履歷）',
   countOf(hudCode, 'commit(loggableChange(latest, latest, {') === 1);
 
