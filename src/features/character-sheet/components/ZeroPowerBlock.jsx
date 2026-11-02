@@ -545,12 +545,12 @@ export default function ZeroPowerBlock({
    */
   const showcasePairs = combined
     ? state.combinedPairs
-        .map((pair) => ({
-          pair,
-          effect: zeroEffectById(pair.effectId),
-          partner: roster.find((c) => c && c.id === pair.partnerId) || null
-        }))
-        .filter((row) => row.effect)
+      .map((pair) => ({
+        pair,
+        effect: zeroEffectById(pair.effectId),
+        partner: roster.find((c) => c && c.id === pair.partnerId) || null
+      }))
+      .filter((row) => row.effect)
     : [];
   /**
    * 【愛】綁定了嗎：`loveTargetId` 指向名冊裡的某個角色才算。

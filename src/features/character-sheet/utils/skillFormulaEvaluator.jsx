@@ -128,7 +128,7 @@ export function evaluateFormulaString(formulaStr, sl = 0, options = {}) {
   // 2. 角色等級運算
   // 2.1 等級乘法：例如「你的等級乘以 30」、「等級 × 30」、「等級*30」
   const levelMultMatch = norm.match(/^(?:你的?|你角色|角色)?(?:等級|等级)\s*(?:乘以|×)\s*(\d+)$/) ||
-                         norm.match(/^(\d+)\s*(?:乘以|×)\s*(?:你的?|你角色|角色)?(?:等級|等级)$/);
+    norm.match(/^(\d+)\s*(?:乘以|×)\s*(?:你的?|你角色|角色)?(?:等級|等级)$/);
   if (levelMultMatch) {
     const mult = Number(levelMultMatch[1]);
     if (level > 0) {
@@ -172,7 +172,7 @@ export function evaluateFormulaString(formulaStr, sl = 0, options = {}) {
 
   // 2.3 等級一半 + (SL × N) 或 (SL × N) + 等級一半
   const halfLvlPlusSlMult = norm.match(/^(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半\s*\+\s*\(?SL\s*×\s*(\d+)\)?$/) ||
-                           norm.match(/^\(?SL\s*×\s*(\d+)\)?\s*\+\s*(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半$/);
+    norm.match(/^\(?SL\s*×\s*(\d+)\)?\s*\+\s*(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半$/);
   if (halfLvlPlusSlMult) {
     const mult = Number(halfLvlPlusSlMult[1]);
     if (level > 0 && sl > 0) {
@@ -205,7 +205,7 @@ export function evaluateFormulaString(formulaStr, sl = 0, options = {}) {
 
   // 2.4 常數 + 等級一半：例如「20+你的等級的一半」、「30 + 等級的一半」、「5+你的等級一半」
   const basePlusHalfLvl = norm.match(/^(\d+)\s*\+\s*(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半$/) ||
-                          norm.match(/^(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半\s*\+\s*(\d+)$/);
+    norm.match(/^(?:你的?|你角色|角色)?(?:等級|等级)(?:的)?一半\s*\+\s*(\d+)$/);
   if (basePlusHalfLvl) {
     const base = Number(basePlusHalfLvl[1]);
     if (level > 0) {
@@ -635,7 +635,7 @@ function FormulaBadge({ seg, sl, level }) {
           setShowFormula(prev => !prev);
         }
       }}
-      className={`inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono select-none cursor-pointer transition-all duration-150 ${ showFormula ? 'font-bold text-[#2c221e] bg-[#f4ebd9] border border-dashed border-[#3c2415] hover:bg-[#e8dcc4]' : 'font-black text-[#3c2415] bg-[#e8dcc4] border border-[#d6c7ab] hover:bg-[#d6c7ab]' }`}
+      className={`inline-block align-baseline px-1.5 py-0.5 mx-0.5 rounded font-mono select-none cursor-pointer transition-all duration-150 ${showFormula ? 'font-bold text-[#2c221e] bg-[#f4ebd9] border border-dashed border-[#3c2415] hover:bg-[#e8dcc4]' : 'font-black text-[#3c2415] bg-[#e8dcc4] border border-[#d6c7ab] hover:bg-[#d6c7ab]'}`}
       title={
         showFormula
           ? `點擊切換回計算結果：${seg.evaluatedText}（當前 SL: ${sl}）`
