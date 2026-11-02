@@ -34,7 +34,8 @@ import {
   // P10：錢包上的三顆按鈕（收入／支出／明細）。收入與支出用一對鏡像圖示，
   // 明細用卷軸——三顆長得一樣的話，玩家要靠讀字才知道哪一顆是哪一顆。
   GiReceiveMoney,
-  GiPayMoney
+  GiPayMoney,
+  GiCharacter
 } from 'react-icons/gi';
 import GameIcon from '../../../components/ui/GameIcon';
 import EmptyState from '../../../components/ui/EmptyState';
@@ -344,9 +345,10 @@ export default function CharacterPlayHUD({
   initialLevelUpMnemosphereId = '',
   initialLevelUpSkillName = '',
   initialLevelUpClass = '',
-  // 初始分頁：跑團面板的六個分頁各自有一段「空清單」畫面，而 SSR 不執行點擊，
-  // 沒有這個入口就永遠測不到。不傳時就是原本的 `'attacks'`。
-  initialTab = 'attacks',
+  // 初始分頁：跑團面板的每個分頁各自有一段「空清單」畫面，而 SSR 不執行點擊，
+  // 沒有這個入口就永遠測不到。不傳時就是預設的 `'profile'`——P14 起，
+  // 「個人資料」是第一頁（狀態與四維住在那裡），開卡就該看到自己剩多少。
+  initialTab = 'profile',
   // 羈絆的兩個彈窗／面板（P3）。同樣是 SSR 測不到的區塊：建立彈窗與就地編輯面板
   // 都只能靠點擊打開，而裡面正是「名冊斷鏈」與「為什麼」唯一會出現的地方。
   // 生產端永不傳入，不傳時就是原本的 `false`／`null`。
@@ -363,6 +365,9 @@ export default function CharacterPlayHUD({
   const [activeTab, setActiveTab] = useState(initialTab);
   const characterLevel = getCharacterLevel(character);
   const hudTabItems = useMemo(() => [
+    // P14：`profile` 是預設頁——「最基本的默認信息」。
+    // 它同時是 HP／MP／IP 步進器的家，所以開卡第一眼就看到自己剩多少。
+    { id: 'profile', label: '個人資料', icon: GiCharacter, sub: '狀態 · 四維 · 成長' },
     { id: 'attacks', label: '武器與戰鬥', icon: GiCrossedSwords, sub: '命中 · 防禦 · 變形' },
     { id: 'spells', label: '咒語與魔法', icon: GiSpellBook, sub: '施法 · 儀式計算', count: resolveCharacterSpells(character).length },
     { id: 'skills', label: '職業特技', icon: GiBroadsword, sub: '特技 · 英雄 · 金手指' },
@@ -372,6 +377,8 @@ export default function CharacterPlayHUD({
     { id: 'money', label: '金錢與物語點', icon: GiCoins, sub: '收支 · 履歷 · 物語點' }
   ], [character]);
   const hudTabLabel = (hudTabItems.find((t) => t.id === activeTab) || hudTabItems[0]).label;
+  // 右翼那扇窗的標題圖示跟著指令換（以前是固定的「狀態」）。
+  const activeTabIcon = (hudTabItems.find((t) => t.id === activeTab) || hudTabItems[0]).icon;
 
   // Level up modal
   const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(initialLevelUpOpen);
@@ -1807,9 +1814,15 @@ export default function CharacterPlayHUD({
         </div>
 
         {/* 3-Column JRPG Hub Stage: Left Vitals & IP | Center Portrait & Command Ring | Right Attributes & Resources */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-          {/* LEFT WING（col-span-3）：DQ 指令窗
+        {/* P14 的副作用：左欄不再撐高之後，這一列的列高變成由中欄自己決定，
+            立繪就從 813px 塌回 459px（寬 344 × 3:4）——那違反上一輪「圖必須是主體」
+            的裁定（CY 段）。所以給這一列一個下限，圖才回得去。
+            這也順便給指令窗留出 sticky 的移動距離。 */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch lg:min-h-[820px]">
+          {/* LEFT WING（col-span-2）：DQ 指令窗
               ────────────────────────────────────────────────────────────
+              P14 使用者原話：「不要这么宽松的话，我建议把左栏的长压缩，
+              给右栏更多显示信息的空间」——所以欄寬 3 → 2、列高不再撐滿欄位。
               這裡原本是三張資源卡（HP／MP／IP）＋ 官方五種消耗品捷徑。
               三件事同時壞掉：
               1. 中欄的六顆指令格與下方 sticky 分頁列是**同一份六個標籤**——
@@ -1817,16 +1830,21 @@ export default function CharacterPlayHUD({
               2. 最後一張 IP 卡吃 `flex-1`，再用 `justify-between` 把剩餘高度
                  丟到卡片中間 → 左翼一塊約 300px 的空白，看起來像壞掉。
               3. 資源與能力分在畫面兩側，跑團時眼睛要橫跨整個立繪。
-              現在：左翼只放**一個指令窗**，七列 `flex-1` 平均吸收欄位高度
-              （剩餘高度變成「按鈕很大」，不再是空白）；HP／MP／IP 搬到右翼的
-              狀態窗，與四維、狀態異常放在一起；消耗品搬進行囊分頁。
+              現在：左翼只放**一個指令窗**，八列各 44px（`self-start`＝窗貼齊頂端，
+              不再被拉到和右翼一樣高）；HP／MP／IP 搬到右翼的狀態窗，與四維、
+              狀態異常放在一起；消耗品搬進行囊分頁。
               ──────────────────────────────────────────────────────────── */}
-          <div className="order-2 lg:order-none lg:col-span-3 flex flex-col gap-3 min-w-0">
+          {/* P14：指令窗**自己**釘住（`self-start` ＋ `sticky`）。
+              右翼那扇窗換頁之後會很長（武器清單、咒語全文），捲下去之後
+              如果指令窗跟著跑掉，就得再滾回來才能換頁——那正是使用者抱怨的
+              「要特地滑下去」。釘住之後，捲到哪裡都還按得到指令。
+              `top` 讀 `--chapter-header-h`（`ChapterHeader` 用 ResizeObserver
+              寫上去），不是寫死 52——標頭是 `min-h-[52px]`，52 是下限。 */}
+          <div className="order-2 lg:order-none lg:col-span-2 lg:self-start lg:sticky lg:top-[calc(var(--chapter-header-h,52px)+0.75rem)] flex flex-col gap-3 min-w-0">
             <HudWindow
               title="指令"
               icon={GiCrossedSwords}
               testId="hud-command-window"
-              className="flex-1"
               bodyClassName="flex flex-col"
               frameColor={theme.border}
               right={(
@@ -1923,6 +1941,56 @@ export default function CharacterPlayHUD({
                   更換立繪
                 </div>
               </div>
+
+              {/* 常駐狀態條（P14）
+                  ─────────────────────────────────────────────────────────────
+                  使用者的裁定是「按了按鈕就把右邊那扇窗整個替換掉」。
+                  但 HP／MP／IP 不能跟著被換走——跑團時那是每 30 秒要看一次的東西，
+                  換到「武器與戰鬥」就看不到自己剩多少血，那張卡就不能用了。
+                  所以把它壓成一條常駐細條，掛在**立繪身上**（這三個數字本來就是
+                  「這個角色現在怎麼樣」），右翼那扇窗才真的可以整個換掉。
+
+                  純顯示、不寫入：步進器在「個人資料」頁，點這條就跳過去。
+                  `statsUnset` 時印「—」而不是 0／0——「不知道」與「沒有」不一樣
+                  （MEMORY §D.17）。
+                  ───────────────────────────────────────────────────────────── */}
+              <button
+                type="button"
+                data-testid="hud-vitals-strip"
+                onClick={() => setActiveTab('profile')}
+                title="點擊前往「個人資料」調整 HP／MP／IP"
+                className="w-full shrink-0 rounded border px-2 py-1.5 text-left space-y-1 transition-colors hover:bg-[#f4ebd9]"
+                style={{ borderColor: theme.border, backgroundColor: theme.panelBg }}
+              >
+                {[
+                  { key: 'hp', label: 'HP', cur: curHp, max: stats.maxHp, tone: '#8c3235', unknown: statsUnset },
+                  { key: 'mp', label: 'MP', cur: curMp, max: stats.maxMp, tone: '#3c2415', unknown: statsUnset },
+                  { key: 'ip', label: 'IP', cur: curIp, max: stats.maxIp, tone: '#6b5a4b', unknown: false }
+                ].map((row) => (
+                  <span key={row.key} className="flex items-center gap-1.5">
+                    {/* 這兩格刻意**不用** `font-mono`：設計系統有全域預算（481），
+                        而數字的對齊由 `tabular-nums` 就夠了（MEMORY §E.27 的鄰居：
+                        同一個效果不要用第二種寫法去換）。 */}
+                    <span className="w-5 shrink-0 font-black text-t10" style={{ color: row.tone }}>
+                      {row.label}
+                    </span>
+                    <span className="flex-1 min-w-0 h-1.5 rounded bg-[#e8dcc4] overflow-hidden">
+                      <span
+                        data-testid={`hud-strip-${row.key}`}
+                        data-value={row.unknown ? '' : row.cur}
+                        className="block h-full"
+                        style={{
+                          width: `${row.max > 0 ? Math.min(100, (row.cur / row.max) * 100) : 0}%`,
+                          backgroundColor: row.tone
+                        }}
+                      />
+                    </span>
+                    <span className="shrink-0 tabular-nums text-t10 text-[#3c2415]">
+                      {row.unknown ? '—' : `${row.cur}/${row.max}`}
+                    </span>
+                  </span>
+                ))}
+              </button>
 
               {/* 名牌放在圖**下方**，不壓在圖上。
                   使用者要的是「完整呈現玩家的精美人設」——全身立繪的腳就是人設的一部分，
@@ -2035,520 +2103,2524 @@ export default function CharacterPlayHUD({
 
           </div>
 
-          {/* RIGHT WING（col-span-5）：DQ 狀態窗｜能力窗｜成長與資產
+          {/* RIGHT WING（col-span-6）：一扇窗，內容跟著指令換
               ────────────────────────────────────────────────────────────
-              資源從左翼搬到這裡：DQ 的選單是「左邊指令、右邊狀態」，
-              而且跑團時真正要一起看的是「我剩多少」與「我的骰階掉到哪」——
-              這兩件事以前分在畫面兩端，中間隔著一整張立繪。
+              使用者的原話（P14）：
+                「点了之后还要特地滑下去才看得到视窗，操作很反人类诶。
+                  我建议可以点了按纽就会把立绘右边的视窗直接整个替换掉。」
+              所以內容不再印在 hub 下方，而是**就在右翼這扇窗裡換**——
+              按鈕與內容同一個視野，不必再滾。
+              `個人資料`（預設）放最基本的東西：狀態、四維、狀態異常、成長、資產。
               ──────────────────────────────────────────────────────────── */}
-          <div className="order-3 lg:order-none lg:col-span-5 flex flex-col gap-3 min-w-0">
-            <HudWindow
-              title="狀態"
-              icon={GiHealthNormal}
-              testId="hud-vitals-window"
-              frameColor={theme.border}
-              bodyClassName="p-3 space-y-3"
-              right={<span className="text-t10 font-mono text-[#7c6a58] shrink-0">Lv {characterLevel}</span>}
-            >
-              {/* 生命值（危機時整列脈動；`hp-crisis-pulse` 全檔只有一份） */}
-              <div className="relative rounded px-1.5 py-1 -mx-1.5">
-                {isCrisis && (
-                  <span
-                    data-testid="hp-crisis-pulse"
-                    aria-hidden="true"
-                    className="crisis-pulse-active pointer-events-none absolute inset-0 rounded border-2"
-                  />
-                )}
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="flex items-center gap-1.5 font-bold text-t12 text-[#8c3235] min-w-0">
-                    <GiHealthNormal className="w-3.5 h-3.5 shrink-0" />
-                    <span className="shrink-0">生命值</span>
-                    {isCrisis && (
-                      <span className="text-t10 font-mono font-black flex items-center gap-0.5 shrink-0">
-                        <FUIcon name="crisis" className="text-t10" />
-                        <span>CRISIS</span>
-                      </span>
-                    )}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => toggleFormula('hp')}
-                    title="點擊查看公式"
-                    className="font-mono font-black text-t14 text-[#8c3235] tabular-nums hover:underline decoration-dotted underline-offset-2 cursor-pointer shrink-0"
-                  >
-                    {statsUnset ? '—' : <>{curHp} <span className="text-t11 text-[#7c6a58] font-normal">/ {stats.maxHp}</span></>}
-                  </button>
-                </div>
-                <div className="relative mb-1.5">
-                  <GaugeBar
-                    testId="gauge-hp"
-                    percent={stats.maxHp > 0 ? (curHp / stats.maxHp) * 100 : 0}
-                    fillClassName={isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}
-                  />
-                  <ResourceDeltaBadge flash={hpDelta} />
-                </div>
-                <div className="flex items-center justify-between gap-1">
-                  <NumberStepper value={curHp} onDelta={adjustHp} ariaLabel="生命值" width="w-14" inputClassName="text-[#8c3235]" />
-                  <div className="flex items-center gap-1.5">
+          <div className="order-3 lg:order-none lg:col-span-6 flex flex-col gap-3 min-w-0">
+            {activeTab === 'profile' ? (
+              <>
+              <HudWindow
+                title="狀態"
+                icon={GiHealthNormal}
+                testId="hud-vitals-window"
+                frameColor={theme.border}
+                bodyClassName="p-3 space-y-3"
+                right={<span className="text-t10 font-mono text-[#7c6a58] shrink-0">Lv {characterLevel}</span>}
+              >
+                {/* 生命值（危機時整列脈動；`hp-crisis-pulse` 全檔只有一份） */}
+                <div className="relative rounded px-1.5 py-1 -mx-1.5">
+                  {isCrisis && (
+                    <span
+                      data-testid="hp-crisis-pulse"
+                      aria-hidden="true"
+                      className="crisis-pulse-active pointer-events-none absolute inset-0 rounded border-2"
+                    />
+                  )}
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="flex items-center gap-1.5 font-bold text-t12 text-[#8c3235] min-w-0">
+                      <GiHealthNormal className="w-3.5 h-3.5 shrink-0" />
+                      <span className="shrink-0">生命值</span>
+                      {isCrisis && (
+                        <span className="text-t10 font-mono font-black flex items-center gap-0.5 shrink-0">
+                          <FUIcon name="crisis" className="text-t10" />
+                          <span>CRISIS</span>
+                        </span>
+                      )}
+                    </span>
                     <button
                       type="button"
-                      onClick={() => toggleFormula('crisis')}
+                      onClick={() => toggleFormula('hp')}
                       title="點擊查看公式"
-                      className="text-t11 font-mono font-bold text-[#8c3235] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
+                      className="font-mono font-black text-t14 text-[#8c3235] tabular-nums hover:underline decoration-dotted underline-offset-2 cursor-pointer shrink-0"
                     >
-                      危機門檻 {statsUnset ? '—' : stats.crisisThreshold}
-                    </button>
-                    <button
-                      onClick={() => updateField('currentHp', stats.maxHp)}
-                      className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#8c3235] font-bold text-t11"
-                    >
-                      全滿
+                      {statsUnset ? '—' : <>{curHp} <span className="text-t11 text-[#7c6a58] font-normal">/ {stats.maxHp}</span></>}
                     </button>
                   </div>
-                </div>
-                <StatFormulaPanel
-                  isOpen={openFormula === 'hp'}
-                  title="最大生命值"
-                  breakdown={breakdown.hp}
-                  note={STAT_FORMULA_NOTE}
-                  onClose={() => setOpenFormula(null)}
-                />
-                <StatFormulaPanel
-                  isOpen={openFormula === 'crisis'}
-                  title="危機門檻"
-                  breakdown={breakdown.crisis}
-                  onClose={() => setOpenFormula(null)}
-                />
-              </div>
-
-              {/* 魔力值 */}
-              <div className="rounded px-1.5 py-1 -mx-1.5 border-t border-[#e8dcc4] pt-2.5">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="flex items-center gap-1.5 font-bold text-t12 text-[#6b5a4b] min-w-0">
-                    <GiLightningTear className="w-3.5 h-3.5 shrink-0" />
-                    <span className="shrink-0">魔力值</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => toggleFormula('mp')}
-                    title="點擊查看公式"
-                    className="font-mono font-black text-t14 text-[#3c2415] tabular-nums hover:underline decoration-dotted underline-offset-2 cursor-pointer shrink-0"
-                  >
-                    {statsUnset ? '—' : <>{curMp} <span className="text-t11 text-[#7c6a58] font-normal">/ {stats.maxMp}</span></>}
-                  </button>
-                </div>
-                <div className="relative mb-1.5">
-                  <GaugeBar
-                    testId="gauge-mp"
-                    percent={stats.maxMp > 0 ? (curMp / stats.maxMp) * 100 : 0}
-                    fillClassName="bg-gauge-mp"
+                  <div className="relative mb-1.5">
+                    <GaugeBar
+                      testId="gauge-hp"
+                      percent={stats.maxHp > 0 ? (curHp / stats.maxHp) * 100 : 0}
+                      fillClassName={isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}
+                    />
+                    <ResourceDeltaBadge flash={hpDelta} />
+                  </div>
+                  <div className="flex items-center justify-between gap-1">
+                    <NumberStepper value={curHp} onDelta={adjustHp} ariaLabel="生命值" width="w-14" inputClassName="text-[#8c3235]" />
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => toggleFormula('crisis')}
+                        title="點擊查看公式"
+                        className="text-t11 font-mono font-bold text-[#8c3235] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
+                      >
+                        危機門檻 {statsUnset ? '—' : stats.crisisThreshold}
+                      </button>
+                      <button
+                        onClick={() => updateField('currentHp', stats.maxHp)}
+                        className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#8c3235] font-bold text-t11"
+                      >
+                        全滿
+                      </button>
+                    </div>
+                  </div>
+                  <StatFormulaPanel
+                    isOpen={openFormula === 'hp'}
+                    title="最大生命值"
+                    breakdown={breakdown.hp}
+                    note={STAT_FORMULA_NOTE}
+                    onClose={() => setOpenFormula(null)}
                   />
-                  <ResourceDeltaBadge flash={mpDelta} />
-                </div>
-                <div className="flex items-center justify-between gap-1">
-                  <NumberStepper value={curMp} onDelta={adjustMp} ariaLabel="魔力值" width="w-14" inputClassName="text-[#3c2415]" />
-                  <button
-                    onClick={() => updateField('currentMp', stats.maxMp)}
-                    className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-t11"
-                  >
-                    全滿
-                  </button>
-                </div>
-                <StatFormulaPanel
-                  isOpen={openFormula === 'mp'}
-                  title="最大魔力值"
-                  breakdown={breakdown.mp}
-                  note={STAT_FORMULA_NOTE}
-                  onClose={() => setOpenFormula(null)}
-                />
-              </div>
-
-              {/* 道具點（消耗品捷徑已搬到「行囊與道具」分頁） */}
-              <div className="rounded px-1.5 py-1 -mx-1.5 border-t border-[#e8dcc4] pt-2.5">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="flex items-center gap-1.5 font-bold text-t12 text-[#6b5a4b] min-w-0">
-                    <GiBackpack className="w-3.5 h-3.5 shrink-0" />
-                    <span className="shrink-0">道具點</span>
-                    {secretFormulaSL > 0 && (
-                      <span className="text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] shrink-0">
-                        秘密配方 SL{secretFormulaSL}
-                      </span>
-                    )}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => toggleFormula('ip')}
-                    title="點擊查看公式"
-                    className="font-mono font-black text-t14 text-[#3c2415] tabular-nums hover:underline decoration-dotted underline-offset-2 cursor-pointer shrink-0"
-                  >
-                    {curIp} <span className="text-t11 text-[#7c6a58] font-normal">/ {stats.maxIp}</span>
-                  </button>
-                </div>
-                <div className="relative mb-1.5">
-                  <GaugeBar
-                    testId="gauge-ip"
-                    percent={stats.maxIp > 0 ? (curIp / stats.maxIp) * 100 : 0}
-                    fillClassName="bg-gauge-ip"
+                  <StatFormulaPanel
+                    isOpen={openFormula === 'crisis'}
+                    title="危機門檻"
+                    breakdown={breakdown.crisis}
+                    onClose={() => setOpenFormula(null)}
                   />
-                  <ResourceDeltaBadge flash={ipDelta} />
                 </div>
-                <div className="flex items-center justify-between gap-1">
-                  <NumberStepper value={curIp} onDelta={adjustIp} ariaLabel="物品點" width="w-14" />
-                  <div className="flex items-center gap-1.5">
+
+                {/* 魔力值 */}
+                <div className="rounded px-1.5 py-1 -mx-1.5 border-t border-[#e8dcc4] pt-2.5">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="flex items-center gap-1.5 font-bold text-t12 text-[#6b5a4b] min-w-0">
+                      <GiLightningTear className="w-3.5 h-3.5 shrink-0" />
+                      <span className="shrink-0">魔力值</span>
+                    </span>
                     <button
                       type="button"
-                      onClick={() => setActiveTab('notes')}
-                      title="官方五種消耗品捷徑都在「行囊與道具」分頁"
-                      className="text-t11 font-bold text-[#6b5a4b] hover:text-[#2c221e] underline"
+                      onClick={() => toggleFormula('mp')}
+                      title="點擊查看公式"
+                      className="font-mono font-black text-t14 text-[#3c2415] tabular-nums hover:underline decoration-dotted underline-offset-2 cursor-pointer shrink-0"
                     >
-                      消耗品
+                      {statsUnset ? '—' : <>{curMp} <span className="text-t11 text-[#7c6a58] font-normal">/ {stats.maxMp}</span></>}
                     </button>
+                  </div>
+                  <div className="relative mb-1.5">
+                    <GaugeBar
+                      testId="gauge-mp"
+                      percent={stats.maxMp > 0 ? (curMp / stats.maxMp) * 100 : 0}
+                      fillClassName="bg-gauge-mp"
+                    />
+                    <ResourceDeltaBadge flash={mpDelta} />
+                  </div>
+                  <div className="flex items-center justify-between gap-1">
+                    <NumberStepper value={curMp} onDelta={adjustMp} ariaLabel="魔力值" width="w-14" inputClassName="text-[#3c2415]" />
                     <button
-                      onClick={() => updateField('currentIp', stats.maxIp)}
+                      onClick={() => updateField('currentMp', stats.maxMp)}
                       className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-t11"
                     >
                       全滿
                     </button>
                   </div>
+                  <StatFormulaPanel
+                    isOpen={openFormula === 'mp'}
+                    title="最大魔力值"
+                    breakdown={breakdown.mp}
+                    note={STAT_FORMULA_NOTE}
+                    onClose={() => setOpenFormula(null)}
+                  />
                 </div>
-                <StatFormulaPanel
-                  isOpen={openFormula === 'ip'}
-                  title="最大道具點"
-                  breakdown={breakdown.ip}
-                  onClose={() => setOpenFormula(null)}
-                />
-              </div>
-            </HudWindow>
 
-            <HudWindow
-              title="能力"
-              icon={GiRollingDices}
-              testId="hud-ability-window"
-              frameColor={theme.border}
-              bodyClassName="p-3 space-y-2.5"
-            >
-
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-xs font-bold text-[#3c2415] flex items-center gap-1">
-                  <GiRollingDices className="w-4 h-4 text-[#6b5a4b]" />
-                  <span>四維屬性與雙屬性檢定</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsFreeRollModalOpen(true)}
-                  className="text-t11 font-bold text-[#6b5a4b] hover:text-[#2c221e] underline"
-                >
-                  進階修正檢定
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { key: 'dex', enName: 'DEX', zhName: ATTRIBUTE_NAMES.dex, cur: stats.currentDex, base: stats.baseDex },
-                  { key: 'ins', enName: 'INS', zhName: ATTRIBUTE_NAMES.ins, cur: stats.currentIns, base: stats.baseIns },
-                  { key: 'mig', enName: 'MIG', zhName: ATTRIBUTE_NAMES.mig, cur: stats.currentMig, base: stats.baseMig },
-                  { key: 'wlp', enName: 'WLP', zhName: ATTRIBUTE_NAMES.wlp, cur: stats.currentWlp, base: stats.baseWlp }
-                ].map(attr => {
-                  const isFirstSelected = comboFirstAttr === attr.key;
-                  return (
-                    <div key={attr.key} className="space-y-1">
-                      <div className="flex items-stretch gap-1">
-                        <button
-                          type="button"
-                          onClick={() => openCharacterDice({
-                            die1: attr.cur,
-                            die2: attr.cur,
-                            modifier: 0,
-                            label: `${attr.enName} (${attr.zhName}) 單項檢定`
-                          })}
-                          className="flex-1 rounded p-2 border flex flex-col items-center justify-center transition-all text-center group bg-[#fbf7ee] hover:bg-[#f4ebd9]"
-                          style={{ borderColor: theme.border }}
-                          title={`點擊進行【${attr.enName} + ${attr.enName}】純屬性檢定`}
-                        >
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-xs font-black tracking-wider text-[#2c221e] font-mono">
-                              {attr.enName}
-                            </span>
-                            <span className="text-t11 text-[#7c6a58] font-sans">
-                              {attr.zhName}
-                            </span>
-                          </div>
-                          <div className="text-lg font-serif font-black flex items-baseline gap-1" style={{ color: theme.textDark }}>
-                            <span>d{attr.cur}</span>
-                            {attr.cur < attr.base && (
-                              <span className="text-t11 text-[#8c3235] line-through font-mono">d{attr.base}</span>
-                            )}
-                          </div>
-                        </button>
-
-                        {/* 雙屬性配對鈕：點第 1 顆選首屬性，點第 2 顆直接組合擲骰 */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!comboFirstAttr) {
-                              setComboFirstAttr(attr.key);
-                            } else {
-                              const getDie = (k) => {
-                                if (k === 'dex') return stats.currentDex;
-                                if (k === 'ins') return stats.currentIns;
-                                if (k === 'mig') return stats.currentMig;
-                                if (k === 'wlp') return stats.currentWlp;
-                                return 8;
-                              };
-                              const firstKey = comboFirstAttr;
-                              setComboFirstAttr(null);
-                              openCharacterDice({
-                                die1: getDie(firstKey),
-                                die2: getDie(attr.key),
-                                modifier: 0,
-                                label: `組合檢定 [${firstKey.toUpperCase()} + ${attr.enName}]`
-                              });
-                            }
-                          }}
-                          className={`px-1.5 rounded border text-t10 font-bold transition-colors flex flex-col items-center justify-center ${
-                            isFirstSelected
-                              ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
-                              : comboFirstAttr
-                                ? 'bg-[#f4ebd9] border-[#a63d40] text-[#8c3235] hover:bg-[#e8dcc4]'
-                                : 'bg-[#fffdf9] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9]'
-                          }`}
-                          title={
-                            isFirstSelected
-                              ? `已選 ${attr.enName} 為第一屬性，再點一次即可擲雙 ${attr.enName}`
-                              : comboFirstAttr
-                                ? `點擊立即擲骰 [${comboFirstAttr.toUpperCase()} + ${attr.enName}]`
-                                : `選取 ${attr.enName} 作為雙屬性檢定的第一顆骰`
-                          }
-                        >
-                          <span>{isFirstSelected ? '首骰' : comboFirstAttr ? '+配對' : '配對'}</span>
-                        </button>
-                      </div>
-
+                {/* 道具點（消耗品捷徑已搬到「行囊與道具」分頁） */}
+                <div className="rounded px-1.5 py-1 -mx-1.5 border-t border-[#e8dcc4] pt-2.5">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="flex items-center gap-1.5 font-bold text-t12 text-[#6b5a4b] min-w-0">
+                      <GiBackpack className="w-3.5 h-3.5 shrink-0" />
+                      <span className="shrink-0">道具點</span>
+                      {secretFormulaSL > 0 && (
+                        <span className="text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] shrink-0">
+                          秘密配方 SL{secretFormulaSL}
+                        </span>
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => toggleFormula('ip')}
+                      title="點擊查看公式"
+                      className="font-mono font-black text-t14 text-[#3c2415] tabular-nums hover:underline decoration-dotted underline-offset-2 cursor-pointer shrink-0"
+                    >
+                      {curIp} <span className="text-t11 text-[#7c6a58] font-normal">/ {stats.maxIp}</span>
+                    </button>
+                  </div>
+                  <div className="relative mb-1.5">
+                    <GaugeBar
+                      testId="gauge-ip"
+                      percent={stats.maxIp > 0 ? (curIp / stats.maxIp) * 100 : 0}
+                      fillClassName="bg-gauge-ip"
+                    />
+                    <ResourceDeltaBadge flash={ipDelta} />
+                  </div>
+                  <div className="flex items-center justify-between gap-1">
+                    <NumberStepper value={curIp} onDelta={adjustIp} ariaLabel="物品點" width="w-14" />
+                    <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        onClick={() => toggleFormula(`attr:${attr.key}`)}
-                        title="點擊查看公式"
-                        className="w-full text-t10 font-bold text-[#7c6a58] hover:text-[#3c2415] py-0.5 rounded border border-dashed border-[#d6c7ab] transition-colors cursor-pointer"
+                        onClick={() => setActiveTab('notes')}
+                        title="官方五種消耗品捷徑都在「行囊與道具」分頁"
+                        className="text-t11 font-bold text-[#6b5a4b] hover:text-[#2c221e] underline"
                       >
-                        ✦ 公式
+                        消耗品
                       </button>
-
-                      <StatFormulaPanel
-                        isOpen={openFormula === `attr:${attr.key}`}
-                        title={`${attr.enName} 當前骰`}
-                        breakdown={breakdown.attributes?.[attr.key]}
-                        onClose={() => setOpenFormula(null)}
-                      />
+                      <button
+                        onClick={() => updateField('currentIp', stats.maxIp)}
+                        className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-t11"
+                      >
+                        全滿
+                      </button>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                  <StatFormulaPanel
+                    isOpen={openFormula === 'ip'}
+                    title="最大道具點"
+                    breakdown={breakdown.ip}
+                    onClose={() => setOpenFormula(null)}
+                  />
+                </div>
+              </HudWindow>
 
-              {/* 常用雙屬性一鍵檢定列 */}
-              <div className="flex items-center gap-1 flex-wrap pt-1 border-t border-[#e8dcc4]">
-                <span className="text-t10 text-[#7c6a58] font-bold">常用檢定:</span>
-                {[
-                  { a1: 'dex', a2: 'ins', label: 'DEX+INS' },
-                  { a1: 'ins', a2: 'wlp', label: 'INS+WLP' },
-                  { a1: 'dex', a2: 'mig', label: 'DEX+MIG' },
-                  { a1: 'mig', a2: 'wlp', label: 'MIG+WLP' }
-                ].map(pair => {
-                  const getDie = (k) => (k === 'dex' ? stats.currentDex : k === 'ins' ? stats.currentIns : k === 'mig' ? stats.currentMig : stats.currentWlp);
-                  return (
-                    <button
-                      key={pair.label}
-                      type="button"
-                      onClick={() => openCharacterDice({
-                        die1: getDie(pair.a1),
-                        die2: getDie(pair.a2),
-                        modifier: 0,
-                        label: `常用檢定 [${pair.label}]`
-                      })}
-                      className="px-1.5 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#3c2415] font-bold text-t10 transition-colors"
-                    >
-                      {pair.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* ── 狀態異常（2026-10-30，P7）─────────────────────────────────
-                  這一塊原本在整頁最下方、滿版寬，跟四維之間隔了整個左翼與中央立繪。
-                  「DEX 為什麼從 d10 掉到 d8」的答案就在四維正下方，眼睛往下移一格就有。
-
-                  兩欄排列不是隨便挑的：`STATUS_AFFLICTION_ORDER` 按**受影響的屬性**排
-                  （單屬性 DEX→INS→MIG→WLP，雙屬性在後），所以前兩列與上方四維格子
-                  **逐格對齊**——緩慢↔DEX、眩暈↔INS、虛弱↔MIG、動搖↔WLP。
-
-                  每個按鈕右側寫出它打哪幾個屬性（`↓`＝骰階下降 1 級，完整說明在 title）。
-                  原本的「(-1階)」從按鈕上拿掉：六個狀態全都是 1 階，寫六次是噪音；
-                  實際降了多少在上方（d10 被劃掉、旁邊是 d8）與公式面板裡都看得到。 */}
-              <div
-                data-testid="hud-afflictions"
-                className="pt-2 border-t border-[#e8dcc4] space-y-1.5"
+              <HudWindow
+                title="能力"
+                icon={GiRollingDices}
+                testId="hud-ability-window"
+                frameColor={theme.border}
+                bodyClassName="p-3 space-y-2.5"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-t11 font-bold text-[#3c2415] flex items-center gap-1">
-                    <GiHazardSign className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                    <span>狀態異常監控</span>
+
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="text-xs font-bold text-[#3c2415] flex items-center gap-1">
+                    <GiRollingDices className="w-4 h-4 text-[#6b5a4b]" />
+                    <span>四維屬性與雙屬性檢定</span>
                   </span>
-                  <span className="text-t10 text-[#7c6a58]">點擊切換</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsFreeRollModalOpen(true)}
+                    className="text-t11 font-bold text-[#6b5a4b] hover:text-[#2c221e] underline"
+                  >
+                    進階修正檢定
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  {afflictionRows.map((row) => {
-                    const isActive = !!character.statusAfflictions?.[row.key];
+              {/* 四維橫排（P14）。使用者的原話：「把四维用横排写出来。这样状态效果和
+                  四维所占据的宽就不必这么多，后面切换按钮显示信息也更容易读。」
+                  以前是 2×2 的方塊（每格 180px 見方），四格佔掉兩整列的寬與高；
+                  現在一列四格，每格只留「骰子＋配對」，公式鈕縮成一行。
+                  寬度從「吃滿 2 欄」變成「4 格平分」，右翼才有餘裕給分頁內容。 */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                    { key: 'dex', enName: 'DEX', zhName: ATTRIBUTE_NAMES.dex, cur: stats.currentDex, base: stats.baseDex },
+                    { key: 'ins', enName: 'INS', zhName: ATTRIBUTE_NAMES.ins, cur: stats.currentIns, base: stats.baseIns },
+                    { key: 'mig', enName: 'MIG', zhName: ATTRIBUTE_NAMES.mig, cur: stats.currentMig, base: stats.baseMig },
+                    { key: 'wlp', enName: 'WLP', zhName: ATTRIBUTE_NAMES.wlp, cur: stats.currentWlp, base: stats.baseWlp }
+                  ].map(attr => {
+                    const isFirstSelected = comboFirstAttr === attr.key;
+                    return (
+                      <div key={attr.key} className="space-y-1">
+                        <div className="flex items-stretch gap-1">
+                          <button
+                            type="button"
+                            onClick={() => openCharacterDice({
+                              die1: attr.cur,
+                              die2: attr.cur,
+                              modifier: 0,
+                              label: `${attr.enName} (${attr.zhName}) 單項檢定`
+                            })}
+                            className="flex-1 rounded p-2 border flex flex-col items-center justify-center transition-all text-center group bg-[#fbf7ee] hover:bg-[#f4ebd9]"
+                            style={{ borderColor: theme.border }}
+                            title={`點擊進行【${attr.enName} + ${attr.enName}】純屬性檢定`}
+                          >
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-xs font-black tracking-wider text-[#2c221e] font-mono">
+                                {attr.enName}
+                              </span>
+                              <span className="text-t11 text-[#7c6a58] font-sans">
+                                {attr.zhName}
+                              </span>
+                            </div>
+                            <div className="text-lg font-serif font-black flex items-baseline gap-1" style={{ color: theme.textDark }}>
+                              <span>d{attr.cur}</span>
+                              {attr.cur < attr.base && (
+                                <span className="text-t11 text-[#8c3235] line-through font-mono">d{attr.base}</span>
+                              )}
+                            </div>
+                          </button>
+
+                          {/* 雙屬性配對鈕：點第 1 顆選首屬性，點第 2 顆直接組合擲骰 */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!comboFirstAttr) {
+                                setComboFirstAttr(attr.key);
+                              } else {
+                                const getDie = (k) => {
+                                  if (k === 'dex') return stats.currentDex;
+                                  if (k === 'ins') return stats.currentIns;
+                                  if (k === 'mig') return stats.currentMig;
+                                  if (k === 'wlp') return stats.currentWlp;
+                                  return 8;
+                                };
+                                const firstKey = comboFirstAttr;
+                                setComboFirstAttr(null);
+                                openCharacterDice({
+                                  die1: getDie(firstKey),
+                                  die2: getDie(attr.key),
+                                  modifier: 0,
+                                  label: `組合檢定 [${firstKey.toUpperCase()} + ${attr.enName}]`
+                                });
+                              }
+                            }}
+                            className={`px-1.5 rounded border text-t10 font-bold transition-colors flex flex-col items-center justify-center ${
+                              isFirstSelected
+                                ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
+                                : comboFirstAttr
+                                  ? 'bg-[#f4ebd9] border-[#a63d40] text-[#8c3235] hover:bg-[#e8dcc4]'
+                                  : 'bg-[#fffdf9] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9]'
+                            }`}
+                            title={
+                              isFirstSelected
+                                ? `已選 ${attr.enName} 為第一屬性，再點一次即可擲雙 ${attr.enName}`
+                                : comboFirstAttr
+                                  ? `點擊立即擲骰 [${comboFirstAttr.toUpperCase()} + ${attr.enName}]`
+                                  : `選取 ${attr.enName} 作為雙屬性檢定的第一顆骰`
+                            }
+                          >
+                            <span>{isFirstSelected ? '首骰' : comboFirstAttr ? '+配對' : '配對'}</span>
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => toggleFormula(`attr:${attr.key}`)}
+                          title="點擊查看公式"
+                          className="w-full text-t10 font-bold text-[#7c6a58] hover:text-[#3c2415] py-0.5 rounded border border-dashed border-[#d6c7ab] transition-colors cursor-pointer"
+                        >
+                          ✦ 公式
+                        </button>
+
+                        <StatFormulaPanel
+                          isOpen={openFormula === `attr:${attr.key}`}
+                          title={`${attr.enName} 當前骰`}
+                          breakdown={breakdown.attributes?.[attr.key]}
+                          onClose={() => setOpenFormula(null)}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 常用雙屬性一鍵檢定列 */}
+                <div className="flex items-center gap-1 flex-wrap pt-1 border-t border-[#e8dcc4]">
+                  <span className="text-t10 text-[#7c6a58] font-bold">常用檢定:</span>
+                  {[
+                    { a1: 'dex', a2: 'ins', label: 'DEX+INS' },
+                    { a1: 'ins', a2: 'wlp', label: 'INS+WLP' },
+                    { a1: 'dex', a2: 'mig', label: 'DEX+MIG' },
+                    { a1: 'mig', a2: 'wlp', label: 'MIG+WLP' }
+                  ].map(pair => {
+                    const getDie = (k) => (k === 'dex' ? stats.currentDex : k === 'ins' ? stats.currentIns : k === 'mig' ? stats.currentMig : stats.currentWlp);
                     return (
                       <button
-                        key={row.key}
+                        key={pair.label}
                         type="button"
-                        data-testid={`affliction-${row.key}`}
-                        aria-pressed={isActive}
-                        onClick={() => handleToggleAffliction(row.key)}
-                        className={`py-1.5 px-2 rounded border text-xs font-bold transition-all flex items-center justify-between gap-1 ${
-                          isActive
-                            ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
-                            : 'bg-[#f4ebd9] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#e8dcc4]'
-                        }`}
-                        title={`${row.name}：${row.desc}`}
+                        onClick={() => openCharacterDice({
+                          die1: getDie(pair.a1),
+                          die2: getDie(pair.a2),
+                          modifier: 0,
+                          label: `常用檢定 [${pair.label}]`
+                        })}
+                        className="px-1.5 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#3c2415] font-bold text-t10 transition-colors"
                       >
-                        <span className="min-w-0 truncate">{row.short}</span>
-                        <span className={`shrink-0 font-mono ${isActive ? 'opacity-90' : 'text-[#7c6a58]'}`}>
-                          {row.effect}
-                        </span>
+                        {pair.label}
                       </button>
                     );
                   })}
                 </div>
-              </div>
-            </HudWindow>
 
-            {/* EXP / Zenit / Fabula Points Compact Cards
-                （這行字是 afflictionOrder G4 的錨點：狀態異常必須排在 EXP 之前） */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <HudWindow
-                title="成長"
-                icon={GiUpgrade}
-                testId="hud-exp-window"
-                frameColor={theme.border}
-                bodyClassName="p-3 space-y-1.5"
-              >
+                {/* ── 狀態異常（2026-10-30，P7）─────────────────────────────────
+                    這一塊原本在整頁最下方、滿版寬，跟四維之間隔了整個左翼與中央立繪。
+                    「DEX 為什麼從 d10 掉到 d8」的答案就在四維正下方，眼睛往下移一格就有。
 
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
-                    <GiUpgrade className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                    經驗升級 ({character.exp || 0} / 10)
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setIsExpSettlementOpen(prev => !prev)}
-                    className="text-t11 font-bold text-[#8c3235] hover:underline"
-                  >
-                    {isExpSettlementOpen ? '收合結算' : '✦ 聚會結算'}
-                  </button>
-                </div>
-                <div className="relative">
-                  <GaugeBar
-                    testId="gauge-exp"
-                    height="h-1.5"
-                    percent={((Number(character.exp) || 0) / 10) * 100}
-                    fillStyle={{ backgroundColor: theme.accent }}
-                  />
-                  <ResourceDeltaBadge flash={expDelta} />
-                </div>
-                <div className="flex items-center justify-between gap-1">
-                  <NumberStepper
-                    value={character.exp || 0}
-                    onDelta={adjustExp}
-                    ariaLabel="經驗值"
-                    width="w-14"
-                  />
-                  <span className="text-t11 text-[#6b5a4b] font-mono">10 EXP 升 1 級</span>
-                </div>
+                  兩欄排列原本是為了和上方 2×2 的四維格子**逐格對齊**
+                  （緩慢↔DEX、眩暈↔INS、虛弱↔MIG、動搖↔WLP）。
+                  P14 把四維改成橫排一列之後，逐格對齊已經不成立——
+                  這裡保留兩欄純粹是因為六個狀態排 2×3 最好讀，
+                  而「按受影響屬性排序」（`STATUS_AFFLICTION_ORDER`）不變，
+                  順序本身仍然回答「DEX 為什麼掉階」。
 
-                {/* 聚會結束 EXP 結算器（Core p.227：5 基礎 ＋ FP 獎勵 ＋ 終結點） */}
-                {isExpSettlementOpen && (
-                  <div
-                    data-testid="exp-settlement-panel"
-                    className="mt-2 pt-2 border-t border-[#e8dcc4] space-y-2 text-t11 bg-[#fbf7ee] p-2.5 rounded"
-                  >
-                    <div className="font-bold text-[#3c2415]">聚會結束 EXP 結算（核心 p.227）</div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <span className="text-[#6b5a4b] block">物語點分配獎勵:</span>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <button type="button" onClick={() => setSessionFpGain(v => Math.max(0, v - 1))} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">-</button>
-                          <span className="font-bold w-6 text-center">{sessionFpGain}</span>
-                          <button type="button" onClick={() => setSessionFpGain(v => v + 1)} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">+</button>
+                    每個按鈕右側寫出它打哪幾個屬性（`↓`＝骰階下降 1 級，完整說明在 title）。
+                    原本的「(-1階)」從按鈕上拿掉：六個狀態全都是 1 階，寫六次是噪音；
+                    實際降了多少在上方（d10 被劃掉、旁邊是 d8）與公式面板裡都看得到。 */}
+                <div
+                  data-testid="hud-afflictions"
+                  className="pt-2 border-t border-[#e8dcc4] space-y-1.5"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-t11 font-bold text-[#3c2415] flex items-center gap-1">
+                      <GiHazardSign className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                      <span>狀態異常監控</span>
+                    </span>
+                    <span className="text-t10 text-[#7c6a58]">點擊切換</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {afflictionRows.map((row) => {
+                      const isActive = !!character.statusAfflictions?.[row.key];
+                      return (
+                        <button
+                          key={row.key}
+                          type="button"
+                          data-testid={`affliction-${row.key}`}
+                          aria-pressed={isActive}
+                          onClick={() => handleToggleAffliction(row.key)}
+                          className={`py-1.5 px-2 rounded border text-xs font-bold transition-all flex items-center justify-between gap-1 ${
+                            isActive
+                              ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
+                              : 'bg-[#f4ebd9] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#e8dcc4]'
+                          }`}
+                          title={`${row.name}：${row.desc}`}
+                        >
+                          <span className="min-w-0 truncate">{row.short}</span>
+                          <span className={`shrink-0 font-mono ${isActive ? 'opacity-90' : 'text-[#7c6a58]'}`}>
+                            {row.effect}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </HudWindow>
+
+              {/* EXP / Zenit / Fabula Points Compact Cards
+                  （這行字是 afflictionOrder G4 的錨點：狀態異常必須排在 EXP 之前） */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <HudWindow
+                  title="成長"
+                  icon={GiUpgrade}
+                  testId="hud-exp-window"
+                  frameColor={theme.border}
+                  bodyClassName="p-3 space-y-1.5"
+                >
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
+                      <GiUpgrade className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                      經驗升級 ({character.exp || 0} / 10)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsExpSettlementOpen(prev => !prev)}
+                      className="text-t11 font-bold text-[#8c3235] hover:underline"
+                    >
+                      {isExpSettlementOpen ? '收合結算' : '✦ 聚會結算'}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <GaugeBar
+                      testId="gauge-exp"
+                      height="h-1.5"
+                      percent={((Number(character.exp) || 0) / 10) * 100}
+                      fillStyle={{ backgroundColor: theme.accent }}
+                    />
+                    <ResourceDeltaBadge flash={expDelta} />
+                  </div>
+                  <div className="flex items-center justify-between gap-1">
+                    <NumberStepper
+                      value={character.exp || 0}
+                      onDelta={adjustExp}
+                      ariaLabel="經驗值"
+                      width="w-14"
+                    />
+                    <span className="text-t11 text-[#6b5a4b] font-mono">10 EXP 升 1 級</span>
+                  </div>
+
+                  {/* 聚會結束 EXP 結算器（Core p.227：5 基礎 ＋ FP 獎勵 ＋ 終結點） */}
+                  {isExpSettlementOpen && (
+                    <div
+                      data-testid="exp-settlement-panel"
+                      className="mt-2 pt-2 border-t border-[#e8dcc4] space-y-2 text-t11 bg-[#fbf7ee] p-2.5 rounded"
+                    >
+                      <div className="font-bold text-[#3c2415]">聚會結束 EXP 結算（核心 p.227）</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <span className="text-[#6b5a4b] block">物語點分配獎勵:</span>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <button type="button" onClick={() => setSessionFpGain(v => Math.max(0, v - 1))} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">-</button>
+                            <span className="font-bold w-6 text-center">{sessionFpGain}</span>
+                            <button type="button" onClick={() => setSessionFpGain(v => v + 1)} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">+</button>
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-[#6b5a4b] block">反派花費終結點:</span>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <button type="button" onClick={() => setSessionUltimaSpent(v => Math.max(0, v - 1))} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">-</button>
+                            <span className="font-bold w-6 text-center">{sessionUltimaSpent}</span>
+                            <button type="button" onClick={() => setSessionUltimaSpent(v => v + 1)} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">+</button>
+                          </div>
                         </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const gain = 5 + sessionFpGain + sessionUltimaSpent;
+                          adjustExp(gain);
+                          setIsExpSettlementOpen(false);
+                          setSessionFpGain(0);
+                          setSessionUltimaSpent(0);
+                          showToast(`聚會結算完成！獲得 ${gain} 點 EXP（基礎 5 + 物語點 ${sessionFpGain} + 終結點 ${sessionUltimaSpent}）`);
+                        }}
+                        className="w-full py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs"
+                      >
+                        入帳 +{5 + sessionFpGain + sessionUltimaSpent} EXP（基礎 5 + {sessionFpGain} + {sessionUltimaSpent}）
+                      </button>
+                    </div>
+                  )}
+                </HudWindow>
+
+                {/* 資產窗（P13）：使用者裁定「錢包收成一頁」。
+                    主畫面只留兩個數字與一個入口——收支、履歷、物語點的
+                    六顆按鈕全部搬到「金錢與物語點」分頁，不再擠在右翼。 */}
+                <HudWindow
+                  title="資產"
+                  icon={GiCoins}
+                  testId="hud-assets-window"
+                  frameColor={theme.border}
+                  bodyClassName="p-3 space-y-2"
+                >
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-t11 font-bold text-[#6b5a4b] flex items-center gap-1">
+                      <GiCoins className="w-3.5 h-3.5" />
+                      資金
+                    </span>
+                    <span data-testid="hud-asset-zenit" className="tabular-nums font-black text-t16 text-[#3c2415]">
+                      {formatZenit(character.zenit)}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-t11 font-bold text-[#6b5a4b] flex items-center gap-1">
+                      <GiSparkles className="w-3.5 h-3.5" />
+                      物語點
+                    </span>
+                    <span data-testid="hud-asset-fp" className="tabular-nums font-black text-t16 text-[#3c2415]">
+                      {resolveFabulaPoints(character)} <span className="text-t11 font-normal text-[#7c6a58]">FP</span>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    data-testid="hud-assets-open"
+                    onClick={() => setActiveTab('money')}
+                    title="收入、支出、明細與物語點都在「金錢與物語點」分頁"
+                    className="w-full py-2 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiScrollUnfurled className="w-3.5 h-3.5" />
+                    收支與履歷
+                  </button>
+                </HudWindow>
+              </div>
+              </>
+            ) : (
+              <HudWindow
+                title={hudTabLabel}
+                icon={activeTabIcon}
+                testId="hud-panel-window"
+                headerTestId="hud-panel-header"
+                className="flex-1"
+                frameColor={theme.border}
+                headerColor={theme.accentLight}
+                bodyClassName="p-3 sm:p-4"
+                right={(
+                  <span className="text-t10 font-mono text-[#7c6a58] shrink-0">
+                    第 {hudTabItems.findIndex((t) => t.id === activeTab) + 1} / {hudTabItems.length} 頁
+                  </span>
+                )}
+              >
+                <ErrorBoundary
+                  inline
+                  label={
+                    hudTabLabel
+                  }
+                >
+                  {/* TAB 1: 武器與戰鬥 (Formula Pills & Combat Matrix) */}
+                  {activeTab === 'attacks' && (
+                  <div className="space-y-4 animate-fade-in text-xs">
+                    {/* Defense & Initiative Dashboard */}
+                    <div className="space-y-2">
+                      <div
+                        className="grid grid-cols-3 gap-3 p-3 rounded border text-center font-mono"
+                        style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleFormula('def')}
+                          title="點擊查看公式"
+                          className="p-2 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
+                        >
+                          <span className="text-[#7c6a58] block text-t12 font-sans font-medium">物理防禦</span>
+                          <span className="text-2xl font-black" style={{ color: theme.textDark }}>{statsUnset ? '—' : stats.def}</span>
+                          <span className="text-t12 text-[#6b5a4b] block mt-0.5 leading-tight">
+                            {stats.currentDex !== stats.def ? `DEX(d${stats.currentDex}) + 盾/裝甲` : `當前 DEX(d${stats.currentDex})`}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggleFormula('mdef')}
+                          title="點擊查看公式"
+                          className="p-2 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
+                        >
+                          <span className="text-[#6b5a4b] block text-t12 font-sans font-medium">魔法防禦</span>
+                          <span className="text-2xl font-black text-[#3c2415]">{stats.mdef}</span>
+                          <span className="text-t12 text-[#6b5a4b] block mt-0.5 leading-tight">
+                            {stats.currentIns !== stats.mdef ? `INS(d${stats.currentIns}) + 盾/加值` : `當前 INS(d${stats.currentIns})`}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggleFormula('init')}
+                          title="點擊查看公式"
+                          className="p-2 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
+                        >
+                          <span className="text-[#7c6a58] block text-t12 font-sans font-medium">先攻修正</span>
+                          <span className="text-2xl font-black text-[#3c2415]">{formatInitiative(stats.init, initiativeVariant)}</span>
+                          <span className="text-t12 text-[#6b5a4b] block mt-0.5 leading-tight">
+                            {initiativeVariant ? '本團採用先攻變體' : '裝備與防具修正'}
+                          </span>
+                        </button>
+                      </div>
+
+                      <StatFormulaPanel
+                        isOpen={openFormula === 'def'}
+                        title="物理防禦"
+                        breakdown={breakdown.def}
+                        note={STAT_FORMULA_NOTE}
+                        onClose={() => setOpenFormula(null)}
+                      />
+                      <StatFormulaPanel
+                        isOpen={openFormula === 'mdef'}
+                        title="魔法防禦"
+                        breakdown={breakdown.mdef}
+                        note={STAT_FORMULA_NOTE}
+                        onClose={() => setOpenFormula(null)}
+                      />
+                      <StatFormulaPanel
+                        isOpen={openFormula === 'init'}
+                        title="先攻修正"
+                        breakdown={breakdown.init}
+                        onClose={() => setOpenFormula(null)}
+                      />
+                    </div>
+
+                    {/* Weapon Attacks Title & Free Roller Button */}
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="font-bold text-[#3c2415] text-xs flex items-center gap-1.5">
+                        <GiCrossedSwords className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                        <span>當前武裝與命中公式膠囊 (點擊公式直接擲骰)</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsFreeRollModalOpen(true)}
+                        className="px-2.5 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t12 font-bold flex items-center gap-1 transition-colors"
+                      >
+                        <GiRollingDices className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                        <span>自由雙屬性檢定</span>
+                      </button>
+                    </div>
+
+                    {/* Main Hand Weapon Pill Card */}
+                    <div
+       className="p-3.5 rounded border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdf9]"
+                      style={{ borderColor: theme.border }}
+                    >
                       <div>
-                        <span className="text-[#6b5a4b] block">反派花費終結點:</span>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <button type="button" onClick={() => setSessionUltimaSpent(v => Math.max(0, v - 1))} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">-</button>
-                          <span className="font-bold w-6 text-center">{sessionUltimaSpent}</span>
-                          <button type="button" onClick={() => setSessionUltimaSpent(v => v + 1)} className="px-1.5 py-0.5 rounded bg-white border border-[#d6c7ab]">+</button>
+                        <div className="font-bold text-sm flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                          <FUIcon name={mainWeapon.range?.includes('遠程') ? 'ranged' : 'melee'} className="text-base shrink-0" style={{ color: theme.accent }} />
+                          <span>{mainWeapon.name}</span>
+                          <span className="text-t12 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#e8dcc4]">
+                            主手 · {mainWeapon.range || '近戰'}
+                          </span>
+                          {/* 可變形武器：衝突中就靠這一顆換型態（原書 p.107：每回合一次） */}
+                          {switchForm && (
+                            <button
+                              type="button"
+                              onClick={handleSwitchForm}
+                              title="可變形武器：隨時可切換型態。衝突場景中只能在你的回合、且每回合一次（HF p.107）"
+                              className="text-t12 px-2 py-0.5 rounded border font-bold flex items-center gap-1 transition-colors"
+                              style={{ borderColor: theme.border, color: theme.accent, backgroundColor: theme.cardBg }}
+                            >
+                              <GiCycle className="w-3 h-3" />
+                              <span>變形 → {switchForm.name}</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Formula Pills */}
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          {/* Check Formula Pill */}
+                          <button
+                            type="button"
+                            onClick={() => openCharacterDice({
+                              die1: mainCheck.die1,
+                              die2: mainCheck.die2,
+                              modifier: mainCheck.mod,
+                              damageBonus: mainDamage.hrBonus,
+                              damageType: mainDamage.damageType,
+                              label: `${mainWeapon.name} 命中判定 [${mainCheck.attr1} + ${mainCheck.attr2}]`
+                            })}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all"
+                            title="點擊直接擲骰命中檢定（自動附帶 HR 傷害計算）"
+                          >
+                            <GiRollingDices className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                            <span>[{mainCheck.attr1} + {mainCheck.attr2}]{mainCheck.mod !== 0 ? ` + ${mainCheck.mod}` : ''}</span>
+                            <span className="text-t12 text-[#6b5a4b] font-normal">
+                              (d{mainCheck.die1}+d{mainCheck.die2})
+                            </span>
+                          </button>
+
+                          {/* Damage Formula Pill */}
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
+                            <span>[HR + {mainDamage.hrBonus}]</span>
+                            <FUIcon name={mainDamage.damageType} className="text-sm shrink-0" />
+                            <span className="text-t12 font-sans text-[#6b5a4b]">{mainDamage.damageType}</span>
+                          </span>
+                        </div>
+
+                        {/* 定制武器或制式武器的特殊規則描述 */}
+                        {mainWeapon.isCustomWeapon && mainWeapon.effectText ? (
+                          <p
+                            className="text-t12 mt-2 leading-relaxed"
+                            style={{ color: theme.textMuted }}
+                          >
+                            {renderTextWithAffinities(mainWeapon.effectText)}
+                          </p>
+                        ) : (mainWeapon.desc && mainWeapon.desc !== '無特殊效果' && (
+                          <p
+                            className="text-t12 mt-2 leading-relaxed"
+                            style={{ color: theme.textMuted }}
+                          >
+                            {renderTextWithAffinities(mainWeapon.desc)}
+                          </p>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 self-end sm:self-center">
+                        <CopyTextButton
+                          testId="copy-main-weapon"
+                          toastLabel={mainWeapon.name}
+                          showToast={showToast}
+                          getText={() =>
+                            formatWeaponCopyText({
+                              weapon: {
+                                ...mainWeapon,
+                                type: mainWeapon.range || mainWeapon.type || '近戰'
+                              },
+                              slotLabel: '主手武裝',
+                              check: {
+                                formula: `[${mainCheck.attr1} + ${mainCheck.attr2}]${mainCheck.mod !== 0 ? ` + ${mainCheck.mod}` : ''}`,
+                                diceStr: `d${mainCheck.die1}+d${mainCheck.die2}`
+                              },
+                              damage: {
+                                text: `[HR + ${mainDamage.hrBonus}]`,
+                                type: mainDamage.damageType
+                              },
+                              characterName: character.name
+                            })
+                          }
+                        />
+                        <button
+                          type="button"
+                          onClick={() => openCharacterDice({
+                            die1: mainCheck.die1,
+                            die2: mainCheck.die2,
+                            modifier: mainCheck.mod,
+                            damageBonus: mainDamage.hrBonus,
+                            damageType: mainDamage.damageType,
+                            label: `${mainWeapon.name} 命中檢定`
+                          })}
+                          className="px-3 py-1.5 rounded text-white font-bold text-xs flex items-center gap-1.5 shrink-0"
+                          style={{ backgroundColor: theme.accent }}
+                        >
+                          <GiRollingDices className="w-4 h-4" />
+                          <span>擲骰</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Off Hand Weapon or Shield Pill Card */}
+                    {offWeapon && (
+                      <div
+                        className="p-3.5 rounded border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdf9]"
+                        style={{ borderColor: theme.border }}
+                      >
+                        <div>
+                          <div className="font-bold text-sm flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                            <FUIcon name={offWeapon.range?.includes('遠程') ? 'ranged' : 'melee'} className="text-base shrink-0" style={{ color: theme.accent }} />
+                            <span>{offWeapon.name}</span>
+                            <span className="text-t12 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#e8dcc4]">
+                              副手 · {offWeapon.range || '近戰'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={() => openCharacterDice({
+                                die1: offCheck.die1,
+                                die2: offCheck.die2,
+                                modifier: offCheck.mod,
+                                damageBonus: offDamage.hrBonus,
+                                damageType: offDamage.damageType,
+                                label: `${offWeapon.name} 命中判定 [${offCheck.attr1} + ${offCheck.attr2}]`
+                              })}
+                              className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all"
+                              title="點擊直接擲骰命中檢定（自動附帶 HR 傷害計算）"
+                            >
+                              <GiRollingDices className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                              <span>[{offCheck.attr1} + {offCheck.attr2}]{offCheck.mod !== 0 ? ` + ${offCheck.mod}` : ''}</span>
+                              <span className="text-t12 text-[#6b5a4b] font-normal">
+                                (d{offCheck.die1}+d{offCheck.die2})
+                              </span>
+                            </button>
+
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
+                              <span>[HR + {offDamage.hrBonus}]</span>
+                              <FUIcon name={offDamage.damageType} className="text-sm shrink-0" />
+                              <span className="text-t12 font-sans text-[#6b5a4b]">{offDamage.damageType}</span>
+                            </span>
+                          </div>
+
+                          {offWeapon.desc && offWeapon.desc !== '無特殊效果' && (
+                            <p
+                              className="text-t12 mt-2 leading-relaxed"
+                              style={{ color: theme.textMuted }}
+                            >
+                              {renderTextWithAffinities(offWeapon.desc)}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5 self-end sm:self-center">
+                          <CopyTextButton
+                            testId="copy-off-weapon"
+                            toastLabel={offWeapon.name}
+                            showToast={showToast}
+                            getText={() =>
+                              formatWeaponCopyText({
+                                weapon: {
+                                  ...offWeapon,
+                                  type: offWeapon.range || offWeapon.type || '近戰'
+                                },
+                                slotLabel: '副手武裝',
+                                check: {
+                                  formula: `[${offCheck.attr1} + ${offCheck.attr2}]${offCheck.mod !== 0 ? ` + ${offCheck.mod}` : ''}`,
+                                  diceStr: `d${offCheck.die1}+d${offCheck.die2}`
+                                },
+                                damage: {
+                                  text: `[HR + ${offDamage.hrBonus}]`,
+                                  type: offDamage.damageType
+                                },
+                                characterName: character.name
+                              })
+                            }
+                          />
+                          <button
+                            type="button"
+                            onClick={() => openCharacterDice({
+                              die1: offCheck.die1,
+                              die2: offCheck.die2,
+                              modifier: offCheck.mod,
+                              damageBonus: offDamage.hrBonus,
+                              damageType: offDamage.damageType,
+                              label: `${offWeapon.name} 命中檢定`
+                            })}
+                            className="px-3 py-1.5 rounded text-white font-bold text-xs flex items-center gap-1.5 shrink-0"
+                            style={{ backgroundColor: theme.accent }}
+                          >
+                            <GiRollingDices className="w-4 h-4" />
+                            <span>擲骰</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Free Unarmed Strike Shortcut */}
+                    <div className="p-2.5 rounded border border-dashed border-[#d6c7ab] bg-[#fbf7ee] flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap font-mono text-t12">
+                        <span className="font-bold text-[#3c2415] font-sans">徒手/自由打擊:</span>
+                        <button
+                          type="button"
+                          onClick={() => openCharacterDice({
+                            die1: unarmedCheck.die1,
+                            die2: unarmedCheck.die2,
+                            modifier: 0,
+                            damageBonus: unarmedBonus,
+                            damageType: '物理',
+                            label: '徒手打擊 命中判定 [DEX + MIG]'
+                          })}
+                          className="px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#e8dcc4] font-bold"
+                        >
+                          [DEX + MIG]
+                        </button>
+                        <span className="text-[#6b5a4b] font-bold">[HR + {unarmedBonus}] 物理</span>
+                      </div>
+                    </div>
+
+                    {/* Equipment Breakdown (with special rules desc for shield, armor, and accessory) */}
+                    {(() => {
+                      const offHandName = normalizeEquipmentName(character.equipment?.offHand || '');
+                      const armorName = normalizeEquipmentName(character.equipment?.armor || '');
+                      const accName = normalizeEquipmentName(character.equipment?.accessory || '');
+                      const shieldDef = offHandName
+                        ? (rulesData.equipment?.shields || []).find(s => s.name === offHandName)
+                        : null;
+                      const armorDef = armorName
+                        ? (rulesData.equipment?.armors || []).find(a => a.name === armorName)
+                        : null;
+                      const accDef = accName
+                        ? (rulesData.equipment?.accessories || []).find(a => a.name === accName)
+                        : null;
+                      return (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-t12 pt-2 border-t">
+                          <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-[#6b5a4b] block font-sans">副手/盾牌:</span>
+                              {shieldDef && (
+                                <CopyTextButton
+                                  testId="copy-shield"
+                                  toastLabel={offHandName}
+                                  showToast={showToast}
+                                  getText={() =>
+                                    formatEquipmentCopyText({
+                                      slotLabel: '副手盾牌',
+                                      item: shieldDef,
+                                      characterName: character.name
+                                    })
+                                  }
+                                />
+                              )}
+                            </div>
+                            <strong className="text-[#3c2415] block">{offHandName || '無'}</strong>
+                            {shieldDef && (
+                              <div className="font-sans text-t11 text-[#6b5a4b] leading-snug">
+                                <span>物防 {shieldDef.def || '+0'} / 魔防 {shieldDef.mdef || '+0'}</span>
+                                {shieldDef.desc && shieldDef.desc !== '無特殊效果' && (
+                                  <p className="mt-0.5 text-[#3c2415]">{renderTextWithAffinities(shieldDef.desc)}</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-[#6b5a4b] block font-sans">防具裝甲:</span>
+                              {armorDef && (
+                                <CopyTextButton
+                                  testId="copy-armor"
+                                  toastLabel={armorName}
+                                  showToast={showToast}
+                                  getText={() =>
+                                    formatEquipmentCopyText({
+                                      slotLabel: '防具裝甲',
+                                      item: armorDef,
+                                      characterName: character.name
+                                    })
+                                  }
+                                />
+                              )}
+                            </div>
+                            <strong className="text-[#3c2415] block">{armorName || '無'}</strong>
+                            {armorDef && (
+                              <div className="font-sans text-t11 text-[#6b5a4b] leading-snug">
+                                <span>物防 {armorDef.def} / 魔防 {armorDef.mdef}</span>
+                                {armorDef.desc && armorDef.desc !== '無特殊效果' && (
+                                  <p className="mt-0.5 text-[#3c2415]">{renderTextWithAffinities(armorDef.desc)}</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-[#6b5a4b] block font-sans">佩戴飾品:</span>
+                              {(accDef || accName) && (
+                                <CopyTextButton
+                                  testId="copy-accessory"
+                                  toastLabel={accName}
+                                  showToast={showToast}
+                                  getText={() =>
+                                    formatEquipmentCopyText({
+                                      slotLabel: '佩戴飾品',
+                                      item: accDef || { name: accName, desc: '無特殊效果' },
+                                      characterName: character.name
+                                    })
+                                  }
+                                />
+                              )}
+                            </div>
+                            <strong className="text-[#3c2415] block">{accName || '無'}</strong>
+                            {accDef?.desc && accDef.desc !== '無特殊效果' && (
+                              <p className="font-sans text-t12 text-[#3c2415] leading-snug">
+                                {renderTextWithAffinities(accDef.desc)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Pilot Personal Vehicle in Combat (if active) */}
+                    {isClassPanelActive(character, '機師') && (
+                      <div className="pt-2 border-t">
+                        <PilotVehicleCombatSheet
+                          character={character}
+                          onChange={onChange}
+                          onOpenDice={onOpenDice}
+                          showToast={showToast}
+                        />
+                      </div>
+                    )}
+
+                    {/* Wayfarer Companion in Combat (if active) */}
+                    {isClassPanelActive(character, '旅人') && (
+                      <div className="pt-2 border-t">
+                        <WayfarerCompanionSheet
+                          character={character}
+                          onChange={onChange}
+                          onOpenDice={onOpenDice}
+                          showToast={showToast}
+                        />
+                      </div>
+                    )}
+
+                    {/* 死靈術士【殘酷的誕生】的僕從。條件是「有沒有拿那個英雄技能」——
+                        僕從的有無則看 `necroData.minion.active`，摧毀後面板會回到空狀態。 */}
+                    {isClassPanelActive(character, '死靈術士') && (
+                      <div className="pt-2 border-t">
+                        <NecromancerMinionSheet
+                          character={character}
+                          onChange={onChange}
+                          showToast={showToast}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 2: 咒語與魔法 (Dedicated Spells Tab) */}
+                {activeTab === 'spells' && (() => {
+                  const resolvedSpells = resolveCharacterSpells(character);
+                  return (
+                  <div className="space-y-4 animate-fade-in text-xs">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
+                        <GiSpellBook className="w-4 h-4 text-[#6b5a4b]" />
+                        <span>已掌握的咒語與儀式</span>
+                      </span>
+                      {/* 清單為空時**收起**標頭這顆：空狀態裡已經有一顆講得更清楚的
+                          「從規則庫選擇習得咒語」。同一屏兩顆按鈕做同一件事，
+                          使用者會以為它們不一樣（§3.4 立過此例，工坊那次是反過來收空狀態那顆）。 */}
+                      {resolvedSpells.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setIsSpellModalOpen(true)}
+                          className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>學習新咒語</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Spells Cards List */}
+                    {resolvedSpells.length > 0 ? (
+                      <div className="space-y-2.5">
+                        {resolvedSpells.map((sp, idx) => {
+                          const isOffensive = Boolean(sp.isOffensive);
+                          const spellCheck = parseCheckFormula('INS + WLP', stats);
+                          const spellDamage = parseDamageFormula(sp.effect || '');
+                          const isExpanded = !!expandedSpells[sp.name];
+                          // 事前可用性：這一條咒語現在付不付得起。`sp.mp` 缺漏時
+                          // `describeCostGate` 回「沒有成本」→ 不擋（不知道就不嚇人）。
+                          const spellGate = describeCostGate({ cost: sp.mp, current: curMp, unit: GATE_UNITS.mp });
+
+                          return (
+                            <div
+                              key={idx}
+                              className="p-3.5 rounded border bg-white space-y-2 transition-all hover:border-[#3c2415]"
+                              style={{ borderColor: theme.border }}
+                            >
+                              {/* Spell Header */}
+                              <div className="flex items-start justify-between gap-2 flex-wrap">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <div className="w-6 h-6 rounded bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-center shrink-0">
+                                    <FUIcon name={isOffensive ? 'offensive' : 'spell'} className="text-sm" />
+                                  </div>
+                                  <h4 className="font-serif font-black text-sm text-[#3c2415] flex items-center gap-1.5">
+                                    {isOffensive && <span className="fu-icon text-[#8c3235] font-bold" title="攻擊性咒語">o</span>}
+                                    <span>{sp.name}</span>
+                                  </h4>
+                                  <span className="text-t12 px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] font-bold">
+                                    {sp.school || '通用'}
+                                  </span>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex items-center gap-1.5 ml-auto">
+                                  <CopyTextButton
+                                    testId={`copy-spell-${idx}`}
+                                    toastLabel={sp.name}
+                                    showToast={showToast}
+                                    getText={() =>
+                                      formatSpellCopyText({
+                                        spell: sp,
+                                        checkFormula: isOffensive
+                                          ? `[INS + WLP] (d${spellCheck.die1}+d${spellCheck.die2})${spellCheck.mod !== 0 ? ` + ${spellCheck.mod}` : ''}`
+                                          : '',
+                                        damageFormula:
+                                          isOffensive && spellDamage.damageType
+                                            ? `[HR + ${spellDamage.hrBonus}] ${spellDamage.damageType}`
+                                            : '',
+                                        characterName: character.name
+                                      })
+                                    }
+                                  />
+                                  <UnavailableHint gate={spellGate} testId={`gate-spell-${idx}`} />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCastSpell(sp)}
+                                    className={`px-2.5 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-xs transition-colors flex items-center gap-1 ${spellGate.blocked ? GATED_BUTTON_CLASS : ''}`}
+                                    {...gateButtonAttrs(spellGate)}
+                                  >
+                                    <span>施放 (-{sp.mp})</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleForgetSpell(sp.name)}
+                                    className="p-1 rounded text-[#7c6a58] hover:text-[#8c3235] transition-colors"
+                                    title="遺忘咒語"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Formula Pills Row */}
+                              <div className="flex items-center gap-2 flex-wrap font-mono text-t12">
+                                <span className="px-2 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#e8dcc4] font-bold">
+                                  {sp.mp} MP
+                                </span>
+                                <span className="px-2 py-0.5 rounded bg-[#fbf7ee] text-[#3c2415] border border-[#e8dcc4] font-sans">
+                                  {sp.target || '單體'}
+                                </span>
+                                <span className="px-2 py-0.5 rounded bg-[#fbf7ee] text-[#3c2415] border border-[#e8dcc4] font-sans">
+                                  {sp.duration || '瞬發'}
+                                </span>
+
+                                {/* Offensive Check Pill */}
+                                {isOffensive && (
+                                  <button
+                                    type="button"
+                                    onClick={() => openCharacterDice({
+                                      die1: spellCheck.die1,
+                                      die2: spellCheck.die2,
+                                      modifier: spellCheck.mod,
+                                      damageBonus: spellDamage.hrBonus,
+                                      damageType: spellDamage.damageType || '無',
+                                      label: `${sp.name} 魔法判定 [INS + WLP]`
+                                    })}
+                                    className="px-2.5 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1 transition-colors"
+                                    title="點擊直接擲骰魔法判定（自動附帶 HR 傷害計算）"
+                                  >
+                                    <GiRollingDices className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                                    <span>[INS + WLP]</span>
+                                    <span className="text-t12 text-[#6b5a4b] font-normal">(d{spellCheck.die1}+d{spellCheck.die2})</span>
+                                  </button>
+                                )}
+
+                                {isOffensive && spellDamage.damageType && (
+                                  <span className="px-2 py-0.5 rounded bg-[#f4ebd9] text-[#8c3235] border border-[#e8dcc4] font-bold flex items-center gap-1">
+                                    <span>[HR + {spellDamage.hrBonus}]</span>
+                                    <FUIcon name={spellDamage.damageType} className="text-xs" />
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Expandable description */}
+                              {sp.effect && (
+                                <div className="pt-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleSpellExpand(sp.name)}
+                                    className="text-t12 text-[#7c6a58] hover:text-[#2c221e] flex items-center gap-1 font-medium mb-1"
+                                  >
+                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                    <span>{isExpanded ? '收合效果詳情' : '展開效果詳情'}</span>
+                                  </button>
+                                  {isExpanded && (
+                                    <p className="text-t12 text-[#6b5a4b] bg-[#fbf7ee] p-2.5 rounded border border-[#e8dcc4] leading-relaxed whitespace-pre-wrap">
+                                      {renderTextWithAffinities(sp.effect)}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center bg-[#fbf7ee] rounded border border-dashed border-[#d6c7ab] flex flex-col items-center justify-center">
+                        <GiSpellBook className="w-9 h-9 text-[#6b5a4b]" />
+                        <p className="mt-2.5 font-bold text-[#3c2415] text-sm tracking-wide">尚未掌握任何咒語</p>
+                        <p className="mt-1 text-[#6b5a4b] text-xs leading-relaxed max-w-md">
+                          咒語分攻擊與輔助兩種，學習時從規則庫挑選並扣除對應的 MP 上限；不走施法路線的角色可以整段略過。
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setIsSpellModalOpen(true)}
+                          className="mt-4 px-3.5 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] active:bg-[#8c3235] text-[#fffdf9] font-bold text-xs shadow-e1 transition-colors"
+                        >
+                          從規則庫選擇習得咒語
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 儀式魔法速查與施展計算器（Core p.118–121） */}
+                    {(() => {
+                      const POTENCY_MAP = {
+                        minor: { key: 'minor', label: '小', mp: 20, dl: 7, clock: '4 格' },
+                        medium: { key: 'medium', label: '中', mp: 30, dl: 10, clock: '6 格' },
+                        major: { key: 'major', label: '大', mp: 40, dl: 13, clock: '6 格' },
+                        extreme: { key: 'extreme', label: '強', mp: 50, dl: 16, clock: '8 格' }
+                      };
+                      const AREA_MAP = {
+                        individual: { key: 'individual', label: '個體 ×1', mult: 1 },
+                        small: { key: 'small', label: '小型 ×2', mult: 2 },
+                        large: { key: 'large', label: '大型 ×3', mult: 3 },
+                        huge: { key: 'huge', label: '巨型 ×4', mult: 4 }
+                      };
+                      const RITUAL_SKILLS = [
+                        { skill: '秘儀學派儀式', name: '秘儀學派', formula: 'WLP + WLP' },
+                        { skill: '嵌合學派儀式', name: '嵌合學派', formula: 'INS + WLP' },
+                        { skill: '元素學派儀式', name: '元素學派', formula: 'INS + WLP' },
+                        { skill: '熵系學派儀式', name: '熵系學派', formula: 'INS + WLP' },
+                        { skill: '靈魂學派儀式', name: '靈魂學派', formula: 'INS + WLP' },
+                        { skill: '儀式學派', name: '儀式學派', formula: 'INS + WLP' }
+                      ];
+                      const learnedRituals = [];
+                      (character.classes || []).forEach(cl => {
+                        (cl.skills || []).forEach(sk => {
+                          if ((sk.sl || 0) <= 0) return;
+                          const normName = normalizeSkillName(sk.name);
+                          const found = RITUAL_SKILLS.find(r => r.skill === normName);
+                          if (found && !learnedRituals.some(x => x.name === found.name)) {
+                            learnedRituals.push(found);
+                          }
+                          if (normName === '儀式學派' && Array.isArray(sk.selectedOptions)) {
+                            sk.selectedOptions.forEach(opt => {
+                              if (!learnedRituals.some(x => x.name === opt)) {
+                                learnedRituals.push({ skill: '儀式學派', name: opt, formula: opt.includes('秘儀') ? 'WLP + WLP' : 'INS + WLP' });
+                              }
+                            });
+                          }
+                        });
+                      });
+                      const pot = POTENCY_MAP[ritualPotency] || POTENCY_MAP.minor;
+                      const ar = AREA_MAP[ritualArea] || AREA_MAP.individual;
+                      const rawMp = pot.mp * ar.mult;
+                      const finalMp = ritualHasIngredient ? Math.floor(rawMp / 2) : rawMp;
+                      const ritualGate = describeCostGate({ cost: finalMp, current: curMp, unit: GATE_UNITS.mp });
+
+                      return (
+                        <div
+                          data-testid="hud-ritual-calculator"
+                          className="p-3.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-2.5"
+                        >
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <span className="font-bold text-xs text-[#3c2415] flex items-center gap-1.5">
+                              <GiCrystalBall className="w-4 h-4 text-[#8c3235]" />
+                              <span>儀式魔法（效力 × 範圍 MP 與難度計算器）</span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => openRuleCodex('儀式魔法')}
+                              className="px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-t11 font-bold text-[#3c2415]"
+                            >
+                              儀式規則速查
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 flex-wrap text-t11">
+                            <span className="text-[#6b5a4b] font-bold">已掌握儀式學派:</span>
+                            {learnedRituals.length > 0 ? learnedRituals.map((r, rIdx) => (
+                              <span
+                                key={rIdx}
+                                className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] text-[#3c2415] font-bold"
+                              >
+                                ✦ {r.name} [{r.formula}]
+                              </span>
+                            )) : (
+                              <span className="text-[#7c6a58]">尚未習得儀式特技（同伴施展儀式時仍可參與團隊檢定協助）</span>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-t11">
+                            <div className="space-y-1">
+                              <span className="text-[#6b5a4b] font-bold block">1. 儀式效力（決定基礎 MP 與難度 DL）</span>
+                              <div className="grid grid-cols-4 gap-1">
+                                {Object.values(POTENCY_MAP).map(item => (
+                                  <button
+                                    key={item.key}
+                                    type="button"
+                                    onClick={() => setRitualPotency(item.key)}
+                                    className={`py-1 px-1.5 rounded border font-bold transition-colors ${
+                                      ritualPotency === item.key
+                                        ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235]'
+                                        : 'bg-[#fffdf9] text-[#3c2415] border-[#d6c7ab] hover:bg-[#f4ebd9]'
+                                    }`}
+                                  >
+                                    <div>{item.label} ({item.mp})</div>
+                                    <div className="text-t10 opacity-90">DL {item.dl}</div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <span className="text-[#6b5a4b] font-bold block">2. 影響範圍（決定 MP 倍率）</span>
+                              <div className="grid grid-cols-4 gap-1">
+                                {Object.values(AREA_MAP).map(item => (
+                                  <button
+                                    key={item.key}
+                                    type="button"
+                                    onClick={() => setRitualArea(item.key)}
+                                    className={`py-1.5 px-1 rounded border font-bold transition-colors ${
+                                      ritualArea === item.key
+                                        ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235]'
+                                        : 'bg-[#fffdf9] text-[#3c2415] border-[#d6c7ab] hover:bg-[#f4ebd9]'
+                                    }`}
+                                  >
+                                    {item.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="pt-1 border-t border-[#e8dcc4] flex items-center justify-between flex-wrap gap-2">
+                            <div className="flex items-center gap-3 flex-wrap text-t12">
+                              <label className="inline-flex items-center gap-1.5 cursor-pointer font-bold text-[#3c2415]">
+                                <input
+                                  type="checkbox"
+                                  checked={ritualHasIngredient}
+                                  onChange={e => setRitualHasIngredient(e.target.checked)}
+                                  className="rounded border-[#d6c7ab]"
+                                />
+                                <span>提供稀有材料（MP 減半）</span>
+                              </label>
+                              <span className="font-bold text-[#8c3235]">
+                                總消耗：{finalMp} MP · 難度 DL {pot.dl} · 衝突命刻 {pot.clock}
+                              </span>
+                            </div>
+
+                            <UnavailableHint gate={ritualGate} testId="gate-ritual" />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (curMp < finalMp) {
+                                  showToast(`MP 不足！施展此儀式需要 ${finalMp} 點 MP`, 'warning');
+                                  return;
+                                }
+                                adjustMp(-finalMp);
+                                const formulaStr = learnedRituals[0]?.formula || 'INS + WLP';
+                                const rCheck = parseCheckFormula(formulaStr, stats);
+                                openCharacterDice({
+                                  die1: rCheck.die1,
+                                  die2: rCheck.die2,
+                                  modifier: rCheck.mod,
+                                  label: `施展儀式（效力${pot.label}×${ar.label}，DL ${pot.dl}）[${formulaStr}]`
+                                });
+                              }}
+                              className={`px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 ${ritualGate.blocked ? GATED_BUTTON_CLASS : ''}`}
+                              {...gateButtonAttrs(ritualGate)}
+                            >
+                              <GiRollingDices className="w-3.5 h-3.5" />
+                              <span>扣除 {finalMp} MP 並擲儀式檢定 (DL {pot.dl})</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Chimerist Spells in Magic Tab (if active) */}
+                    {isClassPanelActive(character, '嵌合師') && (
+                      <div className="pt-2 border-t">
+                        <ChimeristManager
+                          character={character}
+                          onChange={onChange}
+                          onOpenDice={onOpenDice}
+                          showToast={showToast}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  );
+                })()}
+
+                {/* TAB 3: 職業特技 (Class Skills - Streamlined) */}
+                {activeTab === 'skills' && (
+                  <div className="space-y-4 animate-fade-in text-xs">
+                    {(character.classes || []).map((cl, cIdx) => {
+                      const cName = normalizeClassName(cl.className);
+                      const classDef = rulesData.classes[cName];
+                      const freeBenefitLabel = describeFreeBenefit(classDef, cl);
+                      return (
+                      <div key={cIdx} className="space-y-2">
+                        <div className="flex items-center justify-between gap-2 flex-wrap border-b pb-1" style={{ borderColor: theme.border }}>
+                          <div className="flex items-center gap-2">
+                            <span className="font-serif font-black text-sm" style={{ color: theme.textDark }}>{withEn(cName)}</span>
+                            <JRPGBadge variant={theme.badgeVariant} size="xs">Lv {cl.level}</JRPGBadge>
+                          </div>
+                          {freeBenefitLabel && (
+                            <span className="text-t11 px-2 py-0.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] text-[#6b5a4b]">
+                              免費增益：{freeBenefitLabel}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* F-020（2026-10-27）：這個職業的面板不在這一頁時，直接說它在哪。
+                            以前「武器與戰鬥」與「職業特技」各掛一次同一份面板（DOM 加倍），
+                            而死靈術士只在「武器與戰鬥」——玩家學了【殘酷的誕生】會來這裡找，然後以為沒做。
+                            現在面板只掛一次，這一頁只負責指路。文案與判斷都來自 `data/classPanels.js`。 */}
+                        {classPanelHint(character, cName, 'skills') ? (
+                          <p
+                            className="text-t11 leading-relaxed rounded border-l-2 pl-2 py-1"
+                            style={{ color: theme.textMuted, borderColor: theme.accent }}
+                            data-testid={`class-panel-hint-${cName}`}
+                          >
+                            ※ {classPanelHint(character, cName, 'skills')}
+                          </p>
+                        ) : null}
+
+                        <div className="space-y-2">
+                          {(cl.skills || []).map((sk, sIdx) => {
+                            const normSkName = normalizeSkillName(sk.name);
+                            const skillDef = classDef?.skills?.find(s => s.name === normSkName);
+                            const display = resolveSkillDisplay({ ...sk, name: normSkName }, skillDef);
+                            const isExpanded = !!expandedSkills[`${cName}_${normSkName}`];
+
+                            return (
+                              <div key={sIdx} className="p-3 bg-white rounded border transition-all hover:border-[#3c2415]" style={{ borderColor: theme.border }}>
+                                <div className="flex items-center justify-between font-bold mb-1">
+                                  <span className="flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                                    <span style={{ color: theme.accent }}>✦</span>
+                                    <span>{display.name}</span>
+                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    {cName === '修補匠' && normSkName === '小工具' && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          openRuleCodex('小工具');
+                                        }}
+                                        className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center gap-1 transition-all cursor-pointer"
+                                        title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
+                                      >
+                                        <GiSpellBook className="text-[#6b5a4b] text-xs" />
+                                        <span>規則索引</span>
+                                      </button>
+                                    )}
+                                    <CopyTextButton
+                                      testId={`copy-skill-${cName}-${normSkName}`}
+                                      toastLabel={display.name}
+                                      showToast={showToast}
+                                      getText={() =>
+                                        formatSkillCopyText({
+                                          className: cName,
+                                          name: display.name,
+                                          sl: sk.sl,
+                                          maxSL: display.maxSL || 5,
+                                          desc: display.desc || '',
+                                          characterName: character.name,
+                                          characterLevel,
+                                          character
+                                        })
+                                      }
+                                    />
+                                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]">
+                                      SL {sk.sl} / {display.maxSL || 5}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="text-t14 text-[#6b5a4b] leading-relaxed">
+                                  <div className={isExpanded ? '' : 'line-clamp-2'}>
+                                    <SkillDescription desc={display.desc || '暫無描述'} sl={sk.sl} characterLevel={characterLevel} character={character} refSource={display.name} />
+                                  </div>
+                                  {display.desc && display.desc.length > 80 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleSkillExpand(`${cName}_${normSkName}`)}
+                                      className="text-t12 text-[#3c2415] font-bold mt-1 flex items-center gap-0.5 cursor-pointer"
+                                    >
+                                      {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                      <span>{isExpanded ? '收合' : '展開完整效果'}</span>
+                                    </button>
+                                  )}
+                                </div>
+
+                                {/* 子項目已掌握清單與專屬機制 */}
+                                {sk.selectedOptions && (Array.isArray(sk.selectedOptions) ? sk.selectedOptions.length > 0 : ((sk.selectedOptions.keys || []).length > 0 || (sk.selectedOptions.tones || []).length > 0)) && (
+                                  <div className="mt-2.5 pt-2 border-t border-[#e8dcc4] space-y-2.5">
+                                    {/* 1. 若為魔奏者【魔法演奏】，常駐渲染即時合成器 */}
+                                    {cName === '魔奏者' && normSkName === '魔法演奏' && (
+                                      <ChanterComposer
+                                        character={character}
+                                        selectedOptions={sk.selectedOptions}
+                                        onConsumeMp={(mpCost) => adjustMp(-mpCost)}
+                                        showToast={showToast}
+                                      />
+                                    )}
+
+                                    {/* 2. 若為植物學家【植生術】，常駐渲染花園生長盤 */}
+                                    {cName === '植物學家' && normSkName === '植生術' && (
+                                      <FloristGardenTracker
+                                        character={character}
+                                        skillSL={sk.sl}
+                                        selectedOptions={sk.selectedOptions}
+                                        onChange={onChange}
+                                        showToast={showToast}
+                                      />
+                                    )}
+
+                                    {/* 3. 子項目效果速查清單與視圖切換 */}
+                                    <div className="flex items-center justify-between text-t12 font-bold text-[#3c2415]">
+                                      <span className="flex items-center gap-1 text-[#6b5a4b]">
+                                        <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                                        <span>已掌握項目戰鬥速查：</span>
+                                      </span>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const key = `${cName}_${normSkName}`;
+                                          setCollapsedSuboptions(prev => ({ ...prev, [key]: !prev[key] }));
+                                        }}
+                                        className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] font-normal transition-colors cursor-pointer"
+                                      >
+                                        {collapsedSuboptions[`${cName}_${normSkName}`] ? '展開效果卡片' : '收合為標籤'}
+                                      </button>
+                                    </div>
+
+                                    {collapsedSuboptions[`${cName}_${normSkName}`] ? (
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {Array.isArray(sk.selectedOptions) ? (
+                                          sk.selectedOptions.map((optName, oIdx) => (
+                                            <span
+                                              key={oIdx}
+                                              onClick={() => {
+                                                const key = `${cName}_${normSkName}`;
+                                                setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
+                                              }}
+                                              title="點擊展開查看效果"
+                                              className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                            >
+                                              <span className="text-[#6b5a4b]">✦</span>
+                                              <span>{optName}</span>
+                                            </span>
+                                          ))
+                                        ) : (
+                                          <>
+                                            {(sk.selectedOptions.keys || []).map((k, kIdx) => (
+                                              <span
+                                                key={`k_${kIdx}`}
+                                                onClick={() => {
+                                                  const key = `${cName}_${normSkName}`;
+                                                  setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
+                                                }}
+                                                title="點擊展開查看效果"
+                                                className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                              >
+                                                <span className="text-[#6b5a4b] text-t12">音調</span>
+                                                <span>{k}</span>
+                                              </span>
+                                            ))}
+                                            {(sk.selectedOptions.tones || []).map((t, tIdx) => (
+                                              <span
+                                                key={`t_${tIdx}`}
+                                                onClick={() => {
+                                                  const key = `${cName}_${normSkName}`;
+                                                  setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
+                                                }}
+                                                title="點擊展開查看效果"
+                                                className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                              >
+                                                <span className="text-[#6b5a4b] text-t12">曲風</span>
+                                                <span>{t}</span>
+                                              </span>
+                                            ))}
+                                          </>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <SuboptionDetailsList
+                                        className={cName}
+                                        skillName={normSkName}
+                                        selectedOptions={sk.selectedOptions}
+                                        showVolumeBlock={true}
+                                        variantId={sk.variantId || null}
+                                        hasGreaterTheriomorphosis={hasGreaterTheriomorphosis(character)}
+                                        characterName={character.name}
+                                        showToast={showToast}
+                                      />
+                                    )}
+
+                                    {/* 靈能者專屬靈刻時鐘 */}
+                                    {cName === '靈能者' && normSkName === '心靈天賦' && (
+                                      <div className="mt-2 p-2.5 bg-[#f4ebd9] rounded border border-[#d6c7ab] flex items-center justify-between gap-3 flex-wrap">
+                                        <div className="flex items-center gap-3">
+                                          <ClockTracker
+                                            title=""
+                                            totalSegments={4}
+                                            filledSegments={character.brainwaveClock || 0}
+                                            theme="purple"
+                                            size={54}
+                                            compact={true}
+                                            onChange={(newVal) => {
+                                              updateField('brainwaveClock', newVal);
+                                            }}
+                                          />
+                                          <div>
+                                            <div className="font-bold text-xs text-[#3c2415] flex items-center gap-1.5">
+                                              <span>靈刻時鐘</span>
+                                              <span className="font-mono text-xs text-[#6b5a4b] font-bold">({character.brainwaveClock || 0} / 4)</span>
+                                            </div>
+                                            <p className="text-t12 text-[#7c6a58] leading-tight">
+                                              每次使用天賦後填入 1 格。消耗 MP：【靈刻格數 × 5】（最少 5 點）
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const cur = character.brainwaveClock || 0;
+                                              updateField('brainwaveClock', Math.max(0, cur - 1));
+                                            }}
+                                            disabled={(character.brainwaveClock || 0) <= 0}
+                                            className="px-2 py-1 text-xs rounded bg-white hover:bg-[#e8dcc4] disabled:opacity-30 border border-[#d6c7ab] text-[#3c2415] font-bold transition-colors cursor-pointer"
+                                            title="靈刻 -1"
+                                          >
+                                            -1
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const cur = character.brainwaveClock || 0;
+                                              updateField('brainwaveClock', Math.min(4, cur + 1));
+                                            }}
+                                            disabled={(character.brainwaveClock || 0) >= 4}
+                                            className="px-2.5 py-1 text-xs rounded bg-[#a63d40] hover:bg-[#8c3235] disabled:opacity-30 text-[#fffdf9] font-bold transition-colors cursor-pointer"
+                                            title="靈刻 +1"
+                                          >
+                                            +1 格
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              updateField('brainwaveClock', 0);
+                                              showToast('已清空靈刻時鐘');
+                                            }}
+                                            disabled={(character.brainwaveClock || 0) === 0}
+                                            className="px-2 py-1 text-xs rounded bg-white hover:bg-[#f4ebd9] disabled:opacity-30 border border-[#d6c7ab] text-[#6b5a4b] hover:text-[#8c3235] font-medium transition-colors cursor-pointer"
+                                            title="重設靈刻"
+                                          >
+                                            重設
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* 修補匠小工具專屬戰鬥速查 */}
+                                {cName === '修補匠' && normSkName === '小工具' && (
+                                  <TinkererGadgetsQuickRef
+                                    gadgetsData={character.tinkererData?.gadgets}
+                                    sl={sk.sl}
+                                    onOpenCodex={() => openRuleCodex('小工具')}
+                                    characterLevel={getCharacterLevel(character)}
+                                    characterName={character.name}
+                                    showToast={showToast}
+                                    variantId={sk.variantId || null}
+                                    technoRestrictsEquipment={
+                                      modeRestrictsEquipment(resolveCreationRules(character?.creationRules).technospheres)
+                                    }
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* 職業專屬機制互動工具 (Subsystem Companions) */}
+                        {shouldRenderArcanistPanel(character, cl.className) && (
+                          <div className="mt-3">
+                            <ArcanistManager
+                              character={character}
+                              onChange={onChange}
+                              onOpenDice={onOpenDice}
+                              showToast={showToast}
+                            />
+                          </div>
+                        )}
+
+                        {cName === '修補匠' && (
+                          <div className="mt-3">
+                            <TinkererWorkshop
+                              character={character}
+                              onChange={onChange}
+                              onOpenDice={onOpenDice}
+                              showToast={showToast}
+                            />
+                          </div>
+                        )}
+
+                        {cName === '美食家' && (cl.skills || []).some(s => normalizeSkillName(s.name) === '烹飪' && s.sl > 0) && (
+                          <div className="mt-3">
+                            <GourmetCookbook
+                              character={character}
+                              onChange={onChange}
+                              showToast={showToast}
+                            />
+                          </div>
+                        )}
+
+                        {cName === '卡牌大師' && (cl.skills || []).some(s => normalizeSkillName(s.name) === '魔法卡組' && s.sl > 0) && (
+                          <div className="mt-3">
+                            <AceOfCardsTable
+                              character={character}
+                              onChange={onChange}
+                              onAdjustHp={(delta) => adjustHp(delta)}
+                              onAdjustMp={(delta) => adjustMp(delta)}
+                              onClearStatuses={(keys) => {
+                                const cur = character.statusAfflictions || {};
+                                const next = { ...cur };
+                                (keys || []).forEach(k => { next[k] = false; });
+                                updateField('statusAfflictions', next);
+                              }}
+                              showToast={showToast}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      );
+                    })}
+
+                    {/* 掌握之英雄技能 (Heroic Skills) */}
+                    {(character.heroicSkills || []).length > 0 && (
+                      <div data-testid="hud-heroic-skills" className="pt-3 border-t space-y-2" style={{ borderColor: theme.border }}>
+                        <div className="font-serif font-black text-sm flex items-center gap-1.5 text-[#3c2415]">
+                          <GiLaurelCrown className="w-4 h-4 text-[#a63d40]" />
+                          <span>掌握之英雄技能</span>
+                        </div>
+                        <div className="space-y-2">
+                          {(character.heroicSkills || []).map((hs, idx) => {
+                            const resolved = resolveHeroicSkillEntry(hs, character);
+                            if (!resolved) return null;
+                            const sourceLabel = HEROIC_SKILL_SOURCE_LABELS[resolved.source] || '';
+                            const effectText = resolved.effect || resolved.desc || '';
+                            return (
+                              <div key={idx} className="p-3 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-1">
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <span className="font-bold text-xs text-[#3c2415] flex items-center gap-1.5">
+                                    <span className="text-[#a63d40]">★</span>
+                                    <span>{resolved.name}</span>
+                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    {sourceLabel && (
+                                      <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-[#6b5a4b]">
+                                        {sourceLabel}{resolved.class ? ` · ${resolved.class}` : ''}
+                                      </span>
+                                    )}
+                                    <CopyTextButton
+                                      testId={`copy-heroic-${idx}`}
+                                      toastLabel={resolved.name}
+                                      showToast={showToast}
+                                      getText={() =>
+                                        formatHeroicSkillCopyText({
+                                          name: resolved.name,
+                                          className: resolved.class || '',
+                                          sourceLabel,
+                                          effect: effectText,
+                                          characterName: character.name,
+                                          characterLevel,
+                                          character
+                                        })
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                                {effectText && (
+                                  <div className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap">
+                                    <SkillDescription desc={effectText} characterLevel={characterLevel} character={character} linkCodex={false} refSource={resolved.name} />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 金手指特質全文 (Quirk Full Text & Selected Effect) */}
+                    {character.quirk && character.quirk !== '無' && (() => {
+                      const quirkDef = (rulesData.quirks || []).find(q => q.name === character.quirk);
+                      const choiceRows = describeQuirkChoice(character);
+                      const choiceSummary = choiceRows
+                        .map(r => (r.group ? `${r.group}：${r.label}` : r.label))
+                        .join('、');
+                      return (
+                        <div data-testid="hud-quirk-detail" className="pt-3 border-t space-y-2" style={{ borderColor: theme.border }}>
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div className="font-serif font-black text-sm flex items-center gap-1.5 text-[#3c2415]">
+                              <GiSparkles className="w-4 h-4 text-[#a63d40]" />
+                              <span>金手指特質：{character.quirk}</span>
+                            </div>
+                            <CopyTextButton
+                              testId="copy-quirk"
+                              toastLabel={character.quirk}
+                              showToast={showToast}
+                              getText={() =>
+                                formatQuirkCopyText({
+                                  name: character.quirk,
+                                  choiceSummary,
+                                  effect: quirkDef?.effect || `已啟用金手指【${character.quirk}】。`,
+                                  characterName: character.name,
+                                  characterLevel,
+                                  character
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="p-3 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-1.5">
+                            {choiceSummary && (
+                              <div className="text-t11 font-bold text-[#8c3235] bg-[#f4ebd9] px-2 py-1 rounded border border-[#e8dcc4]">
+                                ✦ 已選效果：{choiceSummary}
+                              </div>
+                            )}
+                            {quirkDef?.effect ? (
+                              <div className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap">
+                                <SkillDescription desc={quirkDef.effect} characterLevel={characterLevel} character={character} linkCodex={false} refSource={character.quirk} />
+                              </div>
+                            ) : (
+                              <p className="text-t12 text-[#7c6a58]">已啟用金手指【{character.quirk}】。</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {/* TAB 4: 情感羈絆 (Bonds) */}
+                {activeTab === 'bonds' && (
+                  <div className="space-y-3 animate-fade-in text-xs">
+                    {/* 羈絆激勵的門檻是**全域**的（物語點共用），所以提示放一行在這裡，
+                        而不是每條羈絆各掛一個「差 1 物語點」——六條羈絆會變成六行噪音。 */}
+                    {bondInspireGate.blocked && (
+                      <div data-testid="gate-bonds-notice" className="px-2.5 py-1.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] text-t12 font-bold text-[#8c3235]">
+                        物語點不足（現有 {bondInspireGate.current} 點，激勵羈絆需要 1 點），下方「激勵」按鈕暫時不能用。
+                      </div>
+                    )}
+                    {/* 營地活動：休息場景的一部分（原書 p.130「進行活動與調整羈絆可以同時做」）。
+                        規則沒開、金手指也沒給 → 整塊不出現（與底力技同一個原則）。 */}
+                    {campAccess.enabled && (
+                      <CampActivitiesBlock
+                        character={character}
+                        theme={theme}
+                        mode="play"
+                        allowance={campAccess.allowance}
+                        quirkGrant={campAccess.quirkGrant}
+                        onChange={(campActivities) => {
+                          // 營地活動有兩種變動：改「選了哪兩種」與「本次休息用了哪一種」。
+                          // 兩者都是這張卡的決定，但履歷上要分得出來——標題寫一樣就等於沒寫。
+                          const beforePicked = (character.campActivities?.picked || []).join('|');
+                          const afterPicked = (campActivities?.picked || []).join('|');
+                          updateField('campActivities', campActivities, {
+                            kind: 'camp',
+                            title: beforePicked === afterPicked ? '營地活動：本次休息的使用記錄' : '調整營地活動選擇',
+                            fields: []
+                          });
+                        }}
+                        showToast={showToast}
+                      />
+                    )}
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
+                        <GiHeartShield className="w-4 h-4 text-[#8c3235]" />
+                        <span>三維六向情感羈絆 (最多 6 個)</span>
+                      </span>
+                      {(character.bonds || []).length < 6 && (
+                        <button
+                          type="button"
+                          onClick={handleOpenBondModal}
+                          className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>新增羈絆</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {(character.bonds || []).map((bond, bIdx) => {
+                      const isEditingThis = editingBondId === bond.id;
+                      // 名冊關係：none（刻意不連）／linked（連得上）／missing（那張卡被刪了）。
+                      // 三者要畫成三種樣子——把 none 與 missing 畫成一樣，等於每次都在
+                      // 一條本來就正確的羈絆上報錯。
+                      const link = resolveBondNpc(bond, npcPool);
+                      const npcSubtitle = bondNpcSubtitle(link.npc);
+                      const FEELING_PAIRS = [
+                        [{ k: 'admiration', l: '欽佩' }, { k: 'inferiority', l: '自卑' }],
+                        [{ k: 'loyalty', l: '忠誠' }, { k: 'mistrust', l: '疑忌' }],
+                        [{ k: 'affection', l: '喜愛' }, { k: 'hatred', l: '仇恨' }]
+                      ];
+                      return (
+                      <div key={bIdx} className="p-3.5 bg-white rounded border space-y-2.5" style={{ borderColor: theme.border }}>
+                        <div className="flex items-center justify-between gap-3 flex-wrap">
+                          <div className="flex items-start gap-2.5 min-w-0">
+                            {link.status === 'linked' && link.npc.avatarBase64 && (
+                              <img
+                                src={link.npc.avatarBase64}
+                                alt=""
+                                className="w-9 h-9 rounded object-cover border shrink-0"
+                                style={{ borderColor: theme.border }}
+                              />
+                            )}
+                            <div className="min-w-0">
+                              <div className="font-bold text-sm text-[#2c221e]">{bond.target}</div>
+                              {link.status === 'linked' && npcSubtitle && (
+                                <div className="text-t11 text-[#7c6a58] mt-0.5">{npcSubtitle}</div>
+                              )}
+                              {link.status === 'missing' && (
+                                /* 名冊那張卡被刪了。**名字要留著**——那是玩家自己寫的，
+                                   不是連結的附屬品。這裡只說明「連結斷了」，不代替他決定要改什麼。 */
+                                <div className="text-t11 text-[#8c3235] mt-0.5">名冊已無此人（連結已失效）</div>
+                              )}
+                              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                {(bond.feelings || []).map(f => (
+                                  <span key={f} className="px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-t12 text-[#8c3235] font-bold">
+                                    {FEELING_LABELS[f] || f}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const strength = bond.feelings?.length || 1;
+                                if ((character.fabulaPoints ?? 3) <= 0) {
+                                  showToast('物語點不足');
+                                  return;
+                                }
+                                // 2026-10-30：這顆按鈕原本只扣 1 FP 並跳一句「+N 加值」，
+                                // 而**加值從來沒有加到任何地方**——真正的激勵在擲骰器裡
+                                // （`DiceRollerModal.handleInvokeBond`）。同一個規則兩個入口，
+                                // 其中一個只記帳，等於按鈕在說謊。
+                                // 現在它把玩家送到那個會真的算加值的地方，FP 也只在那裡扣一次。
+                                if (!onOpenDice) {
+                                  showToast('擲骰器沒有開啟，請從上方「擲骰」進入後再激勵羈絆');
+                                  return;
+                                }
+                                openCharacterDice({
+                                  label: `激勵羈絆【${bond.target}】`,
+                                  presetBondId: bond.id
+                                });
+                                showToast(`擲完骰後點【${bond.target}】套用 +${strength}（消耗 1 物語點）`);
+                              }}
+                              className={`px-3 py-1.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#8c3235] font-bold text-xs shrink-0 ${bondInspireGate.blocked ? GATED_BUTTON_CLASS : ''}`}
+                              title="開啟擲骰器，擲完骰後套用這條羈絆的情感加值（消耗 1 物語點）"
+                              {...gateButtonAttrs(bondInspireGate)}
+                            >
+                              激勵 (+{bond.feelings?.length || 1})
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => isEditingThis ? setEditingBondId(null) : handleOpenEditBond(bond)}
+                              className="px-2 py-1.5 rounded bg-[#fbf7ee] hover:bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] font-bold text-xs"
+                              title="休息場景調整羈絆情感"
+                            >
+                              ✎ 調整
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteBond(bond.id)}
+                              className="p-1 rounded text-[#7c6a58] hover:text-[#8c3235] transition-colors"
+                              title="刪除羈絆"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {isEditingThis && (
+                          <div className="pt-2.5 border-t border-[#e8dcc4] bg-[#fbf7ee] p-2.5 rounded space-y-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-t11 font-bold text-[#6b5a4b] shrink-0">對象名稱:</span>
+                              <input
+                                type="text"
+                                value={editBondTarget}
+                                onChange={e => setEditBondTarget(e.target.value)}
+                                className="flex-1 px-2 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs font-bold text-[#3c2415]"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-t11 font-bold text-[#6b5a4b] block">對應 NPC 檔案庫（選填）:</span>
+                              <BondNpcSelect
+                                testId="bond-edit-npc"
+                                value={editBondNpcId}
+                                pool={npcPool}
+                                onChange={setEditBondNpcId}
+                                onPick={(npc) => setEditBondTarget(npc.name || '')}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-t11 font-bold text-[#6b5a4b] block">三維情感（每組對立情感最多選 1 項）：</span>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                                {FEELING_PAIRS.map((pair, pIdx) => (
+                                  <div key={pIdx} className="flex items-center gap-1 bg-[#fffdf9] p-1 rounded border border-[#e8dcc4]">
+                                    {pair.map(item => {
+                                      const active = editBondFeelings.includes(item.k);
+                                      const otherKey = pair.find(x => x.k !== item.k).k;
+                                      return (
+                                        <button
+                                          key={item.k}
+                                          type="button"
+                                          onClick={() => {
+                                            setEditBondFeelings(prev => {
+                                              if (prev.includes(item.k)) return prev.filter(x => x !== item.k);
+                                              return [...prev.filter(x => x !== otherKey), item.k];
+                                            });
+                                          }}
+                                          className={`flex-1 py-1 rounded text-t11 font-bold transition-colors ${
+                                            active
+                                              ? 'bg-[#a63d40] text-[#fffdf9]'
+                                              : 'bg-[#f4ebd9] text-[#3c2415] hover:bg-[#e8dcc4]'
+                                          }`}
+                                        >
+                                          {item.l}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => setEditingBondId(null)}
+                                className="px-2.5 py-1 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold text-t11"
+                              >
+                                取消
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleSaveEditedBond}
+                                className="px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t11"
+                              >
+                                儲存羈絆變更
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      );
+                    })}
+
+                    {(character.bonds || []).length === 0 && (
+                      /* 空狀態：2026-10-23（v5.1 第三輪）
+                         原本只有一行 `text-[#7c6a58]` 的「尚未建立羈絆。」——
+                         ① 對比 2.56:1，連大字門檻都不到（實測見 docs/state.md §8.5）；
+                         ② 它只說「沒有」，沒說「羈絆是什麼、為什麼要建」。
+                         §8.4：空狀態是使用者保證會看到的畫面，要**教一件事**。
+                         這裡不放 CTA——標頭那顆「新增羈絆」就在同一屏，重複兩顆等於兩件事。 */
+                      <EmptyState
+                        kind="bonds"
+                        icon={GiHeartShield}
+                        title="還沒有任何羈絆"
+                        teach="羈絆是對某人某物的三維情感（欽佩／忠誠／喜愛…）；激勵時消耗 1 物語點，檢定加值等於情感數。最多 6 條。"
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 5: 個人命刻 (Clocks) */}
+                {activeTab === 'clocks' && (
+                  <div className="space-y-4 animate-fade-in">
+                    {/* 底力命刻（高度奇幻手冊 p.124–131）：規則沒開就完全不出現。
+                        它與下面的「個人命刻」是兩種東西——個人命刻是玩家自建的進度鐘，
+                        底力命刻是規則給的那一條，只有 6 格（合體之力 4 格）且填充方式受限。 */}
+                    {isZeroPowersEnabled(character) && (
+                      <ZeroPowerBlock
+                        character={character}
+                        theme={getCharacterTheme(character.themeColor)}
+                        mode="play"
+                        roster={roster}
+                        onChange={(zeroPower) => updateField('zeroPower', zeroPower)}
+                        onPartnerCleared={onPartnerCleared}
+                        onRecoverHp={(factor) => {
+                          /* 【覺醒之力】：回復等同危機值的 HP（原文 p.130）。 */
+                          const gain = Math.max(0, Math.trunc(stats.crisisThreshold * factor));
+                          const next = Math.min(stats.maxHp, curHp + gain);
+                          if (gain === 0 || next === curHp) return;
+                          updateField('currentHp', next, {
+                            kind: 'hp',
+                            title: '覺醒：回復 HP',
+                            changes: [{ field: 'currentHp', from: curHp, to: next }]
+                          });
+                        }}
+                        showToast={showToast}
+                      />
+                    )}
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="font-bold text-[#3c2415] text-xs flex items-center gap-1.5">
+                        <GiPocketWatch className="w-4 h-4 text-[#6b5a4b]" />
+                        <span>個人命刻時鐘</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsClockModalOpen(true)}
+                        className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>新增命刻</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {(character.clocks || []).map(clk => (
+                        <div key={clk.id} className="relative group">
+                          <ClockTracker
+                            title={clk.title}
+                            totalSegments={clk.totalSegments || 6}
+                            filledSegments={clk.filledSegments || 0}
+                            theme={clk.theme || 'amber'}
+                            type={clk.type || 'circle'}
+                            size={90}
+                            onChange={newVal => {
+                              const prev = clk.filledSegments || 0;
+                              const total = clk.totalSegments || 6;
+                              if (newVal === prev) return;
+                              const updated = (character.clocks || []).map(c => c.id === clk.id ? { ...c, filledSegments: newVal } : c);
+                              // 命刻填滿是「目標達成」，跟「再推進一格」不是同一件事——
+                              // 履歷上要分得出來，否則完成的時刻會混在一堆推進裡。
+                              updateField('clocks', updated, {
+                                kind: 'clock',
+                                title: newVal >= total
+                                  ? `命刻【${clk.title}】完成`
+                                  : `命刻【${clk.title}】${newVal > prev ? '推進' : '回退'}`,
+                                changes: [{ field: `clock:${clk.title}`, from: prev, to: newVal }]
+                              });
+                            }}
+                          />
+                          <button
+                            onClick={() => handleDeleteClock(clk.id)}
+                            className="absolute top-2 right-2 p-1 rounded bg-white/80 hover:bg-[#f4ebd9] text-[#7c6a58] hover:text-[#8c3235] opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="刪除命刻"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {(character.clocks || []).length === 0 && (
+                      /* 同上一條：原本是 `text-[#7c6a58]` 的一行「暫無個人命刻。」（2.56:1）。
+                         這裡多教一件事——**個人命刻與章節命刻是兩種東西**，
+                         使用者最容易搞混的就是「我該在這裡建，還是去『命刻記錄』那一章」。 */
+                      <EmptyState
+                        kind="personal-clocks"
+                        icon={GiPocketWatch}
+                        title="還沒有個人命刻"
+                        teach="個人命刻是這名角色自己的進度鐘（例如「傷勢惡化」「與導師的約定」）；章節層級的情勢命刻請到「命刻記錄」那一章。"
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 6: 行囊日誌 (Notes & Inventory) */}
+                {/* TAB 7: 金錢與物語點（P13，2026-11-02）
+                    ────────────────────────────────────────────────────────────
+                    使用者裁定「右翼錢包收成一頁」。主畫面的資產窗只留兩個數字與
+                    一個入口；收支／明細／物語點的六顆按鈕全部搬到這裡。
+                    兩張卡**原樣搬過來**（不是重寫）：它們各自帶著
+                    「原因必填」「明細由履歷推導」的既有契約，重寫等於多一條寫入路徑。
+                    ──────────────────────────────────────────────────────────── */}
+                {activeTab === 'money' && (
+                  <div className="space-y-4 animate-fade-in text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* 金幣錢包 ＋ 物語點（P10 重排）
+                        ─────────────────────────────────────────────────────────────
+                        使用者：「金幣錢包的部分不要有 +- 和自己修改內容了。下面的按鈕改大，
+                        只要收入和支出和明細兩三按鈕。金錢也很重要，做明顯一點。」
+
+                        三件事各自有理由，不只是照做：
+                        1. **拿掉 `−`／`+` 與可編輯輸入框**：那條路寫的是 `kind: 'zenit'`（合併、
+                           沒有原因），與 P9-b 的「原因必填」是兩套記帳法。留著它，明細上就會出現
+                           一堆沒有事由的「支出資金 350 → 300」，而那些列**對不上任何一件事**。
+                        2. **三顆按鈕放進卡片裡**：原本它們擠在卡片下方的一條細帶上（與「最近一筆」
+                           共用一行），高度只有 `py-0.5`——那不是「按得到」，是「看得到」。
+                        3. **金額 25px**：面板上其他數字都是 12–16px。錢包是玩家最常低頭看的一格，
+                           它應該比旁邊的屬性更顯眼，而不是一樣大。
+                        ───────────────────────────────────────────────────────────── */}
+                    <div data-testid="wallet-card" className="bg-[#fffdf9] rounded p-3 border space-y-2" style={{ borderColor: theme.border }}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                          <GiCoins className="w-4 h-4" style={{ color: theme.accent }} />
+                          金幣錢包
+                        </span>
+                        {/* 行內浮字：卡片上沒有空白可以讓浮字飄，所以貼在標題右側 */}
+                        <ResourceDeltaBadge flash={zenitDelta} inline className="text-t11" />
+                      </div>
+
+                      {/* 金額自己一行、自己一個尺寸。`formatZenit(null)` 印破折號而不是 `0z`——
+                          沒有 `zenit` 欄位的舊存檔是「不知道」，不是「沒錢」。 */}
+                      <span
+                        data-testid="wallet-amount"
+                        className="block tabular-nums font-black text-t25 leading-none text-[#3c2415]"
+                      >
+                        {formatZenit(character.zenit)}
+                      </span>
+
+                      {/* 三顆按鈕：收入／支出／明細。點擊高度 `py-2`（原本 0.5），字級 t12（原本 t10）。 */}
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          data-testid="wallet-income"
+                          onClick={() => openMoneyFlow(MONEY_DIRECTIONS.gain)}
+                          title="記一筆進帳（報酬、戰利品、借貸……）"
+                          className="py-2 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <GiReceiveMoney className="w-3.5 h-3.5" />
+                          收入
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="wallet-expense"
+                          onClick={() => openMoneyFlow(MONEY_DIRECTIONS.spend)}
+                          title="記一筆花費（住宿、餐費、修裝……）"
+                          className="py-2 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <GiPayMoney className="w-3.5 h-3.5" />
+                          支出
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="wallet-ledger"
+                          onClick={() => setIsLedgerOpen(true)}
+                          title="看這筆錢是怎麼進出的（由成長履歷推導）"
+                          className="py-2 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <GiScrollUnfurled className="w-3.5 h-3.5" />
+                          明細
+                        </button>
+                      </div>
+
+                    </div>
+
+      {/* 物語點（P12，2026-11-02）：從「一行數字＋步進器」改成**第二個錢包**。
+                        ─────────────────────────────────────────────────────────────
+                        為什麼要拆掉步進器（這是使用者裁定的第 2 題）：
+                        物語點是這張卡最後一個「有數字、沒原因」的資源。書上七條用途裡
+                        三條要花 1 點（重擲／激勵羈絆／改變故事），價錢完全一樣——
+                        所以履歷只寫「消耗物語點 3 → 2」時，玩家分不出那 1 點是為了什麼。
+                        而擲骰器其實**早就把原因傳進來了**（`onSpendFp('引用特質重擲檢定')`），
+                        只是那句話進了 toast 就消失。現在它寫進履歷的 `note`。
+                        ───────────────────────────────────────────────────────────── */}
+                    <div data-testid="fp-card" className="bg-[#fffdf9] rounded px-3 py-2 border space-y-2" style={{ borderColor: theme.border }}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                          <GiSparkles className="w-4 h-4 text-[#6b5a4b]" />
+                          物語點
+                        </span>
+                        <span data-testid="fp-amount" className="tabular-nums font-black text-t16 text-[#3c2415]">
+                          {resolveFabulaPoints(character)} FP
+                        </span>
+                      </div>
+                      {/* 三顆按鈕與錢包同一個排法：獲得（綠）／消耗（紅）／明細（米）。
+                          高度 `py-1.5` 比錢包的 `py-2` 矮一級——物語點不搶錢包的重量。 */}
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          data-testid="fp-gain"
+                          onClick={() => openFpFlow(FP_DIRECTIONS.gain)}
+                          title="記一筆獲得（反派登場、大失敗、投降……）"
+                          className="py-1.5 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <GiReceiveMoney className="w-3.5 h-3.5" />
+                          獲得
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="fp-spend"
+                          onClick={() => openFpFlow(FP_DIRECTIONS.spend)}
+                          title="記一筆消耗（重擲、激勵羈絆、改變故事）"
+                          className="py-1.5 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <GiPayMoney className="w-3.5 h-3.5" />
+                          消耗
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="fp-ledger"
+                          onClick={() => setIsFpLedgerOpen(true)}
+                          title="看每一點是為了什麼花掉的（由成長履歷推導）"
+                          className="py-1.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <GiScrollUnfurled className="w-3.5 h-3.5" />
+                          明細
+                        </button>
+                      </div>
+                    </div>
+                    </div>
+                    <div
+                      data-testid="money-page-note"
+                      className="p-3 rounded bg-[#fbf7ee] border border-[#e8dcc4] text-t11 text-[#6b5a4b] leading-relaxed"
+                    >
+                      資金與物語點只有「收入／支出／獲得／消耗」四個入口，而且<strong className="text-[#3c2415]">原因必填</strong>。
+                      上面的明細是從成長履歷推導出來的，不另外存一份帳——同一個事實只有一個來源。
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'notes' && (
+                  <div className="space-y-4 animate-fade-in text-xs">
+                    {/* 消耗品捷徑（P13）：原本在左翼的 IP 卡裡，與資源條搶同一個高度。
+                        使用者裁定「左翼消耗品池收成一頁」——搬來行囊，
+                        因為「我身上有什麼可以馬上用」本來就是行囊的事。 */}
+                    <div className="p-3.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-2">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="font-bold text-[#3c2415] block">官方消耗品捷徑（點擊扣道具點結算）</span>
+                        <span className="text-t11 text-[#6b5a4b]">
+                          道具點 <strong className="font-mono text-[#3c2415]">{curIp}</strong> / {stats.maxIp}
+                        </span>
+                      </div>
+                    {/* 官方五種基本 IP 消耗品（Core p.104） */}
+                    <div data-testid="hud-ip-consumables" className="pt-2 border-t border-[#e8dcc4] space-y-1.5">
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleUseConsumable('remedy')}
+                          className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.remedy.blocked ? GATED_SHELL_CLASS : ''}`}
+                          title={`大補藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 HP`}
+                          {...gateButtonAttrs(consumableGates.remedy)}
+                        >
+                          <span className={consumableGates.remedy.blocked ? GATED_LABEL_CLASS : ''}>大補藥 (+{50 + secretFormulaSL * 5}HP)</span>
+                          {consumableGates.remedy.blocked ? (
+                            <UnavailableHint gate={consumableGates.remedy} testId="gate-consumable-remedy" />
+                          ) : (
+                            <span className="text-t10">3IP</span>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleUseConsumable('elixir')}
+                          className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.elixir.blocked ? GATED_SHELL_CLASS : ''}`}
+                          title={`萬靈藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 MP`}
+                          {...gateButtonAttrs(consumableGates.elixir)}
+                        >
+                          <span className={consumableGates.elixir.blocked ? GATED_LABEL_CLASS : ''}>萬靈藥 (+{50 + secretFormulaSL * 5}MP)</span>
+                          {consumableGates.elixir.blocked ? (
+                            <UnavailableHint gate={consumableGates.elixir} testId="gate-consumable-elixir" />
+                          ) : (
+                            <span className="text-t10">3IP</span>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleUseConsumable('tonic')}
+                          className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.tonic.blocked ? GATED_SHELL_CLASS : ''}`}
+                          title="滋補藥（消耗 2 IP）：解除所有異常狀態"
+                          {...gateButtonAttrs(consumableGates.tonic)}
+                        >
+                          <span className={consumableGates.tonic.blocked ? GATED_LABEL_CLASS : ''}>滋補藥 (解全狀態)</span>
+                          {consumableGates.tonic.blocked ? (
+                            <UnavailableHint gate={consumableGates.tonic} testId="gate-consumable-tonic" />
+                          ) : (
+                            <span className="text-t10">2IP</span>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleUseConsumable('magicTent')}
+                          className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.magicTent.blocked ? GATED_SHELL_CLASS : ''}`}
+                          title="魔法帳篷（消耗 4 IP）：野外休息回滿 HP／MP 並解除全部狀態"
+                          {...gateButtonAttrs(consumableGates.magicTent)}
+                        >
+                          <span className={consumableGates.magicTent.blocked ? GATED_LABEL_CLASS : ''}>魔法帳篷 (全滿)</span>
+                          {consumableGates.magicTent.blocked ? (
+                            <UnavailableHint gate={consumableGates.magicTent} testId="gate-consumable-magicTent" />
+                          ) : (
+                            <span className="text-t10">4IP</span>
+                          )}
+                        </button>
+                      </div>
+
+                      {/* 元素碎片（2 IP，選風／電／土／火／冰，10+秘密配方SL 點傷害） */}
+                      <div className="flex items-center gap-1 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handleUseConsumable('elementalShard')}
+                          className={`flex-1 px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold flex items-center justify-between ${consumableGates.elementalShard.blocked ? GATED_SHELL_CLASS : ''}`}
+                          title={`元素碎片（消耗 2 IP）：對單一目標造成 ${10 + secretFormulaSL} 點【${shardElement}】傷害`}
+                          {...gateButtonAttrs(consumableGates.elementalShard)}
+                        >
+                          <span className={consumableGates.elementalShard.blocked ? GATED_LABEL_CLASS : ''}>元素碎片 ({10 + secretFormulaSL}點{shardElement}傷)</span>
+                          {consumableGates.elementalShard.blocked ? (
+                            <UnavailableHint gate={consumableGates.elementalShard} testId="gate-consumable-elementalShard" />
+                          ) : (
+                            <span className="text-t10">2IP</span>
+                          )}
+                        </button>
+                        <div className="flex items-center gap-0.5 bg-[#fbf7ee] p-0.5 rounded border border-[#d6c7ab]">
+                          {['風', '電', '土', '火', '冰'].map(el => (
+                            <button
+                              key={el}
+                              type="button"
+                              onClick={() => setShardElement(el)}
+                              className={`px-1.5 py-0.5 rounded text-t10 font-bold transition-colors ${
+                                shardElement === el
+                                  ? 'bg-[#a63d40] text-[#fffdf9]'
+                                  : 'text-[#6b5a4b] hover:text-[#2c221e]'
+                              }`}
+                              title={`切換元素碎片屬性：${el}`}
+                            >
+                              {el}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const gain = 5 + sessionFpGain + sessionUltimaSpent;
-                        adjustExp(gain);
-                        setIsExpSettlementOpen(false);
-                        setSessionFpGain(0);
-                        setSessionUltimaSpent(0);
-                        showToast(`聚會結算完成！獲得 ${gain} 點 EXP（基礎 5 + 物語點 ${sessionFpGain} + 終結點 ${sessionUltimaSpent}）`);
-                      }}
-                      className="w-full py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs"
-                    >
-                      入帳 +{5 + sessionFpGain + sessionUltimaSpent} EXP（基礎 5 + {sessionFpGain} + {sessionUltimaSpent}）
-                    </button>
+                    </div>
+                    <div className="p-3.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-2">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="font-bold text-[#3c2415] block">冒險者行囊物品與武裝</span>
+                        {/* 錢要出現在「做決定的地方」：這裡是看裝備的分頁，
+                            所以餘額與購買入口都放這裡，而不是只留在主面板。
+                            `formatZenit` 自己處理 `null`（＝不知道）→ 破折號。
+                            原本寫 `character.zenit || 0`，那會把「還沒記錄」印成 `0z`，
+                            而 `0z` 是一個合法的「你沒錢」——兩件事不該長得一樣。 */}
+                        <span data-testid="pack-wallet" className="tabular-nums font-black text-t14 text-[#3c2415]">
+                          錢包 {formatZenit(character.zenit)}
+                        </span>
+                      </div>
+                      {/* 四顆按鈕（P10）：與主面板的錢包卡同一套語彙。
+                          這裡不放「收支」那種一顆按鈕包兩種方向的做法——
+                          點下去還要再選一次「這是收入還是支出」，等於把決定推遲到下一步。
+                          購入獨立一顆，因為它走的是 `applyPurchase`（裝備模板、算式、履歷），
+                          與 `applyMoneyFlow` 是兩條路，不該共用一顆按鈕。 */}
+                      <div className="grid grid-cols-4 gap-1.5">
+                        <button
+                          type="button"
+                          data-testid="pack-money-flow"
+                          onClick={() => openMoneyFlow(MONEY_DIRECTIONS.gain)}
+                          title="記一筆進帳（報酬、戰利品、借貸……）"
+                          className="py-1.5 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <GiReceiveMoney className="w-3 h-3" />
+                          收入
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="pack-money-spend"
+                          onClick={() => openMoneyFlow(MONEY_DIRECTIONS.spend)}
+                          title="記一筆花費（住宿、餐費、修裝……）"
+                          className="py-1.5 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <GiPayMoney className="w-3 h-3" />
+                          支出
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="pack-ledger"
+                          onClick={() => setIsLedgerOpen(true)}
+                          title="看這筆錢是怎麼進出的（由成長履歷推導）"
+                          className="py-1.5 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <GiScrollUnfurled className="w-3 h-3 text-[#6b5a4b]" />
+                          明細
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="pack-purchase"
+                          onClick={() => setIsPurchaseOpen(true)}
+                          className="py-1.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
+                        >
+                          <GiCoins className="w-3 h-3 text-[#6b5a4b]" />
+                          購入
+                        </button>
+                      </div>
+                      {/* 四個槽位改成按鈕（P9-b）。
+                          原本是四行唯讀文字——看得到、換不了，唯一的換裝入口在編輯器，
+                          而編輯器是「建卡的地方」。跑團中要換裝備不該先離開跑團面板。
+                          每一格都標「換」，因為一格空白（未裝備）與一格滿的長得一樣，
+                          沒有動詞就沒有人會去點它。 */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {Object.keys(EQUIPMENT_SLOTS).map((slotKey) => {
+                          const slotMeta = EQUIPMENT_SLOTS[slotKey];
+                          const value = character.equipment?.[slotKey];
+                          return (
+                            <button
+                              key={slotKey}
+                              type="button"
+                              data-testid={`pack-slot-${slotKey}`}
+                              onClick={() => setSlotPicker(slotKey)}
+                              title={`更換${slotMeta.label}`}
+                              className="group w-full text-left px-2 py-1.5 rounded border border-[#e8dcc4] bg-[#fffdf9] hover:border-[#3c2415]/40 hover:bg-[#f4ebd9] transition-colors flex items-center justify-between gap-2"
+                            >
+                              <span className="min-w-0">
+                                <span className="block text-t10 text-[#6b5a4b]">{slotMeta.label}</span>
+                                <span className={`block font-bold truncate ${value ? 'text-[#3c2415]' : 'text-[#7c6a58]'}`}>
+                                  {value || slotMeta.emptyValue}
+                                </span>
+                              </span>
+                              <span className="shrink-0 text-t10 text-[#6b5a4b] group-hover:text-[#3c2415] font-bold">
+                                換
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <span className="font-bold text-[#3c2415] block">冒險筆記本</span>
+                      <textarea
+                        value={character.backpackNotes || ''}
+                        onChange={e => updateField('backpackNotes', e.target.value)}
+                        placeholder="在此記錄冒險日記、行囊物品、NPC 線索或秘密契約..."
+                        rows={6}
+                        className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded p-3 text-xs text-[#3c2415] outline-none focus:border-[#3c2415] leading-relaxed shadow-inner"
+                      />
+                    </div>
                   </div>
                 )}
+                </ErrorBoundary>
               </HudWindow>
-
-              {/* 資產窗（P13）：使用者裁定「錢包收成一頁」。
-                  主畫面只留兩個數字與一個入口——收支、履歷、物語點的
-                  六顆按鈕全部搬到「金錢與物語點」分頁，不再擠在右翼。 */}
-              <HudWindow
-                title="資產"
-                icon={GiCoins}
-                testId="hud-assets-window"
-                frameColor={theme.border}
-                bodyClassName="p-3 space-y-2"
-              >
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-t11 font-bold text-[#6b5a4b] flex items-center gap-1">
-                    <GiCoins className="w-3.5 h-3.5" />
-                    資金
-                  </span>
-                  <span data-testid="hud-asset-zenit" className="tabular-nums font-black text-t16 text-[#3c2415]">
-                    {formatZenit(character.zenit)}
-                  </span>
-                </div>
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-t11 font-bold text-[#6b5a4b] flex items-center gap-1">
-                    <GiSparkles className="w-3.5 h-3.5" />
-                    物語點
-                  </span>
-                  <span data-testid="hud-asset-fp" className="tabular-nums font-black text-t16 text-[#3c2415]">
-                    {resolveFabulaPoints(character)} <span className="text-t11 font-normal text-[#7c6a58]">FP</span>
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  data-testid="hud-assets-open"
-                  onClick={() => setActiveTab('money')}
-                  title="收入、支出、明細與物語點都在「金錢與物語點」分頁"
-                  className="w-full py-2 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                >
-                  <GiScrollUnfurled className="w-3.5 h-3.5" />
-                  收支與履歷
-                </button>
-              </HudWindow>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -2615,2007 +4687,6 @@ export default function CharacterPlayHUD({
              於是分頁列的上緣被標頭蓋掉，看起來像「邊框不見了」。
              所以讀 `--chapter-header-h`（`ChapterHeader` 用 ResizeObserver 寫上去，
              fallback 52）。`top-0` 更糟：整條被標頭蓋住＝按不到。 */}
-      <div className="bg-[#fffdf9] rounded border-2 overflow-clip" style={{ borderColor: theme.border }}>
-        <div
-          data-testid="hud-subtabs-bar"
-          className="sticky top-[var(--chapter-header-h,52px)] z-30 flex items-center justify-between gap-2 px-2.5 py-1.5 border-b transition-colors duration-200"
-          style={{ backgroundColor: theme.accentLight, borderColor: theme.border }}
-        >
-          <span className="flex items-center gap-1.5 min-w-0">
-            <span className="text-t11 font-black shrink-0" style={{ color: theme.accent }} aria-hidden="true">▶</span>
-            <span className="font-serif font-black text-t12 tracking-wide truncate" style={{ color: theme.textDark }}>
-              {hudTabLabel}
-            </span>
-            <span className="text-t10 font-mono text-[#7c6a58] shrink-0">
-              第 {hudTabItems.findIndex((t) => t.id === activeTab) + 1} / {hudTabItems.length} 頁
-            </span>
-          </span>
-          <button
-            type="button"
-            data-testid="hud-back-to-commands"
-            onClick={() => { if (hubRef.current) hubRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-            className="text-t11 font-bold text-[#6b5a4b] hover:text-[#2c221e] flex items-center gap-1 shrink-0 px-2 py-1 rounded hover:bg-[#e8dcc4] transition-colors"
-            title="回到左側的指令窗"
-          >
-            ▲ 指令
-          </button>
-        </div>
-
-        <div className="p-4 sm:p-5">
-          <ErrorBoundary
-            inline
-            label={
-              hudTabLabel
-            }
-          >
-            {/* TAB 1: 武器與戰鬥 (Formula Pills & Combat Matrix) */}
-            {activeTab === 'attacks' && (
-            <div className="space-y-4 animate-fade-in text-xs">
-              {/* Defense & Initiative Dashboard */}
-              <div className="space-y-2">
-                <div
-                  className="grid grid-cols-3 gap-3 p-3 rounded border text-center font-mono"
-                  style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleFormula('def')}
-                    title="點擊查看公式"
-                    className="p-2 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
-                  >
-                    <span className="text-[#7c6a58] block text-t12 font-sans font-medium">物理防禦</span>
-                    <span className="text-2xl font-black" style={{ color: theme.textDark }}>{statsUnset ? '—' : stats.def}</span>
-                    <span className="text-t12 text-[#6b5a4b] block mt-0.5 leading-tight">
-                      {stats.currentDex !== stats.def ? `DEX(d${stats.currentDex}) + 盾/裝甲` : `當前 DEX(d${stats.currentDex})`}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleFormula('mdef')}
-                    title="點擊查看公式"
-                    className="p-2 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
-                  >
-                    <span className="text-[#6b5a4b] block text-t12 font-sans font-medium">魔法防禦</span>
-                    <span className="text-2xl font-black text-[#3c2415]">{stats.mdef}</span>
-                    <span className="text-t12 text-[#6b5a4b] block mt-0.5 leading-tight">
-                      {stats.currentIns !== stats.mdef ? `INS(d${stats.currentIns}) + 盾/加值` : `當前 INS(d${stats.currentIns})`}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleFormula('init')}
-                    title="點擊查看公式"
-                    className="p-2 rounded bg-[#fffdf9] border border-[#d6c7ab] hover:border-[#3c2415]/30 transition-colors cursor-pointer"
-                  >
-                    <span className="text-[#7c6a58] block text-t12 font-sans font-medium">先攻修正</span>
-                    <span className="text-2xl font-black text-[#3c2415]">{formatInitiative(stats.init, initiativeVariant)}</span>
-                    <span className="text-t12 text-[#6b5a4b] block mt-0.5 leading-tight">
-                      {initiativeVariant ? '本團採用先攻變體' : '裝備與防具修正'}
-                    </span>
-                  </button>
-                </div>
-
-                <StatFormulaPanel
-                  isOpen={openFormula === 'def'}
-                  title="物理防禦"
-                  breakdown={breakdown.def}
-                  note={STAT_FORMULA_NOTE}
-                  onClose={() => setOpenFormula(null)}
-                />
-                <StatFormulaPanel
-                  isOpen={openFormula === 'mdef'}
-                  title="魔法防禦"
-                  breakdown={breakdown.mdef}
-                  note={STAT_FORMULA_NOTE}
-                  onClose={() => setOpenFormula(null)}
-                />
-                <StatFormulaPanel
-                  isOpen={openFormula === 'init'}
-                  title="先攻修正"
-                  breakdown={breakdown.init}
-                  onClose={() => setOpenFormula(null)}
-                />
-              </div>
-
-              {/* Weapon Attacks Title & Free Roller Button */}
-              <div className="flex items-center justify-between pt-1">
-                <span className="font-bold text-[#3c2415] text-xs flex items-center gap-1.5">
-                  <GiCrossedSwords className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                  <span>當前武裝與命中公式膠囊 (點擊公式直接擲骰)</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsFreeRollModalOpen(true)}
-                  className="px-2.5 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t12 font-bold flex items-center gap-1 transition-colors"
-                >
-                  <GiRollingDices className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                  <span>自由雙屬性檢定</span>
-                </button>
-              </div>
-
-              {/* Main Hand Weapon Pill Card */}
-              <div
- className="p-3.5 rounded border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdf9]"
-                style={{ borderColor: theme.border }}
-              >
-                <div>
-                  <div className="font-bold text-sm flex items-center gap-1.5" style={{ color: theme.textDark }}>
-                    <FUIcon name={mainWeapon.range?.includes('遠程') ? 'ranged' : 'melee'} className="text-base shrink-0" style={{ color: theme.accent }} />
-                    <span>{mainWeapon.name}</span>
-                    <span className="text-t12 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#e8dcc4]">
-                      主手 · {mainWeapon.range || '近戰'}
-                    </span>
-                    {/* 可變形武器：衝突中就靠這一顆換型態（原書 p.107：每回合一次） */}
-                    {switchForm && (
-                      <button
-                        type="button"
-                        onClick={handleSwitchForm}
-                        title="可變形武器：隨時可切換型態。衝突場景中只能在你的回合、且每回合一次（HF p.107）"
-                        className="text-t12 px-2 py-0.5 rounded border font-bold flex items-center gap-1 transition-colors"
-                        style={{ borderColor: theme.border, color: theme.accent, backgroundColor: theme.cardBg }}
-                      >
-                        <GiCycle className="w-3 h-3" />
-                        <span>變形 → {switchForm.name}</span>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Formula Pills */}
-                  <div className="flex items-center gap-2 mt-2 flex-wrap">
-                    {/* Check Formula Pill */}
-                    <button
-                      type="button"
-                      onClick={() => openCharacterDice({
-                        die1: mainCheck.die1,
-                        die2: mainCheck.die2,
-                        modifier: mainCheck.mod,
-                        damageBonus: mainDamage.hrBonus,
-                        damageType: mainDamage.damageType,
-                        label: `${mainWeapon.name} 命中判定 [${mainCheck.attr1} + ${mainCheck.attr2}]`
-                      })}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all"
-                      title="點擊直接擲骰命中檢定（自動附帶 HR 傷害計算）"
-                    >
-                      <GiRollingDices className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                      <span>[{mainCheck.attr1} + {mainCheck.attr2}]{mainCheck.mod !== 0 ? ` + ${mainCheck.mod}` : ''}</span>
-                      <span className="text-t12 text-[#6b5a4b] font-normal">
-                        (d{mainCheck.die1}+d{mainCheck.die2})
-                      </span>
-                    </button>
-
-                    {/* Damage Formula Pill */}
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
-                      <span>[HR + {mainDamage.hrBonus}]</span>
-                      <FUIcon name={mainDamage.damageType} className="text-sm shrink-0" />
-                      <span className="text-t12 font-sans text-[#6b5a4b]">{mainDamage.damageType}</span>
-                    </span>
-                  </div>
-
-                  {/* 定制武器或制式武器的特殊規則描述 */}
-                  {mainWeapon.isCustomWeapon && mainWeapon.effectText ? (
-                    <p
-                      className="text-t12 mt-2 leading-relaxed"
-                      style={{ color: theme.textMuted }}
-                    >
-                      {renderTextWithAffinities(mainWeapon.effectText)}
-                    </p>
-                  ) : (mainWeapon.desc && mainWeapon.desc !== '無特殊效果' && (
-                    <p
-                      className="text-t12 mt-2 leading-relaxed"
-                      style={{ color: theme.textMuted }}
-                    >
-                      {renderTextWithAffinities(mainWeapon.desc)}
-                    </p>
-                  ))}
-                </div>
-
-                <div className="flex items-center gap-1.5 self-end sm:self-center">
-                  <CopyTextButton
-                    testId="copy-main-weapon"
-                    toastLabel={mainWeapon.name}
-                    showToast={showToast}
-                    getText={() =>
-                      formatWeaponCopyText({
-                        weapon: {
-                          ...mainWeapon,
-                          type: mainWeapon.range || mainWeapon.type || '近戰'
-                        },
-                        slotLabel: '主手武裝',
-                        check: {
-                          formula: `[${mainCheck.attr1} + ${mainCheck.attr2}]${mainCheck.mod !== 0 ? ` + ${mainCheck.mod}` : ''}`,
-                          diceStr: `d${mainCheck.die1}+d${mainCheck.die2}`
-                        },
-                        damage: {
-                          text: `[HR + ${mainDamage.hrBonus}]`,
-                          type: mainDamage.damageType
-                        },
-                        characterName: character.name
-                      })
-                    }
-                  />
-                  <button
-                    type="button"
-                    onClick={() => openCharacterDice({
-                      die1: mainCheck.die1,
-                      die2: mainCheck.die2,
-                      modifier: mainCheck.mod,
-                      damageBonus: mainDamage.hrBonus,
-                      damageType: mainDamage.damageType,
-                      label: `${mainWeapon.name} 命中檢定`
-                    })}
-                    className="px-3 py-1.5 rounded text-white font-bold text-xs flex items-center gap-1.5 shrink-0"
-                    style={{ backgroundColor: theme.accent }}
-                  >
-                    <GiRollingDices className="w-4 h-4" />
-                    <span>擲骰</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Off Hand Weapon or Shield Pill Card */}
-              {offWeapon && (
-                <div
-                  className="p-3.5 rounded border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fffdf9]"
-                  style={{ borderColor: theme.border }}
-                >
-                  <div>
-                    <div className="font-bold text-sm flex items-center gap-1.5" style={{ color: theme.textDark }}>
-                      <FUIcon name={offWeapon.range?.includes('遠程') ? 'ranged' : 'melee'} className="text-base shrink-0" style={{ color: theme.accent }} />
-                      <span>{offWeapon.name}</span>
-                      <span className="text-t12 font-mono px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#e8dcc4]">
-                        副手 · {offWeapon.range || '近戰'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <button
-                        type="button"
-                        onClick={() => openCharacterDice({
-                          die1: offCheck.die1,
-                          die2: offCheck.die2,
-                          modifier: offCheck.mod,
-                          damageBonus: offDamage.hrBonus,
-                          damageType: offDamage.damageType,
-                          label: `${offWeapon.name} 命中判定 [${offCheck.attr1} + ${offCheck.attr2}]`
-                        })}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] transition-all"
-                        title="點擊直接擲骰命中檢定（自動附帶 HR 傷害計算）"
-                      >
-                        <GiRollingDices className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                        <span>[{offCheck.attr1} + {offCheck.attr2}]{offCheck.mod !== 0 ? ` + ${offCheck.mod}` : ''}</span>
-                        <span className="text-t12 text-[#6b5a4b] font-normal">
-                          (d{offCheck.die1}+d{offCheck.die2})
-                        </span>
-                      </button>
-
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded font-mono font-bold text-xs bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
-                        <span>[HR + {offDamage.hrBonus}]</span>
-                        <FUIcon name={offDamage.damageType} className="text-sm shrink-0" />
-                        <span className="text-t12 font-sans text-[#6b5a4b]">{offDamage.damageType}</span>
-                      </span>
-                    </div>
-
-                    {offWeapon.desc && offWeapon.desc !== '無特殊效果' && (
-                      <p
-                        className="text-t12 mt-2 leading-relaxed"
-                        style={{ color: theme.textMuted }}
-                      >
-                        {renderTextWithAffinities(offWeapon.desc)}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1.5 self-end sm:self-center">
-                    <CopyTextButton
-                      testId="copy-off-weapon"
-                      toastLabel={offWeapon.name}
-                      showToast={showToast}
-                      getText={() =>
-                        formatWeaponCopyText({
-                          weapon: {
-                            ...offWeapon,
-                            type: offWeapon.range || offWeapon.type || '近戰'
-                          },
-                          slotLabel: '副手武裝',
-                          check: {
-                            formula: `[${offCheck.attr1} + ${offCheck.attr2}]${offCheck.mod !== 0 ? ` + ${offCheck.mod}` : ''}`,
-                            diceStr: `d${offCheck.die1}+d${offCheck.die2}`
-                          },
-                          damage: {
-                            text: `[HR + ${offDamage.hrBonus}]`,
-                            type: offDamage.damageType
-                          },
-                          characterName: character.name
-                        })
-                      }
-                    />
-                    <button
-                      type="button"
-                      onClick={() => openCharacterDice({
-                        die1: offCheck.die1,
-                        die2: offCheck.die2,
-                        modifier: offCheck.mod,
-                        damageBonus: offDamage.hrBonus,
-                        damageType: offDamage.damageType,
-                        label: `${offWeapon.name} 命中檢定`
-                      })}
-                      className="px-3 py-1.5 rounded text-white font-bold text-xs flex items-center gap-1.5 shrink-0"
-                      style={{ backgroundColor: theme.accent }}
-                    >
-                      <GiRollingDices className="w-4 h-4" />
-                      <span>擲骰</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Free Unarmed Strike Shortcut */}
-              <div className="p-2.5 rounded border border-dashed border-[#d6c7ab] bg-[#fbf7ee] flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 flex-wrap font-mono text-t12">
-                  <span className="font-bold text-[#3c2415] font-sans">徒手/自由打擊:</span>
-                  <button
-                    type="button"
-                    onClick={() => openCharacterDice({
-                      die1: unarmedCheck.die1,
-                      die2: unarmedCheck.die2,
-                      modifier: 0,
-                      damageBonus: unarmedBonus,
-                      damageType: '物理',
-                      label: '徒手打擊 命中判定 [DEX + MIG]'
-                    })}
-                    className="px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#e8dcc4] font-bold"
-                  >
-                    [DEX + MIG]
-                  </button>
-                  <span className="text-[#6b5a4b] font-bold">[HR + {unarmedBonus}] 物理</span>
-                </div>
-              </div>
-
-              {/* Equipment Breakdown (with special rules desc for shield, armor, and accessory) */}
-              {(() => {
-                const offHandName = normalizeEquipmentName(character.equipment?.offHand || '');
-                const armorName = normalizeEquipmentName(character.equipment?.armor || '');
-                const accName = normalizeEquipmentName(character.equipment?.accessory || '');
-                const shieldDef = offHandName
-                  ? (rulesData.equipment?.shields || []).find(s => s.name === offHandName)
-                  : null;
-                const armorDef = armorName
-                  ? (rulesData.equipment?.armors || []).find(a => a.name === armorName)
-                  : null;
-                const accDef = accName
-                  ? (rulesData.equipment?.accessories || []).find(a => a.name === accName)
-                  : null;
-                return (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-t12 pt-2 border-t">
-                    <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[#6b5a4b] block font-sans">副手/盾牌:</span>
-                        {shieldDef && (
-                          <CopyTextButton
-                            testId="copy-shield"
-                            toastLabel={offHandName}
-                            showToast={showToast}
-                            getText={() =>
-                              formatEquipmentCopyText({
-                                slotLabel: '副手盾牌',
-                                item: shieldDef,
-                                characterName: character.name
-                              })
-                            }
-                          />
-                        )}
-                      </div>
-                      <strong className="text-[#3c2415] block">{offHandName || '無'}</strong>
-                      {shieldDef && (
-                        <div className="font-sans text-t11 text-[#6b5a4b] leading-snug">
-                          <span>物防 {shieldDef.def || '+0'} / 魔防 {shieldDef.mdef || '+0'}</span>
-                          {shieldDef.desc && shieldDef.desc !== '無特殊效果' && (
-                            <p className="mt-0.5 text-[#3c2415]">{renderTextWithAffinities(shieldDef.desc)}</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[#6b5a4b] block font-sans">防具裝甲:</span>
-                        {armorDef && (
-                          <CopyTextButton
-                            testId="copy-armor"
-                            toastLabel={armorName}
-                            showToast={showToast}
-                            getText={() =>
-                              formatEquipmentCopyText({
-                                slotLabel: '防具裝甲',
-                                item: armorDef,
-                                characterName: character.name
-                              })
-                            }
-                          />
-                        )}
-                      </div>
-                      <strong className="text-[#3c2415] block">{armorName || '無'}</strong>
-                      {armorDef && (
-                        <div className="font-sans text-t11 text-[#6b5a4b] leading-snug">
-                          <span>物防 {armorDef.def} / 魔防 {armorDef.mdef}</span>
-                          {armorDef.desc && armorDef.desc !== '無特殊效果' && (
-                            <p className="mt-0.5 text-[#3c2415]">{renderTextWithAffinities(armorDef.desc)}</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-2.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-1">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[#6b5a4b] block font-sans">佩戴飾品:</span>
-                        {(accDef || accName) && (
-                          <CopyTextButton
-                            testId="copy-accessory"
-                            toastLabel={accName}
-                            showToast={showToast}
-                            getText={() =>
-                              formatEquipmentCopyText({
-                                slotLabel: '佩戴飾品',
-                                item: accDef || { name: accName, desc: '無特殊效果' },
-                                characterName: character.name
-                              })
-                            }
-                          />
-                        )}
-                      </div>
-                      <strong className="text-[#3c2415] block">{accName || '無'}</strong>
-                      {accDef?.desc && accDef.desc !== '無特殊效果' && (
-                        <p className="font-sans text-t12 text-[#3c2415] leading-snug">
-                          {renderTextWithAffinities(accDef.desc)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Pilot Personal Vehicle in Combat (if active) */}
-              {isClassPanelActive(character, '機師') && (
-                <div className="pt-2 border-t">
-                  <PilotVehicleCombatSheet
-                    character={character}
-                    onChange={onChange}
-                    onOpenDice={onOpenDice}
-                    showToast={showToast}
-                  />
-                </div>
-              )}
-
-              {/* Wayfarer Companion in Combat (if active) */}
-              {isClassPanelActive(character, '旅人') && (
-                <div className="pt-2 border-t">
-                  <WayfarerCompanionSheet
-                    character={character}
-                    onChange={onChange}
-                    onOpenDice={onOpenDice}
-                    showToast={showToast}
-                  />
-                </div>
-              )}
-
-              {/* 死靈術士【殘酷的誕生】的僕從。條件是「有沒有拿那個英雄技能」——
-                  僕從的有無則看 `necroData.minion.active`，摧毀後面板會回到空狀態。 */}
-              {isClassPanelActive(character, '死靈術士') && (
-                <div className="pt-2 border-t">
-                  <NecromancerMinionSheet
-                    character={character}
-                    onChange={onChange}
-                    showToast={showToast}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 2: 咒語與魔法 (Dedicated Spells Tab) */}
-          {activeTab === 'spells' && (() => {
-            const resolvedSpells = resolveCharacterSpells(character);
-            return (
-            <div className="space-y-4 animate-fade-in text-xs">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
-                  <GiSpellBook className="w-4 h-4 text-[#6b5a4b]" />
-                  <span>已掌握的咒語與儀式</span>
-                </span>
-                {/* 清單為空時**收起**標頭這顆：空狀態裡已經有一顆講得更清楚的
-                    「從規則庫選擇習得咒語」。同一屏兩顆按鈕做同一件事，
-                    使用者會以為它們不一樣（§3.4 立過此例，工坊那次是反過來收空狀態那顆）。 */}
-                {resolvedSpells.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setIsSpellModalOpen(true)}
-                    className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>學習新咒語</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Spells Cards List */}
-              {resolvedSpells.length > 0 ? (
-                <div className="space-y-2.5">
-                  {resolvedSpells.map((sp, idx) => {
-                    const isOffensive = Boolean(sp.isOffensive);
-                    const spellCheck = parseCheckFormula('INS + WLP', stats);
-                    const spellDamage = parseDamageFormula(sp.effect || '');
-                    const isExpanded = !!expandedSpells[sp.name];
-                    // 事前可用性：這一條咒語現在付不付得起。`sp.mp` 缺漏時
-                    // `describeCostGate` 回「沒有成本」→ 不擋（不知道就不嚇人）。
-                    const spellGate = describeCostGate({ cost: sp.mp, current: curMp, unit: GATE_UNITS.mp });
-
-                    return (
-                      <div
-                        key={idx}
-                        className="p-3.5 rounded border bg-white space-y-2 transition-all hover:border-[#3c2415]"
-                        style={{ borderColor: theme.border }}
-                      >
-                        {/* Spell Header */}
-                        <div className="flex items-start justify-between gap-2 flex-wrap">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <div className="w-6 h-6 rounded bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-center shrink-0">
-                              <FUIcon name={isOffensive ? 'offensive' : 'spell'} className="text-sm" />
-                            </div>
-                            <h4 className="font-serif font-black text-sm text-[#3c2415] flex items-center gap-1.5">
-                              {isOffensive && <span className="fu-icon text-[#8c3235] font-bold" title="攻擊性咒語">o</span>}
-                              <span>{sp.name}</span>
-                            </h4>
-                            <span className="text-t12 px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] font-bold">
-                              {sp.school || '通用'}
-                            </span>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex items-center gap-1.5 ml-auto">
-                            <CopyTextButton
-                              testId={`copy-spell-${idx}`}
-                              toastLabel={sp.name}
-                              showToast={showToast}
-                              getText={() =>
-                                formatSpellCopyText({
-                                  spell: sp,
-                                  checkFormula: isOffensive
-                                    ? `[INS + WLP] (d${spellCheck.die1}+d${spellCheck.die2})${spellCheck.mod !== 0 ? ` + ${spellCheck.mod}` : ''}`
-                                    : '',
-                                  damageFormula:
-                                    isOffensive && spellDamage.damageType
-                                      ? `[HR + ${spellDamage.hrBonus}] ${spellDamage.damageType}`
-                                      : '',
-                                  characterName: character.name
-                                })
-                              }
-                            />
-                            <UnavailableHint gate={spellGate} testId={`gate-spell-${idx}`} />
-                            <button
-                              type="button"
-                              onClick={() => handleCastSpell(sp)}
-                              className={`px-2.5 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-xs transition-colors flex items-center gap-1 ${spellGate.blocked ? GATED_BUTTON_CLASS : ''}`}
-                              {...gateButtonAttrs(spellGate)}
-                            >
-                              <span>施放 (-{sp.mp})</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleForgetSpell(sp.name)}
-                              className="p-1 rounded text-[#7c6a58] hover:text-[#8c3235] transition-colors"
-                              title="遺忘咒語"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Formula Pills Row */}
-                        <div className="flex items-center gap-2 flex-wrap font-mono text-t12">
-                          <span className="px-2 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#e8dcc4] font-bold">
-                            {sp.mp} MP
-                          </span>
-                          <span className="px-2 py-0.5 rounded bg-[#fbf7ee] text-[#3c2415] border border-[#e8dcc4] font-sans">
-                            {sp.target || '單體'}
-                          </span>
-                          <span className="px-2 py-0.5 rounded bg-[#fbf7ee] text-[#3c2415] border border-[#e8dcc4] font-sans">
-                            {sp.duration || '瞬發'}
-                          </span>
-
-                          {/* Offensive Check Pill */}
-                          {isOffensive && (
-                            <button
-                              type="button"
-                              onClick={() => openCharacterDice({
-                                die1: spellCheck.die1,
-                                die2: spellCheck.die2,
-                                modifier: spellCheck.mod,
-                                damageBonus: spellDamage.hrBonus,
-                                damageType: spellDamage.damageType || '無',
-                                label: `${sp.name} 魔法判定 [INS + WLP]`
-                              })}
-                              className="px-2.5 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1 transition-colors"
-                              title="點擊直接擲骰魔法判定（自動附帶 HR 傷害計算）"
-                            >
-                              <GiRollingDices className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                              <span>[INS + WLP]</span>
-                              <span className="text-t12 text-[#6b5a4b] font-normal">(d{spellCheck.die1}+d{spellCheck.die2})</span>
-                            </button>
-                          )}
-
-                          {isOffensive && spellDamage.damageType && (
-                            <span className="px-2 py-0.5 rounded bg-[#f4ebd9] text-[#8c3235] border border-[#e8dcc4] font-bold flex items-center gap-1">
-                              <span>[HR + {spellDamage.hrBonus}]</span>
-                              <FUIcon name={spellDamage.damageType} className="text-xs" />
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Expandable description */}
-                        {sp.effect && (
-                          <div className="pt-1">
-                            <button
-                              type="button"
-                              onClick={() => toggleSpellExpand(sp.name)}
-                              className="text-t12 text-[#7c6a58] hover:text-[#2c221e] flex items-center gap-1 font-medium mb-1"
-                            >
-                              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                              <span>{isExpanded ? '收合效果詳情' : '展開效果詳情'}</span>
-                            </button>
-                            {isExpanded && (
-                              <p className="text-t12 text-[#6b5a4b] bg-[#fbf7ee] p-2.5 rounded border border-[#e8dcc4] leading-relaxed whitespace-pre-wrap">
-                                {renderTextWithAffinities(sp.effect)}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="p-8 text-center bg-[#fbf7ee] rounded border border-dashed border-[#d6c7ab] flex flex-col items-center justify-center">
-                  <GiSpellBook className="w-9 h-9 text-[#6b5a4b]" />
-                  <p className="mt-2.5 font-bold text-[#3c2415] text-sm tracking-wide">尚未掌握任何咒語</p>
-                  <p className="mt-1 text-[#6b5a4b] text-xs leading-relaxed max-w-md">
-                    咒語分攻擊與輔助兩種，學習時從規則庫挑選並扣除對應的 MP 上限；不走施法路線的角色可以整段略過。
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setIsSpellModalOpen(true)}
-                    className="mt-4 px-3.5 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] active:bg-[#8c3235] text-[#fffdf9] font-bold text-xs shadow-e1 transition-colors"
-                  >
-                    從規則庫選擇習得咒語
-                  </button>
-                </div>
-              )}
-
-              {/* 儀式魔法速查與施展計算器（Core p.118–121） */}
-              {(() => {
-                const POTENCY_MAP = {
-                  minor: { key: 'minor', label: '小', mp: 20, dl: 7, clock: '4 格' },
-                  medium: { key: 'medium', label: '中', mp: 30, dl: 10, clock: '6 格' },
-                  major: { key: 'major', label: '大', mp: 40, dl: 13, clock: '6 格' },
-                  extreme: { key: 'extreme', label: '強', mp: 50, dl: 16, clock: '8 格' }
-                };
-                const AREA_MAP = {
-                  individual: { key: 'individual', label: '個體 ×1', mult: 1 },
-                  small: { key: 'small', label: '小型 ×2', mult: 2 },
-                  large: { key: 'large', label: '大型 ×3', mult: 3 },
-                  huge: { key: 'huge', label: '巨型 ×4', mult: 4 }
-                };
-                const RITUAL_SKILLS = [
-                  { skill: '秘儀學派儀式', name: '秘儀學派', formula: 'WLP + WLP' },
-                  { skill: '嵌合學派儀式', name: '嵌合學派', formula: 'INS + WLP' },
-                  { skill: '元素學派儀式', name: '元素學派', formula: 'INS + WLP' },
-                  { skill: '熵系學派儀式', name: '熵系學派', formula: 'INS + WLP' },
-                  { skill: '靈魂學派儀式', name: '靈魂學派', formula: 'INS + WLP' },
-                  { skill: '儀式學派', name: '儀式學派', formula: 'INS + WLP' }
-                ];
-                const learnedRituals = [];
-                (character.classes || []).forEach(cl => {
-                  (cl.skills || []).forEach(sk => {
-                    if ((sk.sl || 0) <= 0) return;
-                    const normName = normalizeSkillName(sk.name);
-                    const found = RITUAL_SKILLS.find(r => r.skill === normName);
-                    if (found && !learnedRituals.some(x => x.name === found.name)) {
-                      learnedRituals.push(found);
-                    }
-                    if (normName === '儀式學派' && Array.isArray(sk.selectedOptions)) {
-                      sk.selectedOptions.forEach(opt => {
-                        if (!learnedRituals.some(x => x.name === opt)) {
-                          learnedRituals.push({ skill: '儀式學派', name: opt, formula: opt.includes('秘儀') ? 'WLP + WLP' : 'INS + WLP' });
-                        }
-                      });
-                    }
-                  });
-                });
-                const pot = POTENCY_MAP[ritualPotency] || POTENCY_MAP.minor;
-                const ar = AREA_MAP[ritualArea] || AREA_MAP.individual;
-                const rawMp = pot.mp * ar.mult;
-                const finalMp = ritualHasIngredient ? Math.floor(rawMp / 2) : rawMp;
-                const ritualGate = describeCostGate({ cost: finalMp, current: curMp, unit: GATE_UNITS.mp });
-
-                return (
-                  <div
-                    data-testid="hud-ritual-calculator"
-                    className="p-3.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-2.5"
-                  >
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <span className="font-bold text-xs text-[#3c2415] flex items-center gap-1.5">
-                        <GiCrystalBall className="w-4 h-4 text-[#8c3235]" />
-                        <span>儀式魔法（效力 × 範圍 MP 與難度計算器）</span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => openRuleCodex('儀式魔法')}
-                        className="px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-t11 font-bold text-[#3c2415]"
-                      >
-                        儀式規則速查
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 flex-wrap text-t11">
-                      <span className="text-[#6b5a4b] font-bold">已掌握儀式學派:</span>
-                      {learnedRituals.length > 0 ? learnedRituals.map((r, rIdx) => (
-                        <span
-                          key={rIdx}
-                          className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] text-[#3c2415] font-bold"
-                        >
-                          ✦ {r.name} [{r.formula}]
-                        </span>
-                      )) : (
-                        <span className="text-[#7c6a58]">尚未習得儀式特技（同伴施展儀式時仍可參與團隊檢定協助）</span>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-t11">
-                      <div className="space-y-1">
-                        <span className="text-[#6b5a4b] font-bold block">1. 儀式效力（決定基礎 MP 與難度 DL）</span>
-                        <div className="grid grid-cols-4 gap-1">
-                          {Object.values(POTENCY_MAP).map(item => (
-                            <button
-                              key={item.key}
-                              type="button"
-                              onClick={() => setRitualPotency(item.key)}
-                              className={`py-1 px-1.5 rounded border font-bold transition-colors ${
-                                ritualPotency === item.key
-                                  ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235]'
-                                  : 'bg-[#fffdf9] text-[#3c2415] border-[#d6c7ab] hover:bg-[#f4ebd9]'
-                              }`}
-                            >
-                              <div>{item.label} ({item.mp})</div>
-                              <div className="text-t10 opacity-90">DL {item.dl}</div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <span className="text-[#6b5a4b] font-bold block">2. 影響範圍（決定 MP 倍率）</span>
-                        <div className="grid grid-cols-4 gap-1">
-                          {Object.values(AREA_MAP).map(item => (
-                            <button
-                              key={item.key}
-                              type="button"
-                              onClick={() => setRitualArea(item.key)}
-                              className={`py-1.5 px-1 rounded border font-bold transition-colors ${
-                                ritualArea === item.key
-                                  ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235]'
-                                  : 'bg-[#fffdf9] text-[#3c2415] border-[#d6c7ab] hover:bg-[#f4ebd9]'
-                              }`}
-                            >
-                              {item.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-1 border-t border-[#e8dcc4] flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-3 flex-wrap text-t12">
-                        <label className="inline-flex items-center gap-1.5 cursor-pointer font-bold text-[#3c2415]">
-                          <input
-                            type="checkbox"
-                            checked={ritualHasIngredient}
-                            onChange={e => setRitualHasIngredient(e.target.checked)}
-                            className="rounded border-[#d6c7ab]"
-                          />
-                          <span>提供稀有材料（MP 減半）</span>
-                        </label>
-                        <span className="font-bold text-[#8c3235]">
-                          總消耗：{finalMp} MP · 難度 DL {pot.dl} · 衝突命刻 {pot.clock}
-                        </span>
-                      </div>
-
-                      <UnavailableHint gate={ritualGate} testId="gate-ritual" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (curMp < finalMp) {
-                            showToast(`MP 不足！施展此儀式需要 ${finalMp} 點 MP`, 'warning');
-                            return;
-                          }
-                          adjustMp(-finalMp);
-                          const formulaStr = learnedRituals[0]?.formula || 'INS + WLP';
-                          const rCheck = parseCheckFormula(formulaStr, stats);
-                          openCharacterDice({
-                            die1: rCheck.die1,
-                            die2: rCheck.die2,
-                            modifier: rCheck.mod,
-                            label: `施展儀式（效力${pot.label}×${ar.label}，DL ${pot.dl}）[${formulaStr}]`
-                          });
-                        }}
-                        className={`px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 ${ritualGate.blocked ? GATED_BUTTON_CLASS : ''}`}
-                        {...gateButtonAttrs(ritualGate)}
-                      >
-                        <GiRollingDices className="w-3.5 h-3.5" />
-                        <span>扣除 {finalMp} MP 並擲儀式檢定 (DL {pot.dl})</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Chimerist Spells in Magic Tab (if active) */}
-              {isClassPanelActive(character, '嵌合師') && (
-                <div className="pt-2 border-t">
-                  <ChimeristManager
-                    character={character}
-                    onChange={onChange}
-                    onOpenDice={onOpenDice}
-                    showToast={showToast}
-                  />
-                </div>
-              )}
-            </div>
-            );
-          })()}
-
-          {/* TAB 3: 職業特技 (Class Skills - Streamlined) */}
-          {activeTab === 'skills' && (
-            <div className="space-y-4 animate-fade-in text-xs">
-              {(character.classes || []).map((cl, cIdx) => {
-                const cName = normalizeClassName(cl.className);
-                const classDef = rulesData.classes[cName];
-                const freeBenefitLabel = describeFreeBenefit(classDef, cl);
-                return (
-                <div key={cIdx} className="space-y-2">
-                  <div className="flex items-center justify-between gap-2 flex-wrap border-b pb-1" style={{ borderColor: theme.border }}>
-                    <div className="flex items-center gap-2">
-                      <span className="font-serif font-black text-sm" style={{ color: theme.textDark }}>{withEn(cName)}</span>
-                      <JRPGBadge variant={theme.badgeVariant} size="xs">Lv {cl.level}</JRPGBadge>
-                    </div>
-                    {freeBenefitLabel && (
-                      <span className="text-t11 px-2 py-0.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] text-[#6b5a4b]">
-                        免費增益：{freeBenefitLabel}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* F-020（2026-10-27）：這個職業的面板不在這一頁時，直接說它在哪。
-                      以前「武器與戰鬥」與「職業特技」各掛一次同一份面板（DOM 加倍），
-                      而死靈術士只在「武器與戰鬥」——玩家學了【殘酷的誕生】會來這裡找，然後以為沒做。
-                      現在面板只掛一次，這一頁只負責指路。文案與判斷都來自 `data/classPanels.js`。 */}
-                  {classPanelHint(character, cName, 'skills') ? (
-                    <p
-                      className="text-t11 leading-relaxed rounded border-l-2 pl-2 py-1"
-                      style={{ color: theme.textMuted, borderColor: theme.accent }}
-                      data-testid={`class-panel-hint-${cName}`}
-                    >
-                      ※ {classPanelHint(character, cName, 'skills')}
-                    </p>
-                  ) : null}
-
-                  <div className="space-y-2">
-                    {(cl.skills || []).map((sk, sIdx) => {
-                      const normSkName = normalizeSkillName(sk.name);
-                      const skillDef = classDef?.skills?.find(s => s.name === normSkName);
-                      const display = resolveSkillDisplay({ ...sk, name: normSkName }, skillDef);
-                      const isExpanded = !!expandedSkills[`${cName}_${normSkName}`];
-
-                      return (
-                        <div key={sIdx} className="p-3 bg-white rounded border transition-all hover:border-[#3c2415]" style={{ borderColor: theme.border }}>
-                          <div className="flex items-center justify-between font-bold mb-1">
-                            <span className="flex items-center gap-1.5" style={{ color: theme.textDark }}>
-                              <span style={{ color: theme.accent }}>✦</span>
-                              <span>{display.name}</span>
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                              {cName === '修補匠' && normSkName === '小工具' && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openRuleCodex('小工具');
-                                  }}
-                                  className="px-2 py-0.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center gap-1 transition-all cursor-pointer"
-                                  title="開啟小工具官方手冊完整速查大表 (手冊 p.212~216)"
-                                >
-                                  <GiSpellBook className="text-[#6b5a4b] text-xs" />
-                                  <span>規則索引</span>
-                                </button>
-                              )}
-                              <CopyTextButton
-                                testId={`copy-skill-${cName}-${normSkName}`}
-                                toastLabel={display.name}
-                                showToast={showToast}
-                                getText={() =>
-                                  formatSkillCopyText({
-                                    className: cName,
-                                    name: display.name,
-                                    sl: sk.sl,
-                                    maxSL: display.maxSL || 5,
-                                    desc: display.desc || '',
-                                    characterName: character.name,
-                                    characterLevel,
-                                    character
-                                  })
-                                }
-                              />
-                              <span className="font-mono text-xs px-2 py-0.5 rounded bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]">
-                                SL {sk.sl} / {display.maxSL || 5}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="text-t14 text-[#6b5a4b] leading-relaxed">
-                            <div className={isExpanded ? '' : 'line-clamp-2'}>
-                              <SkillDescription desc={display.desc || '暫無描述'} sl={sk.sl} characterLevel={characterLevel} character={character} refSource={display.name} />
-                            </div>
-                            {display.desc && display.desc.length > 80 && (
-                              <button
-                                type="button"
-                                onClick={() => toggleSkillExpand(`${cName}_${normSkName}`)}
-                                className="text-t12 text-[#3c2415] font-bold mt-1 flex items-center gap-0.5 cursor-pointer"
-                              >
-                                {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                                <span>{isExpanded ? '收合' : '展開完整效果'}</span>
-                              </button>
-                            )}
-                          </div>
-
-                          {/* 子項目已掌握清單與專屬機制 */}
-                          {sk.selectedOptions && (Array.isArray(sk.selectedOptions) ? sk.selectedOptions.length > 0 : ((sk.selectedOptions.keys || []).length > 0 || (sk.selectedOptions.tones || []).length > 0)) && (
-                            <div className="mt-2.5 pt-2 border-t border-[#e8dcc4] space-y-2.5">
-                              {/* 1. 若為魔奏者【魔法演奏】，常駐渲染即時合成器 */}
-                              {cName === '魔奏者' && normSkName === '魔法演奏' && (
-                                <ChanterComposer
-                                  character={character}
-                                  selectedOptions={sk.selectedOptions}
-                                  onConsumeMp={(mpCost) => adjustMp(-mpCost)}
-                                  showToast={showToast}
-                                />
-                              )}
-
-                              {/* 2. 若為植物學家【植生術】，常駐渲染花園生長盤 */}
-                              {cName === '植物學家' && normSkName === '植生術' && (
-                                <FloristGardenTracker
-                                  character={character}
-                                  skillSL={sk.sl}
-                                  selectedOptions={sk.selectedOptions}
-                                  onChange={onChange}
-                                  showToast={showToast}
-                                />
-                              )}
-
-                              {/* 3. 子項目效果速查清單與視圖切換 */}
-                              <div className="flex items-center justify-between text-t12 font-bold text-[#3c2415]">
-                                <span className="flex items-center gap-1 text-[#6b5a4b]">
-                                  <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                                  <span>已掌握項目戰鬥速查：</span>
-                                </span>
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const key = `${cName}_${normSkName}`;
-                                    setCollapsedSuboptions(prev => ({ ...prev, [key]: !prev[key] }));
-                                  }}
-                                  className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] font-normal transition-colors cursor-pointer"
-                                >
-                                  {collapsedSuboptions[`${cName}_${normSkName}`] ? '展開效果卡片' : '收合為標籤'}
-                                </button>
-                              </div>
-
-                              {collapsedSuboptions[`${cName}_${normSkName}`] ? (
-                                <div className="flex flex-wrap gap-1.5">
-                                  {Array.isArray(sk.selectedOptions) ? (
-                                    sk.selectedOptions.map((optName, oIdx) => (
-                                      <span
-                                        key={oIdx}
-                                        onClick={() => {
-                                          const key = `${cName}_${normSkName}`;
-                                          setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
-                                        }}
-                                        title="點擊展開查看效果"
-                                        className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                                      >
-                                        <span className="text-[#6b5a4b]">✦</span>
-                                        <span>{optName}</span>
-                                      </span>
-                                    ))
-                                  ) : (
-                                    <>
-                                      {(sk.selectedOptions.keys || []).map((k, kIdx) => (
-                                        <span
-                                          key={`k_${kIdx}`}
-                                          onClick={() => {
-                                            const key = `${cName}_${normSkName}`;
-                                            setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
-                                          }}
-                                          title="點擊展開查看效果"
-                                          className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#e8dcc4] font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                                        >
-                                          <span className="text-[#6b5a4b] text-t12">音調</span>
-                                          <span>{k}</span>
-                                        </span>
-                                      ))}
-                                      {(sk.selectedOptions.tones || []).map((t, tIdx) => (
-                                        <span
-                                          key={`t_${tIdx}`}
-                                          onClick={() => {
-                                            const key = `${cName}_${normSkName}`;
-                                            setCollapsedSuboptions(prev => ({ ...prev, [key]: false }));
-                                          }}
-                                          title="點擊展開查看效果"
-                                          className="text-t12 px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                                        >
-                                          <span className="text-[#6b5a4b] text-t12">曲風</span>
-                                          <span>{t}</span>
-                                        </span>
-                                      ))}
-                                    </>
-                                  )}
-                                </div>
-                              ) : (
-                                <SuboptionDetailsList
-                                  className={cName}
-                                  skillName={normSkName}
-                                  selectedOptions={sk.selectedOptions}
-                                  showVolumeBlock={true}
-                                  variantId={sk.variantId || null}
-                                  hasGreaterTheriomorphosis={hasGreaterTheriomorphosis(character)}
-                                  characterName={character.name}
-                                  showToast={showToast}
-                                />
-                              )}
-
-                              {/* 靈能者專屬靈刻時鐘 */}
-                              {cName === '靈能者' && normSkName === '心靈天賦' && (
-                                <div className="mt-2 p-2.5 bg-[#f4ebd9] rounded border border-[#d6c7ab] flex items-center justify-between gap-3 flex-wrap">
-                                  <div className="flex items-center gap-3">
-                                    <ClockTracker
-                                      title=""
-                                      totalSegments={4}
-                                      filledSegments={character.brainwaveClock || 0}
-                                      theme="purple"
-                                      size={54}
-                                      compact={true}
-                                      onChange={(newVal) => {
-                                        updateField('brainwaveClock', newVal);
-                                      }}
-                                    />
-                                    <div>
-                                      <div className="font-bold text-xs text-[#3c2415] flex items-center gap-1.5">
-                                        <span>靈刻時鐘</span>
-                                        <span className="font-mono text-xs text-[#6b5a4b] font-bold">({character.brainwaveClock || 0} / 4)</span>
-                                      </div>
-                                      <p className="text-t12 text-[#7c6a58] leading-tight">
-                                        每次使用天賦後填入 1 格。消耗 MP：【靈刻格數 × 5】（最少 5 點）
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const cur = character.brainwaveClock || 0;
-                                        updateField('brainwaveClock', Math.max(0, cur - 1));
-                                      }}
-                                      disabled={(character.brainwaveClock || 0) <= 0}
-                                      className="px-2 py-1 text-xs rounded bg-white hover:bg-[#e8dcc4] disabled:opacity-30 border border-[#d6c7ab] text-[#3c2415] font-bold transition-colors cursor-pointer"
-                                      title="靈刻 -1"
-                                    >
-                                      -1
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const cur = character.brainwaveClock || 0;
-                                        updateField('brainwaveClock', Math.min(4, cur + 1));
-                                      }}
-                                      disabled={(character.brainwaveClock || 0) >= 4}
-                                      className="px-2.5 py-1 text-xs rounded bg-[#a63d40] hover:bg-[#8c3235] disabled:opacity-30 text-[#fffdf9] font-bold transition-colors cursor-pointer"
-                                      title="靈刻 +1"
-                                    >
-                                      +1 格
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        updateField('brainwaveClock', 0);
-                                        showToast('已清空靈刻時鐘');
-                                      }}
-                                      disabled={(character.brainwaveClock || 0) === 0}
-                                      className="px-2 py-1 text-xs rounded bg-white hover:bg-[#f4ebd9] disabled:opacity-30 border border-[#d6c7ab] text-[#6b5a4b] hover:text-[#8c3235] font-medium transition-colors cursor-pointer"
-                                      title="重設靈刻"
-                                    >
-                                      重設
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* 修補匠小工具專屬戰鬥速查 */}
-                          {cName === '修補匠' && normSkName === '小工具' && (
-                            <TinkererGadgetsQuickRef
-                              gadgetsData={character.tinkererData?.gadgets}
-                              sl={sk.sl}
-                              onOpenCodex={() => openRuleCodex('小工具')}
-                              characterLevel={getCharacterLevel(character)}
-                              characterName={character.name}
-                              showToast={showToast}
-                              variantId={sk.variantId || null}
-                              technoRestrictsEquipment={
-                                modeRestrictsEquipment(resolveCreationRules(character?.creationRules).technospheres)
-                              }
-                            />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* 職業專屬機制互動工具 (Subsystem Companions) */}
-                  {shouldRenderArcanistPanel(character, cl.className) && (
-                    <div className="mt-3">
-                      <ArcanistManager
-                        character={character}
-                        onChange={onChange}
-                        onOpenDice={onOpenDice}
-                        showToast={showToast}
-                      />
-                    </div>
-                  )}
-
-                  {cName === '修補匠' && (
-                    <div className="mt-3">
-                      <TinkererWorkshop
-                        character={character}
-                        onChange={onChange}
-                        onOpenDice={onOpenDice}
-                        showToast={showToast}
-                      />
-                    </div>
-                  )}
-
-                  {cName === '美食家' && (cl.skills || []).some(s => normalizeSkillName(s.name) === '烹飪' && s.sl > 0) && (
-                    <div className="mt-3">
-                      <GourmetCookbook
-                        character={character}
-                        onChange={onChange}
-                        showToast={showToast}
-                      />
-                    </div>
-                  )}
-
-                  {cName === '卡牌大師' && (cl.skills || []).some(s => normalizeSkillName(s.name) === '魔法卡組' && s.sl > 0) && (
-                    <div className="mt-3">
-                      <AceOfCardsTable
-                        character={character}
-                        onChange={onChange}
-                        onAdjustHp={(delta) => adjustHp(delta)}
-                        onAdjustMp={(delta) => adjustMp(delta)}
-                        onClearStatuses={(keys) => {
-                          const cur = character.statusAfflictions || {};
-                          const next = { ...cur };
-                          (keys || []).forEach(k => { next[k] = false; });
-                          updateField('statusAfflictions', next);
-                        }}
-                        showToast={showToast}
-                      />
-                    </div>
-                  )}
-                </div>
-                );
-              })}
-
-              {/* 掌握之英雄技能 (Heroic Skills) */}
-              {(character.heroicSkills || []).length > 0 && (
-                <div data-testid="hud-heroic-skills" className="pt-3 border-t space-y-2" style={{ borderColor: theme.border }}>
-                  <div className="font-serif font-black text-sm flex items-center gap-1.5 text-[#3c2415]">
-                    <GiLaurelCrown className="w-4 h-4 text-[#a63d40]" />
-                    <span>掌握之英雄技能</span>
-                  </div>
-                  <div className="space-y-2">
-                    {(character.heroicSkills || []).map((hs, idx) => {
-                      const resolved = resolveHeroicSkillEntry(hs, character);
-                      if (!resolved) return null;
-                      const sourceLabel = HEROIC_SKILL_SOURCE_LABELS[resolved.source] || '';
-                      const effectText = resolved.effect || resolved.desc || '';
-                      return (
-                        <div key={idx} className="p-3 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-1">
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <span className="font-bold text-xs text-[#3c2415] flex items-center gap-1.5">
-                              <span className="text-[#a63d40]">★</span>
-                              <span>{resolved.name}</span>
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                              {sourceLabel && (
-                                <span className="text-t11 px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-[#6b5a4b]">
-                                  {sourceLabel}{resolved.class ? ` · ${resolved.class}` : ''}
-                                </span>
-                              )}
-                              <CopyTextButton
-                                testId={`copy-heroic-${idx}`}
-                                toastLabel={resolved.name}
-                                showToast={showToast}
-                                getText={() =>
-                                  formatHeroicSkillCopyText({
-                                    name: resolved.name,
-                                    className: resolved.class || '',
-                                    sourceLabel,
-                                    effect: effectText,
-                                    characterName: character.name,
-                                    characterLevel,
-                                    character
-                                  })
-                                }
-                              />
-                            </div>
-                          </div>
-                          {effectText && (
-                            <div className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap">
-                              <SkillDescription desc={effectText} characterLevel={characterLevel} character={character} linkCodex={false} refSource={resolved.name} />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* 金手指特質全文 (Quirk Full Text & Selected Effect) */}
-              {character.quirk && character.quirk !== '無' && (() => {
-                const quirkDef = (rulesData.quirks || []).find(q => q.name === character.quirk);
-                const choiceRows = describeQuirkChoice(character);
-                const choiceSummary = choiceRows
-                  .map(r => (r.group ? `${r.group}：${r.label}` : r.label))
-                  .join('、');
-                return (
-                  <div data-testid="hud-quirk-detail" className="pt-3 border-t space-y-2" style={{ borderColor: theme.border }}>
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="font-serif font-black text-sm flex items-center gap-1.5 text-[#3c2415]">
-                        <GiSparkles className="w-4 h-4 text-[#a63d40]" />
-                        <span>金手指特質：{character.quirk}</span>
-                      </div>
-                      <CopyTextButton
-                        testId="copy-quirk"
-                        toastLabel={character.quirk}
-                        showToast={showToast}
-                        getText={() =>
-                          formatQuirkCopyText({
-                            name: character.quirk,
-                            choiceSummary,
-                            effect: quirkDef?.effect || `已啟用金手指【${character.quirk}】。`,
-                            characterName: character.name,
-                            characterLevel,
-                            character
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="p-3 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-1.5">
-                      {choiceSummary && (
-                        <div className="text-t11 font-bold text-[#8c3235] bg-[#f4ebd9] px-2 py-1 rounded border border-[#e8dcc4]">
-                          ✦ 已選效果：{choiceSummary}
-                        </div>
-                      )}
-                      {quirkDef?.effect ? (
-                        <div className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap">
-                          <SkillDescription desc={quirkDef.effect} characterLevel={characterLevel} character={character} linkCodex={false} refSource={character.quirk} />
-                        </div>
-                      ) : (
-                        <p className="text-t12 text-[#7c6a58]">已啟用金手指【{character.quirk}】。</p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-
-          {/* TAB 4: 情感羈絆 (Bonds) */}
-          {activeTab === 'bonds' && (
-            <div className="space-y-3 animate-fade-in text-xs">
-              {/* 羈絆激勵的門檻是**全域**的（物語點共用），所以提示放一行在這裡，
-                  而不是每條羈絆各掛一個「差 1 物語點」——六條羈絆會變成六行噪音。 */}
-              {bondInspireGate.blocked && (
-                <div data-testid="gate-bonds-notice" className="px-2.5 py-1.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] text-t12 font-bold text-[#8c3235]">
-                  物語點不足（現有 {bondInspireGate.current} 點，激勵羈絆需要 1 點），下方「激勵」按鈕暫時不能用。
-                </div>
-              )}
-              {/* 營地活動：休息場景的一部分（原書 p.130「進行活動與調整羈絆可以同時做」）。
-                  規則沒開、金手指也沒給 → 整塊不出現（與底力技同一個原則）。 */}
-              {campAccess.enabled && (
-                <CampActivitiesBlock
-                  character={character}
-                  theme={theme}
-                  mode="play"
-                  allowance={campAccess.allowance}
-                  quirkGrant={campAccess.quirkGrant}
-                  onChange={(campActivities) => {
-                    // 營地活動有兩種變動：改「選了哪兩種」與「本次休息用了哪一種」。
-                    // 兩者都是這張卡的決定，但履歷上要分得出來——標題寫一樣就等於沒寫。
-                    const beforePicked = (character.campActivities?.picked || []).join('|');
-                    const afterPicked = (campActivities?.picked || []).join('|');
-                    updateField('campActivities', campActivities, {
-                      kind: 'camp',
-                      title: beforePicked === afterPicked ? '營地活動：本次休息的使用記錄' : '調整營地活動選擇',
-                      fields: []
-                    });
-                  }}
-                  showToast={showToast}
-                />
-              )}
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
-                  <GiHeartShield className="w-4 h-4 text-[#8c3235]" />
-                  <span>三維六向情感羈絆 (最多 6 個)</span>
-                </span>
-                {(character.bonds || []).length < 6 && (
-                  <button
-                    type="button"
-                    onClick={handleOpenBondModal}
-                    className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>新增羈絆</span>
-                  </button>
-                )}
-              </div>
-
-              {(character.bonds || []).map((bond, bIdx) => {
-                const isEditingThis = editingBondId === bond.id;
-                // 名冊關係：none（刻意不連）／linked（連得上）／missing（那張卡被刪了）。
-                // 三者要畫成三種樣子——把 none 與 missing 畫成一樣，等於每次都在
-                // 一條本來就正確的羈絆上報錯。
-                const link = resolveBondNpc(bond, npcPool);
-                const npcSubtitle = bondNpcSubtitle(link.npc);
-                const FEELING_PAIRS = [
-                  [{ k: 'admiration', l: '欽佩' }, { k: 'inferiority', l: '自卑' }],
-                  [{ k: 'loyalty', l: '忠誠' }, { k: 'mistrust', l: '疑忌' }],
-                  [{ k: 'affection', l: '喜愛' }, { k: 'hatred', l: '仇恨' }]
-                ];
-                return (
-                <div key={bIdx} className="p-3.5 bg-white rounded border space-y-2.5" style={{ borderColor: theme.border }}>
-                  <div className="flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex items-start gap-2.5 min-w-0">
-                      {link.status === 'linked' && link.npc.avatarBase64 && (
-                        <img
-                          src={link.npc.avatarBase64}
-                          alt=""
-                          className="w-9 h-9 rounded object-cover border shrink-0"
-                          style={{ borderColor: theme.border }}
-                        />
-                      )}
-                      <div className="min-w-0">
-                        <div className="font-bold text-sm text-[#2c221e]">{bond.target}</div>
-                        {link.status === 'linked' && npcSubtitle && (
-                          <div className="text-t11 text-[#7c6a58] mt-0.5">{npcSubtitle}</div>
-                        )}
-                        {link.status === 'missing' && (
-                          /* 名冊那張卡被刪了。**名字要留著**——那是玩家自己寫的，
-                             不是連結的附屬品。這裡只說明「連結斷了」，不代替他決定要改什麼。 */
-                          <div className="text-t11 text-[#8c3235] mt-0.5">名冊已無此人（連結已失效）</div>
-                        )}
-                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                          {(bond.feelings || []).map(f => (
-                            <span key={f} className="px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#e8dcc4] text-t12 text-[#8c3235] font-bold">
-                              {FEELING_LABELS[f] || f}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const strength = bond.feelings?.length || 1;
-                          if ((character.fabulaPoints ?? 3) <= 0) {
-                            showToast('物語點不足');
-                            return;
-                          }
-                          // 2026-10-30：這顆按鈕原本只扣 1 FP 並跳一句「+N 加值」，
-                          // 而**加值從來沒有加到任何地方**——真正的激勵在擲骰器裡
-                          // （`DiceRollerModal.handleInvokeBond`）。同一個規則兩個入口，
-                          // 其中一個只記帳，等於按鈕在說謊。
-                          // 現在它把玩家送到那個會真的算加值的地方，FP 也只在那裡扣一次。
-                          if (!onOpenDice) {
-                            showToast('擲骰器沒有開啟，請從上方「擲骰」進入後再激勵羈絆');
-                            return;
-                          }
-                          openCharacterDice({
-                            label: `激勵羈絆【${bond.target}】`,
-                            presetBondId: bond.id
-                          });
-                          showToast(`擲完骰後點【${bond.target}】套用 +${strength}（消耗 1 物語點）`);
-                        }}
-                        className={`px-3 py-1.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#8c3235] font-bold text-xs shrink-0 ${bondInspireGate.blocked ? GATED_BUTTON_CLASS : ''}`}
-                        title="開啟擲骰器，擲完骰後套用這條羈絆的情感加值（消耗 1 物語點）"
-                        {...gateButtonAttrs(bondInspireGate)}
-                      >
-                        激勵 (+{bond.feelings?.length || 1})
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => isEditingThis ? setEditingBondId(null) : handleOpenEditBond(bond)}
-                        className="px-2 py-1.5 rounded bg-[#fbf7ee] hover:bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] font-bold text-xs"
-                        title="休息場景調整羈絆情感"
-                      >
-                        ✎ 調整
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteBond(bond.id)}
-                        className="p-1 rounded text-[#7c6a58] hover:text-[#8c3235] transition-colors"
-                        title="刪除羈絆"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {isEditingThis && (
-                    <div className="pt-2.5 border-t border-[#e8dcc4] bg-[#fbf7ee] p-2.5 rounded space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-t11 font-bold text-[#6b5a4b] shrink-0">對象名稱:</span>
-                        <input
-                          type="text"
-                          value={editBondTarget}
-                          onChange={e => setEditBondTarget(e.target.value)}
-                          className="flex-1 px-2 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] text-xs font-bold text-[#3c2415]"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-t11 font-bold text-[#6b5a4b] block">對應 NPC 檔案庫（選填）:</span>
-                        <BondNpcSelect
-                          testId="bond-edit-npc"
-                          value={editBondNpcId}
-                          pool={npcPool}
-                          onChange={setEditBondNpcId}
-                          onPick={(npc) => setEditBondTarget(npc.name || '')}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-t11 font-bold text-[#6b5a4b] block">三維情感（每組對立情感最多選 1 項）：</span>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
-                          {FEELING_PAIRS.map((pair, pIdx) => (
-                            <div key={pIdx} className="flex items-center gap-1 bg-[#fffdf9] p-1 rounded border border-[#e8dcc4]">
-                              {pair.map(item => {
-                                const active = editBondFeelings.includes(item.k);
-                                const otherKey = pair.find(x => x.k !== item.k).k;
-                                return (
-                                  <button
-                                    key={item.k}
-                                    type="button"
-                                    onClick={() => {
-                                      setEditBondFeelings(prev => {
-                                        if (prev.includes(item.k)) return prev.filter(x => x !== item.k);
-                                        return [...prev.filter(x => x !== otherKey), item.k];
-                                      });
-                                    }}
-                                    className={`flex-1 py-1 rounded text-t11 font-bold transition-colors ${
-                                      active
-                                        ? 'bg-[#a63d40] text-[#fffdf9]'
-                                        : 'bg-[#f4ebd9] text-[#3c2415] hover:bg-[#e8dcc4]'
-                                    }`}
-                                  >
-                                    {item.l}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setEditingBondId(null)}
-                          className="px-2.5 py-1 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold text-t11"
-                        >
-                          取消
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleSaveEditedBond}
-                          className="px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t11"
-                        >
-                          儲存羈絆變更
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                );
-              })}
-
-              {(character.bonds || []).length === 0 && (
-                /* 空狀態：2026-10-23（v5.1 第三輪）
-                   原本只有一行 `text-[#7c6a58]` 的「尚未建立羈絆。」——
-                   ① 對比 2.56:1，連大字門檻都不到（實測見 docs/state.md §8.5）；
-                   ② 它只說「沒有」，沒說「羈絆是什麼、為什麼要建」。
-                   §8.4：空狀態是使用者保證會看到的畫面，要**教一件事**。
-                   這裡不放 CTA——標頭那顆「新增羈絆」就在同一屏，重複兩顆等於兩件事。 */
-                <EmptyState
-                  kind="bonds"
-                  icon={GiHeartShield}
-                  title="還沒有任何羈絆"
-                  teach="羈絆是對某人某物的三維情感（欽佩／忠誠／喜愛…）；激勵時消耗 1 物語點，檢定加值等於情感數。最多 6 條。"
-                />
-              )}
-            </div>
-          )}
-
-          {/* TAB 5: 個人命刻 (Clocks) */}
-          {activeTab === 'clocks' && (
-            <div className="space-y-4 animate-fade-in">
-              {/* 底力命刻（高度奇幻手冊 p.124–131）：規則沒開就完全不出現。
-                  它與下面的「個人命刻」是兩種東西——個人命刻是玩家自建的進度鐘，
-                  底力命刻是規則給的那一條，只有 6 格（合體之力 4 格）且填充方式受限。 */}
-              {isZeroPowersEnabled(character) && (
-                <ZeroPowerBlock
-                  character={character}
-                  theme={getCharacterTheme(character.themeColor)}
-                  mode="play"
-                  roster={roster}
-                  onChange={(zeroPower) => updateField('zeroPower', zeroPower)}
-                  onPartnerCleared={onPartnerCleared}
-                  onRecoverHp={(factor) => {
-                    /* 【覺醒之力】：回復等同危機值的 HP（原文 p.130）。 */
-                    const gain = Math.max(0, Math.trunc(stats.crisisThreshold * factor));
-                    const next = Math.min(stats.maxHp, curHp + gain);
-                    if (gain === 0 || next === curHp) return;
-                    updateField('currentHp', next, {
-                      kind: 'hp',
-                      title: '覺醒：回復 HP',
-                      changes: [{ field: 'currentHp', from: curHp, to: next }]
-                    });
-                  }}
-                  showToast={showToast}
-                />
-              )}
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="font-bold text-[#3c2415] text-xs flex items-center gap-1.5">
-                  <GiPocketWatch className="w-4 h-4 text-[#6b5a4b]" />
-                  <span>個人命刻時鐘</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsClockModalOpen(true)}
-                  className="px-3 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>新增命刻</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {(character.clocks || []).map(clk => (
-                  <div key={clk.id} className="relative group">
-                    <ClockTracker
-                      title={clk.title}
-                      totalSegments={clk.totalSegments || 6}
-                      filledSegments={clk.filledSegments || 0}
-                      theme={clk.theme || 'amber'}
-                      type={clk.type || 'circle'}
-                      size={90}
-                      onChange={newVal => {
-                        const prev = clk.filledSegments || 0;
-                        const total = clk.totalSegments || 6;
-                        if (newVal === prev) return;
-                        const updated = (character.clocks || []).map(c => c.id === clk.id ? { ...c, filledSegments: newVal } : c);
-                        // 命刻填滿是「目標達成」，跟「再推進一格」不是同一件事——
-                        // 履歷上要分得出來，否則完成的時刻會混在一堆推進裡。
-                        updateField('clocks', updated, {
-                          kind: 'clock',
-                          title: newVal >= total
-                            ? `命刻【${clk.title}】完成`
-                            : `命刻【${clk.title}】${newVal > prev ? '推進' : '回退'}`,
-                          changes: [{ field: `clock:${clk.title}`, from: prev, to: newVal }]
-                        });
-                      }}
-                    />
-                    <button
-                      onClick={() => handleDeleteClock(clk.id)}
-                      className="absolute top-2 right-2 p-1 rounded bg-white/80 hover:bg-[#f4ebd9] text-[#7c6a58] hover:text-[#8c3235] opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="刪除命刻"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {(character.clocks || []).length === 0 && (
-                /* 同上一條：原本是 `text-[#7c6a58]` 的一行「暫無個人命刻。」（2.56:1）。
-                   這裡多教一件事——**個人命刻與章節命刻是兩種東西**，
-                   使用者最容易搞混的就是「我該在這裡建，還是去『命刻記錄』那一章」。 */
-                <EmptyState
-                  kind="personal-clocks"
-                  icon={GiPocketWatch}
-                  title="還沒有個人命刻"
-                  teach="個人命刻是這名角色自己的進度鐘（例如「傷勢惡化」「與導師的約定」）；章節層級的情勢命刻請到「命刻記錄」那一章。"
-                />
-              )}
-            </div>
-          )}
-
-          {/* TAB 6: 行囊日誌 (Notes & Inventory) */}
-          {/* TAB 7: 金錢與物語點（P13，2026-11-02）
-              ────────────────────────────────────────────────────────────
-              使用者裁定「右翼錢包收成一頁」。主畫面的資產窗只留兩個數字與
-              一個入口；收支／明細／物語點的六顆按鈕全部搬到這裡。
-              兩張卡**原樣搬過來**（不是重寫）：它們各自帶著
-              「原因必填」「明細由履歷推導」的既有契約，重寫等於多一條寫入路徑。
-              ──────────────────────────────────────────────────────────── */}
-          {activeTab === 'money' && (
-            <div className="space-y-4 animate-fade-in text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-{/* 金幣錢包 ＋ 物語點（P10 重排）
-                  ─────────────────────────────────────────────────────────────
-                  使用者：「金幣錢包的部分不要有 +- 和自己修改內容了。下面的按鈕改大，
-                  只要收入和支出和明細兩三按鈕。金錢也很重要，做明顯一點。」
-
-                  三件事各自有理由，不只是照做：
-                  1. **拿掉 `−`／`+` 與可編輯輸入框**：那條路寫的是 `kind: 'zenit'`（合併、
-                     沒有原因），與 P9-b 的「原因必填」是兩套記帳法。留著它，明細上就會出現
-                     一堆沒有事由的「支出資金 350 → 300」，而那些列**對不上任何一件事**。
-                  2. **三顆按鈕放進卡片裡**：原本它們擠在卡片下方的一條細帶上（與「最近一筆」
-                     共用一行），高度只有 `py-0.5`——那不是「按得到」，是「看得到」。
-                  3. **金額 25px**：面板上其他數字都是 12–16px。錢包是玩家最常低頭看的一格，
-                     它應該比旁邊的屬性更顯眼，而不是一樣大。
-                  ───────────────────────────────────────────────────────────── */}
-              <div data-testid="wallet-card" className="bg-[#fffdf9] rounded p-3 border space-y-2" style={{ borderColor: theme.border }}>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
-                    <GiCoins className="w-4 h-4" style={{ color: theme.accent }} />
-                    金幣錢包
-                  </span>
-                  {/* 行內浮字：卡片上沒有空白可以讓浮字飄，所以貼在標題右側 */}
-                  <ResourceDeltaBadge flash={zenitDelta} inline className="text-t11" />
-                </div>
-
-                {/* 金額自己一行、自己一個尺寸。`formatZenit(null)` 印破折號而不是 `0z`——
-                    沒有 `zenit` 欄位的舊存檔是「不知道」，不是「沒錢」。 */}
-                <span
-                  data-testid="wallet-amount"
-                  className="block tabular-nums font-black text-t25 leading-none text-[#3c2415]"
-                >
-                  {formatZenit(character.zenit)}
-                </span>
-
-                {/* 三顆按鈕：收入／支出／明細。點擊高度 `py-2`（原本 0.5），字級 t12（原本 t10）。 */}
-                <div className="grid grid-cols-3 gap-1.5">
-                  <button
-                    type="button"
-                    data-testid="wallet-income"
-                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.gain)}
-                    title="記一筆進帳（報酬、戰利品、借貸……）"
-                    className="py-2 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiReceiveMoney className="w-3.5 h-3.5" />
-                    收入
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="wallet-expense"
-                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.spend)}
-                    title="記一筆花費（住宿、餐費、修裝……）"
-                    className="py-2 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiPayMoney className="w-3.5 h-3.5" />
-                    支出
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="wallet-ledger"
-                    onClick={() => setIsLedgerOpen(true)}
-                    title="看這筆錢是怎麼進出的（由成長履歷推導）"
-                    className="py-2 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiScrollUnfurled className="w-3.5 h-3.5" />
-                    明細
-                  </button>
-                </div>
-
-              </div>
-
-{/* 物語點（P12，2026-11-02）：從「一行數字＋步進器」改成**第二個錢包**。
-                  ─────────────────────────────────────────────────────────────
-                  為什麼要拆掉步進器（這是使用者裁定的第 2 題）：
-                  物語點是這張卡最後一個「有數字、沒原因」的資源。書上七條用途裡
-                  三條要花 1 點（重擲／激勵羈絆／改變故事），價錢完全一樣——
-                  所以履歷只寫「消耗物語點 3 → 2」時，玩家分不出那 1 點是為了什麼。
-                  而擲骰器其實**早就把原因傳進來了**（`onSpendFp('引用特質重擲檢定')`），
-                  只是那句話進了 toast 就消失。現在它寫進履歷的 `note`。
-                  ───────────────────────────────────────────────────────────── */}
-              <div data-testid="fp-card" className="bg-[#fffdf9] rounded px-3 py-2 border space-y-2" style={{ borderColor: theme.border }}>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
-                    <GiSparkles className="w-4 h-4 text-[#6b5a4b]" />
-                    物語點
-                  </span>
-                  <span data-testid="fp-amount" className="tabular-nums font-black text-t16 text-[#3c2415]">
-                    {resolveFabulaPoints(character)} FP
-                  </span>
-                </div>
-                {/* 三顆按鈕與錢包同一個排法：獲得（綠）／消耗（紅）／明細（米）。
-                    高度 `py-1.5` 比錢包的 `py-2` 矮一級——物語點不搶錢包的重量。 */}
-                <div className="grid grid-cols-3 gap-1.5">
-                  <button
-                    type="button"
-                    data-testid="fp-gain"
-                    onClick={() => openFpFlow(FP_DIRECTIONS.gain)}
-                    title="記一筆獲得（反派登場、大失敗、投降……）"
-                    className="py-1.5 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiReceiveMoney className="w-3.5 h-3.5" />
-                    獲得
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="fp-spend"
-                    onClick={() => openFpFlow(FP_DIRECTIONS.spend)}
-                    title="記一筆消耗（重擲、激勵羈絆、改變故事）"
-                    className="py-1.5 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiPayMoney className="w-3.5 h-3.5" />
-                    消耗
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="fp-ledger"
-                    onClick={() => setIsFpLedgerOpen(true)}
-                    title="看每一點是為了什麼花掉的（由成長履歷推導）"
-                    className="py-1.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiScrollUnfurled className="w-3.5 h-3.5" />
-                    明細
-                  </button>
-                </div>
-              </div>
-              </div>
-              <div
-                data-testid="money-page-note"
-                className="p-3 rounded bg-[#fbf7ee] border border-[#e8dcc4] text-t11 text-[#6b5a4b] leading-relaxed"
-              >
-                資金與物語點只有「收入／支出／獲得／消耗」四個入口，而且<strong className="text-[#3c2415]">原因必填</strong>。
-                上面的明細是從成長履歷推導出來的，不另外存一份帳——同一個事實只有一個來源。
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'notes' && (
-            <div className="space-y-4 animate-fade-in text-xs">
-              {/* 消耗品捷徑（P13）：原本在左翼的 IP 卡裡，與資源條搶同一個高度。
-                  使用者裁定「左翼消耗品池收成一頁」——搬來行囊，
-                  因為「我身上有什麼可以馬上用」本來就是行囊的事。 */}
-              <div className="p-3.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-2">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <span className="font-bold text-[#3c2415] block">官方消耗品捷徑（點擊扣道具點結算）</span>
-                  <span className="text-t11 text-[#6b5a4b]">
-                    道具點 <strong className="font-mono text-[#3c2415]">{curIp}</strong> / {stats.maxIp}
-                  </span>
-                </div>
-              {/* 官方五種基本 IP 消耗品（Core p.104） */}
-              <div data-testid="hud-ip-consumables" className="pt-2 border-t border-[#e8dcc4] space-y-1.5">
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleUseConsumable('remedy')}
-                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.remedy.blocked ? GATED_SHELL_CLASS : ''}`}
-                    title={`大補藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 HP`}
-                    {...gateButtonAttrs(consumableGates.remedy)}
-                  >
-                    <span className={consumableGates.remedy.blocked ? GATED_LABEL_CLASS : ''}>大補藥 (+{50 + secretFormulaSL * 5}HP)</span>
-                    {consumableGates.remedy.blocked ? (
-                      <UnavailableHint gate={consumableGates.remedy} testId="gate-consumable-remedy" />
-                    ) : (
-                      <span className="text-t10">3IP</span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleUseConsumable('elixir')}
-                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.elixir.blocked ? GATED_SHELL_CLASS : ''}`}
-                    title={`萬靈藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 MP`}
-                    {...gateButtonAttrs(consumableGates.elixir)}
-                  >
-                    <span className={consumableGates.elixir.blocked ? GATED_LABEL_CLASS : ''}>萬靈藥 (+{50 + secretFormulaSL * 5}MP)</span>
-                    {consumableGates.elixir.blocked ? (
-                      <UnavailableHint gate={consumableGates.elixir} testId="gate-consumable-elixir" />
-                    ) : (
-                      <span className="text-t10">3IP</span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleUseConsumable('tonic')}
-                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.tonic.blocked ? GATED_SHELL_CLASS : ''}`}
-                    title="滋補藥（消耗 2 IP）：解除所有異常狀態"
-                    {...gateButtonAttrs(consumableGates.tonic)}
-                  >
-                    <span className={consumableGates.tonic.blocked ? GATED_LABEL_CLASS : ''}>滋補藥 (解全狀態)</span>
-                    {consumableGates.tonic.blocked ? (
-                      <UnavailableHint gate={consumableGates.tonic} testId="gate-consumable-tonic" />
-                    ) : (
-                      <span className="text-t10">2IP</span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleUseConsumable('magicTent')}
-                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.magicTent.blocked ? GATED_SHELL_CLASS : ''}`}
-                    title="魔法帳篷（消耗 4 IP）：野外休息回滿 HP／MP 並解除全部狀態"
-                    {...gateButtonAttrs(consumableGates.magicTent)}
-                  >
-                    <span className={consumableGates.magicTent.blocked ? GATED_LABEL_CLASS : ''}>魔法帳篷 (全滿)</span>
-                    {consumableGates.magicTent.blocked ? (
-                      <UnavailableHint gate={consumableGates.magicTent} testId="gate-consumable-magicTent" />
-                    ) : (
-                      <span className="text-t10">4IP</span>
-                    )}
-                  </button>
-                </div>
-
-                {/* 元素碎片（2 IP，選風／電／土／火／冰，10+秘密配方SL 點傷害） */}
-                <div className="flex items-center gap-1 pt-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleUseConsumable('elementalShard')}
-                    className={`flex-1 px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold flex items-center justify-between ${consumableGates.elementalShard.blocked ? GATED_SHELL_CLASS : ''}`}
-                    title={`元素碎片（消耗 2 IP）：對單一目標造成 ${10 + secretFormulaSL} 點【${shardElement}】傷害`}
-                    {...gateButtonAttrs(consumableGates.elementalShard)}
-                  >
-                    <span className={consumableGates.elementalShard.blocked ? GATED_LABEL_CLASS : ''}>元素碎片 ({10 + secretFormulaSL}點{shardElement}傷)</span>
-                    {consumableGates.elementalShard.blocked ? (
-                      <UnavailableHint gate={consumableGates.elementalShard} testId="gate-consumable-elementalShard" />
-                    ) : (
-                      <span className="text-t10">2IP</span>
-                    )}
-                  </button>
-                  <div className="flex items-center gap-0.5 bg-[#fbf7ee] p-0.5 rounded border border-[#d6c7ab]">
-                    {['風', '電', '土', '火', '冰'].map(el => (
-                      <button
-                        key={el}
-                        type="button"
-                        onClick={() => setShardElement(el)}
-                        className={`px-1.5 py-0.5 rounded text-t10 font-bold transition-colors ${
-                          shardElement === el
-                            ? 'bg-[#a63d40] text-[#fffdf9]'
-                            : 'text-[#6b5a4b] hover:text-[#2c221e]'
-                        }`}
-                        title={`切換元素碎片屬性：${el}`}
-                      >
-                        {el}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              </div>
-              <div className="p-3.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-2">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <span className="font-bold text-[#3c2415] block">冒險者行囊物品與武裝</span>
-                  {/* 錢要出現在「做決定的地方」：這裡是看裝備的分頁，
-                      所以餘額與購買入口都放這裡，而不是只留在主面板。
-                      `formatZenit` 自己處理 `null`（＝不知道）→ 破折號。
-                      原本寫 `character.zenit || 0`，那會把「還沒記錄」印成 `0z`，
-                      而 `0z` 是一個合法的「你沒錢」——兩件事不該長得一樣。 */}
-                  <span data-testid="pack-wallet" className="tabular-nums font-black text-t14 text-[#3c2415]">
-                    錢包 {formatZenit(character.zenit)}
-                  </span>
-                </div>
-                {/* 四顆按鈕（P10）：與主面板的錢包卡同一套語彙。
-                    這裡不放「收支」那種一顆按鈕包兩種方向的做法——
-                    點下去還要再選一次「這是收入還是支出」，等於把決定推遲到下一步。
-                    購入獨立一顆，因為它走的是 `applyPurchase`（裝備模板、算式、履歷），
-                    與 `applyMoneyFlow` 是兩條路，不該共用一顆按鈕。 */}
-                <div className="grid grid-cols-4 gap-1.5">
-                  <button
-                    type="button"
-                    data-testid="pack-money-flow"
-                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.gain)}
-                    title="記一筆進帳（報酬、戰利品、借貸……）"
-                    className="py-1.5 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiReceiveMoney className="w-3 h-3" />
-                    收入
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="pack-money-spend"
-                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.spend)}
-                    title="記一筆花費（住宿、餐費、修裝……）"
-                    className="py-1.5 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiPayMoney className="w-3 h-3" />
-                    支出
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="pack-ledger"
-                    onClick={() => setIsLedgerOpen(true)}
-                    title="看這筆錢是怎麼進出的（由成長履歷推導）"
-                    className="py-1.5 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiScrollUnfurled className="w-3 h-3 text-[#6b5a4b]" />
-                    明細
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="pack-purchase"
-                    onClick={() => setIsPurchaseOpen(true)}
-                    className="py-1.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiCoins className="w-3 h-3 text-[#6b5a4b]" />
-                    購入
-                  </button>
-                </div>
-                {/* 四個槽位改成按鈕（P9-b）。
-                    原本是四行唯讀文字——看得到、換不了，唯一的換裝入口在編輯器，
-                    而編輯器是「建卡的地方」。跑團中要換裝備不該先離開跑團面板。
-                    每一格都標「換」，因為一格空白（未裝備）與一格滿的長得一樣，
-                    沒有動詞就沒有人會去點它。 */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {Object.keys(EQUIPMENT_SLOTS).map((slotKey) => {
-                    const slotMeta = EQUIPMENT_SLOTS[slotKey];
-                    const value = character.equipment?.[slotKey];
-                    return (
-                      <button
-                        key={slotKey}
-                        type="button"
-                        data-testid={`pack-slot-${slotKey}`}
-                        onClick={() => setSlotPicker(slotKey)}
-                        title={`更換${slotMeta.label}`}
-                        className="group w-full text-left px-2 py-1.5 rounded border border-[#e8dcc4] bg-[#fffdf9] hover:border-[#3c2415]/40 hover:bg-[#f4ebd9] transition-colors flex items-center justify-between gap-2"
-                      >
-                        <span className="min-w-0">
-                          <span className="block text-t10 text-[#6b5a4b]">{slotMeta.label}</span>
-                          <span className={`block font-bold truncate ${value ? 'text-[#3c2415]' : 'text-[#7c6a58]'}`}>
-                            {value || slotMeta.emptyValue}
-                          </span>
-                        </span>
-                        <span className="shrink-0 text-t10 text-[#6b5a4b] group-hover:text-[#3c2415] font-bold">
-                          換
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <span className="font-bold text-[#3c2415] block">冒險筆記本</span>
-                <textarea
-                  value={character.backpackNotes || ''}
-                  onChange={e => updateField('backpackNotes', e.target.value)}
-                  placeholder="在此記錄冒險日記、行囊物品、NPC 線索或秘密契約..."
-                  rows={6}
-                  className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded p-3 text-xs text-[#3c2415] outline-none focus:border-[#3c2415] leading-relaxed shadow-inner"
-                />
-              </div>
-            </div>
-          )}
-          </ErrorBoundary>
-        </div>
-      </div>
 
       {/* MODAL 0: 購買裝備（P9）——錢包 → 價格 → 算式 → 扣款 → 履歷，同一條路 */}
       <PurchaseModal

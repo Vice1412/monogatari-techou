@@ -2743,13 +2743,26 @@ const jrpgHudAttacksHtml = renderToStaticMarkup(React.createElement(CharacterPla
   initialTab: 'attacks'
 }));
 
+// P14（2026-11-02）：內容搬進右翼那扇窗之後，「狀態／四維／成長／資產」只在
+// 「個人資料」頁出現，不再跟著每一頁印一次。所以下面凡是驗這些區塊的斷言，
+// 都要**開那一頁**來看——不是放寬標準，是它們真的換了家。
+const jrpgHudProfileHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: jrpgHudChar,
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {},
+  initialTab: 'profile'
+}));
+
 check('（CU-1 SSR）JRPG 角色戰術主控台渲染出 data-testid="jrpg-character-hub" 與居中身份、營地休整、常用檢定',
   [jrpgHudAttacksHtml.includes('data-testid="jrpg-character-hub"'),
     jrpgHudAttacksHtml.includes('JRPG 角色戰術主控台'),
     jrpgHudAttacksHtml.includes('營地休整'),
-    jrpgHudAttacksHtml.includes('常用檢定:'),
-    jrpgHudAttacksHtml.includes('DEX+INS'),
-    jrpgHudAttacksHtml.includes('INS+WLP')],
+    // 常用檢定列住在四維底下＝「個人資料」頁（P14 搬家）
+    jrpgHudProfileHtml.includes('常用檢定:'),
+    jrpgHudProfileHtml.includes('DEX+INS'),
+    jrpgHudProfileHtml.includes('INS+WLP')],
   [true, true, true, true, true, true]);
 
 // 消耗品捷徑 2026-11-02（P13）搬到「行囊與道具」分頁，所以這一條要開那一頁來看。
@@ -2773,7 +2786,8 @@ check('（CU-2 SSR）官方五種 IP 消耗品齊備且自動計入修補匠【�
     consumablesSection.includes('滋補藥 (解全狀態)'),
     consumablesSection.includes('魔法帳篷 (全滿)'),
     consumablesSection.includes('元素碎片 (12點火傷)'),
-    jrpgHudAttacksHtml.includes('秘密配方 SL2')],
+    // 「秘密配方 SL2」是道具點那一列的標籤（狀態窗），P14 起狀態窗住在「個人資料」頁
+    jrpgHudProfileHtml.includes('秘密配方 SL2')],
   [true, true, true, true, true, true, true]);
 
 check('（CU-3 SSR）武器與戰鬥分頁顯示副手盾牌、防具、飾品的規則說明文字',
@@ -2972,9 +2986,12 @@ check('（CV-4 SSR）名冊卡片職業標籤套用 charTheme.accentLight 底色
   true);
 
 // 2. 跑團面板（CharacterPlayHUD）主題色回饋：頂部色條、工具列底色、職業膠囊、戰術分頁列底色隨 themeId 切換
+// P14：右翼那扇窗只在「非個人資料」頁出現（profile 頁放的是三張常駐卡），
+// 所以驗標題列主題色的這兩份渲染要指定一個分頁頁。
 const hudEmeraldHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
   character: jrpgHudChar,
   themeId: 'emerald',
+  initialTab: 'attacks',
   onChange: () => {},
   onBackToRoster: () => {},
   onOpenEditor: () => {},
@@ -2983,6 +3000,7 @@ const hudEmeraldHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD
 const hudCrimsonHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
   character: jrpgHudChar,
   themeId: 'crimson',
+  initialTab: 'attacks',
   onChange: () => {},
   onBackToRoster: () => {},
   onOpenEditor: () => {},
@@ -2995,11 +3013,12 @@ check('（CV-5 SSR）CharacterPlayHUD 渲染頂部主題色條（hud-theme-bar�
   [hudEmeraldHtml.includes(`data-testid="hud-theme-bar"`) && hudEmeraldHtml.includes(`background-color:${emeraldTheme.accent}`),
     hudCrimsonHtml.includes(`data-testid="hud-theme-bar"`) && hudCrimsonHtml.includes(`background-color:${crimsonTheme.accent}`)],
   [true, true]);
-check('（CV-6 SSR）CharacterPlayHUD 頂部工具列與六大戰術分頁列底色套用 theme.accentLight',
+check('（CV-6 SSR）CharacterPlayHUD 頂部工具列與右翼內容窗標題列底色套用 theme.accentLight',
   [/data-testid="hud-utility-bar"[^>]*style="background-color:#e1eee7/.test(hudEmeraldHtml),
-    /data-testid="hud-subtabs-bar"[^>]*style="background-color:#e1eee7/.test(hudEmeraldHtml),
+    // P14：sticky 分頁列被「一扇窗」取代，標題列接手「這一區吃角色主題色」的契約。
+    /data-testid="hud-panel-header"[^>]*style="background-color:#e1eee7/.test(hudEmeraldHtml),
     /data-testid="hud-utility-bar"[^>]*style="background-color:#f5e6e7/.test(hudCrimsonHtml),
-    /data-testid="hud-subtabs-bar"[^>]*style="background-color:#f5e6e7/.test(hudCrimsonHtml)],
+    /data-testid="hud-panel-header"[^>]*style="background-color:#f5e6e7/.test(hudCrimsonHtml)],
   [true, true, true, true]);
 check('（CV-7 SSR）CharacterPlayHUD 立繪中樞職業膠囊套用 theme.accentLight／accent／accentDark',
   hudEmeraldHtml.includes(`data-testid="hud-class-pill"`) &&
@@ -3074,23 +3093,23 @@ check('（CW-5）App.jsx 的 ChapterLoading 統一使用 LoadingScreen（不再�
   [true, true]);
 
 // ─────────────────────────────────────────────────────────── CX
-section('CX. 分頁列釘住（P12，2026-11-02：使用者裁定「釘住」）');
+section('CX. 指令與內容在同一個視野（P12 釘住 → P14 換窗，2026-11-02）');
 
-// 量到的問題：桌面 1414×1100 時分頁列在 1064px（第一屏看得到標籤、看不到內容）；
-// 手機要滾 2.6 屏才碰到「武器與戰鬥」。而跑團時每 30 秒就要按一次攻擊。
-//
-// 這一節守的是**兩個實作細節**，少一個 sticky 就完全沒作用，而且不會報錯：
-//   1. `sticky` 與正確的 `top`（要避開 52px 的章節標頭，否則被蓋住＝按不到）
-//   2. 外層不能是 `overflow-hidden`（它會讓 sticky「在一個不會滾動的容器裡黏住」）
-//      ——這是 sticky 最常見的假成功，畫面看起來完全正常，只是不會跟著滾。
-check('（CX-1）分頁列是 sticky，且 top 讀標頭的實際高度（不是寫死 52）',
+// P12 量到的問題是「第一屏看得到標籤、看不到內容」，當時的解法是把分頁列釘住。
+// P14 使用者的原話：「点了之后还要特地滑下去才看得到视窗，操作很反人类诶。
+//   我建议可以点了按纽就会把立绘右边的视窗直接整个替换掉。」
+// 所以契約換了一個方向：**內容不再印在 hub 下方，而是右翼那扇窗裡換**。
+// 這一節守的還是同一件事——「按得到、看得到」——只是驗的位置換了。
+check('（CX-1）指令窗自己 sticky，且 top 讀標頭的實際高度（不是寫死 52）',
   [
-    /data-testid="hud-subtabs-bar"[\s\S]{0,200}?className="[^"]*\bsticky\b/.test(hud),
-    /data-testid="hud-subtabs-bar"[\s\S]{0,200}?className="[^"]*\btop-\[var\(--chapter-header-h,52px\)\]/.test(hud),
+    /lg:sticky/.test(hud) &&
+      /lg:top-\[calc\(var\(--chapter-header-h,52px\)[^\]]*\)\]/.test(hud),
+    // 釘住的必須是**指令窗那一欄**（`lg:col-span-2`），不是別的地方順手寫了 sticky
+    /lg:col-span-2[^"]*lg:sticky|lg:sticky[^"]*lg:col-span-2/.test(hud)
   ],
   [true, true]);
 // 標頭是 `min-h-[52px]`：52 是下限，實測 55。所以那個變數一定要有人寫，
-// 否則 fallback 52 會讓分頁列的上緣被標頭蓋掉 3px（實機驗證抓到的）。
+// 否則 fallback 52 會讓指令窗的上緣被標頭蓋掉 3px（實機驗證抓到的）。
 const chapterHeaderSrc = read('../src/components/book/ChapterHeader.jsx');
 check('（CX-1b）ChapterHeader 真的把實際高度寫進 --chapter-header-h',
   [
@@ -3099,23 +3118,34 @@ check('（CX-1b）ChapterHeader 真的把實際高度寫進 --chapter-header-h',
     chapterHeaderSrc.includes('ref={headerRef}')
   ],
   [true, true, true]);
-check('（CX-2）分頁列 z-index 低於標頭的 z-40（不然會蓋住標頭）',
-  /data-testid="hud-subtabs-bar"[\s\S]{0,160}?className="[^"]*\bz-30\b/.test(hud), true);
 
-// 兩個外層都不能是 overflow-hidden：分頁列自己那張卡，以及更外層的角色中樞。
-// 用 `overflow-clip` 取代——一樣裁切圓角，但不建立滾動容器。
-// ⚠️ 切片要**只取那一個開標籤**，兩個坑都踩過：
-//   ① 用「前 400 字」會把上面那段說明註解讀進來（裡面同時寫著兩個字串）→ 永遠紅；
-//   ② 用 `lastIndexOf('<div')` 會抓到分頁列**自己**的 `<div`（testid 寫在下一行）。
-// 所以直接抓那張卡的 class 字串。這個前綴在檔案裡唯一（下面順便驗這件事）。
-const subtabCardClasses = (hud.match(/<div className="bg-\[#fffdf9\] rounded border-2 ([^"]*)"/) || [])[1] || '';
-check('（CX-3）分頁列所在的那張卡不是 overflow-hidden（改用 overflow-clip）',
-  [subtabCardClasses.includes('overflow-hidden'), subtabCardClasses.includes('overflow-clip')],
-  [false, true]);
-check('（CX-3b）上面那個 class 錨點只出現一次（重複會讓前一條假綠）',
-  (hud.match(/bg-\[#fffdf9\] rounded border-2/g) || []).length, 1);
+// 新的契約：分頁內容住在右翼那扇窗裡（`hud-panel-window`），
+// 舊的 sticky 分頁列整條拆掉。兩條要一起驗——
+// 只驗「新的在」守不住「舊的也還在印一次」（那正是「訊息太多」的老毛病）。
+check('（CX-2）分頁內容住進右翼那扇窗，舊的 sticky 分頁列整條拆掉了',
+  [
+    // `hud` 是**原始碼**：這裡的 testId 是 prop，不是 data-testid（MEMORY §C.12）。
+    countOf(hud, 'testId="hud-panel-window"'),
+    // 渲染後才算「畫得出來」——而且要在一個非 profile 的頁上驗，profile 頁沒有這扇窗。
+    countOf(jrpgHudAttacksHtml, 'data-testid="hud-panel-window"'),
+    countOf(hud, 'data-testid="hud-subtabs-bar"'),
+    countOf(hud, 'data-testid="hud-back-to-commands"')
+  ],
+  [1, 1, 0, 0]);
+
+// 結構護欄：那扇窗必須在**角色中樞裡面**（不是又被搬回 hub 下方）。
+// 中樞結束後的第一個東西是 `ClassResourceStrip`，所以比索引就知道誰在裡面。
+// 用原始碼比而不是渲染後 HTML：這裡問的是「寫在哪」，不是「畫出來長什麼樣」。
+const panelAt = hud.indexOf('testId="hud-panel-window"');
+const stripAt = hud.indexOf('<ClassResourceStrip');
+check('（CX-3）內容窗在角色中樞之內（在 ClassResourceStrip 之前），不是又掉回 hub 下方',
+  [panelAt > 0, stripAt > 0, panelAt < stripAt],
+  [true, true, true]);
+check('（CX-3b）上面那個錨點只出現一次（重複會讓前一條假綠）',
+  countOf(hud, 'testId="hud-panel-window"'), 1);
+
 const hubTag = (hud.match(/data-testid="jrpg-character-hub"[\s\S]{0,220}?>/) || [''])[0];
-check('（CX-4）角色中樞（分頁列的祖先）也不是 overflow-hidden',
+check('（CX-4）角色中樞（指令窗的祖先）不是 overflow-hidden',
   [hubTag.includes('overflow-hidden'), hubTag.includes('overflow-clip')],
   [false, true]);
 // 對照組：整份檔案仍然有別的地方用 overflow-hidden（不是把全站都改掉了）。
@@ -3236,41 +3266,48 @@ const jrpgHudMoneyHtml = renderToStaticMarkup(React.createElement(CharacterPlayH
   initialTab: 'money'
 }));
 
-check('（CZ-1）主畫面有一個 DQ 指令窗，七列，而且是 `flex-1`（高度由欄位決定）',
+check('（CZ-1）主畫面有一個 DQ 指令窗，八列（含「個人資料」），列高固定不再撐滿',
   [
     /testId="hud-command-window"/.test(hudCode),
     /testId="hud-command-list"/.test(hudCode),
-    ['attacks', 'spells', 'skills', 'bonds', 'clocks', 'notes', 'money']
+    ['profile', 'attacks', 'spells', 'skills', 'bonds', 'clocks', 'notes', 'money']
       .every((id) => new RegExp(`id: '${id}'`).test(hudCode)),
     countOf(jrpgHudAttacksHtml, 'data-testid="hud-cmd-'),
+    // P14：`flex-1` 撐滿是 P13 的寫法，使用者說「把左栏的长压缩」之後改成固定 44px。
+    /shrink-0 min-h-\[44px\]/.test(hudWindowSrc),
     /flex-1 min-h-\[40px\]/.test(hudWindowSrc)
   ],
-  [true, true, true, 7, true]);
+  [true, true, true, 8, true, false]);
 
 // 減法：舊的六顆指令格要真的不在。`const IconComp = tab.icon` 是舊格子專屬的寫法
 // （新指令窗用的是 `<Icon />` 直接渲染），留著它就代表格子被加回來了。
-check('（CZ-2）舊的六顆指令格與 sticky 分頁列的六個標籤都不在了',
+// `hud-back-to-commands` 是 P13 那條 sticky 頁名條的「回到指令」鈕——
+// 分頁列整條拆掉之後它也沒有意義了，留著就是一個指不到東西的按鈕。
+check('（CZ-2）舊的六顆指令格、sticky 頁名條與「回到指令」鈕都不在了',
   [
     /JRPG Command Ring/.test(hud),
     /const IconComp = tab\.icon/.test(hudCode),
     countOf(hudCode, 'setActiveTab(tab.id)'),
     /data-testid="hud-back-to-commands"/.test(hudCode)
   ],
-  [false, false, 0, true]);
+  [false, false, 0, false]);
 
-// 對照組：頁名條真的還在、而且還釘著（CZ-2 不是把整條分頁列刪掉換來的）。
-check('（CZ-2b）對照組：頁名條還在，而且 sticky 與 --chapter-header-h 都還在',
+// P14 的寬度裁定：「把左栏的长压缩，给右栏更多显示信息的空间」＝左 3→2、右 5→6。
+// 這一條取代 P12 的「頁名條要 sticky」——同一個問題（按得到、看得到），
+// 換了實作就得換錨點，但守的東西沒有變。
+check('（CZ-2b）左欄收窄到 2 欄、右欄放大到 6 欄，中欄立繪不動',
   [
-    /data-testid="hud-subtabs-bar"/.test(hudCode),
-    /hud-subtabs-bar"[\s\S]{0,200}?\bsticky\b/.test(hudCode),
-    /top-\[var\(--chapter-header-h,52px\)\]/.test(hudCode)
+    /lg:col-span-2[^"]*lg:sticky|lg:sticky[^"]*lg:col-span-2/.test(hud),
+    /lg:col-span-6 flex flex-col gap-3/.test(hud),
+    /data-testid="hud-center-column"[\s\S]{0,120}?lg:col-span-4/.test(hud)
   ],
   [true, true, true]);
 
 // 三張資源卡變成一張狀態窗。舊的卡片樣式是 `rounded p-3.5 border border-[#d6c7ab]`。
-const vitalsA = jrpgHudAttacksHtml.indexOf('data-testid="hud-vitals-window"');
-const vitalsB = jrpgHudAttacksHtml.indexOf('data-testid="hud-ability-window"');
-const vitalsBlock = vitalsA >= 0 && vitalsB > vitalsA ? jrpgHudAttacksHtml.slice(vitalsA, vitalsB) : '';
+// P14：狀態窗跟著「個人資料」頁走，所以要看那一頁的渲染結果。
+const vitalsA = jrpgHudProfileHtml.indexOf('data-testid="hud-vitals-window"');
+const vitalsB = jrpgHudProfileHtml.indexOf('data-testid="hud-ability-window"');
+const vitalsBlock = vitalsA >= 0 && vitalsB > vitalsA ? jrpgHudProfileHtml.slice(vitalsA, vitalsB) : '';
 check('（CZ-3）HP／MP／IP 住進同一個狀態窗（不再各佔一張卡）',
   [
     // 用**渲染後**的 HTML 切片，不是原始碼：`testId` 是 prop，渲染後才是 `data-testid`。
@@ -3299,13 +3336,14 @@ check('（CZ-5）消耗品不在主畫面，住在「行囊與道具」分頁',
     countOf(jrpgHudNotesHtml, 'data-testid="hud-ip-consumables"')
   ],
   [0, 1]);
-check('（CZ-6）錢包的收支鈕不在主畫面，住在「金錢與物語點」分頁；主畫面只留摘要',
+check('（CZ-6）錢包的收支鈕不在主畫面，住在「金錢與物語點」分頁；摘要住在「個人資料」頁',
   [
     countOf(jrpgHudAttacksHtml, 'data-testid="wallet-income"'),
     countOf(jrpgHudMoneyHtml, 'data-testid="wallet-income"'),
-    countOf(jrpgHudAttacksHtml, 'data-testid="hud-asset-zenit"'),
-    countOf(jrpgHudAttacksHtml, 'data-testid="hud-asset-fp"'),
-    countOf(jrpgHudAttacksHtml, 'data-testid="hud-assets-open"'),
+    // P14：資產窗跟著「個人資料」頁（以前它跟著每一頁印在右翼最下方）
+    countOf(jrpgHudProfileHtml, 'data-testid="hud-asset-zenit"'),
+    countOf(jrpgHudProfileHtml, 'data-testid="hud-asset-fp"'),
+    countOf(jrpgHudProfileHtml, 'data-testid="hud-assets-open"'),
     countOf(jrpgHudMoneyHtml, 'data-testid="fp-card"'),
     countOf(jrpgHudMoneyHtml, 'data-testid="money-page-note"')
   ],
@@ -3323,15 +3361,86 @@ check('（CZ-7）HudWindow 沒有任何漸層、rgba 或任意字級',
   [false, false, false, false]);
 
 // 對照組：上面七條不是因為讀到空字串而全綠。
-check('（CZ-8）對照組：兩份原始碼都讀到了，而且七個分頁 id 都在',
+check('（CZ-8）對照組：兩份原始碼都讀到了，而且八個分頁 id 都在',
   [
     hudCode.length > 100000,
     hudWindowSrc.length > 500,
     /HudCommandList/.test(hudWindowSrc),
-    ['attacks', 'spells', 'skills', 'bonds', 'clocks', 'notes', 'money']
+    ['profile', 'attacks', 'spells', 'skills', 'bonds', 'clocks', 'notes', 'money']
       .every((id) => new RegExp(`id: '${id}'`).test(hudCode))
   ],
   [true, true, true, true]);
+
+// ─────────────────────────────────────────────────────────── DA
+section('DA. 按了指令就換掉右翼那扇窗（P14，2026-11-02）');
+
+/* 使用者的原話（一句話裡有四件事）：
+     「但左边六个大按钮，然后点了之后还要特地滑下去才看得到视窗，操作很反人类诶。
+       我建议可以点了按纽就会把立绘右边的视窗直接整个替换掉。
+       然后左边的按纽多加一个个人资料之类的来显示最基本的默认信息。
+       然后不要这么宽松的话，我建议把左栏的长压缩，给右栏更多显示信息的空间，
+       然后把四维用横排写出来。」
+
+   ① 內容換在右翼那扇窗（不再印在 hub 下方）→ CX-2／CX-3
+   ② 多一顆「個人資料」→ DA-1
+   ③ 左欄收窄、列高壓縮 → CZ-1／CZ-2b
+   ④ 四維橫排 → DA-2
+   這裡補的是 ② 與 ④，以及一條 ① 的**必要副作用**：
+   HP／MP／IP 不能跟著被換走，所以立繪底下有一條常駐狀態條（DA-3）。
+*/
+
+// ② 個人資料是第一頁，而且它畫得出「最基本的默認信息」。
+check('（DA-1）「個人資料」是預設頁，畫出狀態、四維、狀態異常、成長與資產',
+  [
+    // 不傳 initialTab 也要落在 profile（SSR 的預設值就是生產端的預設值）
+    /initialTab = 'profile'/.test(hudCode),
+    /id: 'profile', label: '個人資料'/.test(hudCode),
+    jrpgHudProfileHtml.includes('data-testid="hud-vitals-window"'),
+    jrpgHudProfileHtml.includes('data-testid="hud-ability-window"'),
+    jrpgHudProfileHtml.includes('data-testid="hud-afflictions"'),
+    jrpgHudProfileHtml.includes('data-testid="hud-exp-window"'),
+    jrpgHudProfileHtml.includes('data-testid="hud-assets-window"')
+  ],
+  [true, true, true, true, true, true, true]);
+
+// ④ 四維橫排：`grid-cols-4`（sm 以上），不再是 2×2 的方塊。
+// 這條只看得到「有沒有寫」，看不到「畫起來是不是一列」——幾何留給實機
+// （`verify-p14.mjs` 量四格的 `getBoundingClientRect().top` 必須相同）。
+check('（DA-2）四維改成橫排四格（不是 2×2），四格都還在',
+  [
+    /grid grid-cols-2 sm:grid-cols-4 gap-2/.test(hudCode),
+    ['DEX', 'INS', 'MIG', 'WLP'].every((en) => jrpgHudProfileHtml.includes(en)),
+    // 對照組：舊的 2×2 寫法真的不在了（`grid grid-cols-2 gap-2` 仍用在別處，
+    // 所以驗的是「四維那一格不是它」——用 4 欄版本的存在反證）
+    countOf(hudCode, 'grid grid-cols-2 sm:grid-cols-4 gap-2')
+  ],
+  [true, true, 1]);
+
+// ① 的必要副作用：換頁之後 HP／MP／IP 還在畫面上（掛在立繪底下）。
+// 沒有這一條，「整個替換掉」就會變成「看不到自己剩多少血」。
+check('（DA-3）立繪底下有常駐狀態條，換到任何一頁都看得到 HP／MP／IP',
+  [
+    countOf(jrpgHudAttacksHtml, 'data-testid="hud-vitals-strip"'),
+    ['hud-strip-hp', 'hud-strip-mp', 'hud-strip-ip']
+      .every((id) => jrpgHudAttacksHtml.includes(`data-testid="${id}"`)),
+    // 對照組：常駐條是「純顯示」，不是第二條寫入路徑——
+    // 它裡面不能有步進器或輸入框，否則同一個數字會有兩個出口（MEMORY §E.27）。
+    (() => {
+      const s = jrpgHudAttacksHtml.indexOf('data-testid="hud-vitals-strip"');
+      const block = s >= 0 ? jrpgHudAttacksHtml.slice(s, s + 2200) : '';
+      return !/<input|NumberStepper/.test(block);
+    })()
+  ],
+  [1, true, true]);
+
+check('（DA-4）對照組：上面三條的切片都不是空的（否則「找不到」與「通過」長得一樣）',
+  [
+    jrpgHudProfileHtml.length > 100000,
+    jrpgHudAttacksHtml.includes('data-testid="hud-command-list"'),
+    // 換頁之後右翼那扇窗的標題要跟著換（不是永遠寫著「狀態」）
+    /title=\{hudTabLabel\}/.test(hudCode)
+  ],
+  [true, true, true]);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

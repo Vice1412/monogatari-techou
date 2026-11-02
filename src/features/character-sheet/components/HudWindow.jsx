@@ -26,9 +26,11 @@ export const HudWindow = ({
   right = null,
   children,
   testId,
+  headerTestId = null,
   className = '',
   bodyClassName = '',
-  frameColor = '#d6c7ab'
+  frameColor = '#d6c7ab',
+  headerColor = '#f4ebd9'
 }) => (
   <section
     data-testid={testId}
@@ -37,7 +39,11 @@ export const HudWindow = ({
   >
     <div className="flex-1 min-h-0 flex flex-col rounded border border-[#e8dcc4] bg-[#fffdf9] overflow-hidden">
       {title ? (
-        <header className="flex items-center justify-between gap-2 px-2.5 py-1 border-b border-[#e8dcc4] bg-[#f4ebd9] shrink-0">
+        <header
+          data-testid={headerTestId || undefined}
+          className="flex items-center justify-between gap-2 px-2.5 py-1 border-b border-[#e8dcc4] shrink-0"
+          style={{ backgroundColor: headerColor }}
+        >
           <span className="flex items-center gap-1.5 min-w-0">
             <span className="text-t10 leading-none shrink-0 text-[#a63d40]" aria-hidden="true">◆</span>
             {Icon ? <Icon className="w-3.5 h-3.5 shrink-0 text-[#6b5a4b]" /> : null}
@@ -58,10 +64,13 @@ export const HudWindow = ({
  * 同一份清單出現兩次，這就是「訊息太多」的來源之一。
  *
  * 現在只剩這一份，而且是 DQ 的樣子：一列一個指令，選中的那一列左邊有 `▶`、
- * 整列反白。每一列 `flex-1`，**高度由欄位決定**——欄位有多高，列就分多高。
- * 這一條同時解掉左翼的空白：以前是最後一張卡獨吞剩餘高度、
- * 再用 `justify-between` 把空白丟到卡片中間（看起來像壞掉）；
- * 現在剩餘高度被七列平均吸收，空白變成「按鈕很大」。
+ * 整列反白。
+ *
+ * **列高固定 44px（P14）**，不再 `flex-1` 撐滿欄位。使用者的原話：
+ *   「不要这么宽松的话，我建议把左栏的长压缩，给右栏更多显示信息的空间」
+ * P13 讓列撐滿是為了吃掉左翼的空白；P14 內容搬到右翼之後，左翼本來就該短，
+ * 撐滿反而把「一份清單」變成「八條巨大的橫幅」——而且按下之後要滾很遠才看到內容。
+ * 撐滿消失後，空白落在**窗戶下方**（不是窗戶裡面），看起來是留白而不是壞掉。
  *
  * `sub` 不放進列裡（那就是「字太多」），改放 `title`——
  * 滑過去或長按才看到說明。這正是使用者要的「說明改成 hover 才出現」。
@@ -74,7 +83,7 @@ export const HudCommandList = ({
   activeColor = '#a63d40',
   activeBorder = '#8c3235'
 }) => (
-  <div data-testid={testId} className="flex flex-col gap-1 p-1.5 h-full">
+  <div data-testid={testId} className="flex flex-col gap-1 p-1.5">
     {items.map((item) => {
       const Icon = item.icon;
       const active = item.id === value;
@@ -87,7 +96,7 @@ export const HudCommandList = ({
           aria-current={active ? 'page' : undefined}
           onClick={() => onChange(item.id)}
           title={item.sub ? `${item.label}：${item.sub}` : item.label}
-          className={`flex-1 min-h-[40px] w-full flex items-center gap-2 px-2.5 py-1.5 rounded border text-left transition-colors ${
+          className={`shrink-0 min-h-[44px] w-full flex items-center gap-2 px-2.5 py-1.5 rounded border text-left transition-colors ${
             active
               ? 'text-[#fffdf9]'
               // 未選中的列**不帶框**：帶了框就變成「七張卡」，而指令窗是一份清單。
