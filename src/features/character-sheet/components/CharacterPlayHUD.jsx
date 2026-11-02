@@ -97,8 +97,6 @@ import {
   describeFabulaPointsToast,
   resolveFabulaPoints
 } from '../utils/fabulaPointsFlow';
-// 守衛（P12）：跨回合的 +2。狀態進存檔，且**只有玩家按的那一下會改變它**。
-import { describeGuardState, guardBonusOf, isGuarding, setGuard } from '../utils/guardState';
 import {
   buildCustomWeaponEntries,
   buildCustomWeaponEntry,
@@ -553,6 +551,16 @@ export default function CharacterPlayHUD({
   const curIp = character.currentIp !== null && character.currentIp !== undefined ? character.currentIp : stats.maxIp;
   const isCrisis = curHp <= stats.crisisThreshold;
 
+  /* ── 立繪圖源（2026-11-02，P12-b）───────────────────────────────
+     `avatar` 可能是三種東西：圖片 data URL／圖片 http 網址／**圖示名稱**
+     （`CharacterAvatarUploader` 的「用圖示代替照片」就存圖示名）。
+     所以不能只看「有沒有值」，要看「是不是圖」。
+     優先序：`avatarRaw`（裁切前的原圖）→ `avatar`。
+     裁切過的方圖塞進直式框會把人物上下切掉，而使用者要的是「完整」。 */
+  const portraitSrc = character.avatarRaw || character.avatar || '';
+  const portraitIsImage = typeof portraitSrc === 'string'
+    && (portraitSrc.startsWith('http') || portraitSrc.startsWith('data:'));
+
   /* ── 事前可用性（2026-10-30，P6）───────────────────────────────
      同一個門檻原本在八個地方各寫一次，而且全部是「按下之後才用 toast 說不行」。
      這裡先算一次，讓按鈕在按下去之前就灰掉並寫出還差多少。
@@ -567,10 +575,6 @@ export default function CharacterPlayHUD({
     ? character.fabulaPoints
     : 3;
 
-  // 守衛（P12）：跨回合的 +2。加成**不併進 `stats`**——`StatFormulaPanel` 展開的是
-  // 「DEX + 盾/裝甲」，把 +2 混進去那條算式就對不上了。所以加成留在畫面上。
-  const guard = describeGuardState(character);
-  const guardBonus = guardBonusOf(character);
   const consumableGates = {
     remedy: describeCostGate({ cost: 3, current: curIp, unit: GATE_UNITS.ip }),
     elixir: describeCostGate({ cost: 3, current: curIp, unit: GATE_UNITS.ip }),
@@ -915,20 +919,6 @@ export default function CharacterPlayHUD({
   const openFpFlow = (direction) => {
     setFpFlowDirection(direction === FP_DIRECTIONS.gain ? FP_DIRECTIONS.gain : FP_DIRECTIONS.spend);
     setIsFpFlowOpen(true);
-  };
-
-  /**
-   * 守衛（P12）：跨回合的 +2，**不自動解除**。
-   *
-   * App 不知道「你的下一回合」什麼時候開始（回合在另一頁、而且常常是 GM 在數），
-   * 自動清掉等於用一個猜測蓋掉玩家手上的事實。所以它留著，由玩家按掉。
-   */
-  const handleToggleGuard = () => {
-    const latest = characterRef.current;
-    const next = setGuard(latest, !isGuarding(latest));
-    if (next === latest) return;
-    commit(next);
-    showToast(describeGuardState(next).label, 'success');
   };
 
   /**
@@ -2101,6 +2091,7 @@ export default function CharacterPlayHUD({
 
           {/* CENTERPIECE (col-span-4): JRPG Character Portrait Standee & Surrounding Command Buttons */}
           <div
+            data-testid="hud-center-column"
             className="lg:col-span-4 rounded p-4 border-2 bg-[#fffdf9] flex flex-col items-center justify-between text-center gap-3 overflow-hidden"
             style={{ borderColor: theme.border }}
           >
@@ -2108,53 +2099,93 @@ export default function CharacterPlayHUD({
               className="h-1 w-full -mt-4 mb-1 shrink-0 transition-colors duration-200"
               style={{ backgroundColor: theme.accent, width: 'calc(100% + 2rem)' }}
             />
-            {/* Portrait Frame & Identity */}
-            <div className="flex flex-col items-center w-full space-y-2">
-              <div className="relative">
-                <div
-                  onClick={() => onOpenEditor()}
-                  className="w-24 h-24 sm:w-28 sm:h-28 rounded border-2 flex items-center justify-center font-serif text-2xl font-bold overflow-hidden shadow-inner cursor-pointer hover:ring-2 transition-all group relative"
-                  style={{ borderColor: theme.accent, backgroundColor: theme.accentLight, color: theme.accent }}
-                  title="點擊前往「構築與成長」更換或調整角色立繪／頭像"
-                >
-                  {character.avatar ? (
-                    character.avatar.startsWith('http') || character.avatar.startsWith('data:') ? (
-                      <img src={character.avatar} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <GameIcon name={character.avatar} className="w-14 h-14" style={{ color: theme.accent }} />
-                    )
-                  ) : (
-                    <GameIcon name={character.classes?.[0]?.className || 'GiSparkles'} className="w-14 h-14" style={{ color: theme.accent }} />
-                  )}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-t12 font-bold">
-                    更換肖像
+            {/* Portrait Frame & Identity（2026-11-02，P12-b）
+                ─────────────────────────────────────────────────────────────
+                使用者的原話（他對 Antigravity 說的，這一段我上一輪漏掉了）：
+                  「照片太小了，必須要大的。……玩家們很多時候都是放人物完整立繪，
+                    所以這個跑團卡必須完整呈現玩家的精美人設才行，圖必須是主體，
+                    你放這麼小個頭像看什麼？」
+                ─────────────────────────────────────────────────────────────
+                所以頭像從 96/112px 的方框改成**整欄寬的直式立繪**（3:4），
+                名字／身分／等級疊在圖的下緣，不再各佔一行。
+                圖源優先用 `avatarRaw`（裁切前的原圖）：裁切過的方圖放進直式框
+                會把人物切掉，而使用者要的是「完整」。
+
+                **這裡刻意不用漸層**：名牌放在圖的下方、紙底深字，不壓在圖上。
+                設計系統的「漸層只存在於登記過的檔案」是硬規則，而它抓的正是
+                「一條吃主題色的漸層會變成第二套顏色系統」。
+                ───────────────────────────────────────────────────────────── */}
+            {/* 立繪吸收中欄剩下的高度（`flex-1`）：欄位用 `justify-between` 排，
+                剩餘高度原本全部掉在「角色檔案」與指令格之間，變成一塊空白。
+                空白餵給圖，圖就真的是主體。手機上欄位沒有固定高度，
+                `flex-1` 分不到東西，`aspect-ratio` 就回到 3:4——同一段碼兩種情況都對。 */}
+            <div className="w-full space-y-2 flex-1 flex flex-col min-h-0">
+              <div
+                data-testid="hud-portrait"
+                onClick={() => onOpenEditor()}
+                className="relative w-full rounded border-2 overflow-hidden cursor-pointer group shadow-inner flex-1"
+                style={{
+                  borderColor: theme.accent,
+                  backgroundColor: theme.accentLight,
+                  aspectRatio: '3 / 4'
+                }}
+                title="點擊前往「構築與成長」更換或調整角色立繪"
+              >
+                {portraitIsImage ? (
+                  <img
+                    src={portraitSrc}
+                    alt={`${character.name || '角色'}的立繪`}
+                    className="absolute inset-0 w-full h-full object-contain object-bottom"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
+                    <GameIcon
+                      name={portraitSrc || character.classes?.[0]?.className || 'sword'}
+                      className="w-20 h-20"
+                      style={{ color: theme.accent }}
+                    />
+                    <span className="text-t12 font-bold" style={{ color: theme.accent }}>尚未上傳立繪</span>
+                    <span className="text-t12 text-[#6b5a4b] leading-relaxed">點一下上傳全身立繪</span>
                   </div>
-                </div>
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                )}
+
+                {/* 等級與危機狀態貼在圖的角落，不另外佔版面 */}
+                <div className="absolute top-2 left-2">
                   <JRPGBadge variant={theme.badgeVariant} size="sm">
                     Lv {getCharacterLevel(character)}
                   </JRPGBadge>
                 </div>
-              </div>
-
-              <div className="pt-1.5 space-y-1 w-full">
-                <div className="flex items-center justify-center gap-2 flex-wrap">
-                  <h3 className="font-serif font-black text-xl tracking-wide" style={{ color: theme.textDark }}>
-                    {character.name || '冒險者'}
-                  </h3>
-                  {isCrisis && (
+                {isCrisis && (
+                  <div className="absolute top-2 right-2">
                     <JRPGBadge variant="danger" size="xs" className="flex items-center gap-1">
                       <FUIcon name="crisis" className="text-xs leading-none" />
-                      <span>CRISIS 危機</span>
+                      <span>CRISIS</span>
                     </JRPGBadge>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                <p className="text-xs text-[#6b5a4b] leading-relaxed">
-                  {character.identity || '未設定身份'} · <strong style={{ color: theme.accent }}>{character.theme || '未設定主題'}</strong>
+                <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-t12 font-bold">
+                  更換立繪
+                </div>
+              </div>
+
+              {/* 名牌放在圖**下方**，不壓在圖上。
+                  使用者要的是「完整呈現玩家的精美人設」——全身立繪的腳就是人設的一部分，
+                  一條貼在底部的深色帶會把它蓋掉。所以圖一格、字一格。 */}
+              <div className="w-full px-1 pt-0.5 text-left" data-testid="hud-nameplate">
+                <h3 className="font-serif font-black text-xl tracking-wide leading-tight" style={{ color: theme.textDark }}>
+                  {character.name || '冒險者'}
+                </h3>
+                <p className="text-t12 leading-snug text-[#6b5a4b]">
+                  {character.identity || '未設定身份'}
+                  {character.theme && character.theme !== character.identity && (
+                    <> · <strong className="text-[#2c221e]">{character.theme}</strong></>
+                  )}
                   {character.origin && ` · 來自 ${character.origin}`}
                 </p>
+              </div>
 
+              <div className="space-y-1 w-full">
                 {/* Classes Pills */}
                 {(character.classes || []).length > 0 && (
                   <div className="flex items-center justify-center gap-1.5 flex-wrap pt-1">
@@ -2818,13 +2849,6 @@ export default function CharacterPlayHUD({
                   >
                     <span className="text-[#7c6a58] block text-t12 font-sans font-medium">物理防禦</span>
                     <span className="text-2xl font-black" style={{ color: theme.textDark }}>{statsUnset ? '—' : stats.def}</span>
-                    {/* 守衛的 +2 只畫在數字旁邊，不加進 `stats.def`——
-                        否則點開公式會看到「12 = d8 + 2 + 2」，多出來的 2 沒有出處。 */}
-                    {guardBonus > 0 && !statsUnset && (
-                      <span data-testid="guard-bonus-def" className="ml-1 align-top text-t12 font-black text-[#245c45]">
-                        +{guardBonus}
-                      </span>
-                    )}
                     <span className="text-t12 text-[#6b5a4b] block mt-0.5 leading-tight">
                       {stats.currentDex !== stats.def ? `DEX(d${stats.currentDex}) + 盾/裝甲` : `當前 DEX(d${stats.currentDex})`}
                     </span>
@@ -2837,11 +2861,6 @@ export default function CharacterPlayHUD({
                   >
                     <span className="text-[#6b5a4b] block text-t12 font-sans font-medium">魔法防禦</span>
                     <span className="text-2xl font-black text-[#3c2415]">{stats.mdef}</span>
-                    {guardBonus > 0 && (
-                      <span data-testid="guard-bonus-mdef" className="ml-1 align-top text-t12 font-black text-[#245c45]">
-                        +{guardBonus}
-                      </span>
-                    )}
                     <span className="text-t12 text-[#6b5a4b] block mt-0.5 leading-tight">
                       {stats.currentIns !== stats.mdef ? `INS(d${stats.currentIns}) + 盾/加值` : `當前 INS(d${stats.currentIns})`}
                     </span>
@@ -2859,25 +2878,6 @@ export default function CharacterPlayHUD({
                     </span>
                   </button>
                 </div>
-
-                {/* 守衛（P12）：一顆跨回合的狀態，不是一次性加成。
-                    放在防禦三格的正下方——玩家宣告守衛的那一刻，眼睛就在這三格上。
-                    `aria-pressed` 而不是 `disabled`：按下去是切換，不是「不能按」。 */}
-                <button
-                  type="button"
-                  data-testid="guard-toggle"
-                  aria-pressed={guard.active}
-                  onClick={handleToggleGuard}
-                  title={guard.title}
-                  className={`w-full py-1.5 rounded border font-bold text-t12 flex items-center justify-center gap-1.5 transition-colors ${
-                    guard.active
-                      ? 'bg-[#245c45] border-[#245c45] text-[#fffdf9] hover:bg-[#1e4b39]'
-                      : 'bg-[#fbf7ee] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9]'
-                  }`}
-                >
-                  <GiHeartShield className="w-3.5 h-3.5" />
-                  <span>{guard.label}</span>
-                </button>
 
                 <StatFormulaPanel
                   isOpen={openFormula === 'def'}

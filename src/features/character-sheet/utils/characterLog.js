@@ -77,11 +77,7 @@ export const LOG_KINDS = Object.freeze({
   // 判準與 `dice` 相同：**合併是給雜訊用的，不是給事件用的。**
   // 兩者都寫 `field: 'zenit'` 的 change，所以 `summarizeLog` 的
   // `zenitDelta` 不必改一行——統計看的是欄位，敘事看的是 kind。
-  trade: { label: '交易', icon: 'GiTakeMyMoney', coalesce: 0 },
-  // ── 2026-11-02 新增：架勢（守衛） ──
-  // 守衛跨回合存在（+2 直到下一回合開始），而「什麼時候宣告的」在爭執時
-  // 是唯一查得到的東西。`coalesce: 0`：宣告與解除是兩件事。
-  stance: { label: '架勢', icon: 'GiHeartShield', coalesce: 0 }
+  trade: { label: '交易', icon: 'GiTakeMyMoney', coalesce: 0 }
 });
 
 /** 欄位顯示名（`formatChange` 用） */
@@ -109,9 +105,7 @@ export const LOG_FIELD_LABELS = Object.freeze({
   quirk: '金手指',
   // 營地活動（自然奇幻手冊 p.130–133）：建角選的兩種與跑團時「本次休息已使用」都會變動，
   // 兩者都是這張卡的決定——沒有標籤的話履歷上只會出現 `[object Object]`。
-  campActivities: '營地活動',
-  // 架勢（守衛，2026-11-02）：沒有這個標籤，履歷上會印出 `isGuarding false → true`
-  isGuarding: '守衛'
+  campActivities: '營地活動'
 });
 
 /** 預設保留的最大條目數（超過時丟棄最舊的） */

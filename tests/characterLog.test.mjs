@@ -66,8 +66,8 @@ check('每一種 kind 都有 label／icon／coalesce',
   Object.entries(LOG_KINDS).filter(([, v]) =>
     typeof v.label !== 'string' || typeof v.icon !== 'string' || typeof v.coalesce !== 'number'
   ).map(([k]) => k), []);
-check('kind 數量（13 ＋ 羈絆／命刻／營地／場次 ＝ 17 ＋ 擲骰 ＝ 18 ＋ 交易 ＝ 19 ＋ 架勢 ＝ 20）',
-  Object.keys(LOG_KINDS).length, 20);
+check('kind 數量（13 ＋ 羈絆／命刻／營地／場次 ＝ 17 ＋ 擲骰 ＝ 18 ＋ 交易 ＝ 19）',
+  Object.keys(LOG_KINDS).length, 19);
 // 不能只把 13 改成 17：原本那 13 種一個都不能消失，否則有人刪掉一條，
 // 「總數 17」照樣成立，而那一類事件從此靜默不記錄（2026-10-30 真的發生過）。
 check('原本的 13 種一個都沒消失',
@@ -84,15 +84,16 @@ check('擲骰（dice）在詞彙表裡',
 // 逐一點名照舊：只把 18 改成 19 的話，有人刪掉 trade 再補一個別的，總數照樣成立。
 check('交易（trade）在詞彙表裡，而且不合併',
   [['trade'].filter((k) => !LOG_KINDS[k]), LOG_KINDS.trade.coalesce], [[], 0]);
-// 2026-11-02：架勢（P12 的守衛）。守衛跨回合存在，而「什麼時候宣告的」
-// 在爭執時是唯一查得到的東西。逐一點名照舊：只把 19 改成 20 的話，
-// 有人刪掉 stance 再補一個別的，總數照樣成立。
-check('架勢（stance）在詞彙表裡，而且不合併',
-  [['stance'].filter((k) => !LOG_KINDS[k]), LOG_KINDS.stance.coalesce], [[], 0]);
-// 同一次改動的另一半：`fp` 從合併改成不合併。合併的實作是「保留最新的 note」，
-// 於是兩分鐘內重擲再激勵羈絆，明細上只剩一個原因——而那正是要讀的那一行。
+// 2026-11-02 同一次改動的另一半：`fp` 從合併改成不合併。合併的實作是
+// 「保留最新的 note」，於是兩分鐘內重擲再激勵羈絆，明細上只剩一個原因
+// ——而那正是要讀的那一行。
 check('物語點（fp）不再合併（原因不能被吃掉）',
   LOG_KINDS.fp.coalesce, 0);
+// 反向斷言：同日稍早曾加過 `stance`（守衛 +2），那是**規則誤讀**——
+// 書上沒有「守衛給防禦 +2」，已整組移除。留著這一條，免得下一個人
+// 看到評估文件裡的字又把它加回來。
+check('沒有 `stance` 這種 kind（守衛 +2 是誤讀，已移除）',
+  Object.prototype.hasOwnProperty.call(LOG_KINDS, 'stance'), false);
 check('對照組：zenit 仍然合併（雜訊不該變成事件）',
   LOG_KINDS.zenit.coalesce > 0, true);
 check('未登記的 kind 一律拒收',

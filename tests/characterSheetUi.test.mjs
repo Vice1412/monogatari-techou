@@ -3109,6 +3109,98 @@ check('（CX-4）角色中樞（分頁列的祖先）也不是 overflow-hidden',
 check('（CX-5）對照組：其他容器仍保留 overflow-hidden（證明上面兩條不是全域替換）',
   (hud.match(/overflow-hidden/g) || []).length >= 1, true);
 
+// ─────────────────────────────────────────────────────────── CY
+section('CY. 立繪是主體（P12-b，2026-11-02：使用者原話「照片太小了，必須要大的」）');
+
+/* 使用者在 Antigravity 那邊講過、而前一輪完全沒落地的一句話：
+     「照片太小了，必須要大的。……玩家們很多時候都是放人物完整立繪，
+       所以這個跑團卡必須完整呈現玩家的精美人設才行，圖必須是主體，
+       你放這麼小個頭像看什麼？」
+
+   舊版是 `w-24 h-24`（96px）的方框配 `object-cover`——cover 會**裁掉**上下，
+   對一張全身立繪等於把人砍成半身。所以這一節守三件事：
+     1. 不是小方框（有 `flex-1`，會吸收中欄剩下的高度）
+     2. 是直式（3:4 起跳）
+     3. `object-contain` ＋ `object-bottom`（完整、貼底，不裁切）
+   幾何（真的多寬、真的畫多大）靜態驗不到，由 `scratch/verify-p12b-portrait.mjs` 實機量。
+   分工寫在這裡，免得下一個人以為靜態這幾條已經守住了大小。 */
+
+/* ⚠️ 右界不能用 `[\s\S]{0,520}?>`：開標籤裡有 `onClick={() => …}`，
+   第一個 `>` 就是箭頭函式的 `>`，切片會停在 className 之前——
+   於是 `flex-1` 與 `aspectRatio` 永遠掃不到，兩條斷言紅在「切錯地方」而不是「寫錯」。
+   改用 tag 內唯一、而且位在 `style` **之後**的 `title` 當右界。 */
+const portraitTag = (hudCode.match(/data-testid="hud-portrait"[\s\S]{0,900}?title="點擊前往/) || [''])[0];
+check('（CY-1）立繪框存在，而且是可成長的（`flex-1`），不是固定小方框',
+  [
+    portraitTag.length > 0,
+    /\bflex-1\b/.test(portraitTag),
+    // 舊版的死法：固定 96/112px 方框
+    /\bw-24\b|\bh-24\b|\bw-28\b|\bh-28\b/.test(portraitTag)
+  ],
+  [true, true, false]);
+check('（CY-2）立繪框是直式 3:4（`aspectRatio`），不是正方形',
+  /aspectRatio:\s*'3\s*\/\s*4'/.test(portraitTag), true);
+
+// `object-cover` 是這個需求的**反命題**：它保證「填滿」，代價是裁掉人物的頭或腳。
+const portraitImg = (hudCode.match(/<img[\s\S]{0,300}?\/>/) || [''])[0];
+check('（CY-3）立繪用 contain ＋ 貼底（完整呈現，不是 cover 裁切）',
+  [
+    /object-contain/.test(portraitImg),
+    /object-bottom/.test(portraitImg),
+    /object-cover/.test(portraitImg)
+  ],
+  [true, true, false]);
+// 圖源要優先用**裁切前**的原圖：裁切過的方圖放進直式框一樣會少一截。
+check('（CY-4）圖源優先用 `avatarRaw`（裁切前的原圖），再退回 `avatar`',
+  /const portraitSrc = character\.avatarRaw \|\| character\.avatar/.test(hudCode), true);
+// `avatar` 也可能是**圖示名稱**（「用圖示代替照片」存的是圖示名），
+// 只看「有沒有值」會把圖示名塞進 <img src> —— 那是一個壞掉的圖。
+check('（CY-5）分辨「是圖」與「是圖示名」，不是只看有沒有值',
+  [/portraitIsImage/.test(hudCode), /startsWith\('data:'\)/.test(hudCode)], [true, true]);
+
+/* 名牌不能壓在圖上：一條貼在底部的深色帶會蓋掉人物的腳，而腳也是人設的一部分。
+   這裡切片從立繪開標籤到名牌，檢查中間沒有 `absolute inset-x-0 bottom-0` 的覆蓋層。
+   ⚠️ 反向斷言單獨存在時分辨不出「有查」和「沒查」——所以 CY-6b 是對照組：
+   這個切片必須**真的包到立繪**，否則「沒有覆蓋層」只是因為切到空字串。 */
+const portraitToPlate = (() => {
+  const a = hudCode.indexOf('data-testid="hud-portrait"');
+  const b = hudCode.indexOf('data-testid="hud-nameplate"');
+  return a >= 0 && b > a ? hudCode.slice(a, b) : '';
+})();
+check('（CY-6）名牌在圖的**下方**，圖上沒有覆蓋層（不遮住人物的腳）',
+  [/absolute inset-x-0 bottom-0/.test(portraitToPlate)], [false]);
+check('（CY-6b）對照組：上面那個切片真的包到立繪與 <img>（不是切到空字串）',
+  [
+    portraitToPlate.length > 400,
+    /data-testid="hud-portrait"/.test(portraitToPlate),
+    /<img/.test(portraitToPlate)
+  ],
+  [true, true, true]);
+
+/* ── 守衛 +2 是 AI 幻覺，規則裡沒有這條 ──────────────────────────
+   使用者的原話：「那个防御在规则上根本就没有 +2 的设定。那个 +2 是对抗检定
+   而非物魔防，是 AI 幻觉，给我删掉」。
+   書上的守衛（Guard）是**動作**：花一次行動，把物理／魔法防禦當成對抗檢定的
+   固定值。它不給任何常駐加成，也不跨回合。所以這裡守的是「它不會被加回來」：
+   留著模組、留著欄位、留著按鈕，任何一個都算復發。 */
+check('（CY-7）跑團卡不再有守衛切換鈕與 +2 徽章（AI 幻覺已刪）',
+  [
+    /guard-toggle/.test(hudCode),
+    /guard-bonus-/.test(hudCode),
+    /\bisGuarding\b/.test(hudCode),
+    /\bguardBonusOf\b/.test(hudCode)
+  ],
+  [false, false, false, false]);
+check('（CY-8）守衛狀態模組已經不存在（`utils/guardState` 整個刪掉）',
+  [
+    fs.existsSync(new URL('../src/features/character-sheet/utils/guardState.js', import.meta.url)),
+    /from '\.\.\/utils\/guardState'/.test(hudCode)
+  ],
+  [false, false]);
+// 對照組：HUD 本身仍然讀得到（上面四條不是因為整份檔案讀空而全綠）。
+check('（CY-9）對照組：HUD 原始碼非空、且立繪區塊之後還有指令格',
+  [hudCode.length > 100000, /武器與戰鬥/.test(hudCode)], [true, true]);
+
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
 console.log(`\n${'='.repeat(56)}`);

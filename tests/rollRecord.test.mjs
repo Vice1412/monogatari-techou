@@ -238,7 +238,11 @@ check('E11 擲骰器不 import 業務模組（判定留在業務層）',
 
 // 跨 modal 生命週期的閉包陷阱：config 裡的 callback 必須讀 ref，不能讀閉包
 check('E12 HUD 有 characterRef', countOf(hudCode, 'characterRef.current = character') === 1);
-check('E13 adjustFp 讀 ref（不是閉包）', countOf(hudCode, 'const latest = characterRef.current;') >= 2);
+// 2026-11-02（P12）：物語點的寫入從 `adjustFp(delta)` 換成 `applyFpFlow(input)`，
+// 但「要讀 ref」這件事沒變——它仍然會被塞進擲骰器的 config，在 modal 開著的
+// 整段時間裡被呼叫多次。錨點跟著搬家，守的東西不動。
+check('E13 物語點寫入讀 ref（不是閉包）',
+  countOf(hudCode, 'applyFabulaPointsFlow(characterRef.current, input)') === 1);
 check('E14 recordRoll 也讀 ref', /const recordRoll[\s\S]{0,900}characterRef\.current/.test(hudCode));
 
 // 純函式模組不該有副作用
