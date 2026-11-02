@@ -59,9 +59,9 @@
 | # | 概念圖說 | 現況 | 證據 |
 |---|---|---|---|
 | 1 | 異常狀態與骰階沒有連動，玩家要自己記「我現在是 d8」 | **已經做了**（P7，2026-10-30） | `affectedStats` 推導 → 四維格子把 `d10` 劃掉、旁邊顯示 `d8`（截圖 MIG 格：`D8` + 劃線的 `d10`） |
-| 2 | 沒有「守衛（Guard）」狀態 | **真的缺** | 全 repo 搜 `guard` 只命中「守護者」職業名與無關註解；`CharacterPlayHUD.jsx` 零守衛狀態 |
+| 2 | 沒有「守衛（Guard）」狀態 | ~~真的缺~~ **這條是我誤讀規則** | 全 repo 搜 `guard` 只命中「守護者」職業名與無關註解——**那是對的**：守衛不給物魔防加成，所以跑團卡本來就不該有守衛狀態。+2 屬於對抗檢定。已撤回，見 §6.4 的更正 |
 | 3 | 沒有一鍵複製檢定／攻擊結果 | **已經做了** | `src/features/dice-roller/DiceRollerModal.jsx:372` `CopyTextButton testId="roll-copy"`；格式器在 `utils/playCopyFormat.js`（`formatRollResultCopyText`） |
-| 4 | 立繪展台不能折疊，窄螢幕很擠 | **前提就錯了** | 專案沒有立繪展台，中央欄只有一顆 **96px／112px** 的方頭像（`w-24 h-24 sm:w-28 sm:h-28`）。真正的問題是**太小、旁邊全是空白**，不是太大 |
+| 4 | 立繪展台不能折疊，窄螢幕很擠 | **前提就錯了，但「太小」是真的（已修）** | 專案沒有立繪展台，中央欄只有一顆 **96px／112px** 的方頭像（`w-24 h-24 sm:w-28 sm:h-28`）。真正的問題是**太小、旁邊全是空白**，不是太大。P12-b 已改成整欄寬直式立繪（桌面 344px、手機 294px） |
 | 5 | 重擲時沒有列出角色的特質 | **真的缺（小）** | `DiceRollerModal.jsx:143` `handleRerollWithTrait` 只寫死一個字串「引用特質重擲檢定」 |
 | 6 | 自訂武器沒有形態切換 | **真的缺** | 資料層有 `transforming`＋`transformingId`（`data/customWeapons.js:107,135,352`），HUD 全檔零「形態」二字 |
 
@@ -230,7 +230,24 @@ A 先做、B 之後再談。A 做完，桌面第一屏就「看得到而且碰�
 **風險**：`fabulaPoints` 的預設值是 3（`?? 3`），舊存檔可能是 `undefined`。
 清單式寫入要沿用 `asCount` 的三態處理，`undefined` 要讀成「不知道」而不是 0。
 
-### 6.4 守衛（Guard）（P1，唯一真的要新增狀態的一條）
+### 6.4 守衛（Guard）（**本節已作廢：規則讀錯了，見下方更正**）
+
+> ### ⚠️ 更正（2026-11-02 當日撤回）
+>
+> **本節的規則敘述是錯的。** 原文寫「守衛到你的下一回合開始為止，DEF／M.DEF **+2**」——
+> 書上沒有這條。那個 +2 屬於**對抗檢定**，不是物理／魔法防禦。
+> 使用者的原話：「那个防御在规则上根本就没有 +2 的设定。那个 +2 是对抗检定而非物魔防，
+> 是 AI 幻觉，给我删掉」。
+>
+> 因此本節的「做法」與「最小可驗版本」**全部作廢**：`isGuarding` 欄位、`utils/guardState.js`、
+> `LOG_KINDS.stance`、`aria-pressed` 按鈕、`9 → 11` 的顯示，都已從程式碼移除。
+> 反向護欄 `test:ui` 的 `CY-7`／`CY-8` 擋它回來。
+>
+> **書面原文待核對**：官方 PDF 在這個環境的 shell 一律被擋，所以「守衛確切給什麼」
+> 目前只有使用者裁定與既有譯文可依，沒有逐字原文——標為待核對，不得據此再開新功能。
+>
+> 留下的教訓：**「書上沒有的數字」比「漏掉的功能」更危險**。漏掉的功能看得出來，
+> 多出來的數字會被當成規則，然後一路寫進測試、文件、履歷。
 
 原書：守衛到你的下一回合開始為止，DEF／M.DEF **+2**，且可替隊友承受一次近戰攻擊。
 現況完全沒有。
@@ -262,7 +279,20 @@ A 先做、B 之後再談。A 做完，桌面第一屏就「看得到而且碰�
 |---|---|---|
 | `utils/fabulaPointsFlow.js` | `FP_GAIN_REASONS`／`FP_SPEND_REASONS`（官方情境，含 `delta`）、`applyFpFlow`、`describeFpToast`、`buildFpLedger` | `tests/fabulaPointsFlow.test.mjs`／`npm run test:fpflow` |
 | `utils/standeeSource.js` | `resolveStandeeSource(character)` → `'raw'`／`'square'`／`'icon'` 三態 | `tests/standeeSource.test.mjs`／`npm run test:standee` |
-| `utils/guardState.js` | `applyGuard(character, on)`、`describeGuardDefense(stats, guarding)` | `tests/guardState.test.mjs`／`npm run test:guard` |
+| `utils/guardState.js` | ~~`applyGuard(character, on)`、`describeGuardDefense(stats, guarding)`~~ | **作廢**（守衛 +2 是誤讀，見 §6.4 更正） |
+
+> **實際落地與這張表的差異（2026-11-02 收尾時補記）**
+>
+> - `utils/fabulaPointsFlow.js` 落地了，但 API 名稱與這張表不同（`applyFabulaPointsFlow`／
+>   `describeFabulaPointsFlow`／`buildFabulaPointLedger`／`describeFabulaPointsToast`），
+>   情境清單叫 `FP_SPEND_PRESETS`／`FP_GAIN_PRESETS`（**是原因字串，不帶 `delta`**——
+>   點數由呼叫端給，清單只負責「為什麼」）。
+> - `utils/standeeSource.js` **沒有落地**。立繪的三態判定改成 `CharacterPlayHUD.jsx` 裡的
+>   `portraitSrc` ＋ `portraitIsImage` 兩行。理由：只有一個呼叫點，抽成模組只是搬家；
+>   而且 `CharacterCard.jsx`／`CharacterEditor.jsx` 早就各自有一份同樣的 `startsWith('http')`
+>   判定——真要收斂，應該三處一起收，那是獨立一輪的事（記在 `docs/p12-play-hud-2026-11-02.md` §5）。
+> - `test:standee`／`test:guard` **都沒有落地**。立繪那 10 條放進 `test:ui` 的 CY 段，
+>   幾何交給 `scratch/verify-p12b-portrait.mjs` 實機量。
 
 **斷言清單（每條都要有對照組）**
 
@@ -281,7 +311,7 @@ A 先做、B 之後再談。A 做完，桌面第一屏就「看得到而且碰�
 3. 兩者皆無 → `'icon'`
 4. `avatarRaw` 為 `undefined`／`''`／`null` 三種空值 → 全部 `'square'` 或 `'icon'`，**不得 `'raw'`**
 
-`test:guard`
+`test:guard`（**作廢：守衛 +2 是誤讀，以下三條不要實作**）
 1. `applyGuard(c, true)` 後 `stats.def + 2`、`stats.mdef + 2`，其餘欄位不變（逐欄比對，不用 `JSON.stringify` 全等——鍵序會咬人）
 2. `applyGuard(c, false)` 還原到原值（**來回一趟必須回到起點**）
 3. `describeGuardDefense` 在關閉時回 `{ base: 9, shown: 9, guarding: false }`——
@@ -293,7 +323,7 @@ A 先做、B 之後再談。A 做完，桌面第一屏就「看得到而且碰�
   若保留兩套，必須有一條斷言證明兩套的 `id` 清單**逐一字面相同**（`attacks/spells/skills/bonds/clocks/notes`）
 - **FP 不得有第二條寫入路**：`fabulaPoints:` 的賦值點全 repo 只能是 `applyFpFlow` 內部 1 處
   （掃描前先剝註解，並留對照組：剝完長度 > 5000、`fabulaPoints` 仍出現 ≥ 3 次）
-- **守衛不得自動重置**：全檔搜 `isGuarding` 的賦值點，只能出現在「玩家按下」的 handler 與 `applyGuard` 內部
+- ~~**守衛不得自動重置**：全檔搜 `isGuarding` 的賦值點~~（作廢：守衛狀態不存在，改成反向護欄「`isGuarding` 0 處」，見 `test:ui` CY-7）
 
 ### 7.3 實機：幾何斷言（靜態驗不到的那一半）
 
@@ -309,7 +339,8 @@ A 先做、B 之後再談。A 做完，桌面第一屏就「看得到而且碰�
 | `overflowX` | false | false |
 
 **還要量「值」而不是「有」**（P7 的教訓）：
-- 守衛開啟時，`getComputedStyle` 讀到的 DEF 數字**必須是 11**，而且旁邊仍有 `9`
+- ~~守衛開啟時，`getComputedStyle` 讀到的 DEF 數字**必須是 11**~~（作廢：+2 是誤讀，見 §6.4 更正）
+- 立繪框寬 ÷ 中央欄內容寬 **= 1**（誤差 ≤ 2px）；`object-fit` 必須是 `contain`（實測 344px／228×455）
 - FP 消耗一筆後，履歷**最後一筆**的 `note` 必須等於所選情境的字串（不是「消耗物語點」）
 
 ### 7.4 破壞驗證（三種假綠燈，逐條對照）
@@ -343,7 +374,7 @@ node scratch/run-live.mjs scratch/ux-audit-hud.mjs   # 幾何斷言全綠
 |---|---|---|---|
 | 1 | 分頁列要釘住（A），還是把中央 6 顆指令鈕砍掉重排（B）？ | A 風險低、B 更乾淨 | **先 A**。B 動到三欄高度與手機順序，值得單獨一輪 |
 | 2 | FP 步進器要不要**真的拆掉**？ | 拆（只剩獲得／消耗）／留（多一條沒有原因的路） | **拆**。錢包已經證明留著會分岔 |
-| 3 | 守衛要不要連「替隊友扛」一起做？ | 只做 +2 ／ 連隊友一起 | **只做 +2**。隊友名單屬於未裁定的隊伍層級 |
+| 3 | ~~守衛要不要連「替隊友扛」一起做？~~ | ~~只做 +2 ／ 連隊友一起~~ | **作廢**。守衛 +2 本身是誤讀（§6.4），這題不存在 |
 
 ---
 
