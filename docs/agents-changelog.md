@@ -3566,6 +3566,34 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 - `npm run build`：Vite 6 編譯 exit 0。
 - `npm run handoff`：成功更新 `docs/STATE-LIVE.md`。
 
+---
+
+## [2026-11-02 23:35] 跑團卡左側指令按鈕精簡與「咒語與儀式」定名更新
+
+### 背景與需求
+
+使用者回饋：
+1. 跑團卡左側指令按鈕不需要小字說明（如「狀態 · 四維 · 成長」），只留下按鈕標題。
+2. 將原【咒語與魔法】標籤改為【咒語與儀式】。
+
+### 變更內容
+
+1. `src/features/character-sheet/components/HudWindow.jsx` (`HudCommandList`)
+   - 移除按鈕列中內部渲染的 `item.sub` 小字次標題，改為單行居中顯示主標題 `item.label`（`text-t14 font-bold truncate`）。
+   - 保留按鈕上的原生 `title` 屬性（hover 或長按查看次標題提示），使介面視覺純淨、按鈕更像明確清單。
+2. `src/features/character-sheet/components/CharacterPlayHUD.jsx`
+   - 將導航項目中 `id: 'spells'` 的 `label` 從 `'咒語與魔法'` 更新為 `'咒語與儀式'`。
+   - 連鎖使右側視窗標題（第 3 / 8 頁）自動同步為「咒語與儀式」。
+3. `src/features/character-sheet/data/classPanels.js`
+   - 將 `PLAY_TAB_LABELS.spells` 從 `'咒語與魔法'` 更新為 `'咒語與儀式'`，職業專屬面板（如嵌合師模仿咒語）指路文案同步統一。
+
+### 驗證
+
+- `npm test`：51 支測試關卡全數 PASS。
+- `npm run build`：Vite 6 建置 exit 0。
+- `npm run test:emoji`：0 命中通過。
+
+
 
 
 

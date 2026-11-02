@@ -109,19 +109,7 @@ export const HudCommandList = ({
             {active ? '▶' : ''}
           </span>
           {Icon ? <Icon className="w-4 h-4 shrink-0" /> : null}
-          {/* 列的高度由欄位決定（`flex-1`），所以列裡要裝得下「不只是標題」：
-              標題一行的話，129px 的列看起來就是一個空按鈕。
-              兩行（名稱＋說明）之後，列越高越像一個真的指令，
-              而不是一個被拉長的空白。說明本來放在 title（hover 才看得到），
-              這裡再印一次小字——不是重複，是因為列已經夠高，不印才是浪費。 */}
-          <span className="flex-1 min-w-0 flex flex-col justify-center leading-tight">
-            <span className="font-bold text-t14 truncate">{item.label}</span>
-            {item.sub ? (
-              <span className={`text-t11 truncate ${active ? 'text-[#fffdf9]/80' : 'text-[#7c6a58]'}`}>
-                {item.sub}
-              </span>
-            ) : null}
-          </span>
+          <span className="flex-1 min-w-0 font-bold text-t14 truncate">{item.label}</span>
           {item.count != null ? (
             <span className={`shrink-0 font-mono tabular-nums text-t12 ${active ? 'text-[#fffdf9]/85' : 'text-[#7c6a58]'}`}>
               {item.count}

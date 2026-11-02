@@ -147,6 +147,12 @@ import UnavailableHint from './UnavailableHint';
 // 狀態異常的效果碼（2026-10-30，P7）：一律由 affectedStats 推導，不另立對照表。
 import { buildAfflictionRows } from '../utils/afflictionDisplay';
 import SkillDescription, { openRuleCodex } from '../utils/skillFormulaEvaluator';
+// 咒語與儀式的「取得資格」（2026-11-02）：這一屏原本對**任何**角色都給
+// 「從規則庫選擇習得咒語」與「扣除 MP 並擲儀式檢定」。那兩顆按鈕在《FU》裡是無中生有——
+// 咒語只能經由【元素／熵系／靈魂魔法】、【咒語模仿】或英雄技能【額外咒語】取得；
+// 儀式需要對應學派的職業技能或職業免費能力。判定收斂在 spellGrants.js，
+// 這裡只負責畫，並且**不自己重算規則**。
+import { describeSpellGrants, describeRitualRights } from '../utils/spellGrants';
 import ArcanistManager from './companions/ArcanistManager';
 import ChimeristManager from './companions/ChimeristManager';
 import WayfarerCompanionSheet from './companions/WayfarerCompanionSheet';
@@ -369,7 +375,7 @@ export default function CharacterPlayHUD({
     // 它同時是 HP／MP／IP 步進器的家，所以開卡第一眼就看到自己剩多少。
     { id: 'profile', label: '個人資料', icon: GiCharacter, sub: '狀態 · 四維 · 成長' },
     { id: 'attacks', label: '武器與戰鬥', icon: GiCrossedSwords, sub: '命中 · 防禦 · 變形' },
-    { id: 'spells', label: '咒語與魔法', icon: GiSpellBook, sub: '施法 · 儀式計算', count: resolveCharacterSpells(character).length },
+    { id: 'spells', label: '咒語與儀式', icon: GiSpellBook, sub: '施法 · 儀式計算', count: resolveCharacterSpells(character).length },
     { id: 'skills', label: '職業特技', icon: GiBroadsword, sub: '特技 · 英雄 · 金手指' },
     { id: 'bonds', label: '情感羈絆', icon: GiHeartShield, sub: '激勵 · 編輯 · 營地', count: (character.bonds || []).length },
     { id: 'clocks', label: '個人命刻', icon: GiPocketWatch, sub: '進度鐘 · 底力技', count: (character.clocks || []).length },
@@ -1446,11 +1452,27 @@ export default function CharacterPlayHUD({
   };
 
   // Add spell to character
+  //
+  // 2026-11-02：以前這裡只有「重複」一道檢查，所以任何角色都能把規則庫的 38 條咒語
+  // 一條一條灌進 `character.spells`——咒語在《FU》裡不是自由選購的。
+  // 現在多兩道：學派必須是這個角色真的有額度的那一份，而且額度不能是 0。
   const handleLearnSpell = (spell) => {
     const currentSpells = resolveCharacterSpells(character);
     const resolved = resolveSpellEntry(spell);
     if (currentSpells.some(s => s.name === resolved.name)) {
       showToast('已掌握此咒語');
+      return;
+    }
+
+    const grants = describeSpellGrants(character, currentSpells);
+    if (!grants.allowedSchools.includes(resolved.school)) {
+      showToast(`【${resolved.school}】不在你的咒語清單裡——咒語只能經由職業技能取得`, 'warning');
+      return;
+    }
+    if (!grants.canLearn) {
+      showToast(grants.hasExtraGrant
+        ? `咒語額度已滿（${grants.used} / ${grants.capacity}），再學要等升級或再拿一次【額外咒語】`
+        : `咒語額度已滿（${grants.used} / ${grants.capacity}）——提升對應魔法技能的 SL 才會多一格`, 'warning');
       return;
     }
 
@@ -1565,24 +1587,32 @@ export default function CharacterPlayHUD({
     showToast('已刪除個人命刻');
   };
 
+  // 咒語額度與儀式權限（2026-11-02）。放在元件頂層而不是分頁裡，是因為
+  // 學習彈窗（MODAL 1）也要用它過濾清單——兩處各算一次就會漂移。
+  const spellGrants = useMemo(
+    () => describeSpellGrants(character, resolveCharacterSpells(character)),
+    [character]
+  );
+  const ritualRights = useMemo(() => describeRitualRights(character), [character]);
+
   // Filter available spells for modal
   const availableRulesSpells = useMemo(() => {
     const spells = rulesData.spells || [];
     return spells.filter(s => {
+      // 只列出「這個角色真的有額度、而且清單對得上」的咒語。
+      // 沒有授予來源時 `allowedSchools` 是空的，清單就是空的——這正是官方規則，
+      // 不是資料沒載入。空清單的解釋由彈窗自己給。
+      if (!spellGrants.allowedSchools.includes(s.school)) return false;
       const matchSearch = (s.name || '').toLowerCase().includes(spellSearchQuery.toLowerCase()) ||
                           (s.effect || '').toLowerCase().includes(spellSearchQuery.toLowerCase());
       const matchSchool = selectedSpellSchool === 'all' || s.school === selectedSpellSchool;
       return matchSearch && matchSchool;
     });
-  }, [spellSearchQuery, selectedSpellSchool]);
+  }, [spellSearchQuery, selectedSpellSchool, spellGrants.allowedSchools]);
 
-  const spellSchools = useMemo(() => {
-    const set = new Set();
-    (rulesData.spells || []).forEach(s => {
-      if (s.school) set.add(s.school);
-    });
-    return Array.from(set);
-  }, []);
+  // 原本這裡有一個 `spellSchools`（掃 rulesData 收集全部學派）給彈窗的下拉用。
+  // 2026-11-02 起下拉只列「這個角色有額度的學派」（`spellGrants.allowedSchools`），
+  // 它就成了死碼——宣告了卻沒有消費者的常量比沒有更糟，所以直接移除。
 
   const isInActiveCombat = useMemo(() => {
     const activeCombat = readJSON(STORAGE_KEYS.activeCombat, null);
@@ -3115,20 +3145,39 @@ export default function CharacterPlayHUD({
                   </div>
                 )}
 
-                {/* TAB 2: 咒語與魔法 (Dedicated Spells Tab) */}
+                {/* TAB 2: 咒語與儀式 (Dedicated Spells Tab) */}
                 {activeTab === 'spells' && (() => {
                   const resolvedSpells = resolveCharacterSpells(character);
+                  // 額度與權限在元件頂層算過一次，這裡只取用（見 `spellGrants`／`ritualRights`）。
+                  const grants = spellGrants;
+                  const rights = ritualRights;
                   return (
                   <div className="space-y-4 animate-fade-in text-xs">
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
                         <GiSpellBook className="w-4 h-4 text-[#6b5a4b]" />
                         <span>已掌握的咒語與儀式</span>
+                        {/* 額度不是裝飾：沒有它，玩家只會看到「學習新咒語」突然消失，
+                            不知道是壞掉還是滿了。只在真的有額度可算時才顯示。 */}
+                        {grants.hasPath && grants.capacity > 0 && (
+                          <span
+                            data-testid="spell-quota"
+                            className={`text-t11 px-1.5 py-0.5 rounded border font-bold ${
+                              grants.canLearn
+                                ? 'bg-[#f4ebd9] text-[#6b5a4b] border-[#d6c7ab]'
+                                : 'bg-[#f4ebd9]/60 text-[#8c3235] border-[#d6c7ab]'
+                            }`}
+                            title={grants.summary}
+                          >
+                            {grants.used} / {grants.capacity}
+                          </span>
+                        )}
                       </span>
-                      {/* 清單為空時**收起**標頭這顆：空狀態裡已經有一顆講得更清楚的
-                          「從規則庫選擇習得咒語」。同一屏兩顆按鈕做同一件事，
-                          使用者會以為它們不一樣（§3.4 立過此例，工坊那次是反過來收空狀態那顆）。 */}
-                      {resolvedSpells.length > 0 && (
+                      {/* 學習入口的三道門檻，缺一就不畫按鈕：
+                          ① 清單非空——空狀態那顆講得更清楚，同一屏兩顆同義按鈕是 §3.4 的老毛病
+                          ② 這個角色**本來就沒有咒語額度**——非施法者不該有學習入口
+                          ③ 額度已用完——按下去只會被擋，不如直接說滿了 */}
+                      {resolvedSpells.length > 0 && grants.canLearn && (
                         <button
                           type="button"
                           onClick={() => setIsSpellModalOpen(true)}
@@ -3137,6 +3186,11 @@ export default function CharacterPlayHUD({
                           <Plus className="w-3.5 h-3.5" />
                           <span>學習新咒語</span>
                         </button>
+                      )}
+                      {resolvedSpells.length > 0 && grants.hasPath && !grants.canLearn && (
+                        <span className="text-t11 text-[#7c6a58] font-bold">
+                          額度已滿，提升對應魔法技能的 SL 才會多一格
+                        </span>
                       )}
                     </div>
 
@@ -3276,25 +3330,89 @@ export default function CharacterPlayHUD({
                           );
                         })}
                       </div>
+                    ) : grants.capacity > 0 ? (
+                      /* 有額度、還沒學：給他「怎麼學」而不是「隨便挑」。 */
+                      <EmptyState
+                        kind="spells-ready"
+                        icon={GiSpellBook}
+                        title="尚未掌握任何咒語"
+                        teach={`你的${grants.summary}可以學 ${grants.remaining} 個咒語。每次獲得對應的魔法技能學一個同清單咒語，選定後在角色卡上扣除對應的 MP 上限。`}
+                        action={{ label: '從可選清單挑選咒語', onClick: () => setIsSpellModalOpen(true) }}
+                      />
+                    ) : grants.chimerist ? (
+                      /* 嵌合師：額度有、來源不在規則庫。這裡給的是一句規則，不是誘餌按鈕。 */
+                      <EmptyState
+                        kind="spells-chimerist"
+                        icon={GiSpellBook}
+                        title="還沒有記錄任何嵌合師咒語"
+                        teach={`【咒語模仿 SL ${grants.chimerist.sl}】最多可同時記憶 ${grants.chimerist.capacity} 個咒語，但只能在衝突中親眼看見野獸、魔獸或植物施展並結算之後記錄下來——這份清單不在規則庫裡，所以沒有「挑選」入口。`}
+                      />
                     ) : (
-                      <div className="p-8 text-center bg-[#fbf7ee] rounded border border-dashed border-[#d6c7ab] flex flex-col items-center justify-center">
-                        <GiSpellBook className="w-9 h-9 text-[#6b5a4b]" />
-                        <p className="mt-2.5 font-bold text-[#3c2415] text-sm tracking-wide">尚未掌握任何咒語</p>
-                        <p className="mt-1 text-[#6b5a4b] text-xs leading-relaxed max-w-md">
-                          咒語分攻擊與輔助兩種，學習時從規則庫挑選並扣除對應的 MP 上限；不走施法路線的角色可以整段略過。
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => setIsSpellModalOpen(true)}
-                          className="mt-4 px-3.5 py-1.5 rounded bg-[#a63d40] hover:bg-[#8c3235] active:bg-[#8c3235] text-[#fffdf9] font-bold text-xs shadow-e1 transition-colors"
-                        >
-                          從規則庫選擇習得咒語
-                        </button>
+                      /* 完全沒有來源：非施法者。這裡**不給學習入口**，給的是「這條路怎麼走」
+                         以及「去哪裡看本職業到底有什麼」。 */
+                      <div className="space-y-2">
+                        <EmptyState
+                          kind="spells-unavailable"
+                          icon={GiSpellBook}
+                          title="本職業沒有咒語學派"
+                          teach="咒語不是自由選購的（核心手冊 188~210 頁）：只能經由【元素魔法】、【熵系魔法】、【靈魂魔法】（每次獲得該技能學一個同清單咒語）、嵌合師的【咒語模仿】（上限 SL＋2），或英雄技能【額外咒語】（再添 2 個）取得。"
+                          action={{ label: '前往職業特技分頁', onClick: () => setActiveTab('skills') }}
+                        />
+                        <div className="text-center">
+                          <button
+                            type="button"
+                            onClick={() => openRuleCodex('核心職業法術書')}
+                            className="text-t11 text-[#7c6a58] hover:text-[#2c221e] underline underline-offset-2 font-bold transition-colors"
+                          >
+                            到規則庫查閱核心職業法術書
+                          </button>
+                        </div>
                       </div>
                     )}
 
                     {/* 儀式魔法速查與施展計算器（Core p.118–121） */}
                     {(() => {
+                      // 沒有儀式權限的人**看不到計算器**，更看不到施放按鈕。
+                      //
+                      // 原本這裡無條件渲染計算器，而「扣除 X MP 並擲儀式檢定」也照樣可按——
+                      // 等於任何非施法者都能真的扣 MP 擲一次儀式檢定。核心手冊 p.118~121 的
+                      // 要求是：施展儀式需要對應學派的職業技能，或職業免費能力賦予的
+                      // 儀式學派權限；沒有的人只能在同伴施展時參與團隊檢定協助。
+                      // 判定在 `describeRitualRights`，這裡只負責畫。
+                      if (!rights.canPerform) {
+                        return (
+                          <div
+                            data-testid="hud-ritual-unavailable"
+                            className="p-3.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-2"
+                          >
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <span className="font-bold text-xs text-[#3c2415] flex items-center gap-1.5">
+                                <GiCrystalBall className="w-4 h-4 text-[#7c6a58]" />
+                                <span>儀式魔法（本角色尚無施展權）</span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => openRuleCodex('儀式魔法')}
+                                className="px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-t11 font-bold text-[#3c2415]"
+                              >
+                                儀式規則速查
+                              </button>
+                            </div>
+                            <p className="text-t12 text-[#6b5a4b] leading-relaxed">
+                              施展儀式需要對應學派的職業技能（秘儀／嵌合／元素／熵系／靈魂學派儀式），
+                              或職業免費能力賦予的儀式學派權限。這一頁不替你扣 MP、也不替你擲檢定。
+                            </p>
+                            <p className="text-t12 text-[#6b5a4b] leading-relaxed flex items-start gap-1.5">
+                              <span className="text-[#8c3235] font-bold shrink-0">✦</span>
+                              <span>
+                                同伴施展儀式時你仍可參與——
+                                核心手冊 p.121：施法檢定會轉化為團隊檢定，由儀式發起者擔任領隊，
+                                <span className="text-[#3c2415] font-bold">即使協助者本身不具備儀式施法能力</span>。
+                              </span>
+                            </p>
+                          </div>
+                        );
+                      }
                       const POTENCY_MAP = {
                         minor: { key: 'minor', label: '小', mp: 20, dl: 7, clock: '4 格' },
                         medium: { key: 'medium', label: '中', mp: 30, dl: 10, clock: '6 格' },
@@ -3307,32 +3425,11 @@ export default function CharacterPlayHUD({
                         large: { key: 'large', label: '大型 ×3', mult: 3 },
                         huge: { key: 'huge', label: '巨型 ×4', mult: 4 }
                       };
-                      const RITUAL_SKILLS = [
-                        { skill: '秘儀學派儀式', name: '秘儀學派', formula: 'WLP + WLP' },
-                        { skill: '嵌合學派儀式', name: '嵌合學派', formula: 'INS + WLP' },
-                        { skill: '元素學派儀式', name: '元素學派', formula: 'INS + WLP' },
-                        { skill: '熵系學派儀式', name: '熵系學派', formula: 'INS + WLP' },
-                        { skill: '靈魂學派儀式', name: '靈魂學派', formula: 'INS + WLP' },
-                        { skill: '儀式學派', name: '儀式學派', formula: 'INS + WLP' }
-                      ];
-                      const learnedRituals = [];
-                      (character.classes || []).forEach(cl => {
-                        (cl.skills || []).forEach(sk => {
-                          if ((sk.sl || 0) <= 0) return;
-                          const normName = normalizeSkillName(sk.name);
-                          const found = RITUAL_SKILLS.find(r => r.skill === normName);
-                          if (found && !learnedRituals.some(x => x.name === found.name)) {
-                            learnedRituals.push(found);
-                          }
-                          if (normName === '儀式學派' && Array.isArray(sk.selectedOptions)) {
-                            sk.selectedOptions.forEach(opt => {
-                              if (!learnedRituals.some(x => x.name === opt)) {
-                                learnedRituals.push({ skill: '儀式學派', name: opt, formula: opt.includes('秘儀') ? 'WLP + WLP' : 'INS + WLP' });
-                              }
-                            });
-                          }
-                        });
-                      });
+                      // 學派清單改由 `describeRitualRights` 供應。原本這裡手抄一份
+                      // `RITUAL_SKILLS` 再掃技能——那份清單漏了「職業免費能力賦予的
+                      // 儀式學派權限」，所以元素師／熵師／靈師／嵌合師會被誤判成
+                      // 「尚未習得儀式特技」，而判定規則又只活在 JSX 裡，測不到。
+                      const learnedRituals = rights.schools;
                       const pot = POTENCY_MAP[ritualPotency] || POTENCY_MAP.minor;
                       const ar = AREA_MAP[ritualArea] || AREA_MAP.individual;
                       const rawMp = pot.mp * ar.mult;
@@ -3359,16 +3456,17 @@ export default function CharacterPlayHUD({
                           </div>
 
                           <div className="flex items-center gap-1.5 flex-wrap text-t11">
-                            <span className="text-[#6b5a4b] font-bold">已掌握儀式學派:</span>
+                            <span className="text-[#6b5a4b] font-bold">可施展的儀式學派:</span>
                             {learnedRituals.length > 0 ? learnedRituals.map((r, rIdx) => (
                               <span
                                 key={rIdx}
                                 className="px-2 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] text-[#3c2415] font-bold"
+                                title={`來源：${r.from}`}
                               >
                                 ✦ {r.name} [{r.formula}]
                               </span>
                             )) : (
-                              <span className="text-[#7c6a58]">尚未習得儀式特技（同伴施展儀式時仍可參與團隊檢定協助）</span>
+                              <span className="text-[#7c6a58]">—</span>
                             )}
                           </div>
 
@@ -3440,13 +3538,14 @@ export default function CharacterPlayHUD({
                                   return;
                                 }
                                 adjustMp(-finalMp);
-                                const formulaStr = learnedRituals[0]?.formula || 'INS + WLP';
+                                const primary = rights.primary;
+                                const formulaStr = primary?.formula || 'INS + WLP';
                                 const rCheck = parseCheckFormula(formulaStr, stats);
                                 openCharacterDice({
                                   die1: rCheck.die1,
                                   die2: rCheck.die2,
                                   modifier: rCheck.mod,
-                                  label: `施展儀式（效力${pot.label}×${ar.label}，DL ${pot.dl}）[${formulaStr}]`
+                                  label: `施展儀式（${primary?.name || ''}學派 · 效力${pot.label}×${ar.label}，DL ${pot.dl}）[${formulaStr}]`
                                 });
                               }}
                               className={`px-3 py-1 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-xs flex items-center gap-1 ${ritualGate.blocked ? GATED_BUTTON_CLASS : ''}`}
@@ -4670,7 +4769,7 @@ export default function CharacterPlayHUD({
         );
       })()}
 
-      {/* 6. Sub-Tabs: 武器與戰鬥 | 咒語與魔法 | 職業特技 | 情感羈絆 | 個人命刻 | 行囊日誌
+      {/* 6. Sub-Tabs: 武器與戰鬥 | 咒語與儀式 | 職業特技 | 情感羈絆 | 個人命刻 | 行囊日誌
           ─────────────────────────────────────────────────────────────────────────
           P12（2026-11-02）：分頁列**釘住**（使用者裁定的第 1 題）。
           量到的問題：桌面 1414×1100 時分頁列在 1064px——第一屏看得到標籤，
@@ -4757,14 +4856,34 @@ export default function CharacterPlayHUD({
         onConfirm={handleEquipFromPack}
       />
 
-      {/* MODAL 1: Spell Picker / Learner Modal */}
+      {/* MODAL 1: Spell Picker / Learner Modal
+          2026-11-02：標題與清單都收斂到「這個角色真的有額度的學派」。
+          原本清單是整個規則庫 38 條，任何角色都能一條一條點「習得」——
+          那等於把咒語當成自由選購的商品，而官方不是這樣設計的。 */}
       <JRPGModal
         isOpen={isSpellModalOpen}
         onClose={() => setIsSpellModalOpen(false)}
-        title="從官方規則庫學習咒語"
+        title="從職業咒語清單習得"
         maxWidth="max-w-2xl"
       >
         <div className="space-y-3.5 text-xs">
+          <div className="flex items-center justify-between flex-wrap gap-2 text-t11">
+            <span className="text-[#6b5a4b] leading-relaxed">
+              {spellGrants.summary ? `額度來源：${spellGrants.summary}。` : ''}
+              每次習得扣除對應的 MP 上限，選定後不易更改。
+            </span>
+            <span
+              data-testid="spell-modal-quota"
+              className={`px-2 py-0.5 rounded border font-bold shrink-0 ${
+                spellGrants.canLearn
+                  ? 'bg-[#f4ebd9] text-[#6b5a4b] border-[#d6c7ab]'
+                  : 'bg-[#f4ebd9]/60 text-[#8c3235] border-[#d6c7ab]'
+              }`}
+            >
+              剩餘 {spellGrants.remaining} / {spellGrants.capacity}
+            </span>
+          </div>
+
           {/* Search & School filter */}
           <div className="flex items-center gap-2 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
@@ -4783,7 +4902,9 @@ export default function CharacterPlayHUD({
               className="px-2.5 py-1.5 rounded border border-[#e8dcc4] bg-[#fbf7ee] text-xs text-[#3c2415] focus:outline-none"
             >
               <option value="all">全部學派</option>
-              {spellSchools.map(sch => (
+              {/* 只列這個角色有額度的學派。沒有的學派連選項都不該出現——
+                  出現一個「選了會查無」的選項，比沒有選項更難懂。 */}
+              {spellGrants.allowedSchools.map(sch => (
                 <option key={sch} value={sch}>{sch}</option>
               ))}
             </select>
@@ -4825,15 +4946,24 @@ export default function CharacterPlayHUD({
                   <button
                     type="button"
                     onClick={() => handleLearnSpell(sp)}
-                    disabled={isLearned}
+                    disabled={isLearned || !spellGrants.canLearn}
                     className="px-3 py-1.5 rounded text-white font-bold text-xs shrink-0 disabled:opacity-40 disabled:bg-[#e8dcc4]"
                     style={{ backgroundColor: isLearned ? '#6b5a4b' : theme.accent }}
                   >
-                    {isLearned ? '已習得' : '習得'}
+                    {isLearned ? '已習得' : (spellGrants.canLearn ? '習得' : '額度已滿')}
                   </button>
                 </div>
               );
             })}
+            {/* 空清單的兩種原因寫清楚：一種是沒額度（非施法者開不到這裡，但防禦性保留），
+                一種是搜尋沒中。原本這裡什麼都沒有，一片空白看起來像載入失敗。 */}
+            {availableRulesSpells.length === 0 && (
+              <p className="p-6 text-center text-t12 text-[#6b5a4b] leading-relaxed">
+                {spellGrants.allowedSchools.length === 0
+                  ? '這個角色沒有可用的咒語清單——咒語只能經由職業技能取得（核心手冊 188~210 頁）。'
+                  : '這個學派底下沒有符合的咒語。換個關鍵字，或把學派篩選改回「全部學派」。'}
+              </p>
+            )}
           </div>
         </div>
       </JRPGModal>
