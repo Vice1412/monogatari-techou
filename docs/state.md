@@ -3627,3 +3627,17 @@ P8 提交當時的 `test` 鏈長就是 **44**（`zenit`／`moneyflow`／`freefor
 沒有就留空、不印那一行。護欄 `C6`（對照組）／`C7`／`C8` ＋ 破壞案例 `K`；
 實機那條原本 `hitText.includes('徽記')` 是**恆真**（標題就叫徽記），改成 scope 到第 3 行。
 
+
+##### 8.50 P12 跑團卡三件裁定（2026-11-02）
+
+使用者裁定：① 分頁列**釘住** ② 物語點步進器**拆** ③ 守衛**只做 +2**。
+
+- 測試鏈 **53 道**（新增 `test:fpflow` 49 條、`test:guard` 28 條）
+- `test:ui` **628** 條（新增 CX 段）、`test:log` **137** 條（kind 19 → 20）
+- 刻意破壞 **9 / 9 全紅**（`scratch/break-fpguard.mjs`）
+- 實機 `scratch/verify-p12.mjs` **28 / 28**，`npm run build` exit 0
+- 幾何（實測，不是估算）：
+  - 分頁列絕對位置 1109（1414×400）；滾動後 `barTop=55` ＝ `headerBottom=55`
+  - 手機 390×844：`barTop=105` ＝ `headerBottom=105`（標頭折成兩列）
+  - **標頭是 `min-h-[52px]`，52 是下限**——寫死 52 會讓分頁列上緣被蓋掉 3px
+- `LOG_KINDS` 19 → **20**（`stance`）；`fp` 的 `coalesce` 120000 → **0**（合併會吃掉原因）
