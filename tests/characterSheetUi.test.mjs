@@ -2752,16 +2752,29 @@ check('（CU-1 SSR）JRPG 角色戰術主控台渲染出 data-testid="jrpg-chara
     jrpgHudAttacksHtml.includes('INS+WLP')],
   [true, true, true, true, true, true]);
 
-const consumablesStart = jrpgHudAttacksHtml.indexOf('data-testid="hud-ip-consumables"');
-const consumablesSection = jrpgHudAttacksHtml.slice(consumablesStart, consumablesStart + 4000);
+// 消耗品捷徑 2026-11-02（P13）搬到「行囊與道具」分頁，所以這一條要開那一頁來看。
+// 守的東西沒有變：五種官方消耗品都在、而且秘密配方 SL2 的加值要算進去。
+// 「秘密配方 SL2」那格仍留在主畫面——那是道具點那一列（狀態窗）的標籤，
+// 不是消耗品按鈕的一部分。
+const jrpgHudNotesHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: jrpgHudChar,
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {},
+  initialTab: 'notes'
+}));
+const consumablesStart = jrpgHudNotesHtml.indexOf('data-testid="hud-ip-consumables"');
+const consumablesSection = jrpgHudNotesHtml.slice(consumablesStart, consumablesStart + 4000);
 check('（CU-2 SSR）官方五種 IP 消耗品齊備且自動計入修補匠【秘密配方 SL 2】加值（大補藥 +60HP、萬靈藥 +60MP、元素碎片 12點）',
-  [consumablesSection.includes('大補藥 (+60HP)'),
+  [consumablesStart >= 0,
+    consumablesSection.includes('大補藥 (+60HP)'),
     consumablesSection.includes('萬靈藥 (+60MP)'),
     consumablesSection.includes('滋補藥 (解全狀態)'),
     consumablesSection.includes('魔法帳篷 (全滿)'),
     consumablesSection.includes('元素碎片 (12點火傷)'),
     jrpgHudAttacksHtml.includes('秘密配方 SL2')],
-  [true, true, true, true, true, true]);
+  [true, true, true, true, true, true, true]);
 
 check('（CU-3 SSR）武器與戰鬥分頁顯示副手盾牌、防具、飾品的規則說明文字',
   [jrpgHudAttacksHtml.includes('青銅盾'),
@@ -3200,6 +3213,125 @@ check('（CY-8）守衛狀態模組已經不存在（`utils/guardState` 整個�
 // 對照組：HUD 本身仍然讀得到（上面四條不是因為整份檔案讀空而全綠）。
 check('（CY-9）對照組：HUD 原始碼非空、且立繪區塊之後還有指令格',
   [hudCode.length > 100000, /武器與戰鬥/.test(hudCode)], [true, true]);
+
+/* ── P13：DQ 骨架（2026-11-02）────────────────────────────────
+   使用者裁定：「A 收進分頁／B 放大主體縮小次要／C 骨架照 Dragon Quest」，
+   外加一句「左翼的空白帮我想个方法处理」。
+
+   這一輪動的是**結構**，所以護欄也守結構，而不是守「有沒有這段字」：
+   1. 指令只有一份（以前是「中欄六顆格子 ＋ sticky 分頁列六個標籤」兩份）
+   2. 資源住進同一個狀態窗（以前是三張卡，最後一張獨吞高度再用
+      `justify-between` 把剩餘高度丟到卡片中間 → 一塊約 300px 的空白）
+   3. 消耗品與錢包各自搬去一頁（A）
+   4. 七列 `flex-1` 把欄位高度分完（空白變成「按鈕很大」，不是「洞」）
+   ──────────────────────────────────────────────────────────────── */
+const hudWindowSrc = read('../src/features/character-sheet/components/HudWindow.jsx');
+
+const jrpgHudMoneyHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: jrpgHudChar,
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {},
+  initialTab: 'money'
+}));
+
+check('（CZ-1）主畫面有一個 DQ 指令窗，七列，而且是 `flex-1`（高度由欄位決定）',
+  [
+    /testId="hud-command-window"/.test(hudCode),
+    /testId="hud-command-list"/.test(hudCode),
+    ['attacks', 'spells', 'skills', 'bonds', 'clocks', 'notes', 'money']
+      .every((id) => new RegExp(`id: '${id}'`).test(hudCode)),
+    countOf(jrpgHudAttacksHtml, 'data-testid="hud-cmd-'),
+    /flex-1 min-h-\[40px\]/.test(hudWindowSrc)
+  ],
+  [true, true, true, 7, true]);
+
+// 減法：舊的六顆指令格要真的不在。`const IconComp = tab.icon` 是舊格子專屬的寫法
+// （新指令窗用的是 `<Icon />` 直接渲染），留著它就代表格子被加回來了。
+check('（CZ-2）舊的六顆指令格與 sticky 分頁列的六個標籤都不在了',
+  [
+    /JRPG Command Ring/.test(hud),
+    /const IconComp = tab\.icon/.test(hudCode),
+    countOf(hudCode, 'setActiveTab(tab.id)'),
+    /data-testid="hud-back-to-commands"/.test(hudCode)
+  ],
+  [false, false, 0, true]);
+
+// 對照組：頁名條真的還在、而且還釘著（CZ-2 不是把整條分頁列刪掉換來的）。
+check('（CZ-2b）對照組：頁名條還在，而且 sticky 與 --chapter-header-h 都還在',
+  [
+    /data-testid="hud-subtabs-bar"/.test(hudCode),
+    /hud-subtabs-bar"[\s\S]{0,200}?\bsticky\b/.test(hudCode),
+    /top-\[var\(--chapter-header-h,52px\)\]/.test(hudCode)
+  ],
+  [true, true, true]);
+
+// 三張資源卡變成一張狀態窗。舊的卡片樣式是 `rounded p-3.5 border border-[#d6c7ab]`。
+const vitalsA = jrpgHudAttacksHtml.indexOf('data-testid="hud-vitals-window"');
+const vitalsB = jrpgHudAttacksHtml.indexOf('data-testid="hud-ability-window"');
+const vitalsBlock = vitalsA >= 0 && vitalsB > vitalsA ? jrpgHudAttacksHtml.slice(vitalsA, vitalsB) : '';
+check('（CZ-3）HP／MP／IP 住進同一個狀態窗（不再各佔一張卡）',
+  [
+    // 用**渲染後**的 HTML 切片，不是原始碼：`testId` 是 prop，渲染後才是 `data-testid`。
+    // 這樣驗的是「畫得出來」，不是「有人寫過」（MEMORY §C.12）。
+    vitalsBlock.length > 400 &&
+      ['gauge-hp', 'gauge-mp', 'gauge-ip']
+        .every((id) => vitalsBlock.includes(`data-testid="${id}"`)),
+    countOf(hudCode, 'rounded p-3.5 border border-[#d6c7ab] bg-[#fffdf9]')
+  ],
+  [true, 0]);
+
+// 左翼的空白：舊寫法是「最後一張卡 flex-1 ＋ justify-between」，
+// 剩餘高度全部掉在卡片中間。新的做法是七列各自 flex-1 把高度分掉。
+check('（CZ-4）左翼不再有「最後一張卡獨吞高度再丟到中間」的寫法',
+  [
+    /space-y-2\.5 flex-1 flex flex-col justify-between/.test(hudCode),
+    /justify-between/.test(hudCode.slice(hudCode.indexOf('data-testid="hud-command-window"'),
+      hudCode.indexOf('data-testid="hud-center-column"')))
+  ],
+  [false, false]);
+
+// A：消耗品與錢包各自收成一頁。
+check('（CZ-5）消耗品不在主畫面，住在「行囊與道具」分頁',
+  [
+    countOf(jrpgHudAttacksHtml, 'data-testid="hud-ip-consumables"'),
+    countOf(jrpgHudNotesHtml, 'data-testid="hud-ip-consumables"')
+  ],
+  [0, 1]);
+check('（CZ-6）錢包的收支鈕不在主畫面，住在「金錢與物語點」分頁；主畫面只留摘要',
+  [
+    countOf(jrpgHudAttacksHtml, 'data-testid="wallet-income"'),
+    countOf(jrpgHudMoneyHtml, 'data-testid="wallet-income"'),
+    countOf(jrpgHudAttacksHtml, 'data-testid="hud-asset-zenit"'),
+    countOf(jrpgHudAttacksHtml, 'data-testid="hud-asset-fp"'),
+    countOf(jrpgHudAttacksHtml, 'data-testid="hud-assets-open"'),
+    countOf(jrpgHudMoneyHtml, 'data-testid="fp-card"'),
+    countOf(jrpgHudMoneyHtml, 'data-testid="money-page-note"')
+  ],
+  [0, 1, 1, 1, 1, 1, 1]);
+
+// HudWindow 是新的共用元件，設計系統的三條紅燈（漸層／rgba／任意值）在這裡再守一次：
+// 它會被貼在很多地方，一旦有人往裡面加一條漸層，整套視窗就變成第二套顏色系統。
+check('（CZ-7）HudWindow 沒有任何漸層、rgba 或任意字級',
+  [
+    /gradient/i.test(hudWindowSrc),
+    /rgba\(/.test(hudWindowSrc),
+    /text-\[\d+px\]/.test(hudWindowSrc),
+    /rounded-\[/.test(hudWindowSrc)
+  ],
+  [false, false, false, false]);
+
+// 對照組：上面七條不是因為讀到空字串而全綠。
+check('（CZ-8）對照組：兩份原始碼都讀到了，而且七個分頁 id 都在',
+  [
+    hudCode.length > 100000,
+    hudWindowSrc.length > 500,
+    /HudCommandList/.test(hudWindowSrc),
+    ['attacks', 'spells', 'skills', 'bonds', 'clocks', 'notes', 'money']
+      .every((id) => new RegExp(`id: '${id}'`).test(hudCode))
+  ],
+  [true, true, true, true]);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

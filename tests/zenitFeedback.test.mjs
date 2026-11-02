@@ -325,10 +325,17 @@ eq('H1 錢包金額走 formatZenit（不是手寫 `{n} z`）',
   [countOf(hudSrc, 'data-testid="wallet-amount"'), countOf(hudSrc, '} z')], [1, 0]);
 // `|| 0` 會把「不知道」（舊存檔沒有 zenit）印成 `0z`——而 `0z` 是一句斷言。
 // 兩處都驗（主面板＋行囊分頁），因為那個寫法很容易只改一邊。
+// 2026-11-02（P13）：原本寫死 2 處（主面板錢包卡 ＋ 行囊分頁）。這一輪多了一處
+// ——主畫面右翼的「資產」窗（`hud-asset-zenit`），因為錢包卡搬到「金錢與物語點」
+// 分頁、主畫面只留摘要。三處逐一點名：
+//   1. 資產窗（主畫面摘要）  2. 錢包卡（金錢分頁）  3. 行囊分頁的 pack-wallet
+// 守的東西沒有變，而且更嚴了：三處都必須走 `formatZenit(character.zenit)`，
+// 任何一處寫成 `character.zenit || 0` 都會把「不知道」印成 `0z`。
 eq('H1-b 錢包金額不把「不知道」變成 0（沒有 `zenit || 0`）',
   [countOf(hudSrc, 'formatZenit(character.zenit)'),
-    /formatZenit\(character\.zenit \|\| 0\)/.test(hudSrc)],
-  [2, false]);
+    /formatZenit\(character\.zenit \|\| 0\)/.test(hudSrc),
+    countOf(hudSrc, 'character.zenit || 0')],
+  [3, false, 0]);
 eq('H2 手動加減整條路已經拆掉（`adjustZenit`、交易條、最近一筆都不在了）',
   [countOf(hudSrc, 'adjustZenit'), countOf(hudSrc, 'data-testid="wallet-trade-strip"'),
     countOf(hudSrc, 'data-testid="wallet-last-delta"')],

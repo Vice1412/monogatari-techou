@@ -255,8 +255,12 @@ eq('E4 舊的步進器接線 0 次',
 // 結束錨點用 `ClassResourceStrip`（程式碼），**不能用那一行的中文標題**——
 // 它住在 JSX 註解裡，而上面已經先剝掉註解了，於是切片長度 0、
 // 「裡面沒有 NumberStepper」永遠為真。E5 的第一格就是在擋這件事。
+// 2026-11-02（P13）：物語點卡從右翼搬到「金錢與物語點」分頁，所以舊的結束錨點
+// （`<ClassResourceStrip`）現在在它**前面**——切片長度 0，E5 的第一格會紅。
+// 改用同一頁裡緊接在後面的「說明區塊」當結束錨點。E5 守的東西沒有變：
+// 物語點卡那一段裡不能有步進器，而且那一段真的要抓到（第一格）。
 const fpCardStart = hud.indexOf('data-testid="fp-card"');
-const fpCardEnd = hud.indexOf('<ClassResourceStrip', fpCardStart);
+const fpCardEnd = hud.indexOf('data-testid="money-page-note"', fpCardStart);
 const fpCardBlock = fpCardStart === -1 || fpCardEnd === -1
   ? ''
   : hud.slice(fpCardStart, fpCardEnd);

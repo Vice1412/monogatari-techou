@@ -91,6 +91,9 @@ import EquipmentSlotModal from './EquipmentSlotModal';
 // 步進器移除之後，這裡是物語點**唯一**的寫入入口（擲骰器也走這支）。
 import FabulaPointsModal from './FabulaPointsModal';
 import FabulaPointLedgerModal from './FabulaPointLedgerModal';
+// DQ 風格視窗與指令列（P13，2026-11-02）：使用者挑的參考骨架是 Dragon Quest。
+// 借的是「一個視窗一件事」的分割方式與 ▶ 指令游標，不是 DQ 的深藍配色。
+import { HudWindow, HudCommandList } from './HudWindow';
 import {
   FP_DIRECTIONS,
   applyFabulaPointsFlow,
@@ -353,9 +356,22 @@ export default function CharacterPlayHUD({
   // 生產端永不傳入，不傳時就是原本的 `false`。
   initialDossierOpen = false
 }) {
-  // Tabs: attacks (武器與防衛) | spells (咒語與魔法) | skills (職業特技) | bonds (情感羈絆) | clocks (命刻) | notes (行囊日誌)
+  // 七個分頁（P13，2026-11-02）：原本是六個，`notes` 從「行囊日誌」擴成
+  // 「行囊與道具」（左翼的消耗品捷徑搬進來），另外新增 `money`——
+  // 使用者裁定「左翼消耗品池與右翼錢包各自收成一頁」。
+  // 指令窗與內容頁共用這一份清單，**只有這一份**（以前是格子＋sticky 列兩份）。
   const [activeTab, setActiveTab] = useState(initialTab);
   const characterLevel = getCharacterLevel(character);
+  const hudTabItems = useMemo(() => [
+    { id: 'attacks', label: '武器與戰鬥', icon: GiCrossedSwords, sub: '命中 · 防禦 · 變形' },
+    { id: 'spells', label: '咒語與魔法', icon: GiSpellBook, sub: '施法 · 儀式計算', count: resolveCharacterSpells(character).length },
+    { id: 'skills', label: '職業特技', icon: GiBroadsword, sub: '特技 · 英雄 · 金手指' },
+    { id: 'bonds', label: '情感羈絆', icon: GiHeartShield, sub: '激勵 · 編輯 · 營地', count: (character.bonds || []).length },
+    { id: 'clocks', label: '個人命刻', icon: GiPocketWatch, sub: '進度鐘 · 底力技', count: (character.clocks || []).length },
+    { id: 'notes', label: '行囊與道具', icon: GiBackpack, sub: '消耗品 · 裝備 · 筆記' },
+    { id: 'money', label: '金錢與物語點', icon: GiCoins, sub: '收支 · 履歷 · 物語點' }
+  ], [character]);
+  const hudTabLabel = (hudTabItems.find((t) => t.id === activeTab) || hudTabItems[0]).label;
 
   // Level up modal
   const [isLevelUpModalOpen, setIsLevelUpModalOpen] = useState(initialLevelUpOpen);
@@ -657,6 +673,8 @@ export default function CharacterPlayHUD({
    * 一般點擊用的 `updateField` 不需要這個（每次 render 都重建閉包，永遠是最新的）。
    */
   const characterRef = useRef(character);
+  // 頁名條上的「▲ 指令」要能跳回指令窗（P13）
+  const hubRef = useRef(null);
   characterRef.current = character;
 
   /**
@@ -1621,6 +1639,7 @@ export default function CharacterPlayHUD({
 
       {/* 1. JRPG 角色狀態與指令中樞（以角色肖像居中，左右環繞核心資源、檢定與戰術分頁按鈕） */}
       <div
+        ref={hubRef}
         data-testid="jrpg-character-hub"
         className="rounded p-4 sm:p-5 space-y-4 border-2 transition-colors duration-200 overflow-clip"
         style={{ backgroundColor: theme.panelBg, borderColor: theme.border }}
@@ -1789,310 +1808,46 @@ export default function CharacterPlayHUD({
 
         {/* 3-Column JRPG Hub Stage: Left Vitals & IP | Center Portrait & Command Ring | Right Attributes & Resources */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-          {/* LEFT WING (col-span-4): Vital Resource Gauges (HP / MP / IP) & Official 5 Consumables */}
-          <div className="lg:col-span-4 flex flex-col gap-3">
-            {/* HP Gauge */}
-            <div className={`relative rounded p-3.5 border-2 transition-all ${
-              isCrisis
-                ? 'bg-[#f4ebd9] border-[#a63d40] ring-2 ring-[#a63d40]/60'
-                : 'bg-[#fffdf9] border-[#d6c7ab]'
-            }`}>
-              {/* 危機脈動（P5-a）：`.crisis-pulse-active` 從 2026-10-25 起就存在，
-                  但跑團面板的 HP 卡一直沒接上——只有名冊卡與戰鬥卡在脈動。
-                  用獨立的一層覆蓋而不是直接加在卡片上，是為了不讓動畫的
-                  `border-color`／`box-shadow` 蓋掉卡片自己的靜態紅框與 ring：
-                  在 `prefers-reduced-motion` 之下動畫會停在 45% 透明度，
-                  那時候還要看得出來「這張卡正在危機」。 */}
-              {isCrisis && (
-                <span
-                  data-testid="hp-crisis-pulse"
-                  aria-hidden="true"
-                  className="crisis-pulse-active pointer-events-none absolute inset-0 rounded border-2"
-                />
+          {/* LEFT WING（col-span-3）：DQ 指令窗
+              ────────────────────────────────────────────────────────────
+              這裡原本是三張資源卡（HP／MP／IP）＋ 官方五種消耗品捷徑。
+              三件事同時壞掉：
+              1. 中欄的六顆指令格與下方 sticky 分頁列是**同一份六個標籤**——
+                 同一份清單印兩次，這是「訊息太多」的來源之一。
+              2. 最後一張 IP 卡吃 `flex-1`，再用 `justify-between` 把剩餘高度
+                 丟到卡片中間 → 左翼一塊約 300px 的空白，看起來像壞掉。
+              3. 資源與能力分在畫面兩側，跑團時眼睛要橫跨整個立繪。
+              現在：左翼只放**一個指令窗**，七列 `flex-1` 平均吸收欄位高度
+              （剩餘高度變成「按鈕很大」，不再是空白）；HP／MP／IP 搬到右翼的
+              狀態窗，與四維、狀態異常放在一起；消耗品搬進行囊分頁。
+              ──────────────────────────────────────────────────────────── */}
+          <div className="order-2 lg:order-none lg:col-span-3 flex flex-col gap-3 min-w-0">
+            <HudWindow
+              title="指令"
+              icon={GiCrossedSwords}
+              testId="hud-command-window"
+              className="flex-1"
+              bodyClassName="flex flex-col"
+              frameColor={theme.border}
+              right={(
+                <span className="text-t10 font-mono text-[#7c6a58] shrink-0">{hudTabItems.length} 項</span>
               )}
-              <div className="flex items-center justify-between text-xs mb-1">
-                <div className="flex items-center gap-1.5 font-bold text-[#8c3235]">
-                  <GiHealthNormal className="w-4 h-4 text-[#8c3235]" />
-                  <span>生命值</span>
-                  {isCrisis && (
-                    <span className="text-t12 text-[#8c3235] font-mono font-black flex items-center gap-0.5">
-                      <FUIcon name="crisis" className="text-xs" />
-                      <span>CRISIS 危機</span>
-                    </span>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => toggleFormula('hp')}
-                  title="點擊查看公式"
-                  className="font-mono font-black text-base text-[#8c3235] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
-                >
-                  {statsUnset ? '—' : <>{curHp} <span className="text-xs text-[#7c6a58] font-normal">/ {stats.maxHp}</span></>}
-                </button>
-              </div>
-
-              <div className="relative mb-2.5">
-                <GaugeBar
-                  testId="gauge-hp"
-                  percent={stats.maxHp > 0 ? (curHp / stats.maxHp) * 100 : 0}
-                  fillClassName={isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}
-                />
-                <ResourceDeltaBadge flash={hpDelta} />
-              </div>
-
-              <div className="flex items-center justify-between gap-1">
-                <NumberStepper
-                  value={curHp}
-                  onDelta={adjustHp}
-                  ariaLabel="生命值"
-                  width="w-14"
-                  inputClassName="text-[#8c3235]"
-                />
-                <button
-                  type="button"
-                  onClick={() => toggleFormula('crisis')}
-                  title="點擊查看公式"
-                  className="text-t11 font-mono font-bold text-[#8c3235] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
-                >
-                  危機門檻 {statsUnset ? '—' : stats.crisisThreshold}
-                </button>
-                <button
-                  onClick={() => updateField('currentHp', stats.maxHp)}
-                  className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#8c3235] font-bold text-xs"
-                >
-                  全滿
-                </button>
-              </div>
-
-              <StatFormulaPanel
-                isOpen={openFormula === 'hp'}
-                title="最大生命值"
-                breakdown={breakdown.hp}
-                note={STAT_FORMULA_NOTE}
-                onClose={() => setOpenFormula(null)}
+            >
+              <HudCommandList
+                items={hudTabItems}
+                value={activeTab}
+                onChange={setActiveTab}
+                testId="hud-command-list"
+                activeColor={theme.accent}
+                activeBorder={theme.accentDark}
               />
-
-              <StatFormulaPanel
-                isOpen={openFormula === 'crisis'}
-                title="危機門檻"
-                breakdown={breakdown.crisis}
-                onClose={() => setOpenFormula(null)}
-              />
-            </div>
-
-            {/* MP Gauge */}
-            <div className="rounded p-3.5 border border-[#d6c7ab] bg-[#fffdf9]">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <div className="flex items-center gap-1.5 font-bold text-[#6b5a4b]">
-                  <GiLightningTear className="w-4 h-4 text-[#6b5a4b]" />
-                  <span>魔力值</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => toggleFormula('mp')}
-                  title="點擊查看公式"
-                  className="font-mono font-black text-base text-[#3c2415] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
-                >
-                  {statsUnset ? '—' : <>{curMp} <span className="text-xs text-[#7c6a58] font-normal">/ {stats.maxMp}</span></>}
-                </button>
-              </div>
-
-              <div className="relative mb-2.5">
-                <GaugeBar
-                  testId="gauge-mp"
-                  percent={stats.maxMp > 0 ? (curMp / stats.maxMp) * 100 : 0}
-                  fillClassName="bg-gauge-mp"
-                />
-                <ResourceDeltaBadge flash={mpDelta} />
-              </div>
-
-              <div className="flex items-center justify-between gap-1">
-                <NumberStepper
-                  value={curMp}
-                  onDelta={adjustMp}
-                  ariaLabel="魔力值"
-                  width="w-14"
-                  inputClassName="text-[#3c2415]"
-                />
-                <button
-                  onClick={() => updateField('currentMp', stats.maxMp)}
-                  className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-xs"
-                >
-                  全滿
-                </button>
-              </div>
-
-              <StatFormulaPanel
-                isOpen={openFormula === 'mp'}
-                title="最大魔力值"
-                breakdown={breakdown.mp}
-                note={STAT_FORMULA_NOTE}
-                onClose={() => setOpenFormula(null)}
-              />
-            </div>
-
-            {/* IP Gauge & Official 5 Consumables (Core p.104) */}
-            <div className="rounded p-3.5 border border-[#d6c7ab] bg-[#fffdf9] space-y-2.5 flex-1 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <div className="flex items-center gap-1.5 font-bold text-[#6b5a4b]">
-                    <GiBackpack className="w-4 h-4 text-[#6b5a4b]" />
-                    <span>道具點</span>
-                    {secretFormulaSL > 0 && (
-                      <span className="text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415]">
-                        秘密配方 SL{secretFormulaSL}
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => toggleFormula('ip')}
-                    title="點擊查看公式"
-                    className="font-mono font-black text-base text-[#3c2415] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
-                  >
-                    {curIp} <span className="text-xs text-[#7c6a58] font-normal">/ {stats.maxIp}</span>
-                  </button>
-                </div>
-
-                <div className="relative mb-2.5">
-                  <GaugeBar
-                    testId="gauge-ip"
-                    percent={stats.maxIp > 0 ? (curIp / stats.maxIp) * 100 : 0}
-                    fillClassName="bg-gauge-ip"
-                  />
-                  <ResourceDeltaBadge flash={ipDelta} />
-                </div>
-
-                <div className="flex items-center justify-between gap-1">
-                  <NumberStepper
-                    value={curIp}
-                    onDelta={adjustIp}
-                    ariaLabel="物品點"
-                    width="w-14"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => updateField('currentIp', stats.maxIp)}
-                    className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-xs"
-                  >
-                    全滿
-                  </button>
-                </div>
-              </div>
-
-              {/* 官方五種基本 IP 消耗品（Core p.104） */}
-              <div data-testid="hud-ip-consumables" className="pt-2 border-t border-[#e8dcc4] space-y-1.5">
-                <div className="flex items-center justify-between text-t11 text-[#6b5a4b]">
-                  <span className="font-bold">官方消耗品捷徑 (點擊扣 IP 結算)</span>
-                </div>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleUseConsumable('remedy')}
-                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.remedy.blocked ? GATED_SHELL_CLASS : ''}`}
-                    title={`大補藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 HP`}
-                    {...gateButtonAttrs(consumableGates.remedy)}
-                  >
-                    <span className={consumableGates.remedy.blocked ? GATED_LABEL_CLASS : ''}>大補藥 (+{50 + secretFormulaSL * 5}HP)</span>
-                    {consumableGates.remedy.blocked ? (
-                      <UnavailableHint gate={consumableGates.remedy} testId="gate-consumable-remedy" />
-                    ) : (
-                      <span className="text-t10">3IP</span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleUseConsumable('elixir')}
-                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.elixir.blocked ? GATED_SHELL_CLASS : ''}`}
-                    title={`萬靈藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 MP`}
-                    {...gateButtonAttrs(consumableGates.elixir)}
-                  >
-                    <span className={consumableGates.elixir.blocked ? GATED_LABEL_CLASS : ''}>萬靈藥 (+{50 + secretFormulaSL * 5}MP)</span>
-                    {consumableGates.elixir.blocked ? (
-                      <UnavailableHint gate={consumableGates.elixir} testId="gate-consumable-elixir" />
-                    ) : (
-                      <span className="text-t10">3IP</span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleUseConsumable('tonic')}
-                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.tonic.blocked ? GATED_SHELL_CLASS : ''}`}
-                    title="滋補藥（消耗 2 IP）：解除所有異常狀態"
-                    {...gateButtonAttrs(consumableGates.tonic)}
-                  >
-                    <span className={consumableGates.tonic.blocked ? GATED_LABEL_CLASS : ''}>滋補藥 (解全狀態)</span>
-                    {consumableGates.tonic.blocked ? (
-                      <UnavailableHint gate={consumableGates.tonic} testId="gate-consumable-tonic" />
-                    ) : (
-                      <span className="text-t10">2IP</span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleUseConsumable('magicTent')}
-                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.magicTent.blocked ? GATED_SHELL_CLASS : ''}`}
-                    title="魔法帳篷（消耗 4 IP）：野外休息回滿 HP／MP 並解除全部狀態"
-                    {...gateButtonAttrs(consumableGates.magicTent)}
-                  >
-                    <span className={consumableGates.magicTent.blocked ? GATED_LABEL_CLASS : ''}>魔法帳篷 (全滿)</span>
-                    {consumableGates.magicTent.blocked ? (
-                      <UnavailableHint gate={consumableGates.magicTent} testId="gate-consumable-magicTent" />
-                    ) : (
-                      <span className="text-t10">4IP</span>
-                    )}
-                  </button>
-                </div>
-
-                {/* 元素碎片（2 IP，選風／電／土／火／冰，10+秘密配方SL 點傷害） */}
-                <div className="flex items-center gap-1 pt-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleUseConsumable('elementalShard')}
-                    className={`flex-1 px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold flex items-center justify-between ${consumableGates.elementalShard.blocked ? GATED_SHELL_CLASS : ''}`}
-                    title={`元素碎片（消耗 2 IP）：對單一目標造成 ${10 + secretFormulaSL} 點【${shardElement}】傷害`}
-                    {...gateButtonAttrs(consumableGates.elementalShard)}
-                  >
-                    <span className={consumableGates.elementalShard.blocked ? GATED_LABEL_CLASS : ''}>元素碎片 ({10 + secretFormulaSL}點{shardElement}傷)</span>
-                    {consumableGates.elementalShard.blocked ? (
-                      <UnavailableHint gate={consumableGates.elementalShard} testId="gate-consumable-elementalShard" />
-                    ) : (
-                      <span className="text-t10">2IP</span>
-                    )}
-                  </button>
-                  <div className="flex items-center gap-0.5 bg-[#fbf7ee] p-0.5 rounded border border-[#d6c7ab]">
-                    {['風', '電', '土', '火', '冰'].map(el => (
-                      <button
-                        key={el}
-                        type="button"
-                        onClick={() => setShardElement(el)}
-                        className={`px-1.5 py-0.5 rounded text-t10 font-bold transition-colors ${
-                          shardElement === el
-                            ? 'bg-[#a63d40] text-[#fffdf9]'
-                            : 'text-[#6b5a4b] hover:text-[#2c221e]'
-                        }`}
-                        title={`切換元素碎片屬性：${el}`}
-                      >
-                        {el}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <StatFormulaPanel
-                isOpen={openFormula === 'ip'}
-                title="最大道具點"
-                breakdown={breakdown.ip}
-                onClose={() => setOpenFormula(null)}
-              />
-            </div>
+            </HudWindow>
           </div>
 
           {/* CENTERPIECE (col-span-4): JRPG Character Portrait Standee & Surrounding Command Buttons */}
           <div
             data-testid="hud-center-column"
-            className="lg:col-span-4 rounded p-4 border-2 bg-[#fffdf9] flex flex-col items-center justify-between text-center gap-3 overflow-hidden"
+            className="order-1 lg:order-none lg:col-span-4 rounded p-4 border-2 bg-[#fffdf9] flex flex-col items-center justify-between text-center gap-3 overflow-hidden"
             style={{ borderColor: theme.border }}
           >
             <div
@@ -2278,52 +2033,201 @@ export default function CharacterPlayHUD({
               )}
             </div>
 
-            {/* JRPG Command Ring: 6 Tactical Panel Buttons around the Character */}
-            <div className="w-full pt-2 border-t border-[#e8dcc4] space-y-1.5">
-              <span className="text-t11 font-bold text-[#7c6a58] block">
-                ✦ 點擊指令切換下方戰術分頁 ✦
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: 'attacks', label: '武器與戰鬥', sub: '命中 · 防禦 · 變形', icon: GiCrossedSwords },
-                  { id: 'spells', label: `咒語與魔法 (${resolveCharacterSpells(character).length})`, sub: '施法 · 儀式計算', icon: GiSpellBook },
-                  { id: 'skills', label: '職業特技', sub: '特技 · 英雄 · 金手指', icon: GiBroadsword },
-                  { id: 'bonds', label: `情感羈絆 (${(character.bonds || []).length})`, sub: '激勵 · 編輯 · 營地', icon: GiHeartShield },
-                  { id: 'clocks', label: `個人命刻 (${(character.clocks || []).length})`, sub: '進度鐘 · 底力技', icon: GiPocketWatch },
-                  { id: 'notes', label: '行囊日誌', sub: '裝備總覽 · 筆記', icon: GiBackpack }
-                ].map(tab => {
-                  const IconComp = tab.icon;
-                  const isTabActive = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`p-2 rounded border text-left transition-all flex items-center gap-2 cursor-pointer ${
-                        isTabActive
-                          ? 'text-white'
-                          : 'bg-[#fbf7ee] hover:bg-[#f4ebd9] text-[#3c2415] border-[#d6c7ab]'
-                      }`}
-                      style={isTabActive ? { backgroundColor: theme.accent, borderColor: theme.accentDark, color: '#fffdf9' } : {}}
-                    >
-                      <IconComp className="w-4 h-4 shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-bold truncate">{tab.label}</div>
-                        <div className={`text-t10 truncate ${isTabActive ? 'text-[#fffdf9]/90' : 'text-[#7c6a58]'}`}>
-                          {tab.sub}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
 
-          {/* RIGHT WING (col-span-4): Four Attributes + Quick Dual-Attribute Combo, Defenses, EXP / Zenit / FP */}
-          <div className="lg:col-span-4 flex flex-col justify-between gap-3">
-            {/* Four Attributes & Dual-Attribute Quick Check */}
-            <div className="rounded p-3.5 border border-[#d6c7ab] bg-[#fffdf9] space-y-2.5">
+          {/* RIGHT WING（col-span-5）：DQ 狀態窗｜能力窗｜成長與資產
+              ────────────────────────────────────────────────────────────
+              資源從左翼搬到這裡：DQ 的選單是「左邊指令、右邊狀態」，
+              而且跑團時真正要一起看的是「我剩多少」與「我的骰階掉到哪」——
+              這兩件事以前分在畫面兩端，中間隔著一整張立繪。
+              ──────────────────────────────────────────────────────────── */}
+          <div className="order-3 lg:order-none lg:col-span-5 flex flex-col gap-3 min-w-0">
+            <HudWindow
+              title="狀態"
+              icon={GiHealthNormal}
+              testId="hud-vitals-window"
+              frameColor={theme.border}
+              bodyClassName="p-3 space-y-3"
+              right={<span className="text-t10 font-mono text-[#7c6a58] shrink-0">Lv {characterLevel}</span>}
+            >
+              {/* 生命值（危機時整列脈動；`hp-crisis-pulse` 全檔只有一份） */}
+              <div className="relative rounded px-1.5 py-1 -mx-1.5">
+                {isCrisis && (
+                  <span
+                    data-testid="hp-crisis-pulse"
+                    aria-hidden="true"
+                    className="crisis-pulse-active pointer-events-none absolute inset-0 rounded border-2"
+                  />
+                )}
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="flex items-center gap-1.5 font-bold text-t12 text-[#8c3235] min-w-0">
+                    <GiHealthNormal className="w-3.5 h-3.5 shrink-0" />
+                    <span className="shrink-0">生命值</span>
+                    {isCrisis && (
+                      <span className="text-t10 font-mono font-black flex items-center gap-0.5 shrink-0">
+                        <FUIcon name="crisis" className="text-t10" />
+                        <span>CRISIS</span>
+                      </span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => toggleFormula('hp')}
+                    title="點擊查看公式"
+                    className="font-mono font-black text-t14 text-[#8c3235] tabular-nums hover:underline decoration-dotted underline-offset-2 cursor-pointer shrink-0"
+                  >
+                    {statsUnset ? '—' : <>{curHp} <span className="text-t11 text-[#7c6a58] font-normal">/ {stats.maxHp}</span></>}
+                  </button>
+                </div>
+                <div className="relative mb-1.5">
+                  <GaugeBar
+                    testId="gauge-hp"
+                    percent={stats.maxHp > 0 ? (curHp / stats.maxHp) * 100 : 0}
+                    fillClassName={isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}
+                  />
+                  <ResourceDeltaBadge flash={hpDelta} />
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <NumberStepper value={curHp} onDelta={adjustHp} ariaLabel="生命值" width="w-14" inputClassName="text-[#8c3235]" />
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleFormula('crisis')}
+                      title="點擊查看公式"
+                      className="text-t11 font-mono font-bold text-[#8c3235] hover:underline decoration-dotted underline-offset-2 cursor-pointer"
+                    >
+                      危機門檻 {statsUnset ? '—' : stats.crisisThreshold}
+                    </button>
+                    <button
+                      onClick={() => updateField('currentHp', stats.maxHp)}
+                      className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#8c3235] font-bold text-t11"
+                    >
+                      全滿
+                    </button>
+                  </div>
+                </div>
+                <StatFormulaPanel
+                  isOpen={openFormula === 'hp'}
+                  title="最大生命值"
+                  breakdown={breakdown.hp}
+                  note={STAT_FORMULA_NOTE}
+                  onClose={() => setOpenFormula(null)}
+                />
+                <StatFormulaPanel
+                  isOpen={openFormula === 'crisis'}
+                  title="危機門檻"
+                  breakdown={breakdown.crisis}
+                  onClose={() => setOpenFormula(null)}
+                />
+              </div>
+
+              {/* 魔力值 */}
+              <div className="rounded px-1.5 py-1 -mx-1.5 border-t border-[#e8dcc4] pt-2.5">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="flex items-center gap-1.5 font-bold text-t12 text-[#6b5a4b] min-w-0">
+                    <GiLightningTear className="w-3.5 h-3.5 shrink-0" />
+                    <span className="shrink-0">魔力值</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => toggleFormula('mp')}
+                    title="點擊查看公式"
+                    className="font-mono font-black text-t14 text-[#3c2415] tabular-nums hover:underline decoration-dotted underline-offset-2 cursor-pointer shrink-0"
+                  >
+                    {statsUnset ? '—' : <>{curMp} <span className="text-t11 text-[#7c6a58] font-normal">/ {stats.maxMp}</span></>}
+                  </button>
+                </div>
+                <div className="relative mb-1.5">
+                  <GaugeBar
+                    testId="gauge-mp"
+                    percent={stats.maxMp > 0 ? (curMp / stats.maxMp) * 100 : 0}
+                    fillClassName="bg-gauge-mp"
+                  />
+                  <ResourceDeltaBadge flash={mpDelta} />
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <NumberStepper value={curMp} onDelta={adjustMp} ariaLabel="魔力值" width="w-14" inputClassName="text-[#3c2415]" />
+                  <button
+                    onClick={() => updateField('currentMp', stats.maxMp)}
+                    className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-t11"
+                  >
+                    全滿
+                  </button>
+                </div>
+                <StatFormulaPanel
+                  isOpen={openFormula === 'mp'}
+                  title="最大魔力值"
+                  breakdown={breakdown.mp}
+                  note={STAT_FORMULA_NOTE}
+                  onClose={() => setOpenFormula(null)}
+                />
+              </div>
+
+              {/* 道具點（消耗品捷徑已搬到「行囊與道具」分頁） */}
+              <div className="rounded px-1.5 py-1 -mx-1.5 border-t border-[#e8dcc4] pt-2.5">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="flex items-center gap-1.5 font-bold text-t12 text-[#6b5a4b] min-w-0">
+                    <GiBackpack className="w-3.5 h-3.5 shrink-0" />
+                    <span className="shrink-0">道具點</span>
+                    {secretFormulaSL > 0 && (
+                      <span className="text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#3c2415] shrink-0">
+                        秘密配方 SL{secretFormulaSL}
+                      </span>
+                    )}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => toggleFormula('ip')}
+                    title="點擊查看公式"
+                    className="font-mono font-black text-t14 text-[#3c2415] tabular-nums hover:underline decoration-dotted underline-offset-2 cursor-pointer shrink-0"
+                  >
+                    {curIp} <span className="text-t11 text-[#7c6a58] font-normal">/ {stats.maxIp}</span>
+                  </button>
+                </div>
+                <div className="relative mb-1.5">
+                  <GaugeBar
+                    testId="gauge-ip"
+                    percent={stats.maxIp > 0 ? (curIp / stats.maxIp) * 100 : 0}
+                    fillClassName="bg-gauge-ip"
+                  />
+                  <ResourceDeltaBadge flash={ipDelta} />
+                </div>
+                <div className="flex items-center justify-between gap-1">
+                  <NumberStepper value={curIp} onDelta={adjustIp} ariaLabel="物品點" width="w-14" />
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('notes')}
+                      title="官方五種消耗品捷徑都在「行囊與道具」分頁"
+                      className="text-t11 font-bold text-[#6b5a4b] hover:text-[#2c221e] underline"
+                    >
+                      消耗品
+                    </button>
+                    <button
+                      onClick={() => updateField('currentIp', stats.maxIp)}
+                      className="px-2 py-1 rounded bg-[#e8dcc4] hover:bg-[#d6c7ab] text-[#3c2415] font-bold text-t11"
+                    >
+                      全滿
+                    </button>
+                  </div>
+                </div>
+                <StatFormulaPanel
+                  isOpen={openFormula === 'ip'}
+                  title="最大道具點"
+                  breakdown={breakdown.ip}
+                  onClose={() => setOpenFormula(null)}
+                />
+              </div>
+            </HudWindow>
+
+            <HudWindow
+              title="能力"
+              icon={GiRollingDices}
+              testId="hud-ability-window"
+              frameColor={theme.border}
+              bodyClassName="p-3 space-y-2.5"
+            >
+
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <span className="text-xs font-bold text-[#3c2415] flex items-center gap-1">
                   <GiRollingDices className="w-4 h-4 text-[#6b5a4b]" />
@@ -2517,12 +2421,19 @@ export default function CharacterPlayHUD({
                   })}
                 </div>
               </div>
-            </div>
+            </HudWindow>
 
-            {/* EXP / Zenit / Fabula Points Compact Cards */}
-            <div className="grid grid-cols-1 gap-2">
-              {/* EXP Progress & Session EXP Settlement */}
-              <div className="bg-[#fffdf9] rounded p-3 border space-y-1.5" style={{ borderColor: theme.border }}>
+            {/* EXP / Zenit / Fabula Points Compact Cards
+                （這行字是 afflictionOrder G4 的錨點：狀態異常必須排在 EXP 之前） */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <HudWindow
+                title="成長"
+                icon={GiUpgrade}
+                testId="hud-exp-window"
+                frameColor={theme.border}
+                bodyClassName="p-3 space-y-1.5"
+              >
+
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-mono font-bold flex items-center gap-1" style={{ color: theme.textDark }}>
                     <GiUpgrade className="w-3.5 h-3.5 text-[#6b5a4b]" />
@@ -2596,130 +2507,47 @@ export default function CharacterPlayHUD({
                     </button>
                   </div>
                 )}
-              </div>
+              </HudWindow>
 
-              {/* 金幣錢包 ＋ 物語點（P10 重排）
-                  ─────────────────────────────────────────────────────────────
-                  使用者：「金幣錢包的部分不要有 +- 和自己修改內容了。下面的按鈕改大，
-                  只要收入和支出和明細兩三按鈕。金錢也很重要，做明顯一點。」
-
-                  三件事各自有理由，不只是照做：
-                  1. **拿掉 `−`／`+` 與可編輯輸入框**：那條路寫的是 `kind: 'zenit'`（合併、
-                     沒有原因），與 P9-b 的「原因必填」是兩套記帳法。留著它，明細上就會出現
-                     一堆沒有事由的「支出資金 350 → 300」，而那些列**對不上任何一件事**。
-                  2. **三顆按鈕放進卡片裡**：原本它們擠在卡片下方的一條細帶上（與「最近一筆」
-                     共用一行），高度只有 `py-0.5`——那不是「按得到」，是「看得到」。
-                  3. **金額 25px**：面板上其他數字都是 12–16px。錢包是玩家最常低頭看的一格，
-                     它應該比旁邊的屬性更顯眼，而不是一樣大。
-                  ───────────────────────────────────────────────────────────── */}
-              <div data-testid="wallet-card" className="bg-[#fffdf9] rounded p-3 border space-y-2" style={{ borderColor: theme.border }}>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
-                    <GiCoins className="w-4 h-4" style={{ color: theme.accent }} />
-                    金幣錢包
+              {/* 資產窗（P13）：使用者裁定「錢包收成一頁」。
+                  主畫面只留兩個數字與一個入口——收支、履歷、物語點的
+                  六顆按鈕全部搬到「金錢與物語點」分頁，不再擠在右翼。 */}
+              <HudWindow
+                title="資產"
+                icon={GiCoins}
+                testId="hud-assets-window"
+                frameColor={theme.border}
+                bodyClassName="p-3 space-y-2"
+              >
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-t11 font-bold text-[#6b5a4b] flex items-center gap-1">
+                    <GiCoins className="w-3.5 h-3.5" />
+                    資金
                   </span>
-                  {/* 行內浮字：卡片上沒有空白可以讓浮字飄，所以貼在標題右側 */}
-                  <ResourceDeltaBadge flash={zenitDelta} inline className="text-t11" />
+                  <span data-testid="hud-asset-zenit" className="tabular-nums font-black text-t16 text-[#3c2415]">
+                    {formatZenit(character.zenit)}
+                  </span>
                 </div>
-
-                {/* 金額自己一行、自己一個尺寸。`formatZenit(null)` 印破折號而不是 `0z`——
-                    沒有 `zenit` 欄位的舊存檔是「不知道」，不是「沒錢」。 */}
-                <span
-                  data-testid="wallet-amount"
-                  className="block tabular-nums font-black text-t25 leading-none text-[#3c2415]"
-                >
-                  {formatZenit(character.zenit)}
-                </span>
-
-                {/* 三顆按鈕：收入／支出／明細。點擊高度 `py-2`（原本 0.5），字級 t12（原本 t10）。 */}
-                <div className="grid grid-cols-3 gap-1.5">
-                  <button
-                    type="button"
-                    data-testid="wallet-income"
-                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.gain)}
-                    title="記一筆進帳（報酬、戰利品、借貸……）"
-                    className="py-2 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiReceiveMoney className="w-3.5 h-3.5" />
-                    收入
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="wallet-expense"
-                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.spend)}
-                    title="記一筆花費（住宿、餐費、修裝……）"
-                    className="py-2 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiPayMoney className="w-3.5 h-3.5" />
-                    支出
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="wallet-ledger"
-                    onClick={() => setIsLedgerOpen(true)}
-                    title="看這筆錢是怎麼進出的（由成長履歷推導）"
-                    className="py-2 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiScrollUnfurled className="w-3.5 h-3.5" />
-                    明細
-                  </button>
-                </div>
-              </div>
-
-              {/* 物語點（P12，2026-11-02）：從「一行數字＋步進器」改成**第二個錢包**。
-                  ─────────────────────────────────────────────────────────────
-                  為什麼要拆掉步進器（這是使用者裁定的第 2 題）：
-                  物語點是這張卡最後一個「有數字、沒原因」的資源。書上七條用途裡
-                  三條要花 1 點（重擲／激勵羈絆／改變故事），價錢完全一樣——
-                  所以履歷只寫「消耗物語點 3 → 2」時，玩家分不出那 1 點是為了什麼。
-                  而擲骰器其實**早就把原因傳進來了**（`onSpendFp('引用特質重擲檢定')`），
-                  只是那句話進了 toast 就消失。現在它寫進履歷的 `note`。
-                  ───────────────────────────────────────────────────────────── */}
-              <div data-testid="fp-card" className="bg-[#fffdf9] rounded px-3 py-2 border space-y-2" style={{ borderColor: theme.border }}>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
-                    <GiSparkles className="w-4 h-4 text-[#6b5a4b]" />
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-t11 font-bold text-[#6b5a4b] flex items-center gap-1">
+                    <GiSparkles className="w-3.5 h-3.5" />
                     物語點
                   </span>
-                  <span data-testid="fp-amount" className="tabular-nums font-black text-t16 text-[#3c2415]">
-                    {resolveFabulaPoints(character)} FP
+                  <span data-testid="hud-asset-fp" className="tabular-nums font-black text-t16 text-[#3c2415]">
+                    {resolveFabulaPoints(character)} <span className="text-t11 font-normal text-[#7c6a58]">FP</span>
                   </span>
                 </div>
-                {/* 三顆按鈕與錢包同一個排法：獲得（綠）／消耗（紅）／明細（米）。
-                    高度 `py-1.5` 比錢包的 `py-2` 矮一級——物語點不搶錢包的重量。 */}
-                <div className="grid grid-cols-3 gap-1.5">
-                  <button
-                    type="button"
-                    data-testid="fp-gain"
-                    onClick={() => openFpFlow(FP_DIRECTIONS.gain)}
-                    title="記一筆獲得（反派登場、大失敗、投降……）"
-                    className="py-1.5 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiReceiveMoney className="w-3.5 h-3.5" />
-                    獲得
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="fp-spend"
-                    onClick={() => openFpFlow(FP_DIRECTIONS.spend)}
-                    title="記一筆消耗（重擲、激勵羈絆、改變故事）"
-                    className="py-1.5 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiPayMoney className="w-3.5 h-3.5" />
-                    消耗
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="fp-ledger"
-                    onClick={() => setIsFpLedgerOpen(true)}
-                    title="看每一點是為了什麼花掉的（由成長履歷推導）"
-                    className="py-1.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <GiScrollUnfurled className="w-3.5 h-3.5" />
-                    明細
-                  </button>
-                </div>
-              </div>
+                <button
+                  type="button"
+                  data-testid="hud-assets-open"
+                  onClick={() => setActiveTab('money')}
+                  title="收入、支出、明細與物語點都在「金錢與物語點」分頁"
+                  className="w-full py-2 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                >
+                  <GiScrollUnfurled className="w-3.5 h-3.5" />
+                  收支與履歷
+                </button>
+              </HudWindow>
             </div>
           </div>
         </div>
@@ -2790,46 +2618,34 @@ export default function CharacterPlayHUD({
       <div className="bg-[#fffdf9] rounded border-2 overflow-clip" style={{ borderColor: theme.border }}>
         <div
           data-testid="hud-subtabs-bar"
-          className="sticky top-[var(--chapter-header-h,52px)] z-30 flex items-center gap-1 p-2 border-b overflow-x-auto transition-colors duration-200"
+          className="sticky top-[var(--chapter-header-h,52px)] z-30 flex items-center justify-between gap-2 px-2.5 py-1.5 border-b transition-colors duration-200"
           style={{ backgroundColor: theme.accentLight, borderColor: theme.border }}
         >
-          {[
-            { id: 'attacks', label: '武器與戰鬥', icon: GiCrossedSwords },
-            { id: 'spells', label: `咒語與魔法 (${resolveCharacterSpells(character).length})`, icon: GiSpellBook },
-            { id: 'skills', label: '職業特技', icon: GiBroadsword },
-            { id: 'bonds', label: `情感羈絆 (${(character.bonds || []).length})`, icon: GiHeartShield },
-            { id: 'clocks', label: `個人命刻 (${(character.clocks || []).length})`, icon: GiPocketWatch },
-            { id: 'notes', label: '行囊日誌', icon: GiBackpack }
-          ].map(tab => {
-            const IconComp = tab.icon;
-            const isTabActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 rounded text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                  isTabActive
-                    ? 'text-white'
-                    : 'text-[#6b5a4b] hover:bg-black/5'
-                }`}
-                style={isTabActive ? { backgroundColor: theme.accent, color: '#fffdf9' } : {}}
-              >
-                <IconComp className="w-3.5 h-3.5 shrink-0" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+          <span className="flex items-center gap-1.5 min-w-0">
+            <span className="text-t11 font-black shrink-0" style={{ color: theme.accent }} aria-hidden="true">▶</span>
+            <span className="font-serif font-black text-t12 tracking-wide truncate" style={{ color: theme.textDark }}>
+              {hudTabLabel}
+            </span>
+            <span className="text-t10 font-mono text-[#7c6a58] shrink-0">
+              第 {hudTabItems.findIndex((t) => t.id === activeTab) + 1} / {hudTabItems.length} 頁
+            </span>
+          </span>
+          <button
+            type="button"
+            data-testid="hud-back-to-commands"
+            onClick={() => { if (hubRef.current) hubRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+            className="text-t11 font-bold text-[#6b5a4b] hover:text-[#2c221e] flex items-center gap-1 shrink-0 px-2 py-1 rounded hover:bg-[#e8dcc4] transition-colors"
+            title="回到左側的指令窗"
+          >
+            ▲ 指令
+          </button>
         </div>
 
         <div className="p-4 sm:p-5">
           <ErrorBoundary
             inline
             label={
-              activeTab === 'attacks' ? '武器與戰鬥' :
-              activeTab === 'spells' ? '咒語與魔法' :
-              activeTab === 'skills' ? '職業特技' :
-              activeTab === 'bonds' ? '情感羈絆' :
-              activeTab === 'clocks' ? '個人命刻' : '行囊日誌'
+              hudTabLabel
             }
           >
             {/* TAB 1: 武器與戰鬥 (Formula Pills & Combat Matrix) */}
@@ -4441,8 +4257,259 @@ export default function CharacterPlayHUD({
           )}
 
           {/* TAB 6: 行囊日誌 (Notes & Inventory) */}
+          {/* TAB 7: 金錢與物語點（P13，2026-11-02）
+              ────────────────────────────────────────────────────────────
+              使用者裁定「右翼錢包收成一頁」。主畫面的資產窗只留兩個數字與
+              一個入口；收支／明細／物語點的六顆按鈕全部搬到這裡。
+              兩張卡**原樣搬過來**（不是重寫）：它們各自帶著
+              「原因必填」「明細由履歷推導」的既有契約，重寫等於多一條寫入路徑。
+              ──────────────────────────────────────────────────────────── */}
+          {activeTab === 'money' && (
+            <div className="space-y-4 animate-fade-in text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+{/* 金幣錢包 ＋ 物語點（P10 重排）
+                  ─────────────────────────────────────────────────────────────
+                  使用者：「金幣錢包的部分不要有 +- 和自己修改內容了。下面的按鈕改大，
+                  只要收入和支出和明細兩三按鈕。金錢也很重要，做明顯一點。」
+
+                  三件事各自有理由，不只是照做：
+                  1. **拿掉 `−`／`+` 與可編輯輸入框**：那條路寫的是 `kind: 'zenit'`（合併、
+                     沒有原因），與 P9-b 的「原因必填」是兩套記帳法。留著它，明細上就會出現
+                     一堆沒有事由的「支出資金 350 → 300」，而那些列**對不上任何一件事**。
+                  2. **三顆按鈕放進卡片裡**：原本它們擠在卡片下方的一條細帶上（與「最近一筆」
+                     共用一行），高度只有 `py-0.5`——那不是「按得到」，是「看得到」。
+                  3. **金額 25px**：面板上其他數字都是 12–16px。錢包是玩家最常低頭看的一格，
+                     它應該比旁邊的屬性更顯眼，而不是一樣大。
+                  ───────────────────────────────────────────────────────────── */}
+              <div data-testid="wallet-card" className="bg-[#fffdf9] rounded p-3 border space-y-2" style={{ borderColor: theme.border }}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                    <GiCoins className="w-4 h-4" style={{ color: theme.accent }} />
+                    金幣錢包
+                  </span>
+                  {/* 行內浮字：卡片上沒有空白可以讓浮字飄，所以貼在標題右側 */}
+                  <ResourceDeltaBadge flash={zenitDelta} inline className="text-t11" />
+                </div>
+
+                {/* 金額自己一行、自己一個尺寸。`formatZenit(null)` 印破折號而不是 `0z`——
+                    沒有 `zenit` 欄位的舊存檔是「不知道」，不是「沒錢」。 */}
+                <span
+                  data-testid="wallet-amount"
+                  className="block tabular-nums font-black text-t25 leading-none text-[#3c2415]"
+                >
+                  {formatZenit(character.zenit)}
+                </span>
+
+                {/* 三顆按鈕：收入／支出／明細。點擊高度 `py-2`（原本 0.5），字級 t12（原本 t10）。 */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    data-testid="wallet-income"
+                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.gain)}
+                    title="記一筆進帳（報酬、戰利品、借貸……）"
+                    className="py-2 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiReceiveMoney className="w-3.5 h-3.5" />
+                    收入
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="wallet-expense"
+                    onClick={() => openMoneyFlow(MONEY_DIRECTIONS.spend)}
+                    title="記一筆花費（住宿、餐費、修裝……）"
+                    className="py-2 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiPayMoney className="w-3.5 h-3.5" />
+                    支出
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="wallet-ledger"
+                    onClick={() => setIsLedgerOpen(true)}
+                    title="看這筆錢是怎麼進出的（由成長履歷推導）"
+                    className="py-2 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiScrollUnfurled className="w-3.5 h-3.5" />
+                    明細
+                  </button>
+                </div>
+
+              </div>
+
+{/* 物語點（P12，2026-11-02）：從「一行數字＋步進器」改成**第二個錢包**。
+                  ─────────────────────────────────────────────────────────────
+                  為什麼要拆掉步進器（這是使用者裁定的第 2 題）：
+                  物語點是這張卡最後一個「有數字、沒原因」的資源。書上七條用途裡
+                  三條要花 1 點（重擲／激勵羈絆／改變故事），價錢完全一樣——
+                  所以履歷只寫「消耗物語點 3 → 2」時，玩家分不出那 1 點是為了什麼。
+                  而擲骰器其實**早就把原因傳進來了**（`onSpendFp('引用特質重擲檢定')`），
+                  只是那句話進了 toast 就消失。現在它寫進履歷的 `note`。
+                  ───────────────────────────────────────────────────────────── */}
+              <div data-testid="fp-card" className="bg-[#fffdf9] rounded px-3 py-2 border space-y-2" style={{ borderColor: theme.border }}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-t11 flex items-center gap-1.5" style={{ color: theme.textDark }}>
+                    <GiSparkles className="w-4 h-4 text-[#6b5a4b]" />
+                    物語點
+                  </span>
+                  <span data-testid="fp-amount" className="tabular-nums font-black text-t16 text-[#3c2415]">
+                    {resolveFabulaPoints(character)} FP
+                  </span>
+                </div>
+                {/* 三顆按鈕與錢包同一個排法：獲得（綠）／消耗（紅）／明細（米）。
+                    高度 `py-1.5` 比錢包的 `py-2` 矮一級——物語點不搶錢包的重量。 */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    data-testid="fp-gain"
+                    onClick={() => openFpFlow(FP_DIRECTIONS.gain)}
+                    title="記一筆獲得（反派登場、大失敗、投降……）"
+                    className="py-1.5 rounded border border-[#245c45] bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiReceiveMoney className="w-3.5 h-3.5" />
+                    獲得
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="fp-spend"
+                    onClick={() => openFpFlow(FP_DIRECTIONS.spend)}
+                    title="記一筆消耗（重擲、激勵羈絆、改變故事）"
+                    className="py-1.5 rounded border border-[#a63d40] bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiPayMoney className="w-3.5 h-3.5" />
+                    消耗
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="fp-ledger"
+                    onClick={() => setIsFpLedgerOpen(true)}
+                    title="看每一點是為了什麼花掉的（由成長履歷推導）"
+                    className="py-1.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t12 flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <GiScrollUnfurled className="w-3.5 h-3.5" />
+                    明細
+                  </button>
+                </div>
+              </div>
+              </div>
+              <div
+                data-testid="money-page-note"
+                className="p-3 rounded bg-[#fbf7ee] border border-[#e8dcc4] text-t11 text-[#6b5a4b] leading-relaxed"
+              >
+                資金與物語點只有「收入／支出／獲得／消耗」四個入口，而且<strong className="text-[#3c2415]">原因必填</strong>。
+                上面的明細是從成長履歷推導出來的，不另外存一份帳——同一個事實只有一個來源。
+              </div>
+            </div>
+          )}
+
           {activeTab === 'notes' && (
             <div className="space-y-4 animate-fade-in text-xs">
+              {/* 消耗品捷徑（P13）：原本在左翼的 IP 卡裡，與資源條搶同一個高度。
+                  使用者裁定「左翼消耗品池收成一頁」——搬來行囊，
+                  因為「我身上有什麼可以馬上用」本來就是行囊的事。 */}
+              <div className="p-3.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-2">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="font-bold text-[#3c2415] block">官方消耗品捷徑（點擊扣道具點結算）</span>
+                  <span className="text-t11 text-[#6b5a4b]">
+                    道具點 <strong className="font-mono text-[#3c2415]">{curIp}</strong> / {stats.maxIp}
+                  </span>
+                </div>
+              {/* 官方五種基本 IP 消耗品（Core p.104） */}
+              <div data-testid="hud-ip-consumables" className="pt-2 border-t border-[#e8dcc4] space-y-1.5">
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleUseConsumable('remedy')}
+                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.remedy.blocked ? GATED_SHELL_CLASS : ''}`}
+                    title={`大補藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 HP`}
+                    {...gateButtonAttrs(consumableGates.remedy)}
+                  >
+                    <span className={consumableGates.remedy.blocked ? GATED_LABEL_CLASS : ''}>大補藥 (+{50 + secretFormulaSL * 5}HP)</span>
+                    {consumableGates.remedy.blocked ? (
+                      <UnavailableHint gate={consumableGates.remedy} testId="gate-consumable-remedy" />
+                    ) : (
+                      <span className="text-t10">3IP</span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUseConsumable('elixir')}
+                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.elixir.blocked ? GATED_SHELL_CLASS : ''}`}
+                    title={`萬靈藥（消耗 3 IP）：恢復 ${50 + secretFormulaSL * 5} 點 MP`}
+                    {...gateButtonAttrs(consumableGates.elixir)}
+                  >
+                    <span className={consumableGates.elixir.blocked ? GATED_LABEL_CLASS : ''}>萬靈藥 (+{50 + secretFormulaSL * 5}MP)</span>
+                    {consumableGates.elixir.blocked ? (
+                      <UnavailableHint gate={consumableGates.elixir} testId="gate-consumable-elixir" />
+                    ) : (
+                      <span className="text-t10">3IP</span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUseConsumable('tonic')}
+                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#6b5a4b] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.tonic.blocked ? GATED_SHELL_CLASS : ''}`}
+                    title="滋補藥（消耗 2 IP）：解除所有異常狀態"
+                    {...gateButtonAttrs(consumableGates.tonic)}
+                  >
+                    <span className={consumableGates.tonic.blocked ? GATED_LABEL_CLASS : ''}>滋補藥 (解全狀態)</span>
+                    {consumableGates.tonic.blocked ? (
+                      <UnavailableHint gate={consumableGates.tonic} testId="gate-consumable-tonic" />
+                    ) : (
+                      <span className="text-t10">2IP</span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUseConsumable('magicTent')}
+                    className={`px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] text-t11 font-bold text-left flex items-center justify-between ${consumableGates.magicTent.blocked ? GATED_SHELL_CLASS : ''}`}
+                    title="魔法帳篷（消耗 4 IP）：野外休息回滿 HP／MP 並解除全部狀態"
+                    {...gateButtonAttrs(consumableGates.magicTent)}
+                  >
+                    <span className={consumableGates.magicTent.blocked ? GATED_LABEL_CLASS : ''}>魔法帳篷 (全滿)</span>
+                    {consumableGates.magicTent.blocked ? (
+                      <UnavailableHint gate={consumableGates.magicTent} testId="gate-consumable-magicTent" />
+                    ) : (
+                      <span className="text-t10">4IP</span>
+                    )}
+                  </button>
+                </div>
+
+                {/* 元素碎片（2 IP，選風／電／土／火／冰，10+秘密配方SL 點傷害） */}
+                <div className="flex items-center gap-1 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => handleUseConsumable('elementalShard')}
+                    className={`flex-1 px-2 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#8c3235] border border-[#d6c7ab] text-t11 font-bold flex items-center justify-between ${consumableGates.elementalShard.blocked ? GATED_SHELL_CLASS : ''}`}
+                    title={`元素碎片（消耗 2 IP）：對單一目標造成 ${10 + secretFormulaSL} 點【${shardElement}】傷害`}
+                    {...gateButtonAttrs(consumableGates.elementalShard)}
+                  >
+                    <span className={consumableGates.elementalShard.blocked ? GATED_LABEL_CLASS : ''}>元素碎片 ({10 + secretFormulaSL}點{shardElement}傷)</span>
+                    {consumableGates.elementalShard.blocked ? (
+                      <UnavailableHint gate={consumableGates.elementalShard} testId="gate-consumable-elementalShard" />
+                    ) : (
+                      <span className="text-t10">2IP</span>
+                    )}
+                  </button>
+                  <div className="flex items-center gap-0.5 bg-[#fbf7ee] p-0.5 rounded border border-[#d6c7ab]">
+                    {['風', '電', '土', '火', '冰'].map(el => (
+                      <button
+                        key={el}
+                        type="button"
+                        onClick={() => setShardElement(el)}
+                        className={`px-1.5 py-0.5 rounded text-t10 font-bold transition-colors ${
+                          shardElement === el
+                            ? 'bg-[#a63d40] text-[#fffdf9]'
+                            : 'text-[#6b5a4b] hover:text-[#2c221e]'
+                        }`}
+                        title={`切換元素碎片屬性：${el}`}
+                      >
+                        {el}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              </div>
               <div className="p-3.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-2">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="font-bold text-[#3c2415] block">冒險者行囊物品與武裝</span>

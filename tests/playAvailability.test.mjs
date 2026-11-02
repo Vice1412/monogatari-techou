@@ -217,9 +217,13 @@ eq('F10 咒語提示的標記帶索引（同名咒語不會撞在一起）',
    G. SSR：畫得出來才算（對照組在 G3／G6／G9）
    ──────────────────────────────────────────────────────────────── */
 // 道具點 0：五項全部不足
+// ※ 2026-11-02（P13）：消耗品捷徑從左翼搬到「行囊與道具」分頁，
+//   所以 G1／G2／G4 要在那一頁看。斷言守的東西**沒有變**——
+//   仍是「道具點不足時五顆按鈕都要說得出差多少」，只是它住的頁換了。
+//   G4 就是為了擋「整頁沒渲染」造成的假綠燈，所以不能只改 G1／G2。
 const noIp = bare();
 noIp.currentIp = 0;
-const htmlNoIp = render(noIp);
+const htmlNoIp = render(noIp, { initialTab: 'notes' });
 eq('G1 道具點 0 時大補藥顯示短少量', countOf(htmlNoIp, 'data-testid="gate-consumable-remedy"'), 1);
 eq('G2 道具點 0 時短少量是 3（不是「不足」兩個字帶過）',
   /data-testid="gate-consumable-remedy"[^>]*data-short="3"/.test(htmlNoIp), true);
@@ -227,7 +231,7 @@ eq('G2 道具點 0 時短少量是 3（不是「不足」兩個字帶過）',
 // 對照組：道具點充足時，五個提示一個都不能出現
 const richIp = bare();
 richIp.currentIp = 12;
-const htmlRichIp = render(richIp);
+const htmlRichIp = render(richIp, { initialTab: 'notes' });
 eq('G3 道具點充足時五個提示全部消失（對照組）',
   ['remedy', 'elixir', 'tonic', 'magicTent', 'elementalShard']
     .map((k) => countOf(htmlRichIp, `data-testid="gate-consumable-${k}"`)), [0, 0, 0, 0, 0]);
