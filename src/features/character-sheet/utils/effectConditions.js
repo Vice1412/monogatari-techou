@@ -60,6 +60,7 @@ export const CONDITION_KINDS = Object.freeze([
   'noArmor',
   'noShield',
   'noMartialArmor',
+  'hasMartialArmor',
   'crisis',
   'mainWeaponCategoryIn',
   'mainWeaponRange',
@@ -72,7 +73,9 @@ export const CONDITION_KINDS = Object.freeze([
   'statusCountAtLeast',
   'skillSLAtLeast',
   'levelAtLeast',
-  'levelBelow'
+  'levelBelow',
+  // 第三期：`anyOf` 是 OR 的唯一出口（外層 `when` 是 AND）。
+  'anyOf'
 ]);
 
 export const CONDITION_VERDICTS = Object.freeze(['true', 'false', 'unknown']);
@@ -323,6 +326,7 @@ const EQUIPMENT_KINDS = new Set([
   'noArmor',
   'noShield',
   'noMartialArmor',
+  'hasMartialArmor',
   'mainWeaponCategoryIn',
   'mainWeaponRange',
   'mainWeaponHands',
@@ -395,6 +399,33 @@ export const evaluateCondition = (cond, ctx) => {
       if (armor.kind === 'unknown') return 'unknown';
       if (armor.kind === 'none') return 'true';
       return verdict(armor.def?.martial !== true);
+    }
+
+    // 穿著**職業防具**（`noMartialArmor` 的正面）。
+    //
+    // 【防守掌握】的原文是「裝備盾牌**或**職業防具時，受到的所有傷害 −SL」。
+    // 這一半單獨存在，是因為 `anyOf` 需要兩個獨立的布林——把 OR 寫在資料層用
+    // 「兩筆效果」湊出來的話，`conditional` 清單會出現兩條幾乎一樣的說明。
+    // 缺防具資料時回 unknown（與 `noMartialArmor` 對稱，不猜）。
+    case 'hasMartialArmor': {
+      if (armor.kind === 'unknown') return 'unknown';
+      if (armor.kind === 'none') return 'false';
+      return verdict(armor.def?.martial === true);
+    }
+
+    // 「A 或 B」：外層 `when` 是 AND，OR 只能用巢狀表達。
+    // 三態合併：任一 true → true；否則任一 unknown → unknown；全 false → false。
+    // **unknown 優先於 false**：只要有一支還不知道，就不能斷言「或」不成立。
+    case 'anyOf': {
+      const inner = Array.isArray(cond.conditions) ? cond.conditions : [];
+      if (inner.length === 0) return 'unknown';
+      let sawUnknown = false;
+      for (const c of inner) {
+        const r = evaluateCondition(c, context);
+        if (r === 'true') return 'true';
+        if (r === 'unknown') sawUnknown = true;
+      }
+      return sawUnknown ? 'unknown' : 'false';
     }
 
     // 處於危機：目前 HP 不超過最大 HP 的一半（`crisisThreshold`）。
@@ -586,6 +617,15 @@ export const describeCondition = (cond) => {
       return '副手沒有盾牌';
     case 'noMartialArmor':
       return '沒有穿職業防具';
+    case 'hasMartialArmor':
+      return '穿著職業防具';
+    // `anyOf`：原文寫「A **或** B」時用（例如【防守掌握】的「裝備盾牌**或**職業防具」）。
+    // 外層 `when` 是 AND 陣列，OR 只能用巢狀表達——這一條就是那個出口。
+    case 'anyOf': {
+      const inner = Array.isArray(cond.conditions) ? cond.conditions : [];
+      if (inner.length === 0) return '任一條件（未指定）';
+      return inner.map((c) => describeCondition(c)).join(' 或 ');
+    }
     case 'crisis':
       return '處於危機（目前 HP 不超過最大 HP 的一半）';
     case 'mainWeaponCategoryIn': {

@@ -60,7 +60,8 @@ const FREEFORM_CLUB = createFreeformWeaponSpec({ id: 'f1', name: '家傳木棍',
 
 // ─────────────────────────────────────────────────────────── A
 section('A. 封閉詞彙（新增 kind 一律要改這裡，不得自創）');
-check('kind 共 17 個', CONDITION_KINDS.length, 17);
+// 19 ＝ 原 17 ＋ `hasMartialArmor`（職業防具的正面）＋ `anyOf`（OR 的唯一出口）。
+check('kind 共 19 個', CONDITION_KINDS.length, 19);
 check('kind 沒有重複', new Set(CONDITION_KINDS).size, CONDITION_KINDS.length);
 check('三態詞彙共 3 個', CONDITION_VERDICTS, ['true', 'false', 'unknown']);
 const missingDocs = CONDITION_KINDS.filter((kind) => {
@@ -321,6 +322,30 @@ try {
 check('沒有 import characterEngine', /from\s+['"][^'"]*characterEngine/.test(source), false);
 check('沒有 eval(', /\beval\s*\(/.test(source), false);
 check('沒有 new Function', /new\s+Function\s*\(/.test(source), false);
+
+// ─────────────────────────────────────────────────────────── R
+section('R. hasMartialArmor 與 anyOf：原文寫「A 或 B」時怎麼判');
+// 【防守掌握】原文：「裝備盾牌**或**職業防具時，受到的所有傷害 −SL」。
+// 外層 `when` 是 AND 陣列，OR 只能用 `anyOf` 巢狀表達。
+const armorChar = (armor) => mkChar({ equipment: { mainHand: '短匕首', offHand: '', armor } });
+check('hasMartialArmor：板條甲 -> true', evaluateCondition({ kind: 'hasMartialArmor' }, armorChar('板條甲')), 'true');
+check('hasMartialArmor：旅行皮甲（輕甲）-> false', evaluateCondition({ kind: 'hasMartialArmor' }, armorChar('旅行皮甲')), 'false');
+check('hasMartialArmor：中性防具 -> false', evaluateCondition({ kind: 'hasMartialArmor' }, armorChar('無裝甲 / 冒險服')), 'false');
+check('hasMartialArmor：查不到的防具 -> unknown（不猜）',
+  evaluateCondition({ kind: 'hasMartialArmor' }, armorChar('不知名斗篷')), 'unknown');
+
+const OR = { kind: 'anyOf', conditions: [{ kind: 'offHandIsShield' }, { kind: 'hasMartialArmor' }] };
+check('anyOf：只有盾 -> true', evaluateCondition(OR, mkChar({ equipment: { mainHand: '短匕首', offHand: '青銅圓盾', armor: '無裝甲 / 冒險服' } })), 'true');
+check('anyOf：只有職業防具 -> true', evaluateCondition(OR, mkChar({ equipment: { mainHand: '短匕首', offHand: '', armor: '板條甲' } })), 'true');
+check('anyOf：兩個都沒有 -> false', evaluateCondition(OR, mkChar({ equipment: { mainHand: '短匕首', offHand: '', armor: '無裝甲 / 冒險服' } })), 'false');
+check('anyOf：一支 unknown、一支 false -> unknown（不能斷言「或」不成立）',
+  evaluateCondition(OR, mkChar({ equipment: { mainHand: '短匕首', offHand: '', armor: '不知名斗篷' } })), 'unknown');
+check('anyOf：一支 true、一支 unknown -> true（true 優先）',
+  evaluateCondition(OR, mkChar({ equipment: { mainHand: '短匕首', offHand: '青銅圓盾', armor: '不知名斗篷' } })), 'true');
+check('anyOf：空的 conditions -> unknown（資料寫壞要看得到）',
+  evaluateCondition({ kind: 'anyOf', conditions: [] }, mkChar()), 'unknown');
+check('anyOf 的中文說明含「或」',
+  /或/.test(describeCondition(OR)), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

@@ -3818,3 +3818,20 @@ A（收進分頁）／B（放大主體、縮小次要）／C（骨架照 Dragon 
   三條的 scope 都是 `scene`，所以不進常駐數值，而是「條件成立才出現在效果加成清單」。
   測試用同一個角色只改 HP 來驗（30／30 不列、15／30 列出）。
 - 測試鏈仍 **61 道**；`test:flows` 166 → **169**、`test:engine` 492 → **500**（新增 8 條類別訓練）。
+
+##### 8.57 P19 OR 條件：原文寫「A 或 B」時怎麼判（2026-11-04）
+
+`when` 是 **AND** 陣列，所以「裝備盾牌**或**職業防具」這種原文一直判不出來。
+這一期補兩個 kind：
+
+- **`anyOf`**：巢狀 OR。三態合併規則是「任一 true → true；否則任一 unknown → unknown；
+  全 false → false」——**unknown 優先於 false**，只要一支還不知道就不能斷言「或」不成立。
+- **`hasMartialArmor`**：職業防具的正面（`armors[].martial === true`，實測只有 4 件重甲）。
+  把它做成獨立 kind 而不是在資料層寫「兩筆同效果」——後者會讓「效果加成」清單出現
+  兩條幾乎一樣的說明，玩家會以為有兩份減傷。
+
+資料：【防守掌握】接上 `anyOf: [offHandIsShield, hasMartialArmor]`。
+測試：`test:conditions` 112 → **123**（正／反／unknown／優先序各一條）。
+
+- 效果級 `when` 現況：19 個（涉及條目 20）＋ 條目級 7 筆。
+- 測試鏈仍 61 道；`test:flows` 169、`test:engine` 500、`npm run build` exit 0。

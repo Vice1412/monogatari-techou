@@ -1828,7 +1828,20 @@
      "perSL": -1,
      "flat": 0,
      "scope": "scene",
-     "condition": "裝備盾牌或職業防具時，受到的所有傷害 −SL（親和之前）"
+     "condition": "裝備盾牌或職業防具時，受到的所有傷害 −SL（親和之前）",
+     "when": [
+      {
+       "kind": "anyOf",
+       "conditions": [
+        {
+         "kind": "offHandIsShield"
+        },
+        {
+         "kind": "hasMartialArmor"
+        }
+       ]
+      }
+     ]
     }
    ],
    "apply": {
