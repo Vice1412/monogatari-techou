@@ -114,10 +114,10 @@ const ATTRIBUTE_DETAILS = {
     key: 'mig',
     enName: 'MIG',
     name: ATTRIBUTE_NAMES.mig,
-    tags: '生命上限 HP · 危機門檻 Crisis · 重兵器',
+    tags: '生命上限 HP · 危機門檻 · 重兵器',
     mechanics: [
       { label: '生命上限', desc: `HP MAX 核心基底：【${ATTRIBUTE_NAMES.mig}骰面 × 5 ＋ 等級】` },
-      { label: '危機門檻', desc: '生命上限的一半（≤ 此值觸發英雄特技加成）' },
+      { label: '危機門檻', desc: '生命上限的一半（≤ 此值觸發英雄技能加成）' },
       { label: '重型近戰', desc: '巨劍、巨錘、戰斧之命中判定與主要威力來源' },
       { label: '狀態扣減', desc: '陷入【虛弱】或【中毒】時下降一階' }
     ]
@@ -148,7 +148,7 @@ export default function AttributeMatrixPicker({
 }) {
   // 4 顆骰子物件（每個骰子有獨立 ID、面數、以及當前放置在何處 assignedTo: 'dex'|'ins'|'mig'|'wlp'|null）
   //
-  // 四維還沒指派時（`createNewCharacter` 的預設 0）**托盤是空的**——使用者指示：
+  // 屬性還沒指派時（`createNewCharacter` 的預設 0）**托盤是空的**——使用者指示：
   // 「要讓玩家自己選起始陣列才會在那邊出現 4 個骰子」。舊版會在空托盤先放
   // d10/d8/d8/d6（正好是「標準」那四顆），等於又替玩家選了一次。
   const [dicePool, setDicePool] = useState(() => {
@@ -286,7 +286,7 @@ export default function AttributeMatrixPicker({
     onChange(newAttrs);
   };
 
-  // 1. 選擇預設起始陣列：骰子進入左側托盤（尚未分配），由玩家逐格拖曳或點入對應體質。
+  // 1. 選擇預設起始陣列：骰子進入左側托盤（尚未分配），由玩家逐格拖曳或點入對應屬性。
   // 想要快速入座的玩家可點擊「一鍵填入」。
   const handleApplyPreset = (preset) => {
     const newPool = buildTrayPool(preset, `d_${Date.now()}`);
@@ -336,7 +336,7 @@ export default function AttributeMatrixPicker({
     }
   };
 
-  // 5. 點選體質宮格 (Slot Click Handler)
+  // 5. 點選屬性宮格 (Slot Click Handler)
   const handleSlotClick = (statKey, e) => {
     const currentSlottedDie = assignedDiceMap[statKey];
 
@@ -392,7 +392,7 @@ export default function AttributeMatrixPicker({
       // 手上有浮動骰子，放回托盤
       handleTrayClick();
     } else {
-      // 手上沒拿骰子時，點擊凹槽可直接把該體質內的骰子抓到手上浮動！
+      // 手上沒拿骰子時，點擊凹槽可直接把該屬性內的骰子抓到手上浮動！
       setFloatingDieId(dieId);
       if (e) setMousePos({ x: e.clientX, y: e.clientY });
     }
@@ -406,7 +406,7 @@ export default function AttributeMatrixPicker({
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  // 9. Drag & Drop: 拖進體質宮格
+  // 9. Drag & Drop: 拖進屬性宮格
   const handleDragOver = (statKey, e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
@@ -496,7 +496,7 @@ export default function AttributeMatrixPicker({
             </span>
           </div>
           <div className="mt-2 px-2.5 py-0.5 rounded-full bg-[#3c2415] text-[#f7f3e8] text-t12 font-bold border border-[#6b5a4b] whitespace-nowrap">
-            點擊體質入座 · ESC 取消
+            點擊屬性入座 · ESC 取消
           </div>
         </div>
       )}
@@ -518,7 +518,7 @@ export default function AttributeMatrixPicker({
               onClick={handleAutoFill}
               className="text-t12 font-bold px-2.5 py-1 rounded transition-colors flex items-center gap-1"
               style={{ backgroundColor: theme.subpanelBg, color: theme.textDark, borderColor: theme.border }}
-              title="按預設順序一鍵填入四個體質"
+              title="按預設順序一鍵填入四個屬性"
             >
               <Check className="w-3.5 h-3.5" style={{ color: theme.accent }} />
               <span>一鍵填入</span>
@@ -631,7 +631,7 @@ export default function AttributeMatrixPicker({
       {/* ==================== 狀態指示列 ==================== */}
       <div className="flex items-center justify-between flex-wrap gap-2 text-xs px-1">
         <span className="text-xs text-[#6b5a4b]">
-          點擊或拖曳骰子分配至體質（支援拖回收回）
+          點擊或拖曳骰子分配至屬性（支援拖回收回）
         </span>
 
         <div className="flex items-center gap-2 font-mono text-xs">
@@ -649,7 +649,7 @@ export default function AttributeMatrixPicker({
         </div>
       </div>
 
-      {/* ==================== 主工作區：【直列排布】左側托盤 ⟷ 右側四大體質直列 ==================== */}
+      {/* ==================== 主工作區：【直列排布】左側托盤 ⟷ 右側四大屬性直列 ==================== */}
       <div className="flex flex-col md:flex-row gap-4 items-stretch">
         
         {/* ==================== 黑色托盤 (Dice Tray) - 正方形骰子框 ＋ 支援拖回/點擊收回 ==================== */}
@@ -663,7 +663,7 @@ export default function AttributeMatrixPicker({
               ? 'ring-4 ring-[#a63d40]/35 border-[#a63d40] bg-[#fbf7ee]'
               : 'border-[#d6c7ab] hover:border-[#3c2415]'
           }`}
-          title={floatingDieId ? '點擊此處收回' : '點選或拖曳骰子；體質內的骰子可直接拖回此處收回'}
+          title={floatingDieId ? '點擊此處收回' : '點選或拖曳骰子；屬性內的骰子可直接拖回此處收回'}
         >
           <div>
             <div className="flex items-center justify-between mb-3 border-b border-[#d6c7ab] pb-2">
@@ -739,7 +739,7 @@ export default function AttributeMatrixPicker({
                         ? 'opacity-25 border-dashed ring-2 ring-[#a63d40]/30'
                         : 'animate-dice-scale hover:animate-none hover:ring-2 hover:ring-[#3c2415]/25'
                     }`}
-                    title="點擊一下即可跟隨滑鼠浮動，再點擊放入體質；亦支援按住拖曳"
+                    title="點擊一下即可跟隨滑鼠浮動，再點擊放入屬性；亦支援按住拖曳"
                   >
                     <DieIcon className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 ${col.textClass} drop-shadow-sm`} />
                     <span className={`font-mono text-base sm:text-lg font-black ${col.textClass} drop-shadow-sm mt-1 leading-none`}>
@@ -752,7 +752,7 @@ export default function AttributeMatrixPicker({
           </div>
         </div>
 
-        {/* ==================== 四大體質直列清單 (Vertical Attribute List) ==================== */}
+        {/* ==================== 四大屬性直列清單 (Vertical Attribute List) ==================== */}
         <div className="flex-1 min-w-0 flex flex-col gap-3">
           {STAT_KEYS.map(statKey => {
             const detail = ATTRIBUTE_DETAILS[statKey];
@@ -825,7 +825,7 @@ export default function AttributeMatrixPicker({
                               ? 'opacity-25 border-dashed ring-2 ring-[#a63d40]/40'
                               : 'hover:ring-2 hover:ring-[#3c2415]/25'
                           }`}
-                          title="點擊一下即可拿起跟隨滑鼠，再點擊其他體質對調或點托盤收回；亦可直接拖曳"
+                          title="點擊一下即可拿起跟隨滑鼠，再點擊其他屬性對調或點托盤收回；亦可直接拖曳"
                         >
                           <DieIcon className={`w-6 h-6 sm:w-7 sm:h-7 shrink-0 ${col.textClass} drop-shadow-sm`} />
                           <span className={`font-mono text-base sm:text-lg font-black ${col.textClass} drop-shadow-sm mt-1 leading-none`}>

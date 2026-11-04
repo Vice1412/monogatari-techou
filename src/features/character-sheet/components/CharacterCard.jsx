@@ -53,7 +53,7 @@ export default function CharacterCard({
   const curHp = character.currentHp !== null && character.currentHp !== undefined ? character.currentHp : stats.maxHp;
   const curMp = character.currentMp !== null && character.currentMp !== undefined ? character.currentMp : stats.maxMp;
   const isCrisis = curHp <= stats.crisisThreshold;
-  // 四維還沒指派完 → 六項數值還不成立（見 `calculateCharacterStats` 的 `attributesUnset`）。
+  // 屬性還沒指派完 → 六項數值還不成立（見 `calculateCharacterStats` 的 `attributesUnset`）。
   // 顯示「—」而不是拿 0 算出來的假數字；卡片其他地方也已經用「尚未設定…」表達同一件事。
   const statsUnset = Boolean(stats.attributesUnset);
 
@@ -124,7 +124,7 @@ export default function CharacterCard({
             {isCrisis && (
               <JRPGBadge variant="danger" size="xs" className="flex items-center gap-1">
                 <FUIcon name="crisis" className="text-sm leading-none" />
-                <span>CRISIS 危機狀態</span>
+                <span>危機狀態</span>
               </JRPGBadge>
             )}
           </div>
@@ -212,7 +212,7 @@ export default function CharacterCard({
                   if (totalSL < reqSL) {
                     return (
                       <span className="text-t10 px-2 py-0.5 rounded border border-dashed border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] font-mono font-bold">
-                        尚餘 {reqSL - totalSL} 點特技未分配
+                        尚餘 {reqSL - totalSL} 點技能等級未分配
                       </span>
                     );
                   }
@@ -445,11 +445,11 @@ export default function CharacterCard({
             className="text-xs font-mono font-bold tracking-wider mb-2 border-b pb-1 flex items-center gap-1.5"
             style={{ color: theme.textDark, borderColor: theme.border }}
           >
-            <GiSpellBook className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 職業特技清單
+            <GiSpellBook className="w-3.5 h-3.5" style={{ color: theme.accent }} /> 職業技能清單
           </h4>
           {(!character.classes || character.classes.flatMap(c => c.skills || []).length === 0) ? (
             <div className="p-3.5 rounded border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs text-center font-mono">
-              【 尚未配置任何職業特技 】（起始 5 級請於步驟 3 分配特技點數）
+              【 尚未配置任何職業技能 】（起始 5 級請於步驟 3 分配技能等級）
             </div>
           ) : (
             <div className="space-y-2">
@@ -540,7 +540,7 @@ export default function CharacterCard({
           </h4>
           {(!character.bonds || character.bonds.length === 0) ? (
             <div className="p-3 rounded border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs flex items-center justify-between">
-              <span>【 尚未締結任何情感羈絆 】（可建立最多 6 組羈絆）</span>
+              <span>【 尚未締結任何情感羈絆 】</span>
               <span className="font-mono text-t10 text-[#7c6a58]">0 / 6</span>
             </div>
           ) : (
@@ -582,7 +582,7 @@ export default function CharacterCard({
           </h4>
           {(!character.clocks || character.clocks.length === 0) ? (
             <div className="p-3 rounded border border-dashed border-[#d6c7ab] bg-[#f4ebd9]/60 text-[#7c6a58] text-xs">
-              <span>【 尚未添加個人命刻 】（可在特質與命刻步驟添加時鐘推進個人目標）</span>
+              <span>【 尚未添加個人命刻 】</span>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

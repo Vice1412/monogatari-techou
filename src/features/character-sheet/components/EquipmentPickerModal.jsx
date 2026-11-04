@@ -755,7 +755,7 @@ export function EquipmentPickerBody({
           {showWeaponFilters ? (
             <>
               <GiSparkles size={13} />
-              命中檢定與傷害式已換成目前的四維骰（HR 為命中檢定兩顆骰中較高者）。
+              命中檢定與傷害式已換成目前的屬性骰（HR 為命中檢定兩顆骰中較高者）。
             </>
           ) : (
             <>

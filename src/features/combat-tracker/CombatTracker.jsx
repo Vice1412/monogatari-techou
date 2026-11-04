@@ -386,7 +386,7 @@ export default function CombatTracker() {
               kind="combat-players"
               icon={GiCrossedSwords}
               title="還沒有人上場"
-              teach="點上方「調度參戰者」從角色名冊載入參戰者；同一顆按鈕的「怪物庫」分頁負責敵方。"
+              teach="點「調度參戰者」載入參戰者；敵方在「怪物庫」分頁。"
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -422,7 +422,7 @@ export default function CombatTracker() {
               kind="combat-enemies"
               icon={GiSpikedDragonHead}
               title="戰場上還沒有敵方"
-              teach="點「調度參戰者」→「怪物庫」派兵；反派 NPC 也可以從 NPC 工坊直接送上場。"
+              teach="點「調度參戰者」→「怪物庫」派兵。"
               tone="inset"
             />
           ) : (

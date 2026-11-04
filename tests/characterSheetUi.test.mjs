@@ -579,7 +579,7 @@ check('TAB_COUNT 與實際分頁數綁在一起（改了一邊就會在執行時
 // 源碼裡不再有那些行——所以改成**從實際渲染結果**驗證。
 // 這比掃源碼更接近玩家看到的東西：掃源碼只證明「字串寫在某處」，
 // 渲染結果才證明「它真的出現在導航列上、而且順序對」。
-const NAV_LABELS = ['基礎身世', '職業與技能', '四維屬性', '裝備配置', '英雄技能與金手指', '命名與背景'];
+const NAV_LABELS = ['基礎身世', '職業與技能', '屬性', '裝備配置', '英雄技能與金手指', '命名與背景'];
 const editorNavHtml = renderToStaticMarkup(React.createElement(CharacterEditor, {
   character: createNewCharacter({ name: '標籤測試' }),
   themeId: 'emerald',
@@ -731,11 +731,15 @@ const tab2Html = renderEditorAt(2);
 const tab3Html = renderEditorAt(3);
 
 check('第 2 步畫的是職業與技能',
-  [tab2Html.includes('職業組合與技能加點'), tab2Html.includes('四維基礎屬性骰配置')], [true, false]);
-check('第 3 步畫的是四維屬性',
-  [tab3Html.includes('四維基礎屬性骰配置'), tab3Html.includes('職業組合與技能加點')], [true, false]);
-check('導航列的順序也是職業在四維之前',
-  tab2Html.indexOf('職業與技能') < tab2Html.indexOf('四維屬性'), true);
+  [tab2Html.includes('職業組合與技能加點'), tab2Html.includes('基礎屬性骰配置')], [true, false]);
+check('第 3 步畫的是屬性',
+  [tab3Html.includes('基礎屬性骰配置'), tab3Html.includes('職業組合與技能加點')], [true, false]);
+// 2026-11-03：這裡原本還有一條「導航列的順序也是職業在四維之前」，
+// 用 `indexOf('職業與技能') < indexOf('四維屬性')` 比位置。術語正名（§CP）之後
+// 「四維屬性」不再存在、只剩「屬性」——而「屬性」在整份 HTML 裡出現幾十次，
+// `indexOf` 會命中內容區更早的那一處，變成**假失敗**。
+// 次序本身已由 `creationRules.test.mjs` O1 對 `CREATION_STEPS` 釘住（資料層），
+// 渲染層則由上面「第 2 步／第 3 步畫的是什麼」兩條釘住。不重複第三條。
 check('未結算起始資金的卡會顯示提醒',
   renderEditorAt(1, { startingFundsRolled: false }).includes('起始資金尚未結算'), true);
 check('已結算的卡不顯示那則提醒',
@@ -2755,15 +2759,18 @@ const jrpgHudProfileHtml = renderToStaticMarkup(React.createElement(CharacterPla
   initialTab: 'profile'
 }));
 
-check('（CU-1 SSR）JRPG 角色戰術主控台渲染出 data-testid="jrpg-character-hub" 與居中身份、營地休整、常用檢定',
+/* 2026-11-03：使用者裁定「常用檢定根本不需要」，那四顆（DEX+INS／INS+WLP／
+   DEX+MIG／MIG+WLP）整排刪掉；屬性卡改成「點兩張就擲骰」。
+   這一條因此改驗新的入口：四張卡都是按鈕（`attr-roll-*`），而且標題不再承諾
+   一個已經不存在的區塊。 */
+check('（CU-1 SSR）JRPG 角色戰術主控台渲染出 data-testid="jrpg-character-hub" 與居中身份、營地休整、四張屬性檢定卡',
   [jrpgHudAttacksHtml.includes('data-testid="jrpg-character-hub"'),
     jrpgHudAttacksHtml.includes('JRPG 角色戰術主控台'),
     jrpgHudAttacksHtml.includes('營地休整'),
-    // 常用檢定列住在四維底下＝「個人資料」頁（P14 搬家）
-    jrpgHudProfileHtml.includes('常用檢定:'),
-    jrpgHudProfileHtml.includes('DEX+INS'),
-    jrpgHudProfileHtml.includes('INS+WLP')],
-  [true, true, true, true, true, true]);
+    ['dex', 'ins', 'mig', 'wlp'].every((k) => jrpgHudProfileHtml.includes(`data-testid="attr-roll-${k}"`)),
+    // 反面：常用檢定列不該再出現（連字都不該有）
+    jrpgHudProfileHtml.includes('常用檢定')],
+  [true, true, true, true, false]);
 
 // 消耗品捷徑 2026-11-02（P13）搬到「行囊與道具」分頁，所以這一條要開那一頁來看。
 // 守的東西沒有變：五種官方消耗品都在、而且秘密配方 SL2 的加值要算進去。
@@ -2797,6 +2804,10 @@ check('（CU-3 SSR）武器與戰鬥分頁顯示副手盾牌、防具、飾品�
   [true, true, true]);
 
 // ── 2. 咒語分頁：儀式魔法效力×範圍計算器（data-testid="hud-ritual-calculator"）
+//
+// 2026-11-02：計算器改成「有儀式權限才畫」。這個角色同時有兩條來源——
+// 【元素學派儀式 SL1】（技能）與元素師的免費能力（儀式學派），所以兩枚徽章都要在。
+// 徽章名稱由 `describeRitualRights` 供應，不再手抄 `<學派>學派` 這種字串。
 const jrpgHudSpellsHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
   character: jrpgHudChar,
   onChange: () => {},
@@ -2806,14 +2817,35 @@ const jrpgHudSpellsHtml = renderToStaticMarkup(React.createElement(CharacterPlay
   initialTab: 'spells'
 }));
 const ritualCalcSec = jrpgHudSpellsHtml.slice(jrpgHudSpellsHtml.indexOf('data-testid="hud-ritual-calculator"'));
-check('（CU-4 SSR）咒語分頁內建儀式魔法計算器，顯示已掌握儀式學派與效力／範圍／稀有材料減半控制',
+check('（CU-4 SSR）咒語分頁內建儀式魔法計算器，顯示可施展儀式學派與效力／範圍／稀有材料減半控制',
   [ritualCalcSec.includes('儀式魔法（效力 × 範圍 MP 與難度計算器）'),
-    ritualCalcSec.includes('元素學派 [INS + WLP]'),
+    ritualCalcSec.includes('元素 [INS + WLP]'),
+    ritualCalcSec.includes('儀式 [INS + WLP]'),
     ritualCalcSec.includes('提供稀有材料（MP 減半）'),
     ritualCalcSec.includes('總消耗：20 MP · 難度 DL 7 · 衝突命刻 4 格')],
-  [true, true, true, true]);
+  [true, true, true, true, true]);
 
-// ── 3. 職業特技分頁：免費增益、英雄技能全文（data-testid="hud-heroic-skills"）、金手指全文與已選效果（data-testid="hud-quirk-detail"）
+// 反向對照：同一個角色把「元素學派儀式」拿掉、職業換成沒有免費儀式權限的，
+// 計算器就必須整塊消失——否則上面那條只是證明「字串還在」，證明不了「門檻存在」。
+const noRitualHudChar = {
+  ...jrpgHudChar,
+  classes: [{ className: '博學士', level: 2, skills: [{ name: '百科全書', sl: 1 }] }]
+};
+const noRitualSpellsHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
+  character: noRitualHudChar,
+  onChange: () => {},
+  onBackToRoster: () => {},
+  onOpenEditor: () => {},
+  showToast: () => {},
+  initialTab: 'spells'
+}));
+check('（CU-4b SSR）沒有儀式權限的角色：計算器與施放按鈕都不出現',
+  [!noRitualSpellsHtml.includes('data-testid="hud-ritual-calculator"'),
+    !noRitualSpellsHtml.includes('並擲儀式檢定'),
+    noRitualSpellsHtml.includes('data-testid="hud-ritual-unavailable"')],
+  [true, true, true]);
+
+// ── 3. 職業技能分頁：免費增益、英雄技能全文（data-testid="hud-heroic-skills"）、金手指全文與已選效果（data-testid="hud-quirk-detail"）
 const jrpgHudSkillsHtml = renderToStaticMarkup(React.createElement(CharacterPlayHUD, {
   character: jrpgHudChar,
   onChange: () => {},
@@ -2822,7 +2854,7 @@ const jrpgHudSkillsHtml = renderToStaticMarkup(React.createElement(CharacterPlay
   showToast: () => {},
   initialTab: 'skills'
 }));
-check('（CU-5 SSR）職業特技分頁顯示各職免費增益、掌握之英雄技能全文與金手指特質全文（含已選效果）',
+check('（CU-5 SSR）職業技能分頁顯示各職免費增益、掌握之英雄技能全文與金手指特質全文（含已選效果）',
   [jrpgHudSkillsHtml.includes('免費增益：'),
     jrpgHudSkillsHtml.includes('data-testid="hud-heroic-skills"'),
     jrpgHudSkillsHtml.includes('掌握之英雄技能'),
@@ -3100,14 +3132,17 @@ section('CX. 指令與內容在同一個視野（P12 釘住 → P14 換窗，202
 //   我建议可以点了按纽就会把立绘右边的视窗直接整个替换掉。」
 // 所以契約換了一個方向：**內容不再印在 hub 下方，而是右翼那扇窗裡換**。
 // 這一節守的還是同一件事——「按得到、看得到」——只是驗的位置換了。
-check('（CX-1）指令窗自己 sticky，且 top 讀標頭的實際高度（不是寫死 52）',
+check('（CX-1）指令窗釘在自己的欄位裡：固定舞台（視口高度）＋ 左欄自滾，不再用 sticky',
   [
-    /lg:sticky/.test(hud) &&
-      /lg:top-\[calc\(var\(--chapter-header-h,52px\)[^\]]*\)\]/.test(hud),
-    // 釘住的必須是**指令窗那一欄**（`lg:col-span-2`），不是別的地方順手寫了 sticky
-    /lg:col-span-2[^"]*lg:sticky|lg:sticky[^"]*lg:col-span-2/.test(hud)
+    // 2026-11-03：使用者要求「捲動時頭像鎖住」「滑鼠在哪一欄就捲哪一欄」。
+    // 做法從「整頁捲 ＋ 指令窗 sticky」改成「固定舞台 ＋ 三欄各自自滾」——
+    // sticky 失去參照物（父層不再捲），所以這條契約換了錨點：改驗視口高度上限。
+    /lg:col-span-2[^"]*lg:max-h-\[calc\(100vh-var\(--chapter-header-h,52px\)/.test(hud),
+    /lg:col-span-2[^"]*lg:overflow-y-auto/.test(hud),
+    // 反面：不該再有 `lg:sticky`（留著會變成死樣式，下一個人以為它還有作用）
+    /lg:sticky/.test(hud)
   ],
-  [true, true]);
+  [true, true, false]);
 // 標頭是 `min-h-[52px]`：52 是下限，實測 55。所以那個變數一定要有人寫，
 // 否則 fallback 52 會讓指令窗的上緣被標頭蓋掉 3px（實機驗證抓到的）。
 const chapterHeaderSrc = read('../src/components/book/ChapterHeader.jsx');
@@ -3173,26 +3208,53 @@ section('CY. 立繪是主體（P12-b，2026-11-02：使用者原話「照片太�
    於是 `flex-1` 與 `aspectRatio` 永遠掃不到，兩條斷言紅在「切錯地方」而不是「寫錯」。
    改用 tag 內唯一、而且位在 `style` **之後**的 `title` 當右界。 */
 const portraitTag = (hudCode.match(/data-testid="hud-portrait"[\s\S]{0,900}?title="點擊前往/) || [''])[0];
-check('（CY-1）立繪框存在，而且是可成長的（`flex-1`），不是固定小方框',
+/* 2026-11-03（第二版）：框從「用 `flex-1` 吃滿中欄剩餘高度」改成「高度跟著圖片比例」。
+   舊契約（`flex-1`）在照片不是直幅時會留下一大塊底色——那正是使用者說的
+   「空白的格子很醜」。新契約三件事：① 不再被拉伸（`shrink-0`）；
+   ② `aspectRatio` 由圖片真實比例決定；③ 兩端各有界線（極端比例不會撐壞中欄）。 */
+check('（CY-1）立繪框的高度跟著圖片走（`shrink-0`），不是被拉伸的固定小方框',
   [
     portraitTag.length > 0,
+    /\bshrink-0\b/.test(portraitTag),
     /\bflex-1\b/.test(portraitTag),
-    // 舊版的死法：固定 96/112px 方框
+    // 舊版的另一種死法：固定 96/112px 方框
     /\bw-24\b|\bh-24\b|\bw-28\b|\bh-28\b/.test(portraitTag)
   ],
-  [true, true, false]);
-check('（CY-2）立繪框是直式 3:4（`aspectRatio`），不是正方形',
-  /aspectRatio:\s*'3\s*\/\s*4'/.test(portraitTag), true);
+  [true, true, false, false]);
+check('（CY-2）立繪框比例由 `portraitRatio` 決定，3:4 只是載入前的 fallback',
+  /aspectRatio:\s*portraitRatio\s*\|\|\s*'3\s*\/\s*4'/.test(portraitTag), true);
+check('（CY-2b）立繪框有上下界（極端比例不會把中欄撐壞，也不會扁成一條線）',
+  [/minHeight/.test(portraitTag), /maxHeight/.test(portraitTag)], [true, true]);
 
 // `object-cover` 是這個需求的**反命題**：它保證「填滿」，代價是裁掉人物的頭或腳。
-const portraitImg = (hudCode.match(/<img[\s\S]{0,300}?\/>/) || [''])[0];
-check('（CY-3）立繪用 contain ＋ 貼底（完整呈現，不是 cover 裁切）',
+//
+// 2026-11-03：這裡多了一層「暈染襯底」。框與圖同比例時主體本來就填滿，
+// 襯底被完全蓋住；只有比例被 `minHeight`／`maxHeight` 夾住時才露出來補白。
+// 因此這條斷言拆成兩條：主體禁止 cover；襯底允許 cover，但必須是 `aria-hidden` 的
+// 裝飾（`alt=""`）——否則讀屏會把同一張圖唸兩次。
+//
+// ※ 定位方式從「按出現順序取第 0／1 個」改成「用屬性當錨點」：主體那個 `<img>`
+//   多了 `onLoad`（裡面有 `=>`），長度超過舊切片上限就會抓不到。
+const portraitBack = (hudCode.match(/<img(?=[^>]*aria-hidden)[\s\S]{0,600}?\/>/) || [''])[0];
+const portraitMain = (hudCode.match(/<img(?=[^>]*object-contain)[\s\S]{0,1200}?\/>/) || [''])[0];
+check('（CY-3）立繪主體用 contain ＋ 貼底（完整呈現，不是 cover 裁切）',
   [
-    /object-contain/.test(portraitImg),
-    /object-bottom/.test(portraitImg),
-    /object-cover/.test(portraitImg)
+    /object-contain/.test(portraitMain),
+    /object-bottom/.test(portraitMain),
+    /object-cover/.test(portraitMain)
   ],
   [true, true, false]);
+check('（CY-3b）暈染襯底只負責補空白：cover ＋ blur ＋ aria-hidden ＋ 空 alt',
+  [
+    /object-cover/.test(portraitBack),
+    /blur-/.test(portraitBack),
+    /aria-hidden/.test(portraitBack),
+    /alt=""/.test(portraitBack)
+  ],
+  [true, true, true, true]);
+check('（CY-3c）主體真的會把比例回寫給框（`onLoad` ＋ `naturalWidth`）',
+  [/onLoad=/.test(portraitMain), /naturalWidth/.test(portraitMain), /setPortraitRatio/.test(portraitMain)],
+  [true, true, true]);
 // 圖源要優先用**裁切前**的原圖：裁切過的方圖放進直式框一樣會少一截。
 check('（CY-4）圖源優先用 `avatarRaw`（裁切前的原圖），再退回 `avatar`',
   /const portraitSrc = character\.avatarRaw \|\| character\.avatar/.test(hudCode), true);
@@ -3295,10 +3357,10 @@ check('（CZ-2）舊的六顆指令格、sticky 頁名條與「回到指令」�
 // P14 的寬度裁定：「把左栏的长压缩，给右栏更多显示信息的空间」＝左 3→2、右 5→6。
 // 這一條取代 P12 的「頁名條要 sticky」——同一個問題（按得到、看得到），
 // 換了實作就得換錨點，但守的東西沒有變。
-check('（CZ-2b）左欄收窄到 2 欄、右欄放大到 6 欄，中欄立繪不動',
+check('（CZ-2b）左欄收窄到 2 欄、右欄放大到 6 欄（而且右欄才是會捲的那一欄）',
   [
-    /lg:col-span-2[^"]*lg:sticky|lg:sticky[^"]*lg:col-span-2/.test(hud),
-    /lg:col-span-6 flex flex-col gap-3/.test(hud),
+    /lg:col-span-2[^"]*lg:max-h-/.test(hud),
+    /lg:col-span-6[^"]*lg:overflow-y-auto/.test(hud),
     /data-testid="hud-center-column"[\s\S]{0,120}?lg:col-span-4/.test(hud)
   ],
   [true, true, true]);

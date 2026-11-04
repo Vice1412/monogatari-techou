@@ -219,7 +219,7 @@ export const buildStartingFundsEntries = ({
       entries.push({
         kind: 'trade',
         title: '其他起始裝備',
-        note: '未能逐一列出的部分（合計仍等於「已花費」）',
+        note: '未逐項列出的部分',
         changes: [{ field: 'zenit', from, to: balance }]
       });
     }

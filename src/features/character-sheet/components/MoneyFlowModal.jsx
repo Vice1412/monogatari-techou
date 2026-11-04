@@ -11,8 +11,12 @@ import {
   describeMoneyFlow,
   formatZenit
 } from '../utils/zenitFeedback';
-import { buildPurchaseCatalog, PURCHASE_CATEGORIES } from './PurchaseModal';
+import { buildPurchaseCatalog } from './PurchaseModal';
 import { GATED_LABEL_CLASS, GATED_SHELL_CLASS } from '../utils/playAvailability';
+import { createInventoryItem } from '../utils/inventory';
+import { EquipmentPickerBody } from './EquipmentPickerModal';
+import { calculateCharacterStats } from '../utils/characterEngine';
+import EquipmentItemFields, { DEFAULT_GEAR } from './EquipmentItemFields';
 
 /**
  * 收支對話框（P9-b，2026-10-31）
@@ -79,18 +83,37 @@ export function MoneyFlowModalBody({
   // 從「收入」按鈕打開時，方向就已經決定了——不該讓玩家再選一次。
   // 方向仍然是可改的（按鈕就在上面），只是起點不同：玩家按的是「收入」，
   // 打開卻是「支出」，那一個動作就白做了。
-  initialDirection = MONEY_DIRECTIONS.spend
+  initialDirection = MONEY_DIRECTIONS.spend,
+  // 注入點（生產端永不傳入）：讓截圖與測試能看到「勾選後」的兩個分支
+  initialWantsItem = false,
+  initialItemKind = 'equipment',
+  initialShowPicker = false
 }) {
   const [direction, setDirection] = useState(
     initialDirection === MONEY_DIRECTIONS.gain ? MONEY_DIRECTIONS.gain : MONEY_DIRECTIONS.spend
   );
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
-  const [wantsItem, setWantsItem] = useState(false);
+  const [wantsItem, setWantsItem] = useState(initialWantsItem);
+  // 2026-11-03：使用者裁定「支出與購入意思重複，合併成一個」。
+  // 所以這一筆支出可以**順便**帶回一件東西：先問「是不是裝備」，
+  //   是 → 官方裝備表挑一件（可勾「同時裝備到槽位」），**一律收進行囊**
+  //   否 → 像新增物品那樣自己填（名稱／類別／價值／效果）
+  const [itemKind, setItemKind] = useState(initialItemKind);
   const [itemId, setItemId] = useState('');
-  const [equipAfter, setEquipAfter] = useState(true);
+  const [equipAfter, setEquipAfter] = useState(false);
+  const [otherName, setOtherName] = useState('');
+  const [otherCategory, setOtherCategory] = useState('rare');
+  const [otherEffect, setOtherEffect] = useState('');
+  // 官方裝備改用建卡那一套篩選介面（使用者：「應該要像車卡選裝備一模一樣的界面」）
+  const [equipSlot, setEquipSlot] = useState('mainHand');
+  const [showPicker, setShowPicker] = useState(initialShowPicker);
+  // 裝備分支的兩種取得方式：從官方表挑 / 自己寫（不在表上的裝備，2026-11-03 第二輪）
+  const [equipMode, setEquipMode] = useState('table');
+  const [gear, setGear] = useState({ ...DEFAULT_GEAR });
 
   const catalog = useMemo(() => buildPurchaseCatalog(rulesData.equipment), []);
+  const stats = useMemo(() => calculateCharacterStats(character), [character]);
   const item = useMemo(
     () => catalog.find((entry) => entry.id === itemId) || null,
     [catalog, itemId]
@@ -106,33 +129,59 @@ export function MoneyFlowModalBody({
 
   const presets = MONEY_FLOW_PRESETS[direction] || [];
 
-  /**
-   * 選了裝備之後的三件連動：金額、原因、以及「會換掉哪一件」。
-   *
-   * 金額只在**玩家沒手動改過**時才覆寫——用「目前金額是否等於上一個品項的價格」
-   * 判斷，而不是記一個 `touched` 旗標：旗標會在使用者清空輸入框後永遠卡住。
-   */
-  const handlePickItem = (nextId) => {
-    setItemId(nextId);
-    const picked = catalog.find((entry) => entry.id === nextId) || null;
-    if (!picked) return;
-
-    setAmount(String(picked.cost));
-    // 原因只在空白或「還是上一個品項的名字」時才換，避免蓋掉玩家自己寫的字。
-    setReason((prev) => (prev.trim() === '' || catalog.some((entry) => entry.name === prev.trim())
-      ? picked.name
-      : prev));
-  };
 
   const handleSubmit = () => {
     if (!flow.ok) return;
+
+    // 這一筆有沒有「順便拿到東西」→ 轉成一筆行囊物品（形狀由 `createInventoryItem` 收斂）。
+    // 裝備類一律**收進行囊**（使用者原話：「然後收進下面的行囊裡」），
+    // 「同時裝備到槽位」只是可選的第二步，不影響它有沒有被記下來。
+    let inventoryItem = null;
+    if (wantsItem) {
+      if (itemKind === 'equipment') {
+        if (equipMode === 'custom') {
+          // 自訂裝備：名稱必填，其餘欄位（傷害／屬性／檢定…）全部選填
+          if (!otherName.trim()) return;
+          inventoryItem = createInventoryItem({
+            name: otherName,
+            category: 'equipment',
+            value: amount,
+            effect: otherEffect,
+            qty: 1,
+            gear
+          });
+        } else {
+          if (!item) return;
+          inventoryItem = createInventoryItem({
+            name: item.name,
+            category: 'equipment',
+            value: item.cost,
+            effect: '',
+            qty: 1,
+            gear: null
+          });
+        }
+      } else {
+        if (!otherName.trim()) return;
+        inventoryItem = createInventoryItem({
+          name: otherName,
+          category: otherCategory,
+          // 價值預設就是這筆的金額——買多少錢就是它值多少，除非玩家自己改
+          value: otherCategory === 'misc' ? '' : amount,
+          effect: otherEffect,
+          qty: 1
+        });
+      }
+    }
+
     onConfirm({
       direction,
       amount: flow.amount,
       reason: flow.reason,
-      item,
-      equip: item ? equipAfter : false,
-      slotLabel
+      item: itemKind === 'equipment' ? item : null,
+      equip: itemKind === 'equipment' && item ? equipAfter : false,
+      slotLabel,
+      inventoryItem
     });
   };
 
@@ -248,7 +297,7 @@ export function MoneyFlowModalBody({
         </div>
       </div>
 
-      {/* 選填：這是買裝備 */}
+      {/* 選填：這筆有拿到東西（2026-11-03 取代原本的「買裝備」單一路徑） */}
       <div className="pt-2 border-t space-y-1.5" style={{ borderColor: theme.border }}>
         <label className="flex items-center gap-1.5 text-[#6b5a4b] cursor-pointer select-none">
           <input
@@ -258,49 +307,197 @@ export function MoneyFlowModalBody({
             onChange={(e) => {
               // 勾選**不自動選品項**：自動挑第一件會讓金額與原因被一段沒人要求的
               // 內容填滿（使用者只是勾了一個框，卻看到「青銅劍 200z」）。
-              // 取消勾選才清掉，因為那時玩家已經明確說「這不是買裝備」。
+              // 取消勾選才清掉，因為那時玩家已經明確說「這筆沒拿到東西」。
               setWantsItem(e.target.checked);
               if (!e.target.checked) setItemId('');
             }}
             className="accent-[#a63d40]"
           />
-          <span>這筆是買裝備（套用記錄模板）</span>
+          <span>這筆有拿到東西</span>
         </label>
 
         {wantsItem && (
           <div className="space-y-1.5 pl-5">
-            <select
-              data-testid="moneyflow-item"
-              aria-label="購買品項"
-              value={itemId}
-              onChange={(e) => handlePickItem(e.target.value)}
-              className="w-full px-2 py-1.5 rounded border border-[#e8dcc4] bg-[#fffdf9] text-xs text-[#3c2415] outline-none focus:border-[#3c2415]"
-            >
-              <option value="">選擇品項…</option>
-              {PURCHASE_CATEGORIES.map((category) => (
-                <optgroup key={category.id} label={category.label}>
-                  {catalog
-                    .filter((entry) => entry.categoryId === category.id)
-                    .map((entry) => (
-                      <option key={entry.id} value={entry.id}>
-                        {entry.name}（{formatZenit(entry.cost)}）
-                      </option>
-                    ))}
-                </optgroup>
+            {/* 是不是裝備？兩條路後面的欄位完全不同，所以在這裡就分岔 */}
+            <div className="flex items-center gap-1" role="group" aria-label="拿到的東西是裝備嗎">
+              <span className="text-t11 text-[#6b5a4b]">是裝備嗎</span>
+              {[{ key: 'equipment', label: '裝備' }, { key: 'other', label: '不是' }].map((k) => (
+                <button
+                  key={k.key}
+                  type="button"
+                  data-testid={`moneyflow-item-kind-${k.key}`}
+                  aria-pressed={itemKind === k.key}
+                  onClick={() => setItemKind(k.key)}
+                  className={`px-2 py-0.5 rounded border text-t11 font-bold transition-colors ${
+                    itemKind === k.key
+                      ? 'bg-[#3c2415] text-[#fffdf9] border-[#3c2415]'
+                      : 'bg-[#fbf7ee] text-[#6b5a4b] border-[#d6c7ab] hover:bg-[#f4ebd9]'
+                  }`}
+                >
+                  {k.label}
+                </button>
               ))}
-            </select>
+            </div>
 
-            {item && (
-              <label className="flex items-center gap-1.5 text-[#6b5a4b] cursor-pointer select-none">
+            {itemKind === 'equipment' ? (
+              <div className="space-y-1.5">
+                {/* 2026-11-03（使用者）：「裝備不能這樣選表，應該要像車卡選裝備一模一樣的界面
+                    可以篩選，而且也要支持輸入自訂裝備的面板。」
+
+                    所以官方裝備直接內嵌**建卡那一支** `EquipmentPickerBody`（搜尋／分類／
+                    射程／雙手／只看買得起／排序全部照舊），不另外做一份簡化版。
+                    四個欄位各自對應一張表，所以先選欄位再開清單。 */}
+                <div className="flex items-center gap-1 flex-wrap">
+                  <span className="text-t11 text-[#6b5a4b]">欄位</span>
+                  {Object.entries(EQUIPMENT_SLOTS).map(([key, def]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      data-testid={`moneyflow-equip-slot-${key}`}
+                      aria-pressed={equipSlot === key}
+                      onClick={() => { setEquipSlot(key); setShowPicker(true); }}
+                      className={`px-2 py-0.5 rounded border text-t10 font-bold transition-colors ${
+                        equipSlot === key
+                          ? 'bg-[#3c2415] text-[#fffdf9] border-[#3c2415]'
+                          : 'bg-[#fbf7ee] text-[#6b5a4b] border-[#d6c7ab] hover:bg-[#f4ebd9]'
+                      }`}
+                    >
+                      {def.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    data-testid="moneyflow-equip-custom"
+                    aria-pressed={equipMode === 'custom'}
+                    onClick={() => setEquipMode(equipMode === 'custom' ? 'table' : 'custom')}
+                    className={`px-2 py-0.5 rounded border text-t10 font-bold transition-colors ${
+                      equipMode === 'custom'
+                        ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235]'
+                        : 'bg-[#fffdf9] text-[#6b5a4b] border-[#d6c7ab] hover:bg-[#f4ebd9]'
+                    }`}
+                  >
+                    自訂裝備
+                  </button>
+                </div>
+
+                {equipMode === 'custom' ? (
+                  /* 自訂裝備 = 不在官方表上的裝備（不是「不是裝備」）。
+                     名稱、欄位、類別、遠近、手數、檢定、傷害式、傷害屬性，
+                     全部都在 `EquipmentItemFields` 裡——與行囊的「新增物品」共用同一組欄位。 */
+                  <div className="space-y-1.5">
+                    <input
+                      type="text"
+                      data-testid="moneyflow-gear-name"
+                      aria-label="裝備名稱"
+                      value={otherName}
+                      onChange={(e) => setOtherName(e.target.value)}
+                      placeholder="例：守墓人的鏽劍"
+                      className="w-full px-2 py-1.5 rounded border border-[#e8dcc4] bg-[#fffdf9] text-xs text-[#3c2415] outline-none focus:border-[#3c2415]"
+                    />
+                    <EquipmentItemFields value={gear} onChange={setGear} theme={theme} />
+                  </div>
+                ) : item ? (
+                  <div className="flex items-center justify-between gap-2 px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee]">
+                    <span className="font-bold text-[#3c2415] text-t11">
+                      {item.name}
+                      <span className="ml-1.5 font-normal text-[#6b5a4b]">{formatZenit(item.cost)}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowPicker(true)}
+                      className="text-t10 font-bold text-[#8c3235] hover:underline"
+                    >
+                      重選
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    data-testid="moneyflow-item-open"
+                    onClick={() => setShowPicker((v) => !v)}
+                    className="w-full px-2 py-1.5 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#6b5a4b] text-t11 font-bold"
+                  >
+                    {showPicker ? '收起清單' : '從裝備表挑（可篩選）'}
+                  </button>
+                )}
+
+                {showPicker && equipMode === 'table' && (
+                  <div className="max-h-[320px] overflow-y-auto overscroll-contain rounded border border-[#e8dcc4] bg-[#fbf7ee] p-2">
+                    <EquipmentPickerBody
+                      slot={equipSlot}
+                      theme={theme}
+                      character={character}
+                      stats={stats}
+                      onSelect={(name) => {
+                        const picked = catalog.find((entry) => entry.name === name) || null;
+                        if (picked) {
+                          setItemId(picked.id);
+                          setAmount(String(picked.cost));
+                          setReason((prev) => (prev.trim() === '' ? picked.name : prev));
+                        }
+                        setShowPicker(false);
+                      }}
+                    />
+                  </div>
+                )}
+
+                {item && (
+                  <label className="flex items-center gap-1.5 text-[#6b5a4b] cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      data-testid="moneyflow-equip-toggle"
+                      checked={equipAfter}
+                      onChange={(e) => setEquipAfter(e.target.checked)}
+                      className="accent-[#a63d40]"
+                    />
+                    <span>順便裝備到{slotLabel || '對應欄位'}</span>
+                  </label>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-1.5">
                 <input
-                  type="checkbox"
-                  data-testid="moneyflow-equip-toggle"
-                  checked={equipAfter}
-                  onChange={(e) => setEquipAfter(e.target.checked)}
-                  className="accent-[#a63d40]"
+                  type="text"
+                  data-testid="moneyflow-other-name"
+                  aria-label="物品名稱"
+                  value={otherName}
+                  onChange={(e) => setOtherName(e.target.value)}
+                  placeholder="破咒之刃、祖傳懷錶……"
+                  className="w-full px-2 py-1.5 rounded border border-[#e8dcc4] bg-[#fffdf9] text-xs text-[#3c2415] outline-none focus:border-[#3c2415]"
                 />
-                <span>同時裝備到{slotLabel || '對應欄位'}</span>
-              </label>
+                <div className="flex items-center gap-1 flex-wrap">
+                  {[
+                    { key: 'equipment', label: '裝備' },
+                    { key: 'consumable', label: '消耗品' },
+                    { key: 'rare', label: '稀有物品' },
+                    { key: 'misc', label: '雜項' }
+                  ].map((c) => (
+                    <button
+                      key={c.key}
+                      type="button"
+                      data-testid={`moneyflow-other-cat-${c.key}`}
+                      aria-pressed={otherCategory === c.key}
+                      onClick={() => setOtherCategory(c.key)}
+                      className={`px-2 py-0.5 rounded border text-t10 font-bold transition-colors ${
+                        otherCategory === c.key
+                          ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235]'
+                          : 'bg-[#fffdf9] text-[#6b5a4b] border-[#d6c7ab] hover:bg-[#f4ebd9]'
+                      }`}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  data-testid="moneyflow-other-effect"
+                  aria-label="效果"
+                  value={otherEffect}
+                  onChange={(e) => setOtherEffect(e.target.value)}
+                  placeholder="效果（選填）"
+                  className="w-full px-2 py-1.5 rounded border border-[#e8dcc4] bg-[#fffdf9] text-xs text-[#3c2415] outline-none focus:border-[#3c2415]"
+                />
+              </div>
             )}
           </div>
         )}

@@ -1006,10 +1006,10 @@ check(
 check('效果分頁不列觸發名', glossaryEffects.includes('憐憫'), false);
 check('效果分頁標示「底力效果」', glossaryEffects.includes('底力效果'), true);
 
-const glossaryPicked = glossaryBody({ selectedTriggerId: 'love', onPickTrigger: () => {} });
-check('已選的觸發標記為已選', glossaryRaw({ selectedTriggerId: 'love', onPickTrigger: () => {} }).includes('>✓ 已選</button>'), true);
-check('傳了 onPick 才出現選取按鈕', glossaryRaw({ selectedTriggerId: 'love', onPickTrigger: () => {} }).includes('>選擇</button>'), true);
-check('只有一項被標成已選', glossaryRaw({ selectedTriggerId: 'love', onPickTrigger: () => {} }).split('>✓ 已選</button>').length - 1, 1);
+const glossaryPicked = glossaryBody({ selectedTriggerId: 'love', onPickTrigger: () => { } });
+check('已選的觸發標記為已選', glossaryRaw({ selectedTriggerId: 'love', onPickTrigger: () => { } }).includes('>✓ 已選</button>'), true);
+check('傳了 onPick 才出現選取按鈕', glossaryRaw({ selectedTriggerId: 'love', onPickTrigger: () => { } }).includes('>選擇</button>'), true);
+check('只有一項被標成已選', glossaryRaw({ selectedTriggerId: 'love', onPickTrigger: () => { } }).split('>✓ 已選</button>').length - 1, 1);
 
 check(
   '填充標籤：固定格數',
@@ -1220,7 +1220,7 @@ check(
 check(
   '非愛觸發回原文（不改寫）',
   describeZeroTrigger({ ...createZeroPowerState(), triggerId: 'revenge' }) ===
-    zeroTriggerById('revenge').desc,
+  zeroTriggerById('revenge').desc,
   true
 );
 check('沒選觸發時回空字串', describeZeroTrigger(createZeroPowerState()), '');

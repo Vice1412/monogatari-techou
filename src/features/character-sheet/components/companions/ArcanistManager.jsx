@@ -602,7 +602,7 @@ export default function ArcanistManager({
                 )}
               </div>
 
-              {/* 變體版沒有《阿爾卡納圓環》這個特技（它的技能表是另一份），
+              {/* 變體版沒有《阿爾卡納圓環》這個技能（它的技能表是另一份），
                   所以那條提示在變體角色身上是錯的，必須換成變體版自己的重點。 */}
               {usesVariantArcanist ? (
                 <div className="p-2.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-t11 text-[#9c4d16]">
@@ -610,7 +610,7 @@ export default function ArcanistManager({
                 </div>
               ) : (
                 <div className="p-2.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-t11 text-[#9c4d16]">
-                  若你擁有《阿爾卡納圓環》特技且裝備奧術武器，你在同一回合解除時可立即免費執行咒語動作！
+                  若你擁有《阿爾卡納圓環》技能且裝備奧術武器，你在同一回合解除時可立即免費執行咒語動作！
                 </div>
               )}
             </div>

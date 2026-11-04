@@ -57,7 +57,7 @@ export function FabulaPointLedgerModalBody({ theme = {}, character, onClose }) {
           dense
           icon={GiSparkles}
           title="還沒有任何物語點記錄"
-          teach="用「獲得」或「消耗」記一筆，明細就會從那裡長出來；擲骰器的重擲與羈絆激勵也會自動留下一筆。"
+          teach="用「獲得」或「消耗」記一筆；重擲與羈絆激勵會自動記錄。"
         />
       ) : (
         <div data-testid="fp-ledger-list" className="max-h-[320px] overflow-y-auto space-y-1 pr-1">

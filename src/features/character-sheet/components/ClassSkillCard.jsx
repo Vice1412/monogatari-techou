@@ -377,10 +377,10 @@ function TinkererGadgetsSkillBar({
 }
 
 /**
- * 職業特技管理卡片 (ClassSkillCard)
+ * 職業技能管理卡片 (ClassSkillCard)
  * 滿足需求 1, 2, 3 與子項目挑選構築：
  * 1. 中英文名、專屬圖標並存，附帶一目了然的一句話風格描述。
- * 2. 展開點選模式：列出所有特技，Max SL 星星視覺化，點擊變色；點選儲存後恢復簡潔，僅顯示已學習特技。
+ * 2. 展開點選模式：列出所有技能，Max SL 星星視覺化，點擊變色；點選儲存後恢復簡潔，僅顯示已學習技能。
  * 3. 動態公式求值：未點時顯示計算公式，點亮後自動算好精準數值。
  * 4. 子項目專屬挑選：為 9 大技能提供即時配額標籤與構建抽屜。
  * 5. 獨立實體/載具副卡：為機師【個人載具】與旅人【忠實夥伴】提供專屬配置條與管理彈窗。
@@ -464,7 +464,7 @@ export default function ClassSkillCard({
   // F-018：判定改走引擎的唯一入口，大寫／小寫／未設定都在那裡收斂成 'HP'｜'MP'。
   const chosenBenefit = resolveChosenBenefit(classDef, classItem) || 'HP';
 
-  // 子項目構築彈窗目標特技 { skillName, sl, selectedOptions }
+  // 子項目構築彈窗目標技能 { skillName, sl, selectedOptions }
   const [suboptionModalSkill, setSuboptionModalSkill] = useState(null);
 
   // 個人載具、忠實夥伴與修補匠小工具彈窗狀態
@@ -475,7 +475,7 @@ export default function ClassSkillCard({
   const [currentWayfarerSl, setCurrentWayfarerSl] = useState(1);
   const [currentTinkererSl, setCurrentTinkererSl] = useState(1);
 
-  // 暫存的特技配置字典 (用於編輯模式，保存點選狀態)
+  // 暫存的技能配置字典 (用於編輯模式，保存點選狀態)
   const [draftSkills, setDraftSkills] = useState(() => {
     const map = {};
     allAvailableSkills.forEach(sk => {
@@ -492,7 +492,7 @@ export default function ClassSkillCard({
   const [expandedSkillName, setExpandedSkillName] = useState(initialExpandedSkill);
   const [previewVariantBySkill, setPreviewVariantBySkill] = useState(initialPreviewVariants);
 
-  // 暫存的子項目配置字典 (用於編輯模式，保存各特技的子項目選項)
+  // 暫存的子項目配置字典 (用於編輯模式，保存各技能的子項目選項)
   const [draftSuboptions, setDraftSuboptions] = useState(() => {
     const map = {};
     allAvailableSkills.forEach(sk => {
@@ -516,7 +516,7 @@ export default function ClassSkillCard({
     setIsEditing(true);
   };
 
-  // 調整特技點數
+  // 調整技能等級
   const handleSetSkillSL = (skillName, newSL) => {
     setDraftSkills(prev => ({
       ...prev,
@@ -527,7 +527,7 @@ export default function ClassSkillCard({
   // 計算暫存總 SL
   const draftTotalSL = Object.values(draftSkills).reduce((sum, sl) => sum + sl, 0);
 
-  // 儲存配置：僅保留 SL >= 1 的特技，恢復簡潔模式
+  // 儲存配置：僅保留 SL >= 1 的技能，恢復簡潔模式
   const handleSave = () => {
     const activeSkills = [];
     allAvailableSkills.forEach(sk => {
@@ -648,7 +648,7 @@ export default function ClassSkillCard({
                 </div>
               )}
 
-              {/* 免費增益二選一：僅「最大 HP 或 最大 MP」的職業需要指定，選了才會反映在角色體質上 */}
+              {/* 免費增益二選一：僅「最大 HP 或 最大 MP」的職業需要指定，選了才會反映在角色屬性上 */}
               {isHpMpChoice && (
                 <div
                   data-testid="free-benefit-choice"
@@ -745,7 +745,7 @@ export default function ClassSkillCard({
             >
               <div className="font-bold text-[#3c2415]">尚未分配技能點數</div>
               <p className="text-[#6b5a4b] text-t12">
-                點擊「配置技能」展開查看全部<TermHint entry={TERMS.classSkill}>特技</TermHint>，投入點數。
+                點擊「配置技能」展開查看全部<TermHint entry={TERMS.classSkill}>技能</TermHint>，投入點數。
               </p>
               <JRPGButton
                 variant="primary"

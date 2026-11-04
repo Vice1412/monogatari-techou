@@ -141,7 +141,7 @@ export const convertFultimatorToMonogatari = (fChar) => {
   const curMp = fChar.stats?.mp?.current !== undefined ? fChar.stats.mp.current : (fChar.currentMp ?? null);
   const curIp = fChar.stats?.ip?.current !== undefined ? fChar.stats.ip.current : (fChar.currentIp ?? null);
 
-  // 5. 職業與特技 (classes)
+  // 5. 職業與技能 (classes)
   const classes = (fChar.classes || []).map(cl => {
     const rawName = cl.name || cl.className || '未知職業';
     const lower = rawName.toLowerCase().trim();
@@ -149,7 +149,7 @@ export const convertFultimatorToMonogatari = (fChar) => {
     const clLvl = parseInt(cl.lvl || cl.level, 10) || 1;
 
     const skills = (cl.skills || []).map(sk => ({
-      name: sk.name || sk.skillName || '特技',
+      name: sk.name || sk.skillName || '技能',
       sl: parseInt(sk.sl || sk.level || sk.rank, 10) || 1
     }));
 

@@ -312,7 +312,7 @@ export function PurchaseModalBody({
               </label>
             </>
           ) : (
-            <div className="text-[#6b5a4b]">選一件品項，這裡會算出買完還剩多少。</div>
+            <div className="text-[#6b5a4b]">選一件品項</div>
           )}
 
           <div className="flex items-center justify-between gap-2">

@@ -303,7 +303,7 @@ export default function TinkererGadgetsModal({
                   ? `魔導科技已拆為兩條互斥分支（p.38）：煉金術與灌注術照舊，第三軌改用【${branch.name}】的三個節點`
                   : technoRestrictsEquipment
                     ? '魔晶石制（p.133）：魔導科技只有兩個益處——魔加農整檔不存在，魔法球原型降為高級'
-                    : '三橫線進度節點樹 · 總解鎖節點數不可超過當前特技等級 (上限 5 點)'}
+                    : '三橫線進度節點樹 · 總解鎖節點數不可超過當前技能等級 (上限 5 點)'}
               </p>
             </div>
           </div>
@@ -561,12 +561,12 @@ export default function TinkererGadgetsModal({
             {allocatedPoints < tinkererSL ? (
               <span className="text-[#6b5a4b] flex items-center gap-1">
                 <GiHazardSign className="w-3.5 h-3.5" />
-                尚有未分配的特技點數，您亦可先儲存日後再分配。
+                尚有未分配的技能等級，您亦可先儲存日後再分配。
               </span>
             ) : (
               <span className="text-[#6b5a4b] flex items-center gap-1 font-bold">
                 <GiCheckMark className="w-3.5 h-3.5" />
-                科技樹節點配置符合目前特技等級！
+                科技樹節點配置符合目前技能等級！
               </span>
             )}
           </div>

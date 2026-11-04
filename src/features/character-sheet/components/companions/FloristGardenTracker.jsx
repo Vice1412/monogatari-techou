@@ -314,7 +314,7 @@ export default function FloristGardenTracker({
           kind="florist-garden"
           icon={GiPlantRoots}
           title="花園裡還沒有種子"
-          teach="從上方選單挑一個已掌握的魔法種子播下去；種下之後用卡片上的格子推進花期，開花時收成。"
+          teach="挑一顆已掌握的魔法種子播下去，再用格子推進花期。"
         />
       )}
     </div>

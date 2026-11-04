@@ -974,7 +974,7 @@ export default function RuleCodexDrawer({
                     <span className="text-[#6b5a4b]">額外 +1 進度（基礎一人 2 點）</span>
                   </div>
                   <div className="p-2 rounded bg-[#fbf7ee] border border-[#d6c7ab]">
-                    <strong className="text-[#2c221e] block mb-0.5">特技《高瞻遠矚》</strong>
+                    <strong className="text-[#2c221e] block mb-0.5">技能《高瞻遠矚》</strong>
                     <span className="text-[#6b5a4b]">每日額外 +SL 進度並抵扣【SL × 100】z</span>
                   </div>
                   <div className="p-2 rounded bg-[#fbf7ee] border border-[#d6c7ab]">

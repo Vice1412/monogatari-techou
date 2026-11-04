@@ -83,7 +83,7 @@ export function StarterPresetsPanel({
               {b.shortName} <strong>{b.count}</strong> 組（{SOURCEBOOK_PAGES[b.key]}）
             </React.Fragment>
           ))}
-        。含特技分配、起始裝備與資金。
+        。含技能分配、起始裝備與資金。
       </p>
 
       {/* 手冊篩選 */}
@@ -115,7 +115,7 @@ export function StarterPresetsPanel({
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="搜尋經典搭配名稱、職業或特技（例如：黑騎士、舞者、植物學家、混合變形）..."
+          placeholder="搜尋經典搭配名稱、職業或技能（例如：黑騎士、舞者、植物學家、混合變形）..."
  className="w-full px-3.5 py-2 pl-9 text-xs rounded bg-white border text-[#2c221e] placeholder-[#7c6a58] focus:outline-none focus:ring-2 "
           style={{ borderColor: theme.border }}
         />
@@ -191,7 +191,7 @@ export function StarterPresetsPanel({
 
                 {isOpen && (
                 <div className="px-3 pb-3 space-y-2">
-                  {/* 職業徽章與四維陣列 */}
+                  {/* 職業徽章與屬性陣列 */}
                   <div className="flex items-center gap-1.5 flex-wrap font-mono text-t11">
                     {preset.classes.map((c, i) => (
                       <span

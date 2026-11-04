@@ -8,7 +8,7 @@ export const COMPANION_SPECIES = [
   { id: 'plant', name: '植物' }
 ];
 
-// 官方 p. 302 四大體質屬性配置方案
+// 官方 p. 302 四大屬性配置方案
 export const COMPANION_ATTRIBUTE_ARRAYS = [
   { id: 'average', name: '平均', dice: [8, 8, 8, 8], label: '平均（d8, d8, d8, d8）' },
   { id: 'standard', name: '標準', dice: [10, 8, 8, 6], label: '標準（d10, d8, d8, d6）' },

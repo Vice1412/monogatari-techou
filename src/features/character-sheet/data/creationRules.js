@@ -15,7 +15,7 @@
  *
  * 欄位來源（官方英文核心規則書 v1.1，印刷頁碼）：
  * - 起始等級 5 → p.157（Create Your Character 步驟 1）
- * - 起始四維總和 32 → p.155–156（屬性骰階配置）
+ * - 起始屬性總和 32 → p.155–156（屬性骰階配置）
  * - 起始 2~3 個職業 → p.158（起始 5 級需分配於 2~3 個職業）
  * - 起始裝備預算 500z → p.164（Purchase Starting Equipment）
  * - 高階角色的起始預算每級 +50z → p.229（Creating High Level Characters）

@@ -264,7 +264,7 @@ export function CharacterLogBody({ theme, character, onChange, showToast }) {
           kind="character-log"
           icon={GiQuillInk}
           title="這名角色還沒有任何記錄"
-          teach="跑團時 HP／MP／IP／物語點／EXP／資金的變動、升級與換裝都會自動寫進來；第一次變動之後這裡就會有內容。"
+          teach="HP／MP／物語點／EXP／資金的變動會自動寫進來。"
         />
       ) : (
         <div className="flex flex-col gap-1.5 max-h-[52vh] overflow-y-auto pr-0.5">

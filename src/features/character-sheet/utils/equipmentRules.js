@@ -26,7 +26,7 @@ import { getArmorProfile } from '../data/initiativeVariant';
 import { isSkillSuppressedByTechnospheres } from '../data/technospheres';
 import { resolveCreationRules } from '../data/creationRules';
 
-/** 四維屬性鍵（順序即原書 DEX / INS / MIG / WLP） */
+/** 屬性鍵（順序即原書 DEX / INS / MIG / WLP） */
 export const DICE_ATTRS = ['DEX', 'INS', 'MIG', 'WLP'];
 
 /**
@@ -138,7 +138,7 @@ export const EQUIPMENT_SLOTS = {
   }
 };
 
-/** 由引擎回傳的 stats 取出「當前」四維骰（狀態減值後），供裝備換算使用 */
+/** 由引擎回傳的 stats 取出「當前」屬性骰（狀態減值後），供裝備換算使用 */
 export const diceFromStats = (stats = {}) => ({
   DEX: stats.currentDex ?? stats.baseDex ?? 8,
   INS: stats.currentIns ?? stats.baseIns ?? 8,

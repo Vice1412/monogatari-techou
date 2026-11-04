@@ -106,7 +106,7 @@ export const FLAW_DISCOUNT_RATE = 0.25;
  * @param {number} p.areaMult    範圍倍率（1~4）
  * @param {number} p.usesMult    使用次數倍率（1 或 5）
  * @param {boolean} [p.hasFlaw]  是否協商致命缺陷（−25%）
- * @param {number} [p.visionarySL] 高瞻遠矚特技等級（代付 SL×100z，並每日 +SL 進度）
+ * @param {number} [p.visionarySL] 高瞻遠矚技能等級（代付 SL×100z，並每日 +SL 進度）
  * @returns {{rawCost:number, flawDiscount:number, discountedCost:number,
  *            finalPay:number, requiredProgress:number, extraProgressPerDay:number}}
  */

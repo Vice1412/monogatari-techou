@@ -22,6 +22,7 @@ import {
   normalizeCampActivities
 } from '../data/campActivities';
 import { buildImagePdf, dataUrlToBytes } from '../utils/pdfWriter';
+import { readInventory, inventoryCategoryLabel } from '../utils/inventory';
 
 /**
  * 官方角色卡三頁匯出 (Official Sheet Export)
@@ -29,7 +30,7 @@ import { buildImagePdf, dataUrlToBytes } from '../utils/pdfWriter';
  * 依 `Fabula-Ultima-Character-Sheet.pdf`（官方三頁橫向 A4 表格）的**版面**重繪，
  * 內容全部換成本專案這張卡的實際資料：
  *   P1 主卡：姓名／特質／羈絆／物語點／經驗點／先攻與防禦／裝備／行囊／資金
- *           ｜肖像／四維與狀態／HP·MP·IP／職業×3
+ *           ｜肖像／屬性與狀態／HP·MP·IP／職業×3
  *   P2 續頁：其他職業×4／英雄技能 ｜ 奧祕與咒語×7／儀式學派
  *   P3 續頁：奧祕與咒語×14／儀式學派
  *
@@ -423,12 +424,14 @@ export const buildSheetModel = (character, stats = null) => {
     defense: s.def ?? 0,
     magicDefense: s.mdef ?? 0,
     crisisThreshold: s.crisisThreshold ?? 0,
-    // 四維還沒指派完 → 六項數值不成立（見 calculateCharacterStats 的 attributesUnset）。
+    // 屬性還沒指派完 → 六項數值不成立（見 calculateCharacterStats 的 attributesUnset）。
     // 三頁表格照樣可以預覽，但數值欄位印「—」而不是拿 0 算出來的假數字。
     attributesUnset: Boolean(s.attributesUnset),
     proficiencies: profs,
     equipmentRows,
     backpackNotes: ch.backpackNotes || '',
+    // 行囊物品（2026-11-03）：與跑團面板共用 `readInventory`，不在這裡另寫一份解析。
+    inventory: readInventory(ch),
     avatar: ch.avatar || null,
     attributes: {
       base: ATTRIBUTES.map(([key, en, cn]) => ({ key, en, cn, value: ch.attributes?.[key] || 0 })),
@@ -729,6 +732,41 @@ export const OfficialSheetPage1 = ({ model, vars = null }) => (
         </div>
       </Box>
 
+      {/* 行囊物品（2026-11-03）：冒險途中拿到的東西不再混進筆記本。
+          三欄：名稱／類別／價值；效果只在有寫時才印，避免空行。 */}
+      {model.inventory.length > 0 && (
+        <Box title="行囊物品">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+            {model.inventory.map((it) => (
+              <div
+                key={it.id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 64px 52px',
+                  gap: '4px',
+                  alignItems: 'baseline',
+                  fontSize: T.s8,
+                  borderTop: `1px solid ${C.border}`,
+                  padding: '2px 0'
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <span style={{ fontWeight: 700 }}>{it.name}</span>
+                  {it.qty > 1 && <span style={{ ...S.faint, fontSize: T.s7 }}> ×{it.qty}</span>}
+                  {it.effect && (
+                    <div style={{ ...S.faint, fontSize: T.s7, lineHeight: 1.25 }}>{it.effect}</div>
+                  )}
+                </div>
+                <div style={{ ...S.faint, fontSize: T.s7 }}>{inventoryCategoryLabel(it.category)}</div>
+                <div style={{ textAlign: 'right', fontSize: T.s8 }}>
+                  {it.value === null ? '—' : `${it.value}z`}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Box>
+      )}
+
       <div style={{ display: 'flex', gap: '7px', alignItems: 'stretch' }}>
         <Box title="行囊與筆記" style={{ flex: '1 1 auto' }}>
           <div style={{ fontSize: T.s9, lineHeight: 1.35, whiteSpace: 'pre-wrap', minHeight: '44px' }}>
@@ -766,7 +804,7 @@ export const OfficialSheetPage1 = ({ model, vars = null }) => (
           )}
         </div>
 
-        {/* 四維／狀態／三項資源合成一格：固定版面裡「一個標題條 ＋ 一格間距」很貴，
+        {/* 屬性／狀態／三項資源合成一格：固定版面裡「一個標題條 ＋ 一格間距」很貴，
             合併後直接讓出三十幾像素給下面的技能效果全文。 */}
         <Box title="屬性・狀態・資源" style={{ flex: '1 1 auto' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>

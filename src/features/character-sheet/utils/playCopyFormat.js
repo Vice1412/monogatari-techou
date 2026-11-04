@@ -4,7 +4,7 @@
  * 設計原則（對應 GEMINI.md 與 .agents/rules/10-code-rules.md）：
  * 1. 單一入口（Single Source of Truth）：所有「複製到剪貼簿」的文字組裝一律走本模組純函式，
  *    避免散落在各 JSX 的 onClick 內導致 SSR 無法測試。
- * 2. 動態數值展開：特技說明中的【SL × N】等公式，於複製時依角色當前 SL 即時算出數值，
+ * 2. 動態數值展開：技能說明中的【SL × N】等公式，於複製時依角色當前 SL 即時算出數值，
  *    貼上 Discord 時隊友與 GM 直接看到最終數字，不需再心算 SL。
  * 3. 純中文與零 Emoji 鐵律：輸出文本嚴禁任何彩色 Emoji，僅使用封閉排版符號
  *    （【】、▸、｜、·、★、✦、❖）與 Discord 原生 Markdown（**粗體**、> 引用區塊）。
@@ -50,7 +50,7 @@ export function toDiscordQuoteBlock(text) {
 }
 
 /**
- * 將特技說明中的【SL】公式依當前 SL 展開為實際數值，供複製到 Discord 使用。
+ * 將技能說明中的【SL】公式依當前 SL 展開為實際數值，供複製到 Discord 使用。
  * - 當 sl > 0 時：`【SL × 5】`（SL=3）→ `**【15】**`
  * - 當 sl <= 0 時：保留原始公式文字並清理內部標記
  *
@@ -90,7 +90,7 @@ function buildCharPrefix(characterName) {
 }
 
 /**
- * 1. 職業特技（Class Skill）複製格式
+ * 1. 職業技能（Class Skill）複製格式
  */
 export function formatSkillCopyText({
   className = '',

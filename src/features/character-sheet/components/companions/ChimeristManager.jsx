@@ -17,7 +17,7 @@ export default function ChimeristManager({
   const [isPasteModalOpen, setIsPasteModalOpen] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
 
-  // 取得嵌合師相關特技 SL
+  // 取得嵌合師相關技能 SL
   const chimeristClass = (character.classes || []).find(c => c.className === '嵌合師');
   const mimicSkill = (chimeristClass?.skills || []).find(s => s.name === '咒語模仿');
   const mimicSL = mimicSkill?.sl || 1;
@@ -244,7 +244,7 @@ export default function ChimeristManager({
       {hasViciousCycle && (
         <div className="flex items-center gap-2 p-2 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-xs text-[#2c221e]">
           <GiBiohazard className="text-base text-[#6b5a4b] shrink-0" />
-          <span>已學習《惡性循環》特技：當你的咒語對同源物種生物造成傷害時，將必定使其陷入中毒狀態！</span>
+          <span>已學習《惡性循環》技能：當你的咒語對同源物種生物造成傷害時，將必定使其陷入中毒狀態！</span>
         </div>
       )}
 
@@ -357,7 +357,7 @@ export default function ChimeristManager({
           <div className="p-6 text-center bg-white/60 rounded border border-dashed border-[#d6c7ab] text-[#7c6a58] text-xs space-y-1">
             <GiSpellBook className="w-8 h-8 mx-auto text-[#7c6a58]" />
             <p className="font-bold text-[#6b5a4b]">尚未記錄任何嵌合師咒語</p>
-            <p className="text-t12">可貼上 GM 或 NPC 工坊複製之文字一鍵匯入，或點擊「手動記錄咒語」！</p>
+            <p className="text-t12">貼上文字匯入</p>
           </div>
         )}
       </div>

@@ -1091,16 +1091,20 @@ const hudBarIdMissing = HUD_BAR_IDS.filter((id) => !hudSrc.includes(`testId="${i
 const hudGaugeHp = (hudSrc.match(/bg-gauge-hp/g) || []).length;
 const hudGaugeMp = (hudSrc.match(/bg-gauge-mp/g) || []).length;
 const hudGaugeIp = (hudSrc.match(/bg-gauge-ip/g) || []).length;
-const hudCrisis = (hudSrc.match(/isCrisis \? 'bg-\[#a63d40\]' : 'bg-gauge-hp'/g) || []).length;
+// 2026-11-03：立繪下方那條「常駐細條」（`hud-vitals-strip`）原本用三個手寫 hex，
+// 跟右翼主資源條**不同色**（同一個 HP 在同一屏有兩種顏色）。改成同一組 `gauge` 令牌後，
+// 每個色名在檔案裡各出現 **2** 次：主條 1 ＋ 細條 1。數字變動本身就是這條契約的一部分
+// ——下一次有人只在其中一處換色，這裡會立刻紅。
+const hudCrisis = (hudSrc.match(/isCrisis \? 'bg-gauge-crisis' : 'bg-gauge-hp'/g) || []).length;
 check(
-  '資源條三色語意、危急才換強調紅',
+  '資源條三色語意、危急才換鮮紅（主條與常駐細條共用同一組令牌）',
   hudBars === 4 &&
     hudBarIdMissing.length === 0 &&
-    hudGaugeHp === 1 &&
-    hudGaugeMp === 1 &&
-    hudGaugeIp === 1 &&
-    hudCrisis === 1,
-  `bar ${hudBars} 條（HP 青 ${hudGaugeHp}＋MP 藍 ${hudGaugeMp}＋IP 金 ${hudGaugeIp}＋危急 ${hudCrisis}）` +
+    hudGaugeHp === 2 &&
+    hudGaugeMp === 2 &&
+    hudGaugeIp === 2 &&
+    hudCrisis === 2,
+  `bar ${hudBars} 條（HP 綠 ${hudGaugeHp}＋MP 藍 ${hudGaugeMp}＋IP 金 ${hudGaugeIp}＋危急 ${hudCrisis}，各＝主條＋細條）` +
     (hudBarIdMissing.length ? `｜缺 testId：${hudBarIdMissing.join('、')}` : '')
 );
 
@@ -1165,14 +1169,14 @@ check('按鈕零調色盤令牌', btnHues === 0, `${btnHues} 個`);
 // 兩支畫面各有一組 HP／MP／IP，如果只收一支，下一輪就會有人「照另一支的寫法」加回去。
 // 反轉後判準：三條各帶 gauge 語意色，危急才換紅。
 const sheetSrc = stripComments(read('src/features/character-sheet/CharacterSheet.jsx'));
-const sheetCrisis = count(sheetSrc, "? 'bg-[#a63d40]' : 'bg-gauge-hp'");
+const sheetCrisis = count(sheetSrc, "? 'bg-gauge-crisis' : 'bg-gauge-hp'");
 const sheetGaugeHp = (sheetSrc.match(/bg-gauge-hp/g) || []).length;
 const sheetGaugeMp = count(sheetSrc, 'rounded-full transition-all duration-300 bg-gauge-mp');
 const sheetGaugeIp = count(sheetSrc, 'rounded-full transition-all duration-300 bg-gauge-ip');
 check(
-  '角色卡資源條也是三色語意、危急才換強調紅',
+  '角色卡資源條也是三色語意、危急才換鮮紅',
   sheetCrisis === 1 && sheetGaugeHp === 1 && sheetGaugeMp === 1 && sheetGaugeIp === 1,
-  `危急 ${sheetCrisis} 條（應為 1）＋HP 青 ${sheetGaugeHp}＋MP 藍 ${sheetGaugeMp}＋IP 金 ${sheetGaugeIp}（各應為 1）`
+  `危急 ${sheetCrisis} 條（應為 1）＋HP 綠 ${sheetGaugeHp}＋MP 藍 ${sheetGaugeMp}＋IP 金 ${sheetGaugeIp}（各應為 1）`
 );
 
 // H10. 借來的灰（第十六輪 slate、第十七輪 stone）。

@@ -1,6 +1,6 @@
 /**
  * 子項目挑選器專屬資料庫 (skillSuboptionsData.js)
- * 涵蓋維度一中需要進一步挑選子項目的職業特技資料與規則。
+ * 涵蓋維度一中需要進一步挑選子項目的職業技能資料與規則。
  * 包含：
  * 1. 舞者【起舞】：17 種官方舞步（繁中 Excel 定譯）
  * 2. 魔奏者【魔法演奏】：3 音量、8 音調、7 曲風（繁中 Excel 定譯）
@@ -352,7 +352,7 @@ export const MUTANT_THERIOFORMS = [
     id: 'form_dynamotheria',
     name: '腕力形態',
     examples: '熊、恐龍、巨力生物',
-    effect: '【MIG】骰面視為提升一階（最高 d12）。推進或回撥包含體質的命刻檢定成功時，額外推進或回撥 1 格。'
+    effect: '【MIG】骰面視為提升一階（最高 d12）。推進或回撥包含屬性的命刻檢定成功時，額外推進或回撥 1 格。'
   },
   {
     id: 'form_electrophora',
@@ -683,7 +683,7 @@ export const SYMBOLIST_SYMBOLS = [
   {
     id: 'sym_metamorphosis',
     name: '變形徽記',
-    effect: '創造時自選物種。攜帶者在特技與效果判定上被視為所選物種（不可施加在玩家角色上）。'
+    effect: '創造時自選物種。攜帶者在技能與效果判定上被視為所選物種（不可施加在玩家角色上）。'
   },
   {
     id: 'sym_prosperity',
@@ -821,7 +821,7 @@ export const SUBOPTION_SKILLS_CONFIG = {
 };
 
 /**
- * 檢查特技是否擁有子項目挑選配置
+ * 檢查技能是否擁有子項目挑選配置
  */
 export function getSkillSuboptionConfig(className, skillName) {
   return SUBOPTION_SKILLS_CONFIG[className]?.[skillName] || null;
@@ -954,7 +954,7 @@ export function getSuboptionDetails(className, skillName, rawItemName) {
 
 /**
  * 魔奏者歌曲即時動態合成器
- * 組合 [音量] + [音調] + [曲風]，動態替換曲風中的四維變量
+ * 組合 [音量] + [音調] + [曲風]，動態替換曲風中的屬性變量
  */
 export function composeChanterSong(volumeIdOrName, keyName, toneName) {
   const volumes = CHANTER_DATA.volumes || [];

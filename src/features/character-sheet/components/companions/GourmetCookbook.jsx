@@ -47,7 +47,7 @@ import {
  * （包含「選火／選冰」這類選擇）。因此本 UI：
  * - **已決定的格子不可改選項**，只能「刪除此格」重來——對應「用戶不小心寫錯」的情境。
  * - 未決定的格子提供兩種寫入方式：**骰 d12** 或**手動指定骰值**（給在實體桌面擲骰的玩家）。
- * - 骰出後先進「待確認」狀態，讓玩家**先選好屬性／體質再寫入**，避免一寫就鎖死成預設值。
+ * - 骰出後先進「待確認」狀態，讓玩家**先選好選項再寫入**，避免一寫就鎖死成預設值。
  *
  * ## 食材的口味呈現（2026-10-04 使用者回饋）
  *
@@ -247,7 +247,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
   //
   // 問題：一個一個點進格子填出目，骰 3 顆就要十幾個動作。
   // 解法：**快速輸入序列**——把擲出的數字照順序打成一串（`7 3 12`），
-  // 自動依序填入尚未決定的組合；下方再逐列確認與調整屬性／體質，
+  // 自動依序填入尚未決定的組合；下方再逐列確認與調整選項，
   // 最後一次寫入。這樣「骰 3 顆」只需一次輸入 + 一次確認。
   //
   /** 尚未決定的組合，依官方口味順序。 */
@@ -353,7 +353,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
           kind="ingredients"
           icon={GiMushroom}
           title="還沒有任何食材"
-          teach="食材在旅途中採集取得；採到的每一樣都會按口味列在這裡，烹飪時從中挑選。"
+          teach="食材在旅途中採集取得。"
         />
       );
     }
@@ -363,7 +363,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
           kind="ingredient-flavour"
           icon={GiSaltShaker}
           title="這個口味沒有食材"
-          teach="手上的食材不在這個口味裡；點上面的「全部」或換一個口味就看得到。"
+          teach="換一個口味，或點「全部」。"
         />
       );
     }

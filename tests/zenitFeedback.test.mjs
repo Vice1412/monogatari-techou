@@ -281,8 +281,11 @@ eq('G3 四個分類頁籤都在',
   PURCHASE_CATEGORIES.map((c) => countOf(richBody, `data-testid="purchase-cat-${c.id}"`)), [1, 1, 1, 1]);
 eq('G4 還沒選東西時，結帳鈕是 aria-disabled（不是 disabled）',
   [countOf(richBody, 'aria-disabled="true"') >= 1, countOf(richBody, 'disabled=""')], [true, 0]);
-eq('G5 沒選東西時說清楚「選了才會算」',
-  countOf(richBody, '這裡會算出買完還剩多少'), 1);
+/* 2026-11-03：使用者要求刪掉「對體驗沒幫助的小字」——那句 `這裡會算出買完還剩多少`
+   是在解釋系統行為，現在只留 `選一件品項`。
+   護欄守的東西沒有變：**沒選東西時不可以靜默顯示 0**，要有一句話告訴你下一步。 */
+eq('G5 沒選東西時說清楚下一步（不是一片空白、也不是 0）',
+  countOf(richBody, '選一件品項') >= 1, true);
 
 const poorBody = renderBody(100);
 eq('G6 買不起的品項在列上就標出「還差」',

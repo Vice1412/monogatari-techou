@@ -253,15 +253,22 @@ const at = (needle) => hudSrc.indexOf(needle);
 eq('G1 狀態異常區塊只有一份（沒有留下舊的滿版區塊）', countOf(hudSrc, 'data-testid="hud-afflictions"'), 1);
 eq('G2 不再用 Object.keys(STATUS_AFFLICTIONS) 直接決定畫面順序',
   countOf(hudSrc, 'Object.keys(STATUS_AFFLICTIONS).map'), 0);
-eq('G3 區塊住在四維卡片的「常用檢定」之後', at('常用雙屬性一鍵檢定列') < at('data-testid="hud-afflictions"'), true);
+/* 2026-11-03：使用者要求「按鈕太長、信息量低，改成 1x6 或 4+2」，同時把
+   「常用檢定」那一排整塊刪掉（「根本不需要」）。所以 G3 的錨點從那行註解
+   換成屬性卡本身；G6 從「兩欄」換成「四欄 ＋ 單/雙屬性跨度」。 */
+eq('G3 區塊住在屬性卡之後（同一扇「能力」窗裡）',
+  at('data-testid="hud-ability-window"') < at('data-testid="hud-afflictions"'), true);
 eq('G4 區塊住在 EXP 卡片之前（＝還在右翼的四維卡片裡）',
   at('data-testid="hud-afflictions"') < at('EXP / Zenit / Fabula Points Compact Cards'), true);
-eq('G5 舊的滿版六欄樣式沒有跟著搬進來（新的是兩欄，與四維對齊）',
+eq('G5 舊的滿版六欄樣式沒有跟著搬進來',
   countOf(hudSrc.slice(at('data-testid="hud-afflictions"'), at('EXP / Zenit / Fabula Points Compact Cards')),
     'sm:grid-cols-6'), 0);
-eq('G6 新的是兩欄格子（與上方四維格子同欄寬才會逐格對齊）',
+eq('G6 狀態異常是四欄格子（4＋2：單屬性各一欄、雙屬性各兩欄）',
   countOf(hudSrc.slice(at('data-testid="hud-afflictions"'), at('EXP / Zenit / Fabula Points Compact Cards')),
-    'grid grid-cols-2 gap-2'), 1);
+    'grid grid-cols-4 gap-1.5'), 1);
+eq('G6b 雙屬性狀態用 col-span-2（跨度＝它影響幾個屬性）',
+  countOf(hudSrc.slice(at('data-testid="hud-afflictions"'), at('EXP / Zenit / Fabula Points Compact Cards')),
+    "row.stats.length > 1 ? 'col-span-2' : 'col-span-1'"), 1);
 eq('G7 切換仍然走既有的 handleToggleAffliction（沒有另開寫入路徑）',
   countOf(hudSrc, 'handleToggleAffliction(row.key)'), 1);
 

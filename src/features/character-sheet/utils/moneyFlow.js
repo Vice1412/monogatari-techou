@@ -132,7 +132,7 @@ export const applyPurchase = (character, item, {
  * @param {{ direction:'spend'|'gain', amount:number|string, reason:string,
  *           item?:object, equip?:boolean, slotLabel?:string }} input
  */
-export const applyMoneyFlow = (character, { direction, amount, reason, item = null, equip = false, slotLabel = '' } = {}) => {
+export const applyMoneyFlow = (character, { direction, amount, reason, item = null, equip = false, slotLabel = '', inventoryItem = null } = {}) => {
   const before = character || {};
   const flow = describeMoneyFlow({ direction, amount, reason, wallet: before.zenit });
   if (!flow.ok) return { ok: false, character: before, flow, record: null };
@@ -145,10 +145,18 @@ export const applyMoneyFlow = (character, { direction, amount, reason, item = nu
     ? { ...(before.equipment || {}), [item.slot]: item.name }
     : (before.equipment || {});
 
+  // 2026-11-03：這一筆**同時**是「花錢」與「拿到東西」時，物品與錢要在同一次寫入裡
+  // 完成（與 applySellItem 同一個理由：拆兩次 onChange 會寫到舊角色，MEMORY §D.24）。
+  // 物品本身已經由呼叫端用 createInventoryItem 建好（形狀與收斂在 utils/inventory.js）。
+  const nextInventory = inventoryItem
+    ? [...(Array.isArray(before.inventory) ? before.inventory : []), inventoryItem]
+    : before.inventory;
+
   const base = {
     ...before,
     zenit: to,
     equipment: nextEquipment,
+    ...(inventoryItem ? { inventory: nextInventory } : {}),
     updatedAt: new Date().toISOString()
   };
 

@@ -197,7 +197,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
           id: `${cl.className}_${sk.name}`,
           name: `${sk.name} (SL ${sk.sl})`,
           category: 'skill',
-          desc: `【${cl.className}】特技`,
+          desc: `【${cl.className}】技能`,
           isRevealed: true
         }))),
         rawCharData: char
@@ -567,14 +567,14 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
               kind="roster"
               icon={GiScrollUnfurled}
               title="名冊目前空空如也"
-              teach="名冊只存在這台裝置上。建立第一位冒險者之後，記得用封面右上角的「備份」把它存成檔案。"
+              teach="名冊只存在這台裝置上，記得定期備份。"
               action={{ label: '建立第一位角色', onClick: handleCreateCharacter, icon: Plus }}
               minHeight="320px"
             />
           ) : filteredRoster.length === 0 ? (
             <div className="text-center py-16 bg-[#fffdf9] rounded border border-[#d6c7ab] border-dashed flex flex-col items-center justify-center">
               <p className="text-[#2c221e] font-bold text-base">找不到符合條件的冒險者</p>
-              <p className="text-[#6b5a4b]/70 text-xs mt-1">請嘗試變更搜尋關鍵字或職業篩選。</p>
+              <p className="text-[#6b5a4b]/70 text-xs mt-1"></p>
               <button
                 type="button"
                 onClick={() => { setSearchQuery(''); setClassFilter('all'); }}
@@ -592,7 +592,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                 const curMp = char.currentMp ?? stats.maxMp;
                 const curIp = char.currentIp ?? stats.maxIp;
                 const isCrisis = curHp <= stats.crisisThreshold;
-                // 四維還沒指派完 → 六項數值不成立（見 calculateCharacterStats 的 attributesUnset）
+                // 屬性還沒指派完 → 六項數值不成立（見 calculateCharacterStats 的 attributesUnset）
                 const statsUnset = Boolean(stats.attributesUnset);
                 // 先攻變體（公測 p.34）：名冊上的先攻同樣不顯示數字。
                 const initiativeVariant = isInitiativeVariant(char);
@@ -734,7 +734,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                           </div>
                           <div className="h-1.5 w-full bg-[#f4ebd9] rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}`}
+                              className={`h-full rounded-full transition-all duration-300 ${isCrisis ? 'bg-gauge-crisis' : 'bg-gauge-hp'}`}
                               style={{ width: `${Math.max(0, Math.min(100, (curHp / stats.maxHp) * 100))}%` }}
                             />
                           </div>

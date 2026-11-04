@@ -84,7 +84,7 @@ export function MoneyLedgerModalBody({ theme = {}, character, onClose }) {
           dense
           icon={GiCoins}
           title="還沒有任何金錢記錄"
-          teach="用「收入」或「支出」記一筆，明細就會從那裡長出來；買裝備也會自動留下一筆。"
+          teach="用「收入」或「支出」記一筆；買裝備會自動記錄。"
         />
       ) : (
         <div data-testid="ledger-list" className="max-h-[320px] overflow-y-auto space-y-1 pr-1">

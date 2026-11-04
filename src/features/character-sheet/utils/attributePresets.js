@@ -1,5 +1,5 @@
 /**
- * 四維屬性「起始陣列」的純函式。
+ * 屬性「起始陣列」的純函式。
  *
  * 抽出來的理由：這些邏輯原本只存在 `AttributeMatrixPicker` 的 `onClick` 裡，
  * 而 SSR 測試**不執行事件**，所以「點了預設卡卻沒填入」這種缺陷測不到。
@@ -26,7 +26,7 @@ export const assignPoolInOrder = (pool) =>
     assignedTo: ATTRIBUTE_KEYS[idx] || null
   }));
 
-/** 從托盤推導出四維屬性物件；有任何一顆沒入座就回傳 null（避免只寫一半） */
+/** 從托盤推導出屬性物件；有任何一顆沒入座就回傳 null（避免只寫一半） */
 export const attributesFromPool = (pool) => {
   const attrs = {};
   let assignedCount = 0;

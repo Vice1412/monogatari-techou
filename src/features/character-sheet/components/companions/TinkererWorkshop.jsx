@@ -596,7 +596,7 @@ export default function TinkererWorkshop({
 
   // 取得目標解析
   const getAlchemyTargetInfo = (roll) => {
-    if (!roll) return { label: '未選定目標（請由左側目標表點選）', range: '' };
+    if (!roll) return { label: '未選定目標', range: '' };
     const row = ALCHEMY_TARGET_TABLE.find(t => roll >= t.min && roll <= t.max);
     return row ? { label: row.desc, range: row.range, category: row.label } : { label: '未知目標', range: '' };
   };
@@ -610,7 +610,7 @@ export default function TinkererWorkshop({
     if (useFallbackEffect === 'heal') {
       return { label: '恢復 30 點 HP', isFallback: true, category: '保底備選' };
     }
-    if (!roll) return { label: '未選定效果（請由右側效果表點選）', desc: '' };
+    if (!roll) return { label: '未選定效果', desc: '' };
 
     const rows = getAlchemyEffectRows(characterLevel);
     const row = rows.find(r => !r.isAny && r.dice.includes(roll));
@@ -1677,12 +1677,12 @@ export default function TinkererWorkshop({
       {/* ======================================================== */}
       {activeTab === 'projects' && (
         <div className="space-y-4 animate-fade-in">
-          {/* 特技加成提示列 */}
+          {/* 技能加成提示列 */}
           {visionarySL > 0 && (
             <div className="p-3 rounded bg-[#f4ebd9] border border-[#d6c7ab] flex items-center justify-between flex-wrap gap-2 text-xs">
               <span className="font-bold text-[#3c2415] flex items-center gap-1.5">
                 <GiSparkles className="w-4 h-4 text-[#6b5a4b]" />
-                <span>特技【高瞻遠矚】生效中 (SL {visionarySL})</span>
+                <span>技能【高瞻遠矚】生效中 (SL {visionarySL})</span>
               </span>
               <div className="flex items-center gap-3 font-mono font-bold text-[#3c2415] text-t12">
                 <span>材料抵扣：-{freeCostDiscount} z</span>
@@ -2137,7 +2137,7 @@ export default function TinkererWorkshop({
 
                   {freeCostDiscount > 0 && (
                     <div className="flex items-center justify-between text-[#6b5a4b] font-mono">
-                      <span>特技【高瞻遠矚】抵扣 (SL {visionarySL})：</span>
+                      <span>技能【高瞻遠矚】抵扣 (SL {visionarySL})：</span>
                       <span>-{Math.min(calcDiscountedCost, freeCostDiscount)} z</span>
                     </div>
                   )}

@@ -16,6 +16,11 @@ export default function DiceRollerModal({
 }) {
   const [die1Type, setDie1Type] = useState(initialConfig?.die1 || 8);
   const [die2Type, setDie2Type] = useState(initialConfig?.die2 || 8);
+  // 2026-11-03：從屬性卡進來的檢定**骰階已經定了**（`DEX d6 + MIG d10`），
+  // 再擺兩組 d6/d8/d10/d12 只會讓玩家以為要自己挑——使用者原話：
+  // 「點擊屬性的話就不要再讓玩家選骰子大小了，直接把你上面的標題放下來就一目了然。」
+  // `lockDice` 為真時隱藏選擇器、改顯示大字摘要；自由擲骰／進階修正仍保留選擇器。
+  const [lockDice, setLockDice] = useState(Boolean(initialConfig?.lockDice));
   const [modifier, setModifier] = useState(initialConfig?.modifier !== undefined ? initialConfig.modifier : 0);
   const [rollLabel, setRollLabel] = useState(initialConfig?.label || '');
   const [rollResult, setRollResult] = useState(initialConfig?.initialRollResult || null);
@@ -44,6 +49,7 @@ export default function DiceRollerModal({
     if (isOpen && initialConfig) {
       if (initialConfig.die1) setDie1Type(initialConfig.die1);
       if (initialConfig.die2) setDie2Type(initialConfig.die2);
+      setLockDice(Boolean(initialConfig.lockDice));
       setModifier(initialConfig.modifier !== undefined ? initialConfig.modifier : 0);
       setRollLabel(initialConfig.label || '');
       setDamageBonus(
@@ -62,6 +68,7 @@ export default function DiceRollerModal({
       setRollResult(null);
     } else if (isOpen && !initialConfig) {
       setRollLabel('');
+      setLockDice(false);
       setDamageBonus(null);
       setDamageType('物理');
       setZeroHr(false);
@@ -205,11 +212,27 @@ export default function DiceRollerModal({
     <JRPGModal
       isOpen={isOpen}
       onClose={onClose}
-      title={rollLabel ? `FU 檢定擲骰 · ${rollLabel}` : "FU 雙屬性擲骰器"}
+      title={
+        rollLabel
+          ? lockDice
+            // 鎖定骰階時，標題不再重複那串屬性——它已經在下面的主體用大字寫著了
+            ? 'FU 檢定擲骰'
+            : `FU 檢定擲骰 · ${rollLabel}`
+          : 'FU 雙屬性擲骰器'
+      }
       maxWidth="max-w-md"
     >
       <div className="space-y-4">
-        {/* Dice selectors */}
+        {/* 骰階：鎖定時改顯示大字摘要，不鎖定時才是兩組選擇器。
+            `DEX(d6) + MIG(d10)` → `DEX d6 ＋ MIG d10`：括號在標題裡是為了塞得下，
+            放到主體就該用可以直接唸出來的寫法。 */}
+        {lockDice ? (
+          <div className="bg-[#f4ebd9] p-4 rounded border border-[#d6c7ab] text-center space-y-1">
+            <div className="text-2xl font-serif font-black text-[#3c2415] tracking-wide leading-tight">
+              {(rollLabel || '').replace(/\(([^)]+)\)/g, ' $1').trim() || `d${die1Type} ＋ d${die2Type}`}
+            </div>
+          </div>
+        ) : (
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab] flex flex-col items-center gap-1.5">
             <span className="text-xs text-[#6b5a4b] font-medium">第一顆骰階</span>
@@ -251,6 +274,7 @@ export default function DiceRollerModal({
             </div>
           </div>
         </div>
+        )}
 
         {/* Modifier */}
         <div className="flex items-center justify-between bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab] text-xs">
@@ -422,7 +446,7 @@ export default function DiceRollerModal({
                     setManualRecorded(true);
                   }}
                   className="px-3 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#3c2415] font-bold text-t11 flex items-center gap-1 transition-colors"
-                  title="把這一擲寫進成長履歷（大成功／大失敗會自動記，其餘由你決定）"
+                  title="記下這一擲"
                 >
                   <GiScrollQuill className="w-3.5 h-3.5 text-[#6b5a4b]" />
                   <span>記下這一擲</span>
@@ -452,7 +476,7 @@ export default function DiceRollerModal({
                         ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
                         : 'bg-[#f4ebd9] border-[#d6c7ab] text-[#6b5a4b] hover:text-[#2c221e]'
                     }`}
-                    title="部分特技或多重目標攻擊要求將高點（HR）視為 0"
+                    title="部分技能或多重目標攻擊要求將高點（HR）視為 0"
                   >
                     將 HR 視為 0
                   </button>
@@ -471,7 +495,7 @@ export default function DiceRollerModal({
                 </div>
 
                 <div className="flex items-center justify-between gap-1.5 text-t11">
-                  <span className="text-[#6b5a4b]">額外傷害修正（特技／弱點前）：</span>
+                  <span className="text-[#6b5a4b]">額外傷害修正（技能／弱點前）：</span>
                   <div className="flex items-center gap-1">
                     {[-5, -1, 1, 5].map(delta => (
                       <button

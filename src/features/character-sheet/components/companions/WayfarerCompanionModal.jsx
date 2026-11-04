@@ -86,12 +86,12 @@ export default function WayfarerCompanionModal({
 
   const [errorMessage, setErrorMessage] = useState('');
 
-  // 取得選取的體質配置方案
+  // 取得選取的屬性配置方案
   const selectedArray = useMemo(() => {
     return COMPANION_ATTRIBUTE_ARRAYS.find(a => a.id === formData.arrayType) || COMPANION_ATTRIBUTE_ARRAYS[1];
   }, [formData.arrayType]);
 
-  // 驗證當前四維是否合法吻合該體質骰面組合
+  // 驗證當前屬性是否合法吻合該屬性骰面組合
   const isAttributesValid = useMemo(() => {
     const targetDice = [...selectedArray.dice].sort((a, b) => a - b);
     const currentDice = [formData.dex, formData.ins, formData.mig, formData.wlp].sort((a, b) => a - b);
@@ -105,7 +105,7 @@ export default function WayfarerCompanionModal({
 
   const crisisHp = useMemo(() => calculateCompanionCrisisHp(maxHp), [maxHp]);
 
-  // 切換體質方案時，重設四維為該方案的預設排列
+  // 切換屬性方案時，重設屬性為該方案的預設排列
   const handleSelectArrayType = (typeId) => {
     setErrorMessage('');
     const arr = COMPANION_ATTRIBUTE_ARRAYS.find(a => a.id === typeId) || COMPANION_ATTRIBUTE_ARRAYS[0];
@@ -254,7 +254,7 @@ export default function WayfarerCompanionModal({
   // 儲存送出
   const handleSave = () => {
     if (!isAttributesValid) {
-      setErrorMessage(`四維屬性骰分配不符合【${selectedArray.name}】體質組合（需完整分配 ${selectedArray.dice.map(d => `d${d}`).join(', ')}）。`);
+      setErrorMessage(`屬性骰分配不符合【${selectedArray.name}】屬性組合（需完整分配 ${selectedArray.dice.map(d => `d${d}`).join(', ')}）。`);
       return;
     }
     onSave({
@@ -288,7 +288,7 @@ export default function WayfarerCompanionModal({
                 </span>
               </div>
               <p className="text-t12 text-[#6b5a4b]">
-                依據官方核心手冊 p. 219（忠實夥伴）與 p. 302-317（NPC 規則）配置隨從體質與自訂能力
+                依據官方核心手冊 p. 219（忠實夥伴）與 p. 302-317（NPC 規則）配置隨從屬性與自訂能力
               </p>
             </div>
           </div>
@@ -346,12 +346,12 @@ export default function WayfarerCompanionModal({
             </div>
           </div>
 
-          {/* 二、四維體質方案選取 (官方四大體質) */}
+          {/* 二、屬性方案選取 (官方四大屬性) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-[#3c2415] flex items-center gap-1.5">
                 <GiHeartPlus className="text-[#6b5a4b]" />
-                <span>2. 官方 NPC 四大體質方案（Core p. 302）</span>
+                <span>2. 官方 NPC 四大屬性方案（Core p. 302）</span>
               </label>
               {!isAttributesValid && (
                 <span className="text-t11 font-bold text-[#8c2d36]">
@@ -379,7 +379,7 @@ export default function WayfarerCompanionModal({
               })}
             </div>
 
-            {/* 四維屬性骰下拉分配 */}
+            {/* 屬性骰下拉分配 */}
             <div className="p-3 rounded bg-[#fbf7ee] border border-[#d6c7ab] grid grid-cols-4 gap-2 text-center">
               <div>
                 <span className={`block text-t10 font-bold mb-1 ${ATTRIBUTE_COLORS.dex}`}>{ATTRIBUTE_NAMES.dex} DEX</span>
@@ -467,7 +467,7 @@ export default function WayfarerCompanionModal({
                   <GiCrossedSwords className="text-[#6b5a4b]" />
                   <span>3. 基礎攻擊配置（Core p. 303：命中加成 +{wayfarerSl}）</span>
                 </label>
-                <span className="text-t10 text-[#7c6a58]">官方建議至多 2 種，可自由調整公式與傷害</span>
+                <span className="text-t10 text-[#7c6a58]">官方建議至多 2 種</span>
               </div>
               <button
                 type="button"

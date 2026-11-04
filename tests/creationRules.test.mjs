@@ -369,7 +369,7 @@ check('空白角色：職業有問題（0 個職業）', blankList[1].status, 'e
 // 那正是「系統替玩家選好了萬事通」的另一個症狀。
 check('空白角色：四維待處理（預設未指派）', blankList[2].status, 'todo');
 check('有問題的步驟帶錯誤數', blankList[1].errorCount, 1);
-check('待處理的步驟給出說明文字', blankList[2].message, '尚未選擇四維屬性配置');
+check('待處理的步驟給出說明文字', blankList[2].message, '尚未選擇屬性配置');
 check('待處理的步驟給出第一則提醒', blankList[0].message, '尚未設定身份');
 
 // 清單不新增驗證邏輯：狀態必須與 validateCharacter 的分組一致
@@ -487,9 +487,9 @@ check('等級一律經過 getCharacterLevel（不再直接讀 char.level）',
 section('O. 2026-10-06 稽核修正：步驟次序、主題、姓名、屬性陣列、起始資金');
 
 // O1 步驟次序：原書是「先選職業（第 4 步）再分配屬性（第 5 步）」（p.154／p.162）
-check('CREATION_STEPS 的順序是職業(2) 先於四維(3)，姓名在最後(6)',
+check('CREATION_STEPS 的順序是職業(2) 先於屬性(3)，姓名在最後(6)',
   CREATION_STEPS.map((s) => s.label),
-  ['基礎身世', '職業與技能', '四維屬性', '裝備配置', '英雄技能與金手指', '命名與背景']);
+  ['基礎身世', '職業與技能', '屬性', '裝備配置', '英雄技能與金手指', '命名與背景']);
 
 // O1b 第 5 步的完成提示不得宣稱「已確認」。
 // 這一步在官方標準開卡規則下**沒有任何欄位**（英雄技能要精通職業才解鎖、金手指是選用規則），
@@ -863,13 +863,13 @@ check('新角色四維預設為 0（不是 d8×4）',
   ATTRIBUTE_KEYS.map((k) => createNewCharacter().attributes[k]), [0, 0, 0, 0]);
 check('四項全空 → 第 3 步是 info（還沒開始，不是玩家的錯）',
   validateCharacter(createNewCharacter()).warnings.filter((w) => w.step === 3).map((w) => w.type), ['info']);
-check('四項全空的訊息是「尚未選擇四維屬性配置」',
+check('四項全空的訊息是「尚未選擇屬性配置」',
   validateCharacter(createNewCharacter()).warnings.filter((w) => w.step === 3).map((w) => w.message),
-  ['尚未選擇四維屬性配置']);
+  ['尚未選擇屬性配置']);
 check('部分指派 → warning 並列出還缺哪幾項',
   validateCharacter(createNewCharacter({ attributes: { dex: 10, ins: 8, mig: 0, wlp: 0 } }))
     .warnings.filter((w) => w.field === 'attributes').map((w) => [w.type, w.message]),
-  [['warning', '四維屬性還有 2 項未指派（力量、意志）']]);
+  [['warning', '屬性還有 2 項未指派（力量、意志）']]);
 check('全部指派且總和正確 → 第 3 步沒有任何提醒',
   validateCharacter(createNewCharacter({ attributes: { dex: 10, ins: 8, mig: 8, wlp: 6 } }))
     .warnings.filter((w) => w.step === 3), []);

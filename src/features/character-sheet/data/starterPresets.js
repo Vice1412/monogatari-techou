@@ -10,7 +10,7 @@
  *   group        預組隊伍 { id, title }；非預組者為 null
  *   title        中文名（官方角色名的中譯）
  *   en           官方英文角色名（僅資料用，不渲染）
- *   attributes   四維骰階（官方 32 點陣列）
+ *   attributes   屬性骰階（官方 32 點陣列）
  *   classes      職業（等級）＋技能（含 SL）；等級恆等於該職業技能 SL 總和
  *                技能可帶 `selectedOptions`：咒語／舞步／天賦／混合形態／魔法種子／徽記為
  *                名稱陣列；魔奏者【魔法演奏】為 `{ keys, tones }` 物件（名稱取自

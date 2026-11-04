@@ -26,8 +26,8 @@ import { resolveRefNames, hasEntry, openEntryRef } from '../data/crossRefs';
  * 嚴格遵循官方核心與拓展開發手冊之【SL】動態數值公式。
  * 
  * 體驗保證：
- * 1. 在點亮特技前 (SL = 0)：明確標註公式本身（例如【SL × 5】），讓玩家瞭解點數成長率與計算方式。
- * 2. 在點亮特技後 (SL >= 1)：自動計算精確數值（例如【10】），點擊數值徽章可於『計算結果』與『原始算式』間切換。
+ * 1. 在點亮技能前 (SL = 0)：明確標註公式本身（例如【SL × 5】），讓玩家瞭解點數成長率與計算方式。
+ * 2. 在點亮技能後 (SL >= 1)：自動計算精確數值（例如【10】），點擊數值徽章可於『計算結果』與『原始算式』間切換。
  * 3. 支援 Markdown **粗體** 樣式高亮渲染，1:1 對照官方規則書重點。
  * 4. 支援點擊非通用專屬規則關鍵詞（阿爾卡納、儀式學派、小工具、造物專案、忠實夥伴等），平滑開啟規則速查手冊。
  */
@@ -190,7 +190,7 @@ export function evaluateFormulaString(formulaStr, sl = 0, options = {}) {
         text: `【${halfLevel} + (SL × ${mult})】`,
         value: null,
         rawFormula: trimmed,
-        note: `等級一半 = ${halfLevel}，特技尚未點亮`,
+        note: `等級一半 = ${halfLevel}，技能尚未點亮`,
         isCalculated: false
       };
     }
@@ -288,7 +288,7 @@ export function evaluateFormulaString(formulaStr, sl = 0, options = {}) {
     };
   }
 
-  // 3. 跨特技 SL 參照運算（如「你的鷹眼SL」、「你迅捷SL×5」、「你的閃避SL+你的竊取時間SL」）
+  // 3. 跨技能 SL 參照運算（如「你的鷹眼SL」、「你迅捷SL×5」、「你的閃避SL+你的竊取時間SL」）
   if (character && /(?:你的?|你)?([^\s+×*xX()]+)\s*SL/.test(norm)) {
     let resolvedFormula = norm;
     let anyResolved = false;
@@ -324,13 +324,13 @@ export function evaluateFormulaString(formulaStr, sl = 0, options = {}) {
     }
   }
 
-  // 4. 若不涉及特技等級（sl <= 0），且前方等級運算未命中，回傳未計算
+  // 4. 若不涉及技能等級（sl <= 0），且前方等級運算未命中，回傳未計算
   if (sl <= 0) {
     return {
       text: `【${trimmed}】`,
       value: null,
       rawFormula: trimmed,
-      note: `公式基準：${trimmed}（尚未分配特技點數）`,
+      note: `公式基準：${trimmed}（尚未分配技能等級）`,
       isCalculated: false
     };
   }
@@ -426,7 +426,7 @@ export function evaluateFormulaString(formulaStr, sl = 0, options = {}) {
       text: `【${sl}】`,
       value: sl,
       rawFormula: trimmed,
-      note: `特技等級 SL = ${sl}`,
+      note: `技能等級 SL = ${sl}`,
       isCalculated: true
     };
   }

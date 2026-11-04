@@ -495,7 +495,7 @@ export const CLASS_METADATA = {
     en: 'Chimerist',
     icon: 'GiMonsterGrasp',
     source: 'core',
-    tagline: '習得魔獸特技並化為己用的擬獸術士。'
+    tagline: '習得魔獸技能並化為己用的擬獸術士。'
   },
   '暗黑之刃': {
     name: '暗黑之刃',
@@ -751,7 +751,7 @@ export const BOND_FEELINGS = [
 ];
 
 /**
- * 四維屬性的官方中文名。
+ * 屬性的官方中文名。
  *
  * 譯名來源：**繁中版角色卡 Excel V2.17**（使用者裁定）；核心規則漢化 PDF 同義
  * （靈巧度／洞察力／力量值／意志力）。
@@ -775,7 +775,7 @@ export const ATTRIBUTE_NAMES = Object.freeze({
 });
 
 /**
- * 四維屬性的識別字（順序即介面順序）。
+ * 屬性的識別字（順序即介面順序）。
  *
  * 以前這個陣列在三處各寫一份：`characterEngine` 的加總／範圍檢查與狀態減值推導、
  * `AttributeMatrixPicker` 的 `STAT_KEYS`。收斂成一份，動到屬性集合時才不會漏改。
@@ -783,7 +783,7 @@ export const ATTRIBUTE_NAMES = Object.freeze({
 export const ATTRIBUTE_KEYS = Object.freeze(['dex', 'ins', 'mig', 'wlp']);
 
 /**
- * 四維屬性的身份色（第二十一輪）。
+ * 屬性的身份色（第二十一輪）。
  *
  * 這張表和 `ATTRIBUTE_NAMES` 放在一起，理由與那張表完全相同：**同一個身份只准有一份定義**。
  * 這一輪之前，四屬性的顏色有五份獨立的拷貝，而且**當場就不一致**：
@@ -872,11 +872,11 @@ export const STATUS_AFFLICTIONS = {
  * 排序依據＝**受影響的屬性**，不是名稱、不是英文版字母序：
  * 單屬性在前（DEX → INS → MIG → WLP），雙屬性在後（DEX·INS、MIG·WLP）。
  *
- * 為什麼值得一個常數：面板把它排在四維格子正下方、同樣兩欄，於是前兩列**逐格對齊**——
+ * 為什麼值得一個常數：面板把它排在屬性格子正下方、同樣兩欄，於是前兩列**逐格對齊**——
  * 緩慢↔DEX、眩暈↔INS、虛弱↔MIG、動搖↔WLP。玩家看到 DEX 從 d10 被劃掉，
  * 眼睛往下移一格就是原因，不必再讀一次名稱去回想「眩暈是哪一項」。
  *
- * 這一條刻意**不靠物件字面值的順序**（那是 `dazed` 開頭的英文版字母序，與四維無關），
+ * 這一條刻意**不靠物件字面值的順序**（那是 `dazed` 開頭的英文版字母序，與屬性無關），
  * 也刻意不動 `STATUS_AFFLICTIONS` 本身的排列——`calculateCharacterStats` 用它推導
  * 每項減值的**來源名稱**，動它會連帶改掉公式面板裡「（緩慢）（憤怒）」的排列。
  * 介面順序歸介面，資料順序歸資料；兩者要一致的地方由 `tests/afflictionOrder.test.mjs`
@@ -927,7 +927,7 @@ export const THEME_ALIASES = Object.freeze({
 export const normalizeTheme = (theme) => THEME_ALIASES[theme] || theme || '';
 
 /**
- * 官方三大起始四維屬性陣列配置（Core p.162；總點數嚴格等於 32）。
+ * 官方三大起始屬性陣列配置（Core p.162；總點數嚴格等於 32）。
  *
  * 名稱照官方核心規則漢化：`萬事通 d8d8d8d8`／`標準 d10d8d8d6`／`特化型 d10d10d6d6`。
  * 舊版把「標準」寫成「專精型」、「萬事通」寫成「均衡型」，於是「專精型」與「特化型」

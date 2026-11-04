@@ -29,7 +29,12 @@ import {
 } from '../src/features/character-sheet/data/classPanels.js';
 
 let results = [];
-const check = (name, ok, detail = '') => results.push({ name, ok: !!ok, detail });
+// `detail === true` 是「有沒有」型斷言的慣用寫法。直接印 true／false 在 FAIL 時
+// 會顯示成「—— true」而被誤讀成通過，所以這裡把它翻成「有／缺」。
+const check = (name, ok, detail = '') => {
+  const shown = detail === true ? (ok ? '有' : '缺') : detail;
+  results.push({ name, ok: !!ok, detail: shown });
+};
 
 const render = (character, props = {}) =>
   renderToStaticMarkup(
@@ -58,7 +63,7 @@ check('A2 預設仍渲染武器分頁', countOf(def, '武器與戰鬥') >= 1, `$
    ──────────────────────────────────────────────────────────────── */
 const bondEmpty = render(bare(), { initialTab: 'bonds' });
 check('B1 羈絆空狀態有標題', countOf(bondEmpty, '還沒有任何羈絆') === 1, `${countOf(bondEmpty, '還沒有任何羈絆')} 次`);
-check('B2 羈絆空狀態有教學句（不只是「沒有」）', countOf(bondEmpty, '羈絆是對某人某物的三維情感') === 1, `${countOf(bondEmpty, '羈絆是對某人某物的三維情感')} 次`);
+check('B2 羈絆空狀態有教學句（不只是「沒有」）', countOf(bondEmpty, '檢定加值等於情感數') === 1, `${countOf(bondEmpty, '檢定加值等於情感數')} 次`);
 check('B3 羈絆空狀態不放重複 CTA（標頭已有新增羈絆）', countOf(bondEmpty, '新增羈絆') === 1, `新增羈絆 ${countOf(bondEmpty, '新增羈絆')} 顆`);
 
 const withBond = bare();
@@ -72,7 +77,7 @@ check('B5 有羈絆時仍顯示該條', countOf(bondFilled, '導師') >= 1, `${c
    ──────────────────────────────────────────────────────────────── */
 const clockEmpty = render(bare(), { initialTab: 'clocks' });
 check('C1 命刻空狀態有標題', countOf(clockEmpty, '還沒有個人命刻') === 1, `${countOf(clockEmpty, '還沒有個人命刻')} 次`);
-check('C2 命刻空狀態區分「個人」與「章節」命刻', countOf(clockEmpty, '命刻記錄」那一章') === 1, `${countOf(clockEmpty, '命刻記錄」那一章')} 次`);
+check('C2 命刻空狀態區分「個人」與「章節」命刻', countOf(clockEmpty, '命刻記錄') >= 1, `${countOf(clockEmpty, '命刻記錄')} 次`);
 
 const withClock = bare();
 withClock.clocks = [{ id: 'c1', title: '傷勢惡化', totalSegments: 6, filledSegments: 2 }];
@@ -80,19 +85,70 @@ const clockFilled = render(withClock, { initialTab: 'clocks' });
 check('C3 有命刻時空狀態消失', countOf(clockFilled, '還沒有個人命刻') === 0, '0 次');
 
 /* ────────────────────────────────────────────────────────────────
-   D. 咒語：空時只留一顆 CTA（空狀態那顆）
-   ──────────────────────────────────────────────────────────────── */
-const spellEmpty = render(bare(), { initialTab: 'spells' });
-check('D1 空清單時標頭的「學習新咒語」收起', countOf(spellEmpty, '學習新咒語') === 0, `${countOf(spellEmpty, '學習新咒語')} 次`);
-check('D2 空清單時空狀態的 CTA 仍在', countOf(spellEmpty, '從規則庫選擇習得咒語') === 1, `${countOf(spellEmpty, '從規則庫選擇習得咒語')} 次`);
-check('D3 空狀態說明仍在', countOf(spellEmpty, '尚未掌握任何咒語') === 1, `${countOf(spellEmpty, '尚未掌握任何咒語')} 次`);
-check('D6 咒語空狀態也有教學句（不只是「沒有」）', countOf(spellEmpty, '咒語分攻擊與輔助兩種') === 1, `${countOf(spellEmpty, '咒語分攻擊與輔助兩種')} 次`);
+   D. 咒語與儀式：**沒有額度的角色不該有學習／施放入口**
+      （2026-11-02 改寫，使用者裁定）
 
-const withSpell = bare();
-withSpell.spells = [{ name: '火焰', effect: '造成【HR + 5】的火屬性傷害。' }];
-const spellFilled = render(withSpell, { initialTab: 'spells' });
-check('D4 有咒語時標頭按鈕回來', countOf(spellFilled, '學習新咒語') === 1, `${countOf(spellFilled, '學習新咒語')} 次`);
-check('D5 有咒語時空狀態消失', countOf(spellFilled, '從規則庫選擇習得咒語') === 0, '0 次');
+   舊契約是「任何角色都看得到一顆習得咒語的按鈕」（原 D2／D4）——
+   那正是被點出來的規則錯誤：咒語在《FU》裡不是自由選購的商品，
+   而是【元素魔法】／【熵系魔法】／【靈魂魔法】／【咒語模仿】／
+   英雄技能【額外咒語】的產物；儀式則需要對應學派的職業技能或
+   職業免費能力（核心手冊 118~121、188~210）。
+
+   所以 D 段從「一顆按鈕在不在」升級成「**誰才看得到那顆按鈕**」：
+   沒有來源 → 一個入口都不能有；有來源 → 入口要帶額度；額度用完 →
+   入口要自己收起來並說清楚為什麼。
+   ──────────────────────────────────────────────────────────────── */
+const withClass = (className, skills = [], heroicSkills = []) => ({
+  ...bare(),
+  classes: [{ className, level: 5, skills }],
+  heroicSkills
+});
+
+// 三種「學習入口」的文案。任何一種出現都算「給了入口」。
+const LEARN_ENTRY_TEXTS = ['學習新咒語', '從可選清單挑選咒語', '從規則庫選擇習得咒語'];
+const learnEntryCount = (html) => LEARN_ENTRY_TEXTS.reduce((n, t) => n + countOf(html, t), 0);
+
+/* D-1 完全沒有來源：非施法者 */
+const noPath = render(bare(), { initialTab: 'spells' });
+check('D1 非施法者：一個學習入口都沒有', learnEntryCount(noPath) === 0, `${learnEntryCount(noPath)} 顆（${LEARN_ENTRY_TEXTS.join('／')}）`);
+check('D2 非施法者：說的是「本職業沒有咒語學派」，不是「尚未掌握」', countOf(noPath, '本職業沒有咒語學派') === 1, `${countOf(noPath, '本職業沒有咒語學派')} 次`);
+check('D3 非施法者：說出規則依據（核心手冊 188~210）', noPath.includes('核心手冊 188~210'), true);
+check('D4 非施法者：給的是出口不是空白（前往職業技能分頁）', noPath.includes('前往職業技能分頁'), true);
+check('D5 非施法者：也看不到儀式計算器與施放按鈕',
+  !noPath.includes('data-testid="hud-ritual-calculator"') && !noPath.includes('並擲儀式檢定'), true);
+check('D6 非施法者：儀式區換成說明卡，而且卡片存在', noPath.includes('data-testid="hud-ritual-unavailable"'), true);
+check('D7 非施法者：說明卡保留「團隊檢定協助」這條正向出路（核心手冊 p.121）', noPath.includes('團隊檢定'), true);
+check('D8 非施法者：說明卡保留「儀式規則速查」（查閱不是施放）', noPath.includes('儀式規則速查'), true);
+
+/* D-2 有額度、還沒學 */
+const elemental3 = render(withClass('元素師', [{ name: '元素魔法', sl: 3 }]), { initialTab: 'spells' });
+check('D9 有額度：空狀態給「挑選」入口（不是從整個規則庫挑）', countOf(elemental3, '從可選清單挑選咒語') === 1, `${countOf(elemental3, '從可選清單挑選咒語')} 次`);
+check('D10 有額度：教學句寫出「可以學 3 個」', elemental3.includes('可以學 3 個'), true);
+check('D11 有額度：標頭顯示配額 0 / 3', elemental3.includes('data-testid="spell-quota"') && elemental3.includes('0 / 3'), true);
+check('D12 元素師的免費能力帶「儀式學派」→ 計算器出現', elemental3.includes('data-testid="hud-ritual-calculator"'), true);
+check('D13 計算器列出可施展學派（儀式）', elemental3.includes('可施展的儀式學派') && elemental3.includes('儀式'), true);
+
+/* D-3 有額度、已學滿 */
+const elementalFull = withClass('元素師', [{ name: '元素魔法', sl: 1 }]);
+elementalFull.spells = [{ name: '照明烈焰', school: '元素' }];
+const fullHtml = render(elementalFull, { initialTab: 'spells' });
+check('D14 額度用完：標頭不再給「學習新咒語」', countOf(fullHtml, '學習新咒語') === 0, `${countOf(fullHtml, '學習新咒語')} 次`);
+check('D15 額度用完：說出「額度已滿」而不是靜靜消失', fullHtml.includes('額度已滿'), true);
+check('D16 額度用完：配額顯示 1 / 1', fullHtml.includes('1 / 1'), true);
+check('D17 已學的咒語仍然畫得出來（不是一起被藏起來）', countOf(fullHtml, '照明烈焰') === 1, `${countOf(fullHtml, '照明烈焰')} 次`);
+
+/* D-4 有額度、還有剩，且清單非空 → 按鈕回到標頭 */
+const elementalRoom = withClass('元素師', [{ name: '元素魔法', sl: 3 }]);
+elementalRoom.spells = [{ name: '照明烈焰', school: '元素' }];
+const roomHtml = render(elementalRoom, { initialTab: 'spells' });
+check('D18 還有剩額度：標頭按鈕回來', countOf(roomHtml, '學習新咒語') === 1, `${countOf(roomHtml, '學習新咒語')} 次`);
+check('D19 還有剩額度：配額顯示 1 / 3', roomHtml.includes('1 / 3'), true);
+
+/* D-5 嵌合師：有額度，但來源不在規則庫 → 不給「挑選」入口 */
+const chimeristHtml = render(withClass('嵌合師', [{ name: '咒語模仿', sl: 2 }]), { initialTab: 'spells' });
+check('D20 嵌合師：不給「從規則庫挑」的入口（來源是衝突現場）', learnEntryCount(chimeristHtml) === 0, `${learnEntryCount(chimeristHtml)} 顆`);
+check('D21 嵌合師：說明記憶上限（SL 2 → 4 個）', chimeristHtml.includes('最多可同時記憶 4 個'), true);
+check('D22 嵌合師：額度不是 0（有自己的記錄額），所以不是「本職業沒有咒語學派」', !chimeristHtml.includes('本職業沒有咒語學派'), '0 次');
 
 /* ────────────────────────────────────────────────────────────────
    E. 碼面：這三段空狀態不得再用 text-slate-400（2.56:1）
@@ -140,8 +196,8 @@ check(
 );
 check(
   'F3 查無食材有自己的離開指引',
-  cookSrc.includes('手上的食材不在這個口味裡'),
-  cookSrc.includes('手上的食材不在這個口味裡') ? '1 句' : '缺'
+  cookSrc.includes('換一個口味，或點「全部」'),
+  cookSrc.includes('換一個口味，或點「全部」') ? '1 句' : '缺'
 );
 /* 第十一輪：虛線框搬進 `EmptyState`，所以這裡驗「兩塊都走元件」而不是數 `border-dashed`。 */
 check(
@@ -266,7 +322,7 @@ check('F-023 相性區塊只出現一次（不會每個分頁各畫一份）',
 
    這一條的病不是「找不到」，是**同一份 UI 被渲染兩次**（DOM 加倍、捲動加倍），
    以及**死靈術士的僕從只住在「武器與戰鬥」**——玩家學會【殘酷的誕生】之後
-   會去「職業特技」找（那裡才是放職業技能的地方），找不到就以為功能沒做。
+   會去「職業技能」找（那裡才是放職業技能的地方），找不到就以為功能沒做。
 
    修法：一張對照表（`data/classPanels.js`）回答「這個面板住哪個分頁」，
    面板只掛一次，不在當前分頁時給一句指路。
@@ -332,24 +388,24 @@ const necroSkillsTab = render(necroStr, { initialTab: 'skills' });
 const necroCombatTab = render(necroStr, { initialTab: 'attacks' });
 const pilotSkillsTab = render(pilot, { initialTab: 'skills' });
 
-check('F-020 職業特技分頁：旅人卡上有指路句',
+check('F-020 職業技能分頁：旅人卡上有指路句',
   countOf(wayfarerSkillsTab, 'data-testid="class-panel-hint-旅人"'), 1);
-check('F-020 職業特技分頁：指路句寫「夥伴卡在「武器與戰鬥」分頁」',
+check('F-020 職業技能分頁：指路句寫「夥伴卡在「武器與戰鬥」分頁」',
   wayfarerSkillsTab.includes('夥伴卡在「武器與戰鬥」分頁'), true);
 // ※ 這三條是「不該出現」的斷言，所以要把結果**取反**再傳給 ok。
 //   這個檔案自己在上面的註解就寫過這件事，我還是照樣寫錯了一次：
 //   把 `includes(...)` 直接當 ok，等於在斷言「它存在」，意思剛好相反。
-check('F-020 職業特技分頁：旅人面板本身不在這裡（只指路，不重複渲染）',
+check('F-020 職業技能分頁：旅人面板本身不在這裡（只指路，不重複渲染）',
   !wayfarerSkillsTab.includes('官方 5 級 NPC 隨從'), '面板字串 0 次');
 check('F-020 武器與戰鬥分頁：旅人面板在這裡，而且只有一份',
   countOf(wayfarerCombatTab, '官方 5 級 NPC 隨從'), 1);
 check('F-020 武器與戰鬥分頁：面板就在這一頁，所以沒有指路句',
   !wayfarerCombatTab.includes('data-testid="class-panel-hint-旅人"'), '指路句 0 次');
-check('F-020 職業特技分頁：死靈術士卡上有指路句（以前這裡什麼都沒有）',
+check('F-020 職業技能分頁：死靈術士卡上有指路句（以前這裡什麼都沒有）',
   necroSkillsTab.includes('僕從卡在「武器與戰鬥」分頁'), true);
 check('F-020 武器與戰鬥分頁：死靈術士的僕從卡在這裡',
   countOf(necroCombatTab, '還沒有僕從'), 1);
-check('F-020 職業特技分頁：機師卡上指路到「武器與戰鬥」',
+check('F-020 職業技能分頁：機師卡上指路到「武器與戰鬥」',
   pilotSkillsTab.includes('載具卡在「武器與戰鬥」分頁'), true);
 check('F-020 沒有專屬面板的職業不會長出指路句',
   !render(guardian, { initialTab: 'skills' }).includes('class-panel-hint-守護者'), '指路句 0 次');

@@ -219,7 +219,7 @@ export default function WayfarerCompanionSheet({
         </div>
       </div>
 
-      {/* 四維屬性骰展示 */}
+      {/* 屬性骰展示 */}
       <div className="grid grid-cols-4 gap-2">
         <div className="p-2 rounded bg-white border border-[#d6c7ab] text-center space-y-0.5">
           <span className="text-t10 text-[#7c6a58] block font-bold">DEX</span>

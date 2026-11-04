@@ -294,7 +294,7 @@ export function QuirkPickerBody({
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-6 space-y-2" style={{ color: theme.textMuted }}>
               <GiHazardSign className="w-8 h-8 opacity-40" />
-              <p className="text-t12">從左邊點一個金手指，這裡會顯示它的完整內容。</p>
+              <p className="text-t12">從左邊選一個金手指</p>
               <p className="text-t12 opacity-80">
                 金手指是**選用規則**——原書只建議「想玩就用、而且開局一人一個」，不強制。
               </p>

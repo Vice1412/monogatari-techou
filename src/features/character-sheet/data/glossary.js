@@ -36,7 +36,7 @@
  * | 技能等級 | `rulesData.json` 每條技能有 `maxSL`，實測值域 1–10，**不是固定 5** |
  * | 職業技能 | 29 個職業各 5 條技能（`rulesData.json` 實測 145 條） |
  * | 金手指 | 三大奇幻手冊的選用規則；本專案 §AR |
- * | 命刻 | 跑團用的進度鐘；本專案 §BF 的名詞裁定「生長命刻」 |
+ * | 命刻 | 跑團用的進度記錄；本專案 §BF 的名詞裁定「生長命刻」 |
  *
  * ※ **「精通 ＝ 5 條技能全滿」是錯的。** `findings.md` 的 F-028 條目這樣寫過，
  * 但引擎與原書都是「該職業達 10 級」。2026-10-27 修這條時一併更正。
@@ -60,12 +60,12 @@ export const GLOSSARY = [
   {
     id: 'freeBonus',
     term: '免費增益',
-    short: '有些職業一入門就送的固定好處，不佔技能點數。'
+    short: '有些職業一入門就送的固定好處，不佔用升級時分配的技能等級。'
   },
   {
     id: 'classSkill',
     term: '職業技能',
-    alias: '特技',
+    alias: '技能',
     short: '每個職業的專屬能力，點高就是該職業的戰力。'
   },
   {
@@ -86,7 +86,7 @@ export const GLOSSARY = [
   {
     id: 'fateClock',
     term: '命刻',
-    short: '一格一格的進度鐘，跑團時由 GM 和玩家一起推動。'
+    short: '一格一格的進度記錄，跑團時由 GM 和玩家一起推動。'
   },
   {
     id: 'playtest',
@@ -106,7 +106,7 @@ export const GLOSSARY = [
   },
   {
     id: 'attributes',
-    term: '四維屬性',
+    term: '屬性',
     short: 'DEX、INS、MIG、WLP 四項，決定命中、閃避、傷害與魔法。'
   },
   {
