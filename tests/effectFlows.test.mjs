@@ -88,9 +88,9 @@ check('total 與清單一致', REPORT.total, FLOW_ITEMS.length);
 const APPLY_VIAS = ['existing', 'flow-control', 'flow-listed', 'none'];
 check('每一筆的 apply.via 都在封閉詞彙內',
   FLOW_ITEMS.filter((i) => !APPLY_VIAS.includes(i.apply?.via)).map((i) => i.id), []);
-check('flow-control 的條目一定有控件（counter/toggle/button）',
+check('flow-control 的條目一定有控件（counter/toggle/button/select）',
   FLOW_ITEMS.filter((i) => i.apply?.via === 'flow-control'
-    && !['counter', 'toggle', 'button'].includes(i.control?.kind)).map((i) => i.id), []);
+    && !['counter', 'toggle', 'button', 'select'].includes(i.control?.kind)).map((i) => i.id), []);
 check('narrative 一定是 via=none',
   FLOW_ITEMS.filter((i) => i.flow === 'narrative' && i.apply?.via !== 'none').map((i) => i.id), []);
 
@@ -206,10 +206,16 @@ check('null 角色回空陣列', characterFlowItems(null), []);
 section('E. readFlowState：缺欄一律容忍（舊存檔沒有 flowState）');
 const COUNTER_ITEM = flowItemForClassSkill('博學士', '靈光一閃'); // max = SL
 const NO_MAX_ITEM = flowItemForHeroic('怒潮拳');                 // max = 無上限
-check('從未寫入 -> {n:0,on:false}', readFlowState(mkChar(), COUNTER_ITEM), { n: 0, on: false });
+// 第二期加了 `choice`（「選一個」的條目用：所選武器類別、所選元素源泉…）。
+// 狀態一律回三個欄位；缺 `choice` 的舊存檔回空字串，**不回 undefined**——
+// UI 與引擎都靠「是不是空字串」判斷「玩家選了沒」。
+check('從未寫入 -> {n:0,on:false,choice:空}', readFlowState(mkChar(), COUNTER_ITEM), { n: 0, on: false, choice: '' });
 check('讀到的不是 undefined', readFlowState(mkChar(), COUNTER_ITEM) !== undefined, true);
-check('寫過 1/true -> 原值', readFlowState(
-  mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 1, on: true } } }), COUNTER_ITEM), { n: 1, on: true });
+check('寫過 1/true -> 原值（choice 一併讀回）', readFlowState(
+  mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 1, on: true, choice: '劍' } } }), COUNTER_ITEM),
+  { n: 1, on: true, choice: '劍' });
+check('舊存檔沒有 choice -> 回空字串（不是 undefined）', readFlowState(
+  mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 1, on: true } } }), COUNTER_ITEM).choice, '');
 check('填成 0 就是 0（不會復活成初始值）', readFlowState(
   mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 0, on: false } } }), COUNTER_ITEM).n, 0);
 check('超過上限 -> 夾到上限 2', readFlowState(
@@ -218,8 +224,8 @@ check('沒有上限的條目不夾（99 就 99）', readFlowState(
   mkChar({ flowState: { [NO_MAX_ITEM.id]: { n: 99, on: false } } }), NO_MAX_ITEM).n, 99);
 check('on 只認 true', readFlowState(
   mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 1, on: 'yes' } } }), COUNTER_ITEM).on, false);
-check('null 角色 -> 預設', readFlowState(null, COUNTER_ITEM), { n: 0, on: false });
-check('undefined 條目 -> 預設', readFlowState(mkChar(), undefined), { n: 0, on: false });
+check('null 角色 -> 預設', readFlowState(null, COUNTER_ITEM), { n: 0, on: false, choice: '' });
+check('undefined 條目 -> 預設', readFlowState(mkChar(), undefined), { n: 0, on: false, choice: '' });
 
 // ─────────────────────────────────────────────────────────── F
 section('F. clampFlowState：有上限才夾，無上限不夾');
@@ -345,6 +351,22 @@ check('但它會列進 conditional（附條件原文）', defMods.conditional.so
 check('英雄技能的 damage 型加值也不進 totals（target 不在六個數值欄位）',
   characterFlowModifiers(mkChar({ classes: [], heroicSkills: ['強力攻擊'] })).totals.def, 0);
 
+// ── 第三期：`crisis` 需要 `stats`（HP 上限），而且要能跟著角色狀態變 ─────────
+// 【腎上腺素】的效果只在「處於危機」時成立。這一組驗的是「同一個角色、
+// 只改 HP → 清單跟著變」；如果 `characterFlowModifiers` 沒把 `stats` 傳下去，
+// `crisis` 會永遠 unknown，兩條都會列出來（看起來像「怎麼一直都在」）。
+const adrenaline = (currentHp) => mkChar({
+  classes: [{ className: '狂怒鬥士', level: 5, skills: [{ name: '腎上腺素', sl: 1 }] }],
+  currentHp
+});
+const isAdrenalineListed = (mods) => mods.conditional.some((c) => c.source === '腎上腺素');
+check('危機外（HP 30／上限 30）→ 不列',
+  isAdrenalineListed(characterFlowModifiers(adrenaline(30), { maxHp: 30, crisisThreshold: 15 })), false);
+check('危機中（HP 15／上限 30）→ 列出來',
+  isAdrenalineListed(characterFlowModifiers(adrenaline(15), { maxHp: 30, crisisThreshold: 15 })), true);
+check('沒有 stats 時危機判不出來 → 仍列出來（unknown 不當作不成立）',
+  isAdrenalineListed(characterFlowModifiers(adrenaline(30))), true);
+
 // ── 第二期：結構化條件（`when`）真的會改結果 ──────────────────────────────
 // 【靈巧雙手】的 `when` 是 `equippedTwoCategories`。三種裝備狀態給三種結果，
 // 這一組就是「條件型加值有沒有真的接上」的驗證：
@@ -398,7 +420,10 @@ for (const item of FLOW_ITEMS) {
 }
 check('每一筆 effects[].scope 都在封閉詞彙內', badScope, []);
 check('target 封閉詞彙 21 個', FLOW_TARGETS.length, 21);
-check('control 型態封閉詞彙 4 個', FLOW_CONTROL_KINDS.length, 4);
+check('control 型態封閉詞彙 5 個（第三期加了 select）', FLOW_CONTROL_KINDS.length, 5);
+check('每一筆 select 都有選項（沒有選項＝一個空白下拉）',
+  FLOW_ITEMS.filter((i) => i.control?.kind === 'select' && !(i.control.options || []).length)
+    .map((i) => i.id), []);
 check('每個 id 都以分類為前綴',
   FLOW_ITEMS.filter((i) => !i.id.startsWith(`${i.category}:`)).map((i) => i.id), []);
 
@@ -406,14 +431,17 @@ check('每個 id 都以分類為前綴',
 section('J. 不可變更新與「不得使用 eval」');
 const before = mkChar({ flowState: { 'class:博學士:集中': { n: 1, on: true } } });
 const after = withFlowState(before, COUNTER_ITEM.id, { n: 2, on: true });
-check('新值寫進新物件', after.flowState[COUNTER_ITEM.id], { n: 2, on: true });
+check('新值寫進新物件（choice 一併帶過）', after.flowState[COUNTER_ITEM.id], { n: 2, on: true, choice: '' });
 check('原物件未被修改', before.flowState[COUNTER_ITEM.id], undefined);
 check('其他條目的狀態原樣保留', after.flowState['class:博學士:集中'], { n: 1, on: true });
 check('沒有 flowState 時可建立',
   withFlowState(mkChar(), COUNTER_ITEM.id, { n: 1, on: false }).flowState[COUNTER_ITEM.id].n, 1);
-check('重置回初始值並關掉開關',
-  flowResetState(mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 2, on: true } } }), COUNTER_ITEM)
-    .flowState[COUNTER_ITEM.id], { n: 0, on: false });
+check('寫入 choice：選了就留著（重繪不會掉）',
+  withFlowState(mkChar(), COUNTER_ITEM.id, { n: 0, on: false, choice: '劍' })
+    .flowState[COUNTER_ITEM.id].choice, '劍');
+check('重置回初始值並關掉開關（choice 也清空）',
+  flowResetState(mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 2, on: true, choice: '劍' } } }), COUNTER_ITEM)
+    .flowState[COUNTER_ITEM.id], { n: 0, on: false, choice: '' });
 
 let source = '';
 try {

@@ -223,9 +223,42 @@ function ToggleControl({ control, item, state, theme, testId, onToggle }) {
   );
 }
 
+/** 一顆「選一個」的下拉（第三期：`select`）。 */
+function SelectControl({ control, item, state, theme, testId, onChoice }) {
+  const options = Array.isArray(control.options) ? control.options : [];
+  const value = typeof state.choice === 'string' ? state.choice : '';
+  return (
+    <div data-testid={testId} className="space-y-1">
+      <label className="flex items-center gap-2 flex-wrap">
+        <span className="text-t12 font-bold" style={{ color: theme.textDark }}>
+          {control.label || item.name || '選擇一項'}
+        </span>
+        <select
+          data-testid={`${testId}-choice`}
+          value={value}
+          onChange={(e) => onChoice(e.target.value)}
+          className="text-t12 rounded border px-2 py-1 outline-none"
+          style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
+        >
+          {/* 空選項不是裝飾：它是「還沒選」。預設選第一個會替玩家做決定，
+              而【類別訓練】的選擇是永久的（選錯要重開卡）。 */}
+          <option value="">（尚未選擇）</option>
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </label>
+      {!value ? (
+        <p className="text-t12 leading-relaxed" style={{ color: theme.accent }}>
+          還沒選——選了之後，其他分頁（例如熟練度）才會跟著更新。
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 /** 一顆主按鈕 ＋ 一行「按了會怎樣」。 */
-function ButtonControl({ control, item, theme, testId, costBlocked, onAct }) {
-  const blocked = Boolean(costBlocked && costBlocked.blocked);
+function ButtonControl({ control, item, theme, testId, costBlocked, onAct }) {  const blocked = Boolean(costBlocked && costBlocked.blocked);
   const reason = (costBlocked && costBlocked.reason) || '';
   const text = control.label || item.name || '執行';
   const outcome = control.outcome || '';
@@ -282,6 +315,7 @@ export default function SkillFlowControls({
   onReset = noop,
   onToggle = noop,
   onAct = noop,
+  onChoice = noop,
   testId
 }) {
   if (!item || !item.control) return null;
@@ -315,6 +349,19 @@ export default function SkillFlowControls({
 
   if (control.kind === 'toggle') {
     return <ToggleControl control={control} item={item} state={safeState} theme={pal} testId={id} onToggle={onToggle} />;
+  }
+
+  if (control.kind === 'select') {
+    return (
+      <SelectControl
+        control={control}
+        item={item}
+        state={safeState}
+        theme={pal}
+        testId={id}
+        onChoice={onChoice}
+      />
+    );
   }
 
   if (control.kind === 'button') {

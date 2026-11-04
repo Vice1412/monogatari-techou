@@ -1389,6 +1389,30 @@ export const createNewCharacter = (overrides = {}, rules = DEFAULT_CREATION_RULE
 /**
  * 檢查角色擁有的軍用武裝熟練度
  */
+/**
+ * 【類別訓練】（公測英雄技能）的「所選類別 → 熟練度鍵」對照。
+ *
+ * 三個容易寫錯的地方，逐條寫在這裡：
+ * ① 值用**裝備表的 `category`**：技能原文寫「格鬥／奧祕」，武器表是「鬥毆／奧術」。
+ *    用原文的字去查，永遠查不到（與【暴怒】的條件判定同一個坑）。
+ * ② 弓／火器／投擲是**遠程**，其餘（含奧術、鬥毆、連枷…）算**近戰**——
+ *    原書把它們都歸在 martial melee weapons 底下。
+ * ③ 它**不給防具與盾牌**：原文只說「職業武器」，所以 `martialArmor`／`martialShields`
+ *    不會被打開。多給一項會讓玩家以為自己可以穿重甲。
+ */
+const CLASS_TRAINING_PROFICIENCY = Object.freeze({
+  弓: 'martialRanged',
+  火器: 'martialRanged',
+  投擲: 'martialRanged',
+  奧術: 'martialMelee',
+  鬥毆: 'martialMelee',
+  匕首: 'martialMelee',
+  連枷: 'martialMelee',
+  重型: 'martialMelee',
+  矛: 'martialMelee',
+  劍: 'martialMelee'
+});
+
 export const getProficiencies = (char) => {
   const profs = {
     martialMelee: false,
@@ -1431,6 +1455,19 @@ export const getProficiencies = (char) => {
   (getQuirkEffects(char).profs || []).forEach((key) => {
     if (Object.prototype.hasOwnProperty.call(profs, key)) profs[key] = true;
   });
+
+  // 英雄技能給的熟練度（第三期）：【類別訓練】「從十種武器類別中選擇一種……
+  // 你獲得裝備屬於**所選類別**的職業武器之能力」。
+  //
+  // 以前這條完全沒接：玩家選了技能、跑完建角，編輯器的熟練度仍然四項全 ✗，
+  // 而畫面上沒有任何訊息說「因為 App 不知道你選了哪一種」——最容易被當成壞掉的不一致。
+  //
+  // 所選類別存在 `flowState['heroic:類別訓練'].choice`（由跑團卡的 `select` 控件寫入）。
+  // 對照表放引擎而不是資料層：「哪個類別對應哪一種熟練度」是規則語意，不是玩家的選項。
+  const trainingChoice = char?.flowState?.['heroic:類別訓練']?.choice;
+  if (trainingChoice && CLASS_TRAINING_PROFICIENCY[trainingChoice]) {
+    profs[CLASS_TRAINING_PROFICIENCY[trainingChoice]] = true;
+  }
 
   return profs;
 };

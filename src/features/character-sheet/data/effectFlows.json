@@ -2501,7 +2501,12 @@
      "perSL": 0,
      "flat": 0,
      "scope": "scene",
-     "condition": "危機狀態：獲得暗屬性與毒屬性傷害抗性"
+     "condition": "危機狀態：獲得暗屬性與毒屬性傷害抗性",
+     "when": [
+      {
+       "kind": "crisis"
+      }
+     ]
     }
    ],
    "apply": {
@@ -3552,7 +3557,12 @@
      "perSL": 2,
      "flat": 0,
      "scope": "scene",
-     "condition": "危機狀態：所有傷害 +SL×2"
+     "condition": "危機狀態：所有傷害 +SL×2",
+     "when": [
+      {
+       "kind": "crisis"
+      }
+     ]
     }
    ],
    "apply": {
@@ -3931,7 +3941,12 @@
      "perSL": -5,
      "flat": 0,
      "scope": "scene",
-     "condition": "危機狀態下的召喚 MP"
+     "condition": "危機狀態下的召喚 MP",
+     "when": [
+      {
+       "kind": "crisis"
+      }
+     ]
     }
    ],
    "apply": {
@@ -11108,9 +11123,51 @@
    "flow": "grant",
    "bucket": "playtest",
    "control": {
-    "kind": "toggle",
+    "kind": "select",
     "label": "所選武器類別（十選一）",
-    "reset": "none"
+    "reset": "none",
+    "options": [
+     {
+      "value": "奧術",
+      "label": "奧術"
+     },
+     {
+      "value": "弓",
+      "label": "弓"
+     },
+     {
+      "value": "鬥毆",
+      "label": "鬥毆"
+     },
+     {
+      "value": "匕首",
+      "label": "匕首"
+     },
+     {
+      "value": "火器",
+      "label": "火器"
+     },
+     {
+      "value": "連枷",
+      "label": "連枷"
+     },
+     {
+      "value": "重型",
+      "label": "重型"
+     },
+     {
+      "value": "矛",
+      "label": "矛"
+     },
+     {
+      "value": "劍",
+      "label": "劍"
+     },
+     {
+      "value": "投擲",
+      "label": "投擲"
+     }
+    ]
    },
    "effects": [
     {
@@ -11131,7 +11188,7 @@
    "apply": {
     "via": "flow-control"
    },
-   "note": "授予的是「裝備該類別職業武器的能力」，而熟練度顯示就在畫面上；選了這條技能仍然顯示 ✗ 是最容易讓玩家困惑的一種不一致。",
+   "note": "授予的是「裝備該類別職業武器的能力」＋命中和傷害加值。所選類別現在真的記得住（`flowState.choice`），引擎據此給熟練度；命中 +2 與傷害 +5 仍是條件式（只有用該類別的武器時才算）。",
    "evidence": [
     {
      "at": "src/features/character-sheet/utils/characterEngine.js:1390-1432",

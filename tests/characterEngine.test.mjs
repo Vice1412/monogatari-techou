@@ -1249,6 +1249,26 @@ check('M 倖存者①（裝備熟練）→ 四項全部 true',
 check('M 倖存者③（+2 IP）不會順帶給熟練度', profOf({ quirk: '倖存者', quirkChoice: 'ip' }), NO_PROF);
 check('M 倖存者②（學咒語）不會順帶給熟練度', profOf({ quirk: '倖存者', quirkChoice: 'spell' }), NO_PROF);
 
+// ── 【類別訓練】（公測英雄技能）：所選類別 → 那一項熟練度（第三期）
+// 原文：「從十種武器類別中選擇一種……你獲得裝備屬於所選類別的職業武器之能力」。
+// 所選類別存在 `flowState['heroic:類別訓練'].choice`（跑團卡的下拉寫入）。
+// 以前這條完全沒接：選了技能，熟練度仍然四項全 false，畫面卻沒有任何解釋。
+const trained = (choice) => getProficiencies(mk({
+  attributes: ALL_8,
+  flowState: { 'heroic:類別訓練': { n: 0, on: false, choice } }
+}));
+check('M 類別訓練選「劍」→ 近戰武器熟練', trained('劍').martialMelee, true);
+check('M 類別訓練選「劍」→ 不會順帶給遠程', trained('劍').martialRanged, false);
+check('M 類別訓練選「弓」→ 遠程武器熟練', trained('弓').martialRanged, true);
+// 技能原文寫「奧祕／格鬥」，裝備表的 category 是「奧術／鬥毆」——值一律用資料層的字。
+check('M 類別訓練選「奧術」→ 近戰（原文寫「奧祕」，值是資料層的「奧術」）',
+  trained('奧術').martialMelee, true);
+// 反向：它只給**武器**，不給防具與盾牌。多給一項會讓玩家以為自己能穿重甲。
+check('M 類別訓練不給職業防具', trained('劍').martialArmor, false);
+check('M 類別訓練不給職業盾牌', trained('劍').martialShields, false);
+check('M 沒選類別 → 四項全 false（不替玩家決定）', trained(''), NO_PROF);
+check('M 選了不存在的類別 → 四項全 false（不猜）', trained('雷射砲'), NO_PROF);
+
 // ── 富家子弟：起始資金 +1000z
 // 原書寫「你的初始資金將增加 1000z」。這裡驗的是「引擎算得出這個加成」；
 // 「編輯器換金手指時會不會重複加／該不該退」屬於 UI 行為，由 §CJ 那類的元件測試守。

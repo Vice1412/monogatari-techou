@@ -895,6 +895,9 @@ export default function CharacterPlayHUD({
         onAdjust={(delta) => adjustFlowCounter(item, { ...state, n: state.n + delta })}
         onReset={() => adjustFlowCounter(item, flowResetState(character, item))}
         onToggle={() => adjustFlowCounter(item, { ...state, on: !state.on })}
+        // `select`（第三期）：「選一個」的條目。【類別訓練】的所選類別就寫在這裡，
+        // 引擎（`getProficiencies`）讀 `flowState[id].choice` 才知道要給哪一項熟練度。
+        onChoice={(value) => adjustFlowCounter(item, { ...state, choice: value })}
         onAct={() => applyFlowPlan(flowActionPlan(item, character, { sl, level: characterLevel, stats }))}
         testId={testId}
       />

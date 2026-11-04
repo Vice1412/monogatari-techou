@@ -25,7 +25,7 @@ const SRC_DIR = path.join(ROOT, 'scratch', 'flows');
 const OUT = path.join(ROOT, 'src', 'features', 'character-sheet', 'data', 'effectFlows.json');
 
 const FLOW_KINDS = ['modifier', 'state', 'action', 'grant', 'narrative'];
-const CONTROL_KINDS = ['none', 'counter', 'toggle', 'button'];
+const CONTROL_KINDS = ['none', 'counter', 'toggle', 'button', 'select'];
 const TARGETS = [
   'hpMax', 'mpMax', 'ipMax', 'def', 'mdef', 'initiative', 'check', 'damage', 'damageTaken',
   'resistance', 'vulnerability', 'immunity', 'statusApplied', 'mpCost', 'ipCost', 'zenit',
@@ -73,7 +73,7 @@ const deriveApply = (row) => {
     };
   }
   const kind = row.control?.kind || 'none';
-  if (kind === 'counter' || kind === 'toggle' || kind === 'button') {
+  if (kind === 'counter' || kind === 'toggle' || kind === 'button' || kind === 'select') {
     return { via: 'flow-control' };
   }
   if (Array.isArray(row.effects) && row.effects.length > 0) {
@@ -128,6 +128,11 @@ for (const row of rows) {
   if (controlKind === 'counter' && (!row.control?.max || !row.control?.reset)) {
     errors.push(`${where}：counter 缺 max 或 reset`);
   }
+  // `select`（第三期）：「選一個」的條目。沒有 `options` 就等於畫一個空白下拉，
+  // 玩家選不到任何東西——那比不畫更糟（看起來像壞掉）。
+  if (controlKind === 'select' && (!row.control?.label || !(row.control?.options || []).length)) {
+    errors.push(`${where}：select 缺 label 或 options`);
+  }
   if (controlKind === 'button' && (!row.control?.label || !row.control?.outcome)) {
     errors.push(`${where}：button 缺 label 或 outcome`);
   }
@@ -175,7 +180,17 @@ for (const row of rows) {
         ...(row.control?.initial != null ? { initial: row.control.initial } : {}),
         ...(row.control?.step != null ? { step: row.control.step } : {}),
         ...(row.control?.cost && Object.keys(row.control.cost).length ? { cost: row.control.cost } : {}),
-        ...(row.control?.outcome ? { outcome: row.control.outcome } : {})
+        ...(row.control?.outcome ? { outcome: row.control.outcome } : {}),
+        // `select` 的選項：值與顯示名（值必須是資料層認得的字串——類別要用
+        // 裝備表的 `category` 值，例如「鬥毆」而不是技能原文「格鬥」）。
+        ...(Array.isArray(row.control?.options) && row.control.options.length
+          ? {
+            options: row.control.options.map((o) => ({
+              value: String(o.value),
+              label: String(o.label || o.value)
+            }))
+          }
+          : {})
       },
     effects,
     ...(itemWhen ? { when: itemWhen } : {}),

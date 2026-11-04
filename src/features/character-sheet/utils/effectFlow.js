@@ -34,7 +34,10 @@ import { evaluateWhen, buildConditionContext } from './effectConditions.js';
 // ─────────────────────────────────────────────────────────── 封閉詞彙
 
 /** 控制項型態。`none` 代表「這條沒有可操作的控制項」，UI 應該完全不畫。 */
-export const FLOW_CONTROL_KINDS = Object.freeze(['none', 'counter', 'toggle', 'button']);
+// `select`（第三期）：需要「選一個」的條目——所選武器類別、所選元素源泉……
+// 這一種控件不佔數字，只記 `flowState[id].choice`；引擎要靠那個字串才有辦法算
+// （例如【類別訓練】給的熟練度）。沒有它，玩家選了「劍」，`profs` 仍是 false。
+export const FLOW_CONTROL_KINDS = Object.freeze(['none', 'counter', 'toggle', 'button', 'select']);
 
 /**
  * 效果作用對象的封閉詞彙。
@@ -469,13 +472,16 @@ export const flowVarsFor = (character) => {
  * @returns {{n:number, on:boolean}}
  */
 export const readFlowState = (character, item) => {
-  if (!item || typeof item.id !== 'string') return { n: 0, on: false };
+  if (!item || typeof item.id !== 'string') return { n: 0, on: false, choice: '' };
   const raw = character?.flowState?.[item.id];
   const wrote = toFiniteInt(raw?.n);
   const base = wrote === null ? controlInitial(item) : wrote;
   const max = controlMax(character, item);
   const n = max === null ? Math.max(0, base) : Math.min(max, Math.max(0, base));
-  return { n, on: raw?.on === true };
+  // choice：需要「選一個」的條目（所選武器類別、所選元素源泉…）。
+  // 沒有這個欄位的舊存檔一律回空字串（＝還沒選），不回 undefined——
+  // UI 與引擎都靠「是不是空字串」判斷「玩家選了沒」。
+  return { n, on: raw?.on === true, choice: typeof raw?.choice === 'string' ? raw.choice : '' };
 };
 
 /**
@@ -490,7 +496,8 @@ export const clampFlowState = (character, item, next) => {
   const base = raw === null ? controlInitial(item) : raw;
   const max = controlMax(character, item);
   const n = max === null ? Math.max(0, base) : Math.min(max, Math.max(0, base));
-  return { n, on: next?.on === true };
+  const choice = typeof next?.choice === 'string' ? next.choice : '';
+  return { n, on: next?.on === true, choice };
 };
 
 /**
@@ -504,7 +511,11 @@ export const withFlowState = (character, id, nextState) => {
     ...base,
     flowState: {
       ...(base.flowState || {}),
-      [key]: { n: Math.max(0, toFiniteInt(nextState?.n) ?? 0), on: nextState?.on === true }
+      [key]: {
+        n: Math.max(0, toFiniteInt(nextState?.n) ?? 0),
+        on: nextState?.on === true,
+        choice: typeof nextState?.choice === 'string' ? nextState.choice : ''
+      }
     }
   };
 };
@@ -518,7 +529,7 @@ export const withFlowState = (character, id, nextState) => {
  */
 export const flowResetState = (character, item) => {
   if (!item || typeof item.id !== 'string') return character;
-  return withFlowState(character, item.id, { n: controlInitial(item), on: false });
+  return withFlowState(character, item.id, { n: controlInitial(item), on: false, choice: '' });
 };
 
 // ─────────────────────────────────────────────────────────── 動作計畫
