@@ -6423,12 +6423,14 @@
    "control": {
     "kind": "button",
     "label": "一點就通（每衝突場景一次）",
+    "reset": "scene",
     "outcome": "暫時取得一個未學過的技能直到場景結束，SL 視為 1"
    },
    "controls": [
     {
      "kind": "button",
      "label": "一點就通（每衝突場景一次）",
+     "reset": "scene",
      "outcome": "暫時取得一個未學過的技能直到場景結束，SL 視為 1"
     }
    ],
@@ -8930,12 +8932,14 @@
    "control": {
     "kind": "button",
     "label": "快速學習（每衝突場景一次）",
+    "reset": "scene",
     "outcome": "暫時取得一個未學過的技能或咒語直到場景結束"
    },
    "controls": [
     {
      "kind": "button",
      "label": "快速學習（每衝突場景一次）",
+     "reset": "scene",
      "outcome": "暫時取得一個未學過的技能或咒語直到場景結束"
     }
    ],
@@ -13867,16 +13871,21 @@
    "flow": "state",
    "control": {
     "kind": "counter",
-    "label": "",
+    "label": "依賴點數",
     "max": "20",
     "reset": "none"
    },
    "controls": [
     {
      "kind": "counter",
-     "label": "",
+     "label": "依賴點數",
      "max": "20",
      "reset": "none"
+    },
+    {
+     "kind": "text",
+     "label": "主人姓名與關係",
+     "maxLength": 100
     }
    ],
    "effects": [
@@ -14018,6 +14027,11 @@
     {
      "kind": "toggle",
      "label": "在宿主體內／離開宿主（衝突中僅回合開始可切換）"
+    },
+    {
+     "kind": "text",
+     "label": "宿主隊友姓名",
+     "maxLength": 50
     }
    ],
    "effects": [
@@ -14053,12 +14067,14 @@
    "control": {
     "kind": "button",
     "label": "進入衝突場景（+1 物語點）",
+    "reset": "scene",
     "outcome": "物語點 +1"
    },
    "controls": [
     {
      "kind": "button",
      "label": "進入衝突場景（+1 物語點）",
+     "reset": "scene",
      "outcome": "物語點 +1"
     }
    ],
@@ -14093,11 +14109,17 @@
    "name": "信魔使徒",
    "flow": "grant",
    "control": {
-    "kind": "none"
+    "kind": "text",
+    "label": "惡魔夥伴名字與外表",
+    "multiline": true,
+    "maxLength": 200
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "text",
+     "label": "惡魔夥伴名字與外表",
+     "multiline": true,
+     "maxLength": 200
     }
    ],
    "effects": [
@@ -14203,6 +14225,11 @@
      "kind": "toggle",
      "label": "本章節已用過（向 GM 索取載具與 2 點物語點）",
      "reset": "chapter"
+    },
+    {
+     "kind": "text",
+     "label": "載具名稱與特徵",
+     "maxLength": 100
     }
    ],
    "effects": [
@@ -14342,6 +14369,12 @@
      "kind": "button",
      "label": "章節結束：結算預言（五選一）",
      "outcome": "依選項恢復 HP/MP/狀態、加減物語點，必要時移除金手指並開英雄技能選器"
+    },
+    {
+     "kind": "text",
+     "label": "預言內容",
+     "multiline": true,
+     "maxLength": 200
     }
    ],
    "effects": [
@@ -14557,16 +14590,22 @@
    "flow": "state",
    "control": {
     "kind": "counter",
-    "label": "",
+    "label": "訣別進度",
     "max": "10",
     "reset": "none"
    },
    "controls": [
     {
      "kind": "counter",
-     "label": "",
+     "label": "訣別進度",
      "max": "10",
      "reset": "none"
+    },
+    {
+     "kind": "text",
+     "label": "原世界身份與執念",
+     "multiline": true,
+     "maxLength": 200
     }
    ],
    "effects": [
@@ -14602,13 +14641,23 @@
    "control": {
     "kind": "button",
     "label": "本次 IP 成本歸 0（每場景一次）",
-    "outcome": "IP 花費視為 0"
+    "reset": "scene",
+    "outcome": "本次 IP 花費視為 0"
    },
    "controls": [
     {
      "kind": "button",
      "label": "本次 IP 成本歸 0（每場景一次）",
-     "outcome": "IP 花費視為 0"
+     "reset": "scene",
+     "outcome": "本次 IP 花費視為 0"
+    },
+    {
+     "kind": "button",
+     "label": "花 1 點物語點：自備造物零件（造物獲得一個缺陷）",
+     "cost": {
+      "fp": 1
+     },
+     "outcome": "扣 1 點物語點並寫一筆履歷；該造物獲得一個可怕的缺陷"
     }
    ],
    "effects": [
@@ -14664,6 +14713,11 @@
       "fp": 1
      },
      "outcome": "本次 HP/MP 花費視為 0"
+    },
+    {
+     "kind": "text",
+     "label": "宿敵與領域",
+     "maxLength": 100
     }
    ],
    "effects": [
@@ -14697,17 +14751,23 @@
    "name": "失憶古賢",
    "flow": "state",
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "6",
-    "reset": "rest"
+    "kind": "button",
+    "label": "忽略 ≤100 點成本（每次休息一次）",
+    "reset": "rest",
+    "outcome": "本次花費 100 點或以下的 HP、MP 或 IP 視為 0；直到下一次休息前無法再使用"
    },
    "controls": [
     {
+     "kind": "button",
+     "label": "忽略 ≤100 點成本（每次休息一次）",
+     "reset": "rest",
+     "outcome": "本次花費 100 點或以下的 HP、MP 或 IP 視為 0；直到下一次休息前無法再使用"
+    },
+    {
      "kind": "counter",
-     "label": "",
+     "label": "古代科技回憶次數",
      "max": "6",
-     "reset": "rest"
+     "reset": "none"
     }
    ],
    "effects": [
@@ -14951,17 +15011,27 @@
    "name": "應劫之人",
    "flow": "state",
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "9",
-    "reset": "none"
+    "kind": "button",
+    "label": "推進劫數進度以忽略花費",
+    "outcome": "劫數進度推進 1 步，本次 HP、MP 或物語點花費視為 0；進度達 9 時失去金手指"
    },
    "controls": [
     {
+     "kind": "button",
+     "label": "推進劫數進度以忽略花費",
+     "outcome": "劫數進度推進 1 步，本次 HP、MP 或物語點花費視為 0；進度達 9 時失去金手指"
+    },
+    {
      "kind": "counter",
-     "label": "",
+     "label": "劫數進度",
      "max": "9",
      "reset": "none"
+    },
+    {
+     "kind": "text",
+     "label": "劫數性質描述",
+     "multiline": true,
+     "maxLength": 200
     }
    ],
    "effects": [
@@ -14996,12 +15066,14 @@
    "flow": "state",
    "control": {
     "kind": "toggle",
-    "label": "本場景：屬性骰升一階／d12 視作 d20"
+    "label": "本場景：屬性骰升一階／d12 視作 d20",
+    "reset": "scene"
    },
    "controls": [
     {
      "kind": "toggle",
-     "label": "本場景：屬性骰升一階／d12 視作 d20"
+     "label": "本場景：屬性骰升一階／d12 視作 d20",
+     "reset": "scene"
     }
    ],
    "effects": [
@@ -15305,6 +15377,12 @@
      "kind": "button",
      "label": "替換本命武器的命中屬性組合",
      "outcome": "該武器的命中檢定改用所選屬性組合"
+    },
+    {
+     "kind": "text",
+     "label": "本命武器與鞘之宿主",
+     "multiline": true,
+     "maxLength": 200
     }
    ],
    "effects": [
@@ -15383,7 +15461,7 @@
     "cost": {
      "fp": 1
     },
-    "outcome": "記錄偽裝身分與持續期間，小兵級自動被騙"
+    "outcome": "扣除 1 點物語點並進入偽裝狀態，小兵級自動受騙"
    },
    "controls": [
     {
@@ -15392,7 +15470,12 @@
      "cost": {
       "fp": 1
      },
-     "outcome": "記錄偽裝身分與持續期間，小兵級自動被騙"
+     "outcome": "扣除 1 點物語點並進入偽裝狀態，小兵級自動受騙"
+    },
+    {
+     "kind": "text",
+     "label": "當前偽裝身分",
+     "maxLength": 100
     }
    ],
    "effects": [
@@ -15426,15 +15509,19 @@
    "name": "神秘魔法書",
    "flow": "state",
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "10",
-    "reset": "none"
+    "kind": "button",
+    "label": "向魔法書提問（累計達 10 次掏空）",
+    "outcome": "向 GM 提問一次並記錄；達 10 次時魔法書掏空，開展終局分支"
    },
    "controls": [
     {
+     "kind": "button",
+     "label": "向魔法書提問（累計達 10 次掏空）",
+     "outcome": "向 GM 提問一次並記錄；達 10 次時魔法書掏空，開展終局分支"
+    },
+    {
      "kind": "counter",
-     "label": "",
+     "label": "已提問次數",
      "max": "10",
      "reset": "none"
     }
@@ -15610,6 +15697,11 @@
      "kind": "toggle",
      "label": "本章節已用過（向 GM 索取載具與 2 點物語點）",
      "reset": "chapter"
+    },
+    {
+     "kind": "text",
+     "label": "載具名稱與特徵",
+     "maxLength": 100
     }
    ],
    "effects": [
@@ -15715,6 +15807,11 @@
       "fp": 1
      },
      "outcome": "扣 1 點物語點並寫一筆履歷；原料與缺陷由玩家在造物專案上自己標記"
+    },
+    {
+     "kind": "text",
+     "label": "工作站／載具名稱",
+     "maxLength": 100
     }
    ],
    "effects": [
@@ -15808,17 +15905,29 @@
    "name": "被束縛的心",
    "flow": "state",
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "7",
-    "reset": "none"
+    "kind": "button",
+    "label": "違反戒律（每場景一次：+2 物語點、扣半血半魔）",
+    "reset": "scene",
+    "outcome": "物語點 +2，受到動搖與虛弱，扣除當前一半 HP 與 MP；累積達 6 次免罰，第 7 次失去金手指"
    },
    "controls": [
     {
+     "kind": "button",
+     "label": "違反戒律（每場景一次：+2 物語點、扣半血半魔）",
+     "reset": "scene",
+     "outcome": "物語點 +2，受到動搖與虛弱，扣除當前一半 HP 與 MP；累積達 6 次免罰，第 7 次失去金手指"
+    },
+    {
      "kind": "counter",
-     "label": "",
+     "label": "累計違反次數",
      "max": "7",
      "reset": "none"
+    },
+    {
+     "kind": "text",
+     "label": "誓言對象與戒律",
+     "multiline": true,
+     "maxLength": 200
     }
    ],
    "effects": [
@@ -15861,6 +15970,12 @@
      "kind": "button",
      "label": "宣告大失敗（換 2 物語點＋1 個機會）",
      "outcome": "本次檢定視為雙 1，物語點 +2，GM 獲得 1 個機會；打破詛咒時另贈一個英雄技能"
+    },
+    {
+     "kind": "text",
+     "label": "詛咒性質與世界威脅",
+     "multiline": true,
+     "maxLength": 200
     }
    ],
    "effects": [
@@ -15895,12 +16010,14 @@
    "flow": "state",
    "control": {
     "kind": "toggle",
-    "label": "第二形態／最終形態（場景結束解除）"
+    "label": "第二形態／最終形態（場景結束解除）",
+    "reset": "scene"
    },
    "controls": [
     {
      "kind": "toggle",
-     "label": "第二形態／最終形態（場景結束解除）"
+     "label": "第二形態／最終形態（場景結束解除）",
+     "reset": "scene"
     }
    ],
    "effects": [

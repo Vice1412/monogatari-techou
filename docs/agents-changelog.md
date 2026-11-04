@@ -3713,3 +3713,34 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 - `npm run test:emoji`：0 命中通過。
 - `npm run build`：Vite 6 編譯 exit 0（7.92s）。
 - `npm test`：全套 62 關全數通過。
+
+---
+
+## [2026-11-05 00:25] Wave 2：其餘金手指改為 controls[] 與重置生命週期實裝（W2）
+
+### 背景與需求
+
+依據 `docs/plan/README.md` §0（W2 目標）、`02-wave0-primitives.md`（W0-6 多控件、W0-7 重置執行者）與 `03-quirk-plans.md`：
+1. **多控件結構升級**：
+   - 盤點並將其餘金手指在 `scratch/flows/quirk.json` 中升級為 `controls[]`（共 21 筆金手指，包含天才發明家、失憶古賢、被束縛的心、應劫之人、被詛咒之人、百臉千面、行動工作站、老載具、偷來的載具、天才的宿敵、交織的靈魂、神秘魔法書、大夢一場、信魔使徒、武器縛靈、光榮的命運、(不太)忠誠的僕人等）。
+   - 支援多按鈕並存（如天才發明家：c0 每場景一次 IP 歸 0、c1 花 1 物語點造物）、按鈕＋計數器並存（如失憶古賢：c0 每次休息一次忽略成本按鈕、c1 古代科技回憶計數器）、按鈕＋文字記錄並存（如被詛咒之人、百臉千面等）。
+2. **重置生命週期實裝（跑團卡上不再有「永遠不重置」的按鈕）**：
+   - 在 `effectFlow.js` 的 `flowActionPlan` 補齊 `activeControl.reset` 次數限制檢查：若按鈕標記有 reset（如每場景一次、每休息一次、每章節一次），使用達到上限後回傳 `ok: false` 並說明「本場景結束使用次數已達上限（1／1），等「場景結束」重置」。
+   - **多控件使用次數隔離**：將各控件的點擊計數存入 `fields._uses = { [ctrlIndex]: count }`，嚴格遵守頂層 7 個鍵之定義，不破壞既有資料形狀；在有計數器的條目（如失憶古賢）中，按鈕點擊完全不干擾計數器的 `state.n`。
+   - `SkillFlowControls.jsx` 與 `CharacterPlayHUD.jsx` 補齊多控件各按鈕的獨立 `costBlocked`、`ctrlIndex` 傳入，並掛載 `onPicks`、`onText`、`onListChange`。
+   - 工具列「場景結束／休息／章節結束」觸發 `resetFlowScope` 後，對應 scope 的條目按鈕與開關真正重置，解除 disabled！
+3. **英雄技能生命週期同步**：
+   - 同步為 `heroic:一點就通`、`heroic:快速學習` 的 `scratch/flows/heroic.json` 加上 `reset: "scene"`。
+
+### 驗證
+
+- `npm run test:flowui`（`playHudFlow.test.mjs`）：40 / 40 PASS（新增 I 區塊 11 條斷言，一律使用 `hasDisabledAttr` 斷言）。
+- `npm run test:flows`（`effectFlows.test.mjs`）：187 / 187 PASS。
+- `npm run test:flowdata`：46 / 46 PASS。
+- 刻意破壞驗證（2 條）：
+  1. 破壞 `flowActionPlan` 內的上限判定 → `I6` 失敗報紅（exit 1），還原後綠燈。
+  2. 破壞 `resetFlowScope` 執行邏輯 → `I7`、`I9`、`I10`、`I11`（及 G3）5 條全紅（exit 1），還原後綠燈。
+- `npm run test:emoji`：0 命中通過。
+- `npm run build`：Vite 6 編譯 exit 0（5.71s）。
+- `npm test`：全套 62 道關卡全數通過。
+

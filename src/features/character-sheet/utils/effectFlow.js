@@ -583,7 +583,8 @@ export const withFlowState = (character, id, nextState) => {
  */
 export const flowResetState = (character, item) => {
   if (!item || typeof item.id !== 'string') return character;
-  const currentFields = readFlowState(character, item).fields;
+  const currentFields = { ...(readFlowState(character, item).fields || {}) };
+  delete currentFields._uses;
   return withFlowState(character, item.id, {
     n: controlInitial(item),
     on: false,
@@ -705,6 +706,24 @@ export const flowActionPlan = (item, character, ctx = {}) => {
     return { ...base, reason: '這條不是按鈕型' };
   }
 
+  const resetScope = activeControl?.reset;
+  const hasReset = resetScope && resetScope !== 'none';
+  const state = readFlowState(character, item);
+  const maxLimit = activeControl?.max
+    ? evaluateControlValue(activeControl.max, { sl, level, vars: ctx?.vars || flowVarsFor(character) })
+    : (hasReset ? 1 : null);
+
+  const rawUses = (state?.fields?._uses && typeof state.fields._uses === 'object') ? state.fields._uses : {};
+  const currentUses = Number.isInteger(rawUses[ctrlIndex]) ? rawUses[ctrlIndex] : (ctrlIndex === 0 ? state.n : 0);
+
+  if (maxLimit !== null && currentUses >= maxLimit) {
+    const scopeName = resetScopeLabel(resetScope);
+    return {
+      ...base,
+      reason: `本${scopeName}使用次數已達上限（${currentUses}／${maxLimit}），等「${scopeName}」重置`
+    };
+  }
+
   const stats = ctx?.stats || null;
   const cost = activeControl?.cost;
   const paid = {};
@@ -742,8 +761,11 @@ export const flowActionPlan = (item, character, ctx = {}) => {
     }
   }
 
-  const state = readFlowState(character, item);
-  const nextState = clampFlowState(character, item, { n: state.n + 1, on: true });
+  const hasCounter = ctrls.some((c) => c && c.kind === 'counter');
+  const nextUses = { ...rawUses, [ctrlIndex]: currentUses + 1 };
+  const nextFields = { ...(state.fields || {}), _uses: nextUses };
+  const nextN = hasCounter ? state.n : (ctrlIndex === 0 ? state.n + 1 : state.n);
+  const nextState = clampFlowState(character, item, { ...state, n: nextN, on: true, fields: nextFields });
   const patch = { flowState: { [item.id]: nextState } };
   const changes = [];
   const paidNotes = [];

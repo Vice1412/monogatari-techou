@@ -883,16 +883,18 @@ export default function CharacterPlayHUD({
     if (!item) return null;
     if (item.apply?.via === 'existing') return null;
     if (specFor(item.id)) return null;
-    if (!item.control || item.control.kind === 'none') return null;
+    const ctrls = controlsOf(item);
+    if (!ctrls.some((c) => c && c.kind !== 'none')) return null;
     const state = readFlowState(character, item);
     // 上限算式會用到**其他技能的 SL**（【陷阱大師】的「1 + 有備無患SL」）。
     // 這一份是角色身上所有技能 SL 的快照，交給元件去算；沒有它那兩條會一直顯示成「無上限」。
     const vars = flowVarsFor(character);
-    let costBlocked = null;
-    if (item.control.kind === 'button') {
-      const plan = flowActionPlan(item, character, { sl, level: characterLevel, stats });
-      if (!plan.ok) costBlocked = { blocked: true, reason: plan.reason || '現在不能使用' };
-    }
+    const getCostBlocked = (ctrl, idx) => {
+      if (ctrl?.kind !== 'button') return null;
+      const plan = flowActionPlan(item, character, { sl, level: characterLevel, stats, controlIndex: idx, vars });
+      if (!plan.ok) return { blocked: true, reason: plan.reason || '現在不能使用' };
+      return null;
+    };
     return (
       <SkillFlowControls
         item={item}
@@ -901,14 +903,17 @@ export default function CharacterPlayHUD({
         vars={vars}
         theme={theme}
         state={state}
-        costBlocked={costBlocked}
+        costBlocked={getCostBlocked}
         onAdjust={(delta) => adjustFlowCounter(item, { ...state, n: state.n + delta })}
         onReset={() => adjustFlowCounter(item, flowResetState(character, item))}
         onToggle={() => adjustFlowCounter(item, { ...state, on: !state.on })}
         // `select`（第三期）：「選一個」的條目。【類別訓練】的所選類別就寫在這裡，
         // 引擎（`getProficiencies`）讀 `flowState[id].choice` 才知道要給哪一項熟練度。
         onChoice={(value) => adjustFlowCounter(item, { ...state, choice: value })}
-        onAct={() => applyFlowPlan(flowActionPlan(item, character, { sl, level: characterLevel, stats }))}
+        onPicks={(picks) => adjustFlowCounter(item, { ...state, picks })}
+        onText={(text) => adjustFlowCounter(item, { ...state, text })}
+        onListChange={(list) => adjustFlowCounter(item, { ...state, list })}
+        onAct={(idx) => applyFlowPlan(flowActionPlan(item, character, { sl, level: characterLevel, stats, controlIndex: idx, vars }))}
         testId={testId}
       />
     );

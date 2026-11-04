@@ -432,6 +432,57 @@ check('每一筆 select 都有選項（沒有選項＝一個空白下拉）',
 check('每個 id 都以分類為前綴',
   FLOW_ITEMS.filter((i) => !i.id.startsWith(`${i.category}:`)).map((i) => i.id), []);
 
+// ─────────────────────────────────────────────────────────── L
+section('L. 按鈕的「重置前可用幾次」：預設 1，寫了 max 就照 max');
+// 這一組守的是「不要把 1 寫死」：`flowActionPlan` 對「有 reset 的按鈕」**預設**上限 1
+// （資料裡那五顆 scene 按鈕的原文都是「每場景一次」），
+// 但若某條資料寫了 `max: '3'`，就必須允許三次——否則未來的資料會被靜默閹掉。
+const mkButtonItem = (control) => ({
+  id: 'test:once',
+  name: '測試按鈕',
+  category: 'quirk',
+  flow: 'action',
+  control,
+  controls: [control],
+  effects: [],
+  apply: { via: 'flow-control' }
+});
+const onceCtx = { sl: 0, level: 5, vars: {}, stats: { maxHp: 30, maxMp: 30, maxIp: 6 } };
+const usedState = (n) => ({
+  flowState: {
+    'test:once': {
+      n: 0, on: false, choice: '', fields: { _uses: { 0: n } }, picks: [], text: '', list: []
+    }
+  }
+});
+
+const btnDefault = mkButtonItem({ kind: 'button', label: '用一次', outcome: 'x', reset: 'scene' });
+check('L1 reset 有值但沒寫 max → 第一次可以按',
+  flowActionPlan(btnDefault, usedState(0), { ...onceCtx, controlIndex: 0 }).ok, true);
+check('L2 reset 有值但沒寫 max → 第二次被擋',
+  flowActionPlan(btnDefault, usedState(1), { ...onceCtx, controlIndex: 0 }).ok, false);
+check('L3 被擋時訊息說得出上限',
+  /上限/.test(String(flowActionPlan(btnDefault, usedState(1), { ...onceCtx, controlIndex: 0 }).reason || '')), true);
+
+const btnThree = mkButtonItem({ kind: 'button', label: '用三次', outcome: 'x', reset: 'scene', max: '3' });
+check('L4 寫了 max:"3" → 用了兩次仍然可以按',
+  flowActionPlan(btnThree, usedState(2), { ...onceCtx, controlIndex: 0 }).ok, true);
+check('L5 寫了 max:"3" → 第三次之後被擋（不是永遠 1）',
+  flowActionPlan(btnThree, usedState(3), { ...onceCtx, controlIndex: 0 }).ok, false);
+
+const btnFree = mkButtonItem({ kind: 'button', label: '不限次', outcome: 'x' });
+check('L6 沒有 reset 的按鈕不設上限（用 99 次仍可按）',
+  flowActionPlan(btnFree, usedState(99), { ...onceCtx, controlIndex: 0 }).ok, true);
+
+// L7 / L8：重置要讓「次數」回充，而且是**行為**上回充（不是「某個欄位不見了」）。
+// 這一組是「每場景一次」有沒有真的兌現的核心：少了它，按鈕會永久鎖死，
+// 而畫面上只會看到一顆灰掉的按鈕——玩家不會知道要重新整理。
+check('L7 重置前，同一顆按鈕第二次被擋',
+  flowActionPlan(btnDefault, usedState(1), { ...onceCtx, controlIndex: 0 }).ok, false);
+const afterResetOnce = flowResetState(usedState(1), btnDefault);
+check('L8 重置後，同一顆按鈕可以再按一次（次數真的回充）',
+  flowActionPlan(btnDefault, afterResetOnce, { ...onceCtx, controlIndex: 0 }).ok, true);
+
 // ─────────────────────────────────────────────────────────── J
 section('J. 不可變更新與「不得使用 eval」');
 const before = mkChar({ flowState: { 'class:博學士:集中': { n: 1, on: true } } });

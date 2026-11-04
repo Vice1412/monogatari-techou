@@ -200,6 +200,118 @@ check('H3 通用按鈕成功被抑制（不與 FlowDataPanel 同時存在）',
   countOf(richHtml, 'data-testid="flow-quirk-act"') === 0,
   '0 顆');
 
+/* ────────────────────────────────────────────────────────────────
+   I. W2 金手指多控件與 reset 生命週期實測（杜絕假綠燈、嚴禁 class 判斷）
+   ──────────────────────────────────────────────────────────────── */
+// I1: 天才發明家具備多控件（按鈕 0：IP 成本歸 0 [reset: scene]，按鈕 1：自備造物零件）
+const inventorItem = flowItemForQuirk('天才發明家');
+const inventorCtrls = controlsOf(inventorItem);
+check('I1 天才發明家具備 2 顆 controls 且 c0 標記 reset: scene',
+  inventorCtrls.length === 2 &&
+  inventorCtrls[0]?.reset === 'scene' &&
+  inventorCtrls[1]?.cost?.fp === 1,
+  true);
+
+// I2: 失憶古賢具備 2 顆 controls（c0: button [reset: rest], c1: counter）
+const amnesiacItem = flowItemForQuirk('失憶古賢');
+const amnesiacCtrls = controlsOf(amnesiacItem);
+check('I2 失憶古賢具備 2 顆 controls（按鈕重置為 rest，計數器為 none）',
+  amnesiacCtrls.length === 2 &&
+  amnesiacCtrls[0]?.kind === 'button' && amnesiacCtrls[0]?.reset === 'rest' &&
+  amnesiacCtrls[1]?.kind === 'counter' && amnesiacCtrls[1]?.reset === 'none',
+  true);
+
+// I3: 跑團卡渲染多控件（測試天生發明家渲染出 c0 與 c1 控件）
+const inventorChar = createNewCharacter({ name: '發明家角色' });
+inventorChar.quirk = '天才發明家';
+const inventorHtml = render(inventorChar, { initialTab: 'skills' });
+check('I3 跑團卡成功渲染天才發明家多控件（flow-quirk-c0 與 flow-quirk-c1）',
+  countOf(inventorHtml, 'data-testid="flow-quirk-c0"') >= 1 &&
+  countOf(inventorHtml, 'data-testid="flow-quirk-c1"') >= 1,
+  true);
+
+// I4: 未使用時，c0 按鈕為 enabled（hasDisabledAttr 為 false）
+check('I4 天才發明家 c0 按鈕初始為可點擊狀態（hasDisabledAttr 為 false）',
+  !hasDisabledAttr(inventorHtml, 'flow-quirk-c0-act'),
+  true);
+
+// I5: 使用過後，c0 按鈕變為 disabled（hasDisabledAttr 為 true），且畫面上寫明上限原因
+const usedInventorChar = {
+  ...inventorChar,
+  flowState: {
+    'quirk:天才發明家': { n: 1, on: true, fields: { _uses: { 0: 1 } } }
+  }
+};
+const usedInventorHtml = render(usedInventorChar, { initialTab: 'skills' });
+check('I5 使用過後的天才發明家 c0 按鈕為 disabled（hasDisabledAttr 檢驗）',
+  hasDisabledAttr(usedInventorHtml, 'flow-quirk-c0-act'),
+  true);
+check('I6 使用過後的按鈕下方顯示上限原因文案',
+  /使用次數已達上限.*等.*重置/.test(usedInventorHtml),
+  true);
+
+// I7: 點擊場景重置（resetFlowScope("scene")）後，按鈕恢復為 enabled！不再有「永遠不重置」的按鈕
+const resetInventorChar = resetFlowScope(usedInventorChar, 'scene');
+const resetInventorHtml = render(resetInventorChar, { initialTab: 'skills' });
+check('I7 場景重置後，天才發明家按鈕恢復為 enabled（hasDisabledAttr 為 false）',
+  !hasDisabledAttr(resetInventorHtml, 'flow-quirk-c0-act'),
+  true);
+
+// I8: 失憶古賢：使用後按鈕 disabled，休息重置（resetFlowScope("rest")）後恢復 enabled
+const usedAmnesiacChar = createNewCharacter({ name: '古賢角色' });
+usedAmnesiacChar.quirk = '失憶古賢';
+usedAmnesiacChar.flowState = {
+  'quirk:失憶古賢': { n: 1, on: true, fields: { _uses: { 0: 1 } } }
+};
+const usedAmnesiacHtml = render(usedAmnesiacChar, { initialTab: 'skills' });
+check('I8 失憶古賢使用後按鈕為 disabled（hasDisabledAttr 檢驗）',
+  hasDisabledAttr(usedAmnesiacHtml, 'flow-quirk-c0-act'),
+  true);
+
+const restAmnesiacChar = resetFlowScope(usedAmnesiacChar, 'rest');
+const restAmnesiacHtml = render(restAmnesiacChar, { initialTab: 'skills' });
+check('I9 休息重置後，失憶古賢按鈕恢復為 enabled（hasDisabledAttr 為 false）',
+  !hasDisabledAttr(restAmnesiacHtml, 'flow-quirk-c0-act'),
+  true);
+
+// I10: Toggle 重置：新人類在場景重置後自動關閉
+const newHumanChar = createNewCharacter({ name: '新人類角色' });
+newHumanChar.quirk = '新人類';
+newHumanChar.flowState = {
+  'quirk:新人類': { n: 0, on: true }
+};
+const resetNewHumanChar = resetFlowScope(newHumanChar, 'scene');
+check('I10 新人類 toggle 在場景重置後關閉（on: false）',
+  resetNewHumanChar.flowState?.['quirk:新人類']?.on === false,
+  true);
+
+// I11: Toggle 重置：老載具在章節重置後自動關閉
+const vehicleChar = createNewCharacter({ name: '載具角色' });
+vehicleChar.quirk = '老載具';
+vehicleChar.flowState = {
+  'quirk:老載具': { n: 0, on: true }
+};
+const resetVehicleChar = resetFlowScope(vehicleChar, 'chapter');
+check('I11 老載具 toggle 在章節重置後關閉（on: false）',
+  resetVehicleChar.flowState?.['quirk:老載具']?.on === false,
+  true);
+
+/* ────────────────────────────────────────────────────────────────
+   J. 三種新控件的**內部** testid（Lead 補）
+   ──────────────────────────────────────────────────────────────── */
+// 為什麼要守這一組：`multiSelect`／`text`／`recordList` 原本只有外層容器有 testid，
+// 於是「選項有沒有 disabled」「輸入框在不在」只能靠文字判斷——而文字斷言會隨文案漂。
+const dreamChar = createNewCharacter({ name: '大夢角色' });
+dreamChar.quirk = '大夢一場';
+const dreamHtml = render(dreamChar, { initialTab: 'skills' });
+check('J1 text 控件的輸入框有自己的 testid（c1-input 或 c1-textarea）',
+  countOf(dreamHtml, 'data-testid="flow-quirk-c1-input"') >= 1
+  || countOf(dreamHtml, 'data-testid="flow-quirk-c1-textarea"') >= 1,
+  true);
+check('J2 計數器的加減鈕仍然存在（c0）',
+  countOf(dreamHtml, 'data-testid="flow-quirk-c0-plus"') >= 1,
+  true);
+
 /* ──────────────────────────────────────────────────────────────── */
 const failed = results.filter((r) => !r.ok);
 for (const r of results) console.log(`  ${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.detail === '' ? '' : `  —— ${r.detail}`}`);

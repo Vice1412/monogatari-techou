@@ -258,8 +258,18 @@ function SelectControl({ control, item, state, theme, testId, onChoice }) {
 }
 
 /** 一顆主按鈕 ＋ 一行「按了會怎樣」。 */
-function ButtonControl({ control, item, theme, testId, costBlocked, onAct }) {  const blocked = Boolean(costBlocked && costBlocked.blocked);
-  const reason = (costBlocked && costBlocked.reason) || '';
+function ButtonControl({ control, item, state, theme, testId, costBlocked, onAct, ctrlIndex = 0 }) {
+  const rawUses = (state?.fields?._uses && typeof state.fields._uses === 'object') ? state.fields._uses : {};
+  const currentUses = Number.isInteger(rawUses[ctrlIndex]) ? rawUses[ctrlIndex] : (ctrlIndex === 0 ? state?.n : 0);
+  const isResetLimited = Boolean(
+    control?.reset &&
+    control.reset !== 'none' &&
+    Number.isFinite(currentUses) &&
+    currentUses >= (Number.isFinite(Number(control?.max)) ? Number(control.max) : 1)
+  );
+  const blocked = Boolean((costBlocked && costBlocked.blocked) || isResetLimited);
+  const resetReason = isResetLimited ? `已達使用次數上限（等重置後可再使用）` : '';
+  const reason = (costBlocked && costBlocked.reason) || resetReason || '';
   const text = control.label || item.name || '執行';
   const outcome = control.outcome || '';
 
@@ -324,7 +334,7 @@ function MultiSelectControl({ control, item, state, theme, testId, onPicks = noo
       {control.label && (
         <div className="flex items-center justify-between text-t12 font-bold" style={{ color: theme.textDark }}>
           <span>{control.label}</span>
-          <span className="text-t11 tabular-nums" style={{ color: theme.textMuted }}>已選 {picks.length} / {Number.isFinite(max) ? max : '無上限'}</span>
+          <span className="text-t11 tabular-nums" data-testid={`${testId}-count`} style={{ color: theme.textMuted }}>已選 {picks.length} / {Number.isFinite(max) ? max : '無上限'}</span>
         </div>
       )}
       <div className="flex flex-wrap gap-1.5">
@@ -339,6 +349,7 @@ function MultiSelectControl({ control, item, state, theme, testId, onPicks = noo
               type="button"
               disabled={disabled}
               onClick={() => handleToggle(val)}
+              data-testid={`${testId}-opt-${val}`}
               className="px-2 py-1 rounded text-t11 font-bold border transition-colors cursor-pointer disabled:cursor-not-allowed"
               style={
                 checked
@@ -374,6 +385,7 @@ function TextControl({ control, item, state, theme, testId, onText = noop }) {
           maxLength={maxLength}
           placeholder={control.placeholder || '點擊填寫...'}
           onChange={(e) => onText(e.target.value)}
+          data-testid={`${testId}-textarea`}
           className="w-full p-1.5 rounded border text-t12 leading-relaxed bg-white"
           style={{ borderColor: theme.border, color: theme.textDark }}
         />
@@ -384,6 +396,7 @@ function TextControl({ control, item, state, theme, testId, onText = noop }) {
           maxLength={maxLength}
           placeholder={control.placeholder || '點擊填寫...'}
           onChange={(e) => onText(e.target.value)}
+          data-testid={`${testId}-input`}
           className="w-full px-2 py-1 rounded border text-t12 bg-white"
           style={{ borderColor: theme.border, color: theme.textDark }}
         />
@@ -420,6 +433,7 @@ function RecordListControl({ control, item, state, theme, testId, onListChange =
           type="button"
           disabled={list.length >= max}
           onClick={handleAdd}
+          data-testid={`${testId}-add`}
           className="px-2 py-0.5 rounded border text-t11 font-bold bg-white cursor-pointer disabled:cursor-not-allowed"
           style={{ borderColor: theme.border, color: theme.textDark }}
         >
@@ -427,7 +441,12 @@ function RecordListControl({ control, item, state, theme, testId, onListChange =
         </button>
       </div>
       {list.map((r, i) => (
-        <div key={r.id || i} className="p-1.5 rounded border bg-white flex items-center gap-2" style={{ borderColor: theme.border }}>
+        <div
+          key={r.id || i}
+          data-testid={`${testId}-record-${i}`}
+          className="p-1.5 rounded border bg-white flex items-center gap-2"
+          style={{ borderColor: theme.border }}
+        >
           {fields.map((f) => (
             <input
               key={f.key}
@@ -435,6 +454,7 @@ function RecordListControl({ control, item, state, theme, testId, onListChange =
               placeholder={f.label}
               value={r[f.key] || ''}
               onChange={(e) => handleChange(r.id, f.key, e.target.value)}
+              data-testid={`${testId}-field-${i}-${f.key}`}
               className="flex-1 px-1.5 py-0.5 rounded border text-t11"
               style={{ borderColor: theme.border }}
             />
@@ -442,6 +462,7 @@ function RecordListControl({ control, item, state, theme, testId, onListChange =
           <button
             type="button"
             onClick={() => handleRemove(r.id)}
+            data-testid={`${testId}-remove-${i}`}
             className="px-1.5 py-0.5 rounded border text-t11 text-[#a63d40] bg-[#f4ebd9] hover:bg-[#e8dcc4] border-[#d6c7ab]"
           >
             ✕
@@ -537,15 +558,21 @@ export default function SkillFlowControls({
       );
     }
 
+    const currentCostBlocked = typeof costBlocked === 'function'
+      ? costBlocked(control, idx)
+      : (Array.isArray(costBlocked) ? costBlocked[idx] : costBlocked);
+
     if (control.kind === 'button') {
       return (
         <ButtonControl
           key={cid}
           control={control}
           item={item}
+          state={safeState}
           theme={pal}
           testId={cid}
-          costBlocked={costBlocked}
+          costBlocked={currentCostBlocked}
+          ctrlIndex={idx}
           onAct={() => onAct(idx)}
         />
       );
