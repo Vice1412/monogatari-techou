@@ -68,6 +68,31 @@ export const CAMP_ACTIVITY_TARGETS = Object.freeze({
  *
  * `desc` 是規則文（`\n` 分段）；`table` 是 1d6 表格（探索／採集才有）。
  * `once` 代表「直到下一次休息前限一次」——跑團面板用它決定要不要顯示「已使用」開關。
+ *
+ * ## `outcomes`：規則文的結構化後果（2026-11-03）
+ *
+ * 這一欄**只做結構化，不新增規則**：每一句都能在 `desc`／`table` 裡逐字找到對應的原文。
+ * 官方原文（`desc`／`table`）**不准改**（`AGENTS.md` 規則二：原書是機制權威），
+ * 所以後果另外放，讓 `utils/campOutcome.js` 去算。
+ *
+ * 形狀：
+ * ```js
+ * { roll: '1' | '2' | '3–5' | '6' | null,   // null ＝ 這條沒有 1d6 表
+ *   short: '…',                             // 表格列才有：該列原文的開頭（不新寫文案）
+ *   effects: { ip?, zenit?, ingredients?, restHalf?, encounter?, buff?, projectProgress? },
+ *   zenitReason: '…' }                       // 有 zenit 時給 applyMoneyFlow 的原因（原因必填）
+ * ```
+ *
+ * `roll` 標籤**逐字沿用 `table[].roll`**（含 `3–5` 的連接號），後果與表格靠同一個字串對位；
+ * 兩份標籤各寫一次遲早會有一邊漏改，而那時候畫面完全正常。
+ *
+ * 兩類後果的差別很重要（`IMPL-SPEC.md` §4）：
+ * - **算得出來**（`ip`／`zenit`／`ingredients`／`projectProgress`）→ 才准進 `patch`。
+ * - **算不出來**（`buff`／`restHalf`／`encounter`）→ 一律進 `manual` 給玩家看，
+ *   **不要假裝已經套用**。這一專案最貴的錯誤就是「畫面說好了、數字沒動」。
+ *
+ * `buff` 是「本次休息到下一次休息之間的一次性權利」，`unit` 只有 `flat`（加值）與
+ * `times`（倍率）兩種——減半寫 `value: 0.5, unit: 'times'`，不是寫 `-50%`。
  */
 export const CAMP_ACTIVITIES = Object.freeze([
   {
@@ -78,7 +103,26 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'self',
     once: true,
     summary: '修復、免費打造基礎裝備，或拆解成材料',
-    desc: '選擇一個選項：修復團隊擁有的一件受損物品；或免費製作一件你選擇的基礎武器、防具或盾牌（見《核心規則》p.130–133）；或摧毀團隊擁有的一件裝備，換得一塊價值等於該裝備價格的材料（材料見《核心規則》p.74）。'
+    desc: '選擇一個選項：修復團隊擁有的一件受損物品；或免費製作一件你選擇的基礎武器、防具或盾牌（見《核心規則》p.130–133）；或摧毀團隊擁有的一件裝備，換得一塊價值等於該裝備價格的材料（材料見《核心規則》p.74）。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'item',
+            value: 0,
+            unit: 'flat',
+            scope: 'rest',
+            condition: '三選一：修復團隊擁有的一件受損物品／免費製作一件基礎武器、防具或盾牌（0 z）／拆解一件裝備換得價值等於該裝備價格的材料',
+            options: [
+              '修復：請到裝備欄把那一件的狀態改回來（App 只認欄位裡的字，不認得「受損」）',
+              '免費製作：請到購買面板以 0 z 取得那一件；魔晶石制下沒有基礎武器與盾牌，只有定制武器／定制防具／飾品／機師模組',
+              '拆解：材料沒有背包欄位可寫——請自己記在行囊或備註'
+            ]
+          }
+        }
+      }
+    ]
   },
   {
     id: 'cartography',
@@ -88,7 +132,21 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'self',
     once: true,
     summary: '旅行移動骰可以重骰一次',
-    desc: '直到下一次休息前限一次：在團隊進行旅行移動骰之後，你可以重骰並採用新的結果。'
+    desc: '直到下一次休息前限一次：在團隊進行旅行移動骰之後，你可以重骰並採用新的結果。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'travelMove',
+            value: 0,
+            unit: 'flat',
+            scope: 'rest',
+            condition: '團隊進行旅行移動骰之後，你可以重骰並採用新的結果'
+          }
+        }
+      }
+    ]
   },
   {
     id: 'combatLesson',
@@ -98,7 +156,21 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'ally',
     once: true,
     summary: '攻擊或攻擊性咒語的檢定 +4',
-    desc: '直到下一次休息前限一次：目標在為攻擊或攻擊性咒語進行命中檢定或魔法檢定之後，可以在該次檢定結果上加 +4。'
+    desc: '直到下一次休息前限一次：目標在為攻擊或攻擊性咒語進行命中檢定或魔法檢定之後，可以在該次檢定結果上加 +4。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'check',
+            value: 4,
+            unit: 'flat',
+            scope: 'rest',
+            condition: '目標在為攻擊或攻擊性咒語進行命中檢定或魔法檢定之後，可以在該次檢定結果上加 +4'
+          }
+        }
+      }
+    ]
   },
   {
     id: 'daydream',
@@ -108,7 +180,21 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'self',
     once: true,
     summary: '一次 HP 損失減半',
-    desc: '直到下一次休息前限一次：當你因任何原因失去 HP 時，可以選擇將該次 HP 損失減半。'
+    desc: '直到下一次休息前限一次：當你因任何原因失去 HP 時，可以選擇將該次 HP 損失減半。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'hpLoss',
+            value: 0.5,
+            unit: 'times',
+            scope: 'rest',
+            condition: '你因任何原因失去 HP 時，可以選擇將該次 HP 損失減半'
+          }
+        }
+      }
+    ]
   },
   {
     id: 'doublePortion',
@@ -118,7 +204,21 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'ally',
     once: true,
     summary: '一次 HP 恢復加倍',
-    desc: '直到下一次休息前限一次：當目標即將恢復 HP 時，可以將該次恢復的 HP 加倍。'
+    desc: '直到下一次休息前限一次：當目標即將恢復 HP 時，可以將該次恢復的 HP 加倍。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'hpRecover',
+            value: 2,
+            unit: 'times',
+            scope: 'rest',
+            condition: '目標即將恢復 HP 時，可以將該次恢復的 HP 加倍'
+          }
+        }
+      }
+    ]
   },
   {
     id: 'exploration',
@@ -134,7 +234,18 @@ export const CAMP_ACTIVITIES = Object.freeze([
       { roll: '2', text: '不是我要找的東西……目標回復 2 點庫存點。' },
       { roll: '3–5', text: '哦，這能派上用場！目標回復 3 點庫存點。' },
       { roll: '6', text: '中大獎！目標回復 3 點庫存點，你另外找到價值等於（角色等級 × 50）z 的資金。' }
-    ])
+    ]),
+    outcomes: [
+      { roll: '1', short: '哎呀！', effects: { restHalf: true } },
+      { roll: '2', short: '不是我要找的東西……', effects: { ip: 2 } },
+      { roll: '3–5', short: '哦，這能派上用場！', effects: { ip: 3 } },
+      {
+        roll: '6',
+        short: '中大獎！',
+        effects: { ip: 3, zenit: 'level * 50' },
+        zenitReason: '找到價值等於（角色等級 × 50）z 的資金'
+      }
+    ]
   },
   {
     id: 'gathering',
@@ -150,7 +261,13 @@ export const CAMP_ACTIVITIES = Object.freeze([
       { roll: '2', text: '這些沒問題吧……目標獲得 2 份味道隨機的食材。' },
       { roll: '3–5', text: '看起來很好吃！目標獲得 3 份味道隨機的食材。' },
       { roll: '6', text: '就是這些！目標獲得 3 份食材，味道各自任選。' }
-    ])
+    ]),
+    outcomes: [
+      { roll: '1', short: '救、救命！', effects: { encounter: true } },
+      { roll: '2', short: '這些沒問題吧……', effects: { ingredients: { count: 2, flavor: 'random' } } },
+      { roll: '3–5', short: '看起來很好吃！', effects: { ingredients: { count: 3, flavor: 'random' } } },
+      { roll: '6', short: '就是這些！', effects: { ingredients: { count: 3, flavor: 'choose' } } }
+    ]
   },
   {
     id: 'magicLesson',
@@ -160,7 +277,21 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'ally',
     once: true,
     summary: '盟友可施展你指定的咒語一次',
-    desc: '從你習得的咒語中選擇一個。直到下一次休息前限一次：目標可以使用咒語動作施展你選擇的那個咒語（仍須支付 MP，需要時也照常進行魔法檢定）。'
+    desc: '從你習得的咒語中選擇一個。直到下一次休息前限一次：目標可以使用咒語動作施展你選擇的那個咒語（仍須支付 MP，需要時也照常進行魔法檢定）。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'spell',
+            value: 1,
+            unit: 'times',
+            scope: 'rest',
+            condition: '從你習得的咒語中選一個；目標可以用咒語動作施展該咒語一次（仍須支付 MP，需要時也照常進行魔法檢定）'
+          }
+        }
+      }
+    ]
   },
   {
     id: 'martialPractice',
@@ -170,7 +301,21 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'self',
     once: true,
     summary: '一次攻擊獲得多重（2）或 +1 多重',
-    desc: '直到下一次休息前限一次：當你進行攻擊時，可以讓該次攻擊獲得多重（2），或將其多重屬性提高 1 點。'
+    desc: '直到下一次休息前限一次：當你進行攻擊時，可以讓該次攻擊獲得多重（2），或將其多重屬性提高 1 點。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'attack',
+            value: 1,
+            unit: 'flat',
+            scope: 'rest',
+            condition: '該次攻擊獲得多重（2），或將既有的「多重 N」提高 1 點'
+          }
+        }
+      }
+    ]
   },
   {
     id: 'massage',
@@ -180,7 +325,21 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'ally',
     once: true,
     summary: '一次 MP 成本減半（不含儀式）',
-    desc: '直到下一次休息前限一次：當目標即將支付 MP 成本時，可以將該次 MP 成本減半。此效果不能用在儀式的 MP 成本上。'
+    desc: '直到下一次休息前限一次：當目標即將支付 MP 成本時，可以將該次 MP 成本減半。此效果不能用在儀式的 MP 成本上。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'mpCost',
+            value: 0.5,
+            unit: 'times',
+            scope: 'rest',
+            condition: '目標即將支付 MP 成本時，可以將該次 MP 成本減半；不能用在儀式的 MP 成本上'
+          }
+        }
+      }
+    ]
   },
   {
     id: 'midnightOil',
@@ -190,7 +349,10 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'self',
     once: false,
     summary: '一個造物專案 +3 進度',
-    desc: '你為自己所選的一個造物專案產生 3 點進度。'
+    desc: '你為自己所選的一個造物專案產生 3 點進度。',
+    outcomes: [
+      { roll: null, effects: { projectProgress: 3 } }
+    ]
   },
   {
     id: 'pepTalk',
@@ -200,7 +362,21 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'ally',
     once: true,
     summary: '一次 MP 恢復加倍',
-    desc: '直到下一次休息前限一次：當目標即將恢復 MP 時，可以將該次恢復的 MP 加倍。'
+    desc: '直到下一次休息前限一次：當目標即將恢復 MP 時，可以將該次恢復的 MP 加倍。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'mpRecover',
+            value: 2,
+            unit: 'times',
+            scope: 'rest',
+            condition: '目標即將恢復 MP 時，可以將該次恢復的 MP 加倍'
+          }
+        }
+      }
+    ]
   },
   {
     id: 'planning',
@@ -210,7 +386,21 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'ally',
     once: true,
     summary: '團體檢定或調查檢定 +4',
-    desc: '直到下一次休息前限一次：目標以領袖身分進行團體檢定，或進行調查某人、某物的檢定之後，可以在該次檢定結果上加 +4。'
+    desc: '直到下一次休息前限一次：目標以領袖身分進行團體檢定，或進行調查某人、某物的檢定之後，可以在該次檢定結果上加 +4。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'check',
+            value: 4,
+            unit: 'flat',
+            scope: 'rest',
+            condition: '目標以領袖身分進行團體檢定，或進行調查某人／某物的檢定之後，可以在該次檢定結果上加 +4'
+          }
+        }
+      }
+    ]
   },
   {
     id: 'sleepSoundly',
@@ -220,7 +410,21 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'self',
     once: true,
     summary: '衝突中多一個裝備／阻礙／庫存行動',
-    desc: '直到下一次休息前限一次：在衝突場景中，你可以在自己的回合多進行一個行動。該行動必須用於裝備、阻礙或庫存行動。'
+    desc: '直到下一次休息前限一次：在衝突場景中，你可以在自己的回合多進行一個行動。該行動必須用於裝備、阻礙或庫存行動。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'action',
+            value: 1,
+            unit: 'flat',
+            scope: 'rest',
+            condition: '衝突場景中，你可以在自己的回合多進行一個行動；該行動必須用於裝備、阻礙或庫存'
+          }
+        }
+      }
+    ]
   },
   {
     id: 'training',
@@ -230,7 +434,21 @@ export const CAMP_ACTIVITIES = Object.freeze([
     target: 'self',
     once: true,
     summary: '一次免疫同一來源的狀態效果',
-    desc: '直到下一次休息前限一次：當你即將因同一個來源受到一種或多種狀態效果時，可以選擇完全不受這些狀態效果影響。'
+    desc: '直到下一次休息前限一次：當你即將因同一個來源受到一種或多種狀態效果時，可以選擇完全不受這些狀態效果影響。',
+    outcomes: [
+      {
+        roll: null,
+        effects: {
+          buff: {
+            target: 'status',
+            value: 0,
+            unit: 'flat',
+            scope: 'rest',
+            condition: '當你即將因同一個來源受到一種或多種狀態效果時，可以選擇完全不受這些狀態效果影響'
+          }
+        }
+      }
+    ]
   }
 ]);
 

@@ -31,8 +31,13 @@ export default function PilotVehicleCombatSheet({
   const vehicleSkill = (pilotClass?.skills || []).find(s => s.name === '個人載具');
   const pilotSl = vehicleSkill?.sl || 1;
 
-  // 取得強力握持技能
-  const strongGripSkill = (pilotClass?.skills || []).find(s => s.name === '強力握持');
+  // 【加大油門】（機師）：使用武裝模組執行命中檢定時，可用 MIG 替換其中一個屬性。
+  //
+  // 這裡以前查的是 `'強力握持'`——`rulesData` 的機師五條技能裡**沒有這個名字**
+  // （正確是【加大油門】，官方原文「you may replace one of them with MIG」）。
+  // 於是 `hasStrongGrip` 永遠是 false：技能選了、卡上也寫了，但 MIG 替換屬性的入口
+  // 永遠不會出現，而且全程不報錯（死碼的典型症狀：畫面看起來完全正常）。
+  const strongGripSkill = (pilotClass?.skills || []).find(s => s.name === '加大油門');
   const hasStrongGrip = !!strongGripSkill;
 
   // 取得引擎之心技能
@@ -94,7 +99,7 @@ export default function PilotVehicleCombatSheet({
     let attr2Key = weapon.attr2?.toLowerCase() || 'ins';
 
     if (useStrongGrip && hasStrongGrip) {
-      // 強力握持：將其中一項屬性替換為 MIG
+      // 【加大油門】：將其中一項屬性替換為 MIG
       attr1Key = 'mig';
     }
 
@@ -248,7 +253,7 @@ export default function PilotVehicleCombatSheet({
           </span>
           {hasStrongGrip && (
             <span className="text-t10 text-[#9c4d16] font-bold">
-              ✦ 強力握持：可用體質 (MIG) 替換其中一項命中屬性
+              ✦ 加大油門：可用 MIG 替換其中一項命中屬性
             </span>
           )}
         </div>
@@ -300,7 +305,7 @@ export default function PilotVehicleCombatSheet({
                           type="button"
                           onClick={() => handleRollWeapon(w, true)}
                           className="px-2 py-0.5 rounded bg-[#9c4d16] hover:bg-[#833f12] text-white font-bold text-t10 shadow-e1"
-                          title="使用強力握持：MIG 替換屬性檢定"
+                          title="使用加大油門：MIG 替換屬性檢定"
                         >
                           MIG檢定
                         </button>

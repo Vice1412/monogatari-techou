@@ -284,18 +284,29 @@ eq('G15 被擋時真的印出短少量', hintHtml.includes('差 3 MP'), true);
 /* ────────────────────────────────────────────────────────────────
    H. 按下後的守衛沒有被拆（提示不是唯一依據）
    ──────────────────────────────────────────────────────────────── */
-eq('H1 大補藥的守衛還在', countOf(hudSrc, "if (curIp < 3) { showToast('道具點不足 3 點（大補藥需 3 IP）'"), 1);
-eq('H2 萬靈藥的守衛還在', countOf(hudSrc, "if (curIp < 3) { showToast('道具點不足 3 點（萬靈藥需 3 IP）'"), 1);
-eq('H3 滋補藥的守衛還在', countOf(hudSrc, "if (curIp < 2) { showToast('道具點不足 2 點（滋補藥需 2 IP）'"), 1);
-eq('H4 元素碎片的守衛還在', countOf(hudSrc, "if (curIp < 2) { showToast('道具點不足 2 點（元素碎片需 2 IP）'"), 1);
-eq('H5 魔法帳篷的守衛還在', countOf(hudSrc, "if (curIp < 4) { showToast('道具點不足 4 點（魔法帳篷需 4 IP）'"), 1);
+/* 2026-11-03：五個消耗品的守衛從寫死的 3／3／2／4／2 改成 `ipCostOf(基準)`——
+   因為英雄技能【大口袋】明文「使用庫存點時消耗量 −1（最小為 1）」；寫死的話
+   選了它照樣被扣 3 點（成本門檻、履歷標題、toast 四處都在說謊）。
+   守衛**沒有被拆**，只是成本變成算出來的，所以錨點跟著換成「守衛句 ＋ 基準值」。 */
+eq('H1 大補藥的守衛還在', countOf(hudSrc, '道具點不足 ${cost} 點（大補藥需 ${cost} IP）'), 1);
+eq('H2 萬靈藥的守衛還在', countOf(hudSrc, '道具點不足 ${cost} 點（萬靈藥需 ${cost} IP）'), 1);
+eq('H3 滋補藥的守衛還在', countOf(hudSrc, '道具點不足 ${cost} 點（滋補藥需 ${cost} IP）'), 1);
+eq('H4 元素碎片的守衛還在', countOf(hudSrc, '道具點不足 ${cost} 點（元素碎片需 ${cost} IP）'), 1);
+eq('H5 魔法帳篷的守衛還在', countOf(hudSrc, '道具點不足 ${cost} 點（魔法帳篷需 ${cost} IP）'), 1);
+// 五個消耗品各自宣告**基準成本**（3／3／2／2／4）。少一個 `ipCostOf(...)`，
+// 那一條就退回寫死的數字——而那種回退不會讓任何畫面壞掉，只會讓【大口袋】靜默失效。
+eq('H5b 五個消耗品都吃同一條折扣函式', countOf(hudSrc, 'const cost = ipCostOf('), 5);
+eq('H5c 基準成本分別是 3×2、2×2、4×1', [
+  countOf(hudSrc, 'ipCostOf(3)'),
+  countOf(hudSrc, 'ipCostOf(2)'),
+  countOf(hudSrc, 'ipCostOf(4)')
+].join(','), '2,2,1');
 eq('H6 咒語的守衛還在', countOf(hudSrc, 'if (curMp < mpCost)'), 1);
 eq('H7 儀式的守衛還在', countOf(hudSrc, 'if (curMp < finalMp)'), 1);
 eq('H8 羈絆激勵的守衛還在', countOf(hudSrc, 'if ((character.fabulaPoints ?? 3) <= 0)'), 1);
 eq('H9 八個守衛一個都沒少', [
-  countOf(hudSrc, 'if (curIp < 3)'),
-  countOf(hudSrc, 'if (curIp < 2)'),
-  countOf(hudSrc, 'if (curIp < 4)'),
+  // 五個 IP 消耗品現在共用同一句守衛（`if (curIp < cost)`），加上另外三個
+  countOf(hudSrc, 'if (curIp < cost)'),
   countOf(hudSrc, 'if (curMp < mpCost)'),
   countOf(hudSrc, 'if (curMp < finalMp)'),
   countOf(hudSrc, 'if ((character.fabulaPoints ?? 3) <= 0)')

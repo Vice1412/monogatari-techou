@@ -23,6 +23,14 @@ import {
   MINION_AFFINITIES,
   MINION_LEASH_DAYS
 } from '../../data/necroMinionData';
+// 【殘酷的誕生】的代價是「花費 2 個墳墓點」＋「HP/MP 上限各減該 NPC 等級」。
+// 上限那一半早就在引擎裡（`characterEngine` 的 minionCost），但**點數那一半沒有人扣**——
+// 按鈕上寫著「花 2 墳墓點」，按下去墳墓點一個都不會少（文案承諾、程式沒做）。
+// 這裡接上 `classResources` 的既有讀寫層：點數唯一存放在 `character.classResources`。
+import { getActiveClassResources, readResource, setResourceValue } from '../../data/classResources';
+
+/** 【殘酷的誕生】的固定代價：2 個墳墓點（官方原文「you may spend 2 Grave Points」）。 */
+const MINION_GRAVE_COST = 2;
 
 /**
  * 死靈術士【殘酷的誕生】的僕從卡 (NecromancerMinionSheet)
@@ -59,20 +67,46 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
   const cost = Math.max(0, Math.floor(Number(minion.npcLevel) || 0));
   const hpZero = minion.active && hp <= 0;
 
+  // 墳墓點（`classResources` 的 `gravePoints`，上限 SL+1）。沒有【超越死界】就沒有這個資源。
+  const graveResource = getActiveClassResources(character).find((r) => r.id === 'gravePoints') || null;
+  const graveCurrent = graveResource ? readResource(character, graveResource) : 0;
+  const graveShort = Boolean(graveResource) && graveCurrent < MINION_GRAVE_COST;
+  const noGravePool = !graveResource;
+
   const createMinion = () => {
     const d = draft || createDefaultMinion();
     if (!d.name.trim()) {
       showToast('請先給僕從取個名字', 'warning');
       return;
     }
-    update({
-      ...d,
-      active: true,
-      currentHp: d.currentHp === null ? null : d.currentHp,
-      currentMp: d.currentMp === null ? null : d.currentMp
+    if (noGravePool) {
+      showToast('沒有【超越死界】——這個角色沒有墳墓點可用', 'warning');
+      return;
+    }
+    if (graveShort) {
+      showToast(`墳墓點不足（需要 ${MINION_GRAVE_COST}，現有 ${graveCurrent}）`, 'warning');
+      return;
+    }
+    const nextGrave = setResourceValue(character, graveResource, graveCurrent - MINION_GRAVE_COST);
+    onChange({
+      ...character,
+      classResources: nextGrave,
+      necroData: {
+        ...(character.necroData || {}),
+        minion: {
+          ...minion,
+          ...d,
+          active: true,
+          currentHp: d.currentHp === null ? null : d.currentHp,
+          currentMp: d.currentMp === null ? null : d.currentMp
+        }
+      }
     });
     setDraft(null);
-    showToast(`僕從「${d.name}」已成形（HP/MP 上限各 −${Math.max(0, Math.floor(Number(d.npcLevel) || 0))}）`, 'success');
+    showToast(
+      `僕從「${d.name}」已成形（墳墓點 −${MINION_GRAVE_COST}，HP/MP 上限各 −${Math.max(0, Math.floor(Number(d.npcLevel) || 0))}）`,
+      'success'
+    );
   };
 
   // ── 還沒有僕從 ──────────────────────────────────────────────
@@ -170,10 +204,20 @@ export default function NecromancerMinionSheet({ character, onChange, showToast 
                 沒有給公式，請與 GM 確認數值。
               </p>
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <JRPGButton variant="primary" size="xs" icon={GiSparkles} onClick={createMinion}>
-                確認成形（花 2 墳墓點）
+                確認成形（花 {MINION_GRAVE_COST} 墳墓點）
               </JRPGButton>
+              {/* 點數不足要**說出來**。以前這一格完全不存在，按鈕再按幾次都不會成形，
+                  而畫面沒有任何變化——玩家只會以為壞了（與營地活動上限同一個判準）。 */}
+              <span
+                data-testid="minion-grave-cost"
+                className={`text-t11 ${graveShort || noGravePool ? 'text-[#8c3235] font-bold' : 'text-[#6b5a4b]'}`}
+              >
+                {noGravePool
+                  ? '沒有【超越死界】，無法成形'
+                  : `墳墓點 ${graveCurrent} → ${Math.max(0, graveCurrent - MINION_GRAVE_COST)}（需 ${MINION_GRAVE_COST}）`}
+              </span>
               <button
                 type="button" onClick={() => setDraft(null)}
                 className="text-t11 text-[#6b5a4b] hover:text-[#3c2415] px-2 py-1 cursor-pointer"

@@ -4,7 +4,16 @@
  * ## 兩種模式，同一份資料
  *
  * - `mode="edit"`：建角第 5 步。從 15 種裡選 2 種（金手指【老大哥／歐尼醬】是 3 種）。
- * - `mode="play"`：跑團面板的休息區塊。標記「本次休息已使用」，休息時整批回充。
+ * - `mode="play"`：跑團面板的休息區塊。標記「本次休息已使用」，休息時整批回充；
+ *   2026-11-03 起再加上「擲 d6 → 套用」（`IMPL-SPEC.md` §4）。
+ *
+ * ## 跑團模式為什麼是「回呼出去」而不是自己寫
+ *
+ * 這一塊拿得到 `character`，但它**不寫** `character`：
+ * 套用會動到 IP／資金／食材／造物專案／履歷，那是跑團面板（`CharacterPlayHUD`）的職權
+ * ——它才有 `adjustIp`、`updateField`、`applyMoneyFlow` 那一套單一寫入出口。
+ * 所以這裡只算 plan，交給 `onApply(plan)`；沒接線時明確顯示「套用入口尚未接上」，
+ * 而不是畫一顆按了沒反應的按鈕（那種按鈕會被當成 bug 回報，卻查不到東西）。
  *
  * 兩者共用 `character.campActivities` 與 `data/campActivities.js` 的純函式。
  * **刻意不做成兩個元件**：它們讀寫同一份資料，拆開之後「編輯端能選的」與
@@ -37,8 +46,15 @@ import {
   toggleCampActivity
 } from '../data/campActivities';
 import { resolveCreationRules } from '../data/creationRules';
+import { TASTE_ROLL } from '../data/gourmetData';
 import CopyTextButton from '../../../components/ui/CopyTextButton';
 import { formatCampActivityCopyText } from '../utils/playCopyFormat';
+import {
+  campActivityRollLabel,
+  describeCampOutcome,
+  planCampActivity,
+  rollCampResult
+} from '../utils/campOutcome';
 
 /** 一張可選的活動卡（名稱＋目標＋一句話）。 */
 function ActivityChip({ activity, active, theme, onClick }) {
@@ -70,7 +86,7 @@ function ActivityChip({ activity, active, theme, onClick }) {
 }
 
 /** 規則全文（含 1d6 表格）。 */
-function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsage = false, modeNote = '', characterName = '', showToast = null }) {
+function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsage = false, modeNote = '', characterName = '', showToast = null, action = null }) {
   return (
     <div
       className="rounded border p-3 space-y-1.5"
@@ -169,6 +185,191 @@ function ActivityDetail({ activity, theme, onRemove, used, onToggleUsed, showUsa
           直到下一次休息前限一次。
         </p>
       ) : null}
+
+      {/* 跑團模式的「擲 d6 → 套用」。建角模式不傳 `action`，所以那裡逐字不變
+          （建角流程有護欄在測它：`tests/campActivities.test.mjs` 的 I 段）。 */}
+      {action}
+    </div>
+  );
+}
+
+/**
+ * 跑團模式的操作列：擲 d6 → 看結果 → 套用。
+ *
+ * 三條原則：
+ * 1. **不在這裡寫角色**。這一支只把 `planCampActivity` 算出來的 plan 交給 `onApply`；
+ *    寫入與履歷是跑團面板的事（同一份資料在建角流程也用到，兩邊各寫一次遲早會分歧）。
+ * 2. **算不出來的東西要看得到**：`plan.manual` 逐條列在按鈕下方。
+ *    只給一句 toast 的話，玩家按完就忘了「+4 要自己加」——而那正是這一期的重點。
+ * 3. 骰子用 `Math.floor(Math.random() * 6) + 1`（與 `GourmetCookbook` 擲口味同一個寫法）。
+ *    **刻意不開擲骰器 modal**：那是跑團面板的 `onOpenDice`，不在這一塊的職權內；
+ *    而且這裡的 d6 只有一個用途（查表），開了反而多一層。
+ */
+function CampActivityAction({ activity, character, stats, theme, onApply, showToast }) {
+  const [rolled, setRolled] = React.useState(null);
+  const [tasteRolls, setTasteRolls] = React.useState(null);
+  const [projectId, setProjectId] = React.useState('');
+  const [plan, setPlan] = React.useState(null);
+
+  const hasTable = Array.isArray(activity.table);
+  const wired = typeof onApply === 'function';
+
+  // 還沒有骰值時（且沒有 table）就先看唯一那一筆後果，才知道要不要顯示口味／專案的選擇器。
+  const effects = hasTable
+    ? ((rolled && rolled.result && rolled.result.effects) || {})
+    : ((Array.isArray(activity.outcomes) && activity.outcomes[0] && activity.outcomes[0].effects) || {});
+
+  const tasteCount = Math.max(0, Math.trunc(Number(effects.ingredients && effects.ingredients.count) || 0));
+  const needsTaste = tasteCount > 0 && (effects.ingredients.flavor !== 'choose');
+  const needsProject = Boolean(effects.projectProgress);
+  const openProjects = (Array.isArray(character && character.tinkererData && character.tinkererData.projects)
+    ? character.tinkererData.projects
+    : []).filter((project) => project && !project.completed);
+
+  const toast = (message, type) => {
+    if (typeof showToast === 'function' && message) showToast(message, type);
+  };
+
+  const rollDie = () => {
+    const d6 = Math.floor(Math.random() * 6) + 1;
+    setRolled({ d6, result: rollCampResult(activity, d6) });
+    // 骰值換了，口味與上一次的結果都作廢——留著會讓「骰 6 卻套用了骰 2 的口味」。
+    setTasteRolls(null);
+    setPlan(null);
+  };
+
+  const rollTastes = () => {
+    setTasteRolls(Array.from({ length: tasteCount }, () => Math.floor(Math.random() * 6) + 1));
+    setPlan(null);
+  };
+
+  const apply = () => {
+    const options = { stats };
+    if (hasTable) options.d6 = rolled ? rolled.d6 : null;
+    if (Array.isArray(tasteRolls)) options.tasteRolls = tasteRolls;
+    if (needsProject && projectId) options.target = projectId;
+
+    const next = planCampActivity(character, activity, options);
+    setPlan(next);
+    if (!next.ok) {
+      toast(next.toast || next.reason, 'warning');
+      return;
+    }
+    onApply(next);
+    toast(describeCampOutcome(next), 'success');
+  };
+
+  // 沒有接 `onApply` 時不要畫出一顆按了沒反應的按鈕——那比不畫更糟。
+  if (!wired) {
+    return (
+      <p data-testid={`camp-apply-unwired-${activity.id}`} className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
+        套用入口尚未接上（跑團面板要傳入 onApply）。
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5" data-testid={`camp-action-${activity.id}`}>
+      {hasTable ? (
+        <div className="flex items-start gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={rollDie}
+            data-testid={`camp-roll-${activity.id}`}
+            className="text-t12 px-2.5 py-0.5 rounded border cursor-pointer shrink-0"
+            style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
+          >
+            {rolled ? '再骰一次 d6' : '擲 d6'}
+          </button>
+          {rolled && rolled.result ? (
+            <span
+              data-testid={`camp-roll-result-${activity.id}`}
+              className="text-t12 leading-relaxed"
+              style={{ color: theme.textDark }}
+            >
+              <span className="font-bold">{campActivityRollLabel(activity, { ...rolled.result, d6: rolled.d6 })}</span>
+              <span className="block" style={{ color: theme.textMuted }}>{rolled.result.text}</span>
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* 採集：口味是「各再骰 d6」。骰到 6 代表由玩家決定，一律不代填（→ manual）。 */}
+      {hasTable && rolled && needsTaste ? (
+        <div className="flex items-start gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={rollTastes}
+            data-testid={`camp-taste-${activity.id}`}
+            className="text-t12 px-2.5 py-0.5 rounded border cursor-pointer shrink-0"
+            style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
+          >
+            骰 {tasteCount} 份口味
+          </button>
+          {Array.isArray(tasteRolls) ? (
+            <span
+              data-testid={`camp-taste-result-${activity.id}`}
+              className="text-t12 leading-relaxed"
+              style={{ color: theme.textDark }}
+            >
+              {tasteRolls.map((roll, index) => `${index + 1}. ${TASTE_ROLL[roll] || '由你決定'}`).join('　')}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* 抱佛腳：3 點進度要指定一個專案才算得出來（否則只能列清單請玩家自己做）。 */}
+      {needsProject && openProjects.length > 0 ? (
+        <label className="flex items-center gap-1.5 text-t12" style={{ color: theme.textDark }}>
+          <span className="shrink-0">造物專案</span>
+          <select
+            value={projectId}
+            onChange={(event) => { setProjectId(event.target.value); setPlan(null); }}
+            data-testid={`camp-project-${activity.id}`}
+            className="text-t12 rounded border px-1.5 py-0.5"
+            style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
+          >
+            <option value="">（請選擇）</option>
+            {openProjects.map((project) => (
+              <option key={project.id} value={project.id}>{project.name || project.id}</option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={apply}
+        data-testid={`camp-apply-${activity.id}`}
+        disabled={hasTable && !rolled}
+        className="text-t12 px-2.5 py-1 rounded border cursor-pointer font-bold disabled:opacity-40 disabled:pointer-events-none"
+        style={{ backgroundColor: theme.cardBg, borderColor: theme.accent, color: theme.accent }}
+      >
+        {hasTable ? '套用' : (activity.once ? '使用（本次休息一次）' : '使用')}
+      </button>
+
+      {plan && plan.ok ? (
+        <div className="space-y-1">
+          {plan.applied.length > 0 ? (
+            <p className="text-t12 leading-relaxed" style={{ color: theme.textDark }} data-testid={`camp-applied-${activity.id}`}>
+              {plan.applied.map((item) => item.text).join('；')}
+            </p>
+          ) : null}
+          {plan.manual.length > 0 ? (
+            <ul className="space-y-0.5" data-testid={`camp-manual-${activity.id}`}>
+              {plan.manual.map((line, index) => (
+                <li key={`${index}-${line.slice(0, 8)}`} className="text-t12 leading-relaxed" style={{ color: theme.textDark }}>
+                  <span style={{ color: theme.accent }}>△ </span>
+                  {line}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {plan.applied.length === 0 && plan.manual.length === 0 ? (
+            <p className="text-t12" style={{ color: theme.textMuted }}>已記錄在履歷。</p>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -180,7 +381,11 @@ export default function CampActivitiesBlock({
   allowance = CAMP_ACTIVITY_BASE_COUNT,
   quirkGrant = false,
   onChange,
-  showToast
+  showToast,
+  // 跑團模式新增（2026-11-03）：`onApply(plan)` 由跑團面板接線，`stats` 用來算 IP 上限。
+  // 建角模式不傳這兩個屬性，行為逐字不變。
+  onApply = null,
+  stats = null
 }) {
   const state = normalizeCampActivities(character && character.campActivities);
   const picked = state.picked.map((id) => campActivityById(id)).filter(Boolean);
@@ -237,6 +442,16 @@ export default function CampActivitiesBlock({
                   modeNote={campActivityModeNote(activity.id, techMode)}
                   characterName={character && character.name}
                   showToast={showToast}
+                  action={(
+                    <CampActivityAction
+                      activity={activity}
+                      character={character}
+                      stats={stats}
+                      theme={theme}
+                      onApply={onApply}
+                      showToast={showToast}
+                    />
+                  )}
                   onToggleUsed={() => commit(setCampActivityUsed(state, activity.id, !state.used.includes(activity.id)))}
                 />
               ))}

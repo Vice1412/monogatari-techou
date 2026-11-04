@@ -23,6 +23,9 @@ import { buildCustomWeaponEntries, validateCustomWeapon, CUSTOM_WEAPON_BASE } fr
 import { appendLog, createLogEntry } from './characterLog';
 import { findVariantHeroicSkillConflicts } from '../data/coreBookVariants';
 import { stripClassSuffix } from '../data/classAliases';
+// 效果流程的常駐修正（373 條規則物件 → 引擎數值）。
+// 這一支刻意不 import `characterEngine`（會循環），它只讀 `character` 與資料檔。
+import { characterFlowModifiers } from './effectFlow';
 import { VARIANT_ARCANIST_HEROIC_SKILLS } from '../data/variantArcanistHeroicSkills';
 import { isInitiativeVariant, getArmorProfile, initiativeVariantTermLabel } from '../data/initiativeVariant';
 import { isZeroPowersEnabled, createZeroPowerState } from '../data/zeroPowers';
@@ -58,7 +61,7 @@ import { COMPANION_SPECIES } from '../data/wayfarerCompanionData';
 const DICE_STEPS = [6, 8, 10, 12];
 
 /**
- * 四維屬性骰階的合法階梯（原書 p.162：最小 d6、最大 d12）。
+ * 屬性骰階的合法階梯（原書 p.162：最小 d6、最大 d12）。
  *
  * 這是唯一的來源：`AttributeMatrixPicker` 的步進器、`fultimatorConverter` 的匯入夾制、
  * `validateCharacter` 的範圍檢查都讀它。以前 UI 有一份 `VALID_TIERS`、引擎有一份
@@ -96,7 +99,7 @@ export const attributeDieUpgradesAllowed = (level) => {
   return (lv >= 20 ? 1 : 0) + (lv >= 40 ? 1 : 0);
 };
 
-/** 這組四維用掉了幾次升級（索引和 − 4）。有骰階不在階梯上時回 null。 */
+/** 這組屬性用掉了幾次升級（索引和 − 4）。有骰階不在階梯上時回 null。 */
 export const attributeDieUpgradesUsed = (attributes) => {
   const idx = ATTRIBUTE_KEYS.map((key) => attributeDieIndex(attributes?.[key]));
   if (idx.some((i) => i < 0)) return null;
@@ -104,7 +107,7 @@ export const attributeDieUpgradesUsed = (attributes) => {
 };
 
 /**
- * 這組四維是不是「從官方三組陣列出發、用不超過 `allowed` 次升級」推得出來的。
+ * 這組屬性是不是「從官方三組陣列出發、用不超過 `allowed` 次升級」推得出來的。
  *
  * 骰子只能往上、不能超過 d12；把兩邊都**降冪**排序後逐位相減就是最佳配對
  * （重排不等式）——所以只需要檢查每個差都 ≥ 0 且總和 ≤ 允許次數。
@@ -1268,7 +1271,7 @@ export const createNewCharacter = (overrides = {}, rules = DEFAULT_CREATION_RULE
     // 啟用的手冊拓展（由開卡規則決定；上限另由 allowedSourcebooks 把關）
     enabledSourcebooks: [...creation.defaultSourcebooks],
 
-    // 四維屬性基礎骰階（起始總和為 32）
+    // 屬性基礎骰階（起始總和為 32）
     //
     // **預設是空的（0 = 尚未指派）**，不替玩家先套「萬事通」。原書 p.162 給了
     // 三組建議陣列，但選哪一組是玩家的決定——舊版預設 d8×4 等於偷偷替他選了。
@@ -1291,7 +1294,7 @@ export const createNewCharacter = (overrides = {}, rules = DEFAULT_CREATION_RULE
       weak: false      // 虛弱: MIG 降一階
     },
 
-    // 職業與特技配置 (預設為空，起始需配置 2~3 個職業)
+    // 職業與技能配置 (預設為空，起始需配置 2~3 個職業)
     classes: [],
 
     // 三維六向情感羈絆 (上限 6 個)。
@@ -1322,14 +1325,20 @@ export const createNewCharacter = (overrides = {}, rules = DEFAULT_CREATION_RULE
     // → `getQuirkOptionEffects` 回空物件，行為與以前完全相同。
     quirkChoice: "",
     backpackNotes: "",
+    // 行囊物品（2026-11-03）。冒險途中拿到的裝備／消耗品／稀有物品／雜項。
+    //
+    // **預設是空的**：建角不替玩家塞東西（與屬性、羈絆、金手指、底力技同一原則）。
+    // 舊存檔沒有這個欄位 → `readInventory` 回空陣列，行為與以前完全相同。
+    // 形狀：`[{ id, name, category, value, effect, qty }]`，判定與算術在 `utils/inventory.js`。
+    inventory: [],
 
     // 底力技（高度奇幻手冊 p.124–131 的選用規則）。
-    // **預設是空的**：建角時不替玩家選觸發或效果（與四維屬性、羈絆、金手指同一原則）。
+    // **預設是空的**：建角時不替玩家選觸發或效果（與屬性、羈絆、金手指同一原則）。
     // 舊存檔沒有這個欄位 → 由 `normalizeZeroPower` 收斂成空狀態，行為與以前完全相同。
     zeroPower: createZeroPowerState(),
 
     // 營地活動（自然奇幻手冊 p.130–133 的選用規則）。
-    // **預設是空的**：建角時不替玩家挑活動（與四維屬性、羈絆、金手指、底力技同一原則）。
+    // **預設是空的**：建角時不替玩家挑活動（與屬性、羈絆、金手指、底力技同一原則）。
     // `used` 是「直到下一次休息前限一次」的追蹤欄位，由跑團面板寫入、休息時清空。
     // 舊存檔沒有這個欄位 → `normalizeCampActivities` 收斂成空狀態，行為與以前完全相同。
     campActivities: createCampActivityState(),
@@ -1357,7 +1366,7 @@ export const createNewCharacter = (overrides = {}, rules = DEFAULT_CREATION_RULE
 
     // 魔晶石（科技奇幻手冊 p.132–145 的選用規則）。
     // **預設是空的**：不替玩家挑職業魔石，也不預先掛任何附魔魔石——
-    // 與四維屬性、羈絆、金手指、底力技同一個原則。
+    // 與屬性、羈絆、金手指、底力技同一個原則。
     // 舊存檔沒有這個欄位 → `normalizeTechnosphereState` 收斂成空狀態，行為不變。
     // 規則關閉時這個欄位一樣存在，只是沒有讀取端會去用它。
     technospheres: createTechnosphereState(),
@@ -1480,6 +1489,49 @@ const findQuirkDef = (name) => {
   // 而金手指本身的數值效果一直是 `includes` 比對（見下面 (4) 那一段），
   // 選項的查找必須用同一個寬容度，否則加了註記的角色選項會靜默失效。
   return quirks.find((q) => q.name === name) || quirks.find((q) => name.includes(q.name)) || null;
+};
+
+/**
+ * 金手指的**效果全文**（`rulesData.quirks[]` 的 `desc`）。
+ *
+ * 為什麼需要這一個函式，而不是在介面上直接讀 `quirkDef.effect`：
+ * 跑團面板（`CharacterPlayHUD` 的「金手指特質」區塊）讀的是 `quirkDef?.effect`，
+ * 而 `quirks[]` 46 筆**沒有任何一筆有 `effect` 欄位**——欄位名是 `desc`。
+ * 結果是 46 個金手指在跑團時全部只印一句「已啟用金手指【X】。」：
+ * 玩家在桌上要看的那段效果文，一個字都沒出現。而且它**不會壞、不會報錯**，
+ * 只是安靜地少掉全部內容（同 `classPanels` 檔頭那三種病的形狀）。
+ *
+ * 放在引擎而不是 JSX：這是「金手指的效果文在哪個欄位」的唯一答案，
+ * 跑團面板與複製文字兩處都吃它；日後改欄位名只需要改這裡。
+ */
+export const quirkEffectText = (name) => {
+  const quirk = findQuirkDef(name);
+  if (!quirk) return '';
+  return String(quirk.desc || quirk.effect || '').trim();
+};
+
+/**
+ * 【大口袋】給的庫存點折扣（英雄技能，官方原文「消耗量減少 1，最小為 1」）。
+ *
+ * 為什麼要有這一個函式：跑團面板的五種 IP 消耗品把成本寫死成 3／3／2／4／2，
+ * 於是選了【大口袋】的角色**仍然被扣 3 點**——按鈕、成本門檻、履歷標題、toast
+ * 四處都會繼續說「消耗 3 IP」。那不是少做一個 UI，是規則沒生效。
+ *
+ * 折扣只回傳「折幾點」，不直接改數字：呼叫端才知道自己的基準成本是多少
+ * （大補藥 3、滋補藥 2、魔法帳篷 4…），而「最小為 1」這條下限由 `applyIpDiscount` 統一負責。
+ */
+export const ipCostDiscount = (char) => {
+  const names = (char?.heroicSkills || [])
+    .map((h) => (typeof h === 'string' ? h : h?.name))
+    .filter(Boolean);
+  return names.includes('大口袋') ? 1 : 0;
+};
+
+/** 把折扣套上一個基準成本。下限 1——官方明寫「最小為 1」，折成 0 就是一條免費道具。 */
+export const applyIpDiscount = (baseCost, discount = 0) => {
+  const base = Math.max(0, Math.floor(Number(baseCost) || 0));
+  const off = Math.max(0, Math.floor(Number(discount) || 0));
+  return Math.max(1, base - off);
 };
 
 /**
@@ -1890,6 +1942,22 @@ export const calculateCharacterStats = (char) => {
     addMp(`僕從代價（${minionCost} 級）`, -minionCost, 'minion');
   }
 
+  // (6) 效果流程的**常駐**修正（`data/effectFlows.json` → `utils/effectFlow.js`）
+  //
+  // 為什麼要有這一層：英雄技能 167 條裡，以前只有 4 條真的會被引擎讀到
+  // （額外HP／額外IP／額外MP／預言守護者的 HP，全部是 `includes` 硬編碼）。
+  // 其餘 160 多條的「+SL 檢定」「+N 傷害」「抗性」在畫面上寫得漂漂亮亮，
+  // 但一個數字都沒有進到任何計算——玩家只能自己記。
+  //
+  // 兩個不能弄錯的地方：
+  //   ① `characterFlowModifiers` 已經把 `apply.via === 'existing'` 的條目跳過，
+  //      所以舊有 38 條客製實作不會被算兩次（算兩次的話 maxHp 會靜默變高）。
+  //   ② 只有 `scope === 'permanent'` 會進 `totals`；場景／回合型的加值走
+  //      `conditional`（給人看的條件說明），不會讓 maxHp 在場景開始時莫名跳一階。
+  const flowFx = characterFlowModifiers(char);
+  if (flowFx.totals.hpMax) addHp('技能效果（常駐）', flowFx.totals.hpMax, 'skill');
+  if (flowFx.totals.mpMax) addMp('技能效果（常駐）', flowFx.totals.mpMax, 'skill');
+  if (flowFx.totals.ipMax) addIp('技能效果（常駐）', flowFx.totals.ipMax, 'skill');
   // 官方規則：最大 HP / MP 基礎計算採用 BASE 力量與意志（不受異常狀態減骰影響）
   const maxHp = baseMig * 5 + level + bonusHp;
   const maxMp = baseWlp * 5 + level + bonusMp;
@@ -2101,6 +2169,30 @@ export const calculateCharacterStats = (char) => {
     }
   }
 
+  // 效果流程的常駐防禦／先攻修正（與上面 (6) 同一個來源，只是這幾項要等在
+  // 防具／盾牌／飾品／金手指條件式加值都算完之後才加，否則會被後面覆蓋掉）。
+  // 例：【閃避】的「物防 +SL」、【防守掌握】的「受到傷害 −SL」屬於這一類。
+  // 第二版：到這裡 `maxHp`／`crisisThreshold` 已經算好了，所以再跑一次條件判定——
+  // 【緊急秘儀】【暗黑之血】那類「處於危機時」的效果需要 HP 上限才判得出來。
+  // 兩次呼叫不重複計數：上面那一次只取 hp/mp/ip，下面只取 def/mdef/initiative。
+  const flowFxDef = characterFlowModifiers(char, { maxHp, crisisThreshold });
+  if (flowFxDef.totals.def) {
+    def += flowFxDef.totals.def;
+    defTerms.push({
+      label: `技能效果（常駐）物防 ${flowFxDef.totals.def > 0 ? '+' : ''}${flowFxDef.totals.def}`,
+      value: flowFxDef.totals.def,
+      kind: 'skill'
+    });
+  }
+  if (flowFxDef.totals.mdef) {
+    mdef += flowFxDef.totals.mdef;
+    mdefTerms.push({
+      label: `技能效果（常駐）魔防 ${flowFxDef.totals.mdef > 0 ? '+' : ''}${flowFxDef.totals.mdef}`,
+      value: flowFxDef.totals.mdef,
+      kind: 'skill'
+    });
+  }
+
   // 先攻修正
   let init = 0;
   if (initiativeVariant) {
@@ -2121,6 +2213,15 @@ export const calculateCharacterStats = (char) => {
     if (accFx.init) {
       init += accFx.init;
       initTerms.push({ label: `飾品 ${accName} 先攻 ${accFx.init > 0 ? '+' : ''}${accFx.init}`, value: accFx.init, kind: 'equip' });
+    }
+    // 效果流程的常駐先攻修正（同 (6) 的來源，這裡才加得到，因為上面那段會覆蓋）
+    if (flowFxDef.totals.initiative) {
+      init += flowFxDef.totals.initiative;
+      initTerms.push({
+        label: `技能效果（常駐）先攻 ${flowFxDef.totals.initiative > 0 ? '+' : ''}${flowFxDef.totals.initiative}`,
+        value: flowFxDef.totals.initiative,
+        kind: 'skill'
+      });
     }
   }
 
@@ -2166,7 +2267,7 @@ export const calculateCharacterStats = (char) => {
 
   // 6. 數值構成公式（逐項分解，供角色卡／跑團卡點擊展開顯示）
   // 每一項為 { label, value, kind }；kind 供面板分色：
-  // base 基礎骰 / level 等級 / class 職業免費增益 / skill 特技 / equip 裝備飾品 / heroic 英雄技能 / quirk 金手指 / status 狀態異常
+  // base 基礎骰 / level 等級 / class 職業免費增益 / skill 技能 / equip 裝備飾品 / heroic 英雄技能 / quirk 金手指 / status 狀態異常
   const attrBreakdown = (base, current, penalty, sources) => ({
     total: current,
     terms: [
@@ -2238,7 +2339,13 @@ export const calculateCharacterStats = (char) => {
     def,
     mdef,
     init,
-    // true = 四維還沒指派完，六項數值不成立。介面據此顯示「未設定」而不是假數字。
+    // 效果流程（`utils/effectFlow.js`）算出來的兩份清單：
+    // `flowTerms` 是**已經折進上面數字**的常駐項目（給「數值構成」逐項顯示），
+    // `flowConditional` 是**算不進數字**的條件式加值（例如「對非集群 +5 傷害」）——
+    // 那些的價值在 `condition` 那句說明，介面必須原樣列出，玩家才知道什麼時候能用。
+    flowTerms: flowFxDef.terms,
+    flowConditional: flowFxDef.conditional,
+    // true = 屬性還沒指派完，六項數值不成立。介面據此顯示「未設定」而不是假數字。
     attributesUnset,
     bonusHp,
     bonusMp,
@@ -2517,25 +2624,25 @@ export const validateCharacter = (char, rules = null) => {
     });
   }
 
-  // 步驟 3: 四維屬性（起始總點數由開卡規則決定）
+  // 步驟 3: 屬性（起始總點數由開卡規則決定）
   //
   // 為什麼屬性排在職業之後：原書的順序是先選職業（第 4 步）再分配屬性（第 5 步），
   // 而且 p.162 明說「當分配屬性骰子時，你應該考慮到你的職業和技能選擇！」。
-  // 舊版把屬性放在第 2 步，玩家得在還不知道職業會給什麼免費增益時就決定四維。
-  // 四維屬性：0 = 尚未指派（`createNewCharacter` 的預設）。分成三種狀態處理，
+  // 舊版把屬性放在第 2 步，玩家得在還不知道職業會給什麼免費增益時就決定屬性。
+  // 屬性：0 = 尚未指派（`createNewCharacter` 的預設）。分成三種狀態處理，
   // 因為它們的「怎麼了」不一樣，訊息也該不一樣：
   //   ① 四項全空 → 還沒開始（info，不是玩家的錯）
   //   ② 部分空   → 做到一半（warning）
   //   ③ 都指派了 → 才檢查總和與單顆骰階（原書 p.162）
   const unassigned = ATTRIBUTE_KEYS.filter((key) => !char.attributes?.[key]);
   if (unassigned.length === ATTRIBUTE_KEYS.length) {
-    warnings.push({ step: 3, field: 'attributes', type: 'info', message: '尚未選擇四維屬性配置' });
+    warnings.push({ step: 3, field: 'attributes', type: 'info', message: '尚未選擇屬性配置' });
   } else if (unassigned.length > 0) {
     warnings.push({
       step: 3,
       field: 'attributes',
       type: 'warning',
-      message: `四維屬性還有 ${unassigned.length} 項未指派（${unassigned.map((k) => ATTRIBUTE_NAMES[k]).join('、')}）`
+      message: `屬性還有 ${unassigned.length} 項未指派（${unassigned.map((k) => ATTRIBUTE_NAMES[k]).join('、')}）`
     });
   } else {
     // 官方規則（印刷 p.162）是「從三組固定陣列挑一組」，**不是「總和 32」**；
@@ -2586,7 +2693,7 @@ export const validateCharacter = (char, rules = null) => {
     }
   }
 
-  // 步驟 2: 職業與特技（起始等級的職業數限制由開卡規則決定）
+  // 步驟 2: 職業與技能（起始等級的職業數限制由開卡規則決定）
   const classCount = (char.classes || []).length;
   // 上下限相同時不要寫成「3~3」（F-012，2026-10-27）。
   // 魔晶石制把 min／max 一起鎖成 3，於是原本的模板拼出「需配置 3~3 個職業」——
@@ -2752,7 +2859,7 @@ export const validateCharacter = (char, rules = null) => {
     });
   }
 
-  // 步驟 2: 特技子項目配額檢驗 (如舞步、音調曲風、心靈天賦、魔法種子等)
+  // 步驟 2: 技能子項目配額檢驗 (如舞步、音調曲風、心靈天賦、魔法種子等)
   (char.classes || []).forEach(cl => {
     (cl.skills || []).forEach(sk => {
       if (sk.sl > 0) {
@@ -2770,7 +2877,7 @@ export const validateCharacter = (char, rules = null) => {
               step: 2,
               field: `skill_suboptions_${cl.className}_${sk.name}`,
               type: 'warning',
-              // 這句原本把玩家指向一個不存在的「特技分頁」——子選項的介面其實就在第 2 步
+              // 這句原本把玩家指向一個不存在的「技能分頁」——子選項的介面其實就在第 2 步
               // 「職業與技能」的技能卡上（`ClassSkillCard` 的技能列 → 右側按鈕開彈窗），
               // 全站沒有那個分頁。實際操作時照著提示去找，找不到。
               message: `【${cl.className}】的【${sk.name}】名額未滿：目前已配置 ${currentCount} 個，尚有 ${maxQuota - currentCount} 個名額可供選擇。請回到第 2 步「職業與技能」，在【${sk.name}】那一列點右側的「配置…／調整…」按鈕完成構築。`
@@ -3188,14 +3295,14 @@ export const validateCharacter = (char, rules = null) => {
  * 程式裡沒有任何狀態表達那件事：編輯器任何時候都全開，於是 UI 不敢簡化，
  * 玩家也分不清自己「還在創角」還是「已經在跑」。
  *
- * `locked` 就是那個狀態。定稿後，創角時做的決定（身世、四維）凍結，
+ * `locked` 就是那個狀態。定稿後，創角時做的決定（身世、屬性）凍結，
  * 只留成長相關的欄位（等級、技能點、裝備、命刻、筆記）可以動。
  * （羈絆也是成長的一部分，但它不屬創角、編輯器也沒有這一格——於跑團面板管理，見 `CREATION_STEPS`。）
  * **舊存檔沒有這個欄位 → 一律視為未定稿**，行為與以前完全相同。
  */
 export const isCharacterLocked = (char) => char?.locked === true;
 
-/** 定稿後凍結的分頁（對應 CharacterEditor 的分頁 id：1 基礎身世、3 四維屬性、6 命名與背景） */
+/** 定稿後凍結的分頁（對應 CharacterEditor 的分頁 id：1 基礎身世、3 屬性、6 命名與背景） */
 export const LOCKED_CREATION_TABS = Object.freeze([1, 3, 6]);
 
 /** 定稿：留下 `locked` 旗標與一筆履歷 */
@@ -3219,13 +3326,13 @@ export const unlockCharacter = (char, { at, note = '' } = {}) => {
 /** 創角步驟（與 validateCharacter 的 step 編號一一對應）
  *
  * 為什麼沒有「情感羈絆」這一格：原書的創角流程是八個步驟（Identity／Theme／Origin／
- * 職業與等級／四維／HP·MP·IP·DEF·M.DEF·先攻／裝備 500z／名字），**沒有羈絆**（p.154）；
+ * 職業與等級／屬性／HP·MP·IP·DEF·M.DEF·先攻／裝備 500z／名字），**沒有羈絆**（p.154）；
  * 羈絆是遊戲中透過休息場景等時機建立的（p.57），而「起始帶 1 條羈絆」是選用規則（p.220）。
  * 舊版把它列為創角第 5 步並在驗證時催填，屬無官方來源的杜撰。
  *
- * 為什麼職業（第 2 步）排在四維（第 3 步）之前：原書是「先選職業（第 4 步）再分配屬性
+ * 為什麼職業（第 2 步）排在屬性（第 3 步）之前：原書是「先選職業（第 4 步）再分配屬性
  * （第 5 步）」，且 p.162 明說分配屬性骰時要考慮職業與技能選擇。舊版把兩者對調，
- * 玩家得在還不知道職業會給什麼免費增益時就決定四維。
+ * 玩家得在還不知道職業會給什麼免費增益時就決定屬性。
  *
  * 為什麼姓名在**最後**（第 6 步）而不是第 1 步：原書第 8 步是「描述你的角色並選擇
  * 名字和稱呼」（p.154），p.170 給了理由——「先掌握了角色的外貌與能力，取名就容易多了」。
@@ -3251,7 +3358,7 @@ export const unlockCharacter = (char, { at, note = '' } = {}) => {
 export const CREATION_STEPS = Object.freeze([
   { id: 1, label: '基礎身世', doneHint: '身分、主題、故鄉都已填寫' },
   { id: 2, label: '職業與技能', doneHint: '職業組合與技能點數已配置' },
-  { id: 3, label: '四維屬性', doneHint: '骰階點數已分配完成' },
+  { id: 3, label: '屬性', doneHint: '骰階點數已分配完成' },
   { id: 4, label: '裝備配置', doneHint: '武裝與防具已就緒' },
   { id: 5, label: '英雄技能與金手指', doneHint: '沒有需要設定的項目' },
   { id: 6, label: '命名與背景', doneHint: '姓名、性別與角色背景都已填寫' }
@@ -3417,7 +3524,7 @@ export const exportCharacterToCombatant = (char) => {
       id: `${cl.className}_${sk.name}`,
       name: `${sk.name} (SL ${sk.sl})`,
       category: 'skill',
-      desc: `【${cl.className}】特技`,
+      desc: `【${cl.className}】技能`,
       isRevealed: true
     }))),
     rawCharData: char

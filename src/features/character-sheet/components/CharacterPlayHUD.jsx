@@ -56,6 +56,12 @@ import {
   resolveHeroicSkillEntry,
   describeFreeBenefit,
   describeQuirkChoice,
+  // 金手指效果全文的唯一來源（`quirks[]` 的欄位是 `desc`，不是 `effect`）。
+  // 以前跑團面板直接讀 `quirkDef.effect` → 46 條全部只印一句「已啟用金手指【X】。」。
+  quirkEffectText,
+  // 【大口袋】的IP 折扣：門檻與扣點共用同一組函式，避免「按鈕亮著、按下去說不足」。
+  ipCostDiscount,
+  applyIpDiscount,
   HEROIC_SKILL_SOURCE_LABELS,
   CLASS_MAX_LEVEL,
   MAX_NON_MASTERED_CLASSES,
@@ -70,9 +76,27 @@ import { hasGreaterTheriomorphosis } from '../data/theriomorphosisVariant';
 import { formatInitiative, isInitiativeVariant } from '../data/initiativeVariant';
 import { isZeroPowersEnabled } from '../data/zeroPowers';
 import { campActivityAccess } from '../data/campActivities';
+// 營地休整要一起回充「本次休息已使用」：兩件事是同一次休息的兩半。
+import { normalizeCampActivities, resetCampActivityUses } from '../data/campActivities';
+// 效果流程（373 條規則物件 → 跑團卡上的計數器／開關／按鈕）
+import {
+  flowItemForClassSkill,
+  flowItemForHeroic,
+  flowItemForQuirk,
+  readFlowState,
+  clampFlowState,
+  withFlowState,
+  flowResetState,
+  flowActionPlan,
+  flowVarsFor
+} from '../utils/effectFlow';
+import SkillFlowControls from './SkillFlowControls';
 // F-020（2026-10-27）：職業面板「住哪個分頁」與指路句的唯一來源。
 import { classPanelHint, isClassPanelActive } from '../data/classPanels';
 import CampActivitiesBlock from './CampActivitiesBlock';
+// 營地活動「按了會發生什麼」的純函式層（擲 d6、查表、夾上限、算錢、列 manual）。
+// 履歷與錢包都走它，不要在 JSX 裡再算一份。
+import { applyCampPlan, describeCampOutcome } from '../utils/campOutcome';
 import { resolveCreationRules } from '../data/creationRules';
 import { modeRestrictsEquipment, isTechnosphereEnabled, isSkillSuppressedByTechnospheres, getLevelUpMnemosphereCandidates, MNEMOSPHERE_MAX_LEVEL } from '../data/technospheres';
 import ZeroPowerBlock from './ZeroPowerBlock';
@@ -84,7 +108,6 @@ import { formatZenit, describePurchase, MONEY_DIRECTIONS } from '../utils/zenitF
 // 寫入層（P9-b）：扣款 → 換裝備 → 留履歷必須同一次寫入。
 // 編輯器、購買面板、收支對話框三個入口共用同一支，否則它們總有一天會算出不同的錢。
 import { applyPurchase, applyMoneyFlow, describeMoneyToast } from '../utils/moneyFlow';
-import PurchaseModal from './PurchaseModal';
 import MoneyFlowModal from './MoneyFlowModal';
 import MoneyLedgerModal from './MoneyLedgerModal';
 import EquipmentSlotModal from './EquipmentSlotModal';
@@ -153,6 +176,12 @@ import SkillDescription, { openRuleCodex } from '../utils/skillFormulaEvaluator'
 // 儀式需要對應學派的職業技能或職業免費能力。判定收斂在 spellGrants.js，
 // 這裡只負責畫，並且**不自己重算規則**。
 import { describeSpellGrants, describeRitualRights } from '../utils/spellGrants';
+import { describeAttributeCheck } from '../utils/attributeCheck';
+// 行囊物品（2026-11-03）：冒險途中拿到的裝備／消耗品／稀有物品／雜項。
+// 形狀與算術都在 `utils/inventory.js`，這裡只負責接線與說話。
+import { addInventoryItem, removeInventoryItem, applySellItem } from '../utils/inventory';
+import BackpackGrid from './BackpackGrid';
+import BackpackItemModal from './BackpackItemModal';
 import ArcanistManager from './companions/ArcanistManager';
 import ChimeristManager from './companions/ChimeristManager';
 import WayfarerCompanionSheet from './companions/WayfarerCompanionSheet';
@@ -353,7 +382,7 @@ export default function CharacterPlayHUD({
   initialLevelUpClass = '',
   // 初始分頁：跑團面板的每個分頁各自有一段「空清單」畫面，而 SSR 不執行點擊，
   // 沒有這個入口就永遠測不到。不傳時就是預設的 `'profile'`——P14 起，
-  // 「個人資料」是第一頁（狀態與四維住在那裡），開卡就該看到自己剩多少。
+  // 「個人資料」是第一頁（狀態與屬性住在那裡），開卡就該看到自己剩多少。
   initialTab = 'profile',
   // 羈絆的兩個彈窗／面板（P3）。同樣是 SSR 測不到的區塊：建立彈窗與就地編輯面板
   // 都只能靠點擊打開，而裡面正是「名冊斷鏈」與「為什麼」唯一會出現的地方。
@@ -373,12 +402,12 @@ export default function CharacterPlayHUD({
   const hudTabItems = useMemo(() => [
     // P14：`profile` 是預設頁——「最基本的默認信息」。
     // 它同時是 HP／MP／IP 步進器的家，所以開卡第一眼就看到自己剩多少。
-    { id: 'profile', label: '個人資料', icon: GiCharacter, sub: '狀態 · 四維 · 成長' },
+    { id: 'profile', label: '個人資料', icon: GiCharacter, sub: '狀態 · 屬性 · 成長' },
     { id: 'attacks', label: '武器與戰鬥', icon: GiCrossedSwords, sub: '命中 · 防禦 · 變形' },
     { id: 'spells', label: '咒語與儀式', icon: GiSpellBook, sub: '施法 · 儀式計算', count: resolveCharacterSpells(character).length },
-    { id: 'skills', label: '職業特技', icon: GiBroadsword, sub: '特技 · 英雄 · 金手指' },
+    { id: 'skills', label: '職業技能', icon: GiBroadsword, sub: '技能 · 英雄 · 金手指' },
     { id: 'bonds', label: '情感羈絆', icon: GiHeartShield, sub: '激勵 · 編輯 · 營地', count: (character.bonds || []).length },
-    { id: 'clocks', label: '個人命刻', icon: GiPocketWatch, sub: '進度鐘 · 底力技', count: (character.clocks || []).length },
+    { id: 'clocks', label: '個人命刻', icon: GiPocketWatch, sub: '命刻 · 底力技', count: (character.clocks || []).length },
     { id: 'notes', label: '行囊與道具', icon: GiBackpack, sub: '消耗品 · 裝備 · 筆記' },
     { id: 'money', label: '金錢與物語點', icon: GiCoins, sub: '收支 · 履歷 · 物語點' }
   ], [character]);
@@ -447,6 +476,53 @@ export default function CharacterPlayHUD({
     return cl?.skills?.find((s) => s.name === name)?.sl || 0;
   };
 
+  // 立繪框的比例（2026-11-03，使用者：「不能讓框隨著放進去的圖片長寬調整嗎？」）
+  //
+  // 框原本寫死 3:4，玩家的圖是 1:1／4:3／9:16 時 `object-contain` 一定留白，
+  // 於是上一輪用「同圖模糊鋪滿」去補——使用者的評語是「放在上面真的很難看」。
+  // 正確的方向是**讓框去配合圖**，留白從源頭就不存在；模糊只在框被
+  // `minHeight`／`maxHeight` 夾住（比例過扁或過長）時才露出來當襯底。
+  //
+  // 比例要等圖片載入才知道（`naturalWidth` / `naturalHeight`），SSR 沒有這個資訊，
+  // 所以 `null` ＝ 用 3:4 撐住版面；載入後才換成真實比例。
+  const [portraitRatio, setPortraitRatio] = useState(null);
+
+  // 行囊物品：新增／賣出／丟棄（2026-11-03）
+  const [isBackpackAddOpen, setIsBackpackAddOpen] = useState(false);
+
+  // 行囊物品：新增／賣出／丟棄（2026-11-03）
+  //
+  // 三個動作都走「讀最新角色 → 一次寫入 → 說話」的同一個模式。
+  // 賣出**不能**拆成「先移除物品、再加錢」兩次 onChange：第二次讀到的是這一輪開始前的
+  // 角色（MEMORY §D.24），結果就是「東西沒了、錢沒加」。算術與履歷在 `applySellItem`。
+  const handleAddInventoryItem = (item) => {
+    const before = characterRef.current;
+    const next = addInventoryItem(before, item);
+    if (next === before) return;
+    commit(next);
+    setIsBackpackAddOpen(false);
+    showToast(`已記下【${item.name}】`);
+  };
+
+  const handleSellInventoryItem = (itemId, amount) => {
+    const result = applySellItem(characterRef.current, { itemId, amount });
+    if (!result.ok) {
+      showToast(result.reason, 'warning');
+      return result;
+    }
+    commit(result.character);
+    showToast(`賣出【${result.item.name}】，+${formatZenit(result.gain)}`);
+    return result;
+  };
+
+  const handleDiscardInventoryItem = (itemId) => {
+    const before = characterRef.current;
+    const next = removeInventoryItem(before, itemId);
+    if (next === before) return;
+    commit(next);
+    showToast('已丟棄');
+  };
+
   // Spell picker modal
   const [isSpellModalOpen, setIsSpellModalOpen] = useState(false);
   const [spellSearchQuery, setSpellSearchQuery] = useState('');
@@ -481,7 +557,6 @@ export default function CharacterPlayHUD({
   // 購買裝備（P9，2026-10-31）：跑團中買東西的**唯一**入口。
   // 建卡時的預算制（`CharacterEditor` 的 `startingZenit` 條）不適用於跑團——
   // 那條算的是「還沒結算的起始預算」，不是「你現在有多少錢」。
-  const [isPurchaseOpen, setIsPurchaseOpen] = useState(false);
 
   // 收支（P9-b）：住宿、餐費、報酬……**有原因**的金錢流動。
   // 與購買面板分開，因為那裡只有「買裝備」一種原因，而跑團中花錢的地方遠多於裝備。
@@ -550,7 +625,7 @@ export default function CharacterPlayHUD({
     setNpcPool(Array.isArray(npcLibrary) ? npcLibrary : readJSON(STORAGE_KEYS.npcLibrary, []));
   };
 
-  // 升級後若解鎖職業精通（Lv 10）或帶子項目的特技，給出跳轉編輯器提示橫幅
+  // 升級後若解鎖職業精通（Lv 10）或帶子項目的技能，給出跳轉編輯器提示橫幅
   const [postLevelUpHint, setPostLevelUpHint] = useState(null);
 
   // Clock creator modal
@@ -575,6 +650,37 @@ export default function CharacterPlayHUD({
   // 先攻變體（公測 p.34）：先攻值不存在 → 顯示「不計」，副標改寫成變體說明。
   const initiativeVariant = isInitiativeVariant(character);
   const breakdown = stats.breakdown || {};
+
+  // ── 屬性檢定（2026-11-03 重做）────────────────────────────────
+  // 舊版每一格有兩顆按鈕（大卡＝單屬性、旁邊小鈕＝配對），玩家要在兩處之間來回，
+  // 而且彈窗一開就蓋住整排屬性，看不到自己剛選了哪兩顆。
+  // 現在：點第一張＝記住它；再點任何一張（含同一張）＝立刻擲那兩顆。
+  // 判定與 label 都抽到 `utils/attributeCheck.js`（純函式），這裡只負責套用——
+  // `onClick` 裡的邏輯 SSR 測不到，抽出去才有會失敗的斷言。
+  const attrDie = (key) => {
+    if (key === 'dex') return stats.currentDex;
+    if (key === 'ins') return stats.currentIns;
+    if (key === 'mig') return stats.currentMig;
+    if (key === 'wlp') return stats.currentWlp;
+    return 8;
+  };
+  const handleAttributeRoll = (attr) => {
+    const next = describeAttributeCheck({ firstKey: comboFirstAttr, nextKey: attr.key, dieOf: attrDie });
+    if (next.mode === 'select') {
+      setComboFirstAttr(next.key);
+      return;
+    }
+    setComboFirstAttr(null);
+    openCharacterDice({
+      die1: next.die1,
+      die2: next.die2,
+      modifier: 0,
+      label: next.label,
+      // 骰階已經由屬性決定了，彈窗不該再擺兩組 d6/d8/d10/d12 讓人以為要自己挑。
+      // 自由擲骰與「進階修正檢定」仍然保留選擇器（那裡本來就要挑）。
+      lockDice: true
+    });
+  };
   const curHp = character.currentHp !== null && character.currentHp !== undefined ? character.currentHp : stats.maxHp;
   const curMp = character.currentMp !== null && character.currentMp !== undefined ? character.currentMp : stats.maxMp;
   const curIp = character.currentIp !== null && character.currentIp !== undefined ? character.currentIp : stats.maxIp;
@@ -604,15 +710,18 @@ export default function CharacterPlayHUD({
     ? character.fabulaPoints
     : 3;
 
+  // 【大口袋】的庫存點折扣（英雄技能）。門檻與實際扣點**必須吃同一個數字**，
+  // 否則會出現「按鈕亮著、按下去說不足」這種最難相信的畫面。
+  const ipDiscount = ipCostDiscount(character);
   const consumableGates = {
-    remedy: describeCostGate({ cost: 3, current: curIp, unit: GATE_UNITS.ip }),
-    elixir: describeCostGate({ cost: 3, current: curIp, unit: GATE_UNITS.ip }),
-    tonic: describeCostGate({ cost: 2, current: curIp, unit: GATE_UNITS.ip }),
-    magicTent: describeCostGate({ cost: 4, current: curIp, unit: GATE_UNITS.ip }),
-    elementalShard: describeCostGate({ cost: 2, current: curIp, unit: GATE_UNITS.ip })
+    remedy: describeCostGate({ cost: applyIpDiscount(3, ipDiscount), current: curIp, unit: GATE_UNITS.ip }),
+    elixir: describeCostGate({ cost: applyIpDiscount(3, ipDiscount), current: curIp, unit: GATE_UNITS.ip }),
+    tonic: describeCostGate({ cost: applyIpDiscount(2, ipDiscount), current: curIp, unit: GATE_UNITS.ip }),
+    magicTent: describeCostGate({ cost: applyIpDiscount(4, ipDiscount), current: curIp, unit: GATE_UNITS.ip }),
+    elementalShard: describeCostGate({ cost: applyIpDiscount(2, ipDiscount), current: curIp, unit: GATE_UNITS.ip })
   };
   const bondInspireGate = describeCostGate({ cost: 1, current: fpCurrent, unit: GATE_UNITS.fp });
-  // 四維還沒指派完 → 六項數值不成立（見 `calculateCharacterStats` 的 `attributesUnset`）
+  // 屬性還沒指派完 → 六項數值不成立（見 `calculateCharacterStats` 的 `attributesUnset`）
   const statsUnset = Boolean(stats.attributesUnset);
   const isReadyToLevelUp = canLevelUp(character);
 
@@ -721,6 +830,77 @@ export default function CharacterPlayHUD({
     commit(meta ? loggableChange(before, base, meta) : base);
   };
 
+  /* ── 效果流程（`data/effectFlows.json` ＋ `utils/effectFlow.js`）────────────
+     373 條規則物件裡，以前只有 38 條真的「做得到」——其餘的在卡上寫著效果，
+     按不到、算不出、記不住。這裡是那 335 條的**唯一操作入口**：
+
+       · 計數器（`counter`）→ 加減與重置，值存在 `character.flowState[item.id]`
+       · 開關（`toggle`）  → 本次場景／回合的旗標
+       · 按鈕（`button`）  → `flowActionPlan` 算出「會發生什麼」，再一次寫入
+
+     **寫入只有一條路**：`applyFlowPlan`。它與 HP／MP 那些步進器共用 `commit`
+     ＋`loggableChange`，所以履歷上的「使用【X】」與「回復 HP」長得一樣、
+     而且不會出現「UI 說扣了、存檔沒扣」（同 `handlePurchase` 的理由）。 */
+  const applyFlowPlan = (plan) => {
+    if (!plan || !plan.ok) {
+      if (plan?.reason && typeof showToast === 'function') showToast(plan.reason, 'warning');
+      return;
+    }
+    const before = characterRef.current;
+    const base = {
+      ...before,
+      ...(plan.patch || {}),
+      updatedAt: new Date().toISOString()
+    };
+    commit(plan.log ? loggableChange(before, base, plan.log) : base);
+    if (plan.toast && typeof showToast === 'function') showToast(plan.toast, 'success');
+  };
+
+  /** 計數器加減／重置：只寫 `flowState`，不進履歷（那不是「發生了什麼事」，是一個刻度）。 */
+  const adjustFlowCounter = (item, nextState) => {
+    const before = characterRef.current;
+    const clamped = clampFlowState(before, item, nextState);
+    commit(withFlowState(before, item.id, clamped));
+  };
+
+  /**
+   * 一條條目的控件（沒有控件就回 `null`）。
+   *
+   * `apply.via === 'existing'` 的條目**不畫操作控件**：那 38 條已經有專屬面板在做
+   * （修補匠工坊、牌桌、召喚流程…），再畫一顆按鈕等於同一個效果兩條扣款路徑——
+   * 而重複扣款在畫面上完全看不出來。
+   */
+  const renderFlowControls = (item, sl, testId) => {
+    if (!item) return null;
+    if (item.apply?.via === 'existing') return null;
+    if (!item.control || item.control.kind === 'none') return null;
+    const state = readFlowState(character, item);
+    // 上限算式會用到**其他技能的 SL**（【陷阱大師】的「1 + 有備無患SL」）。
+    // 這一份是角色身上所有技能 SL 的快照，交給元件去算；沒有它那兩條會一直顯示成「無上限」。
+    const vars = flowVarsFor(character);
+    let costBlocked = null;
+    if (item.control.kind === 'button') {
+      const plan = flowActionPlan(item, character, { sl, level: characterLevel, stats });
+      if (!plan.ok) costBlocked = { blocked: true, reason: plan.reason || '現在不能使用' };
+    }
+    return (
+      <SkillFlowControls
+        item={item}
+        sl={sl}
+        level={characterLevel}
+        vars={vars}
+        theme={theme}
+        state={state}
+        costBlocked={costBlocked}
+        onAdjust={(delta) => adjustFlowCounter(item, { ...state, n: state.n + delta })}
+        onReset={() => adjustFlowCounter(item, flowResetState(character, item))}
+        onToggle={() => adjustFlowCounter(item, { ...state, on: !state.on })}
+        onAct={() => applyFlowPlan(flowActionPlan(item, character, { sl, level: characterLevel, stats }))}
+        testId={testId}
+      />
+    );
+  };
+
   // Adjust Vital Resources
   // 夾制後沒有實際變化時直接結束：不寫 localStorage、也不留下一筆「0 → 0」的空記錄
   const adjustHp = (delta) => {
@@ -821,7 +1001,6 @@ export default function CharacterPlayHUD({
     // 只留一筆交易的話，玩家把這把劍換下來之後就再也裝不回去——
     // 裝備欄存的是名字，而沒有任何地方記得「這把劍存在」。
     commit(spec ? attachCustomWeapon(result.character, spec) : result.character);
-    setIsPurchaseOpen(false);
     // 同一支也會被行囊分頁的單槽選擇器呼叫；兩個彈窗都關，避免「買完之後
     // 底下的選擇器還開著、而且還停在舊的槽位」。
     setSlotPicker(null);
@@ -1006,11 +1185,18 @@ export default function CharacterPlayHUD({
   const handleCampRest = () => {
     const clearedAff = {};
     Object.keys(STATUS_AFFLICTIONS).forEach(k => { clearedAff[k] = false; });
+    // 營地活動的「本次休息已使用」必須跟著休整一起回充（原書 p.131 的效益都在休息時結束）。
+    // 以前這裡只回滿 HP/MP，`used` 還亮著 → 玩家休完整團卻看到「已使用」，
+    // 只能自己去營地區塊按那顆小的「下一次休息」。兩件事其實是同一件事。
+    const campBefore = normalizeCampActivities(character.campActivities);
+    const campAfter = resetCampActivityUses(campBefore);
+    const campReset = campBefore.used.length > 0;
     const nextChar = {
       ...character,
       currentHp: stats.maxHp,
       currentMp: stats.maxMp,
       statusAfflictions: clearedAff,
+      ...(campReset ? { campActivities: campAfter } : {}),
       updatedAt: new Date().toISOString()
     };
     const changes = [];
@@ -1021,7 +1207,11 @@ export default function CharacterPlayHUD({
       title: '營地休整：回滿 HP／MP 並解除全部異常狀態',
       changes
     }));
-    showToast('已完成營地休整！HP 與 MP 全滿，所有異常狀態已解除。');
+    showToast(
+      campReset
+        ? '已完成營地休整！HP 與 MP 全滿、異常狀態已解除，營地活動次數也回充了。'
+        : '已完成營地休整！HP 與 MP 全滿，所有異常狀態已解除。'
+    );
   };
 
   /* ── 場次（2026-10-30）───────────────────────────────────────
@@ -1082,10 +1272,15 @@ export default function CharacterPlayHUD({
   const handleUseConsumable = (type) => {
     const remedyBonus = secretFormulaSL * 5;
     const shardBonus = secretFormulaSL;
+    // 【大口袋】（英雄技能）：「使用庫存點時，消耗量減少 1（最小為 1）」。
+    // 以前這裡是五個寫死的 3／3／2／4／2，選了這條英雄技能的角色照樣被扣 3 點，
+    // 而且成本門檻、履歷標題、toast 四處都會繼續說「消耗 3 IP」——按鈕在說謊。
+    const ipCostOf = (base) => applyIpDiscount(base, ipDiscount);
     if (type === 'remedy' || type === 'potion') {
-      if (curIp < 3) { showToast('道具點不足 3 點（大補藥需 3 IP）', 'warning'); return; }
+      const cost = ipCostOf(3);
+      if (curIp < cost) { showToast(`道具點不足 ${cost} 點（大補藥需 ${cost} IP）`, 'warning'); return; }
       const heal = 50 + remedyBonus;
-      const nextIp = Math.max(0, curIp - 3);
+      const nextIp = Math.max(0, curIp - cost);
       const nextHp = Math.max(0, Math.min(stats.maxHp, curHp + heal));
       const base = {
         ...character,
@@ -1095,17 +1290,18 @@ export default function CharacterPlayHUD({
       };
       onChange(loggableChange(character, base, {
         kind: 'ip',
-        title: `使用大補藥（-3 IP，回復 ${heal} HP）`,
+        title: `使用大補藥（-${cost} IP，回復 ${heal} HP）`,
         changes: [
           { field: 'currentIp', from: curIp, to: nextIp },
           { field: 'currentHp', from: curHp, to: nextHp }
         ]
       }));
-      showToast(`使用【大補藥】！回復 ${heal} 點 HP（消耗 3 IP，剩餘 ${nextIp} IP）`, 'success');
+      showToast(`使用【大補藥】！回復 ${heal} 點 HP（消耗 ${cost} IP，剩餘 ${nextIp} IP）`, 'success');
     } else if (type === 'elixir') {
-      if (curIp < 3) { showToast('道具點不足 3 點（萬靈藥需 3 IP）', 'warning'); return; }
+      const cost = ipCostOf(3);
+      if (curIp < cost) { showToast(`道具點不足 ${cost} 點（萬靈藥需 ${cost} IP）`, 'warning'); return; }
       const heal = 50 + remedyBonus;
-      const nextIp = Math.max(0, curIp - 3);
+      const nextIp = Math.max(0, curIp - cost);
       const nextMp = Math.max(0, Math.min(stats.maxMp, curMp + heal));
       const base = {
         ...character,
@@ -1115,16 +1311,17 @@ export default function CharacterPlayHUD({
       };
       onChange(loggableChange(character, base, {
         kind: 'ip',
-        title: `使用萬靈藥（-3 IP，回復 ${heal} MP）`,
+        title: `使用萬靈藥（-${cost} IP，回復 ${heal} MP）`,
         changes: [
           { field: 'currentIp', from: curIp, to: nextIp },
           { field: 'currentMp', from: curMp, to: nextMp }
         ]
       }));
-      showToast(`使用【萬靈藥】！回復 ${heal} 點 MP（消耗 3 IP，剩餘 ${nextIp} IP）`, 'success');
+      showToast(`使用【萬靈藥】！回復 ${heal} 點 MP（消耗 ${cost} IP，剩餘 ${nextIp} IP）`, 'success');
     } else if (type === 'tonic' || type === 'antidote') {
-      if (curIp < 2) { showToast('道具點不足 2 點（滋補藥需 2 IP）', 'warning'); return; }
-      const nextIp = Math.max(0, curIp - 2);
+      const cost = ipCostOf(2);
+      if (curIp < cost) { showToast(`道具點不足 ${cost} 點（滋補藥需 ${cost} IP）`, 'warning'); return; }
+      const nextIp = Math.max(0, curIp - cost);
       const clearedAff = {};
       Object.keys(STATUS_AFFLICTIONS).forEach(k => { clearedAff[k] = false; });
       const base = {
@@ -1135,14 +1332,15 @@ export default function CharacterPlayHUD({
       };
       onChange(loggableChange(character, base, {
         kind: 'ip',
-        title: '使用滋補藥（-2 IP，解除全部異常狀態）',
+        title: `使用滋補藥（-${cost} IP，解除全部異常狀態）`,
         changes: [{ field: 'currentIp', from: curIp, to: nextIp }]
       }));
-      showToast(`使用【滋補藥】！已解除所有異常狀態（消耗 2 IP，剩餘 ${nextIp} IP）`, 'success');
+      showToast(`使用【滋補藥】！已解除所有異常狀態（消耗 ${cost} IP，剩餘 ${nextIp} IP）`, 'success');
     } else if (type === 'elementalShard') {
-      if (curIp < 2) { showToast('道具點不足 2 點（元素碎片需 2 IP）', 'warning'); return; }
+      const cost = ipCostOf(2);
+      if (curIp < cost) { showToast(`道具點不足 ${cost} 點（元素碎片需 ${cost} IP）`, 'warning'); return; }
       const dmg = 10 + shardBonus;
-      const nextIp = Math.max(0, curIp - 2);
+      const nextIp = Math.max(0, curIp - cost);
       const base = {
         ...character,
         currentIp: nextIp,
@@ -1150,13 +1348,14 @@ export default function CharacterPlayHUD({
       };
       onChange(loggableChange(character, base, {
         kind: 'ip',
-        title: `使用元素碎片（-2 IP，造成 ${dmg} 點${shardElement}屬性傷害）`,
+        title: `使用元素碎片（-${cost} IP，造成 ${dmg} 點${shardElement}屬性傷害）`,
         changes: [{ field: 'currentIp', from: curIp, to: nextIp }]
       }));
-      showToast(`投擲【元素碎片】！對單一目標造成 ${dmg} 點【${shardElement}】傷害（消耗 2 IP，剩餘 ${nextIp} IP）`, 'success');
+      showToast(`投擲【元素碎片】！對單一目標造成 ${dmg} 點【${shardElement}】傷害（消耗 ${cost} IP，剩餘 ${nextIp} IP）`, 'success');
     } else if (type === 'magicTent') {
-      if (curIp < 4) { showToast('道具點不足 4 點（魔法帳篷需 4 IP）', 'warning'); return; }
-      const nextIp = Math.max(0, curIp - 4);
+      const cost = ipCostOf(4);
+      if (curIp < cost) { showToast(`道具點不足 ${cost} 點（魔法帳篷需 ${cost} IP）`, 'warning'); return; }
+      const nextIp = Math.max(0, curIp - cost);
       const clearedAff = {};
       Object.keys(STATUS_AFFLICTIONS).forEach(k => { clearedAff[k] = false; });
       const base = {
@@ -1169,14 +1368,14 @@ export default function CharacterPlayHUD({
       };
       onChange(loggableChange(character, base, {
         kind: 'ip',
-        title: '使用魔法帳篷（-4 IP，野外休息回滿 HP／MP 並清狀態）',
+        title: `使用魔法帳篷（-${cost} IP，野外休息回滿 HP／MP 並清狀態）`,
         changes: [
           { field: 'currentIp', from: curIp, to: nextIp },
           ...(curHp !== stats.maxHp ? [{ field: 'currentHp', from: curHp, to: stats.maxHp }] : []),
           ...(curMp !== stats.maxMp ? [{ field: 'currentMp', from: curMp, to: stats.maxMp }] : [])
         ]
       }));
-      showToast(`搭設【魔法帳篷】完成野外休息！HP／MP 全滿且異常狀態全解（消耗 4 IP，剩餘 ${nextIp} IP）`, 'success');
+      showToast(`搭設【魔法帳篷】完成野外休息！HP／MP 全滿且異常狀態全解（消耗 ${cost} IP，剩餘 ${nextIp} IP）`, 'success');
     }
   };
 
@@ -1227,7 +1426,7 @@ export default function CharacterPlayHUD({
           id: `${cl.className}_${sk.name}`,
           name: `${sk.name} (SL ${sk.sl})`,
           category: 'skill',
-          desc: `【${cl.className}】特技`,
+          desc: `【${cl.className}】技能`,
           isRevealed: true
         }))),
         rawCharData: character
@@ -1251,7 +1450,7 @@ export default function CharacterPlayHUD({
   // Level Up logic
   const handleExecuteLevelUp = () => {
     if (!selectedSkillForLevelUp) {
-      showToast('請選擇要升級的職業與特技');
+      showToast('請選擇要升級的職業與技能');
       return;
     }
 
@@ -1280,7 +1479,7 @@ export default function CharacterPlayHUD({
 
     // ── 出口 B：投進職業（既有職業，或 p.228 的「第一次拿到某個職業」）──────────
     if (!levelUpSelectedClassName) {
-      showToast('請選擇要升級的職業與特技');
+      showToast('請選擇要升級的職業與技能');
       return;
     }
 
@@ -1598,17 +1797,26 @@ export default function CharacterPlayHUD({
   // Filter available spells for modal
   const availableRulesSpells = useMemo(() => {
     const spells = rulesData.spells || [];
+    // 彗星／火山／希望／瘴氣四條標了 `grantOnly`：官方只能由**點名授予**的英雄技能取得，
+    // 不能當成「這個學派的普通咒語」在清單裡挑。沒有這道過濾，元素師一打開清單
+    // 就會看到【火山】——而他的元素魔法學派根本不該給他那一條。
+    const grantedNames = new Set(
+      (spellGrants.grants || [])
+        .map((g) => g.spell)
+        .filter(Boolean)
+    );
     return spells.filter(s => {
       // 只列出「這個角色真的有額度、而且清單對得上」的咒語。
       // 沒有授予來源時 `allowedSchools` 是空的，清單就是空的——這正是官方規則，
       // 不是資料沒載入。空清單的解釋由彈窗自己給。
+      if (s.grantOnly && !grantedNames.has(s.name)) return false;
       if (!spellGrants.allowedSchools.includes(s.school)) return false;
       const matchSearch = (s.name || '').toLowerCase().includes(spellSearchQuery.toLowerCase()) ||
                           (s.effect || '').toLowerCase().includes(spellSearchQuery.toLowerCase());
       const matchSchool = selectedSpellSchool === 'all' || s.school === selectedSpellSchool;
       return matchSearch && matchSchool;
     });
-  }, [spellSearchQuery, selectedSpellSchool, spellGrants.allowedSchools]);
+  }, [spellSearchQuery, selectedSpellSchool, spellGrants.allowedSchools, spellGrants.grants]);
 
   // 原本這裡有一個 `spellSchools`（掃 rulesData 收集全部學派）給彈窗的下拉用。
   // 2026-11-02 起下拉只列「這個角色有額度的學派」（`spellGrants.allowedSchools`），
@@ -1620,7 +1828,20 @@ export default function CharacterPlayHUD({
   }, [character.id, character.updatedAt]);
 
   return (
-    <div className="space-y-4 text-[#3c2415] animate-fade-in">
+    /* 2026-11-03（使用者）：「上下滑動時頭像那個欄位應該要鎖住」＋「滑鼠指在左右邊就可以
+       滑動相應的欄位，而不是在任何地方滑動大家一起動」。
+
+       做法是把這一屏從「整頁一直往下長」改成**視口高度內的固定舞台**：
+       根容器在 `lg` 以上鎖成 `100vh − 標頭 − 邊距`，中間那列 `flex-1 min-h-0`，
+       於是捲動不再發生在 `<body>`，而是分別發生在左右兩翼自己的 `overflow-y-auto`。
+
+       為什麼不是「中欄 sticky」就好：sticky 只保證它留在視窗裡，**整頁還是會捲**，
+       而且滑到右翼底部時左翼指令窗會被推走。改成固定舞台之後，三欄各自釘在
+       自己的位置上，只有「你想捲的那一欄」會動。
+
+       `overscroll-contain` 是必要的：沒有它，某一欄捲到底之後滾輪會「傳染」給
+       下一層容器（滾動鏈），又變回「大家一起動」。 */
+    <div data-testid="play-hud-root" className="space-y-4 text-[#3c2415] animate-fade-in lg:flex lg:flex-col lg:gap-4 lg:space-y-0 lg:h-[calc(100vh-var(--chapter-header-h,52px)-2rem)] lg:min-h-[560px] lg:overflow-hidden">
       {/* 升級後若解鎖職業精通（Lv 10）或子項目技能，給出明確跳轉導引 */}
       {postLevelUpHint && (
         <div
@@ -1641,7 +1862,7 @@ export default function CharacterPlayHUD({
                 ? '請前往「構築與成長」挑選此技能的子項目，並於第 5 步領取精通解鎖的英雄技能。'
                 : postLevelUpHint.reachedMastery
                   ? '請前往「構築與成長」第 5 步挑選新解鎖的英雄技能。'
-                  : '請前往「構築與成長」第 2 步挑選此特技的子項目（如咒語、舞步、曲風、符號等）。'}
+                  : '請前往「構築與成長」第 2 步挑選此技能的子項目（如咒語、舞步、曲風、符號等）。'}
             </p>
           </div>
           <div className="flex items-center gap-2 ml-auto">
@@ -1848,7 +2069,7 @@ export default function CharacterPlayHUD({
             立繪就從 813px 塌回 459px（寬 344 × 3:4）——那違反上一輪「圖必須是主體」
             的裁定（CY 段）。所以給這一列一個下限，圖才回得去。
             這也順便給指令窗留出 sticky 的移動距離。 */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch lg:min-h-[820px]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 lg:auto-rows-[minmax(0,1fr)] gap-4 items-stretch lg:flex-1 lg:min-h-0">
           {/* LEFT WING（col-span-2）：DQ 指令窗
               ────────────────────────────────────────────────────────────
               P14 使用者原話：「不要这么宽松的话，我建议把左栏的长压缩，
@@ -1861,7 +2082,7 @@ export default function CharacterPlayHUD({
                  丟到卡片中間 → 左翼一塊約 300px 的空白，看起來像壞掉。
               3. 資源與能力分在畫面兩側，跑團時眼睛要橫跨整個立繪。
               現在：左翼只放**一個指令窗**，八列各 44px（`self-start`＝窗貼齊頂端，
-              不再被拉到和右翼一樣高）；HP／MP／IP 搬到右翼的狀態窗，與四維、
+              不再被拉到和右翼一樣高）；HP／MP／IP 搬到右翼的狀態窗，與屬性、
               狀態異常放在一起；消耗品搬進行囊分頁。
               ──────────────────────────────────────────────────────────── */}
           {/* P14：指令窗**自己**釘住（`self-start` ＋ `sticky`）。
@@ -1870,7 +2091,11 @@ export default function CharacterPlayHUD({
               「要特地滑下去」。釘住之後，捲到哪裡都還按得到指令。
               `top` 讀 `--chapter-header-h`（`ChapterHeader` 用 ResizeObserver
               寫上去），不是寫死 52——標頭是 `min-h-[52px]`，52 是下限。 */}
-          <div className="order-2 lg:order-none lg:col-span-2 lg:self-start lg:sticky lg:top-[calc(var(--chapter-header-h,52px)+0.75rem)] flex flex-col gap-3 min-w-0">
+          {/* P14 的 sticky 在 2026-11-03 之後改成「固定舞台 ＋ 各欄自滾」：
+              父層不再捲動，所以 sticky 沒有東西可以相對，指令窗只要
+              `self-start`（貼齊頂端、不被拉伸）＋ 自己的 `overflow-y-auto`
+              （指令變多時也不會把整頁推走）。 */}
+          <div className="order-2 lg:order-none lg:col-span-2 lg:max-h-[calc(100vh-var(--chapter-header-h,52px)-9rem)] lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain flex flex-col gap-3 min-w-0">
             <HudWindow
               title="指令"
               icon={GiCrossedSwords}
@@ -1895,7 +2120,7 @@ export default function CharacterPlayHUD({
           {/* CENTERPIECE (col-span-4): JRPG Character Portrait Standee & Surrounding Command Buttons */}
           <div
             data-testid="hud-center-column"
-            className="order-1 lg:order-none lg:col-span-4 rounded p-4 border-2 bg-[#fffdf9] flex flex-col items-center justify-between text-center gap-3 overflow-hidden"
+            className="order-1 lg:order-none lg:col-span-4 lg:max-h-[calc(100vh-var(--chapter-header-h,52px)-9rem)] lg:min-h-0 rounded p-4 border-2 bg-[#fffdf9] flex flex-col items-center justify-between text-center gap-3 overflow-hidden"
             style={{ borderColor: theme.border }}
           >
             <div
@@ -1922,24 +2147,61 @@ export default function CharacterPlayHUD({
                 剩餘高度原本全部掉在「角色檔案」與指令格之間，變成一塊空白。
                 空白餵給圖，圖就真的是主體。手機上欄位沒有固定高度，
                 `flex-1` 分不到東西，`aspect-ratio` 就回到 3:4——同一段碼兩種情況都對。 */}
-            <div className="w-full space-y-2 flex-1 flex flex-col min-h-0">
+            {/* 2026-11-03（第二版）：框的高度改成**跟著圖片比例**，不再寫死 3:4。
+                上一版是「框固定 3:4 ＋ 模糊鋪滿去補白」，使用者的評語是
+                「同圖模糊放在上面真的很難看」——問題不在模糊，在**框沒有配合圖**。
+                現在：`aspectRatio` 由圖片載入後的 `naturalWidth / naturalHeight` 決定，
+                框和圖同比例時 `contain` 本來就不留白，模糊層自然退到看不見。
+                只有比例過扁／過長被 `minHeight`／`maxHeight` 夾住時，才會露出襯底。
+                外層 `justify-between` 讓常駐細條貼底，框與細條之間的空隙留在紙底上。 */}
+            <div className="w-full gap-2 flex-1 flex flex-col min-h-0 justify-start">
               <div
                 data-testid="hud-portrait"
                 onClick={() => onOpenEditor()}
-                className="relative w-full rounded border-2 overflow-hidden cursor-pointer group shadow-inner flex-1"
+                className="relative w-full rounded border-2 overflow-hidden cursor-pointer group shadow-inner shrink-0"
                 style={{
                   borderColor: theme.accent,
                   backgroundColor: theme.accentLight,
-                  aspectRatio: '3 / 4'
+                  aspectRatio: portraitRatio || '3 / 4',
+                  /* 極端比例（超寬或超長）會把中欄撐壞，所以兩端各夾一個界線。
+                     上限用 `min(62vh, 100%)`：`100%` 是**這一欄分到的實際高度**
+                     （2026-11-03 之後中欄不再被頁面捲動，高度是確定的），
+                     `62vh` 是沒有父層約束時的兜底。被夾住時 `contain` 必然留白
+                     ——那才輪到暈染上場。 */
+                  minHeight: '240px',
+                  maxHeight: 'min(62vh, calc(100% - 240px))'
                 }}
                 title="點擊前往「構築與成長」更換或調整角色立繪"
               >
                 {portraitIsImage ? (
-                  <img
-                    src={portraitSrc}
-                    alt={`${character.name || '角色'}的立繪`}
-                    className="absolute inset-0 w-full h-full object-contain object-bottom"
-                  />
+                  <div className="absolute inset-0">
+                    {/* ① 暈染襯底（2026-11-03 第二版）。
+                        它現在只在「框被 min/max 夾住」時才看得到——因為框與圖同比例時，
+                        主體會把整個框填滿，這一層被完全蓋住。
+                        參數刻意收斂：`blur-md`（不是 lg）、`scale-105`（不是 110）、
+                        `opacity 0.28`。使用者說上一版「放在上面真的很難看」，
+                        原因就是它太濃、放太大，變成第二張圖而不是背景。 */}
+                    <img
+                      src={portraitSrc}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover scale-105 blur-md"
+                      style={{ opacity: 0.28 }}
+                    />
+                    {/* ② 主體：完整、不裁切、貼底。
+                        `onLoad` 讀出真實比例回寫給框——這是「框隨圖」的唯一資訊來源。 */}
+                    <img
+                      src={portraitSrc}
+                      alt={`${character.name || '角色'}的立繪`}
+                      className="relative w-full h-full object-contain object-bottom"
+                      onLoad={(e) => {
+                        const img = e.currentTarget;
+                        if (!img.naturalWidth || !img.naturalHeight) return;
+                        const next = `${img.naturalWidth} / ${img.naturalHeight}`;
+                        setPortraitRatio((prev) => (prev === next ? prev : next));
+                      }}
+                    />
+                  </div>
                 ) : (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
                     <GameIcon
@@ -1948,7 +2210,7 @@ export default function CharacterPlayHUD({
                       style={{ color: theme.accent }}
                     />
                     <span className="text-t12 font-bold" style={{ color: theme.accent }}>尚未上傳立繪</span>
-                    <span className="text-t12 text-[#6b5a4b] leading-relaxed">點一下上傳全身立繪</span>
+                    
                   </div>
                 )}
 
@@ -1962,7 +2224,7 @@ export default function CharacterPlayHUD({
                   <div className="absolute top-2 right-2">
                     <JRPGBadge variant="danger" size="xs" className="flex items-center gap-1">
                       <FUIcon name="crisis" className="text-xs leading-none" />
-                      <span>CRISIS</span>
+                      <span>危機</span>
                     </JRPGBadge>
                   </div>
                 )}
@@ -1993,26 +2255,31 @@ export default function CharacterPlayHUD({
                 style={{ borderColor: theme.border, backgroundColor: theme.panelBg }}
               >
                 {[
-                  { key: 'hp', label: 'HP', cur: curHp, max: stats.maxHp, tone: '#8c3235', unknown: statsUnset },
-                  { key: 'mp', label: 'MP', cur: curMp, max: stats.maxMp, tone: '#3c2415', unknown: statsUnset },
-                  { key: 'ip', label: 'IP', cur: curIp, max: stats.maxIp, tone: '#6b5a4b', unknown: false }
+                  // 顏色走 `gauge` 令牌（2026-11-03）：原本這裡是三個手寫 hex
+                  // （HP 暗紅 #8c3235／MP 墨 #3c2415／IP 灰褐 #6b5a4b），
+                  // 跟右翼那三條主資源條**不同色**——同一個 HP 在同一屏上有兩種顏色。
+                  // 改成同一組令牌之後，「HP 是綠的」這件事只有一個定義處。
+                  //
+                  // ※ 類名必須是**完整字面量**（`'bg-gauge-hp'`），不能寫 `bg-gauge-${x}`：
+                  // Tailwind 的 JIT 是靜態掃描原始碼，拼接出來的名字它看不到，那個 class
+                  // 永遠不會被生成，顏色會**安靜地**退回繼承色（不會報錯）。
+                  { key: 'hp', label: 'HP', cur: curHp, max: stats.maxHp, bar: isCrisis ? 'bg-gauge-crisis' : 'bg-gauge-hp', text: isCrisis ? 'text-gauge-crisis' : 'text-gauge-hp', unknown: statsUnset },
+                  { key: 'mp', label: 'MP', cur: curMp, max: stats.maxMp, bar: 'bg-gauge-mp', text: 'text-gauge-mp', unknown: statsUnset },
+                  { key: 'ip', label: 'IP', cur: curIp, max: stats.maxIp, bar: 'bg-gauge-ip', text: 'text-gauge-ip', unknown: false }
                 ].map((row) => (
                   <span key={row.key} className="flex items-center gap-1.5">
                     {/* 這兩格刻意**不用** `font-mono`：設計系統有全域預算（481），
                         而數字的對齊由 `tabular-nums` 就夠了（MEMORY §E.27 的鄰居：
                         同一個效果不要用第二種寫法去換）。 */}
-                    <span className="w-5 shrink-0 font-black text-t10" style={{ color: row.tone }}>
+                    <span className={`w-5 shrink-0 font-black text-t10 ${row.text}`}>
                       {row.label}
                     </span>
                     <span className="flex-1 min-w-0 h-1.5 rounded bg-[#e8dcc4] overflow-hidden">
                       <span
                         data-testid={`hud-strip-${row.key}`}
                         data-value={row.unknown ? '' : row.cur}
-                        className="block h-full"
-                        style={{
-                          width: `${row.max > 0 ? Math.min(100, (row.cur / row.max) * 100) : 0}%`,
-                          backgroundColor: row.tone
-                        }}
+                        className={`block h-full ${row.bar}`}
+                        style={{ width: `${row.max > 0 ? Math.min(100, (row.cur / row.max) * 100) : 0}%` }}
                       />
                     </span>
                     <span className="shrink-0 tabular-nums text-t10 text-[#3c2415]">
@@ -2140,9 +2407,13 @@ export default function CharacterPlayHUD({
                   我建议可以点了按纽就会把立绘右边的视窗直接整个替换掉。」
               所以內容不再印在 hub 下方，而是**就在右翼這扇窗裡換**——
               按鈕與內容同一個視野，不必再滾。
-              `個人資料`（預設）放最基本的東西：狀態、四維、狀態異常、成長、資產。
+              `個人資料`（預設）放最基本的東西：狀態、屬性、狀態異常、成長、資產。
               ──────────────────────────────────────────────────────────── */}
-          <div className="order-3 lg:order-none lg:col-span-6 flex flex-col gap-3 min-w-0">
+          {/* RIGHT WING（col-span-6）：這一欄才是真正會很長的一欄（武器清單、咒語全文、
+              職業面板），所以它自己吃 `overflow-y-auto`。`overscroll-contain` 讓它捲到盡頭
+              時不要把捲動傳給頁面（那正是使用者說的「在任何地方滑動大家一起動」）。
+              `pr-1` 是給捲軸留的位子，避免內容被壓在捲軸底下。 */}
+          <div className="order-3 lg:order-none lg:col-span-6 lg:max-h-[calc(100vh-var(--chapter-header-h,52px)-9rem)] lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 space-y-3 min-w-0">
             {activeTab === 'profile' ? (
               <>
               <HudWindow
@@ -2169,7 +2440,7 @@ export default function CharacterPlayHUD({
                       {isCrisis && (
                         <span className="text-t10 font-mono font-black flex items-center gap-0.5 shrink-0">
                           <FUIcon name="crisis" className="text-t10" />
-                          <span>CRISIS</span>
+                          <span>危機</span>
                         </span>
                       )}
                     </span>
@@ -2186,7 +2457,7 @@ export default function CharacterPlayHUD({
                     <GaugeBar
                       testId="gauge-hp"
                       percent={stats.maxHp > 0 ? (curHp / stats.maxHp) * 100 : 0}
-                      fillClassName={isCrisis ? 'bg-[#a63d40]' : 'bg-gauge-hp'}
+                      fillClassName={isCrisis ? 'bg-gauge-crisis' : 'bg-gauge-hp'}
                     />
                     <ResourceDeltaBadge flash={hpDelta} />
                   </div>
@@ -2334,7 +2605,7 @@ export default function CharacterPlayHUD({
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="text-xs font-bold text-[#3c2415] flex items-center gap-1">
                     <GiRollingDices className="w-4 h-4 text-[#6b5a4b]" />
-                    <span>四維屬性與雙屬性檢定</span>
+                    <span>屬性與雙屬性檢定</span>
                   </span>
                   <button
                     type="button"
@@ -2345,11 +2616,21 @@ export default function CharacterPlayHUD({
                   </button>
                 </div>
 
-              {/* 四維橫排（P14）。使用者的原話：「把四维用横排写出来。这样状态效果和
-                  四维所占据的宽就不必这么多，后面切换按钮显示信息也更容易读。」
-                  以前是 2×2 的方塊（每格 180px 見方），四格佔掉兩整列的寬與高；
-                  現在一列四格，每格只留「骰子＋配對」，公式鈕縮成一行。
-                  寬度從「吃滿 2 欄」變成「4 格平分」，右翼才有餘裕給分頁內容。 */}
+              {/* 屬性橫排（P14）＋「點兩張就擲骰」（2026-11-03）
+                  ─────────────────────────────────────────────────────────────
+                  使用者的回報：「界面如此多按鈕，怎麼知道讓玩家該點哪個？點了還得跳個
+                  彈窗叫我選另一個骰子，我咋知道第二顆是什麼？都被你彈窗擋住了。」
+
+                  舊版每一格有**兩顆**按鈕：大卡＝單屬性檢定、旁邊小鈕＝「配對」。
+                  玩家得先把 A 設成首骰、再去點 B 的配對鈕——兩個動作分在兩處，
+                  而且按下之後彈窗蓋住整排屬性，看不到自己剛剛選了哪兩顆。
+
+                  現在整張卡就是按鈕：
+                    ① 點第一張 → 記住它（整卡轉成強調色，底下寫「首骰 · 再點一顆」）
+                    ② 再點任何一張（含同一張）→ 立刻擲那兩顆
+                       同一張點兩次就是 DEX + DEX 的純屬性檢定。
+                  標籤直接寫出兩顆骰面（DEX(d8) + INS(d10)），彈窗一開就知道在擲什麼。
+                  每格因此從 2 顆按鈕降到 1 顆，「該點哪個」不再是一個問題。 */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                     { key: 'dex', enName: 'DEX', zhName: ATTRIBUTE_NAMES.dex, cur: stats.currentDex, base: stats.baseDex },
@@ -2360,77 +2641,50 @@ export default function CharacterPlayHUD({
                     const isFirstSelected = comboFirstAttr === attr.key;
                     return (
                       <div key={attr.key} className="space-y-1">
-                        <div className="flex items-stretch gap-1">
-                          <button
-                            type="button"
-                            onClick={() => openCharacterDice({
-                              die1: attr.cur,
-                              die2: attr.cur,
-                              modifier: 0,
-                              label: `${attr.enName} (${attr.zhName}) 單項檢定`
-                            })}
-                            className="flex-1 rounded p-2 border flex flex-col items-center justify-center transition-all text-center group bg-[#fbf7ee] hover:bg-[#f4ebd9]"
-                            style={{ borderColor: theme.border }}
-                            title={`點擊進行【${attr.enName} + ${attr.enName}】純屬性檢定`}
+                        <button
+                          type="button"
+                          onClick={() => handleAttributeRoll(attr)}
+                          aria-pressed={isFirstSelected}
+                          data-testid={`attr-roll-${attr.key}`}
+                          className={`w-full rounded p-2 border flex flex-col items-center justify-center transition-all text-center ${
+                            isFirstSelected
+                              ? 'bg-[#a63d40] border-[#8c3235]'
+                              : comboFirstAttr
+                                ? 'bg-[#f4ebd9] border-[#a63d40] hover:bg-[#e8dcc4]'
+                                : 'bg-[#fbf7ee] border-[#d6c7ab] hover:bg-[#f4ebd9]'
+                          }`}
+                          title={
+                            isFirstSelected
+                              ? `已選 ${attr.enName}：再點一顆骰子組成檢定（再點這張＝${attr.enName}+${attr.enName}）`
+                              : comboFirstAttr
+                                ? `點擊立即擲骰 [${comboFirstAttr.toUpperCase()} + ${attr.enName}]`
+                                : `點擊選 ${attr.enName} 為第一顆骰`
+                          }
+                        >
+                          <div className="flex items-baseline gap-1">
+                            <span className={`text-xs font-black tracking-wider font-mono ${isFirstSelected ? 'text-[#fffdf9]' : 'text-[#2c221e]'}`}>
+                              {attr.enName}
+                            </span>
+                            <span className={`text-t11 font-sans ${isFirstSelected ? 'text-[#fffdf9]/85' : 'text-[#7c6a58]'}`}>
+                              {attr.zhName}
+                            </span>
+                          </div>
+                          <div
+                            className="text-lg font-serif font-black flex items-baseline gap-1"
+                            style={{ color: isFirstSelected ? '#fffdf9' : theme.textDark }}
                           >
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-xs font-black tracking-wider text-[#2c221e] font-mono">
-                                {attr.enName}
+                            <span>d{attr.cur}</span>
+                            {attr.cur < attr.base && (
+                              <span className={`text-t11 line-through font-mono ${isFirstSelected ? 'text-[#fffdf9]/70' : 'text-[#8c3235]'}`}>
+                                d{attr.base}
                               </span>
-                              <span className="text-t11 text-[#7c6a58] font-sans">
-                                {attr.zhName}
-                              </span>
-                            </div>
-                            <div className="text-lg font-serif font-black flex items-baseline gap-1" style={{ color: theme.textDark }}>
-                              <span>d{attr.cur}</span>
-                              {attr.cur < attr.base && (
-                                <span className="text-t11 text-[#8c3235] line-through font-mono">d{attr.base}</span>
-                              )}
-                            </div>
-                          </button>
-
-                          {/* 雙屬性配對鈕：點第 1 顆選首屬性，點第 2 顆直接組合擲骰 */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (!comboFirstAttr) {
-                                setComboFirstAttr(attr.key);
-                              } else {
-                                const getDie = (k) => {
-                                  if (k === 'dex') return stats.currentDex;
-                                  if (k === 'ins') return stats.currentIns;
-                                  if (k === 'mig') return stats.currentMig;
-                                  if (k === 'wlp') return stats.currentWlp;
-                                  return 8;
-                                };
-                                const firstKey = comboFirstAttr;
-                                setComboFirstAttr(null);
-                                openCharacterDice({
-                                  die1: getDie(firstKey),
-                                  die2: getDie(attr.key),
-                                  modifier: 0,
-                                  label: `組合檢定 [${firstKey.toUpperCase()} + ${attr.enName}]`
-                                });
-                              }
-                            }}
-                            className={`px-1.5 rounded border text-t10 font-bold transition-colors flex flex-col items-center justify-center ${
-                              isFirstSelected
-                                ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
-                                : comboFirstAttr
-                                  ? 'bg-[#f4ebd9] border-[#a63d40] text-[#8c3235] hover:bg-[#e8dcc4]'
-                                  : 'bg-[#fffdf9] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#f4ebd9]'
-                            }`}
-                            title={
-                              isFirstSelected
-                                ? `已選 ${attr.enName} 為第一屬性，再點一次即可擲雙 ${attr.enName}`
-                                : comboFirstAttr
-                                  ? `點擊立即擲骰 [${comboFirstAttr.toUpperCase()} + ${attr.enName}]`
-                                  : `選取 ${attr.enName} 作為雙屬性檢定的第一顆骰`
-                            }
-                          >
-                            <span>{isFirstSelected ? '首骰' : comboFirstAttr ? '+配對' : '配對'}</span>
-                          </button>
-                        </div>
+                            )}
+                          </div>
+                          {/* 第三行平常是空的，但要**佔位**：不然選首骰時整排卡片會跳一下。 */}
+                          <span className={`text-t10 font-bold h-3 leading-none ${isFirstSelected ? 'text-[#fffdf9]/85' : 'text-[#7c6a58]'}`}>
+                            {isFirstSelected ? '首骰 · 再點一顆' : comboFirstAttr ? '+ 配對' : ''}
+                          </span>
+                        </button>
 
                         <button
                           type="button"
@@ -2450,50 +2704,75 @@ export default function CharacterPlayHUD({
                       </div>
                     );
                   })}
-                </div>
+              </div>
 
-                {/* 常用雙屬性一鍵檢定列 */}
-                <div className="flex items-center gap-1 flex-wrap pt-1 border-t border-[#e8dcc4]">
-                  <span className="text-t10 text-[#7c6a58] font-bold">常用檢定:</span>
-                  {[
-                    { a1: 'dex', a2: 'ins', label: 'DEX+INS' },
-                    { a1: 'ins', a2: 'wlp', label: 'INS+WLP' },
-                    { a1: 'dex', a2: 'mig', label: 'DEX+MIG' },
-                    { a1: 'mig', a2: 'wlp', label: 'MIG+WLP' }
-                  ].map(pair => {
-                    const getDie = (k) => (k === 'dex' ? stats.currentDex : k === 'ins' ? stats.currentIns : k === 'mig' ? stats.currentMig : stats.currentWlp);
-                    return (
-                      <button
-                        key={pair.label}
-                        type="button"
-                        onClick={() => openCharacterDice({
-                          die1: getDie(pair.a1),
-                          die2: getDie(pair.a2),
-                          modifier: 0,
-                          label: `常用檢定 [${pair.label}]`
-                        })}
-                        className="px-1.5 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#3c2415] font-bold text-t10 transition-colors"
-                      >
-                        {pair.label}
-                      </button>
-                    );
-                  })}
-                </div>
+              {/* ── 效果加成（條件式，2026-11-03）────────────────────────────
+                  121 條「修飾值」型的規則物件裡，真正能無條件折進數值的只是少數；
+                  其餘是「對非集群 +5 傷害」「未裝備武器時 +N 物防」這種**要看場合**的加值。
+                  它們算不進任何一個數字，但也不該只是技能卡上的一段文字——
+                  跑團時玩家要問的正是「我現在 +多少、什麼時候算」。
 
-                {/* ── 狀態異常（2026-10-30，P7）─────────────────────────────────
-                    這一塊原本在整頁最下方、滿版寬，跟四維之間隔了整個左翼與中央立繪。
-                    「DEX 為什麼從 d10 掉到 d8」的答案就在四維正下方，眼睛往下移一格就有。
+                  所以這裡把它們逐條列出來：來源名稱、數字、條件原文。
+                  刻意**不做成可勾選的開關**：App 不知道「這一擊是不是對非集群」，
+                  替玩家判定就等於替 GM 改規則。 */}
+              {stats.flowConditional.length > 0 ? (
+                (() => {
+                  // 只有「現在拿得到的」才列：`existing` 的條目已經有專屬面板在解釋，
+                  // 列進來只會讓同一件事在卡上出現兩次（而兩次說法不同時更糟）。
+                  const rows = stats.flowConditional.filter((c) => !c.existing);
+                  if (rows.length === 0) return null;
+                  return (
+                    <div
+                      data-testid="hud-flow-conditional"
+                      className="pt-2 border-t border-[#e8dcc4] space-y-1"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-t11 font-bold text-[#3c2415] flex items-center gap-1">
+                          <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" />
+                          <span>效果加成（依條件）</span>
+                        </span>
+                        <span className="text-t10 text-[#7c6a58]">{rows.length} 條</span>
+                      </div>
+                      <ul className="space-y-0.5">
+                        {rows.map((row, i) => (
+                          <li
+                            key={`${row.source}-${row.target}-${i}`}
+                            data-testid="flow-conditional-row"
+                            className="text-t12 leading-relaxed text-[#6b5a4b]"
+                          >
+                            <span className="font-bold text-[#3c2415]">{row.source}</span>
+                            <span className="mx-1">·</span>
+                            <span>{row.label}</span>
+                            {row.condition ? (
+                              <>
+                                <span className="mx-1">—</span>
+                                <span>{row.condition}</span>
+                              </>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })()
+              ) : null}
 
-                  兩欄排列原本是為了和上方 2×2 的四維格子**逐格對齊**
-                  （緩慢↔DEX、眩暈↔INS、虛弱↔MIG、動搖↔WLP）。
-                  P14 把四維改成橫排一列之後，逐格對齊已經不成立——
-                  這裡保留兩欄純粹是因為六個狀態排 2×3 最好讀，
-                  而「按受影響屬性排序」（`STATUS_AFFLICTION_ORDER`）不變，
-                  順序本身仍然回答「DEX 為什麼掉階」。
 
-                    每個按鈕右側寫出它打哪幾個屬性（`↓`＝骰階下降 1 級，完整說明在 title）。
-                    原本的「(-1階)」從按鈕上拿掉：六個狀態全都是 1 階，寫六次是噪音；
-                    實際降了多少在上方（d10 被劃掉、旁邊是 d8）與公式面板裡都看得到。 */}
+                {/* ── 狀態異常（2026-10-30 P7 立；2026-11-03 改成 4＋2）────────────
+                    使用者的回報：「狀態異常監控的按鈕太長了信息量低，能否直接 1x6 排好
+                    或者 4+2，讓每個狀態異常可以直接對應各自的屬性？」
+
+                    舊版是 2 欄 × 3 列的橫條（名稱在左、效果碼在右），每顆將近半版寬，
+                    而它承載的資訊只有「兩個字 ＋ 一個屬性縮寫」。
+
+                    現在改成 **4 ＋ 2**：
+                      · 上排四格正好在四張屬性卡下面 —— 緩慢↔DEX、眩暈↔INS、
+                        虛弱↔MIG、動搖↔WLP，**垂直對齊**讓「哪個狀態打哪一項」不用讀字。
+                      · 下排兩格各佔兩欄 —— 憤怒（DEX·INS）、中毒（MIG·WLP），
+                        跨度剛好對上它影響的屬性數。
+
+                    順序仍由 `STATUS_AFFLICTION_ORDER` 決定（它本身就是按受影響屬性排的），
+                    這裡只負責把「單屬性／雙屬性」翻成 1 欄／2 欄。 */}
                 <div
                   data-testid="hud-afflictions"
                   className="pt-2 border-t border-[#e8dcc4] space-y-1.5"
@@ -2506,9 +2785,11 @@ export default function CharacterPlayHUD({
                     <span className="text-t10 text-[#7c6a58]">點擊切換</span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-4 gap-1.5">
                     {afflictionRows.map((row) => {
                       const isActive = !!character.statusAfflictions?.[row.key];
+                      // 打兩個屬性的（憤怒／中毒）佔兩欄，跨度本身就是它的意思
+                      const span = row.stats.length > 1 ? 'col-span-2' : 'col-span-1';
                       return (
                         <button
                           key={row.key}
@@ -2516,15 +2797,15 @@ export default function CharacterPlayHUD({
                           data-testid={`affliction-${row.key}`}
                           aria-pressed={isActive}
                           onClick={() => handleToggleAffliction(row.key)}
-                          className={`py-1.5 px-2 rounded border text-xs font-bold transition-all flex items-center justify-between gap-1 ${
+                          className={`${span} py-1 px-1 rounded border text-center transition-all ${
                             isActive
                               ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
                               : 'bg-[#f4ebd9] border-[#d6c7ab] text-[#6b5a4b] hover:bg-[#e8dcc4]'
                           }`}
                           title={`${row.name}：${row.desc}`}
                         >
-                          <span className="min-w-0 truncate">{row.short}</span>
-                          <span className={`shrink-0 font-mono ${isActive ? 'opacity-90' : 'text-[#7c6a58]'}`}>
+                          <span className="block text-t12 font-bold truncate leading-tight">{row.short}</span>
+                          <span className={`block text-t10 font-mono leading-tight ${isActive ? 'opacity-90' : 'text-[#7c6a58]'}`}>
                             {row.effect}
                           </span>
                         </button>
@@ -2756,7 +3037,7 @@ export default function CharacterPlayHUD({
                     <div className="flex items-center justify-between pt-1">
                       <span className="font-bold text-[#3c2415] text-xs flex items-center gap-1.5">
                         <GiCrossedSwords className="w-3.5 h-3.5 text-[#6b5a4b]" />
-                        <span>當前武裝與命中公式膠囊 (點擊公式直接擲骰)</span>
+                        <span>當前武裝與命中公式</span>
                       </span>
                       <button
                         type="button"
@@ -3356,7 +3637,7 @@ export default function CharacterPlayHUD({
                           icon={GiSpellBook}
                           title="本職業沒有咒語學派"
                           teach="咒語不是自由選購的（核心手冊 188~210 頁）：只能經由【元素魔法】、【熵系魔法】、【靈魂魔法】（每次獲得該技能學一個同清單咒語）、嵌合師的【咒語模仿】（上限 SL＋2），或英雄技能【額外咒語】（再添 2 個）取得。"
-                          action={{ label: '前往職業特技分頁', onClick: () => setActiveTab('skills') }}
+                          action={{ label: '前往職業技能分頁', onClick: () => setActiveTab('skills') }}
                         />
                         <div className="text-center">
                           <button
@@ -3428,7 +3709,7 @@ export default function CharacterPlayHUD({
                       // 學派清單改由 `describeRitualRights` 供應。原本這裡手抄一份
                       // `RITUAL_SKILLS` 再掃技能——那份清單漏了「職業免費能力賦予的
                       // 儀式學派權限」，所以元素師／熵師／靈師／嵌合師會被誤判成
-                      // 「尚未習得儀式特技」，而判定規則又只活在 JSX 裡，測不到。
+                      // 「尚未習得儀式技能」，而判定規則又只活在 JSX 裡，測不到。
                       const learnedRituals = rights.schools;
                       const pot = POTENCY_MAP[ritualPotency] || POTENCY_MAP.minor;
                       const ar = AREA_MAP[ritualArea] || AREA_MAP.individual;
@@ -3574,7 +3855,7 @@ export default function CharacterPlayHUD({
                   );
                 })()}
 
-                {/* TAB 3: 職業特技 (Class Skills - Streamlined) */}
+                {/* TAB 3: 職業技能 (Class Skills - Streamlined) */}
                 {activeTab === 'skills' && (
                   <div className="space-y-4 animate-fade-in text-xs">
                     {(character.classes || []).map((cl, cIdx) => {
@@ -3596,7 +3877,7 @@ export default function CharacterPlayHUD({
                         </div>
 
                         {/* F-020（2026-10-27）：這個職業的面板不在這一頁時，直接說它在哪。
-                            以前「武器與戰鬥」與「職業特技」各掛一次同一份面板（DOM 加倍），
+                            以前「武器與戰鬥」與「職業技能」各掛一次同一份面板（DOM 加倍），
                             而死靈術士只在「武器與戰鬥」——玩家學了【殘酷的誕生】會來這裡找，然後以為沒做。
                             現在面板只掛一次，這一頁只負責指路。文案與判斷都來自 `data/classPanels.js`。 */}
                         {classPanelHint(character, cName, 'skills') ? (
@@ -3674,6 +3955,16 @@ export default function CharacterPlayHUD({
                                       {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                                       <span>{isExpanded ? '收合' : '展開完整效果'}</span>
                                     </button>
+                                  )}
+                                </div>
+
+                                {/* 效果流程：這一條技能在桌上真的做得到的事（計數器／開關／按鈕）。
+                                    沒有流程的條目（純敘事）不會長出任何東西——不畫空框。 */}
+                                <div className="mt-2">
+                                  {renderFlowControls(
+                                    flowItemForClassSkill(cName, normSkName),
+                                    sk.sl,
+                                    `flow-skill-${cName}-${normSkName}`
                                   )}
                                 </div>
 
@@ -3974,6 +4265,15 @@ export default function CharacterPlayHUD({
                                     <SkillDescription desc={effectText} characterLevel={characterLevel} character={character} linkCodex={false} refSource={resolved.name} />
                                   </div>
                                 )}
+                                {/* 英雄技能的流程控件。167 條裡以前只有 4 條真的算得出來
+                                    （額外HP／IP／MP／預言守護者），其餘只能靠玩家記在紙上。 */}
+                                <div className="pt-1">
+                                  {renderFlowControls(
+                                    flowItemForHeroic(resolved.name),
+                                    0,
+                                    `flow-heroic-${idx}`
+                                  )}
+                                </div>
                               </div>
                             );
                           })}
@@ -3983,7 +4283,9 @@ export default function CharacterPlayHUD({
 
                     {/* 金手指特質全文 (Quirk Full Text & Selected Effect) */}
                     {character.quirk && character.quirk !== '無' && (() => {
-                      const quirkDef = (rulesData.quirks || []).find(q => q.name === character.quirk);
+                      // 效果全文的唯一來源是引擎（`quirkEffectText`）：這裡以前讀 `quirkDef?.effect`，
+                      // 而 46 個金手指的欄位叫 `desc`——於是跑團時 46 條全部只印「已啟用金手指【X】。」。
+                      const quirkText = quirkEffectText(character.quirk);
                       const choiceRows = describeQuirkChoice(character);
                       const choiceSummary = choiceRows
                         .map(r => (r.group ? `${r.group}：${r.label}` : r.label))
@@ -4003,7 +4305,7 @@ export default function CharacterPlayHUD({
                                 formatQuirkCopyText({
                                   name: character.quirk,
                                   choiceSummary,
-                                  effect: quirkDef?.effect || `已啟用金手指【${character.quirk}】。`,
+                                  effect: quirkText,
                                   characterName: character.name,
                                   characterLevel,
                                   character
@@ -4017,13 +4319,22 @@ export default function CharacterPlayHUD({
                                 ✦ 已選效果：{choiceSummary}
                               </div>
                             )}
-                            {quirkDef?.effect ? (
-                              <div className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap">
-                                <SkillDescription desc={quirkDef.effect} characterLevel={characterLevel} character={character} linkCodex={false} refSource={character.quirk} />
+                            {quirkText ? (
+                              <div className="text-t12 text-[#6b5a4b] leading-relaxed whitespace-pre-wrap" data-testid="hud-quirk-effect">
+                                <SkillDescription desc={quirkText} characterLevel={characterLevel} character={character} linkCodex={false} refSource={character.quirk} />
                               </div>
                             ) : (
                               <p className="text-t12 text-[#7c6a58]">已啟用金手指【{character.quirk}】。</p>
                             )}
+                            {/* 金手指的流程控件（計數器／開關／按鈕）。46 條裡有 25 條
+                                「只寫了文字」——選項本身算得出來，但玩家要在桌上操作的那一半沒有落點。 */}
+                            <div className="pt-1">
+                              {renderFlowControls(
+                                flowItemForQuirk(character.quirk),
+                                0,
+                                'flow-quirk'
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
@@ -4050,6 +4361,21 @@ export default function CharacterPlayHUD({
                         mode="play"
                         allowance={campAccess.allowance}
                         quirkGrant={campAccess.quirkGrant}
+                        // 算上限（IP 夾制）要的是引擎算出來的那份 stats；
+                        // 不傳的話 IP 一律進「要玩家自己做」清單（不猜上限）。
+                        stats={stats}
+                        // 營地活動的後果以前**完全不存在**：按下「標記使用」只改一個旗標，
+                        // HP／MP／IP／資金／食材／專案進度一個都不會動。
+                        // `applyCampPlan` 是唯一寫入路（含錢包走 `applyMoneyFlow`、履歷走 `kind:'camp'`），
+                        // 所以這裡只負責「算好的 plan → 存檔 → 說話」，不在 JSX 裡重算一次。
+                        onApply={(plan) => {
+                          if (!plan || !plan.ok) {
+                            if (plan?.reason) showToast(plan.reason, 'warning');
+                            return;
+                          }
+                          commit(applyCampPlan(characterRef.current, plan));
+                          showToast(describeCampOutcome(plan), 'success');
+                        }}
                         onChange={(campActivities) => {
                           // 營地活動有兩種變動：改「選了哪兩種」與「本次休息用了哪一種」。
                           // 兩者都是這張卡的決定，但履歷上要分得出來——標題寫一樣就等於沒寫。
@@ -4260,7 +4586,7 @@ export default function CharacterPlayHUD({
                         kind="bonds"
                         icon={GiHeartShield}
                         title="還沒有任何羈絆"
-                        teach="羈絆是對某人某物的三維情感（欽佩／忠誠／喜愛…）；激勵時消耗 1 物語點，檢定加值等於情感數。最多 6 條。"
+                        teach="激勵時消耗 1 物語點，檢定加值等於情感數；最多 6 條。"
                       />
                     )}
                   </div>
@@ -4270,7 +4596,7 @@ export default function CharacterPlayHUD({
                 {activeTab === 'clocks' && (
                   <div className="space-y-4 animate-fade-in">
                     {/* 底力命刻（高度奇幻手冊 p.124–131）：規則沒開就完全不出現。
-                        它與下面的「個人命刻」是兩種東西——個人命刻是玩家自建的進度鐘，
+                        它與下面的「個人命刻」是兩種東西——個人命刻是玩家自己建的命刻，
                         底力命刻是規則給的那一條，只有 6 格（合體之力 4 格）且填充方式受限。 */}
                     {isZeroPowersEnabled(character) && (
                       <ZeroPowerBlock
@@ -4354,7 +4680,7 @@ export default function CharacterPlayHUD({
                         kind="personal-clocks"
                         icon={GiPocketWatch}
                         title="還沒有個人命刻"
-                        teach="個人命刻是這名角色自己的進度鐘（例如「傷勢惡化」「與導師的約定」）；章節層級的情勢命刻請到「命刻記錄」那一章。"
+                        teach="自己推動的命刻（例如「傷勢惡化」）；章節層級的在「命刻記錄」。"
                       />
                     )}
                   </div>
@@ -4512,7 +4838,7 @@ export default function CharacterPlayHUD({
                         因為「我身上有什麼可以馬上用」本來就是行囊的事。 */}
                     <div className="p-3.5 rounded bg-[#fbf7ee] border border-[#e8dcc4] space-y-2">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <span className="font-bold text-[#3c2415] block">官方消耗品捷徑（點擊扣道具點結算）</span>
+                        <span className="font-bold text-[#3c2415] block">官方消耗品捷徑</span>
                         <span className="text-t11 text-[#6b5a4b]">
                           道具點 <strong className="font-mono text-[#3c2415]">{curIp}</strong> / {stats.maxIp}
                         </span>
@@ -4629,9 +4955,10 @@ export default function CharacterPlayHUD({
                       {/* 四顆按鈕（P10）：與主面板的錢包卡同一套語彙。
                           這裡不放「收支」那種一顆按鈕包兩種方向的做法——
                           點下去還要再選一次「這是收入還是支出」，等於把決定推遲到下一步。
-                          購入獨立一顆，因為它走的是 `applyPurchase`（裝備模板、算式、履歷），
-                          與 `applyMoneyFlow` 是兩條路，不該共用一顆按鈕。 */}
-                      <div className="grid grid-cols-4 gap-1.5">
+                          2026-11-03：使用者裁定「支出與購入意思重複」——「購入」那顆整個拿掉，
+                          改由「支出」在對話框裡勾「這筆有拿到東西」帶回物品（裝備／非裝備兩條路）。
+                          所以這一列只剩三顆：收入／支出／明細。 */}
+                      <div className="grid grid-cols-3 gap-1.5">
                         <button
                           type="button"
                           data-testid="pack-money-flow"
@@ -4661,15 +4988,6 @@ export default function CharacterPlayHUD({
                         >
                           <GiScrollUnfurled className="w-3 h-3 text-[#6b5a4b]" />
                           明細
-                        </button>
-                        <button
-                          type="button"
-                          data-testid="pack-purchase"
-                          onClick={() => setIsPurchaseOpen(true)}
-                          className="py-1.5 rounded border border-[#d6c7ab] bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] font-bold text-t11 flex items-center justify-center gap-1 transition-colors"
-                        >
-                          <GiCoins className="w-3 h-3 text-[#6b5a4b]" />
-                          購入
                         </button>
                       </div>
                       {/* 四個槽位改成按鈕（P9-b）。
@@ -4705,12 +5023,26 @@ export default function CharacterPlayHUD({
                       </div>
                     </div>
 
+                    {/* 行囊物品（2026-11-03）：裝備槽只記「正在穿的」，
+                        冒險途中拿到／買到的東西全部落在這裡。 */}
+                    <div className="pt-2 border-t border-[#e8dcc4]">
+                      <BackpackGrid
+                        character={character}
+                        theme={theme}
+                        onChange={onChange}
+                        onAdd={() => setIsBackpackAddOpen(true)}
+                        onSell={handleSellInventoryItem}
+                        onDiscard={handleDiscardInventoryItem}
+                        showToast={showToast}
+                      />
+                    </div>
+
                     <div className="space-y-1.5">
                       <span className="font-bold text-[#3c2415] block">冒險筆記本</span>
                       <textarea
                         value={character.backpackNotes || ''}
                         onChange={e => updateField('backpackNotes', e.target.value)}
-                        placeholder="在此記錄冒險日記、行囊物品、NPC 線索或秘密契約..."
+                        placeholder="在此記錄冒險日記、NPC 線索或秘密契約..."
                         rows={6}
                         className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded p-3 text-xs text-[#3c2415] outline-none focus:border-[#3c2415] leading-relaxed shadow-inner"
                       />
@@ -4769,7 +5101,7 @@ export default function CharacterPlayHUD({
         );
       })()}
 
-      {/* 6. Sub-Tabs: 武器與戰鬥 | 咒語與儀式 | 職業特技 | 情感羈絆 | 個人命刻 | 行囊日誌
+      {/* 6. Sub-Tabs: 武器與戰鬥 | 咒語與儀式 | 職業技能 | 情感羈絆 | 個人命刻 | 行囊日誌
           ─────────────────────────────────────────────────────────────────────────
           P12（2026-11-02）：分頁列**釘住**（使用者裁定的第 1 題）。
           量到的問題：桌面 1414×1100 時分頁列在 1064px——第一屏看得到標籤，
@@ -4787,15 +5119,9 @@ export default function CharacterPlayHUD({
              所以讀 `--chapter-header-h`（`ChapterHeader` 用 ResizeObserver 寫上去，
              fallback 52）。`top-0` 更糟：整條被標頭蓋住＝按不到。 */}
 
-      {/* MODAL 0: 購買裝備（P9）——錢包 → 價格 → 算式 → 扣款 → 履歷，同一條路 */}
-      <PurchaseModal
-        isOpen={isPurchaseOpen}
-        onClose={() => setIsPurchaseOpen(false)}
-        theme={theme}
-        character={character}
-        wallet={character.zenit}
-        onConfirm={handlePurchase}
-      />
+      {/* 2026-11-03：購買彈窗退場——「支出」現在可以順便記下拿到的東西（見 MODAL 0-b），
+          兩顆按鈕講同一件事只會讓人猜哪一顆才對。`PurchaseModal` 檔案留著，
+          它匯出的 `buildPurchaseCatalog` 仍是裝備表的唯一來源。 */}
 
       {/* MODAL 0-b: 收支（P9-b）——住宿、餐費、報酬……原因必填。
           P10：方向由外面決定（錢包上「收入」／「支出」各一顆），彈窗不再問一次。 */}
@@ -4854,6 +5180,13 @@ export default function CharacterPlayHUD({
         slot={slotPicker}
         wallet={character.zenit}
         onConfirm={handleEquipFromPack}
+      />
+
+      {/* MODAL 0-d: 行囊物品新增（2026-11-03） */}
+      <BackpackItemModal
+        isOpen={isBackpackAddOpen}
+        onClose={() => setIsBackpackAddOpen(false)}
+        onSubmit={handleAddInventoryItem}
       />
 
       {/* MODAL 1: Spell Picker / Learner Modal
@@ -5090,7 +5423,7 @@ export default function CharacterPlayHUD({
       >
         <div className="space-y-4">
           <p className="text-xs text-[#6b5a4b] leading-relaxed -mt-1">
-            升級將消耗 <strong>10 點 EXP</strong>，角色等級提升 1 級，最大 HP +1、最大 MP +1，並可選擇分配 1 點特技！
+            升級將消耗 <strong>10 點 EXP</strong>，角色等級提升 1 級，最大 HP +1、最大 MP +1，並可選擇分配 1 點技能等級！
           </p>
 
           <div className="space-y-3 pt-1">

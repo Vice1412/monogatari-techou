@@ -85,7 +85,9 @@ check('英雄技能恰好 115 條', HS.length, 115);
 check('每一條都有 requirement', HS.filter((h) => !h.requirement).map((h) => h.name), []);
 check('職業技能名冊非空（自動判定靠它，空的話全部都會變成「不可判」而看起來正常）',
   Object.values(rulesData.classes).reduce((n, c) => n + (c.skills || []).length, 0), 145);
-check('咒語名冊非空', rulesData.spells.length, 38);
+// 2026-11-03：42 = 38 ＋ 四條「只由英雄技能授予」的咒語本體（彗星／火山／希望／瘴氣）。
+// 那四條以前根本不在名冊裡，於是玩家學得到名字、卻放不出咒語（額度也不扣）。
+check('咒語名冊非空', rulesData.spells.length, 42);
 
 // ─────────────────────────────────────────────────────────── B
 section('B. `heroicSkillExtraPrerequisite()`：抓到的正好是「職業與等級之外的那一段」');

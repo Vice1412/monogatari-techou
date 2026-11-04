@@ -708,7 +708,9 @@ check('進階池的 NPC 咒語都標記需自訂化',
   pool2.filter((s) => s.source === 'npc').every((s) => s.needsCustomization === true), true);
 check('進階池含官方舉例的【詛咒之息】', pool2.some((s) => s.name === '詛咒之息'), true);
 check('進階池排除【毀盪】', pool2.some((s) => s.name === '毀盪'), false);
-check('最高池 = 核心 38 ＋ NPC 37 − 同名 24 ＝ 51', pool3.length, 51);
+// 2026-11-03：核心名冊 38 → 42（尾端追加四條由英雄技能授予的咒語），
+// 故最高池 51 → 55（NPC 37 − 同名 24 不變）。
+check('最高池 = 核心 42 ＋ NPC 37 − 同名 24 ＝ 55', pool3.length, 55);
 check('最高池名稱不重複（同名以核心優先）',
   new Set(pool3.map((s) => s.name)).size, pool3.length);
 check('最高池的【照明烈焰】來自核心', 

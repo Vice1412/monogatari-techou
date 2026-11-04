@@ -261,7 +261,7 @@ export default function CharacterEditor({
   // Validation checklist（以這一團的規則驗證，不是寫死的官方標準）
   const stats = calculateCharacterStats(character);
 
-  // 等級獎勵：屬性骰 +1 階（原書 p.229：20／40 級各一次）。傳給四維選擇器顯示升級列。
+  // 等級獎勵：屬性骰 +1 階（原書 p.229：20／40 級各一次）。傳給屬性選擇器顯示升級列。
   const remainingDieUpgrades = Math.max(
     0,
     attributeDieUpgradesAllowed(character.level) - (attributeDieUpgradesUsed(character.attributes) ?? 0)
@@ -318,7 +318,7 @@ export default function CharacterEditor({
   };
 
   const handleUnlock = () => {
-    if (typeof window !== 'undefined' && !window.confirm('解除定稿會重新開放身世與四維屬性，確定嗎？')) return;
+    if (typeof window !== 'undefined' && !window.confirm('解除定稿會重新開放身世與屬性，確定嗎？')) return;
     onChange(unlockCharacter(character));
     if (showToast) showToast('已解除定稿——創角欄位重新開放');
   };
@@ -459,7 +459,7 @@ export default function CharacterEditor({
     curClasses[classIdx].skills = updatedSkills;
     curClasses[classIdx].level = updatedSkills.reduce((sum, s) => sum + s.sl, 0);
 
-    // 同步特技中所選的咒語至 character.spells
+    // 同步技能中所選的咒語至 character.spells
     const allKnownSpellNames = new Set();
     curClasses.forEach(cl => {
       (cl.skills || []).forEach(sk => {
@@ -550,7 +550,7 @@ export default function CharacterEditor({
   // 命刻的增刪已移除——創角八步驟（原書 p.154）沒有這一項，命刻是跑團中的 GM 工具。
   // 跑團面板（CharacterPlayHUD）的「個人命刻」分頁仍有完整的增刪與填充。
 
-  // 創角步驟＝原書 p.154 的八個步驟（身世／四維／職業與技能／裝備／特質與命刻，
+  // 創角步驟＝原書 p.154 的八個步驟（身世／屬性／職業與技能／裝備／特質與命刻，
   // 其中「名字」併入身世、「HP/MP/IP 等數值」由引擎自動算）。
   // **沒有情感羈絆**：羈絆不屬創角，見 CREATION_STEPS 的說明。
   // 分頁標籤描述的是「玩家在這裡做什麼決定」，不是「角色卡的章節」（見 §V1 的診斷）。
@@ -573,7 +573,7 @@ export default function CharacterEditor({
   // Attribute sum
   const attrSum = (character.attributes?.dex || 0) + (character.attributes?.ins || 0) + (character.attributes?.mig || 0) + (character.attributes?.wlp || 0);
 
-  // ── 裝備配置：所有顯示數字都以「目前這張卡的四維骰」即時換算。
+  // ── 裝備配置：所有顯示數字都以「目前這張卡的屬性骰」即時換算。
   // 換算規則集中在 utils/equipmentRules.js，選裝彈窗與這裡共用同一份實作，
   // 避免「選單上算一套、角色卡上算另一套」。
   const equipDice = diceFromStats(stats);
@@ -958,7 +958,7 @@ export default function CharacterEditor({
               backgroundColor: theme.subpanelBg,
               color: theme.textDark
             }}
-            title={locked ? '已定稿——套用官方配置會重寫屬性與職業，請先解除定稿' : '一鍵套用官方經典職業搭配（職業、特技、屬性骰、裝備配置）'}
+            title={locked ? '已定稿——套用官方配置會重寫屬性與職業，請先解除定稿' : '一鍵套用官方經典職業搭配（職業、技能、屬性骰、裝備配置）'}
           >
             <div className="flex items-center gap-2">
               <GiSparkles className="w-4 h-4 shrink-0" style={{ color: theme.accent }} />
@@ -996,7 +996,7 @@ export default function CharacterEditor({
 
             <p className="text-t12 leading-relaxed" style={{ color: theme.textMuted }}>
               {locked
-                ? '身世與四維屬性已凍結；等級、技能、裝備仍可隨時調整。'
+                ? '身世與屬性已凍結；等級、技能、裝備仍可隨時調整。'
                 : canLock
                   ? `${TABS.length} 個步驟都通過規則檢查，可以定稿了。定稿後創角欄位會凍結。`
                   // F-010：這裡以前只數「有 error 的步驟數」，跟左側自檢卡的「error 條數」
@@ -1022,7 +1022,7 @@ export default function CharacterEditor({
               }}
               // F-005：灰掉的時候要說「現在為什麼不能按」，不是「按下去會怎樣」。
               // `creation.lockHint` 會列出實際缺口（例如「尚缺：尚未選擇任何職業、起始資金尚未結算」）。
-              title={locked ? '解除定稿會重新開放身世與四維屬性' : creation.lockHint}
+              title={locked ? '解除定稿會重新開放身世與屬性' : creation.lockHint}
             >
               <GiPadlock className="w-3.5 h-3.5" />
               {locked ? '解鎖編輯' : '完成創角'}
@@ -1359,7 +1359,7 @@ export default function CharacterEditor({
                     borderColor: theme.border,
                     color: theme.textDark
                   }}
-                  title="一鍵套用官方經典職業搭配（職業、特技、屬性骰、裝備配置）"
+                  title="一鍵套用官方經典職業搭配（職業、技能、屬性骰、裝備配置）"
                 >
                   <GiSparkles className="w-3.5 h-3.5 shrink-0" style={{ color: theme.accent }} />
                   <span>套用經典職業搭配</span>
@@ -1531,17 +1531,17 @@ export default function CharacterEditor({
             </div>
           )}
 
-          {/* ==================== TAB 3: 四維屬性 ====================
+          {/* ==================== TAB 3: 屬性 ====================
               排在職業之後：原書的順序是先選職業（第 4 步）再分配屬性（第 5 步），
               且 p.162 明說分配屬性骰時要考慮職業與技能的選擇。 */}
           {activeTab === 3 && (
             <div className="space-y-5 animate-fade-in">
               <div>
                 <h4 className="font-serif font-black text-lg flex items-center gap-2" style={{ color: theme.textDark }}>
-                  <span style={{ color: theme.accent }}>3.</span> 四維基礎屬性骰配置
+                  <span style={{ color: theme.accent }}>3.</span> 基礎屬性骰配置
                 </h4>
                 <p className="text-xs text-[#6b5a4b] mt-0.5">
-                  四維屬性代表骰子面數（d6~d12），將骰子分配至各項體質。
+                  屬性代表骰子面數（d6~d12），將骰子分配至各項屬性。
                 </p>
               </div>
 
@@ -1753,7 +1753,7 @@ export default function CharacterEditor({
                   <span style={{ color: theme.accent }}>4.</span> 裝備配置
                 </h4>
                 <p className="text-xs text-[#6b5a4b] mt-0.5">
-                  以目前的四維骰即時換算期望命中、期望傷害與防禦結果；不能裝備的原因直接標在選項上。
+                  以目前的屬性骰即時換算期望命中、期望傷害與防禦結果；不能裝備的原因直接標在選項上。
                 </p>
               </div>
 
@@ -2287,7 +2287,12 @@ export default function CharacterEditor({
                         </span>
                         <button
                           type="button"
-                          onClick={() => updateField('quirk', '無')}
+                          // 移除金手指必須走 `buildQuirkPatch`（`updateField(buildQuirkPatch(character, '無'))`）——
+                          // 這裡原本直接寫 `updateField('quirk', '無')`，繞過了「補／退起始資金」那條唯一入口。
+                          // 後果：拿了【富家子弟】的角色按「移除」之後 **1000z 不會退**，
+                          // 而 `quirkZenitBonus` 帳本還留著 1000，下次再選一次也不會補。
+                          // 也就是說，畫面上「移除」成功了，錢包卻永遠多那 1000。
+                          onClick={() => updateField(buildQuirkPatch(character, '無', ''))}
                           className="text-t11 text-[#6b5a4b] hover:text-[#76252d] cursor-pointer"
                         >
                           移除
@@ -2497,7 +2502,7 @@ export default function CharacterEditor({
                   value={character.background || ''}
                   onChange={e => updateField('background', e.target.value)}
                   rows={7}
-                  placeholder="他從哪裡來、經歷過什麼、為什麼會走上這條路……（NPC 工坊也有一格同樣用途的「背景故事」）"
+                  placeholder="他從哪裡來、經歷過什麼、為什麼會走上這條路……"
                   className="w-full rounded px-3.5 py-2.5 text-xs outline-none shadow-sm border leading-relaxed resize-y"
                   style={{ backgroundColor: theme.cardBg, borderColor: theme.border, color: theme.textDark }}
                 />
@@ -2580,7 +2585,7 @@ export default function CharacterEditor({
                     data-testid="enter-play-preview"
                     // F-004：這顆以前叫「完成創角，進入跑團面板」，跟左側那顆灰掉的
                     // 「完成創角」幾乎同名，行為卻相反——它不定稿、不檢查、也不設 `locked`。
-                    // 實測按下去會帶著一張「職業 0 個、四維全 0、locked 仍是 false」的卡進面板。
+                    // 實測按下去會帶著一張「職業 0 個、屬性全 0、locked 仍是 false」的卡進面板。
                     //
                     // 修法不是拿掉它（先去看看面板是合理需求），是**讓名字說實話**：
                     // 它只負責「去看」，不負責「完成」。全站文案含「完成創角」的按鈕

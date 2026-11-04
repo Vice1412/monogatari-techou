@@ -1283,6 +1283,50 @@
       "target": "至多三個生物",
       "duration": "場景",
       "effect": "選擇一種傷害類型：暗、光或毒。在此咒語結束之前，每個目標獲得對所選傷害類型的抗性。"
+    },
+    {
+      "school": "熵系",
+      "name": "彗星",
+      "isOffensive": false,
+      "mp": "50",
+      "target": "特殊",
+      "duration": "瞬發",
+      "effect": "你撕開通往宇宙的大口，從裂開的虛空中召喚星塵的碎片。\n選擇其中一個選項：\n①你所能看見的一個生物受到60點傷害；\n②你所能看見的所有敵人都受到40點傷害。\n如果你達到20級或更高，傷害增加5，如果你達到40級或更高，傷害增加10。\n此咒語造成的傷害沒有類型（因此不受傷害親和度的影響）",
+      "source": "核心手冊 英雄技能【彗星】印刷 p.235（Comet／MP50／Target: Special／Instantaneous）",
+      "grantOnly": true
+    },
+    {
+      "school": "元素",
+      "name": "火山",
+      "isOffensive": false,
+      "mp": "40",
+      "target": "特殊",
+      "duration": "瞬發",
+      "effect": "你傳導整個星球的怒火，將其化為洶湧的火焰和岩漿。\n選擇其中一個選項：\n①你所能看見的一個生物受到50點火屬性傷害；\n②你所能看見的所有敵人都受到30點火屬性傷害。\n如果你達到20級或更高，傷害增加5，如果你達到40級或更高，傷害增加10。\n此咒語造成的傷害無視抗性和免疫。",
+      "source": "核心手冊 英雄技能【火山】印刷 p.241（Volcano／MP40／Target: Special／Instantaneous）",
+      "grantOnly": true
+    },
+    {
+      "school": "靈魂",
+      "name": "希望",
+      "isOffensive": false,
+      "mp": "40",
+      "target": "特殊",
+      "duration": "瞬發",
+      "effect": "你重新點燃一位倒下的英雄心中的勇氣與希望。選擇一名已投降、但仍以敘事方式留在場景中的玩家角色：該玩家角色立即恢復意識，並恢復等同於其危機值的 HP。\n此咒語不會消除該角色投降所帶來的後果；若該角色是因為投降而離開場景（例如被俘擄帶走、被困在平行維度等），此咒語對其無效。\n每名玩家角色在同一個場景中只能被此咒語影響一次。若該角色因此咒語重回衝突場景後又再次降至 0 HP，則依正常規則投降或犧牲自己（包含新的後果，且若投降可再獲得 2 點物語點）。",
+      "source": "核心手冊 英雄技能【希望】印刷 p.237（Hope／MP40／Target: Special／Instantaneous）",
+      "grantOnly": true
+    },
+    {
+      "school": "元素",
+      "name": "瘴氣",
+      "isOffensive": true,
+      "mp": "20",
+      "target": "一個生物",
+      "duration": "瞬發",
+      "effect": "你操縱目標體內的元素平衡。你對目標造成（HR ＋ 30）點毒屬性傷害，且此傷害無視抗性。隨後，若該魔法檢定的高擲為 8 或更高，或你已取得【惡性循環】技能（見《核心規則書》p.183），目標陷入中毒。",
+      "source": "Playtest Materials 2026-10-01 p.15（Miasma／MP20／Target: One creature／Instantaneous；前提為嵌合師或元素師）",
+      "grantOnly": true
     }
   ],
   "heroicSkills": [
