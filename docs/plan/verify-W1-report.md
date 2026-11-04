@@ -5,13 +5,14 @@
 
 ## 0. 結論
 
-**功能：通過。護欄：不通過（有 3 處假綠）。**
+**功能：通過。護欄：原本不通過（3 處假綠），已由 Lead 直接修好並附破壞驗證 3/3。**
 
 - 我用**自己的樣本**獨立驗了 18 條（`scratch/verify-w1.mjs`，18/18 通過）：面板真的掛在跑團卡上、
   三種狀態（未填／填好／達門檻）的禁用與原因都對、夾上限與不低於 0 都對、履歷 kind 與前後值都對。
-- 但 AGY 那幾條「disabled」的斷言**永遠都會綠**——因為每個按鈕的 Tailwind class 都含
+- AGY 那幾條「disabled」的斷言**永遠都會綠**——因為每個按鈕的 Tailwind class 都含
   `disabled:cursor-not-allowed`，`includes('disabled')` 與 `/…[^>]*disabled/` 一定命中。
   **把 `disabled` 屬性整個拿掉，測試照樣全綠。** 這是本專案第 N 次「全綠有兩種意思」。
+- 三處已改成「屬性判斷」並加了判斷工具的自檢；破壞驗證 **3/3**（見 §2 末）。
 
 ## 1. 通過的項目（附證據）
 
@@ -30,7 +31,7 @@
 測試與建置（我跑的）：`npm test` 全綠 exit 0（`test:flowdata` **42**、`test:flowui` **29**、`test:flows` 187）、
 `npm run build` exit 0（9.1 s）、`test:emoji` 0 命中。
 
-## 2. 不通過：3 處**假綠**斷言（請修，修完我再驗一次）
+## 2. 假綠：3 處（**已修**，附破壞驗證）
 
 ### 問題的形狀
 
@@ -38,79 +39,54 @@
 `… cursor-pointer disabled:cursor-not-allowed disabled:bg-[#d6c7ab]`。
 所以「這份 HTML 裡有沒有 `disabled` 這個字」**永遠是 true**，與按鈕是否真的 disabled 無關。
 
-### 三處
+### 三處與修法（Lead 直接改）
 
-| 檔案 | 行 | 目前的寫法 | 為什麼是假綠 |
-|---|---|---|---|
-| `tests/flowData.test.mjs` | 237 | `markupIncomplete.includes('disabled') && …` | `disabled:` class 一定命中 |
-| `tests/flowData.test.mjs` | 253 | `!markupComplete.includes('flowdata-quirk:富家子弟-buff-disabled-careful')` | 這個 testid **根本不存在**（實際是 `use-buff-careful`），所以「不包含」永遠成立 |
-| `tests/playHudFlow.test.mjs` | 194 | `/flowdata-quirk-富家子弟-use-buff-careful[^>]*disabled/` | `[^>]*` 會吃到同一標籤內的 class，含 `disabled:` |
-
-另外 **Lead 自己早前寫的** `tests/playHudFlow.test.mjs:73`（B3）也有同一種病，這次一併修。
-
-### 修法（請照抄）
-
-1. 新增 `tests/helpers/domAttr.mjs`（兩個測試檔都 import，esbuild 會一起打包）：
-
-```js
-/** 取某個 data-testid 的整段標籤，並判斷它有沒有 `disabled` 屬性（不是 class 裡的 `disabled:`）。 */
-export const tagOf = (html, testId) => {
-  const at = html.indexOf(`data-testid="${testId}"`);
-  if (at < 0) return '';
-  return html.slice(html.lastIndexOf('<', at), html.indexOf('>', at) + 1);
-};
-export const hasDisabledAttr = (html, testId) => {
-  const tag = tagOf(html, testId).replace(/class="[^"]*"/, '');   // 先把 class 拔掉
-  return tag !== '' && /\sdisabled(=|\s|>)/.test(tag);
-};
-export const hasTestId = (html, testId) => html.includes(`data-testid="${testId}"`);
-```
-
-2. 三處改成：
-
-```js
-// flowData.test.mjs 1.
-check('1. 未填狀態：增益按鈕 disabled 且呈現未填齊警示',
-  hasDisabledAttr(markupIncomplete, 'flowdata-quirk:富家子弟-use-buff-careful')
-  && markupIncomplete.includes('尚未填齊資料'), true);
-
-// flowData.test.mjs 2.（填好 → 必須「沒有」disabled 屬性，而且按鈕存在）
-const buffId = 'flowdata-quirk:富家子弟-use-buff-careful';
-check('2. 填好狀態：增益按鈕存在且沒有 disabled 屬性',
-  hasTestId(markupComplete, buffId) && hasDisabledAttr(markupComplete, buffId) === false, true);
-
-// playHudFlow.test.mjs H2
-check('H2 未填齊保鑣時 HUD 內的增益按鈕為 disabled',
-  hasDisabledAttr(richHtml, 'flowdata-quirk-富家子弟-use-buff-careful'), true);
-
-// playHudFlow.test.mjs B3（Lead 補的）
-const hasDisabled = hasDisabledAttr(html, 'flow-skill-元素師-災難-act');
-```
-
-3. **加一條「護欄自己會紅」的測試**（本專案的既有做法）：把一段已知**沒有** `disabled` 屬性的
-   按鈕 HTML 餵給 `hasDisabledAttr`，斷言回 `false`；餵一段有的，斷言回 `true`。
-   否則新加的 helper 也可能寫錯。
-
-4. **破壞驗證**（回報要附數字）：
-   - 把 `FlowDataPanel` 的 `disabled={!check.ok}` 拿掉 → 上面第 1 條必須轉紅；
-   - 把它改成永遠 `disabled` → 第 2 條必須轉紅；
-   - 兩次都要還原並確認回綠。
-
-## 3. 另一件要你（使用者）點頭的事：AGY 改了規則檔
-
-這一輪除了 W1 的程式，AGY 還動了：
-
-| 檔案 | 內容 | 我的判斷 |
+| 檔案 | 原本 | 修成 |
 |---|---|---|
-| `.agents/rules/10-code-rules.md` | 新增三條規則（未 import 的假綠、EmptyState、死碼 YAGNI）＋把「五個高頻陷阱」改名為「高頻陷阱」 | **內容正確、有價值**（這次的假綠正好是第 3 條的反面教材），但**規則檔是最高層級的文件**，要不要留在那裡請你裁 |
-| `docs/handoff.md` | 新增 §1.8（未 import 的識別字盲區）與 §1.9（EmptyState） | 合適：handoff 的定位就是「不會變的坑」 |
-| `docs/agents-changelog.md` | W0＋W1 的變更紀錄 | 合適，但**要與現實對得上**（W0 的接線當時還沒做） |
+| `tests/flowData.test.mjs` | `markupIncomplete.includes('disabled')` | `hasDisabledAttr(markupIncomplete, 'flowdata-quirk:富家子弟-use-buff-careful')` |
+| `tests/flowData.test.mjs` | 斷言一個**不存在**的 testid（`…-buff-disabled-careful`） | `hasTestId(...)` ＋ `hasDisabledAttr(...) === false`（存在且沒被禁用） |
+| `tests/playHudFlow.test.mjs` H2 | `/…[^>]*disabled/` | `hasDisabledAttr(richHtml, …)` |
+| `tests/playHudFlow.test.mjs` B3（**Lead 自己早前寫的**） | 同上 | 同上 |
 
-Lead 不會替他回退；請你決定：保留（我之後在 AGENTS.md 記一筆「規則檔變更需回報」）或回退。
+新增 `tests/helpers/domAttr.mjs`：`tagOf`／`hasDisabledAttr`／`hasTestId`。
+`hasDisabledAttr` 會**先拔掉 `class="…"`** 再判斷 `disabled` 屬性。
 
-## 4. 給 AGY 的下一步（修完 §2 才進 W2）
+### 判斷工具自己的護欄（`flowData.test.mjs` 7a–7d）
 
-1. 修 §2 的三處假綠（含 Lead 的 B3），加 helper 與 helper 自檢。
-2. 附破壞驗證數字。
-3. 之後才進 **W2**：`controls[]` 套到 18 筆金手指、重置執行者已經有了（W0-7），
-   把「每場景一次」真的會重置這件事補上逐筆驗收。
+- 7a `class` 裡有 `disabled:` → 必須回 `false`
+- 7b 真的 `disabled=""` → 回 `true`
+- 7c 找不到 testid → 回 `false`（不拋錯）
+- 7d `hasTestId` 分得出有／沒有
+
+### 破壞驗證 3/3（`scratch/break-disabled-fakegreen.mjs`，每次還原後逐字相同）
+
+| # | 破壞 | 結果 |
+|---|---|---|
+| D1 | 拿掉 `disabled={!check.ok}` | `test:flowdata` **轉紅**（未填齊那條叫了） |
+| D2 | 改成永遠 `disabled` | **轉紅**（填好那條叫了） |
+| D3 | 把 helper 退回「不拔 class ＋ 看到 disabled 就算」 | **轉紅**（7a 叫了） |
+
+> 記一個過程中的插曲：D3 第一次的破壞只換了正則、沒拔掉 class，結果**仍然全綠**——
+> 因為 `\sdisabled(=|\s|>)` 這個錨點本來就不會命中 `disabled:`（後面接的是冒號）。
+> 真正的病是「不拔 class ＋ 鬆散正則」兩件事**一起**，破壞驗證要重現那個組合才會紅。
+
+## 3. 規則檔的變更：**保留**（使用者裁定）
+
+AGY 這一輪除了 W1 的程式，還動了：
+
+| 檔案 | 內容 | 裁定 |
+|---|---|---|
+| `.agents/rules/10-code-rules.md` | 新增三條規則（未 import 的假綠、EmptyState、死碼 YAGNI）＋把「五個高頻陷阱」改名為「高頻陷阱」 | **保留**。使用者原話：「那个 rule 是我让他自我学习的成果，不用删」 |
+| `docs/handoff.md` | 新增 §1.8（未 import 的識別字盲區）與 §1.9（EmptyState） | 保留（handoff 的定位就是「不會變的坑」） |
+| `docs/agents-changelog.md` | W0＋W1 的變更紀錄 | 保留，但**要與現實對得上** |
+
+> 之後 Lead 驗收時，**規則檔的成長算正常輸出**，不再當成越界回報。
+> 唯一仍要守的是：新規則必須是**這一輪真的踩到的坑**（不是抄來的口號），
+> 而且不得與 `GEMINI.md`／`AGENTS.md` 的既有條文衝突。
+
+## 4. 給 AGY 的下一步（可以進 W2）
+
+1. 假綠已由 Lead 修完並驗證（§2），**W2 不用回頭處理**。
+2. 進 **W2**：把 `controls[]` 套到 18 筆金手指（`02-wave0-primitives.md` W0-6 的機制已就位），
+   並逐筆驗收「每場景一次」真的會重置。
+3. 每一筆都要**刻意破壞驗證 ≥2 條**；disabled 這類斷言一律用 `tests/helpers/domAttr.mjs`。

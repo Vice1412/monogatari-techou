@@ -118,8 +118,10 @@ export const CLASS_RESOURCES = [
     quirkName: '富家子弟',
     label: '疲勞值',
     max: 10,
+    resetRoll: '1d6',
+    resetSign: -1,
     resetLabel: '每章節恢復 1d6',
-    resetTo: 0,
+    resetTo: null,
     hint: '上限 10。每次使用保鑣增益累積 1d6；達 10 就不能再依賴他們；每章節恢復 1d6',
     source: 'Bonus Collection p.20',
   },
@@ -129,8 +131,10 @@ export const CLASS_RESOURCES = [
     quirkName: '實驗逃亡體',
     label: '不穩定值',
     max: 10,
-    resetLabel: '歸零',
-    resetTo: 0,
+    resetRoll: '1d6',
+    resetSign: -1,
+    resetLabel: '每章節降 1d6',
+    resetTo: null,
     hint: '上限 10。忽略 100 點以下的 HP/MP/IP 成本可換 1d8；每章節降 1d6；達 10 → HP 歸 0 並投降，然後歸零',
     source: 'Techno Fantasy p.122',
   },
@@ -213,6 +217,9 @@ export const getActiveClassResources = (character) => {
       label: def.label,
       hint: def.hint,
       resetLabel: def.resetLabel,
+      resetRoll: def.resetRoll ?? null,
+      resetSign: def.resetSign ?? null,
+      resetTo: def.resetTo ?? null,
       source: def.source,
       sl,
       max: def.kind === 'pool'
@@ -274,3 +281,13 @@ export const setResourceValue = (character, resource, nextValue) => ({
   ...(character?.classResources || {}),
   [resource.id]: clampResource(resource, nextValue),
 });
+
+/**
+ * 擲骰加減資源量（純函式）。
+ * roll 非 1-6 時視為無效不變更。
+ */
+export const applyRollDelta = (current, roll, { sign = 1, min = 0, max = Infinity } = {}) => {
+  if (!Number.isFinite(roll) || roll < 1 || roll > 6) return current;
+  const curr = Number.isFinite(current) ? current : 0;
+  return Math.min(max, Math.max(min, curr + sign * roll));
+};

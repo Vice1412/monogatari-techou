@@ -25,7 +25,24 @@ const SRC_DIR = path.join(ROOT, 'scratch', 'flows');
 const OUT = path.join(ROOT, 'src', 'features', 'character-sheet', 'data', 'effectFlows.json');
 
 const FLOW_KINDS = ['modifier', 'state', 'action', 'grant', 'narrative'];
-const CONTROL_KINDS = ['none', 'counter', 'toggle', 'button', 'select'];
+const CONTROL_KINDS = ['none', 'counter', 'toggle', 'button', 'select', 'multiSelect', 'text', 'recordList'];
+
+const RESOURCE_BACKED_IDS = Object.freeze({
+  'quirk:富家子弟': 'fatigue',
+  'quirk:實驗逃亡體': 'instability',
+  'quirk:棄暗投明之人': 'subversion',
+  'quirk:遺物使用者': 'anomaly',
+  'quirk:固執的懷疑論者': 'doubt',
+  'class:商人:貿易之風': 'tradePoints',
+  'class:商人:真正的財富': 'tradePoints',
+  'class:商人:我聽說過': 'tradePoints',
+  'class:商人:小金庫': 'tradePoints',
+  'heroic:怒潮拳': 'courage',
+  'heroic:旋風攻勢': 'momentum',
+  'heroic:藥水霧化': 'nebulization',
+  'class:死靈術士:超越死界': 'gravePoints',
+  'class:熵師:幸運七': 'luckyNumber'
+});
 const TARGETS = [
   'hpMax', 'mpMax', 'ipMax', 'def', 'mdef', 'initiative', 'check', 'damage', 'damageTaken',
   'resistance', 'vulnerability', 'immunity', 'statusApplied', 'mpCost', 'ipCost', 'zenit',
@@ -63,6 +80,12 @@ const INTEGRATED_BY_MODULE = {
 };
 
 const deriveApply = (row) => {
+  if (RESOURCE_BACKED_IDS[row.id]) {
+    return {
+      via: 'existing',
+      evidence: [`src/features/character-sheet/data/classResources.js（backedBy: ${RESOURCE_BACKED_IDS[row.id]}）`]
+    };
+  }
   if (row.flow === 'narrative') return { via: 'none' };
   const integrated = INTEGRATED_BY_MODULE[row.id];
   if (integrated) return integrated;
@@ -121,21 +144,31 @@ for (const row of rows) {
   seen.add(row.id);
 
   if (!FLOW_KINDS.includes(row.flow)) errors.push(`${where}：flow 不合法 (${row.flow})`);
-  const controlKind = row.control?.kind || 'none';
-  if (!CONTROL_KINDS.includes(controlKind)) {
-    errors.push(`${where}：control.kind 不合法 (${controlKind})`);
+
+  const rawControls = Array.isArray(row.controls) && row.controls.length > 0
+    ? row.controls
+    : [row.control || { kind: 'none' }];
+
+  const backedBy = RESOURCE_BACKED_IDS[row.id] || null;
+
+  for (let cIdx = 0; cIdx < rawControls.length; cIdx += 1) {
+    const ctrl = rawControls[cIdx];
+    const cKind = ctrl?.kind || 'none';
+    const cWhere = rawControls.length > 1 ? `${where}[c${cIdx}]` : where;
+    if (!CONTROL_KINDS.includes(cKind)) {
+      errors.push(`${cWhere}：control.kind 不合法 (${cKind})`);
+    }
+    if (cKind === 'counter' && (!ctrl?.max || !ctrl?.reset) && !backedBy) {
+      errors.push(`${cWhere}：counter 缺 max 或 reset`);
+    }
+    if (cKind === 'select' && (!ctrl?.label || !(ctrl?.options || []).length)) {
+      errors.push(`${cWhere}：select 缺 label 或 options`);
+    }
+    if (cKind === 'button' && (!ctrl?.label || !ctrl?.outcome)) {
+      errors.push(`${cWhere}：button 缺 label 或 outcome`);
+    }
   }
-  if (controlKind === 'counter' && (!row.control?.max || !row.control?.reset)) {
-    errors.push(`${where}：counter 缺 max 或 reset`);
-  }
-  // `select`（第三期）：「選一個」的條目。沒有 `options` 就等於畫一個空白下拉，
-  // 玩家選不到任何東西——那比不畫更糟（看起來像壞掉）。
-  if (controlKind === 'select' && (!row.control?.label || !(row.control?.options || []).length)) {
-    errors.push(`${where}：select 缺 label 或 options`);
-  }
-  if (controlKind === 'button' && (!row.control?.label || !row.control?.outcome)) {
-    errors.push(`${where}：button 缺 label 或 outcome`);
-  }
+
   if (row.flow === 'narrative' && !row.note) {
     errors.push(`${where}：narrative 必須寫理由`);
   }
@@ -162,6 +195,38 @@ for (const row of rows) {
 
   const inv = inventory.find((i) => i.id === row.id);
 
+  const formatControl = (ctrl) => {
+    if (backedBy) {
+      return { kind: 'none', backedBy };
+    }
+    const k = ctrl?.kind || 'none';
+    if (k === 'none') return { kind: 'none' };
+    return {
+      kind: k,
+      label: ctrl?.label || '',
+      ...(ctrl?.max ? { max: ctrl.max } : {}),
+      ...(ctrl?.reset ? { reset: ctrl.reset } : {}),
+      ...(ctrl?.initial != null ? { initial: ctrl.initial } : {}),
+      ...(ctrl?.cost && Object.keys(ctrl.cost).length ? { cost: ctrl.cost } : {}),
+      ...(ctrl?.outcome ? { outcome: ctrl.outcome } : {}),
+      ...(Array.isArray(ctrl?.options) && ctrl.options.length
+        ? {
+          options: ctrl.options.map((o) => ({
+            value: String(o.value),
+            label: String(o.label || o.value)
+          }))
+        }
+        : {}),
+      ...(Array.isArray(ctrl?.fields) ? { fields: ctrl.fields } : {}),
+      ...(ctrl?.min != null ? { min: ctrl.min } : {}),
+      ...(ctrl?.multiline != null ? { multiline: ctrl.multiline } : {}),
+      ...(ctrl?.maxLength != null ? { maxLength: ctrl.maxLength } : {})
+    };
+  };
+
+  const formattedControls = rawControls.map(formatControl);
+  const primaryControl = formattedControls[0] || { kind: 'none' };
+
   items.push({
     id: row.id,
     category: row.category || inv?.category || '',
@@ -170,28 +235,8 @@ for (const row of rows) {
     flow: row.flow,
     ...(inv?.maxSL != null ? { maxSL: inv.maxSL } : {}),
     ...(inv?.bucket ? { bucket: inv.bucket } : {}),
-    control: controlKind === 'none'
-      ? { kind: 'none' }
-      : {
-        kind: controlKind,
-        label: row.control?.label || '',
-        ...(row.control?.max ? { max: row.control.max } : {}),
-        ...(row.control?.reset ? { reset: row.control.reset } : {}),
-        ...(row.control?.initial != null ? { initial: row.control.initial } : {}),
-        ...(row.control?.step != null ? { step: row.control.step } : {}),
-        ...(row.control?.cost && Object.keys(row.control.cost).length ? { cost: row.control.cost } : {}),
-        ...(row.control?.outcome ? { outcome: row.control.outcome } : {}),
-        // `select` 的選項：值與顯示名（值必須是資料層認得的字串——類別要用
-        // 裝備表的 `category` 值，例如「鬥毆」而不是技能原文「格鬥」）。
-        ...(Array.isArray(row.control?.options) && row.control.options.length
-          ? {
-            options: row.control.options.map((o) => ({
-              value: String(o.value),
-              label: String(o.label || o.value)
-            }))
-          }
-          : {})
-      },
+    control: primaryControl,
+    controls: formattedControls,
     effects,
     ...(itemWhen ? { when: itemWhen } : {}),
     apply: deriveApply(row),

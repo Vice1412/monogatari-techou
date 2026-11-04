@@ -88,8 +88,14 @@ import {
   withFlowState,
   flowResetState,
   flowActionPlan,
-  flowVarsFor
+  flowVarsFor,
+  characterFlowItems,
+  controlsOf,
+  resetScopeLabel,
+  resetFlowScope
 } from '../utils/effectFlow';
+import ChapterSettlementModal from './ChapterSettlementPanel';
+import { chapterSettlementItems } from '../utils/chapterSettlement';
 import SkillFlowControls from './SkillFlowControls';
 // F-020（2026-10-27）：職業面板「住哪個分頁」與指路句的唯一來源。
 import { classPanelHint, isClassPanelActive } from '../data/classPanels';
@@ -100,6 +106,8 @@ import { applyCampPlan, describeCampOutcome } from '../utils/campOutcome';
 import { resolveCreationRules } from '../data/creationRules';
 import { modeRestrictsEquipment, isTechnosphereEnabled, isSkillSuppressedByTechnospheres, getLevelUpMnemosphereCandidates, MNEMOSPHERE_MAX_LEVEL } from '../data/technospheres';
 import ZeroPowerBlock from './ZeroPowerBlock';
+import { specFor, readEntry, setRecord, addRecord, removeRecord, planBuffUse, planSettlement } from '../utils/flowData';
+import FlowDataPanel from './FlowDataPanel';
 import { getCharacterTheme } from '../utils/characterThemes';
 import { getDualShieldState, withHrBonus, EQUIPMENT_SLOTS, applyEquipmentChoice } from '../utils/equipmentRules';
 // 金錢回饋（P9，2026-10-31）：判定與金額格式的唯一來源。
@@ -635,6 +643,7 @@ export default function CharacterPlayHUD({
 
   // 場次收場彈窗（2026-10-30）：本場小結 ＋ 一句自由註記
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
+  const [isChapterSettlementOpen, setIsChapterSettlementOpen] = useState(false);
   const [sessionNote, setSessionNote] = useState('');
 
 
@@ -873,6 +882,7 @@ export default function CharacterPlayHUD({
   const renderFlowControls = (item, sl, testId) => {
     if (!item) return null;
     if (item.apply?.via === 'existing') return null;
+    if (specFor(item.id)) return null;
     if (!item.control || item.control.kind === 'none') return null;
     const state = readFlowState(character, item);
     // 上限算式會用到**其他技能的 SL**（【陷阱大師】的「1 + 有備無患SL」）。
@@ -1184,6 +1194,21 @@ export default function CharacterPlayHUD({
     });
   };
 
+  const handleResetScope = (scope) => {
+    const nextChar = resetFlowScope(character, scope);
+    if (nextChar === character) {
+      showToast(`目前沒有【${resetScopeLabel(scope)}】可重置的條目`, 'info');
+      return;
+    }
+    const items = characterFlowItems(character).map((ci) => ci.item);
+    const count = items.filter((it) => controlsOf(it).some((ctrl) => ctrl?.reset === scope)).length;
+    onChange({
+      ...nextChar,
+      updatedAt: new Date().toISOString()
+    });
+    showToast(`已重置 ${count} 條【${resetScopeLabel(scope)}】效果`, 'info');
+  };
+
   // 營地／旅店一鍵休整（Core p.91：回滿 HP 與 MP，並解除所有異常狀態）
   const handleCampRest = () => {
     const clearedAff = {};
@@ -1194,7 +1219,7 @@ export default function CharacterPlayHUD({
     const campBefore = normalizeCampActivities(character.campActivities);
     const campAfter = resetCampActivityUses(campBefore);
     const campReset = campBefore.used.length > 0;
-    const nextChar = {
+    let nextChar = {
       ...character,
       currentHp: stats.maxHp,
       currentMp: stats.maxMp,
@@ -1202,6 +1227,7 @@ export default function CharacterPlayHUD({
       ...(campReset ? { campActivities: campAfter } : {}),
       updatedAt: new Date().toISOString()
     };
+    nextChar = resetFlowScope(nextChar, 'rest');
     const changes = [];
     if (curHp !== stats.maxHp) changes.push({ field: 'currentHp', from: curHp, to: stats.maxHp });
     if (curMp !== stats.maxMp) changes.push({ field: 'currentMp', from: curMp, to: stats.maxMp });
@@ -1245,6 +1271,9 @@ export default function CharacterPlayHUD({
     setSessionNote('');
     setIsSessionModalOpen(false);
     showToast(`第 ${number} 場已收場，小結寫進成長履歷`);
+    if (chapterSettlementItems(next).length > 0) {
+      setIsChapterSettlementOpen(true);
+    }
   };
 
 
@@ -1954,6 +1983,39 @@ export default function CharacterPlayHUD({
               <GiCampfire className="w-3.5 h-3.5" style={{ color: theme.accent }} />
               <span>營地休整</span>
             </button>
+
+            <div className="flex items-center gap-1 border-l border-[#d6c7ab]/60 pl-2">
+              <button
+                type="button"
+                data-testid="reset-scope-scene"
+                onClick={() => handleResetScope('scene')}
+                className="px-2 py-1 rounded bg-[#fffdf9] hover:bg-[#f4ebd9] border text-t10 font-bold transition-colors"
+                style={{ borderColor: theme.border, color: theme.textDark }}
+                title="重置場景效果"
+              >
+                重置場景
+              </button>
+              <button
+                type="button"
+                data-testid="reset-scope-rest"
+                onClick={() => handleResetScope('rest')}
+                className="px-2 py-1 rounded bg-[#fffdf9] hover:bg-[#f4ebd9] border text-t10 font-bold transition-colors"
+                style={{ borderColor: theme.border, color: theme.textDark }}
+                title="重置休息效果"
+              >
+                重置休息
+              </button>
+              <button
+                type="button"
+                data-testid="reset-scope-chapter"
+                onClick={() => handleResetScope('chapter')}
+                className="px-2 py-1 rounded bg-[#fffdf9] hover:bg-[#f4ebd9] border text-t10 font-bold transition-colors"
+                style={{ borderColor: theme.border, color: theme.textDark }}
+                title="重置章節效果"
+              >
+                重置章節
+              </button>
+            </div>
 
             <button
               onClick={handleSendToCombat}
@@ -4329,15 +4391,117 @@ export default function CharacterPlayHUD({
                             ) : (
                               <p className="text-t12 text-[#7c6a58]">已啟用金手指【{character.quirk}】。</p>
                             )}
-                            {/* 金手指的流程控件（計數器／開關／按鈕）。46 條裡有 25 條
-                                「只寫了文字」——選項本身算得出來，但玩家要在桌上操作的那一半沒有落點。 */}
-                            <div className="pt-1">
-                              {renderFlowControls(
-                                flowItemForQuirk(character.quirk),
-                                0,
-                                'flow-quirk'
-                              )}
-                            </div>
+                            {/* 金手指的流程控件（專屬 FlowDataPanel 或通用計數器／開關／按鈕） */}
+                            {(() => {
+                              const itemId = `quirk:${character.quirk}`;
+                              const spec = specFor(itemId);
+                              if (spec) {
+                                const entry = readEntry(character, itemId);
+                                const clockRes = spec.clock?.resourceId ? (character.classResources || {})[spec.clock.resourceId] : null;
+                                const clockMax = spec.clock?.max ?? 10;
+                                const clockObj = spec.clock ? {
+                                  value: Number.isFinite(clockRes) ? clockRes : 0,
+                                  max: clockMax,
+                                  label: spec.clock.label || '疲勞值'
+                                } : null;
+
+                                return (
+                                  <div className="pt-2">
+                                    <FlowDataPanel
+                                      character={character}
+                                      itemId={itemId}
+                                      spec={spec}
+                                      entry={entry}
+                                      theme={theme}
+                                      clock={clockObj}
+                                      onRecordChange={(index, patch) => {
+                                        const nextChar = setRecord(character, itemId, index, patch);
+                                        onChange({
+                                          ...nextChar,
+                                          updatedAt: new Date().toISOString()
+                                        });
+                                      }}
+                                      onAddRecord={() => {
+                                        const nextChar = addRecord(character, itemId, { name: '', look: '' });
+                                        onChange({
+                                          ...nextChar,
+                                          updatedAt: new Date().toISOString()
+                                        });
+                                      }}
+                                      onRemoveRecord={(index) => {
+                                        const nextChar = removeRecord(character, itemId, index);
+                                        onChange({
+                                          ...nextChar,
+                                          updatedAt: new Date().toISOString()
+                                        });
+                                      }}
+                                      onUseBuff={(buffId) => {
+                                        const roll = Math.floor(Math.random() * 6) + 1;
+                                        const plan = planBuffUse(character, itemId, buffId, { roll });
+                                        if (!plan.ok) {
+                                          showToast(plan.reason, 'warning');
+                                          return;
+                                        }
+                                        const { classResources: patchResources, ...patchRest } = plan.patch || {};
+                                        const nextChar = {
+                                          ...character,
+                                          ...patchRest,
+                                          ...(patchResources ? {
+                                            classResources: {
+                                              ...(character.classResources || {}),
+                                              ...patchResources
+                                            }
+                                          } : {}),
+                                          updatedAt: new Date().toISOString()
+                                        };
+                                        if (plan.log) {
+                                          onChange(loggableChange(character, nextChar, plan.log));
+                                        } else {
+                                          onChange(nextChar);
+                                        }
+                                        showToast(plan.toast, 'success');
+                                      }}
+                                      onSettle={(settleId) => {
+                                        const roll = Math.floor(Math.random() * 6) + 1;
+                                        const plan = planSettlement(character, itemId, settleId || 'chapter', { roll });
+                                        if (!plan.ok) {
+                                          showToast(plan.reason, 'warning');
+                                          return;
+                                        }
+                                        const { classResources: patchResources, ...patchRest } = plan.patch || {};
+                                        const nextChar = {
+                                          ...character,
+                                          ...patchRest,
+                                          ...(patchResources ? {
+                                            classResources: {
+                                              ...(character.classResources || {}),
+                                              ...patchResources
+                                            }
+                                          } : {}),
+                                          updatedAt: new Date().toISOString()
+                                        };
+                                        if (plan.log) {
+                                          onChange(loggableChange(character, nextChar, plan.log));
+                                        } else {
+                                          onChange(nextChar);
+                                        }
+                                        showToast(plan.toast, 'success');
+                                      }}
+                                      testId={`flowdata-quirk-${character.quirk}`}
+                                    />
+                                  </div>
+                                );
+                              }
+                              return (
+                                <div className="pt-1">
+                                  {renderFlowControls(
+                                    flowItemForQuirk(character.quirk),
+                                    0,
+                                    'flow-quirk'
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                       );
@@ -5736,6 +5900,35 @@ export default function CharacterPlayHUD({
           </button>
         </div>
       </JRPGModal>
+
+      {/* 章節結束結算彈窗 —— W0-5 先行件 */}
+      <ChapterSettlementModal
+        isOpen={isChapterSettlementOpen}
+        onClose={() => setIsChapterSettlementOpen(false)}
+        character={character}
+        onApply={(plan) => {
+          if (!plan?.ok) return;
+          const { classResources: patchResources, ...patchRest } = plan.patch || {};
+          const nextChar = {
+            ...character,
+            ...patchRest,
+            ...(patchResources ? {
+              classResources: {
+                ...(character.classResources || {}),
+                ...patchResources
+              }
+            } : {}),
+            updatedAt: new Date().toISOString()
+          };
+          if (plan.log) {
+            onChange(loggableChange(character, nextChar, plan.log));
+          } else {
+            onChange(nextChar);
+          }
+        }}
+        showToast={showToast}
+        theme={theme}
+      />
 
       {/* MODAL 6: 收場（場次小結）——2026-10-30 */}
       <JRPGModal

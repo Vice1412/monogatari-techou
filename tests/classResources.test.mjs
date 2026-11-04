@@ -14,7 +14,8 @@ import {
   getActiveClassResources,
   readResource,
   clampResource,
-  setResourceValue
+  setResourceValue,
+  applyRollDelta
 } from '../src/features/character-sheet/data/classResources.js';
 
 let pass = 0;
@@ -116,9 +117,11 @@ for (const r of CLASS_RESOURCES) {
   const ok = !!(r.id && r.kind && hasGate && r.label && r.source);
   check(`${r.id || '(未命名)'} 欄位齊備`, ok, true);
   check(`${r.id} kind 合法`, ['pool', 'value'].includes(r.kind), true);
-  // 有 resetLabel 就必須有 resetTo（反之亦然）——避免出現按了沒作用的按鈕
-  check(`${r.id} resetLabel/resetTo 成對`,
-    (r.resetLabel === null) === (r.resetTo === null), true);
+  // 有 resetLabel 就必須有 resetTo 或 resetRoll（且兩者互斥）
+  const hasResetAction = (r.resetTo !== null && r.resetTo !== undefined) || !!r.resetRoll;
+  const resetExclusive = !((r.resetTo !== null && r.resetTo !== undefined) && !!r.resetRoll);
+  const resetPaired = (r.resetLabel === null) === (!hasResetAction) && resetExclusive;
+  check(`${r.id} resetLabel 與 resetTo/resetRoll 規格合法`, resetPaired, true);
 }
 // 3（墳墓點／貿易點數／幸運數字）＋ 8（英雄技能 3 ＋ 金手指 5，2026-10-06）
 check('資源總數 = 11', CLASS_RESOURCES.length, 11);
@@ -168,6 +171,17 @@ check('池：負數 -> 0（花到 0 是合法的，不是錯誤輸入）', clamp
 check('池：正常值', clampResource(tp, 4), 4);
 check('池：超過上限 -> 5', clampResource(tp, 99), 5);
 check('沒有起點的池：非數字仍是 0（沒被順手改壞）', clampResource(gp, 'abc'), 0);
+
+
+// ─────────────────────────────────────────────────────────── J
+section('J. applyRollDelta：擲骰式資源加減（W0-3）');
+check('+1d6 夾上限', applyRollDelta(8, 4, { sign: 1, min: 0, max: 10 }), 10);
+check('−1d6 不低於 0', applyRollDelta(3, 5, { sign: -1, min: 0, max: 10 }), 0);
+check('resetTo 與 resetRoll 不得同時存在',
+  CLASS_RESOURCES.every((r) => !((r.resetTo !== null && r.resetTo !== undefined) && r.resetRoll != null)),
+  true
+);
+check('roll 非 1–6 -> 不動', applyRollDelta(7, 0, { sign: -1, min: 0, max: 10 }), 7);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

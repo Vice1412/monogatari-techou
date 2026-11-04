@@ -29,6 +29,7 @@ import {
   isSeedEffectActiveAt
 } from '../src/features/character-sheet/data/skillSuboptionsData.js';
 import FloristGardenPreview from '../src/features/character-sheet/components/companions/FloristGardenPreview.jsx';
+import { plantSeed, canPlantSeed } from '../src/features/character-sheet/components/companions/FloristGardenTracker.jsx';
 import ClassSkillCard from '../src/features/character-sheet/components/ClassSkillCard.jsx';
 import { createNewCharacter } from '../src/features/character-sheet/utils/characterEngine.js';
 import { getCharacterTheme } from '../src/features/character-sheet/utils/characterThemes.js';
@@ -226,6 +227,20 @@ const codexSrc = readFileSync(
   'utf8');
 check('速查頁欄位名已統一為「生長命刻」（不得再出現孤立的 T 欄）',
   codexSrc.includes("columns: ['魔法種子', '生長命刻', '效果']"), true);
+
+
+// ─────────────────────────────────────────────────────────── F
+section('F. 植生術單一扣款路徑（W0-9）：播種扣 20 MP，不足時不種');
+const testCharFullMp = { currentMp: 30, floristGarden: [] };
+const plantedRes = plantSeed(testCharFullMp, '熾焰菊', { costMp: 20 });
+check('種下時扣 20 MP（30 -> 10）', plantedRes.ok && plantedRes.character.currentMp, 10);
+check('花園增加 1 顆種子', plantedRes.character.floristGarden.length, 1);
+
+const testCharLowMp = { currentMp: 15, floristGarden: [] };
+const failedRes = plantSeed(testCharLowMp, '熾焰菊', { costMp: 20 });
+check('MP 不足時不種且失敗', failedRes.ok, false);
+check('MP 不足時 MP 未被扣除（仍是 15）', failedRes.character.currentMp, 15);
+check('MP 不足時花園依然是空', failedRes.character.floristGarden.length, 0);
 
 // ─────────────────────────────────────────────────────────── 收尾
 console.log(lines.join('\n'));

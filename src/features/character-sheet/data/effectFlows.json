@@ -14,6 +14,13 @@
     "label": "營地打造：維修／免費製作／拆解",
     "outcome": "選一個選項 → 改裝備欄或加一塊材料，並寫一筆 camp 履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "營地打造：維修／免費製作／拆解",
+     "outcome": "選一個選項 → 改裝備欄或加一塊材料，並寫一筆 camp 履歷"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -74,6 +81,13 @@
     "label": "重擲旅行移動骰",
     "outcome": "開擲骰器重擲團隊的旅行移動骰，寫一筆 camp 履歷並自動標記已使用"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "重擲旅行移動骰",
+     "outcome": "開擲骰器重擲團隊的旅行移動骰，寫一筆 camp 履歷並自動標記已使用"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -118,6 +132,13 @@
     "label": "戰鬥課程 +4（指定盟友）",
     "outcome": "選一個盟友 → 下一次攻擊檢定 +4 並寫履歷，之後自動標記已使用"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "戰鬥課程 +4（指定盟友）",
+     "outcome": "選一個盟友 → 下一次攻擊檢定 +4 並寫履歷，之後自動標記已使用"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -158,6 +179,13 @@
     "label": "白日夢：本次 HP 損失減半",
     "outcome": "下一次扣 HP 時按一下 → 該次扣血量減半並寫履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "白日夢：本次 HP 損失減半",
+     "outcome": "下一次扣 HP 時按一下 → 該次扣血量減半並寫履歷"
+    }
+   ],
    "effects": [
     {
      "target": "damageTaken",
@@ -198,6 +226,13 @@
     "label": "雙倍分量：本次 HP 恢復加倍",
     "outcome": "選一個盟友 → 該次恢復量加倍並寫履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "雙倍分量：本次 HP 恢復加倍",
+     "outcome": "選一個盟友 → 該次恢復量加倍並寫履歷"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -238,6 +273,13 @@
     "label": "探索：骰 1d6 找東西",
     "outcome": "開擲骰器骰 1d6 → 依結果改 IP／zenit 或標記本次休息恢復減半，並寫一筆 camp 履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "探索：骰 1d6 找東西",
+     "outcome": "開擲骰器骰 1d6 → 依結果改 IP／zenit 或標記本次休息恢復減半，並寫一筆 camp 履歷"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -306,6 +348,13 @@
     "label": "採集：骰 1d6 找食材",
     "outcome": "骰 1d6 → 依結果把食材寫進目標的美食家食譜書（隨機口味再骰一次），並寫 camp 履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "採集：骰 1d6 找食材",
+     "outcome": "骰 1d6 → 依結果把食材寫進目標的美食家食譜書（隨機口味再骰一次），並寫 camp 履歷"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -370,6 +419,13 @@
     "label": "魔法課程：指定咒語與盟友",
     "outcome": "從角色已習得咒語挑一個 → 記在盟友的臨時咒語欄，並寫 camp 履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "魔法課程：指定咒語與盟友",
+     "outcome": "從角色已習得咒語挑一個 → 記在盟友的臨時咒語欄，並寫 camp 履歷"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -410,6 +466,13 @@
     "label": "武術練習：本次攻擊多重 +1／取得多重（2）",
     "outcome": "標記一次攻擊獲得多重（2）或 +1 多重並寫履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "武術練習：本次攻擊多重 +1／取得多重（2）",
+     "outcome": "標記一次攻擊獲得多重（2）或 +1 多重並寫履歷"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -450,6 +513,13 @@
     "label": "按摩：本次 MP 成本減半",
     "outcome": "下一次付 MP 時按一下 → 該次成本減半（儀式除外），並寫履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "按摩：本次 MP 成本減半",
+     "outcome": "下一次付 MP 時按一下 → 該次成本減半（儀式除外），並寫履歷"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -490,6 +560,13 @@
     "label": "抱佛腳：專案 +3 進度",
     "outcome": "列出角色未完成的造物專案 → 選一個 +3 進度，並寫 camp 履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "抱佛腳：專案 +3 進度",
+     "outcome": "列出角色未完成的造物專案 → 選一個 +3 進度，並寫 camp 履歷"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -530,6 +607,13 @@
     "label": "鼓舞士氣：本次 MP 恢復加倍",
     "outcome": "選一個盟友 → 該次 MP 恢復加倍並寫履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "鼓舞士氣：本次 MP 恢復加倍",
+     "outcome": "選一個盟友 → 該次 MP 恢復加倍並寫履歷"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -570,6 +654,13 @@
     "label": "提前規劃 +4（指定盟友）",
     "outcome": "選一個盟友 → 下一次團體（領袖）或調查檢定 +4 並寫履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "提前規劃 +4（指定盟友）",
+     "outcome": "選一個盟友 → 下一次團體（領袖）或調查檢定 +4 並寫履歷"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -606,6 +697,13 @@
     "label": "酣睡：本回合多一個裝備／阻礙／庫存行動",
     "outcome": "標記本次回合多一個限定行動並寫履歷"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "酣睡：本回合多一個裝備／阻礙／庫存行動",
+     "outcome": "標記本次回合多一個限定行動並寫履歷"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -642,6 +740,13 @@
     "label": "自行訓練：免疫這一組狀態",
     "outcome": "標記一次免疫並寫履歷，該次不寫入 statusAfflictions"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "自行訓練：免疫這一組狀態",
+     "outcome": "標記一次免疫並寫履歷，該次不寫入 statusAfflictions"
+    }
+   ],
    "effects": [
     {
      "target": "immunity",
@@ -683,6 +788,13 @@
     "label": "配置小工具科技樹",
     "outcome": "依 SL 分配三條軌（煉金／灌注／魔導科技）的基礎・高級・最高益處"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "配置小工具科技樹",
+     "outcome": "依 SL 分配三條軌（煉金／灌注／魔導科技）的基礎・高級・最高益處"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -718,6 +830,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -771,6 +888,14 @@
     "max": "1",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "1",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -798,6 +923,13 @@
     "label": "藥水雨",
     "outcome": "藥水多影響 SL 個生物（效果減半）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "藥水雨",
+     "outcome": "藥水多影響 SL 個生物（效果減半）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -823,6 +955,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "zenit",
@@ -870,6 +1007,13 @@
     "label": "施展元素學派儀式",
     "outcome": "INS+WLP 魔法檢定"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "施展元素學派儀式",
+     "outcome": "INS+WLP 魔法檢定"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -897,6 +1041,13 @@
     "label": "配置元素咒語",
     "outcome": "依 SL 選入等量的元素學派咒語"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "配置元素咒語",
+     "outcome": "依 SL 選入等量的元素學派咒語"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -927,6 +1078,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -957,6 +1113,16 @@
     },
     "outcome": "每 10 MP 換 5 點額外傷害，最多 SL×10 MP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "災難（追加傷害）",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "每 10 MP 換 5 點額外傷害，最多 SL×10 MP"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -989,6 +1155,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -1021,6 +1192,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "none"
@@ -1043,6 +1219,16 @@
     },
     "outcome": "每 5 MP 換一個情報（特質／親和力）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "快速評估",
+     "cost": {
+      "mp": 5
+     },
+     "outcome": "每 5 MP 換一個情報（特質／親和力）"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -1075,6 +1261,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -1100,6 +1291,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "mpMax",
@@ -1148,6 +1344,14 @@
     "max": "SL",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "SL",
+     "reset": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -1175,6 +1379,13 @@
     "label": "再調度",
     "outcome": "棄至多 SL+1 張、補抽等量（原文沒有限次數）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "再調度",
+     "outcome": "棄至多 SL+1 張、補抽等量（原文沒有限次數）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -1215,6 +1426,13 @@
     "label": "孤注一擲",
     "outcome": "本次檢定的骰值改寫（偶數翻倍、其餘視為 1）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "孤注一擲",
+     "outcome": "本次檢定的骰值改寫（偶數翻倍、其餘視為 1）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -1240,6 +1458,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -1294,6 +1517,13 @@
     "label": "陷阱卡",
     "outcome": "棄符合條件的牌並補抽，然後免費施放一發咒語（MP 自付）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "陷阱卡",
+     "outcome": "棄符合條件的牌並補抽，然後免費施放一發咒語（MP 自付）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -1346,6 +1576,16 @@
     },
     "outcome": "付 MP 打出並結算手牌組合，然後補抽等量"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "結算組合",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "付 MP 打出並結算手牌組合，然後補抽等量"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -1394,6 +1634,16 @@
     },
     "outcome": "該生物在合理範圍內提供幫助"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "意外盟友",
+     "cost": {
+      "fp": 1
+     },
+     "outcome": "該生物在合理範圍內提供幫助"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -1424,6 +1674,16 @@
     },
     "outcome": "讓另一名玩家角色重擲並回復 SL×10 MP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "我相信你",
+     "cost": {
+      "fp": 1
+     },
+     "outcome": "讓另一名玩家角色重擲並回復 SL×10 MP"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -1459,6 +1719,16 @@
     },
     "outcome": "指定盟友：回復 SL×10 HP，並選一屬性升一階"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "激勵",
+     "cost": {
+      "mp": 5
+     },
+     "outcome": "指定盟友：回復 SL×10 HP，並選一屬性升一階"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -1496,6 +1766,16 @@
     },
     "outcome": "每 20 MP 讓命刻多填或多清 1 格"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "能言善辯",
+     "cost": {
+      "mp": 20
+     },
+     "outcome": "每 20 MP 讓命刻多填或多清 1 格"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -1526,6 +1806,16 @@
     },
     "outcome": "INS+WLP 對抗檢定（+SL），成功削 MP 並施加狀態"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "譴責",
+     "cost": {
+      "mp": 5
+     },
+     "outcome": "INS+WLP 對抗檢定（+SL），成功削 MP 並施加狀態"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -1563,11 +1853,15 @@
    "flow": "action",
    "maxSL": 3,
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "SL + 3",
-    "reset": "none"
+    "kind": "none",
+    "backedBy": "tradePoints"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "tradePoints"
+    }
+   ],
    "effects": [
     {
      "target": "inventorySlots",
@@ -1578,7 +1872,10 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/classResources.js（backedBy: tradePoints）"
+    ]
    },
    "note": "缺一半：點數可手動扣，但「忽略物品欄花費」沒有與背包消耗串接。",
    "evidence": [
@@ -1596,11 +1893,15 @@
    "flow": "action",
    "maxSL": 3,
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "SL + 3",
-    "reset": "none"
+    "kind": "none",
+    "backedBy": "tradePoints"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "tradePoints"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -1611,7 +1912,10 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/classResources.js（backedBy: tradePoints）"
+    ]
    },
    "note": "缺一半：貿易點數可以靠計數器手動扣 1 點，但「+SL×2 加值」沒有套用到任何檢定。",
    "evidence": [
@@ -1629,11 +1933,15 @@
    "flow": "state",
    "maxSL": 3,
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "SL + 3",
-    "reset": "none"
+    "kind": "none",
+    "backedBy": "tradePoints"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "tradePoints"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -1644,7 +1952,10 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/classResources.js（backedBy: tradePoints）"
+    ]
    },
    "note": "缺一半：貿易點數計數器可以手動 +SL+1（上限也對），但「每場環節一次」沒有旗標，也沒有先決條件（已習得貿易之風）的判定。",
    "evidence": [
@@ -1662,11 +1973,15 @@
    "flow": "state",
    "maxSL": 3,
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "SL + 3",
-    "reset": "none"
+    "kind": "none",
+    "backedBy": "tradePoints"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "tradePoints"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -1679,8 +1994,7 @@
    "apply": {
     "via": "existing",
     "evidence": [
-     "src/features/character-sheet/data/classResources.js:41",
-     "src/features/character-sheet/components/ClassResourceStrip.jsx:59"
+     "src/features/character-sheet/data/classResources.js（backedBy: tradePoints）"
     ]
    },
    "note": "貿易點數是受管理的資源池：上限 SL+3、開卡起點 2 點、可加減；原文「不會被清空」也照著不給重置鍵。",
@@ -1707,6 +2021,13 @@
     "label": "過期食品",
     "outcome": "把治療藥水／美食改為毒傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "過期食品",
+     "outcome": "把治療藥水／美食改為毒傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -1732,6 +2053,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -1772,6 +2098,13 @@
     "label": "保護",
     "outcome": "把一次危險轉給自己結算（已影響到自己則結算兩次）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "保護",
+     "outcome": "把一次危險轉給自己結算（已影響到自己則結算兩次）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -1797,6 +2130,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -1822,6 +2160,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damageTaken",
@@ -1870,6 +2213,12 @@
     "kind": "toggle",
     "label": ""
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": ""
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -1902,6 +2251,13 @@
     "label": "吞噬（回復 MP）",
     "outcome": "恢復 SL×2 點 MP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "吞噬（回復 MP）",
+     "outcome": "恢復 SL×2 點 MP"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -1929,6 +2285,13 @@
     "label": "記錄模仿咒語",
     "outcome": "記錄咒語與來源物種；同時記憶上限 SL+2"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "記錄模仿咒語",
+     "outcome": "記錄咒語與來源物種；同時記憶上限 SL+2"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -1959,6 +2322,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -1984,6 +2352,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "statusApplied",
@@ -2022,6 +2395,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "none"
@@ -2039,6 +2417,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2064,6 +2447,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2097,6 +2485,14 @@
     "max": "SL + 1",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "SL + 1",
+     "reset": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2127,6 +2523,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "none"
@@ -2144,6 +2545,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -2174,6 +2580,16 @@
     },
     "outcome": "全場規則改寫直到你的下回合開始"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "主教法令",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "全場規則改寫直到你的下回合開始"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2204,6 +2620,16 @@
     },
     "outcome": "全場禁止回復或強化回復，直到你的下回合開始"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "帝王堅壘",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "全場禁止回復或強化回復，直到你的下回合開始"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2231,6 +2657,13 @@
     "label": "戰車碾壓",
     "outcome": "指定 PC 在你之後立刻開始回合"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "戰車碾壓",
+     "outcome": "指定 PC 在你之後立刻開始回合"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -2258,6 +2691,13 @@
     "label": "皇后的秘密計劃",
     "outcome": "攻擊後治療盟友或免費再發動一招 Command"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "皇后的秘密計劃",
+     "outcome": "攻擊後治療盟友或免費再發動一招 Command"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2288,6 +2728,16 @@
     },
     "outcome": "指定盟友立即攻擊一次（命中 +SL、HR 0）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "騎兵衝鋒",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "指定盟友立即攻擊一次（命中 +SL、HR 0）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2313,6 +2763,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2340,6 +2795,13 @@
     "label": "配置忠實夥伴",
     "outcome": "設計 5 級夥伴；HP 依 (SL×MIG骰面)+等級一半計算"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "配置忠實夥伴",
+     "outcome": "設計 5 級夥伴；HP 依 (SL×MIG骰面)+等級一半計算"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -2375,6 +2837,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2400,6 +2867,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2428,6 +2900,14 @@
     "max": "SL",
     "reset": "rest"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "SL",
+     "reset": "rest"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2455,6 +2935,13 @@
     "label": "暗影突襲",
     "outcome": "擲 MIG 骰、失去等量 HP，再以武器進行一次自由攻擊並結算額外傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "暗影突襲",
+     "outcome": "擲 MIG 骰、失去等量 HP，再以武器進行一次自由攻擊並結算額外傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -2483,6 +2970,14 @@
     "max": "1",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "1",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2508,6 +3003,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -2540,6 +3040,13 @@
     "label": "疼痛",
     "outcome": "恢復 SL×2 HP 與 SL×2 MP，並記下本回合已用"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "疼痛",
+     "outcome": "恢復 SL×2 HP 與 SL×2 MP，並記下本回合已用"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2567,6 +3074,13 @@
     "label": "痛苦的教訓（免費研究）",
     "outcome": "立即對該生物執行一次研究動作，檢定 +SL"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "痛苦的教訓（免費研究）",
+     "outcome": "立即對該生物執行一次研究動作，檢定 +SL"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -2594,6 +3108,13 @@
     "label": "嫁接",
     "outcome": "換種子但保留目前的生長命刻格數"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "嫁接",
+     "outcome": "換種子但保留目前的生長命刻格數"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2626,6 +3147,13 @@
     "label": "戰地園藝",
     "outcome": "種子落地後立刻補一次攻擊或一次咒語動作"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "戰地園藝",
+     "outcome": "種子落地後立刻補一次攻擊或一次咒語動作"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2649,13 +3177,13 @@
    "flow": "grant",
    "maxSL": 10,
    "control": {
-    "kind": "button",
-    "label": "播種（魔法種子）",
-    "cost": {
-     "mp": 20
-    },
-    "outcome": "把一顆已發現的種子放進花園，生長命刻從 0 格開始"
+    "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2666,9 +3194,14 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/skillSuboptionsData.js:804",
+     "src/features/character-sheet/components/companions/FloristGardenTracker.jsx:37",
+     "src/features/character-sheet/components/companions/FloristGardenTracker.jsx:54"
+    ]
    },
-   "note": "缺一半：種子清單（額度 SL）、花園（上限 1 顆）、生長命刻（0~4 格、每回合推進、滿格離園）都做了，但「花 20 MP 種下」這個成本沒有扣（handlePlantSeed 完全不看 MP）。",
+   "note": "由 FloristGardenTracker 實作：種下時扣 20 MP（MP 不足時禁用），花園上限 1 顆並啟動生長時鐘。",
    "evidence": [
     {
      "at": "src/features/character-sheet/data/skillSuboptionsData.js:804",
@@ -2680,7 +3213,7 @@
     },
     {
      "at": "src/features/character-sheet/components/companions/FloristGardenTracker.jsx:54",
-     "what": "handlePlantSeed：只寫入花園，未扣 20 MP"
+     "what": "handlePlantSeed：扣 20 MP 並種入花園"
     }
    ]
   },
@@ -2696,6 +3229,13 @@
     "label": "生命之樹",
     "outcome": "種子離園時治療一名危機中的生物"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "生命之樹",
+     "outcome": "種子離園時治療一名危機中的生物"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2726,6 +3266,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2758,6 +3303,13 @@
     "label": "配置個人載具",
     "outcome": "選框架＋模組；解鎖數與啟動槽位依 SL 計算"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "配置個人載具",
+     "outcome": "選框架＋模組；解鎖數與啟動槽位依 SL 計算"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -2793,6 +3345,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -2832,6 +3389,16 @@
     },
     "outcome": "收納／召喚個人載具，並立即搭乘"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "壓縮技術",
+     "cost": {
+      "ip": 2
+     },
+     "outcome": "收納／召喚個人載具，並立即搭乘"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2867,6 +3434,16 @@
     },
     "outcome": "三選一：下次傷害 +SL×2／下次減傷 SL×2／解緩慢或虛弱"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "引擎之心",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "三選一：下次傷害 +SL×2／下次減傷 SL×2／解緩慢或虛弱"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -2913,6 +3490,13 @@
     "label": "靈活配置",
     "outcome": "切換至多 SL 個啟動中／關閉中模組"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "靈活配置",
+     "outcome": "切換至多 SL 個啟動中／關閉中模組"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2943,6 +3527,16 @@
     },
     "outcome": "本次近戰攻擊獲得多重(2) 或 多重 +1"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "劍刃風暴",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "本次近戰攻擊獲得多重(2) 或 多重 +1"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2968,6 +3562,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -2998,6 +3597,16 @@
     },
     "outcome": "單體自由攻擊不造成傷害，改三選一（摧毀盾／摧毀防具／增傷）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "破甲擊",
+     "cost": {
+      "mp": 5
+     },
+     "outcome": "單體自由攻擊不造成傷害，改三選一（摧毀盾／摧毀防具／增傷）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3025,6 +3634,13 @@
     "label": "碎骨擊",
     "outcome": "放棄傷害，改施加眩暈、虛弱或削 MP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "碎骨擊",
+     "outcome": "放棄傷害，改施加眩暈、虛弱或削 MP"
+    }
+   ],
    "effects": [
     {
      "target": "statusApplied",
@@ -3050,6 +3666,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -3084,6 +3705,14 @@
     "max": "SL + 1",
     "reset": "hpZero"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "SL + 1",
+     "reset": "hpZero"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -3124,6 +3753,14 @@
     "max": "1",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "1",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3152,6 +3789,14 @@
     "max": "SL + 1",
     "reset": "hpZero"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "SL + 1",
+     "reset": "hpZero"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3185,6 +3830,14 @@
     "max": "SL + 1",
     "reset": "hpZero"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "SL + 1",
+     "reset": "hpZero"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3213,11 +3866,15 @@
    "flow": "state",
    "maxSL": 5,
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "SL + 1",
-    "reset": "hpZero"
+    "kind": "none",
+    "backedBy": "gravePoints"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "gravePoints"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3237,8 +3894,7 @@
    "apply": {
     "via": "existing",
     "evidence": [
-     "src/features/character-sheet/data/classResources.js:28",
-     "src/features/character-sheet/components/ClassResourceStrip.jsx:58"
+     "src/features/character-sheet/data/classResources.js（backedBy: gravePoints）"
     ]
    },
    "note": "墳墓點是受管理的資源（上限 SL+1、可加減、有「HP 歸零」清空鍵），與原文的清空時機一致。",
@@ -3265,6 +3921,13 @@
     "label": "吸收心智",
     "outcome": "受到傷害後恢復 SL×2 點 MP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "吸收心智",
+     "outcome": "受到傷害後恢復 SL×2 點 MP"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3288,11 +3951,15 @@
    "flow": "state",
    "maxSL": 1,
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "1",
-    "reset": "scene"
+    "kind": "none",
+    "backedBy": "luckyNumber"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "luckyNumber"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3305,8 +3972,7 @@
    "apply": {
     "via": "existing",
     "evidence": [
-     "src/features/character-sheet/data/classResources.js:60",
-     "src/features/character-sheet/components/ClassResourceStrip.jsx:59"
+     "src/features/character-sheet/data/classResources.js（backedBy: luckyNumber）"
     ]
    },
    "note": "幸運數字本身是受管理的狀態（有計數器、可改值、有「歸 7」重置）；「每場景一次替換一顆骰、被換掉的數字成為新的幸運數字」這一步仍需玩家自己改值並在擲骰器手動套用。",
@@ -3333,6 +3999,13 @@
     "label": "施展熵系學派儀式",
     "outcome": "INS+WLP 魔法檢定"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "施展熵系學派儀式",
+     "outcome": "INS+WLP 魔法檢定"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -3360,6 +4033,13 @@
     "label": "配置熵系咒語",
     "outcome": "依 SL 選入等量的熵系咒語"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "配置熵系咒語",
+     "outcome": "依 SL 選入等量的熵系咒語"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -3395,6 +4075,16 @@
     },
     "outcome": "每 5 MP 選一個選項（緩慢／解除緩慢／額外傷害／免費裝備／插入回合）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "竊取時間",
+     "cost": {
+      "mp": 5
+     },
+     "outcome": "每 5 MP 選一個選項（緩慢／解除緩慢／額外傷害／免費裝備／插入回合）"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -3432,6 +4122,16 @@
     },
     "outcome": "花費物語點時額外獲得一項好處"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "不屈意志",
+     "cost": {
+      "fp": 1
+     },
+     "outcome": "花費物語點時額外獲得一項好處"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3459,6 +4159,13 @@
     "label": "忍耐（防禦後回復）",
     "outcome": "依羈絆最高強度計算回復量，並升一階屬性骰"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "忍耐（防禦後回復）",
+     "outcome": "依羈絆最高強度計算回復量，並升一階屬性骰"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3496,6 +4203,16 @@
     },
     "outcome": "MIG+WLP 對抗檢定（+SL），成功施加憤怒並強迫目標"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "挑釁",
+     "cost": {
+      "mp": 5
+     },
+     "outcome": "MIG+WLP 對抗檢定（+SL），成功施加憤怒並強迫目標"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -3528,6 +4245,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3564,6 +4286,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -3594,6 +4321,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3624,6 +4356,16 @@
     },
     "outcome": "從當前場景的元素源泉調取力量（種類依 SL）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "元素祈喚",
+     "cost": {
+      "mp": 5
+     },
+     "outcome": "從當前場景的元素源泉調取力量（種類依 SL）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3649,6 +4391,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -3676,6 +4423,13 @@
     "label": "波紋",
     "outcome": "對該敵人補一次自由攻擊並終止其元素詛咒"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "波紋",
+     "outcome": "對該敵人補一次自由攻擊並終止其元素詛咒"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -3706,6 +4460,16 @@
     },
     "outcome": "每 10 MP 追加一個目標"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "聯結祈喚",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "每 10 MP 追加一個目標"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -3736,6 +4500,16 @@
     },
     "outcome": "支付命中總和+5 的 MP，使該次攻擊失手（大成功無效）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "交叉火力",
+     "cost": {
+      "mp": 5
+     },
+     "outcome": "支付命中總和+5 的 MP，使該次攻擊失手（大成功無效）"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -3763,6 +4537,13 @@
     "label": "警告射擊",
     "outcome": "放棄傷害，改施加動搖、緩慢或削 MP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "警告射擊",
+     "outcome": "放棄傷害，改施加動搖、緩慢或削 MP"
+    }
+   ],
    "effects": [
     {
      "target": "statusApplied",
@@ -3793,6 +4574,16 @@
     },
     "outcome": "本次遠程攻擊獲得多重(2) 或 多重 +1"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "連續射擊",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "本次遠程攻擊獲得多重(2) 或 多重 +1"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -3818,6 +4609,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -3851,6 +4647,13 @@
     "label": "鷹眼",
     "outcome": "取得 +SL×3 傷害的一次攻擊，或立刻自由攻擊"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "鷹眼",
+     "outcome": "取得 +SL×3 傷害的一次攻擊，或立刻自由攻擊"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -3878,6 +4681,13 @@
     "label": "施展秘儀學派儀式",
     "outcome": "WLP+WLP 魔法檢定；無權者看不到施放按鈕"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "施展秘儀學派儀式",
+     "outcome": "WLP+WLP 魔法檢定；無權者看不到施放按鈕"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -3913,6 +4723,16 @@
     },
     "outcome": "扣 40 MP 後召喚已綁定的阿爾卡納；再按解除則結算解除效果"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "召喚阿爾卡納",
+     "cost": {
+      "mp": 40
+     },
+     "outcome": "扣 40 MP 後召喚已綁定的阿爾卡納；再按解除則結算解除效果"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -3948,6 +4768,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -3996,6 +4821,16 @@
     },
     "outcome": "扣召喚費後把 currentHp 加上 SL×5（以 maxHp 夾住）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "召喚阿爾卡納",
+     "cost": {
+      "mp": 40
+     },
+     "outcome": "扣召喚費後把 currentHp 加上 SL×5（以 maxHp 夾住）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -4036,6 +4871,13 @@
     "label": "解除後免費咒語動作",
     "outcome": "一次咒語動作，其總 MP 消耗 ≤ SL×5（MP 仍自付）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "解除後免費咒語動作",
+     "outcome": "一次咒語動作，其總 MP 消耗 ≤ SL×5（MP 仍自付）"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -4066,6 +4908,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -4096,6 +4943,16 @@
     },
     "outcome": "召喚費 −SL×5，並鎖定本回合不得自願解除"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "使用快速召喚①",
+     "cost": {
+      "mp": 30
+     },
+     "outcome": "召喚費 −SL×5，並鎖定本回合不得自願解除"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -4141,6 +4998,13 @@
     "label": "施展秘儀學派儀式",
     "outcome": "WLP+WLP 魔法檢定"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "施展秘儀學派儀式",
+     "outcome": "WLP+WLP 魔法檢定"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -4168,6 +5032,13 @@
     "label": "解除阿爾卡納",
     "outcome": "解除時依 SL×5 回復 HP（當前只寫回自己）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "解除阿爾卡納",
+     "outcome": "解除時依 SL×5 回復 HP（當前只寫回自己）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -4211,6 +5082,16 @@
     },
     "outcome": "變體版召喚費 30 MP；可綁定、可解除"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "召喚阿爾卡納",
+     "cost": {
+      "mp": 30
+     },
+     "outcome": "變體版召喚費 30 MP；可綁定、可解除"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -4243,6 +5124,13 @@
     "label": "吞噬（回復 HP）",
     "outcome": "危機狀態下恢復 SL×5 點 HP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "吞噬（回復 HP）",
+     "outcome": "危機狀態下恢復 SL×5 點 HP"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -4270,6 +5158,13 @@
     "label": "基因分析",
     "outcome": "得知物種並取得 SL 個混合形態建議"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "基因分析",
+     "outcome": "得知物種並取得 SL 個混合形態建議"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -4297,6 +5192,13 @@
     "label": "配置混合形態",
     "outcome": "依 SL 選入形態；顯性表達需付當前 HP 三分之一"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "配置混合形態",
+     "outcome": "依 SL 選入形態；顯性表達需付當前 HP 三分之一"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -4327,6 +5229,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -4369,6 +5276,16 @@
     },
     "outcome": "支付 10 HP，取得該傷害屬性的抗性"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "蛻皮",
+     "cost": {
+      "hp": 10
+     },
+     "outcome": "支付 10 HP，取得該傷害屬性的抗性"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -4399,6 +5316,16 @@
     },
     "outcome": "每 10 MP 追加一位盟友受惠"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "加點愛",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "每 10 MP 追加一位盟友受惠"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -4424,6 +5351,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -4451,6 +5383,13 @@
     "label": "烹飪（組合 2~3 份食材）",
     "outcome": "依口味組出美食效果並複製給 GM"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "烹飪（組合 2~3 份食材）",
+     "outcome": "依口味組出美食效果並複製給 GM"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -4496,6 +5435,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -4526,6 +5470,16 @@
     },
     "outcome": "改寫一份食材的口味"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "鹽與胡椒",
+     "cost": {
+      "ip": 2
+     },
+     "outcome": "改寫一份食材的口味"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -4553,6 +5507,13 @@
     "label": "快速換裝",
     "outcome": "立即免費換一次裝備"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "快速換裝",
+     "outcome": "立即免費換一次裝備"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -4578,6 +5539,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -4603,6 +5569,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -4631,6 +5602,14 @@
     "max": "1",
     "reset": "round"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "1",
+     "reset": "round"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -4666,6 +5645,16 @@
     },
     "outcome": "指定羈絆-喜愛的盟友共享該舞步效果"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "隨我引導",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "指定羈絆-喜愛的盟友共享該舞步效果"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -4691,6 +5680,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -4721,6 +5715,16 @@
     },
     "outcome": "離場並在另一個場景現身"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "後會有期",
+     "cost": {
+      "fp": 1
+     },
+     "outcome": "離場並在另一個場景現身"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -4751,6 +5755,16 @@
     },
     "outcome": "第一輪前做一次自由攻擊或阻礙／推進目標動作，檢定 +SL"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "迅捷",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "第一輪前做一次自由攻擊或阻礙／推進目標動作，檢定 +SL"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -4776,6 +5790,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "def",
@@ -4816,6 +5835,13 @@
     "label": "靈魂竊取",
     "outcome": "DEX+WLP 對抗魔防：士兵給 IP，精英／冠位掉靈魂寶藏"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "靈魂竊取",
+     "outcome": "DEX+WLP 對抗魔防：士兵給 IP，精英／冠位掉靈魂寶藏"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -4855,6 +5881,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -4887,6 +5918,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -4917,6 +5953,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -4951,6 +5992,13 @@
     "label": "施展靈魂學派儀式",
     "outcome": "INS+WLP 魔法檢定"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "施展靈魂學派儀式",
+     "outcome": "INS+WLP 魔法檢定"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -4978,6 +6026,13 @@
     "label": "配置靈魂咒語",
     "outcome": "依 SL 選入等量的靈魂學派咒語"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "配置靈魂咒語",
+     "outcome": "依 SL 選入等量的靈魂學派咒語"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -5010,6 +6065,13 @@
     "label": "配置心靈天賦",
     "outcome": "依 SL 選入等量天賦；靈刻時鐘記 MP 消耗"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "配置心靈天賦",
+     "outcome": "依 SL 選入等量天賦；靈刻時鐘記 MP 消耗"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -5040,6 +6102,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -5068,6 +6135,14 @@
     "max": "1",
     "reset": "turn"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "1",
+     "reset": "turn"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -5100,6 +6175,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -5125,6 +6205,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -5155,6 +6240,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -5187,6 +6277,13 @@
     "label": "迴響",
     "outcome": "選①盟友增傷或②受傷回 MP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "迴響",
+     "outcome": "選①盟友增傷或②受傷回 MP"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -5212,6 +6309,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damageTaken",
@@ -5239,6 +6341,13 @@
     "label": "顫音",
     "outcome": "演奏後立刻免費攻擊一次（HR 視為 0）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "顫音",
+     "outcome": "演奏後立刻免費攻擊一次（HR 視為 0）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -5269,6 +6378,16 @@
     },
     "outcome": "選音量＋音調＋曲風合成樂句，扣除對應 MP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "演奏樂句",
+     "cost": {
+      "mp": 20
+     },
+     "outcome": "選音量＋音調＋曲風合成樂句，扣除對應 MP"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "existing",
@@ -5306,6 +6425,13 @@
     "label": "一點就通（每衝突場景一次）",
     "outcome": "暫時取得一個未學過的技能直到場景結束，SL 視為 1"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "一點就通（每衝突場景一次）",
+     "outcome": "暫時取得一個未學過的技能直到場景結束，SL 視為 1"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -5336,6 +6462,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -5368,6 +6499,13 @@
     "label": "下界斬擊（選火或冰）",
     "outcome": "本次傷害改為所選類型，並獲得另一類型的抗性"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "下界斬擊（選火或冰）",
+     "outcome": "本次傷害改為所選類型，並獲得另一類型的抗性"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -5407,6 +6545,13 @@
     "label": "本場景已用【不破之人】",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本場景已用【不破之人】",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -5439,6 +6584,13 @@
     "label": "主題曲演奏中（音調：＿＿）",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "主題曲演奏中（音調：＿＿）",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -5478,6 +6630,13 @@
     "label": "本場景源泉加成（來源：＿＿／屬性：＿＿）",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本場景源泉加成（來源：＿＿／屬性：＿＿）",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -5514,6 +6673,17 @@
     },
     "outcome": "召喚一個小兵級惡魔生物（等級＝你的等級，1×d10＋3×d8）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "偉大召喚：顯現",
+     "cost": {
+      "fp": 1,
+      "hp": "當前 HP 的一半"
+     },
+     "outcome": "召喚一個小兵級惡魔生物（等級＝你的等級，1×d10＋3×d8）"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -5561,6 +6731,17 @@
     },
     "outcome": "召喚可代你執行該阿爾卡納脈衝的顯現體"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "偉大召喚【變體】：顯現（含脈衝）",
+     "cost": {
+      "fp": 1,
+      "hp": "當前 HP 的一半"
+     },
+     "outcome": "召喚可代你執行該阿爾卡納脈衝的顯現體"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -5593,6 +6774,13 @@
     "label": "儀式印記已放置（條件：＿＿）",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "儀式印記已放置（條件：＿＿）",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -5625,6 +6813,13 @@
     "label": "光之言語（至多兩個選項）",
     "outcome": "選定的盟友獲得狀態免疫與／或光屬性無視抗性"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "光之言語（至多兩個選項）",
+     "outcome": "選定的盟友獲得狀態免疫與／或光屬性無視抗性"
+    }
+   ],
    "effects": [
     {
      "target": "immunity",
@@ -5662,6 +6857,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "mpMax",
@@ -5701,6 +6901,13 @@
     "label": "本次休息選定的元素源泉（風／土／火／電／冰）",
     "reset": "rest"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本次休息選定的元素源泉（風／土／火／電／冰）",
+     "reset": "rest"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -5740,6 +6947,13 @@
     "label": "全碟掃描",
     "outcome": "取得所有可見敵人的資訊，並對每個敵人各做一次 INS+INS 開放檢定"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "全碟掃描",
+     "outcome": "取得所有可見敵人的資訊，並對每個敵人各做一次 INS+INS 開放檢定"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -5770,6 +6984,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "def",
@@ -5807,6 +7026,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -5842,6 +7066,16 @@
     },
     "outcome": "替換一件裝備的特性"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "升級：改一個特性",
+     "cost": {
+      "zenit": "1000 − 高瞻遠矚SL × 100"
+     },
+     "outcome": "替換一件裝備的特性"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -5875,6 +7109,14 @@
     "max": "2",
     "reset": "conflict"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "2",
+     "reset": "conflict"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -5925,6 +7167,16 @@
     },
     "outcome": "士兵級敵人撤退"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "卸甲真言",
+     "cost": {
+      "mp": "20 + 敵方等級的一半"
+     },
+     "outcome": "士兵級敵人撤退"
+    }
+   ],
    "effects": [
     {
      "target": "statusApplied",
@@ -5960,6 +7212,16 @@
     },
     "outcome": "物防與魔防 +20 直到本回合結束"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "只是個謙卑的商人！（看見結果後才付）",
+     "cost": {
+      "ip": 2
+     },
+     "outcome": "物防與魔防 +20 直到本回合結束"
+    }
+   ],
    "effects": [
     {
      "target": "def",
@@ -5992,6 +7254,13 @@
     "label": "吞噬魔法：吸收解除的咒語",
     "outcome": "每解除一個咒語回復 20 MP，或將其複製到自己身上"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "吞噬魔法：吸收解除的咒語",
+     "outcome": "每解除一個咒語回復 20 MP，或將其複製到自己身上"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -6029,6 +7298,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -6066,6 +7340,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -6108,6 +7387,16 @@
     },
     "outcome": "使用已綁定阿爾卡納的解除效果，阿爾卡納維持綁定"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "啟示：觸發解除效果（不解除）",
+     "cost": {
+      "fp": 2
+     },
+     "outcome": "使用已綁定阿爾卡納的解除效果，阿爾卡納維持綁定"
+    }
+   ],
    "effects": [
     {
      "target": "fp",
@@ -6144,6 +7433,13 @@
     "label": "本次快速召喚只付第一個代價",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本次快速召喚只付第一個代價",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -6180,6 +7476,13 @@
     "label": "地城主廚：以敵人為食材",
     "outcome": "把一個可見敵人的物種換成一份對應風味的食材（每敵人每場景一次）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "地城主廚：以敵人為食材",
+     "outcome": "把一個可見敵人的物種換成一份對應風味的食材（每敵人每場景一次）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -6222,6 +7525,16 @@
     },
     "outcome": "對一個可見敵人造成 10 + 半數已失 HP 的暗屬性傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "地獄再見",
+     "cost": {
+      "mp": 20
+     },
+     "outcome": "對一個可見敵人造成 10 + 半數已失 HP 的暗屬性傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -6257,6 +7570,16 @@
     },
     "outcome": "直到本輪結束，全隊獲得所有傷害抗性與狀態免疫"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "堡壘（第一輪）",
+     "cost": {
+      "mp": 20
+     },
+     "outcome": "直到本輪結束，全隊獲得所有傷害抗性與狀態免疫"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -6299,6 +7622,16 @@
     },
     "outcome": "連續表演三支不同舞步且免 MP，直到下個回合結束不能再表演"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "壓軸大戲（至多三支舞步）",
+     "cost": {
+      "fp": 1
+     },
+     "outcome": "連續表演三支不同舞步且免 MP，直到下個回合結束不能再表演"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -6334,6 +7667,16 @@
     },
     "outcome": "盟友改為執行一個免費動作或一個 ≤20 MP 的咒語"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "多變戰術：盟友改用替代動作",
+     "cost": {
+      "mp": "該咒語 MP"
+     },
+     "outcome": "盟友改為執行一個免費動作或一個 ≤20 MP 的咒語"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -6364,6 +7707,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -6401,6 +7749,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "ipCost",
@@ -6434,6 +7787,14 @@
     "max": "1",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "1",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -6470,6 +7831,13 @@
     "label": "大鍋秘方：目標視為 13（群體友方）或 17（群體敵方）",
     "outcome": "把目標表的骰值當成 13 或 17"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "大鍋秘方：目標視為 13（群體友方）或 17（群體敵方）",
+     "outcome": "把目標表的骰值當成 13 或 17"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -6509,6 +7877,16 @@
     },
     "outcome": "以奧祕武器自由攻擊後，免費施放淨化或治癒"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "奇術師：攻擊＋淨化／治癒",
+     "cost": {
+      "mp": "該咒語 MP"
+     },
+     "outcome": "以奧祕武器自由攻擊後，免費施放淨化或治癒"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -6544,6 +7922,16 @@
     },
     "outcome": "武器攻擊命中後立刻免費施放一個攻擊性咒語"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "奧法戰士：攻擊＋咒語",
+     "cost": {
+      "mp": "該咒語 MP"
+     },
+     "outcome": "武器攻擊命中後立刻免費施放一個攻擊性咒語"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -6576,6 +7964,13 @@
     "label": "奧祕之刺：反擊 5 點",
     "outcome": "選擇物理或該阿爾卡納賦予抗性的類型，對攻擊者造成 5 點傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "奧祕之刺：反擊 5 點",
+     "outcome": "選擇物理或該阿爾卡納賦予抗性的類型，對攻擊者造成 5 點傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -6608,6 +8003,13 @@
     "label": "奧祕之刺【變體】：反擊 5 點",
     "outcome": "對攻擊者造成 5 點選定類型傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "奧祕之刺【變體】：反擊 5 點",
+     "outcome": "對攻擊者造成 5 點選定類型傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -6640,6 +8042,13 @@
     "label": "已標記本場景的咒語目標",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "已標記本場景的咒語目標",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -6679,6 +8088,13 @@
     "label": "本場景已用【奧術獻祭】（該阿爾卡納已封鎖）",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本場景已用【奧術獻祭】（該阿爾卡納已封鎖）",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -6711,6 +8127,13 @@
     "label": "本場景已用【奧術獻祭（變體）】",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本場景已用【奧術獻祭（變體）】",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -6741,6 +8164,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "initiative",
@@ -6795,6 +8223,13 @@
     "label": "本次孔雀舞使用替代效果（目標：＿＿）",
     "reset": "round"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本次孔雀舞使用替代效果（目標：＿＿）",
+     "reset": "round"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -6825,6 +8260,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -6855,6 +8295,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -6897,6 +8342,16 @@
     },
     "outcome": "恢復 20 + 等級/2 的 HP／MP、解除所有狀態，但防禦固定為 5"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "小憩片刻",
+     "cost": {
+      "other": "你的回合立即結束"
+     },
+     "outcome": "恢復 20 + 等級/2 的 HP／MP、解除所有狀態，但防禦固定為 5"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -6934,6 +8389,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -6973,6 +8433,16 @@
     },
     "outcome": "投降角色恢復 HP 至危機值，但不取消投降後果"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "施放【希望】",
+     "cost": {
+      "mp": 40
+     },
+     "outcome": "投降角色恢復 HP 至危機值，但不取消投降後果"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -7008,6 +8478,16 @@
     },
     "outcome": "對每個可見敵人造成 25 起跳的物理傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "庫存過剩（花 1 貿易點數）",
+     "cost": {
+      "other": "1 貿易點數"
+     },
+     "outcome": "對每個可見敵人造成 25 起跳的物理傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -7043,6 +8523,16 @@
     },
     "outcome": "每 10 MP 對一個額外盟友施加同一個徽記"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "廣幅筆觸：追加徽記複本",
+     "cost": {
+      "mp": "10 × 複本數（≤30）"
+     },
+     "outcome": "每 10 MP 對一個額外盟友施加同一個徽記"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -7086,6 +8576,17 @@
     },
     "outcome": "到下個回合開始，你和能聽到的盟友同出目視為大成功"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "強力和弦",
+     "cost": {
+      "mp": "音調 MP × 2",
+      "fp": "或 1 物語點"
+     },
+     "outcome": "到下個回合開始，你和能聽到的盟友同出目視為大成功"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -7116,6 +8617,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -7146,6 +8652,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -7176,6 +8687,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -7211,6 +8727,16 @@
     },
     "outcome": "單體 60 或全體 40 點無類型傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "施放【彗星】",
+     "cost": {
+      "mp": 50
+     },
+     "outcome": "單體 60 或全體 40 點無類型傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -7247,6 +8773,13 @@
     "label": "徹底分析（回合開始二選一）",
     "outcome": "GM 揭露一個生物的特質或一項傷害親和度"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "徹底分析（回合開始二選一）",
+     "outcome": "GM 揭露一個生物的特質或一項傷害親和度"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -7277,6 +8810,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -7316,6 +8854,13 @@
     "label": "心靈昇華（命刻填滿時）",
     "outcome": "從四個選項中選一個立即生效"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "心靈昇華（命刻填滿時）",
+     "outcome": "從四個選項中選一個立即生效"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -7350,6 +8895,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -7382,6 +8932,13 @@
     "label": "快速學習（每衝突場景一次）",
     "outcome": "暫時取得一個未學過的技能或咒語直到場景結束"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "快速學習（每衝突場景一次）",
+     "outcome": "暫時取得一個未學過的技能或咒語直到場景結束"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -7410,11 +8967,15 @@
    "flow": "state",
    "bucket": "core",
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "無上限",
-    "reset": "scene"
+    "kind": "none",
+    "backedBy": "courage"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "courage"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -7433,7 +8994,10 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/classResources.js（backedBy: courage）"
+    ]
    },
    "note": "做了一半：計數器會出現、可加減、可歸零，但武器傷害不會把【2+勇氣】算進去；「回合結束 ≥5 就全失並回 10 HP/10 MP」也沒有自動觸發。",
    "evidence": [
@@ -7459,6 +9023,13 @@
     "label": "懲戒架勢（遠程／咒語）",
     "reset": "round"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "懲戒架勢（遠程／咒語）",
+     "reset": "round"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -7501,6 +9072,16 @@
     },
     "outcome": "宣言一種行動，敵人執行時要多付 20 MP，付不出就必須改行動"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "我算到了！",
+     "cost": {
+      "mp": 20
+     },
+     "outcome": "宣言一種行動，敵人執行時要多付 20 MP，付不出就必須改行動"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -7534,6 +9115,14 @@
     "max": "無上限（每次調查 +1，每回合上限 1）",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "無上限（每次調查 +1，每回合上限 1）",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -7564,6 +9153,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -7606,6 +9200,16 @@
     },
     "outcome": "領隊獲得兩項支援收益"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "指點迷津（花 10 MP 選兩項）",
+     "cost": {
+      "mp": 10
+     },
+     "outcome": "領隊獲得兩項支援收益"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -7645,6 +9249,13 @@
     "label": "已指定屬性（DEX／INS／MIG／WLP）+1 階",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "已指定屬性（DEX／INS／MIG／WLP）+1 階",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -7677,6 +9288,13 @@
     "label": "本次衝突已用【收割行者】",
     "reset": "conflict"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本次衝突已用【收割行者】",
+     "reset": "conflict"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -7719,6 +9337,16 @@
     },
     "outcome": "指定屬性與骰尺寸，咒語改為影響所有符合的生物"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "數學魔法",
+     "cost": {
+      "mp": "該咒語 MP × 2"
+     },
+     "outcome": "指定屬性與骰尺寸，咒語改為影響所有符合的生物"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -7747,11 +9375,15 @@
    "flow": "state",
    "bucket": "core",
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "5",
-    "reset": "scene"
+    "kind": "none",
+    "backedBy": "momentum"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "momentum"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -7777,7 +9409,10 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/classResources.js（backedBy: momentum）"
+    ]
    },
    "note": "做了一半：池子與上限都在，但「+【氣勢】傷害」與「被命中時轉物防」都不會算，玩家要自己看數字再心算。",
    "evidence": [
@@ -7803,6 +9438,13 @@
     "label": "本輪源泉（奇數輪月／偶數輪日）",
     "reset": "round"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本輪源泉（奇數輪月／偶數輪日）",
+     "reset": "round"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -7842,6 +9484,13 @@
     "label": "暗藏武器（一次衝突用過即冷卻到下回合）",
     "outcome": "敵人失去 HP 並陷入所選狀態"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "暗藏武器（一次衝突用過即冷卻到下回合）",
+     "outcome": "敵人失去 HP 並陷入所選狀態"
+    }
+   ],
    "effects": [
     {
      "target": "damageTaken",
@@ -7879,6 +9528,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -7909,6 +9563,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -7939,6 +9598,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -7971,6 +9635,13 @@
     "label": "已選風味（三種）與套用效果",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "已選風味（三種）與套用效果",
+     "reset": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -8003,6 +9674,13 @@
     "label": "根源共生：轉移回復",
     "outcome": "把一半的回復量轉給夥伴；或在條件成立時讓夥伴自由攻擊"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "根源共生：轉移回復",
+     "outcome": "把一半的回復量轉給夥伴；或在條件成立時讓夥伴自由攻擊"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -8045,6 +9723,16 @@
     },
     "outcome": "暗影突襲後立刻免費執行騎兵衝鋒"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "極刑穿刺：接騎兵衝鋒",
+     "cost": {
+      "mp": "騎兵衝鋒的 MP"
+     },
+     "outcome": "暗影突襲後立刻免費執行騎兵衝鋒"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -8080,6 +9768,16 @@
     },
     "outcome": "以火器對攻擊者做一次 HR 視為 0 的自由攻擊"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "槍彈破擊：自由攻擊",
+     "cost": {
+      "other": "需先以交叉火力無效一次遠程攻擊且命中檢定為偶數"
+     },
+     "outcome": "以火器對攻擊者做一次 HR 視為 0 的自由攻擊"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -8112,6 +9810,13 @@
     "label": "模擬同化：記下一個咒語",
     "outcome": "把基因分析對象會的咒語加入嵌合咒語清單"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "模擬同化：記下一個咒語",
+     "outcome": "把基因分析對象會的咒語加入嵌合咒語清單"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -8144,6 +9849,13 @@
     "label": "所選兩項屬性（＿＿／＿＿）",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "所選兩項屬性（＿＿／＿＿）",
+     "reset": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -8190,6 +9902,13 @@
     "label": "殘翼戰術（敵方檢定後）",
     "outcome": "敵方檢定 +3，我方獲得全傷害抗性或 +5 傷害直到回合結束"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "殘翼戰術（敵方檢定後）",
+     "outcome": "敵方檢定 +3，我方獲得全傷害抗性或 +5 傷害直到回合結束"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -8232,6 +9951,16 @@
     },
     "outcome": "建立僕從，HP／MP 上限各減該 NPC 等級"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "確認成形（花 2 墳墓點）",
+     "cost": {
+      "other": "2 墳墓點"
+     },
+     "outcome": "建立僕從，HP／MP 上限各減該 NPC 等級"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -8277,6 +10006,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -8307,6 +10041,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -8349,6 +10088,16 @@
     },
     "outcome": "命中後花 1 物語點，直到下個回合開始目標看不見你"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "消失",
+     "cost": {
+      "fp": 1
+     },
+     "outcome": "命中後花 1 物語點，直到下個回合開始目標看不見你"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -8384,6 +10133,16 @@
     },
     "outcome": "選定生物解除所有狀態與持續整個場景的咒語"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "清潔石板",
+     "cost": {
+      "mp": "5 × 選定生物數（≤30）"
+     },
+     "outcome": "選定生物解除所有狀態與持續整個場景的咒語"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -8421,6 +10180,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -8463,6 +10227,16 @@
     },
     "outcome": "對該敵人免費執行一次非咒縛祈喚"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "漣漪祈喚：取代波紋",
+     "cost": {
+      "mp": 0
+     },
+     "outcome": "對該敵人免費執行一次非咒縛祈喚"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -8495,6 +10269,13 @@
     "label": "潔淨月光",
     "outcome": "解除目標的場景級咒語或指定的一種異常狀態"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "潔淨月光",
+     "outcome": "解除目標的場景級咒語或指定的一種異常狀態"
+    }
+   ],
    "effects": [
     {
      "target": "statusApplied",
@@ -8534,6 +10315,13 @@
     "label": "團隊已有一位追隨者（＿＿）",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "團隊已有一位追隨者（＿＿）",
+     "reset": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -8576,6 +10364,16 @@
     },
     "outcome": "單體 50 或全體 30 點火屬性傷害（可改名換屬性）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "施放【火山】",
+     "cost": {
+      "mp": 40
+     },
+     "outcome": "單體 50 或全體 30 點火屬性傷害（可改名換屬性）"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -8613,6 +10411,14 @@
     "max": "SL + 3",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "SL + 3",
+     "reset": "none"
+    }
+   ],
    "effects": [
     {
      "target": "fp",
@@ -8656,6 +10462,13 @@
     "label": "爆裂藝術家：命刻額外 ±1 刻度",
     "outcome": "以炸藥、火藥或煙火推進命刻時多填或抹 1 個刻度"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "爆裂藝術家：命刻額外 ±1 刻度",
+     "outcome": "以炸藥、火藥或煙火推進命刻時多填或抹 1 個刻度"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -8699,6 +10512,13 @@
     "label": "獵人詭計（切換形態後二選一）",
     "outcome": "本回合下一次攻擊 +5，或命中時回復 5 HP／5 MP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "獵人詭計（切換形態後二選一）",
+     "outcome": "本回合下一次攻擊 +5，或命中時回復 5 HP／5 MP"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -8741,6 +10561,16 @@
     },
     "outcome": "樂句持續到下個回合開始"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "疊句：延後樂句結束",
+     "cost": {
+      "mp": 20
+     },
+     "outcome": "樂句持續到下個回合開始"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -8776,6 +10606,16 @@
     },
     "outcome": "（HR + 30）點毒屬性傷害並可能中毒"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "施放【瘴氣】",
+     "cost": {
+      "mp": 20
+     },
+     "outcome": "（HR + 30）點毒屬性傷害並可能中毒"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -8812,6 +10652,13 @@
     "label": "白板（危機時）",
     "outcome": "當前場景所有敵人各損失 10／20／30 點 HP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "白板（危機時）",
+     "outcome": "當前場景所有敵人各損失 10／20／30 點 HP"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -8842,6 +10689,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -8879,6 +10731,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -8911,6 +10768,13 @@
     "label": "瞭如指掌：免費研究",
     "outcome": "以靈魂竊取的結果與 HR 直接完成一次研究動作"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "瞭如指掌：免費研究",
+     "outcome": "以靈魂竊取的結果與 HR 直接完成一次研究動作"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -8953,6 +10817,16 @@
     },
     "outcome": "解除敵人身上所有狀態並造成等級/2 + 10×狀態數的傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "短瞬間的安息（至多 20 MP）",
+     "cost": {
+      "mp": "10 × 選定敵人數（≤20）"
+     },
+     "outcome": "解除敵人身上所有狀態並造成等級/2 + 10×狀態數的傷害"
+    }
+   ],
    "effects": [
     {
      "target": "statusApplied",
@@ -8992,6 +10866,13 @@
     "label": "破釜沉舟！（擲骰前宣言）",
     "outcome": "本次傷害 HR 加倍；偶數時武器進入懲罰狀態"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "破釜沉舟！（擲骰前宣言）",
+     "outcome": "本次傷害 HR 加倍；偶數時武器進入懲罰狀態"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -9027,6 +10908,16 @@
     },
     "outcome": "本次徽記學不消耗 IP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "神符精通：20 MP 取代 IP",
+     "cost": {
+      "mp": 20
+     },
+     "outcome": "本次徽記學不消耗 IP"
+    }
+   ],
    "effects": [
     {
      "target": "ipCost",
@@ -9062,6 +10953,16 @@
     },
     "outcome": "本次徽記學不消耗 IP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "神符精通【變體】：20 MP 取代 IP",
+     "cost": {
+      "mp": 20
+     },
+     "outcome": "本次徽記學不消耗 IP"
+    }
+   ],
    "effects": [
     {
      "target": "ipCost",
@@ -9094,6 +10995,13 @@
     "label": "與（角色名）神經同步中",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "與（角色名）神經同步中",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -9133,6 +11041,13 @@
     "label": "本次休息的穩固形態（兩種）",
     "reset": "rest"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本次休息的穩固形態（兩種）",
+     "reset": "rest"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -9172,6 +11087,13 @@
     "label": "穿刺魔法（每回合一次）",
     "outcome": "災難加值 +5、傷害無視抗性，並施加一種懲罰"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "穿刺魔法（每回合一次）",
+     "outcome": "災難加值 +5、傷害無視抗性，並施加一種懲罰"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -9209,6 +11131,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -9241,6 +11168,13 @@
     "label": "綠拇指：額外 ±1 格",
     "outcome": "本次填充後再增減 1 格，之後到清空前不得再用"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "綠拇指：額外 ±1 格",
+     "outcome": "本次填充後再增減 1 格，之後到清空前不得再用"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -9273,6 +11207,13 @@
     "label": "群舞：結束舞步換免疫",
     "outcome": "盟友獲得該傷害類型免疫直到回合結束"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "群舞：結束舞步換免疫",
+     "outcome": "盟友獲得該傷害類型免疫直到回合結束"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -9322,6 +11263,16 @@
     },
     "outcome": "夥伴 +5 傷害；或用物語點重擲；或夥伴行動後雙方回 10 MP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "肩並肩（夥伴行動後三選一）",
+     "cost": {
+      "fp": "重擲時 1 物語點"
+     },
+     "outcome": "夥伴 +5 傷害；或用物語點重擲；或夥伴行動後雙方回 10 MP"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -9363,6 +11314,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -9402,6 +11358,13 @@
     "label": "挑釁中（目標：＿＿）",
     "reset": "round"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "挑釁中（目標：＿＿）",
+     "reset": "round"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -9432,6 +11395,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -9482,6 +11450,13 @@
     "label": "草藥學識：研究或製作",
     "outcome": "免費做一次研究動作（+SL），或免費做一次限定的庫存動作"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "草藥學識：研究或製作",
+     "outcome": "免費做一次研究動作（+SL），或免費做一次限定的庫存動作"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -9519,6 +11494,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -9568,6 +11548,16 @@
     },
     "outcome": "對單一目標的攻擊額外造成 10 × 羈絆強度的傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "薄情者（每回合限 1 次）",
+     "cost": {
+      "hp": "當前 HP 的一半"
+     },
+     "outcome": "對單一目標的攻擊額外造成 10 × 羈絆強度的傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -9596,11 +11586,15 @@
    "flow": "state",
    "bucket": "core",
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "5",
-    "reset": "scene"
+    "kind": "none",
+    "backedBy": "nebulization"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "nebulization"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -9618,7 +11612,10 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/classResources.js（backedBy: nebulization）"
+    ]
    },
    "note": "做了一半：池子有了（上限 5、場景結束重置），但藥水與元素碎片的傷害／回復不會加【霧化點×2】與【×5】。",
    "evidence": [
@@ -9644,6 +11641,13 @@
     "label": "蜘蛛網：兩次攻擊",
     "outcome": "以連枷做兩次獨立攻擊（HR 視為 0）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "蜘蛛網：兩次攻擊",
+     "outcome": "以連枷做兩次獨立攻擊（HR 視為 0）"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -9674,6 +11678,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "immunity",
@@ -9720,6 +11729,13 @@
     "label": "已蠱惑（目標：＿＿／參照狀態：＿＿）",
     "reset": "round"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "已蠱惑（目標：＿＿／參照狀態：＿＿）",
+     "reset": "round"
+    }
+   ],
    "effects": [
     {
      "target": "statusApplied",
@@ -9755,6 +11771,16 @@
     },
     "outcome": "對每個可見敵人造成 777 點光或暗屬性傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "結算 777 點禁忌帝王",
+     "cost": {
+      "mp": "該組合的 MP"
+     },
+     "outcome": "對每個可見敵人造成 777 點光或暗屬性傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -9798,6 +11824,16 @@
     },
     "outcome": "對每個可見敵人造成 777 點光或暗屬性傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "結算 777 點禁忌帝王",
+     "cost": {
+      "mp": "該組合的 MP"
+     },
+     "outcome": "對每個可見敵人造成 777 點光或暗屬性傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -9834,6 +11870,13 @@
     "label": "覆繪（四選一）",
     "outcome": "對已帶有你徽記的生物執行四項之一"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "覆繪（四選一）",
+     "outcome": "對已帶有你徽記的生物執行四項之一"
+    }
+   ],
    "effects": [
     {
      "target": "statusApplied",
@@ -9864,6 +11907,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -9904,6 +11952,14 @@
     "max": "等級/2 + 鷹眼SL × 5",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "等級/2 + 鷹眼SL × 5",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -9934,6 +11990,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -9973,6 +12034,13 @@
     "label": "浮空中（下一次回合開始解除）",
     "reset": "round"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "浮空中（下一次回合開始解除）",
+     "reset": "round"
+    }
+   ],
    "effects": [
     {
      "target": "range",
@@ -10010,6 +12078,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -10056,6 +12129,13 @@
     "label": "本回合已顯現的形態（3 個上限）",
     "reset": "round"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本回合已顯現的形態（3 個上限）",
+     "reset": "round"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -10090,6 +12170,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -10129,6 +12214,13 @@
     "label": "蛻皮時附加：解除狀態",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "蛻皮時附加：解除狀態",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "statusApplied",
@@ -10164,6 +12256,16 @@
     },
     "outcome": "HP 改為 1，離開載具並對一個生物造成危機值的選定屬性傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "過載爆發（場景內初次 HP 歸零）",
+     "cost": {
+      "other": "個人載具消失、下次壓縮技術多 1 物語點"
+     },
+     "outcome": "HP 改為 1，離開載具並對一個生物造成危機值的選定屬性傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -10194,6 +12296,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -10229,6 +12336,16 @@
     },
     "outcome": "同一回合再執行一次譴責或激勵"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "重唱（每回合一次）",
+     "cost": {
+      "mp": "兩次技能 MP"
+     },
+     "outcome": "同一回合再執行一次譴責或激勵"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -10264,6 +12381,16 @@
     },
     "outcome": "一名盟友改為恰好 1 點 HP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "重生之種：換 1 點 HP",
+     "cost": {
+      "other": "移除一顆魔種並清空生長命刻（≥2 格）"
+     },
+     "outcome": "一名盟友改為恰好 1 點 HP"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -10301,6 +12428,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -10345,6 +12477,13 @@
     "label": "量子魔加農（三選一）",
     "outcome": "重構或毀棄魔加農、獲得多重（3）、或做兩次攻擊"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "量子魔加農（三選一）",
+     "outcome": "重構或毀棄魔加農、獲得多重（3）、或做兩次攻擊"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -10377,6 +12516,13 @@
     "label": "已施加【破裂】（目標：＿＿）",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "已施加【破裂】（目標：＿＿）",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -10419,6 +12565,16 @@
     },
     "outcome": "本次傷害減半，指定一種動作，目標要用它就得付 10 MP"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "鋼鐵叢林",
+     "cost": {
+      "mp": 20
+     },
+     "outcome": "本次傷害減半，指定一種動作，目標要用它就得付 10 MP"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -10451,6 +12607,13 @@
     "label": "鋼鐵魔女（每回合第一次施咒）",
     "outcome": "切換一個武裝模組，或讓下一個咒語 +5 傷害／+10 回復"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "鋼鐵魔女（每回合第一次施咒）",
+     "outcome": "切換一個武裝模組，或讓下一個咒語 +5 傷害／+10 回復"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -10483,6 +12646,13 @@
     "label": "額外填充／消除命刻 1 刻度",
     "outcome": "剛成功的檢定若符合已綁定阿爾卡納的領域，對該命刻額外增減 1 個刻度"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "額外填充／消除命刻 1 刻度",
+     "outcome": "剛成功的檢定若符合已綁定阿爾卡納的領域，對該命刻額外增減 1 個刻度"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -10515,6 +12685,13 @@
     "label": "額外填充／消除命刻 1 刻度（變體）",
     "outcome": "符合已綁定阿爾卡納領域時，該命刻額外增減 1 刻度"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "額外填充／消除命刻 1 刻度（變體）",
+     "outcome": "符合已綁定阿爾卡納領域時，該命刻額外增減 1 刻度"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -10548,6 +12725,14 @@
     "max": "無上限（每次傷害 +1）",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "無上限（每次傷害 +1）",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -10588,6 +12773,14 @@
     "max": "1 + 有備無患SL",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "1 + 有備無患SL",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -10620,6 +12813,13 @@
     "label": "雙重箭矢",
     "outcome": "以弓做兩次獨立攻擊（HR 視為 0）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "雙重箭矢",
+     "outcome": "以弓做兩次獨立攻擊（HR 視為 0）"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -10655,6 +12855,16 @@
     },
     "outcome": "連續施放兩個咒語且免付它們的 MP，需符合合計與半數上限"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "雙重詠唱（每回合一次）",
+     "cost": {
+      "mp": "20~50"
+     },
+     "outcome": "連續施放兩個咒語且免付它們的 MP，需符合合計與半數上限"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -10690,6 +12900,16 @@
     },
     "outcome": "對每個可見敵人造成 20（可疊加至 40）點土或物理傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "震顫泰坦（裝備職業防具）",
+     "cost": {
+      "mp": 30
+     },
+     "outcome": "對每個可見敵人造成 20（可疊加至 40）點土或物理傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -10725,6 +12945,16 @@
     },
     "outcome": "清空靈刻，全場敵人 20 或單體 30 點物理傷害"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "靈刻解放：清空靈刻",
+     "cost": {
+      "other": "靈刻必須為滿（4 格）"
+     },
+     "outcome": "清空靈刻，全場敵人 20 或單體 30 點物理傷害"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -10759,6 +12989,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "def",
@@ -10801,6 +13036,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damageTaken",
@@ -10838,6 +13078,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damageTaken",
@@ -10875,6 +13120,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -10920,6 +13170,13 @@
     "label": "嵌合增益（物種：＿＿／抗性或 +5）",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "嵌合增益（物種：＿＿／抗性或 +5）",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -10960,6 +13217,14 @@
     "max": "無上限（每偶數輪 +1）",
     "reset": "scene"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "無上限（每偶數輪 +1）",
+     "reset": "scene"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -11001,6 +13266,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -11034,6 +13304,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "ipMax",
@@ -11067,6 +13342,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "mpMax",
@@ -11100,6 +13380,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -11182,6 +13467,55 @@
      }
     ]
    },
+   "controls": [
+    {
+     "kind": "select",
+     "label": "所選武器類別（十選一）",
+     "reset": "none",
+     "options": [
+      {
+       "value": "奧術",
+       "label": "奧術"
+      },
+      {
+       "value": "弓",
+       "label": "弓"
+      },
+      {
+       "value": "鬥毆",
+       "label": "鬥毆"
+      },
+      {
+       "value": "匕首",
+       "label": "匕首"
+      },
+      {
+       "value": "火器",
+       "label": "火器"
+      },
+      {
+       "value": "連枷",
+       "label": "連枷"
+      },
+      {
+       "value": "重型",
+       "label": "重型"
+      },
+      {
+       "value": "矛",
+       "label": "矛"
+      },
+      {
+       "value": "劍",
+       "label": "劍"
+      },
+      {
+       "value": "投擲",
+       "label": "投擲"
+      }
+     ]
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -11223,6 +13557,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -11262,6 +13601,13 @@
     "label": "風魔手裏劍（每回合一次，可選兩項）",
     "outcome": "從五個選項中選一至兩項套用"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "風魔手裏劍（每回合一次，可選兩項）",
+     "outcome": "從五個選項中選一至兩項套用"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -11316,6 +13662,16 @@
     },
     "outcome": "複製一個魔法種子的「在你的回合結束時」效果"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "高等植生術：複製魔種效果",
+     "cost": {
+      "mp": 20
+     },
+     "outcome": "複製一個魔法種子的「在你的回合結束時」效果"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -11346,6 +13702,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -11381,6 +13742,16 @@
     },
     "outcome": "無效該咒語的效果（對方仍支付動作）"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "魔法守衛：阻止施法",
+     "cost": {
+      "mp": "10 + 該咒語總 MP"
+     },
+     "outcome": "無效該咒語的效果（對方仍支付動作）"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -11416,6 +13787,16 @@
     },
     "outcome": "以該敵人為唯一目標執行一次元素祈喚"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "魔法折射：免費元素祈喚",
+     "cost": {
+      "mp": 0
+     },
+     "outcome": "以該敵人為唯一目標執行一次元素祈喚"
+    }
+   ],
    "effects": [
     {
      "target": "actionEconomy",
@@ -11446,6 +13827,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -11485,6 +13871,14 @@
     "max": "20",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "20",
+     "reset": "none"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -11518,6 +13912,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -11553,6 +13952,13 @@
     "label": "把傷害改為暗屬性（無視免疫與抗性）",
     "outcome": "本次傷害類型改為暗，並略過目標的抗性／免疫／吸收"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "把傷害改為暗屬性（無視免疫與抗性）",
+     "outcome": "本次傷害類型改為暗，並略過目標的抗性／免疫／吸收"
+    }
+   ],
    "effects": [
     {
      "target": "immunity",
@@ -11608,6 +14014,12 @@
     "kind": "toggle",
     "label": "在宿主體內／離開宿主（衝突中僅回合開始可切換）"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "在宿主體內／離開宿主（衝突中僅回合開始可切換）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -11643,6 +14055,13 @@
     "label": "進入衝突場景（+1 物語點）",
     "outcome": "物語點 +1"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "進入衝突場景（+1 物語點）",
+     "outcome": "物語點 +1"
+    }
+   ],
    "effects": [
     {
      "target": "fp",
@@ -11676,6 +14095,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -11709,6 +14133,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -11769,6 +14198,13 @@
     "label": "本章節已用過（向 GM 索取載具與 2 點物語點）",
     "reset": "chapter"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本章節已用過（向 GM 索取載具與 2 點物語點）",
+     "reset": "chapter"
+    }
+   ],
    "effects": [
     {
      "target": "fp",
@@ -11803,6 +14239,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "inventorySlots",
@@ -11837,6 +14278,12 @@
     "kind": "toggle",
     "label": "把這次傷害改為所選元素"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "把這次傷害改為所選元素"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -11890,6 +14337,13 @@
     "label": "章節結束：結算預言（五選一）",
     "outcome": "依選項恢復 HP/MP/狀態、加減物語點，必要時移除金手指並開英雄技能選器"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "章節結束：結算預言（五選一）",
+     "outcome": "依選項恢復 HP/MP/狀態、加減物語點，必要時移除金手指並開英雄技能選器"
+    }
+   ],
    "effects": [
     {
      "target": "fp",
@@ -11930,6 +14384,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "inventorySlots",
@@ -11961,10 +14420,15 @@
    "name": "固執的懷疑論者",
    "flow": "action",
    "control": {
-    "kind": "button",
-    "label": "受到效果時擲 1d6（+1 懷疑點或無效）",
-    "outcome": "1-4 效果如常生效且懷疑點 +1；5-6 不受該效果影響"
+    "kind": "none",
+    "backedBy": "doubt"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "doubt"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -11975,7 +14439,10 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/classResources.js（backedBy: doubt）"
+    ]
    },
    "note": "懷疑點池已存在；但每次受效果必擲的 1d6 判定、「5-6 免疫」與達 20 的回憶觸發都沒有入口。",
    "evidence": [
@@ -12001,6 +14468,14 @@
     "max": "10",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "10",
+     "reset": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -12034,6 +14509,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -12081,6 +14561,14 @@
     "max": "10",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "10",
+     "reset": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -12116,6 +14604,13 @@
     "label": "本次 IP 成本歸 0（每場景一次）",
     "outcome": "IP 花費視為 0"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "本次 IP 成本歸 0（每場景一次）",
+     "outcome": "IP 花費視為 0"
+    }
+   ],
    "effects": [
     {
      "target": "ipCost",
@@ -12161,6 +14656,16 @@
     },
     "outcome": "本次 HP/MP 花費視為 0"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "花 1 物語點忽略這次成本",
+     "cost": {
+      "fp": 1
+     },
+     "outcome": "本次 HP/MP 花費視為 0"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -12197,6 +14702,14 @@
     "max": "6",
     "reset": "rest"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "6",
+     "reset": "rest"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -12228,10 +14741,15 @@
    "name": "富家子弟",
    "flow": "action",
    "control": {
-    "kind": "button",
-    "label": "使用保鑣增益（+1d6 疲勞值）",
-    "outcome": "傷害減半／休息時問 GM 一個問題／元素水晶追加【5+等級一半】傷害"
+    "kind": "none",
+    "backedBy": "fatigue"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "fatigue"
+    }
+   ],
    "effects": [
     {
      "target": "zenit",
@@ -12256,7 +14774,10 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/classResources.js（backedBy: fatigue）"
+    ]
    },
    "note": "+1000z 與疲勞值池都真的接了；三個增益本身沒有按鈕，而且編輯器的「移除」繞過帳本 → 移除後 1000z 不會退。",
    "evidence": [
@@ -12281,10 +14802,15 @@
    "name": "實驗逃亡體",
    "flow": "action",
    "control": {
-    "kind": "button",
-    "label": "忽略這次成本（+1d8 不穩定值）",
-    "outcome": "本次成本視為 0，不穩定值增加 1d8"
+    "kind": "none",
+    "backedBy": "instability"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "instability"
+    }
+   ],
    "effects": [
     {
      "target": "mpCost",
@@ -12302,7 +14828,10 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/classResources.js（backedBy: instability）"
+    ]
    },
    "note": "不穩定值池已接（含上限與章節降幅）；「忽略成本」本身沒有按鈕，達 10 的自動歸零／投降也沒有觸發。",
    "evidence": [
@@ -12326,6 +14855,12 @@
     "kind": "toggle",
     "label": "把這次傷害改為所選屬性（非物理傷害自動轉換）"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "把這次傷害改為所選屬性（非物理傷害自動轉換）"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -12366,6 +14901,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -12416,6 +14956,14 @@
     "max": "9",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "9",
+     "reset": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -12450,6 +14998,12 @@
     "kind": "toggle",
     "label": "本場景：屬性骰升一階／d12 視作 d20"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本場景：屬性骰升一階／d12 視作 d20"
+    }
+   ],
    "effects": [
     {
      "target": "check",
@@ -12483,6 +15037,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "def",
@@ -12565,6 +15124,13 @@
     "label": "打破約定（999 傷害）",
     "outcome": "對所有目標造成 999 點無視相性的傷害；反派失去終結點，本角色成為最終反派並換角"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "打破約定（999 傷害）",
+     "outcome": "對所有目標造成 999 點無視相性的傷害；反派失去終結點，本角色成為最終反派並換角"
+    }
+   ],
    "effects": [
     {
      "target": "hpMax",
@@ -12610,11 +15176,15 @@
    "name": "棄暗投明之人",
    "flow": "action",
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "無上限",
-    "reset": "none"
+    "kind": "none",
+    "backedBy": "subversion"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "subversion"
+    }
+   ],
    "effects": [
     {
      "target": "inventorySlots",
@@ -12646,7 +15216,10 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/classResources.js（backedBy: subversion）"
+    ]
    },
    "note": "顛覆點池已存在；缺「用顛覆點代替物語點」的按鈕、擊敗領袖後的 +10/+10，物品得自己加行囊。",
    "evidence": [
@@ -12673,6 +15246,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "immunity",
@@ -12722,6 +15300,13 @@
     "label": "替換本命武器的命中屬性組合",
     "outcome": "該武器的命中檢定改用所選屬性組合"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "替換本命武器的命中屬性組合",
+     "outcome": "該武器的命中檢定改用所選屬性組合"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -12769,6 +15354,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "none"
@@ -12795,6 +15385,16 @@
     },
     "outcome": "記錄偽裝身分與持續期間，小兵級自動被騙"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "用一個動作偽裝（1 物語點）",
+     "cost": {
+      "fp": 1
+     },
+     "outcome": "記錄偽裝身分與持續期間，小兵級自動被騙"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -12831,6 +15431,14 @@
     "max": "10",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "10",
+     "reset": "none"
+    }
+   ],
    "effects": [],
    "apply": {
     "via": "flow-control"
@@ -12856,6 +15464,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -12941,6 +15554,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -12987,6 +15605,13 @@
     "label": "本章節已用過（向 GM 索取載具與 2 點物語點）",
     "reset": "chapter"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "本章節已用過（向 GM 索取載具與 2 點物語點）",
+     "reset": "chapter"
+    }
+   ],
    "effects": [
     {
      "target": "fp",
@@ -13021,6 +15646,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "immunity",
@@ -13077,6 +15707,16 @@
     },
     "outcome": "扣 1 點物語點並寫一筆履歷；原料與缺陷由玩家在造物專案上自己標記"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "花 1 點物語點：專案原料突然出現（該造物獲得一個缺陷）",
+     "cost": {
+      "fp": 1
+     },
+     "outcome": "扣 1 點物語點並寫一筆履歷；原料與缺陷由玩家在造物專案上自己標記"
+    }
+   ],
    "effects": [
     {
      "target": "fp",
@@ -13111,6 +15751,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -13168,6 +15813,14 @@
     "max": "7",
     "reset": "none"
    },
+   "controls": [
+    {
+     "kind": "counter",
+     "label": "",
+     "max": "7",
+     "reset": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -13203,6 +15856,13 @@
     "label": "宣告大失敗（換 2 物語點＋1 個機會）",
     "outcome": "本次檢定視為雙 1，物語點 +2，GM 獲得 1 個機會；打破詛咒時另贈一個英雄技能"
    },
+   "controls": [
+    {
+     "kind": "button",
+     "label": "宣告大失敗（換 2 物語點＋1 個機會）",
+     "outcome": "本次檢定視為雙 1，物語點 +2，GM 獲得 1 個機會；打破詛咒時另贈一個英雄技能"
+    }
+   ],
    "effects": [
     {
      "target": "fp",
@@ -13237,6 +15897,12 @@
     "kind": "toggle",
     "label": "第二形態／最終形態（場景結束解除）"
    },
+   "controls": [
+    {
+     "kind": "toggle",
+     "label": "第二形態／最終形態（場景結束解除）"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -13284,6 +15950,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "resistance",
@@ -13326,10 +15997,15 @@
    "name": "遺物使用者",
    "flow": "action",
    "control": {
-    "kind": "button",
-    "label": "顯現遺物能力（+1d6 異常值）",
-    "outcome": "①向 GM 提問 ②選一學派儀式半價（可疊）③+5 傷害並無視相性，附帶一次自由攻擊"
+    "kind": "none",
+    "backedBy": "anomaly"
    },
+   "controls": [
+    {
+     "kind": "none",
+     "backedBy": "anomaly"
+    }
+   ],
    "effects": [
     {
      "target": "damage",
@@ -13347,7 +16023,10 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "existing",
+    "evidence": [
+     "src/features/character-sheet/data/classResources.js（backedBy: anomaly）"
+    ]
    },
    "note": "異常值池已存在（含歸零與上限）；三個能力、+5 傷害、儀式半價、達 10 的 d6 判定全部沒有落點。",
    "evidence": [
@@ -13370,6 +16049,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",
@@ -13403,6 +16087,11 @@
    "control": {
     "kind": "none"
    },
+   "controls": [
+    {
+     "kind": "none"
+    }
+   ],
    "effects": [
     {
      "target": "other",

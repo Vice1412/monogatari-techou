@@ -1,3 +1,42 @@
+
+/**
+ * 檢查是否可播種（純函式）。
+ */
+export const canPlantSeed = (character, maxCapacity = 1, costMp = 20) => {
+  const gardenList = character?.floristGarden || [];
+  if (gardenList.length >= maxCapacity) {
+    return { ok: false, reason: `花園容量已滿（上限 ${maxCapacity} 顆）！` };
+  }
+  const currentMp = character?.currentMp ?? character?.maxMp ?? 0;
+  if (currentMp < costMp) {
+    return { ok: false, reason: `MP 不足（需要 ${costMp}，現有 ${currentMp}）！` };
+  }
+  return { ok: true, currentMp };
+};
+
+/**
+ * 執行播種：扣除 20 MP 並加入花園（純函式）。
+ */
+export const plantSeed = (character, seedName, { costMp = 20, maxCapacity = 1 } = {}) => {
+  if (!seedName) return { ok: false, character, reason: '未指定種子' };
+  const check = canPlantSeed(character, maxCapacity, costMp);
+  if (!check.ok) return { ok: false, character, reason: check.reason };
+  const gardenList = character?.floristGarden || [];
+  const newEntry = {
+    instanceId: `seed_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    seedName,
+    clock: 0,
+    plantedAt: new Date().toISOString()
+  };
+  const nextChar = {
+    ...character,
+    currentMp: Math.max(0, check.currentMp - costMp),
+    floristGarden: [...gardenList, newEntry],
+    updatedAt: new Date().toISOString()
+  };
+  return { ok: true, character: nextChar, newEntry };
+};
+
 import React, { useState } from 'react';
 import { GiSprout, GiFlowerPot, GiSparkles, GiCheckMark, GiHazardSign, GiPlantRoots } from 'react-icons/gi';
 import EmptyState from '../../../../components/ui/EmptyState';
@@ -53,22 +92,14 @@ export default function FloristGardenTracker({
   // 播種至花園
   const handlePlantSeed = (seedName) => {
     if (!seedName) return;
-    if (gardenList.length >= maxCapacity) {
-      if (showToast) showToast(`花園容量已滿（上限 ${maxCapacity} 顆）！`, 'warning');
+    const res = plantSeed(character, seedName, { costMp: 20, maxCapacity });
+    if (!res.ok) {
+      if (showToast) showToast(res.reason, 'warning');
       return;
     }
-
-    const seedDef = FLORIST_MAGISEEDS.find(s => s.name === seedName);
-    const newEntry = {
-      instanceId: `seed_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      seedName,
-      clock: 0,
-      plantedAt: new Date().toISOString()
-    };
-
-    updateGarden([...gardenList, newEntry]);
+    if (onChange) onChange(res.character);
     setSelectedSeedToPlant('');
-    if (showToast) showToast(`已將【${seedName}】播種至花園！生長命刻：0 格。`, 'success');
+    if (showToast) showToast(`已將【${seedName}】播種至花園！消耗 20 MP，生長命刻：0 格。`, 'success');
   };
 
   // 推進單一植物命刻

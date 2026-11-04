@@ -3,7 +3,8 @@ import { GiGraveFlowers, GiTwoCoins, GiClover } from 'react-icons/gi';
 import {
   getActiveClassResources,
   readResource,
-  setResourceValue
+  setResourceValue,
+  applyRollDelta
 } from '../data/classResources';
 
 /**
@@ -117,8 +118,25 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
                 +
               </button>
 
-              {/* 重置：只在原書確有該規則時才出現（見 classResources.js 的 resetLabel） */}
-              {resource.resetLabel && (
+              {/* 重置／擲骰調整：只在原書確有該規則時才出現 */}
+              {resource.resetRoll ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const roll = Math.floor(Math.random() * 6) + 1;
+                    const sign = resource.resetSign ?? -1;
+                    const min = resource.min ?? 0;
+                    const max = resource.max ?? Infinity;
+                    const next = applyRollDelta(value, roll, { sign, min, max });
+                    writeValue(resource, next);
+                    const signStr = sign < 0 ? '−' : '+';
+                    showToast(`【${resource.label}】${value} → ${next}（${signStr}1d6 = ${roll}）`, 'info');
+                  }}
+                  className="px-2 py-1 rounded border border-[#d6c7ab] bg-white text-t11 font-bold text-[#6b5a4b] hover:bg-[#e8dcc4] transition-colors cursor-pointer"
+                >
+                  {resource.resetLabel || `擲 ${resource.resetRoll}`}
+                </button>
+              ) : resource.resetLabel && (
                 <button
                   type="button"
                   onClick={() => {

@@ -30,7 +30,10 @@ import {
   flowActionPlan,
   characterFlowModifiers,
   flowVarsFor,
-  flowCoverageReport
+  flowCoverageReport,
+  controlsOf,
+  resetScopeLabel,
+  resetFlowScope
 } from '../src/features/character-sheet/utils/effectFlow.js';
 // 金手指的 effects 鍵白名單守衛（§K）需要原始資料，不是流程資料。
 import rulesData from '../src/features/character-sheet/data/rulesData.json';
@@ -209,23 +212,25 @@ const NO_MAX_ITEM = flowItemForHeroic('怒潮拳');                 // max = 無
 // 第二期加了 `choice`（「選一個」的條目用：所選武器類別、所選元素源泉…）。
 // 狀態一律回三個欄位；缺 `choice` 的舊存檔回空字串，**不回 undefined**——
 // UI 與引擎都靠「是不是空字串」判斷「玩家選了沒」。
-check('從未寫入 -> {n:0,on:false,choice:空}', readFlowState(mkChar(), COUNTER_ITEM), { n: 0, on: false, choice: '' });
+const DEFAULT_FLOW_STATE = { n: 0, on: false, choice: '', fields: {}, picks: [], text: '', list: [] };
+check('從未寫入 -> 完整預設', readFlowState(mkChar(), COUNTER_ITEM), DEFAULT_FLOW_STATE);
 check('讀到的不是 undefined', readFlowState(mkChar(), COUNTER_ITEM) !== undefined, true);
 check('寫過 1/true -> 原值（choice 一併讀回）', readFlowState(
   mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 1, on: true, choice: '劍' } } }), COUNTER_ITEM),
-  { n: 1, on: true, choice: '劍' });
+  { ...DEFAULT_FLOW_STATE, n: 1, on: true, choice: '劍' });
 check('舊存檔沒有 choice -> 回空字串（不是 undefined）', readFlowState(
   mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 1, on: true } } }), COUNTER_ITEM).choice, '');
 check('填成 0 就是 0（不會復活成初始值）', readFlowState(
   mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 0, on: false } } }), COUNTER_ITEM).n, 0);
 check('超過上限 -> 夾到上限 2', readFlowState(
   mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 99, on: false } } }), COUNTER_ITEM).n, 2);
-check('沒有上限的條目不夾（99 就 99）', readFlowState(
-  mkChar({ flowState: { [NO_MAX_ITEM.id]: { n: 99, on: false } } }), NO_MAX_ITEM).n, 99);
+check('backedBy 條目不再輸出 counter（W0-8）', NO_MAX_ITEM.control.kind, 'none');
+check('backedBy 條目讀取時直通 classResources（W0-8）', readFlowState(
+  mkChar({ classResources: { courage: 99 } }), NO_MAX_ITEM).n, 99);
 check('on 只認 true', readFlowState(
   mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 1, on: 'yes' } } }), COUNTER_ITEM).on, false);
-check('null 角色 -> 預設', readFlowState(null, COUNTER_ITEM), { n: 0, on: false, choice: '' });
-check('undefined 條目 -> 預設', readFlowState(mkChar(), undefined), { n: 0, on: false, choice: '' });
+check('null 角色 -> 預設', readFlowState(null, COUNTER_ITEM), DEFAULT_FLOW_STATE);
+check('undefined 條目 -> 預設', readFlowState(mkChar(), undefined), DEFAULT_FLOW_STATE);
 
 // ─────────────────────────────────────────────────────────── F
 section('F. clampFlowState：有上限才夾，無上限不夾');
@@ -420,7 +425,7 @@ for (const item of FLOW_ITEMS) {
 }
 check('每一筆 effects[].scope 都在封閉詞彙內', badScope, []);
 check('target 封閉詞彙 21 個', FLOW_TARGETS.length, 21);
-check('control 型態封閉詞彙 5 個（第三期加了 select）', FLOW_CONTROL_KINDS.length, 5);
+check('control 型態封閉詞彙 8 個（W0 擴充 multiSelect/text/recordList）', FLOW_CONTROL_KINDS.length, 8);
 check('每一筆 select 都有選項（沒有選項＝一個空白下拉）',
   FLOW_ITEMS.filter((i) => i.control?.kind === 'select' && !(i.control.options || []).length)
     .map((i) => i.id), []);
@@ -431,7 +436,7 @@ check('每個 id 都以分類為前綴',
 section('J. 不可變更新與「不得使用 eval」');
 const before = mkChar({ flowState: { 'class:博學士:集中': { n: 1, on: true } } });
 const after = withFlowState(before, COUNTER_ITEM.id, { n: 2, on: true });
-check('新值寫進新物件（choice 一併帶過）', after.flowState[COUNTER_ITEM.id], { n: 2, on: true, choice: '' });
+check('新值寫進新物件（choice 一併帶過）', after.flowState[COUNTER_ITEM.id], { ...DEFAULT_FLOW_STATE, n: 2, on: true, choice: '' });
 check('原物件未被修改', before.flowState[COUNTER_ITEM.id], undefined);
 check('其他條目的狀態原樣保留', after.flowState['class:博學士:集中'], { n: 1, on: true });
 check('沒有 flowState 時可建立',
@@ -441,7 +446,7 @@ check('寫入 choice：選了就留著（重繪不會掉）',
     .flowState[COUNTER_ITEM.id].choice, '劍');
 check('重置回初始值並關掉開關（choice 也清空）',
   flowResetState(mkChar({ flowState: { [COUNTER_ITEM.id]: { n: 2, on: true, choice: '劍' } } }), COUNTER_ITEM)
-    .flowState[COUNTER_ITEM.id], { n: 0, on: false, choice: '' });
+    .flowState[COUNTER_ITEM.id], DEFAULT_FLOW_STATE);
 
 let source = '';
 try {
@@ -485,6 +490,48 @@ const unknownQuirkKeys = allQuirkKeys
 check('每一個金手指 effects 的鍵，引擎都讀得懂', unknownQuirkKeys, []);
 check('對照組：真的有掃到鍵（否則上一條會恆真）', allQuirkKeys.length > 0, true);
 check('白名單本身沒有重複', new Set(QUIRK_FX_KEYS_SUPPORTED).size, QUIRK_FX_KEYS_SUPPORTED.length);
+
+
+// ─────────────────────────────────────────────────────────── L
+section('L. W0-2 flowState 新欄位（picks／text／list／fields）');
+const rawLegacy = { n: 1, on: true };
+const readLegacy = readFlowState(mkChar({ flowState: { [COUNTER_ITEM.id]: rawLegacy } }), COUNTER_ITEM);
+check('舊存檔缺新欄回預設 picks:[]', readLegacy.picks, []);
+check('舊存檔缺新欄回預設 text:""', readLegacy.text, '');
+check('舊存檔缺新欄回預設 list:[]', readLegacy.list, []);
+check('舊存檔缺新欄回預設 fields:{}', readLegacy.fields, {});
+const charWithPicks = withFlowState(mkChar(), COUNTER_ITEM.id, { picks: ['a', 'b', 'a', 123] });
+check('picks 去重且只收字串', charWithPicks.flowState[COUNTER_ITEM.id].picks, ['a', 'b']);
+const longStr = 'x'.repeat(500);
+const charWithText = withFlowState(mkChar(), COUNTER_ITEM.id, { text: longStr });
+check('text 是長字串也照存', charWithText.flowState[COUNTER_ITEM.id].text, longStr);
+const charWithFields = withFlowState(mkChar(), COUNTER_ITEM.id, { fields: { name: '老陳' }, picks: ['p1'] });
+const afterReset = flowResetState(charWithFields, COUNTER_ITEM);
+check('重置清空 picks', afterReset.flowState[COUNTER_ITEM.id].picks, []);
+check('重置保留 fields（W0-1）', afterReset.flowState[COUNTER_ITEM.id].fields, { name: '老陳' });
+
+// ─────────────────────────────────────────────────────────── M
+section('M. W0-6 controls[] 多控件向後相容');
+check('controlsOf 對空物件回 []', controlsOf(null), []);
+check('單控件向後相容：包成陣列', controlsOf({ control: { kind: 'button' } }), [{ kind: 'button' }]);
+check('多控件優先使用 controls', controlsOf({ control: { kind: 'button' }, controls: [{ kind: 'counter' }, { kind: 'button' }] }), [{ kind: 'counter' }, { kind: 'button' }]);
+check('多控件長度正確', controlsOf({ controls: [{ kind: 'toggle' }] }).length, 1);
+
+// ─────────────────────────────────────────────────────────── N
+section('N. W0-7 重置執行者（resetFlowScope）');
+check('resetScopeLabel 字典對應', resetScopeLabel('scene'), '場景結束');
+check('resetScopeLabel 未知回重置', resetScopeLabel('unknown'), '重置');
+const charForReset = mkChar({
+  heroicSkills: ['不破之人'],
+  flowState: {
+    'heroic:不破之人': { n: 2, on: true, fields: { note: '重要資料' } }
+  }
+});
+const sceneResetChar = resetFlowScope(charForReset, 'scene');
+check('只重置對應 scope（不破之人 reset 是 scene）', sceneResetChar.flowState['heroic:不破之人'].n, 0);
+check('fields 在 resetFlowScope 時不被清除', sceneResetChar.flowState['heroic:不破之人'].fields, { note: '重要資料' });
+const restResetChar = resetFlowScope(charForReset, 'rest');
+check('非對應 scope 重置時不修改角色引用', restResetChar === charForReset, true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

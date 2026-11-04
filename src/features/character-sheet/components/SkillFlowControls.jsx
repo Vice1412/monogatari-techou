@@ -26,7 +26,7 @@
  * 所以顏色走 `style`，結構與字級走 `className`（字級只能用 `text-t10`…`text-t39`）。
  */
 import React from 'react';
-import { evaluateControlValue } from '../utils/effectFlow';
+import { evaluateControlValue, controlsOf } from '../utils/effectFlow';
 
 /** 主題缺欄時的票色退回（與 ClassResourceStrip／HudWindow 同一組羊皮紙階）。 */
 const FALLBACK = {
@@ -301,12 +301,161 @@ function ButtonControl({ control, item, theme, testId, costBlocked, onAct }) {  
  * 三種控件的入口。`kind === 'none'` 回 `null`——不畫空框：
  * 373 筆裡有 116 筆是純敘事條目，畫框會讓「有東西可以按」與「只是說明」長得一樣。
  */
+
+function MultiSelectControl({ control, item, state, theme, testId, onPicks = noop }) {
+  const picks = Array.isArray(state?.picks) ? state.picks : [];
+  const options = Array.isArray(control.options) ? control.options : [];
+  const max = Number.isFinite(control.max) ? control.max : Infinity;
+  const atMax = picks.length >= max;
+
+  const handleToggle = (val) => {
+    let next;
+    if (picks.includes(val)) {
+      next = picks.filter((p) => p !== val);
+    } else {
+      if (atMax) return;
+      next = [...picks, val];
+    }
+    onPicks(next);
+  };
+
+  return (
+    <div data-testid={testId} className="p-2.5 rounded border space-y-2" style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}>
+      {control.label && (
+        <div className="flex items-center justify-between text-t12 font-bold" style={{ color: theme.textDark }}>
+          <span>{control.label}</span>
+          <span className="text-t11 tabular-nums" style={{ color: theme.textMuted }}>已選 {picks.length} / {Number.isFinite(max) ? max : '無上限'}</span>
+        </div>
+      )}
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((opt) => {
+          const val = typeof opt === 'object' ? opt.value : opt;
+          const label = typeof opt === 'object' ? (opt.label || opt.value) : opt;
+          const checked = picks.includes(val);
+          const disabled = !checked && atMax;
+          return (
+            <button
+              key={val}
+              type="button"
+              disabled={disabled}
+              onClick={() => handleToggle(val)}
+              className="px-2 py-1 rounded text-t11 font-bold border transition-colors cursor-pointer disabled:cursor-not-allowed"
+              style={
+                checked
+                  ? { backgroundColor: theme.accent, color: theme.cardBg, borderColor: theme.accent }
+                  : disabled
+                  ? { backgroundColor: theme.cardBg, color: theme.border, borderColor: theme.border }
+                  : { backgroundColor: theme.cardBg, color: theme.textDark, borderColor: theme.border }
+              }
+            >
+              {checked ? '✓ ' : ''}{label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TextControl({ control, item, state, theme, testId, onText = noop }) {
+  const text = typeof state?.text === 'string' ? state.text : '';
+  const multiline = Boolean(control.multiline);
+  const maxLength = control.maxLength || 200;
+
+  return (
+    <div data-testid={testId} className="p-2 rounded border space-y-1.5" style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}>
+      {control.label && (
+        <div className="text-t12 font-bold" style={{ color: theme.textDark }}>{control.label}</div>
+      )}
+      {multiline ? (
+        <textarea
+          rows={2}
+          value={text}
+          maxLength={maxLength}
+          placeholder={control.placeholder || '點擊填寫...'}
+          onChange={(e) => onText(e.target.value)}
+          className="w-full p-1.5 rounded border text-t12 leading-relaxed bg-white"
+          style={{ borderColor: theme.border, color: theme.textDark }}
+        />
+      ) : (
+        <input
+          type="text"
+          value={text}
+          maxLength={maxLength}
+          placeholder={control.placeholder || '點擊填寫...'}
+          onChange={(e) => onText(e.target.value)}
+          className="w-full px-2 py-1 rounded border text-t12 bg-white"
+          style={{ borderColor: theme.border, color: theme.textDark }}
+        />
+      )}
+    </div>
+  );
+}
+
+function RecordListControl({ control, item, state, theme, testId, onListChange = noop }) {
+  const list = Array.isArray(state?.list) ? state.list : [];
+  const max = Number.isFinite(control.max) ? control.max : 10;
+  const fields = Array.isArray(control.fields) ? control.fields : [{ key: 'text', label: '記錄' }];
+
+  const handleAdd = () => {
+    if (list.length >= max) return;
+    const newRec = { id: `rec_${Date.now()}_${Math.random().toString(36).slice(2, 6)}` };
+    fields.forEach((f) => { newRec[f.key] = ''; });
+    onListChange([...list, newRec]);
+  };
+
+  const handleRemove = (id) => {
+    onListChange(list.filter((r) => r.id !== id));
+  };
+
+  const handleChange = (id, key, val) => {
+    onListChange(list.map((r) => (r.id === id ? { ...r, [key]: val } : r)));
+  };
+
+  return (
+    <div data-testid={testId} className="p-2.5 rounded border space-y-2" style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}>
+      <div className="flex items-center justify-between">
+        <span className="text-t12 font-bold" style={{ color: theme.textDark }}>{control.label || '名冊／清單'}</span>
+        <button
+          type="button"
+          disabled={list.length >= max}
+          onClick={handleAdd}
+          className="px-2 py-0.5 rounded border text-t11 font-bold bg-white cursor-pointer disabled:cursor-not-allowed"
+          style={{ borderColor: theme.border, color: theme.textDark }}
+        >
+          ＋ 新增
+        </button>
+      </div>
+      {list.map((r, i) => (
+        <div key={r.id || i} className="p-1.5 rounded border bg-white flex items-center gap-2" style={{ borderColor: theme.border }}>
+          {fields.map((f) => (
+            <input
+              key={f.key}
+              type="text"
+              placeholder={f.label}
+              value={r[f.key] || ''}
+              onChange={(e) => handleChange(r.id, f.key, e.target.value)}
+              className="flex-1 px-1.5 py-0.5 rounded border text-t11"
+              style={{ borderColor: theme.border }}
+            />
+          ))}
+          <button
+            type="button"
+            onClick={() => handleRemove(r.id)}
+            className="px-1.5 py-0.5 rounded border text-t11 text-[#a63d40] bg-[#f4ebd9] hover:bg-[#e8dcc4] border-[#d6c7ab]"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function SkillFlowControls({
   item,
   sl = 0,
   level = 1,
-  // 額外的算式變數（其他技能的 SL）。不傳＝沿用第一期：含未登記變數的上限算式算不出來，
-  // 元件就把上限那一格留空並保留原式（不假裝是「無上限」）。
   vars = null,
   theme,
   state,
@@ -316,67 +465,144 @@ export default function SkillFlowControls({
   onToggle = noop,
   onAct = noop,
   onChoice = noop,
+  onPicks = noop,
+  onText = noop,
+  onListChange = noop,
   testId
 }) {
-  if (!item || !item.control) return null;
-  const control = item.control;
-  if (control.kind === 'none') return null;
+  if (!item) return null;
+  const controls = controlsOf(item);
+  const activeControls = controls.filter((c) => c && c.kind !== 'none');
+  if (activeControls.length === 0) return null;
 
   const pal = pickTheme(theme);
   const safeState = {
     n: Number.isFinite(state && state.n) ? state.n : 0,
-    on: Boolean(state && state.on)
+    on: Boolean(state && state.on),
+    choice: typeof state?.choice === 'string' ? state.choice : '',
+    fields: (state?.fields && typeof state.fields === 'object') ? state.fields : {},
+    picks: Array.isArray(state?.picks) ? state.picks : [],
+    text: typeof state?.text === 'string' ? state.text : '',
+    list: Array.isArray(state?.list) ? state.list : []
   };
-  // `testId` 是必填（規格），但呼叫端漏傳時用 item.id 撐住，至少不會渲染出 `undefined-plus` 這種 testid。
-  const id = testId || `flow-${item.id || 'unknown'}`;
+  const baseId = testId || `flow-${item.id || 'unknown'}`;
 
-  if (control.kind === 'counter') {
-    return (
-      <CounterControl
-        control={control}
-        item={item}
-        sl={sl}
-        level={level}
-        vars={vars}
-        state={safeState}
-        theme={pal}
-        testId={id}
-        onAdjust={onAdjust}
-        onReset={onReset}
-      />
-    );
+  const renderSingleControl = (control, idx) => {
+    const isMulti = activeControls.length > 1;
+    const cid = isMulti ? `${baseId}-c${idx}` : baseId;
+
+    if (control.kind === 'counter') {
+      return (
+        <CounterControl
+          key={cid}
+          control={control}
+          item={item}
+          sl={sl}
+          level={level}
+          vars={vars}
+          state={safeState}
+          theme={pal}
+          testId={cid}
+          onAdjust={onAdjust}
+          onReset={onReset}
+        />
+      );
+    }
+
+    if (control.kind === 'toggle') {
+      return (
+        <ToggleControl
+          key={cid}
+          control={control}
+          item={item}
+          state={safeState}
+          theme={pal}
+          testId={cid}
+          onToggle={onToggle}
+        />
+      );
+    }
+
+    if (control.kind === 'select') {
+      return (
+        <SelectControl
+          key={cid}
+          control={control}
+          item={item}
+          state={safeState}
+          theme={pal}
+          testId={cid}
+          onChoice={onChoice}
+        />
+      );
+    }
+
+    if (control.kind === 'button') {
+      return (
+        <ButtonControl
+          key={cid}
+          control={control}
+          item={item}
+          theme={pal}
+          testId={cid}
+          costBlocked={costBlocked}
+          onAct={() => onAct(idx)}
+        />
+      );
+    }
+
+    if (control.kind === 'multiSelect') {
+      return (
+        <MultiSelectControl
+          key={cid}
+          control={control}
+          item={item}
+          state={safeState}
+          theme={pal}
+          testId={cid}
+          onPicks={onPicks}
+        />
+      );
+    }
+
+    if (control.kind === 'text') {
+      return (
+        <TextControl
+          key={cid}
+          control={control}
+          item={item}
+          state={safeState}
+          theme={pal}
+          testId={cid}
+          onText={onText}
+        />
+      );
+    }
+
+    if (control.kind === 'recordList') {
+      return (
+        <RecordListControl
+          key={cid}
+          control={control}
+          item={item}
+          state={safeState}
+          theme={pal}
+          testId={cid}
+          onListChange={onListChange}
+        />
+      );
+    }
+
+    return null;
+  };
+
+  if (activeControls.length === 1) {
+    return renderSingleControl(activeControls[0], 0);
   }
 
-  if (control.kind === 'toggle') {
-    return <ToggleControl control={control} item={item} state={safeState} theme={pal} testId={id} onToggle={onToggle} />;
-  }
-
-  if (control.kind === 'select') {
-    return (
-      <SelectControl
-        control={control}
-        item={item}
-        state={safeState}
-        theme={pal}
-        testId={id}
-        onChoice={onChoice}
-      />
-    );
-  }
-
-  if (control.kind === 'button') {
-    return (
-      <ButtonControl
-        control={control}
-        item={item}
-        theme={pal}
-        testId={id}
-        costBlocked={costBlocked}
-        onAct={onAct}
-      />
-    );
-  }
-
-  // 封閉詞彙以外（資料寫壞）→ 不畫，也不丟例外：跑團卡上一顆壞掉的控件不該讓整張卡當掉。
-  return null;
+  return (
+    <div data-testid={baseId} className="space-y-2">
+      {activeControls.map((c, i) => renderSingleControl(c, i))}
+    </div>
+  );
 }

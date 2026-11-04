@@ -3598,3 +3598,118 @@ R39／R40／R41 三輪都在動死 class，三輪都沒關掉——每次只處�
 
 
 
+
+---
+
+## [2026-11-04 22:50] Wave 0 先行件與通用流程資料層實作（W0-1 ～ W0-9）
+
+### 背景與需求
+
+依據 `docs/plan/README.md`、`01-architecture.md` 與 `02-wave0-primitives.md`：
+針對全站 373 條技能與金手指中，需要「額外資料 ＋ 面板操作」才能生效的機制，建立通用資料容器、多控件結構、重置執行者、擲骰式加減、隊友選擇器、章節結算與單一扣款路徑，收斂同一個數字兩份的既有問題。
+
+### 變更內容
+
+1. **W0-1 與 W0-2：flowState 形狀擴充與資料容器**
+   - `src/features/character-sheet/utils/effectFlow.js`：擴充 `flowState[id]` 形狀為 `{ n, on, choice, fields, picks, text, list }`。
+   - `fields` 作為自由非數字資料容器（如名冊），在任何重置（`flowResetState`／`resetFlowScope`）時皆予以保留。
+   - `SkillFlowControls.jsx`：擴充支援 `multiSelect`、`text`、`recordList` 三種新控件。
+2. **W0-3：擲骰式資源加減（RollAdjustButton）**
+   - `src/features/character-sheet/data/classResources.js`：將疲勞值與不穩定值改為結構化 `resetRoll: '1d6'`、`resetSign: -1`、`resetTo: null`；新增 `applyRollDelta` 純函式。
+   - `ClassResourceStrip.jsx`：有 `resetRoll` 時呈現擲骰調整按鈕並動態計算 clamp。
+   - `tests/classResources.test.mjs`：追加 4 條斷言並更新重置互斥規格檢查。
+3. **W0-4：隊友選擇器（PartyPicker）**
+   - 新增 `src/features/character-sheet/components/PartyPicker.jsx`，名冊為空時安全回傳 null。
+4. **W0-5：章節結束結算（ChapterSettlement）**
+   - 新增 `src/features/character-sheet/utils/chapterSettlement.js` 與 `ChapterSettlementPanel.jsx`。
+5. **W0-6：controls[] 多控件支援**
+   - `scripts/build-effect-flows.mjs`：支援多控件陣列輸出，並保留首顆為 `control` 向後相容；移除死欄位 `control.step`。
+   - `effectFlow.js`：新增 `controlsOf(item)` 純函式；`flowActionPlan` 支援 `controlIndex`。
+   - `SkillFlowControls.jsx`：多控件並列獨立渲染。
+6. **W0-7：重置執行者（resetFlowScope）**
+   - `effectFlow.js`：新增 `resetScopeLabel` 與 `resetFlowScope`，重置指定 scope（scene/rest/chapter 等）且保留 `fields`。
+   - `CharacterPlayHUD.jsx`：加設「場景／休息／章節」一鍵重置列，`handleCampRest` 自動連帶重置 `rest` scope。
+7. **W0-8：收斂重複計數器**
+   - `build-effect-flows.mjs`：新增 `RESOURCE_BACKED_IDS`，將指向 `classResources` 池的條目改輸出 `control: { kind: 'none', backedBy }`。
+   - `effectFlow.js`：`readFlowState` 直通讀取 `classResources`，徹底消除重複計數器。
+8. **W0-9：單一扣款路徑收斂（植生術）**
+   - `scratch/flows/class.json`：植生術改為 `status: "wired"`、`control: { kind: "none" }`，重新 build 產物消除重複按鈕。
+   - `FloristGardenTracker.jsx`：種植時檢查並扣除 20 MP，抽出 `plantSeed` 純函式；`tests/floristGarden.test.mjs` 追加單一扣款測試。
+9. **通用架構層（01-architecture.md）**
+   - 新增 `flowDataSpecs.js`、`flowData.js`、`FlowDataPanel.jsx`，並在 `CharacterPlayHUD.jsx` 金手指與英雄技能處掛載。
+   - 新增測試套件 `tests/flowData.test.mjs`（36 項斷言），並在 `package.json` 串入 `npm test`（62 道測試關卡）。
+
+### 驗證
+
+- `npm run test:flowdata`：36 / 36 PASS。
+- 刻意破壞驗證：
+  1. 破壞 `planSettlement` 最低 0 限制 -> `test:flowdata` 第 E 區段立即報紅（exit 1），還原後綠燈。
+  2. 破壞 `canUseBuff` 名冊完整性檢查 -> `test:flowdata` 第 C 區段立即報紅（exit 1），還原後綠燈。
+- `npm run test:emoji`：200 檔掃描，0 命中通過。
+- `npm run test:uisystem`：295 / 295 PASS。
+- `npm run build`：Vite 6 編譯 exit 0。
+- `npm test`：全套 62 道關卡全數 PASS。
+
+
+---
+
+## [2026-11-04 23:20] W0 驗收報告整改：接線層閉環與死碼清理
+
+### 背景與修正動機
+
+依據 Lead 審查報告 `docs/plan/verify-W0-report.md`，方針對核心層已通過但接線層未完成的 4 處項目進行精準修復：
+1. **修復真缺陷 A**：`CharacterPlayHUD.jsx` 補齊 `characterFlowItems` 與 `controlsOf` 的匯入，杜絕執行期 ReferenceError。
+2. **完成 B 項接線**：
+   - 在 HUD 工具列營地休整按鈕旁新增「重置場景」、「重置休息」、「重置章節」三顆按鈕（`reset-scope-scene` / `-rest` / `-chapter`）。
+   - 在 `handleCampRest` 內將 `campActivities` 與 `resetFlowScope(nextChar, 'rest')` 合併於同一次 `onChange(loggableChange(...))` 一次寫入。
+3. **完成 C 項接線**：
+   - 將 `ChapterSettlementPanel.jsx` 改造升級為標準 `ChapterSettlementModal`（以 `JRPGModal` 包裹，符合空狀態與設計系統規範）。
+   - 在 `handleEndSession` 收場後自動判斷，僅在 `chapterSettlementItems(next).length > 0` 時打開面板，無項目時不彈窗。
+4. **清理 D 項死碼**：
+   - 採納建議 D1，刪除從未被消費的 `src/features/character-sheet/components/PartyPicker.jsx`，避免死碼堆積，留待 W4 真正需要時再實作。
+5. **觀察說明**：
+   - `resetRoll` 現階段僅 2 筆（疲勞值、不穩定值）符合原書機制：其餘三筆 1d6/2d20 發生在使用時與章節結算，非重置側。
+   - `flowDataSpecs.js` 富家子弟為 W1 基底，符合架構規劃。
+
+### 驗證
+
+- `npm run test:flowui`：擴充 G 區段至 26 項斷言全數通過（含三按鈕存在、真實呼叫無例外、休息重置保留 fields、章節結算條目判定）。
+- `npm run test:flowdata`：36 項全數通過（含 Modal 渲染與各狀態判定）。
+- 雙重刻意破壞驗證：
+  1. 破壞 G1 testid -> `test:flowui` 報錯 FAIL（exit 1），還原後通過。
+  2. 破壞 G2 真實呼叫斷言 -> `test:flowui` 報錯 FAIL（exit 1），還原後通過。
+- `npm run test:emoji`：0 命中通過。
+- `npm run test:uisystem`：295 / 295 通過（修正空狀態使用 EmptyState 組件）。
+- `npm run build`：Vite 6 編譯通過（exit 0）。
+- `npm test`：全鏈 62 關全數通過。
+
+
+---
+
+## [2026-11-04 23:40] Wave 1：【富家子弟】示範案實裝（W1）
+
+### 背景與需求
+
+依據 `docs/plan/README.md` §0 與 `03-quirk-plans.md` §1：
+實裝金手指【富家子弟】（示範案：A+B+C+E 四型俱全）：
+1. **名冊型（A）**：2 位具名保鑣，各有姓名與外表描述，資料存於 `flowState['quirk:富家子弟'].fields['保鑣']`，重置時予以保留。
+2. **增益選單型（B）**：三個可選增益（小心！／這是您先前需要的情報。／臥倒，我會處理好的！），每次使用擲 1d6 累積疲勞值。
+3. **刻度型（C）**：疲勞值共享池（上限 10 點），達 10 點門檻時禁用增益。
+4. **週期結算型（E）**：章節結算時擲 1d6 恢復疲勞值，最低降為 0 點。
+5. **HUD 專屬掛載與抑制防禦**：
+   - 在 `CharacterPlayHUD.jsx` 金手指區塊掛載 `FlowDataPanel`。
+   - 在 `renderFlowControls` 補上 `if (specFor(item.id)) return null;`，防止通用 button 與 FlowDataPanel 同時存在產生雙重按鈕。
+   - 優化 `ChapterSettlementModal` 的 `onApply` patch 合併寫法，避免重複解構覆蓋。
+
+### 驗證
+
+- `npm run test:flowdata`：42 / 42 PASS（新增 K 區段六種狀態驗證）。
+- `npm run test:flowui`：29 / 29 PASS（新增 H 區段富家子弟 HUD 接線整合斷言）。
+- `npm run test:flows`：187 / 187 PASS。
+- `npm run test:playhudempty`：83 / 83 PASS。
+- 刻意破壞驗證：
+  1. 破壞 `canUseBuff` 疲勞值門檻判定（`val >= blockAt` → `val > blockAt`）→ `test:flowdata` 3 條報紅，還原後綠燈。
+  2. 破壞 `playHudFlow` H1 testid 斷言 → `test:flowui` 報紅（exit 1），還原後綠燈。
+- `npm run test:emoji`：0 命中通過。
+- `npm run build`：Vite 6 編譯 exit 0（7.92s）。
+- `npm test`：全套 62 關全數通過。

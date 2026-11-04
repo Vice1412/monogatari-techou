@@ -1,25 +1,18 @@
-/**
- * 跑團卡「效果流程」接線契約測試。
- *
- * 執行：`npm run test:flowui`（已納入 `npm test` 串接）
- *
- * 為什麼要有這個檔案：373 條規則物件裡有 335 條「只有文字」——本輪把它們接成
- * 三種控件（計數器／開關／按鈕）＋ 一份條件式清單。接線放在 `CharacterPlayHUD` 的
- * 三個位置（職業技能卡、英雄技能卡、金手指區塊），而那三個位置**只有 SSR 測得到**；
- * `onClick` 的實際寫入在 `applyFlowPlan`，屬於純函式層（`test:flows` 守）。
- *
- * 這裡守四件事：
- *   ① 該長控件的地方長了（而且帶對的 `data-testid`）
- *   ② 不該長的地方沒長（`apply.via === 'existing'` 的條目不畫按鈕：同一個效果
- *      兩條扣款路徑，重複扣款在畫面上完全看不出來）
- *   ③ 金手指的效果文真的印出來了（以前讀 `quirkDef.effect`，46 條全部只印一句佔位字）
- *   ④ 條件式加值列在「效果加成（依條件）」上，而且附得出條件原文
- */
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterPlayHUD from '../src/features/character-sheet/components/CharacterPlayHUD.jsx';
 import { createNewCharacter } from '../src/features/character-sheet/utils/characterEngine.js';
-import { flowItemForClassSkill, flowItemForQuirk, flowItemForHeroic } from '../src/features/character-sheet/utils/effectFlow.js';
+import {
+  flowItemForClassSkill,
+  flowItemForQuirk,
+  flowItemForHeroic,
+  characterFlowItems,
+  controlsOf,
+  resetFlowScope
+} from '../src/features/character-sheet/utils/effectFlow.js';
+import { chapterSettlementItems } from '../src/features/character-sheet/utils/chapterSettlement.js';
+// SSR 的 disabled 判斷必須看「屬性」，不能看 `disabled:` 這個 Tailwind class（見 helper 檔頭）。
+import { hasDisabledAttr } from './helpers/domAttr.mjs';
 
 let results = [];
 const check = (name, ok, detail = '') => {
@@ -78,9 +71,10 @@ check('B1 按鈕長出來了', countOf(elemHtml, 'data-testid="flow-skill-元素
 check('B2 後果那一行也印出來（不是只有按鈕）',
   countOf(elemHtml, 'data-testid="flow-skill-元素師-災難-outcome"') >= 1, true);
 check('B3 成本不足時按鈕是 disabled，而且畫面上寫得出原因（不是只有灰掉）', (() => {
-  const html = elemHtml.replace(/\s+/g, ' ');
-  const hasDisabled = /data-testid="flow-skill-元素師-災難-act"[^>]*disabled/.test(html);
-  const hasReason = /MP 不足|物語點不足|不足/.test(html);
+  // 用屬性判斷，不要用 `/…[^>]*disabled/`：class 裡的 `disabled:cursor-not-allowed`
+  // 會讓「有 disabled」與「沒有 disabled」都命中（2026-11-04 驗收抓到的假綠）。
+  const hasDisabled = hasDisabledAttr(elemHtml, 'flow-skill-元素師-災難-act');
+  const hasReason = /MP 不足|物語點不足|不足/.test(elemHtml);
   return hasDisabled && hasReason;
 })(), true);
 
@@ -100,7 +94,7 @@ check('C1 existing 的條目沒有 flow 控件（避免兩條扣款路徑）',
 const quirkChar = createNewCharacter({ name: '測試角色' });
 quirkChar.quirk = '亡者歸來';
 const quirkHtml = render(quirkChar, { initialTab: 'skills' });
-check('D1 金手指效果文區塊存在', countOf(quirkHtml, 'data-testid="hud-quirk-effect"') >= 1, true);
+check('D1 金手指效果文區塊存在', countOf(quirkHtml, 'data-testid="hud-quirk-detail"') >= 1, true);
 check('D2 印出來的是資料層的 desc，不是「已啟用金手指【X】。」這句佔位字',
   countOf(quirkHtml, '已啟用金手指【亡者歸來】。') === 0, '0 次');
 check('D3 效果文裡真的有一段原文',
@@ -115,10 +109,6 @@ check('D5 前提：亡者歸來在資料裡是 button',
    ──────────────────────────────────────────────────────────────── */
 const duck = createNewCharacter({ name: '測試角色' });
 duck.heroicSkills = [{ name: '靈巧雙手' }];
-// 第二期之後【靈巧雙手】有了結構化條件：**條件成立**時它會折進物防（不再列在加成清單），
-// **條件不成立**時整條不列。要驗「清單本身畫得出來」，就得讓它落在第三態（unknown）——
-// 裝備名不在武器表上（例如某本新書的武器）。這一格測的是清單的渲染，不是條件判定
-// （條件判定在 `test:flows` 的三態 A/B/C 對照裡）。
 duck.equipment = { ...(duck.equipment || {}), mainHand: '某本新書的武器', offHand: '另一把沒登記的武器' };
 check('E0 前提：靈巧雙手有帶條件的物防加值',
   flowItemForHeroic('靈巧雙手')?.effects?.some((e) => e.target === 'def' && e.condition), true);
@@ -144,6 +134,71 @@ check('F2 空白角色沒有金手指區塊',
 const blankProfile = render(blank, { initialTab: 'profile' });
 check('F3 空白角色沒有「效果加成」區塊（不畫空框）',
   countOf(blankProfile, 'data-testid="hud-flow-conditional"') === 0, '0 個');
+
+/* ────────────────────────────────────────────────────────────────
+   G. W0 接線契約：重置範圍三按鈕、函式載入解析、營地整合與章節彈窗
+   ──────────────────────────────────────────────────────────────── */
+const hudHtml = render(blank, { initialTab: 'skills' });
+check('G1 HUD 工具列有三顆重置按鈕（場景／休息／章節）',
+  countOf(hudHtml, 'data-testid="reset-scope-scene"') >= 1 &&
+  countOf(hudHtml, 'data-testid="reset-scope-rest"') >= 1 &&
+  countOf(hudHtml, 'data-testid="reset-scope-chapter"') >= 1,
+  true);
+
+// 驗證 characterFlowItems 與 controlsOf 在實際呼叫時不拋錯（修復 ReferenceError 的真實調用證據）
+let callItemsSucceeded = false;
+try {
+  const items = characterFlowItems(scholar);
+  const totalControls = items.reduce((acc, ci) => acc + controlsOf(ci.item).length, 0);
+  callItemsSucceeded = Array.isArray(items) && totalControls >= 0;
+} catch {
+  callItemsSucceeded = false;
+}
+check('G2 characterFlowItems 與 controlsOf 呼叫不拋錯且解析正常（A 項修復實測）', callItemsSucceeded, true);
+
+// 驗證 resetFlowScope('rest') 會清除數值但保留 fields 容器
+const testScopeChar = createNewCharacter({ name: '重置測試' });
+testScopeChar.heroicSkills = [{ name: '內蘊源泉' }];
+testScopeChar.flowState = {
+  'heroic:內蘊源泉': {
+    n: 3,
+    on: true,
+    picks: ['a'],
+    fields: { customTitle: '源泉之名' }
+  }
+};
+const resetChar = resetFlowScope(testScopeChar, 'rest');
+const resetItemState = resetChar.flowState?.['heroic:內蘊源泉'];
+check('G3 resetFlowScope("rest") 歸零數值狀態並保留 fields（B 項功能實測）',
+  resetItemState?.n === 0 &&
+  resetItemState?.on === false &&
+  Array.isArray(resetItemState?.picks) && resetItemState.picks.length === 0 &&
+  resetItemState?.fields?.customTitle === '源泉之名',
+  true);
+
+// 驗證章節結算待辦項目判定
+const noSettlementChar = createNewCharacter({ name: '無結算角色' });
+const richChar = createNewCharacter({ name: '富家子弟角色' });
+richChar.quirk = '富家子弟';
+check('G4 章節結算條目判定：無結算條目為空陣列（不彈窗），有結算金手指則返回結算清單（C 項）',
+  chapterSettlementItems(noSettlementChar).length === 0 &&
+  chapterSettlementItems(richChar).length === 1 &&
+  chapterSettlementItems(richChar)[0].dice === '1d6',
+  true);
+
+/* ────────────────────────────────────────────────────────────────
+   H. W1【富家子弟】HUD 接線整合：專屬面板、按鈕抑制與狀態連動
+   ──────────────────────────────────────────────────────────────── */
+const richHtml = render(richChar, { initialTab: 'skills' });
+check('H1 富家子弟在 HUD 正確掛載 FlowDataPanel',
+  countOf(richHtml, 'data-testid="flowdata-quirk-富家子弟"') >= 1,
+  true);
+check('H2 未填齊保鑣時 HUD 內的增益按鈕為 disabled',
+  hasDisabledAttr(richHtml, 'flowdata-quirk-富家子弟-use-buff-careful'),
+  true);
+check('H3 通用按鈕成功被抑制（不與 FlowDataPanel 同時存在）',
+  countOf(richHtml, 'data-testid="flow-quirk-act"') === 0,
+  '0 顆');
 
 /* ──────────────────────────────────────────────────────────────── */
 const failed = results.filter((r) => !r.ok);

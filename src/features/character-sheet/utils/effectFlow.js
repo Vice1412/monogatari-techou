@@ -37,7 +37,13 @@ import { evaluateWhen, buildConditionContext } from './effectConditions.js';
 // `select`（第三期）：需要「選一個」的條目——所選武器類別、所選元素源泉……
 // 這一種控件不佔數字，只記 `flowState[id].choice`；引擎要靠那個字串才有辦法算
 // （例如【類別訓練】給的熟練度）。沒有它，玩家選了「劍」，`profs` 仍是 false。
-export const FLOW_CONTROL_KINDS = Object.freeze(['none', 'counter', 'toggle', 'button', 'select']);
+export const FLOW_CONTROL_KINDS = Object.freeze(['none', 'counter', 'toggle', 'button', 'select', 'multiSelect', 'text', 'recordList']);
+
+export const controlsOf = (item) => {
+  if (Array.isArray(item?.controls) && item.controls.length > 0) return item.controls;
+  if (item?.control && typeof item.control === 'object') return [item.control];
+  return [];
+};
 
 /**
  * 效果作用對象的封閉詞彙。
@@ -472,24 +478,39 @@ export const flowVarsFor = (character) => {
  * @returns {{n:number, on:boolean}}
  */
 export const readFlowState = (character, item) => {
-  if (!item || typeof item.id !== 'string') return { n: 0, on: false, choice: '' };
+  if (!item || typeof item.id !== 'string') {
+    return { n: 0, on: false, choice: '', fields: {}, picks: [], text: '', list: [] };
+  }
   const raw = character?.flowState?.[item.id];
-  const wrote = toFiniteInt(raw?.n);
+  const backedKey = item?.control?.backedBy;
+  const wrote = backedKey
+    ? toFiniteInt(character?.classResources?.[backedKey])
+    : toFiniteInt(raw?.n);
   const base = wrote === null ? controlInitial(item) : wrote;
   const max = controlMax(character, item);
   const n = max === null ? Math.max(0, base) : Math.min(max, Math.max(0, base));
-  // choice：需要「選一個」的條目（所選武器類別、所選元素源泉…）。
-  // 沒有這個欄位的舊存檔一律回空字串（＝還沒選），不回 undefined——
-  // UI 與引擎都靠「是不是空字串」判斷「玩家選了沒」。
-  return { n, on: raw?.on === true, choice: typeof raw?.choice === 'string' ? raw.choice : '' };
+  const fields = (raw?.fields && typeof raw.fields === 'object' && !Array.isArray(raw.fields))
+    ? raw.fields
+    : {};
+  const picks = Array.isArray(raw?.picks)
+    ? Array.from(new Set(raw.picks.filter((p) => typeof p === 'string')))
+    : [];
+  const text = typeof raw?.text === 'string' ? raw.text : '';
+  const list = Array.isArray(raw?.list) ? raw.list : [];
+
+  return {
+    n,
+    on: raw?.on === true,
+    choice: typeof raw?.choice === 'string' ? raw.choice : '',
+    fields,
+    picks,
+    text,
+    list
+  };
 };
 
 /**
- * 依上限／初始值夾住下一個狀態。**上限為 `null` 時不夾**（`無上限` 是真的無上限）。
- * 非數字（`''`、`'abc'`、`undefined`）退回初始值，不是硬性 0——
- * 與 `clampResource` 同一個判法。
- *
- * @returns {{n:number, on:boolean}}
+ * 依上限／初始值夾住下一個狀態。
  */
 export const clampFlowState = (character, item, next) => {
   const raw = toFiniteInt(next?.n);
@@ -497,39 +518,108 @@ export const clampFlowState = (character, item, next) => {
   const max = controlMax(character, item);
   const n = max === null ? Math.max(0, base) : Math.min(max, Math.max(0, base));
   const choice = typeof next?.choice === 'string' ? next.choice : '';
-  return { n, on: next?.on === true, choice };
+  const fields = (next?.fields && typeof next.fields === 'object' && !Array.isArray(next.fields))
+    ? next.fields
+    : (character?.flowState?.[item?.id]?.fields || {});
+  const picks = Array.isArray(next?.picks)
+    ? Array.from(new Set(next.picks.filter((p) => typeof p === 'string')))
+    : [];
+  const text = typeof next?.text === 'string' ? next.text : '';
+  const list = Array.isArray(next?.list) ? next.list : [];
+
+  return {
+    n,
+    on: next?.on === true,
+    choice,
+    fields,
+    picks,
+    text,
+    list
+  };
 };
 
 /**
- * 建立新的角色物件（不可變更新）。只覆寫 `flowState[id]`，其他欄位與其他條目的
- * 狀態一律原樣帶過——跑團時同時有好幾條流程在跑，寫一條不能弄掉另一條。
+ * 建立新的角色物件（不可變更新）。
  */
 export const withFlowState = (character, id, nextState) => {
   const base = character && typeof character === 'object' ? character : {};
   const key = typeof id === 'string' ? id : '';
+  const existingRaw = base.flowState?.[key] || {};
+  const fields = (nextState?.fields && typeof nextState.fields === 'object' && !Array.isArray(nextState.fields))
+    ? nextState.fields
+    : (existingRaw.fields || {});
+
+  const nVal = Math.max(0, toFiniteInt(nextState?.n) ?? 0);
+  const nextItemState = {
+    n: nVal,
+    on: nextState?.on === true,
+    choice: typeof nextState?.choice === 'string' ? nextState.choice : '',
+    fields,
+    picks: Array.isArray(nextState?.picks)
+      ? Array.from(new Set(nextState.picks.filter((p) => typeof p === 'string')))
+      : [],
+    text: typeof nextState?.text === 'string' ? nextState.text : '',
+    list: Array.isArray(nextState?.list) ? nextState.list : []
+  };
+
+  const item = flowItemById(key);
+  const backedKey = item?.control?.backedBy;
+  const nextClassResources = backedKey
+    ? { ...(base.classResources || {}), [backedKey]: nVal }
+    : base.classResources;
+
   return {
     ...base,
+    ...(backedKey ? { classResources: nextClassResources } : {}),
     flowState: {
       ...(base.flowState || {}),
-      [key]: {
-        n: Math.max(0, toFiniteInt(nextState?.n) ?? 0),
-        on: nextState?.on === true,
-        choice: typeof nextState?.choice === 'string' ? nextState.choice : ''
-      }
+      [key]: nextItemState
     }
   };
 };
 
 /**
- * 重置（UI 的「場景結束／休息／歸零」按鈕）。
- *
- * `reset` 的**時機**由誰觸發是 UI／HUD 的事；這一層只負責「重置成什麼」：
- * 一律回初始值並關掉開關。不另開一張「reset → 值」的表，
- * 因為資料裡的 `reset` 目前只有時機語意，沒有值語意。
+ * 重置：清空 n/on/choice/picks/text/list，保留 fields。
  */
 export const flowResetState = (character, item) => {
   if (!item || typeof item.id !== 'string') return character;
-  return withFlowState(character, item.id, { n: controlInitial(item), on: false, choice: '' });
+  const currentFields = readFlowState(character, item).fields;
+  return withFlowState(character, item.id, {
+    n: controlInitial(item),
+    on: false,
+    choice: '',
+    fields: currentFields,
+    picks: [],
+    text: '',
+    list: []
+  });
+};
+
+export const resetScopeLabel = (scope) => ({
+  scene: '場景結束',
+  round: '回合結束',
+  rest: '休息',
+  chapter: '章節結束',
+  conflict: '衝突結束',
+  hpZero: 'HP 歸零',
+  turn: '回合結束'
+}[scope] || '重置');
+
+export const resetFlowScope = (character, scope) => {
+  if (!character || typeof character !== 'object' || !scope) return character;
+  const items = characterFlowItems(character).map((ci) => ci.item);
+  let nextChar = character;
+  let changed = false;
+
+  for (const item of items) {
+    const ctrls = controlsOf(item);
+    const matches = ctrls.some((c) => c?.reset === scope);
+    if (matches) {
+      nextChar = flowResetState(nextChar, item);
+      changed = true;
+    }
+  }
+  return changed ? nextChar : character;
 };
 
 // ─────────────────────────────────────────────────────────── 動作計畫
@@ -607,12 +697,16 @@ export const flowActionPlan = (item, character, ctx = {}) => {
   if (item.flow === 'narrative' || item.apply?.via === 'none') {
     return { ...base, reason: '這是敘事條目，沒有可執行的效果' };
   }
-  if (item.control?.kind !== 'button') {
+  const ctrls = controlsOf(item);
+  const ctrlIndex = Number.isInteger(ctx?.controlIndex) && ctx.controlIndex >= 0 ? ctx.controlIndex : 0;
+  const activeControl = ctrls[ctrlIndex] || item.control;
+
+  if (activeControl?.kind !== 'button') {
     return { ...base, reason: '這條不是按鈕型' };
   }
 
   const stats = ctx?.stats || null;
-  const cost = item.control?.cost;
+  const cost = activeControl?.cost;
   const paid = {};
   const unresolved = [];
 
