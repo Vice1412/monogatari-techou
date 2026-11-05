@@ -312,6 +312,35 @@ check('J2 計數器的加減鈕仍然存在（c0）',
   countOf(dreamHtml, 'data-testid="flow-quirk-c0-plus"') >= 1,
   true);
 
+/* ────────────────────────────────────────────────────────────────
+   K. W4 G1 英雄技能單選下拉與持久化驗證
+   ──────────────────────────────────────────────────────────────── */
+const auraChar = createNewCharacter({ name: '靈氣角色' });
+auraChar.heroicSkills = ['靈氣掌握'];
+auraChar.flowState = {
+  'heroic:靈氣掌握': { choice: '火' }
+};
+const auraHtml = render(auraChar, { initialTab: 'skills' });
+check('K1 跑團卡成功渲染靈氣掌握下拉選單（flow-heroic-0-choice）',
+  countOf(auraHtml, 'data-testid="flow-heroic-0-choice"') >= 1,
+  true);
+check('K2 靈氣掌握下拉選項包含風、電、土、火、冰、光 6 個選項',
+  countOf(auraHtml, '<option value="火"') >= 1 && countOf(auraHtml, '<option value="光"') >= 1,
+  true);
+check('K3 下拉選單選中先前儲存之 choice: 火',
+  countOf(auraHtml, 'value="火" selected') >= 1 || auraHtml.includes('<option value="火" selected'),
+  true);
+
+const sourceChar = createNewCharacter({ name: '源泉角色' });
+sourceChar.heroicSkills = ['內蘊源泉'];
+sourceChar.flowState = {
+  'heroic:內蘊源泉': { choice: '冰' }
+};
+const resetSourceChar = resetFlowScope(sourceChar, 'rest');
+check('K4 內蘊源泉在休息重置後清空 choice（等待重選）',
+  resetSourceChar.flowState?.['heroic:內蘊源泉']?.choice === '',
+  true);
+
 /* ──────────────────────────────────────────────────────────────── */
 const failed = results.filter((r) => !r.ok);
 for (const r of results) console.log(`  ${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.detail === '' ? '' : `  —— ${r.detail}`}`);

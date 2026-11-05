@@ -30,20 +30,20 @@
 | ✓ | `quirk:百臉千面` | Q2 | → 併入 W2（已完成） | 見 verify-W2-report.md |
 | ✓ | `quirk:天才發明家` | Q2 | → 併入 W2（已完成） | 見 verify-W2-report.md |
 
-## W3 · 特性與【升級】（1 筆）
+## W3 · 特性與【升級】（5 筆）
 
 | 狀態 | id | 群 | 要做什麼 | 驗收 |
 |---|---|---|---|---|
+| ✓ | `heroic:靈氣掌握` | G1 | 宣告 control:select（只改 JSON，零元件成本） | 卡片出現下拉；選完重開卡仍在（flowState.choice） |
+| ✓ | `heroic:靈氣掌握【變體】` | G1 | 宣告 control:select（只改 JSON，零元件成本） | 卡片出現下拉；選完重開卡仍在（flowState.choice） |
+| ✓ | `heroic:過載爆發` | G1 | 宣告 control:select（只改 JSON，零元件成本） | 卡片出現下拉；選完重開卡仍在（flowState.choice） |
+| ✓ | `heroic:內蘊源泉` | G1 | 宣告 control:select（只改 JSON，零元件成本） | 卡片出現下拉；選完重開卡仍在（flowState.choice） |
 | ✓ | `heroic:升級` | G6 | counter＋reset（已有）＋資料表（特性／食材上限） | 休息時可用一次；跨休息會回充 |
 
-## W4 · 英雄技能 22 筆（21 筆）
+## W4 · 英雄技能 22 筆（17 筆）
 
 | 狀態 | id | 群 | 要做什麼 | 驗收 |
 |---|---|---|---|---|
-| ☐ | `heroic:靈氣掌握` | G1 | 宣告 control:select（只改 JSON，零元件成本） | 卡片出現下拉；選完重開卡仍在（flowState.choice） |
-| ☐ | `heroic:靈氣掌握【變體】` | G1 | 宣告 control:select（只改 JSON，零元件成本） | 卡片出現下拉；選完重開卡仍在（flowState.choice） |
-| ☐ | `heroic:過載爆發` | G1 | 宣告 control:select（只改 JSON，零元件成本） | 卡片出現下拉；選完重開卡仍在（flowState.choice） |
-| ☐ | `heroic:內蘊源泉` | G1 | 宣告 control:select（只改 JSON，零元件成本） | 卡片出現下拉；選完重開卡仍在（flowState.choice） |
 | ☐ | `heroic:嵌合術精通` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
 | ☐ | `heroic:解剖學家` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
 | ☐ | `heroic:樸實之力` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |

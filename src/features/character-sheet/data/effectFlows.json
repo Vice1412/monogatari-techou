@@ -6899,15 +6899,59 @@
    "flow": "state",
    "bucket": "core",
    "control": {
-    "kind": "toggle",
-    "label": "本次休息選定的元素源泉（風／土／火／電／冰）",
-    "reset": "rest"
+    "kind": "select",
+    "label": "本次休息選定的元素來源",
+    "reset": "rest",
+    "options": [
+     {
+      "value": "風",
+      "label": "風"
+     },
+     {
+      "value": "土",
+      "label": "土"
+     },
+     {
+      "value": "火",
+      "label": "火"
+     },
+     {
+      "value": "電",
+      "label": "電"
+     },
+     {
+      "value": "冰",
+      "label": "冰"
+     }
+    ]
    },
    "controls": [
     {
-     "kind": "toggle",
-     "label": "本次休息選定的元素源泉（風／土／火／電／冰）",
-     "reset": "rest"
+     "kind": "select",
+     "label": "本次休息選定的元素來源",
+     "reset": "rest",
+     "options": [
+      {
+       "value": "風",
+       "label": "風"
+      },
+      {
+       "value": "土",
+       "label": "土"
+      },
+      {
+       "value": "火",
+       "label": "火"
+      },
+      {
+       "value": "電",
+       "label": "電"
+      },
+      {
+       "value": "冰",
+       "label": "冰"
+      }
+     ]
     }
    ],
    "effects": [
@@ -12253,21 +12297,57 @@
    "flow": "action",
    "bucket": "core",
    "control": {
-    "kind": "button",
-    "label": "過載爆發（場景內初次 HP 歸零）",
-    "cost": {
-     "other": "個人載具消失、下次壓縮技術多 1 物語點"
-    },
-    "outcome": "HP 改為 1，離開載具並對一個生物造成危機值的選定屬性傷害"
+    "kind": "select",
+    "label": "所選傷害類型",
+    "options": [
+     {
+      "value": "電",
+      "label": "電"
+     },
+     {
+      "value": "暗",
+      "label": "暗"
+     },
+     {
+      "value": "火",
+      "label": "火"
+     },
+     {
+      "value": "冰",
+      "label": "冰"
+     },
+     {
+      "value": "光",
+      "label": "光"
+     }
+    ]
    },
    "controls": [
     {
-     "kind": "button",
-     "label": "過載爆發（場景內初次 HP 歸零）",
-     "cost": {
-      "other": "個人載具消失、下次壓縮技術多 1 物語點"
-     },
-     "outcome": "HP 改為 1，離開載具並對一個生物造成危機值的選定屬性傷害"
+     "kind": "select",
+     "label": "所選傷害類型",
+     "options": [
+      {
+       "value": "電",
+       "label": "電"
+      },
+      {
+       "value": "暗",
+       "label": "暗"
+      },
+      {
+       "value": "火",
+       "label": "火"
+      },
+      {
+       "value": "冰",
+       "label": "冰"
+      },
+      {
+       "value": "光",
+       "label": "光"
+      }
+     ]
     }
    ],
    "effects": [
@@ -13038,11 +13118,65 @@
    "flow": "modifier",
    "bucket": "core",
    "control": {
-    "kind": "none"
+    "kind": "select",
+    "label": "所選傷害類型",
+    "options": [
+     {
+      "value": "風",
+      "label": "風"
+     },
+     {
+      "value": "電",
+      "label": "電"
+     },
+     {
+      "value": "土",
+      "label": "土"
+     },
+     {
+      "value": "火",
+      "label": "火"
+     },
+     {
+      "value": "冰",
+      "label": "冰"
+     },
+     {
+      "value": "光",
+      "label": "光"
+     }
+    ]
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "select",
+     "label": "所選傷害類型",
+     "options": [
+      {
+       "value": "風",
+       "label": "風"
+      },
+      {
+       "value": "電",
+       "label": "電"
+      },
+      {
+       "value": "土",
+       "label": "土"
+      },
+      {
+       "value": "火",
+       "label": "火"
+      },
+      {
+       "value": "冰",
+       "label": "冰"
+      },
+      {
+       "value": "光",
+       "label": "光"
+      }
+     ]
     }
    ],
    "effects": [
@@ -13062,7 +13196,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "需要「取得時選了哪個傷害類型」與「本回合是否已反擊」。",
    "evidence": [
@@ -13080,11 +13214,65 @@
    "flow": "modifier",
    "bucket": "variant",
    "control": {
-    "kind": "none"
+    "kind": "select",
+    "label": "所選傷害類型",
+    "options": [
+     {
+      "value": "風",
+      "label": "風"
+     },
+     {
+      "value": "電",
+      "label": "電"
+     },
+     {
+      "value": "土",
+      "label": "土"
+     },
+     {
+      "value": "火",
+      "label": "火"
+     },
+     {
+      "value": "冰",
+      "label": "冰"
+     },
+     {
+      "value": "光",
+      "label": "光"
+     }
+    ]
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "select",
+     "label": "所選傷害類型",
+     "options": [
+      {
+       "value": "風",
+       "label": "風"
+      },
+      {
+       "value": "電",
+       "label": "電"
+      },
+      {
+       "value": "土",
+       "label": "土"
+      },
+      {
+       "value": "火",
+       "label": "火"
+      },
+      {
+       "value": "冰",
+       "label": "冰"
+      },
+      {
+       "value": "光",
+       "label": "光"
+      }
+     ]
     }
    ],
    "effects": [
@@ -13104,7 +13292,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "效果文與核心版逐字相同，缺口也相同。",
    "evidence": [

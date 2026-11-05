@@ -87,6 +87,20 @@ ok('C2 W6（職業技能）的每一筆都真的存在於 effectFlows',
 ok('C3 W4（英雄技能）的每一筆都真的存在於 effectFlows',
   rows.filter((r) => r.wave === 'W4').every((r) => flow.items.some((i) => i.id === r.id)));
 
+// ── C4. 「已完成的英雄技能」必須符合該群應有的控件形狀
+// 這一條是防「手工把 ☐ 改成 ✓」：判定寫在產生器，測試再從資料反過來驗一次。
+// G4／G6 刻意不在表內（完成條件不是 control 形狀）。
+const EXPECTED = { G1: 'select', G2: 'multiSelect', G3: 'text', G5: 'recordList' };
+const heroicDone = rows.filter((r) => r.category === 'heroic' && r.status === 'done');
+const wrongShape = heroicDone.filter((r) => {
+  const expected = EXPECTED[r.group];
+  if (!expected) return false;
+  const item = flow.items.find((i) => i.name === r.name);
+  const kinds = (Array.isArray(item?.controls) ? item.controls : [item?.control]).map((c) => c && c.kind);
+  return !kinds.includes(expected);
+});
+ok('C4 已完成的英雄技能都符合該群應該長出來的控件形狀', wrongShape, wrongShape.map((r) => `${r.name}(${r.group})`));
+
 // ── D. 人看的表格與 JSON 同步
 const doneRows = (md.match(/^\| ✓ \|/gm) || []).length;
 const todoRows = (md.match(/^\| ☐ \|/gm) || []).length;

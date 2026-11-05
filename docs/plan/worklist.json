@@ -398,8 +398,8 @@
       "category": "heroic",
       "name": "靈氣掌握",
       "group": "G1",
-      "wave": "W4",
-      "status": "todo",
+      "wave": "W3",
+      "status": "done",
       "need": "宣告 control:select（只改 JSON，零元件成本）",
       "accept": "卡片出現下拉；選完重開卡仍在（flowState.choice）",
       "note": "G1"
@@ -409,8 +409,8 @@
       "category": "heroic",
       "name": "靈氣掌握【變體】",
       "group": "G1",
-      "wave": "W4",
-      "status": "todo",
+      "wave": "W3",
+      "status": "done",
       "need": "宣告 control:select（只改 JSON，零元件成本）",
       "accept": "卡片出現下拉；選完重開卡仍在（flowState.choice）",
       "note": "G1"
@@ -420,8 +420,8 @@
       "category": "heroic",
       "name": "過載爆發",
       "group": "G1",
-      "wave": "W4",
-      "status": "todo",
+      "wave": "W3",
+      "status": "done",
       "need": "宣告 control:select（只改 JSON，零元件成本）",
       "accept": "卡片出現下拉；選完重開卡仍在（flowState.choice）",
       "note": "G1"
@@ -431,8 +431,8 @@
       "category": "heroic",
       "name": "內蘊源泉",
       "group": "G1",
-      "wave": "W4",
-      "status": "todo",
+      "wave": "W3",
+      "status": "done",
       "need": "宣告 control:select（只改 JSON，零元件成本）",
       "accept": "卡片出現下拉；選完重開卡仍在（flowState.choice）",
       "note": "G1，但多一個「每次休息重選」"

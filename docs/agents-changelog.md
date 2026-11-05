@@ -9,6 +9,11 @@
 
 ---
 
+*2026-11-05（Wave 4 G1 英雄技能單選宣告與下拉實裝）：依 `docs/plan/04-heroic-plans.md` 與 `worklist.md` 完成 W4 G1 四筆英雄技能（靈氣掌握、靈氣掌握【變體】、過載爆發、內蘊源泉）實裝。
+① 資料宣告：在 `scratch/flows/heroic.json` 為四筆條目補齊 `control: { kind: 'select', label, options }`，並為【內蘊源泉】配置 `reset: 'rest'`（休息重選）；經 `npm run build:flows` 正確編譯入 `src/features/character-sheet/data/effectFlows.json`。
+② 跑團卡渲染與端到端驗證：英雄技能卡底部掛載之 `renderFlowControls` 成功接收 options 並渲染 `<select data-testid="flow-heroic-0-choice">`，測試斷言其 5~6 個選項存在、選定值（choice）持久化渲染，以及休息重置清空 choice（`test:flowui` 增至 46 條全綠）。
+③ 刻意破壞驗證：刻意破壞選項匹配與重置清空期望，均成功轉紅；`worklist.md` 與 `worklist.json` 同步標記 done。全鏈 63 關 `npm test`、`npm run test:emoji`、`npm run build` 全綠通過。*
+
 *2026-11-05（Wave 3【升級】與 1000z 特性庫實裝）：依 `docs/plan/06-traits-under-1000z.md` 完成 W3 實裝。
 ① 建立 `src/features/character-sheet/data/equipmentTraits.js`：收錄 24 筆特性（武器 11 筆、防具/盾牌 6 筆、飾品 5 筆，及 >1000z 基準特性），支援多選與選項字典，匯出 `traitsFor`（篩選槽位與價格）與 `traitPrice`（計算折抵，依原書公式 Z − 高瞻遠矚SL × 100，最低 0z）。
 ② 規格登記與改造流程：在 `flowDataSpecs.js` 登記 `heroic:升級` 之 records/requires 規格；在 `flowData.js` 實裝 `getForesightSL` 與 `planUpgradeTrait`，驗證槽位匹配、特性價格（≤1000z）、資金餘額並生成 `kind: 'heroic'` 改造履歷。
