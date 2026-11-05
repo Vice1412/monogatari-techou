@@ -112,8 +112,13 @@ const copyToClipboard = async (text) => {
   }
 };
 
-export default function GourmetCookbook({ character, onChange, showToast = () => {} }) {
-  const [subTab, setSubTab] = useState('ingredients');
+export default function GourmetCookbook({
+  character,
+  onChange,
+  showToast = () => {},
+  initialSubTab = 'ingredients'
+}) {
+  const [subTab, setSubTab] = useState(initialSubTab);
   const [newName, setNewName] = useState('');
   const [newTaste, setNewTaste] = useState(TASTES[0]);
   const [lastRoll, setLastRoll] = useState(null);
@@ -149,6 +154,10 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
   const tasteCounts = useMemo(() => countByTaste(ingredients), [ingredients]);
   /** 食材是否已達上限——滿了就擋住新增，並常駐顯示提示。 */
   const isFull = ingredients.length >= capacity;
+  const hasGreatFeast = (character?.heroicSkills || []).some(
+    (h) => (typeof h === 'string' ? h : h?.name) === '大吃一頓'
+  );
+  const maxDishIngredients = hasGreatFeast ? 4 : 3;
 
   const write = (patch) => {
     onChange({
@@ -278,8 +287,8 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
   const togglePick = (id) => {
     setPicked((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= 3) {
-        showToast('一次最多組合 3 份食材', 'warning');
+      if (prev.length >= maxDishIngredients) {
+        showToast(`一次最多組合 ${maxDishIngredients} 份食材`, 'warning');
         return prev;
       }
       return [...prev, id];
@@ -931,7 +940,7 @@ export default function GourmetCookbook({ character, onChange, showToast = () =>
             {renderTasteBar()}
 
             <div className="text-t11 font-bold text-[#6b5a4b]">
-              選擇 2～3 份食材（已選 {pickedIngredients.length} 份）
+              選擇 2～{maxDishIngredients} 份食材（已選 {pickedIngredients.length} 份）
             </div>
 
             {/* 依口味分組的選料區——組口味時正是照口味在找食材 */}

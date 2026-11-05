@@ -9,6 +9,12 @@
 
 ---
 
+*2026-11-05（Wave 4 英雄技能 21 筆全數完成）：依 `docs/plan/04-heroic-plans.md` 與 `worklist.md` 完成 Wave 4 英雄技能全組實裝。
+① G1~G3 完成：G1（4 筆，select 下拉選單）；G2（6 筆，multiSelect 多選，min/max 限制與 picks 去重）；G3（4 筆，text 自由文字輸入，並修復 `flowResetState` 確保場景重置時玩家自訂文字不丟失）。
+② G4 子實體卡實裝：建立純函式模組 `src/features/character-sheet/utils/summonAvatar.js` 與全新子實體卡元件 `SummonEntityCard.jsx`，精準還原原書 Core p.138 規範（等級＝角色等級；顯現體最大 HP＝2×基本 MIG 骰面＋角色最大 HP/2；5 組首次召喚自選鎖定：d10 屬性指派、2 項傷害抗性、四選二攻擊選項、非物理傷害屬性、命中檢定屬性；未填齊時不可召喚並以原因提示阻擋；召喚時扣除 1 物語點與當前 HP 一半；變體版另含脈衝授權與快速召喚互斥提示）。
+③ G5 清單與 G6 額度實裝：G5（4 筆：陷阱大師、模擬同化、地城主廚、為了更美好的未來）利用 `recordList` 多行結構化清單完成秘密記錄與名冊功能；G6【大吃一頓】實裝每場景一次計數器，並放寬 `GourmetCookbook.jsx` 烹飪食材上限（普通 3 份，具備【大吃一頓】時放寬至 4 份）。
+④ 測試護欄與刻意破壞驗證：建立 `tests/summonAvatar.test.mjs`（15 條斷言）並掛入 `package.json` 的 `test` 串鏈（成為第 64 關 `test:avatars`）；在 `tests/playHudFlow.test.mjs` 增補 N、O、P 區塊（15 條斷言）；完成兩次刻意破壞驗證（破壞 → FAIL → 還原 → PASS）；排查並修正術語命名（官方禁用「特技」全面正名為「選項」）與 UI 系統守護。全鏈 64 關 `npm test`、`npm run test:emoji`、`npm run build` 全綠通過。`worklist.md` 與 `worklist.json` W4 條目全數標記 done。*
+
 *2026-11-05（Wave 4 G1 英雄技能單選宣告與下拉實裝）：依 `docs/plan/04-heroic-plans.md` 與 `worklist.md` 完成 W4 G1 四筆英雄技能（靈氣掌握、靈氣掌握【變體】、過載爆發、內蘊源泉）實裝。
 ① 資料宣告：在 `scratch/flows/heroic.json` 為四筆條目補齊 `control: { kind: 'select', label, options }`，並為【內蘊源泉】配置 `reset: 'rest'`（休息重選）；經 `npm run build:flows` 正確編譯入 `src/features/character-sheet/data/effectFlows.json`。
 ② 跑團卡渲染與端到端驗證：英雄技能卡底部掛載之 `renderFlowControls` 成功接收 options 並渲染 `<select data-testid="flow-heroic-0-choice">`，測試斷言其 5~6 個選項存在、選定值（choice）持久化渲染，以及休息重置清空 choice（`test:flowui` 增至 46 條全綠）。

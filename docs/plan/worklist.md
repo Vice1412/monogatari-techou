@@ -30,7 +30,13 @@
 | ✓ | `quirk:百臉千面` | Q2 | → 併入 W2（已完成） | 見 verify-W2-report.md |
 | ✓ | `quirk:天才發明家` | Q2 | → 併入 W2（已完成） | 見 verify-W2-report.md |
 
-## W3 · 特性與【升級】（5 筆）
+## W3 · 特性與【升級】（1 筆）
+
+| 狀態 | id | 群 | 要做什麼 | 驗收 |
+|---|---|---|---|---|
+| ✓ | `heroic:升級` | G6 | counter＋reset（已有）＋資料表（特性／食材上限） | 休息時可用一次；跨休息會回充 |
+
+## W4 · 英雄技能 22 筆（21 筆）
 
 | 狀態 | id | 群 | 要做什麼 | 驗收 |
 |---|---|---|---|---|
@@ -38,29 +44,23 @@
 | ✓ | `heroic:靈氣掌握【變體】` | G1 | 宣告 control:select（只改 JSON，零元件成本） | 卡片出現下拉；選完重開卡仍在（flowState.choice） |
 | ✓ | `heroic:過載爆發` | G1 | 宣告 control:select（只改 JSON，零元件成本） | 卡片出現下拉；選完重開卡仍在（flowState.choice） |
 | ✓ | `heroic:內蘊源泉` | G1 | 宣告 control:select（只改 JSON，零元件成本） | 卡片出現下拉；選完重開卡仍在（flowState.choice） |
-| ✓ | `heroic:升級` | G6 | counter＋reset（已有）＋資料表（特性／食材上限） | 休息時可用一次；跨休息會回充 |
-
-## W4 · 英雄技能 22 筆（17 筆）
-
-| 狀態 | id | 群 | 要做什麼 | 驗收 |
-|---|---|---|---|---|
-| ☐ | `heroic:嵌合術精通` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
-| ☐ | `heroic:解剖學家` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
-| ☐ | `heroic:樸實之力` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
-| ☐ | `heroic:穩固突變` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
-| ☐ | `heroic:本店特色` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
-| ☐ | `heroic:英雄級夥伴` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
-| ☐ | `heroic:主題曲` | G3 | text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單 | 長字串可存；空白視同未填；不新增第二份資料 |
-| ☐ | `heroic:儀式印記` | G3 | text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單 | 長字串可存；空白視同未填；不新增第二份資料 |
-| ☐ | `heroic:啟示` | G3 | text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單 | 長字串可存；空白視同未填；不新增第二份資料 |
-| ☐ | `heroic:啟示【變體】` | G3 | text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單 | 長字串可存；空白視同未填；不新增第二份資料 |
-| ☐ | `heroic:偉大召喚` | G4 | 新子實體卡（仿 NecromancerMinionSheet） | 未填齊 5 組選擇時不能按召喚；每組選擇有測試 |
-| ☐ | `heroic:偉大召喚【變體】` | G4 | 新子實體卡（仿 NecromancerMinionSheet） | 未填齊 5 組選擇時不能按召喚；每組選擇有測試 |
-| ☐ | `heroic:模擬同化` | G5 | recordList（W0-2 已有）＋各自上限 | 新增／刪除／到期可運作；上限來自資料不是寫死 |
-| ☐ | `heroic:陷阱大師` | G5 | recordList（W0-2 已有）＋各自上限 | 新增／刪除／到期可運作；上限來自資料不是寫死 |
-| ☐ | `heroic:地城主廚` | G5 | recordList（W0-2 已有）＋各自上限 | 新增／刪除／到期可運作；上限來自資料不是寫死 |
-| ☐ | `heroic:為了更美好的未來` | G5 | recordList（W0-2 已有）＋各自上限 | 新增／刪除／到期可運作；上限來自資料不是寫死 |
-| ☐ | `heroic:大吃一頓` | G6 | counter＋reset（已有）＋資料表（特性／食材上限） | 休息時可用一次；跨休息會回充 |
+| ✓ | `heroic:嵌合術精通` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
+| ✓ | `heroic:解剖學家` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
+| ✓ | `heroic:樸實之力` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
+| ✓ | `heroic:穩固突變` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
+| ✓ | `heroic:本店特色` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
+| ✓ | `heroic:英雄級夥伴` | G2 | multiSelect + picks（W0-2 已有），spec 設 min/max | 選滿時其餘 disabled；picks 存得住；重開卡仍在 |
+| ✓ | `heroic:主題曲` | G3 | text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單 | 長字串可存；空白視同未填；不新增第二份資料 |
+| ✓ | `heroic:儀式印記` | G3 | text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單 | 長字串可存；空白視同未填；不新增第二份資料 |
+| ✓ | `heroic:啟示` | G3 | text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單 | 長字串可存；空白視同未填；不新增第二份資料 |
+| ✓ | `heroic:啟示【變體】` | G3 | text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單 | 長字串可存；空白視同未填；不新增第二份資料 |
+| ✓ | `heroic:偉大召喚` | G4 | 新子實體卡（仿 NecromancerMinionSheet） | 未填齊 5 組選擇時不能按召喚；每組選擇有測試 |
+| ✓ | `heroic:偉大召喚【變體】` | G4 | 新子實體卡（仿 NecromancerMinionSheet） | 未填齊 5 組選擇時不能按召喚；每組選擇有測試 |
+| ✓ | `heroic:模擬同化` | G5 | recordList（W0-2 已有）＋各自上限 | 新增／刪除／到期可運作；上限來自資料不是寫死 |
+| ✓ | `heroic:陷阱大師` | G5 | recordList（W0-2 已有）＋各自上限 | 新增／刪除／到期可運作；上限來自資料不是寫死 |
+| ✓ | `heroic:地城主廚` | G5 | recordList（W0-2 已有）＋各自上限 | 新增／刪除／到期可運作；上限來自資料不是寫死 |
+| ✓ | `heroic:為了更美好的未來` | G5 | recordList（W0-2 已有）＋各自上限 | 新增／刪除／到期可運作；上限來自資料不是寫死 |
+| ✓ | `heroic:大吃一頓` | G6 | counter＋reset（已有）＋資料表（特性／食材上限） | 休息時可用一次；跨休息會回充 |
 
 ## W5 · 金手指剩餘（18 筆）
 

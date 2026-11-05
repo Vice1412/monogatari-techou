@@ -6583,14 +6583,19 @@
    "bucket": "core",
    "control": {
     "kind": "toggle",
-    "label": "主題曲演奏中（音調：＿＿）",
+    "label": "主題曲演奏中",
     "reset": "scene"
    },
    "controls": [
     {
      "kind": "toggle",
-     "label": "主題曲演奏中（音調：＿＿）",
+     "label": "主題曲演奏中",
      "reset": "scene"
+    },
+    {
+     "kind": "text",
+     "label": "主題曲名稱與綁定音調",
+     "maxLength": 40
     }
    ],
    "effects": [
@@ -6773,14 +6778,20 @@
    "bucket": "core",
    "control": {
     "kind": "toggle",
-    "label": "儀式印記已放置（條件：＿＿）",
+    "label": "儀式印記已放置",
     "reset": "scene"
    },
    "controls": [
     {
      "kind": "toggle",
-     "label": "儀式印記已放置（條件：＿＿）",
+     "label": "儀式印記已放置",
      "reset": "scene"
+    },
+    {
+     "kind": "text",
+     "label": "觸發條件與封印儀式",
+     "multiline": true,
+     "maxLength": 120
     }
    ],
    "effects": [
@@ -7428,19 +7439,27 @@
    "control": {
     "kind": "button",
     "label": "啟示：觸發解除效果（不解除）",
+    "reset": "scene",
     "cost": {
      "fp": 2
     },
-    "outcome": "使用已綁定阿爾卡納的解除效果，阿爾卡納維持綁定"
+    "outcome": "花費 2 點物語點，觸發已綁定阿爾卡納的解除效果，阿爾卡納維持綁定"
    },
    "controls": [
     {
      "kind": "button",
      "label": "啟示：觸發解除效果（不解除）",
+     "reset": "scene",
      "cost": {
       "fp": 2
      },
-     "outcome": "使用已綁定阿爾卡納的解除效果，阿爾卡納維持綁定"
+     "outcome": "花費 2 點物語點，觸發已綁定阿爾卡納的解除效果，阿爾卡納維持綁定"
+    },
+    {
+     "kind": "text",
+     "label": "未知阿爾卡納備註",
+     "multiline": true,
+     "maxLength": 120
     }
    ],
    "effects": [
@@ -7484,6 +7503,12 @@
      "kind": "toggle",
      "label": "本次快速召喚只付第一個代價",
      "reset": "scene"
+    },
+    {
+     "kind": "text",
+     "label": "未知阿爾卡納備註（含脈衝）",
+     "multiline": true,
+     "maxLength": 120
     }
    ],
    "effects": [
@@ -7520,13 +7545,32 @@
    "control": {
     "kind": "button",
     "label": "地城主廚：以敵人為食材",
+    "reset": "none",
     "outcome": "把一個可見敵人的物種換成一份對應風味的食材（每敵人每場景一次）"
    },
    "controls": [
     {
      "kind": "button",
      "label": "地城主廚：以敵人為食材",
+     "reset": "none",
      "outcome": "把一個可見敵人的物種換成一份對應風味的食材（每敵人每場景一次）"
+    },
+    {
+     "kind": "recordList",
+     "label": "本場景已用食材敵人名單",
+     "max": 10,
+     "fields": [
+      {
+       "key": "enemy",
+       "label": "敵人名稱",
+       "placeholder": "填寫敵人名稱"
+      },
+      {
+       "key": "flavor",
+       "label": "轉化風味",
+       "placeholder": "苦／鹹／酸／甜／鮮"
+      }
+     ]
     }
    ],
    "effects": [
@@ -8433,11 +8477,53 @@
    "flow": "grant",
    "bucket": "core",
    "control": {
-    "kind": "none"
+    "kind": "multiSelect",
+    "label": "額外學習物種（自選兩種）",
+    "max": 2,
+    "options": [
+     {
+      "value": "構裝體",
+      "label": "構裝體"
+     },
+     {
+      "value": "惡魔",
+      "label": "惡魔"
+     },
+     {
+      "value": "元素",
+      "label": "元素"
+     },
+     {
+      "value": "不死",
+      "label": "不死"
+     }
+    ],
+    "min": 1
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "multiSelect",
+     "label": "額外學習物種（自選兩種）",
+     "max": 2,
+     "options": [
+      {
+       "value": "構裝體",
+       "label": "構裝體"
+      },
+      {
+       "value": "惡魔",
+       "label": "惡魔"
+      },
+      {
+       "value": "元素",
+       "label": "元素"
+      },
+      {
+       "value": "不死",
+       "label": "不死"
+      }
+     ],
+     "min": 1
     }
    ],
    "effects": [
@@ -9679,15 +9765,61 @@
    "flow": "state",
    "bucket": "core",
    "control": {
-    "kind": "toggle",
-    "label": "已選風味（三種）與套用效果",
-    "reset": "none"
+    "kind": "multiSelect",
+    "label": "招牌風味（自選三種）",
+    "max": 3,
+    "options": [
+     {
+      "value": "苦味",
+      "label": "苦味"
+     },
+     {
+      "value": "鹹味",
+      "label": "鹹味"
+     },
+     {
+      "value": "酸味",
+      "label": "酸味"
+     },
+     {
+      "value": "甜味",
+      "label": "甜味"
+     },
+     {
+      "value": "鮮味",
+      "label": "鮮味"
+     }
+    ],
+    "min": 3
    },
    "controls": [
     {
-     "kind": "toggle",
-     "label": "已選風味（三種）與套用效果",
-     "reset": "none"
+     "kind": "multiSelect",
+     "label": "招牌風味（自選三種）",
+     "max": 3,
+     "options": [
+      {
+       "value": "苦味",
+       "label": "苦味"
+      },
+      {
+       "value": "鹹味",
+       "label": "鹹味"
+      },
+      {
+       "value": "酸味",
+       "label": "酸味"
+      },
+      {
+       "value": "甜味",
+       "label": "甜味"
+      },
+      {
+       "value": "鮮味",
+       "label": "鮮味"
+      }
+     ],
+     "min": 3
     }
    ],
    "effects": [
@@ -9700,7 +9832,7 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "flow-listed"
    },
    "note": "這是取得時要記住的組態，屬於角色資料而非畫面狀態；目前只存在效果文裡。",
    "evidence": [
@@ -9856,13 +9988,32 @@
    "control": {
     "kind": "button",
     "label": "模擬同化：記下一個咒語",
+    "reset": "none",
     "outcome": "把基因分析對象會的咒語加入嵌合咒語清單"
    },
    "controls": [
     {
      "kind": "button",
      "label": "模擬同化：記下一個咒語",
+     "reset": "none",
      "outcome": "把基因分析對象會的咒語加入嵌合咒語清單"
+    },
+    {
+     "kind": "recordList",
+     "label": "同化咒語名單",
+     "max": 8,
+     "fields": [
+      {
+       "key": "spellName",
+       "label": "咒語名稱",
+       "placeholder": "填寫咒語名"
+      },
+      {
+       "key": "source",
+       "label": "來源生物",
+       "placeholder": "填寫生物名"
+      }
+     ]
     }
    ],
    "effects": [
@@ -9893,15 +10044,53 @@
    "flow": "modifier",
    "bucket": "playtest",
    "control": {
-    "kind": "toggle",
-    "label": "所選兩項屬性（＿＿／＿＿）",
-    "reset": "none"
+    "kind": "multiSelect",
+    "label": "命中檢定替代屬性（自選兩種）",
+    "max": 2,
+    "options": [
+     {
+      "value": "靈巧",
+      "label": "靈巧"
+     },
+     {
+      "value": "洞察",
+      "label": "洞察"
+     },
+     {
+      "value": "力量",
+      "label": "力量"
+     },
+     {
+      "value": "意志",
+      "label": "意志"
+     }
+    ],
+    "min": 2
    },
    "controls": [
     {
-     "kind": "toggle",
-     "label": "所選兩項屬性（＿＿／＿＿）",
-     "reset": "none"
+     "kind": "multiSelect",
+     "label": "命中檢定替代屬性（自選兩種）",
+     "max": 2,
+     "options": [
+      {
+       "value": "靈巧",
+       "label": "靈巧"
+      },
+      {
+       "value": "洞察",
+       "label": "洞察"
+      },
+      {
+       "value": "力量",
+       "label": "力量"
+      },
+      {
+       "value": "意志",
+       "label": "意志"
+      }
+     ],
+     "min": 2
     }
    ],
    "effects": [
@@ -9928,7 +10117,7 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "flow-listed"
    },
    "note": "三個分支都依賴「武器類別」與「屬性替換」，兩者都沒有可讀欄位。",
    "evidence": [
@@ -10465,6 +10654,28 @@
      "label": "",
      "max": "SL + 3",
      "reset": "none"
+    },
+    {
+     "kind": "recordList",
+     "label": "聚落繁榮度名冊",
+     "max": 6,
+     "fields": [
+      {
+       "key": "town",
+       "label": "聚落名稱",
+       "placeholder": "填寫聚落名稱"
+      },
+      {
+       "key": "prosperity",
+       "label": "當前繁榮度",
+       "placeholder": "數值（如 10, 15, 20）"
+      },
+      {
+       "key": "notes",
+       "label": "影響與加成",
+       "placeholder": "費用減半／免費休息等"
+      }
+     ]
     }
    ],
    "effects": [
@@ -11085,15 +11296,111 @@
    "flow": "state",
    "bucket": "playtest",
    "control": {
-    "kind": "toggle",
-    "label": "本次休息的穩固形態（兩種）",
-    "reset": "rest"
+    "kind": "multiSelect",
+    "label": "穩固突變形態（至多兩種）",
+    "max": 2,
+    "reset": "rest",
+    "options": [
+     {
+      "value": "兩棲形態",
+      "label": "兩棲形態"
+     },
+     {
+      "value": "追獵形態",
+      "label": "追獵形態"
+     },
+     {
+      "value": "腕力形態",
+      "label": "腕力形態"
+     },
+     {
+      "value": "放電形態",
+      "label": "放電形態"
+     },
+     {
+      "value": "神經吞噬形態",
+      "label": "神經吞噬形態"
+     },
+     {
+      "value": "疊甲形態",
+      "label": "疊甲形態"
+     },
+     {
+      "value": "噴射形態",
+      "label": "噴射形態"
+     },
+     {
+      "value": "飛翼形態",
+      "label": "飛翼形態"
+     },
+     {
+      "value": "爆燃形態",
+      "label": "爆燃形態"
+     },
+     {
+      "value": "靈巧形態",
+      "label": "靈巧形態"
+     },
+     {
+      "value": "毒物形態",
+      "label": "毒物形態"
+     }
+    ],
+    "min": 0
    },
    "controls": [
     {
-     "kind": "toggle",
-     "label": "本次休息的穩固形態（兩種）",
-     "reset": "rest"
+     "kind": "multiSelect",
+     "label": "穩固突變形態（至多兩種）",
+     "max": 2,
+     "reset": "rest",
+     "options": [
+      {
+       "value": "兩棲形態",
+       "label": "兩棲形態"
+      },
+      {
+       "value": "追獵形態",
+       "label": "追獵形態"
+      },
+      {
+       "value": "腕力形態",
+       "label": "腕力形態"
+      },
+      {
+       "value": "放電形態",
+       "label": "放電形態"
+      },
+      {
+       "value": "神經吞噬形態",
+       "label": "神經吞噬形態"
+      },
+      {
+       "value": "疊甲形態",
+       "label": "疊甲形態"
+      },
+      {
+       "value": "噴射形態",
+       "label": "噴射形態"
+      },
+      {
+       "value": "飛翼形態",
+       "label": "飛翼形態"
+      },
+      {
+       "value": "爆燃形態",
+       "label": "爆燃形態"
+      },
+      {
+       "value": "靈巧形態",
+       "label": "靈巧形態"
+      },
+      {
+       "value": "毒物形態",
+       "label": "毒物形態"
+      }
+     ],
+     "min": 0
     }
    ],
    "effects": [
@@ -11113,7 +11420,7 @@
     }
    ],
    "apply": {
-    "via": "flow-control"
+    "via": "flow-listed"
    },
    "note": "穩固形態是跨場景常駐的選定結果，且會改變「是否視為顯現」的判定；現行只有顯現上限。",
    "evidence": [
@@ -11441,11 +11748,53 @@
    "flow": "modifier",
    "bucket": "core",
    "control": {
-    "kind": "none"
+    "kind": "multiSelect",
+    "label": "夥伴提升屬性（選擇一項）",
+    "max": 1,
+    "options": [
+     {
+      "value": "DEX",
+      "label": "DEX"
+     },
+     {
+      "value": "INS",
+      "label": "INS"
+     },
+     {
+      "value": "MIG",
+      "label": "MIG"
+     },
+     {
+      "value": "WLP",
+      "label": "WLP"
+     }
+    ],
+    "min": 1
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "multiSelect",
+     "label": "夥伴提升屬性（選擇一項）",
+     "max": 1,
+     "options": [
+      {
+       "value": "DEX",
+       "label": "DEX"
+      },
+      {
+       "value": "INS",
+       "label": "INS"
+      },
+      {
+       "value": "MIG",
+       "label": "MIG"
+      },
+      {
+       "value": "WLP",
+       "label": "WLP"
+      }
+     ],
+     "min": 1
     }
    ],
    "effects": [
@@ -11953,11 +12302,77 @@
    "flow": "modifier",
    "bucket": "core",
    "control": {
-    "kind": "none"
+    "kind": "multiSelect",
+    "label": "所選物種（至多三組共六種）",
+    "max": 6,
+    "options": [
+     {
+      "value": "野獸",
+      "label": "野獸"
+     },
+     {
+      "value": "構裝體",
+      "label": "構裝體"
+     },
+     {
+      "value": "惡魔",
+      "label": "惡魔"
+     },
+     {
+      "value": "元素",
+      "label": "元素"
+     },
+     {
+      "value": "魔獸",
+      "label": "魔獸"
+     },
+     {
+      "value": "植物",
+      "label": "植物"
+     },
+     {
+      "value": "不死",
+      "label": "不死"
+     }
+    ],
+    "min": 2
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "multiSelect",
+     "label": "所選物種（至多三組共六種）",
+     "max": 6,
+     "options": [
+      {
+       "value": "野獸",
+       "label": "野獸"
+      },
+      {
+       "value": "構裝體",
+       "label": "構裝體"
+      },
+      {
+       "value": "惡魔",
+       "label": "惡魔"
+      },
+      {
+       "value": "元素",
+       "label": "元素"
+      },
+      {
+       "value": "魔獸",
+       "label": "魔獸"
+      },
+      {
+       "value": "植物",
+       "label": "植物"
+      },
+      {
+       "value": "不死",
+       "label": "不死"
+      }
+     ],
+     "min": 2
     }
    ],
    "effects": [
@@ -12863,6 +13278,28 @@
      "label": "",
      "max": "1 + 有備無患SL",
      "reset": "scene"
+    },
+    {
+     "kind": "recordList",
+     "label": "設置中的陷阱（秘密記錄）",
+     "max": 5,
+     "fields": [
+      {
+       "key": "trigger",
+       "label": "觸發動作",
+       "placeholder": "例如：近戰攻擊／施展咒語"
+      },
+      {
+       "key": "damageType",
+       "label": "傷害類型",
+       "placeholder": "物理／火／冰…"
+      },
+      {
+       "key": "status",
+       "label": "狀態效果",
+       "placeholder": "緩速／虛弱…"
+      }
+     ]
     }
    ],
    "effects": [

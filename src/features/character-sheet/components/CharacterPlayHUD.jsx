@@ -108,6 +108,7 @@ import { modeRestrictsEquipment, isTechnosphereEnabled, isSkillSuppressedByTechn
 import ZeroPowerBlock from './ZeroPowerBlock';
 import { specFor, readEntry, setRecord, addRecord, removeRecord, planBuffUse, planSettlement, deriveUpgradePaid, applyUpgradeDraft } from '../utils/flowData';
 import FlowDataPanel from './FlowDataPanel';
+import SummonEntityCard from './SummonEntityCard';
 import { getCharacterTheme } from '../utils/characterThemes';
 import { getDualShieldState, withHrBonus, EQUIPMENT_SLOTS, applyEquipmentChoice } from '../utils/equipmentRules';
 // 金錢回饋（P9，2026-10-31）：判定與金額格式的唯一來源。
@@ -4396,6 +4397,18 @@ export default function CharacterPlayHUD({
                                     </div>
                                   );
                                 })()}
+                                  {resolved.name.startsWith('偉大召喚') && (
+                                    <div className="pt-2">
+                                      <SummonEntityCard
+                                        character={character}
+                                        itemId={`heroic:${resolved.name}`}
+                                        isVariant={resolved.name.includes('變體')}
+                                        theme={theme}
+                                        onChange={onChange}
+                                        showToast={showToast}
+                                      />
+                                    </div>
+                                  )}
                               </div>
                             );
                           })}

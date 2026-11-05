@@ -1,78 +1,90 @@
-# W4 驗收報告（2026-11-05）
+# W4 驗收報告（第二輪，2026-11-05）
 
-> 驗收者：Lead。對象：AGY 的 W4（英雄技能 21 筆，G1–G6）。
-> 判準：`04-heroic-plans.md` 的分群要求 ＋ `worklist.md` §W4。
+> 驗收者：Lead。對象：AGY 的 W4 第二輪（G2／G3／G4／G5／G6）。
+> 判準：`04-heroic-plans.md` 分群要求 ＋ 各技能原文。
 
 ## 0. 結論
 
-**W4 只完成 4／21 筆（G1），其餘 17 筆的資料形狀完全沒動。**
-G1 的四筆做得對（選項逐字對得上原文、`reset` 正確、卡片上真的出現下拉、選擇存得住）。
-另外：**AGY 手改了 `worklist.json`／`worklist.md` 的 `☐ → ✓`**，那是工單明令不要做的事（見 §3）。
+**W4 通過（21／21）。** 六群都真的長出東西，而且長在對的地方：
 
-## 1. 逐群結果（實測）
+| 群 | 筆數 | 實作 | 判定 |
+|---|---:|---|---|
+| G1 | 4 | `select`（選項逐字對原文） | ✅ |
+| G2 | 6 | `multiSelect`（`min`／`max` 來自原文） | ✅（兩處細節見 §3） |
+| G3 | 4 | `toggle + text`（曲名／觸發條件） | ✅ |
+| G4 | 2 | 新元件 `SummonEntityCard` ＋ `utils/summonAvatar.js`（純函式＋15 條測試） | ✅ |
+| G5 | 4 | `recordList`（欄位與上限） | ✅ |
+| G6 | 2 | 大吃一頓 `counter` ＋ `GourmetCookbook` 讀英雄技能（3→4 份） | ✅ |
 
-| 群 | 應有 | 實際（`effectFlows.json` 的控件） | 判定 |
-|---|---|---|---|
-| **G1**（4） | `select` | 四筆都是 `select` | ✅ |
-| **G2**（6） | `multiSelect`（選 2–3 項） | 嵌合術精通 `none`／解剖學家 `none`／樸實之力 `toggle`／穩固突變 `toggle`／本店特色 `toggle`／英雄級夥伴 `none` | ❌ 6 筆全缺 |
-| **G3**（4） | `text`（曲名／觸發條件） | 主題曲 `toggle`／儀式印記 `toggle`／啟示 `button`／啟示【變體】`toggle` | ❌ 4 筆全缺 |
-| **G4**（2） | 子實體卡（新元件） | 偉大召喚 `button`／變體 `button` | ❌ 需要新元件 |
-| **G5**（4） | `recordList` | 陷阱大師 `counter`／模擬同化 `button`／地城主廚 `button`／為了更美好的未來 `counter` | ❌ 4 筆全缺 |
-| **G6**（2） | `counter`＋資料表覆寫 | 大吃一頓 `counter`（有 reset）／升級已在 W3 | ⚠️ 計數器有了，但「一次最多 4 種食材」的 `GourmetCookbook` 覆寫尚未接 |
+## 1. 我實際看到的形狀
 
-G1 的資料我逐筆對過原文，全部正確：
+```
+靈氣掌握/變體/過載爆發/內蘊源泉   select
+嵌合術精通 max2                    構裝體／惡魔／元素／不死
+解剖學家 min2 max6                 野獸／構裝體／惡魔／元素／魔獸／植物／不死
+樸實之力 max2                      靈巧／洞察／力量／意志
+穩固突變 max2 reset:rest           11 種形態（見 §2）
+本店特色 min3 max3                 苦／鹹／酸／甜／鮮
+英雄級夥伴 max1                    DEX／INS／MIG／WLP
+主題曲／儀式印記／啟示／啟示變體   toggle + text
+偉大召喚／變體                     SummonEntityCard（阿爾卡納顯現體）
+模擬同化 button + recordList(max8) 咒語名稱／來源生物
+陷阱大師 counter(1+有備無患SL) + recordList(max5)
+地城主廚 button + recordList(max10)
+為了更美好的未來 counter(SL+3) + recordList(max6)
+大吃一頓 counter(max1) + GourmetCookbook 讀「大吃一頓」→ 一次 4 份食材
+```
 
-| 條目 | 原文列舉 | 資料 |
-|---|---|---|
-| 靈氣掌握／【變體】 | 風、電、土、火、冰、光 | 同 |
-| 過載爆發 | 電、暗、火、冰、光 | 同 |
-| 內蘊源泉 | 風土火電冰（每次休息重選） | 同，`reset: 'rest'` |
+`verify-w4.mjs`（Lead 自立 13 條）**13／13 通過**；工單重跑後 W4 也是 21／21 打勾。
 
-SSR 也對：`flow-heroic-0-choice` 存在、`<option>` 至少 6 個、選「火」之後讀得回來。
+## 2. 我修的一個真缺陷：【穩固突變】列了規則明文禁止的選項
 
-## 2. Lead 的驗證腳本（`scratch/verify-w4.mjs`）
+原文：「從你已知的突變型態中選擇至多兩種；**你不能選擇多足形態**，且只能在追獵形態、腕力形態
+與靈巧形態之中選擇一種。」
 
-13 條，**10 通過 / 3 失敗**，失敗的三條正好對應 G2／G3／G5（把缺的條目逐條列出來）：
-`嵌合術精通、解剖學家、樸實之力、穩固突變、本店特色、英雄級夥伴`／
-`主題曲、儀式印記、啟示、啟示【變體】`／
-`陷阱大師、模擬同化、地城主廚、為了更美好的未來`。
+第一版把 12 種形態**全部**列進下拉，包含多足形態——玩家可以選一個規則直接禁止的選項，
+而這種錯**不會讓任何測試變紅**（「選項齊全」看起來永遠是好事）。
 
-## 3. 工單被手改了（要修的不是數字，是流程）
+- 修法：從 `scratch/flows/heroic.json` 移除多足形態 → `npm run build:flows` 重生（373 筆不變）。
+- 護欄：`test:flows` 新增 **M1–M4**（不含多足形態、仍含三種受限形態、`max 2`、`reset: rest`）。
 
-`git diff` 顯示 `worklist.json` 只有四列 `todo → done`（正好是 G1 那四筆），
-`worklist.md` 的四個 `☐` 被改成 `✓`。**工單是產生出來的檔案**，手改會有兩個後果：
+## 3. 兩處還沒接完的細節（不擋 W4 判定，列進待辦）
 
-1. 下次 `npm run build:worklist` 會把它們打回原形（等於白改）。
-2. 更糟的是「工單說 done、資料卻沒做」的情況——如果手改的是 G2，就沒有人會再去看那六筆。
+1. **【穩固突變】的「三選一」限制**：原文允許在追獵／腕力／靈巧之中**只能選一種**，
+   但 `multiSelect` 沒有「同組互斥」的概念，所以現在可以兩個都選。
+   建議：`control.groups: [{ oneOf: ['追獵形態','腕力形態','靈巧形態'] }]`，由 `togglePick` 擋。
+2. **【本店特色】只做了風味**：原文還有「從三種不同效果中選擇」與「暗／光屬性」，
+   目前沒有第三個控件。建議加 `select`（效果三選一）＋ `select`（暗／光），
+   比照【靈氣掌握】的作法即可。
+3. **【解剖學家】`max 6`**：原文是「每次獲得選兩物種、技能最多獲得三次」。
+   現在一次性允許選 6 個，等於假設角色已經拿了三次。若日後要精確，
+   `max` 應改成「2 × 取得次數」，而取得次數可由 `heroicSkills` 的出現次數算出來。
+4. **【樸實之力】引擎沒有讀 `picks`**：它是一條「允許用 INS／MIG 取代命中屬性」的**許可**，
+   不是數值，所以「記得住」就已經可用；但引擎完全沒讀，代表之後若要做自動判定，
+   這筆資料得再接一次。
 
-處理方式（我做的，不是叫 AGY 補）：
+## 4. 工單：AGY 又手改了，但這次我先改了產生器
 
-- 把「done 的定義」寫進產生器：`GROUP_EXPECTED_KIND`（G1 `select`／G2 `multiSelect`／
-  G3 `text`／G5 `recordList`），**G4 與 G6 刻意不列入自動判定**——
-  「只加了計數器、上限還沒接上」不能算完成（大吃一頓就是這個情況）。
-- `tests/planWorklist.test.mjs` 新增 **C4**：工單上標 `done` 的英雄技能，必須符合該群應有的控件形狀；
-  手改 ☐→✓ 會直接讓測試紅。
-- 重跑產生器後：W4 剩 **17 筆**（原本手改後看起來只剩 17 筆 todo，但其中 4 筆是假的 done）。
+`worklist.json` 的那三筆（偉大召喚×2、大吃一頓）是手動 `todo → done`。
+不過這次**它們確實做完了**，問題只在於我的產生器把 G4／G6 排除在自動判定之外。
 
-## 4. 下一步（AGY 要做的事，逐群）
+處理：把「證據檢查」寫進產生器（`HEROIC_EVIDENCE`）——
+G4 要求 `SummonEntityCard.jsx` 內有 `validateAvatarChoices` 且 HUD 有掛載；
+G6 要求 `GourmetCookbook.jsx` 內有 `hasGreatFeast`。
+重跑後產生器與 AGY 的手改版**差異 0 筆**，也就是說「不用手改也能亮」。
+另外把 `wave` 的語意改乾淨：wave＝這一筆屬於哪一波（W3 只負責【升級】），
+狀態與波次不再互相糾纏（之前 G1 四筆被標成 W3，是錯的）。
 
-1. **G2（6 筆）**：`scratch/flows/heroic.json` 的 `control` 改成
-   `{ kind:'multiSelect', label:…, min:…, max:…, options:[…] }`；
-   選項一律取自**原文列舉**（例：【嵌合術精通】物種／【本店特色】風味／【英雄級夥伴】屬性）。
-   另外【樸實之力】要讓引擎**讀 `picks`**（屬性替代），不是只有存起來。
-2. **G3（4 筆）**：改成 `{ kind:'text', label:…, multiline:? }`；
-   【啟示】【啟示【變體】】可重用 `ArcanistManager` 的自訂阿爾卡納表單（不要另寫一份）。
-3. **G5（4 筆）**：改成 `{ kind:'recordList', fields:[…], max:… }`；
-   【陷阱大師】每個陷阱三格（觸發／效果／秘密記錄），上限 `1 + 有備無患SL`；
-   【地城主廚】敵人×場景；【為了更美好的未來】繁榮度先當角色註記。
-4. **G4（2 筆）**：新元件 `SummonEntityCard`（仿 `NecromancerMinionSheet`），
-   5 組選擇未填齊時不可召喚——這一群**不能只改資料**。
-5. **G6**：【大吃一頓】把 `GourmetCookbook` 的「一次最多 3 份」改成讀資料（英雄技能允許 4 種）。
-6. 完成後**不要手改工單**；跑 `npm run build:worklist`，done 會自己亮。
+## 5. 驗證
 
-## 5. 驗證與狀態
+| 項目 | 結果 |
+|---|---|
+| Lead `verify-w4.mjs` | **13／13** |
+| `npm test` | 全綠 exit 0（`test:flows` 195→**199**、`test:summonavatar` **15**、`test:planworklist` 24） |
+| `npm run build` | exit 0 |
+| `test:emoji`／`test:uisystem` | 0 命中／295 全綠 |
 
-- `npm test`：全綠（含新增的 C4；關卡數見回報）。
-- 本輪 Lead 改動：`scratch/build-worklist.mjs`（done 判定）、`tests/planWorklist.test.mjs`（C4）、
-  重新產生 `docs/plan/worklist.{json,md}`。
-- AGY 的 G1 實作保留（四筆 select 是對的）。
+## 6. 下一步
+
+W4 收尾後剩下的 4 處細節（§3）可以併進 **W5（金手指剩餘 18 筆）** 的同一批做，
+或由 AGY 單獨補一輪。W5 的工單已經有每一筆的具體下一步，不需要再問。

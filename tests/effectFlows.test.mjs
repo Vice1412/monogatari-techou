@@ -483,6 +483,20 @@ const afterResetOnce = flowResetState(usedState(1), btnDefault);
 check('L8 重置後，同一顆按鈕可以再按一次（次數真的回充）',
   flowActionPlan(btnDefault, afterResetOnce, { ...onceCtx, controlIndex: 0 }).ok, true);
 
+// ─────────────────────────────────────────────────────────── M
+section('M. 英雄技能多選的「排除項」不能被列進去');
+// 【穩固突變】原文：「你不能選擇多足形態，且只能在追獵形態、腕力形態與靈巧形態之中選擇一種」。
+// 第一版把 12 種形態全列進下拉（含多足形態），玩家可以選一個規則明文禁止的選項——
+// 這種錯不會讓任何測試變紅，因為「選項齊全」看起來永遠是好事。
+const steadfast = FLOW_ITEMS.find((i) => i.name === '穩固突變');
+const steadfastOptions = (steadfast?.control?.options || []).map((o) => o.value || o);
+check('M1 穩固突變的選項不含「多足形態」（原文明文禁止）',
+  steadfastOptions.includes('多足形態'), false);
+check('M2 穩固突變的選項仍含三種受限形態（追獵／腕力／靈巧）',
+  ['追獵形態', '腕力形態', '靈巧形態'].every((n) => steadfastOptions.includes(n)), true);
+check('M3 穩固突變最多選兩種', steadfast?.control?.max, 2);
+check('M4 穩固突變每次休息重選（reset: rest）', steadfast?.control?.reset, 'rest');
+
 // ─────────────────────────────────────────────────────────── J
 section('J. 不可變更新與「不得使用 eval」');
 const before = mkChar({ flowState: { 'class:博學士:集中': { n: 1, on: true } } });

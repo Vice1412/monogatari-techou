@@ -583,7 +583,8 @@ export const withFlowState = (character, id, nextState) => {
  */
 export const flowResetState = (character, item) => {
   if (!item || typeof item.id !== 'string') return character;
-  const currentFields = { ...(readFlowState(character, item).fields || {}) };
+  const current = readFlowState(character, item);
+  const currentFields = { ...(current.fields || {}) };
   delete currentFields._uses;
   return withFlowState(character, item.id, {
     n: controlInitial(item),
@@ -591,7 +592,7 @@ export const flowResetState = (character, item) => {
     choice: '',
     fields: currentFields,
     picks: [],
-    text: '',
+    text: current.text || '',
     list: []
   });
 };

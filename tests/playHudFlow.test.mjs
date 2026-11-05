@@ -1,6 +1,7 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import CharacterPlayHUD from '../src/features/character-sheet/components/CharacterPlayHUD.jsx';
+import GourmetCookbook from '../src/features/character-sheet/components/companions/GourmetCookbook.jsx';
 import { createNewCharacter } from '../src/features/character-sheet/utils/characterEngine.js';
 import {
   flowItemForClassSkill,
@@ -339,6 +340,302 @@ sourceChar.flowState = {
 const resetSourceChar = resetFlowScope(sourceChar, 'rest');
 check('K4 內蘊源泉在休息重置後清空 choice（等待重選）',
   resetSourceChar.flowState?.['heroic:內蘊源泉']?.choice === '',
+  true);
+
+/* ────────────────────────────────────────────────────────────────
+   L. W4 G2 英雄技能多選控件（multiSelect）與狀態持久化驗證
+   ──────────────────────────────────────────────────────────────── */
+// L1: 嵌合術精通（multiSelect 渲染、選項存在與已選標記）
+const chimeristChar = createNewCharacter({ name: '嵌合角色' });
+chimeristChar.heroicSkills = ['嵌合術精通'];
+chimeristChar.flowState = {
+  'heroic:嵌合術精通': { picks: ['惡魔', '元素'] }
+};
+const chimeristHtml = render(chimeristChar, { initialTab: 'skills' });
+check('L1 跑團卡渲染嵌合術精通多選控件（flow-heroic-0）',
+  countOf(chimeristHtml, 'data-testid="flow-heroic-0"') >= 1,
+  true);
+check('L2 嵌合術精通計數與已選狀態（已選 2 / 2，且惡魔已勾選）',
+  chimeristHtml.includes('已選 2 / 2') && chimeristHtml.includes('✓ 惡魔'),
+  true);
+check('L3 選滿 2 項時，其餘未選選項（構裝體、不死）為 disabled',
+  hasDisabledAttr(chimeristHtml, 'flow-heroic-0-opt-構裝體') && hasDisabledAttr(chimeristHtml, 'flow-heroic-0-opt-不死'),
+  true);
+
+// L4: 穩固突變（休息重置後清空 picks）
+const mutantChar = createNewCharacter({ name: '突變角色' });
+mutantChar.heroicSkills = ['穩固突變'];
+mutantChar.flowState = {
+  'heroic:穩固突變': { picks: ['兩棲形態', '疊甲形態'] }
+};
+const resetMutantChar = resetFlowScope(mutantChar, 'rest');
+check('L4 穩固突變在休息重置後清空 picks（等待重選）',
+  Array.isArray(resetMutantChar.flowState?.['heroic:穩固突變']?.picks) &&
+  resetMutantChar.flowState['heroic:穩固突變'].picks.length === 0,
+  true);
+
+// L5: 樸實之力（屬性選項存在與選滿 2 個時停用其餘）
+const simpleChar = createNewCharacter({ name: '樸實角色' });
+simpleChar.heroicSkills = ['樸實之力'];
+simpleChar.flowState = {
+  'heroic:樸實之力': { picks: ['力量', '意志'] }
+};
+const simpleHtml = render(simpleChar, { initialTab: 'skills' });
+check('L5 樸實之力渲染 4 項屬性且已選 2 / 2',
+  simpleHtml.includes('已選 2 / 2') &&
+  hasDisabledAttr(simpleHtml, 'flow-heroic-0-opt-靈巧') &&
+  hasDisabledAttr(simpleHtml, 'flow-heroic-0-opt-洞察'),
+  true);
+
+// L6: 本店特色（五風味選項與已選三種）
+const deliChar = createNewCharacter({ name: '美食角色' });
+deliChar.heroicSkills = ['本店特色'];
+deliChar.flowState = {
+  'heroic:本店特色': { picks: ['甜味', '鮮味'] }
+};
+const deliHtml = render(deliChar, { initialTab: 'skills' });
+check('L6 本店特色未選滿時其餘選項非 disabled（已選 2 / 3）',
+  deliHtml.includes('已選 2 / 3') &&
+  !hasDisabledAttr(deliHtml, 'flow-heroic-0-opt-苦味'),
+  true);
+
+/* ────────────────────────────────────────────────────────────────
+   M. W4 G3 自由文字與多控件（toggle/button + text）驗證
+   ──────────────────────────────────────────────────────────────── */
+// M1: 主題曲（演奏 toggle + 曲名 text 輸入框）
+const themeChar = createNewCharacter({ name: '主題曲角色' });
+themeChar.heroicSkills = ['主題曲'];
+themeChar.flowState = {
+  'heroic:主題曲': { on: true, text: '勝利之歌・光音調' }
+};
+const themeHtml = render(themeChar, { initialTab: 'skills' });
+check('M1 跑團卡渲染主題曲演奏 toggle（flow-heroic-0-c0）與文字框（flow-heroic-0-c1-input）',
+  countOf(themeHtml, 'data-testid="flow-heroic-0-c0"') >= 1 &&
+  countOf(themeHtml, 'data-testid="flow-heroic-0-c1-input"') >= 1,
+  true);
+check('M2 主題曲文字框保存先前填入之曲名文字',
+  themeHtml.includes('value="勝利之歌・光音調"'),
+  true);
+
+// M3: 儀式印記（場景重置時關閉 toggle 但保留填寫條件 text）
+const markChar = createNewCharacter({ name: '印記角色' });
+markChar.heroicSkills = ['儀式印記'];
+markChar.flowState = {
+  'heroic:儀式印記': { on: true, text: '當我進入危機時' }
+};
+const resetMarkChar = resetFlowScope(markChar, 'scene');
+check('M3 儀式印記在場景重置後關閉 toggle 但完整保留觸發條件文字',
+  resetMarkChar.flowState?.['heroic:儀式印記']?.on === false &&
+  resetMarkChar.flowState?.['heroic:儀式印記']?.text === '當我進入危機時',
+  true);
+
+// M4: 啟示（按鈕與多行備註 textarea）
+const revChar = createNewCharacter({ name: '啟示角色' });
+revChar.heroicSkills = ['啟示'];
+revChar.flowState = {
+  'heroic:啟示': { text: '未知阿爾卡納：時光領主' }
+};
+const revHtml = render(revChar, { initialTab: 'skills' });
+check('M4 跑團卡渲染啟示按鈕（c0）與多行 textarea（c1-textarea）',
+  countOf(revHtml, 'data-testid="flow-heroic-0-c0"') >= 1 &&
+  countOf(revHtml, 'data-testid="flow-heroic-0-c1-textarea"') >= 1,
+  true);
+
+/* ────────────────────────────────────────────────────────────────
+   N. W4 G4 子實體卡（偉大召喚 & 偉大召喚【變體】）驗證
+   ──────────────────────────────────────────────────────────────── */
+// N1: 偉大召喚初始狀態（無顯現體記錄時渲染空提示與設定按鈕）
+const summonChar = createNewCharacter({ name: '召喚角色' });
+summonChar.heroicSkills = ['偉大召喚'];
+const summonHtml = render(summonChar, { initialTab: 'skills' });
+check('N1 偉大召喚初始渲染空狀態提示與設定按鈕',
+  countOf(summonHtml, 'data-testid="avatar-empty-hint"') >= 1 &&
+  countOf(summonHtml, 'data-testid="avatar-create-btn"') >= 1,
+  true);
+
+// N2: 偉大召喚已有記錄（渲染顯現體卡片、等級、抗性、攻擊公式與召喚按鈕）
+const boundSummonChar = createNewCharacter({ name: '契約角色' });
+boundSummonChar.heroicSkills = ['偉大召喚'];
+boundSummonChar.flowState = {
+  'heroic:偉大召喚': {
+    list: [
+      {
+        id: 'avatar_1',
+        arcanumName: '雷霆',
+        choices: {
+          arcanumName: '雷霆',
+          attrD10: 'mig',
+          resistances: ['電', '火'],
+          checkAttrs: ['mig', 'wlp'],
+          features: ['damage_bonus', 'custom_type'],
+          damageType: '電'
+        },
+        active: false,
+        currentHp: 36,
+        maxHp: 36
+      }
+    ]
+  }
+};
+const boundHtml = render(boundSummonChar, { initialTab: 'skills' });
+check('N2 渲染已記錄顯現體之卡片、抗性徽章與召喚按鈕',
+  countOf(boundHtml, 'data-testid="avatar-display"') >= 1 &&
+  countOf(boundHtml, 'data-testid="avatar-summon-btn"') >= 1 &&
+  boundHtml.includes('【雷霆】顯現體') &&
+  boundHtml.includes('【HR + 12】'),
+  true);
+
+// N3: 偉大召喚【變體】額外渲染脈衝授權說明
+const varSummonChar = createNewCharacter({ name: '變體召喚角色' });
+varSummonChar.heroicSkills = ['偉大召喚【變體】'];
+varSummonChar.flowState = {
+  'heroic:偉大召喚【變體】': {
+    list: [
+      {
+        id: 'avatar_v1',
+        arcanumName: '劍',
+        choices: {
+          arcanumName: '劍',
+          attrD10: 'dex',
+          resistances: ['物理', '光'],
+          checkAttrs: ['dex', 'ins'],
+          features: ['ranged', 'damage_bonus'],
+          damageType: '物理'
+        },
+        active: false,
+        currentHp: 40,
+        maxHp: 40
+      }
+    ]
+  }
+};
+const varSummonHtml = render(varSummonChar, { initialTab: 'skills' });
+check('N3 偉大召喚【變體】渲染脈衝授權與快速召喚互斥提示',
+  varSummonHtml.includes('脈衝授權') &&
+  varSummonHtml.includes('若使用【快速召喚】則不可使用本技能'),
+  true);
+
+/* ────────────────────────────────────────────────────────────────
+   O. W4 G5 清單型（陷阱大師、模擬同化、地城主廚、為了更美好的未來）驗證
+   ──────────────────────────────────────────────────────────────── */
+// O1: 陷阱大師（計數器與清單新增）
+const trapChar = createNewCharacter({ name: '陷阱角色' });
+trapChar.heroicSkills = ['陷阱大師'];
+trapChar.flowState = {
+  'heroic:陷阱大師': {
+    n: 1,
+    list: [
+      { id: 'trap_1', type: '火', status: '眩暈', trigger: '移動' }
+    ]
+  }
+};
+const trapHtml = render(trapChar, { initialTab: 'skills' });
+check('O1 陷阱大師渲染計數器（c0）與清單控件（c1-add）及已布設陷阱記錄',
+  countOf(trapHtml, 'data-testid="flow-heroic-0-c0-plus"') >= 1 &&
+  countOf(trapHtml, 'data-testid="flow-heroic-0-c1-add"') >= 1 &&
+  countOf(trapHtml, 'data-testid="flow-heroic-0-c1-record-0"') >= 1,
+  true);
+
+// O2: 模擬同化（按鈕與咒語清單）
+const simChar = createNewCharacter({ name: '模擬角色' });
+simChar.heroicSkills = ['模擬同化'];
+simChar.flowState = {
+  'heroic:模擬同化': {
+    list: [
+      { id: 'sim_1', spellName: '龍息術', sourceEnemy: '火龍（惡魔）' }
+    ]
+  }
+};
+const simHtml = render(simChar, { initialTab: 'skills' });
+check('O2 模擬同化渲染按鈕（c0-act）與同化咒語名冊（c1-add）',
+  countOf(simHtml, 'data-testid="flow-heroic-0-c0-act"') >= 1 &&
+  countOf(simHtml, 'data-testid="flow-heroic-0-c1-add"') >= 1 &&
+  simHtml.includes('value="龍息術"'),
+  true);
+
+// O3: 地城主廚（按鈕與敵人名冊）
+const chefChar = createNewCharacter({ name: '主廚角色' });
+chefChar.heroicSkills = ['地城主廚'];
+chefChar.flowState = {
+  'heroic:地城主廚': {
+    list: [
+      { id: 'chef_1', enemy: '石像鬼', flavor: '鹹味' }
+    ]
+  }
+};
+const chefHtml = render(chefChar, { initialTab: 'skills' });
+check('O3 地城主廚渲染按鈕（c0-act）與已用敵人名冊（c1-add）及敵人物種欄位',
+  countOf(chefHtml, 'data-testid="flow-heroic-0-c0-act"') >= 1 &&
+  countOf(chefHtml, 'data-testid="flow-heroic-0-c1-add"') >= 1 &&
+  countOf(chefHtml, 'data-testid="flow-heroic-0-c1-field-0-enemy"') >= 1 &&
+  chefHtml.includes('value="石像鬼"'),
+  true);
+
+// O4: 為了更美好的未來（繁榮度計數器與受資助聚落名冊）
+const futureChar = createNewCharacter({ name: '未來角色' });
+futureChar.heroicSkills = ['為了更美好的未來'];
+futureChar.flowState = {
+  'heroic:為了更美好的未來': {
+    n: 2,
+    list: [
+      { id: 'set_1', town: '邊境綠洲', prosperity: '12' }
+    ]
+  }
+};
+const futureHtml = render(futureChar, { initialTab: 'skills' });
+check('O4 為了更美好的未來渲染繁榮度計數器（c0）與受資助名冊（c1-add）及聚落欄位',
+  countOf(futureHtml, 'data-testid="flow-heroic-0-c0-plus"') >= 1 &&
+  countOf(futureHtml, 'data-testid="flow-heroic-0-c1-add"') >= 1 &&
+  countOf(futureHtml, 'data-testid="flow-heroic-0-c1-field-0-town"') >= 1 &&
+  futureHtml.includes('value="邊境綠洲"'),
+  true);
+
+/* ────────────────────────────────────────────────────────────────
+   P. W4 G6 額度型（大吃一頓）驗證
+   ──────────────────────────────────────────────────────────────── */
+// P1: 大吃一頓在跑團卡上渲染每場景一次計數器
+const feastChar = createNewCharacter({ name: '大胃角色' });
+feastChar.heroicSkills = ['大吃一頓'];
+feastChar.flowState = {
+  'heroic:大吃一頓': { n: 1 }
+};
+const feastHtml = render(feastChar, { initialTab: 'skills' });
+check('P1 大吃一頓渲染計數器（flow-heroic-0-plus）且上限為 1',
+  countOf(feastHtml, 'data-testid="flow-heroic-0-plus"') >= 1 &&
+  countOf(feastHtml, 'data-testid="flow-heroic-0-value"') >= 1 &&
+  feastHtml.includes('/ 1'),
+  true);
+
+// P2: 場景重置清空大吃一頓的使用次數
+const resetFeastChar = resetFlowScope(feastChar, 'scene');
+check('P2 場景重置清空大吃一頓的使用計數（n 回歸 0）',
+  resetFeastChar.flowState?.['heroic:大吃一頓']?.n === 0,
+  true);
+
+// P3: 美食家工坊食材上限受【大吃一頓】英雄技能放寬至 4 份
+const normalGourmetChar = createNewCharacter({ name: '一般美食家' });
+normalGourmetChar.classes = [{ className: '美食家', level: 5, skills: [{ name: '烹飪', sl: 2 }] }];
+normalGourmetChar.gourmetData = {
+  ingredients: [
+    { id: 'i1', name: '香菇', taste: '苦味' },
+    { id: 'i2', name: '野莓', taste: '酸味' }
+  ]
+};
+const normalGourmetHtml = renderToStaticMarkup(
+  React.createElement(GourmetCookbook, { character: normalGourmetChar, initialSubTab: 'cook', onChange: () => {} })
+);
+
+const feastGourmetChar = {
+  ...normalGourmetChar,
+  heroicSkills: ['大吃一頓']
+};
+const feastGourmetHtml = renderToStaticMarkup(
+  React.createElement(GourmetCookbook, { character: feastGourmetChar, initialSubTab: 'cook', onChange: () => {} })
+);
+
+check('P3 美食家工坊烹飪食材上限：普通 3 份，具備【大吃一頓】放寬至 4 份',
+  normalGourmetHtml.includes('選擇 2～3 份食材') &&
+  feastGourmetHtml.includes('選擇 2～4 份食材'),
   true);
 
 /* ──────────────────────────────────────────────────────────────── */

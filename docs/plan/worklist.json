@@ -398,7 +398,7 @@
       "category": "heroic",
       "name": "靈氣掌握",
       "group": "G1",
-      "wave": "W3",
+      "wave": "W4",
       "status": "done",
       "need": "宣告 control:select（只改 JSON，零元件成本）",
       "accept": "卡片出現下拉；選完重開卡仍在（flowState.choice）",
@@ -409,7 +409,7 @@
       "category": "heroic",
       "name": "靈氣掌握【變體】",
       "group": "G1",
-      "wave": "W3",
+      "wave": "W4",
       "status": "done",
       "need": "宣告 control:select（只改 JSON，零元件成本）",
       "accept": "卡片出現下拉；選完重開卡仍在（flowState.choice）",
@@ -420,7 +420,7 @@
       "category": "heroic",
       "name": "過載爆發",
       "group": "G1",
-      "wave": "W3",
+      "wave": "W4",
       "status": "done",
       "need": "宣告 control:select（只改 JSON，零元件成本）",
       "accept": "卡片出現下拉；選完重開卡仍在（flowState.choice）",
@@ -431,7 +431,7 @@
       "category": "heroic",
       "name": "內蘊源泉",
       "group": "G1",
-      "wave": "W3",
+      "wave": "W4",
       "status": "done",
       "need": "宣告 control:select（只改 JSON，零元件成本）",
       "accept": "卡片出現下拉；選完重開卡仍在（flowState.choice）",
@@ -443,7 +443,7 @@
       "name": "嵌合術精通",
       "group": "G2",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "multiSelect + picks（W0-2 已有），spec 設 min/max",
       "accept": "選滿時其餘 disabled；picks 存得住；重開卡仍在",
       "note": "G2"
@@ -454,7 +454,7 @@
       "name": "解剖學家",
       "group": "G2",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "multiSelect + picks（W0-2 已有），spec 設 min/max",
       "accept": "選滿時其餘 disabled；picks 存得住；重開卡仍在",
       "note": "G2"
@@ -465,7 +465,7 @@
       "name": "樸實之力",
       "group": "G2",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "multiSelect + picks（W0-2 已有），spec 設 min/max",
       "accept": "選滿時其餘 disabled；picks 存得住；重開卡仍在",
       "note": "G2"
@@ -476,7 +476,7 @@
       "name": "穩固突變",
       "group": "G2",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "multiSelect + picks（W0-2 已有），spec 設 min/max",
       "accept": "選滿時其餘 disabled；picks 存得住；重開卡仍在",
       "note": "G2，且每次休息重選"
@@ -487,7 +487,7 @@
       "name": "本店特色",
       "group": "G2",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "multiSelect + picks（W0-2 已有），spec 設 min/max",
       "accept": "選滿時其餘 disabled；picks 存得住；重開卡仍在",
       "note": "G2"
@@ -498,7 +498,7 @@
       "name": "英雄級夥伴",
       "group": "G2",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "multiSelect + picks（W0-2 已有），spec 設 min/max",
       "accept": "選滿時其餘 disabled；picks 存得住；重開卡仍在",
       "note": "G2 ＋ 夥伴卡"
@@ -509,7 +509,7 @@
       "name": "主題曲",
       "group": "G3",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單",
       "accept": "長字串可存；空白視同未填；不新增第二份資料",
       "note": "G3"
@@ -520,7 +520,7 @@
       "name": "儀式印記",
       "group": "G3",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單",
       "accept": "長字串可存；空白視同未填；不新增第二份資料",
       "note": "G3"
@@ -531,7 +531,7 @@
       "name": "啟示",
       "group": "G3",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單",
       "accept": "長字串可存；空白視同未填；不新增第二份資料",
       "note": "G3，已有面板可重用"
@@ -542,7 +542,7 @@
       "name": "啟示【變體】",
       "group": "G3",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "text 欄位（W0-2 已有）；啟示類重用 ArcanistManager 表單",
       "accept": "長字串可存；空白視同未填；不新增第二份資料",
       "note": "G3"
@@ -553,7 +553,7 @@
       "name": "偉大召喚",
       "group": "G4",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "新子實體卡（仿 NecromancerMinionSheet）",
       "accept": "未填齊 5 組選擇時不能按召喚；每組選擇有測試",
       "note": "G4，新子實體卡"
@@ -564,7 +564,7 @@
       "name": "偉大召喚【變體】",
       "group": "G4",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "新子實體卡（仿 NecromancerMinionSheet）",
       "accept": "未填齊 5 組選擇時不能按召喚；每組選擇有測試",
       "note": "G4"
@@ -575,7 +575,7 @@
       "name": "模擬同化",
       "group": "G5",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "recordList（W0-2 已有）＋各自上限",
       "accept": "新增／刪除／到期可運作；上限來自資料不是寫死",
       "note": "G5，清單已有"
@@ -586,7 +586,7 @@
       "name": "陷阱大師",
       "group": "G5",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "recordList（W0-2 已有）＋各自上限",
       "accept": "新增／刪除／到期可運作；上限來自資料不是寫死",
       "note": "G5，新清單元件"
@@ -597,7 +597,7 @@
       "name": "地城主廚",
       "group": "G5",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "recordList（W0-2 已有）＋各自上限",
       "accept": "新增／刪除／到期可運作；上限來自資料不是寫死",
       "note": "G5 ＋ G6"
@@ -608,7 +608,7 @@
       "name": "為了更美好的未來",
       "group": "G5",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "recordList（W0-2 已有）＋各自上限",
       "accept": "新增／刪除／到期可運作；上限來自資料不是寫死",
       "note": "G5，世界狀態"
@@ -630,7 +630,7 @@
       "name": "大吃一頓",
       "group": "G6",
       "wave": "W4",
-      "status": "todo",
+      "status": "done",
       "need": "counter＋reset（已有）＋資料表（特性／食材上限）",
       "accept": "休息時可用一次；跨休息會回充",
       "note": "G6"
