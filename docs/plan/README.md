@@ -9,15 +9,20 @@
 
 ## 0. 施工順序（照這個做）
 
+> **逐筆工單在 [`worklist.md`](worklist.md)**（機器可讀版 `worklist.json`）。
+> 85 筆＋1 項系統工作每一筆都在上面，`tests/planWorklist.test.mjs` 會比對「附錄有幾筆／工單有幾筆」，
+> **漏一筆就紅**。施工時請照工單的 ☐／✓ 推進，不要自己挑。
+
 | 波 | 讀哪一冊 | 做什麼 | 完成判準 |
 |---|---|---|---|
-| **W0** | `01-architecture.md` → `02-wave0-primitives.md` | 八個先行件（資料容器、多控件、重置執行者、擲骰式加減、名冊選擇器、章節結算、收斂重複計數器、單一扣款路徑） | `npm test` 全綠＋新檔 `test:flowdata` ≥25 條 |
-| **W1** | `03-quirk-plans.md` §1 | 示範案【富家子弟】（名冊＋三增益＋疲勞刻度＋章節結算） | 六種狀態的 SSR 斷言全過 |
-| **W2** | `03-quirk-plans.md` 表格 + `02-wave0-primitives.md` W0-6/W0-7 | 其餘金手指改成 `controls[]`；「每場景一次」真的會重置 | 跑團卡上不再有「永遠不重置」的按鈕 |
-| **W3** | `06-traits-under-1000z.md` | 特性資料＋【升級】的休息改造流程 | 特性清單、價格公式、挑選流程各有測試 |
-| **W4** | `04-heroic-plans.md` | 英雄技能 22 筆（G1 先行：只改 JSON） | 22 筆全部可按 |
-| **W5** | `05-class-plans.md` | 職業技能 28 筆（先補「面板做一半」的 24 筆） | 每群一支元件／一個面板，對應測試 |
-| **W6** | `07-fateclocks-to-character.md` | 命刻改由角色卡持有；`FateClockPage` 轉唯讀＋複製鈕 | 技能可以推進命刻，履歷看得到 |
+| **W0** | `01-architecture.md` → `02-wave0-primitives.md` | 九個先行件（資料容器、多控件、重置執行者、擲骰式加減、名冊選擇器、章節結算、收斂重複計數器、單一扣款路徑） | `npm test` 全綠＋新檔 `test:flowdata` ≥25 條 |
+| **W1** ✅ | `03-quirk-plans.md` §1 | 示範案【富家子弟】（名冊＋三增益＋疲勞刻度＋章節結算） | 六種狀態的 SSR 斷言全過（`verify-W1-report.md`） |
+| **W2** ✅ | `03-quirk-plans.md` 表格 + `02-wave0-primitives.md` W0-6/W0-7 | 16 筆金手指改成 `controls[]`；「每場景一次」真的會重置 | 跑團卡上不再有「永遠不重置」的按鈕（`verify-W2-report.md`） |
+| **W3** ✅ | `06-traits-under-1000z.md` | 特性資料＋【升級】的休息改造流程 | 特性清單、價格公式、挑選流程各有測試（`verify-W3-report.md`） |
+| **W4** | `04-heroic-plans.md` ＋ `worklist.md` §W4 | **英雄技能 21 筆**（【升級】在 W3 已完成；G1 先行＝只改 JSON） | 每一筆在卡片上可按，`worklist.md` 對應列打勾 |
+| **W5** | `03-quirk-plans.md` ＋ `worklist.md` §W5 | **金手指剩餘 18 筆**（單控件／backedBy 之外的按鈕與結算） | 每筆的「按了會怎樣」都有純函式＋測試 |
+| **W6** | `05-class-plans.md` ＋ `worklist.md` §W6 | **職業技能 28 筆**（先補「面板做一半」的那些） | 每群一支元件／一個面板，對應測試 |
+| **W7** | `07-fateclocks-to-character.md` ＋ `worklist.md` §W7 | 命刻改由角色卡持有；`FateClockPage` 轉唯讀＋複製鈕 | 技能可以推進命刻，履歷看得到 |
 
 ## 1. 盤點結果（373 筆逐筆篩過）
 
