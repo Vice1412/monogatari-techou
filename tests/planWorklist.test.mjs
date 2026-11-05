@@ -128,6 +128,17 @@ ok('E5 開工清單指到 decisions-pending', /decisions-pending\.md/.test(kicko
 const pending = fs.readFileSync(path.join(PLAN, 'decisions-pending.md'), 'utf8');
 ok('E6 待裁定清單有 6 個編號題（1–6）',
   ['## 1.', '## 2.', '## 3.', '## 4.', '## 5.', '## 6.'].every((h) => pending.includes(h)));
+// 裁定回覆後，答案要留在兩處：待裁定清單的摘要、決策紀錄的 DA 條目。
+// 只寫在其中一處的話，下一次接手的人會以為還沒裁定（AGENTS.md §7.2：同一事實只寫一處，
+// 但「裁定結果」屬於決策，必須落在 decisions.md；清單只放摘要與連結）。
+const RULINGS = ['1A', '2A', '3A', '4A', '5A', '6C'];
+ok('E7 待裁定清單記下了六個裁定（1A…6C）',
+  pending.includes('1A 2A 3A 4A 5A 6C'), true);
+const decisions = fs.readFileSync('docs/decisions.md', 'utf8');
+ok('E8 決策紀錄有 DA 條目（裁定結果的正本）', decisions.includes('### DA. W6 前的六項裁定'));
+ok('E9 DA 索引列存在', /\| DA \|/.test(decisions));
+ok('E10 開工清單已把「需裁定」改寫掉（不再有待裁定字樣）',
+  !/需裁定（/.test(kickoff), true);
 
 console.log(`\n通過 ${pass} / ${pass + fails.length}${fails.length ? `　失敗 ${fails.length}` : '　（全部通過）'}`);
 fails.forEach((f) => console.log('  FAIL  ' + f));
