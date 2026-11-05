@@ -124,9 +124,9 @@
       "name": "信魔使徒",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "已有 toggle／文字欄位：補上「按了會怎樣」的那一半（效果或結算）",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "A"
     },
     {
@@ -135,9 +135,9 @@
       "name": "棄暗投明之人",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "計數器已由資源條承接：只缺「使用／結算」的按鈕與履歷",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "A"
     },
     {
@@ -168,9 +168,9 @@
       "name": "地獄差生",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "目前沒有控件：先決定 control（button／toggle）再補資料欄位",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "A"
     },
     {
@@ -179,9 +179,9 @@
       "name": "固執的懷疑論者",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "計數器已由資源條承接：只缺「使用／結算」的按鈕與履歷",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "A"
     },
     {
@@ -201,9 +201,9 @@
       "name": "草木成精",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "目前沒有控件：先決定 control（button／toggle）再補資料欄位",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -223,9 +223,9 @@
       "name": "來自遙遠的世界",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "按鈕已存在但只寫 flowState：接上真正的效果（擲骰／資源增減）與履歷",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -234,9 +234,9 @@
       "name": "傳家寶",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "目前沒有控件：先決定 control（button／toggle）再補資料欄位",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -245,9 +245,9 @@
       "name": "古代武器",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "目前沒有控件：先決定 control（button／toggle）再補資料欄位",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -256,9 +256,9 @@
       "name": "老大哥／歐尼醬",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "目前沒有控件：先決定 control（button／toggle）再補資料欄位",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -267,9 +267,9 @@
       "name": "離鄉的妖精",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "目前沒有控件：先決定 control（button／toggle）再補資料欄位",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -278,9 +278,9 @@
       "name": "倖存者",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "目前沒有控件：先決定 control（button／toggle）再補資料欄位",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -289,9 +289,9 @@
       "name": "會說話的野獸",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "目前沒有控件：先決定 control（button／toggle）再補資料欄位",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -311,9 +311,9 @@
       "name": "實驗逃亡體",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "計數器已由資源條承接：只缺「使用／結算」的按鈕與履歷",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -344,9 +344,9 @@
       "name": "新人類",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "已有 toggle／文字欄位：補上「按了會怎樣」的那一半（效果或結算）",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -355,9 +355,9 @@
       "name": "遺物使用者",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "計數器已由資源條承接：只缺「使用／結算」的按鈕與履歷",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -366,9 +366,9 @@
       "name": "墮落天使",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "目前沒有控件：先決定 control（button／toggle）再補資料欄位",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -377,9 +377,9 @@
       "name": "束縛你的約定",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "按鈕已存在但只寫 flowState：接上真正的效果（擲骰／資源增減）與履歷",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {
@@ -388,9 +388,9 @@
       "name": "被推翻的王",
       "group": "Q4",
       "wave": "W5",
-      "status": "todo",
-      "need": "目前沒有控件：先決定 control（button／toggle）再補資料欄位",
-      "accept": "每筆的「按了會怎樣」都有純函式＋測試",
+      "status": "done",
+      "need": "已有完整控件與效果結算閉環（已完成）",
+      "accept": "見 tests/quirkFlow.test.mjs",
       "note": "B"
     },
     {

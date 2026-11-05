@@ -638,6 +638,74 @@ check('P3 美食家工坊烹飪食材上限：普通 3 份，具備【大吃一�
   feastGourmetHtml.includes('選擇 2～4 份食材'),
   true);
 
+
+/* ────────────────────────────────────────────────────────────────
+   Q. W5 金手指（18 筆）跑團卡渲染與端到端控件測試
+   ──────────────────────────────────────────────────────────────── */
+// Q1: 信魔使徒渲染文字備忘與指揮按鈕
+const apostleChar = createNewCharacter({ name: '使徒角色' });
+apostleChar.quirk = '信魔使徒';
+apostleChar.flowState = { 'quirk:信魔使徒': { text: '小惡魔巴弗滅' } };
+const apostleHtml = render(apostleChar, { initialTab: 'skills' });
+check('Q1 信魔使徒渲染文字輸入框（c0）與指揮按鈕（c1-act）',
+  countOf(apostleHtml, 'data-testid="flow-quirk-c0"') >= 1 &&
+  countOf(apostleHtml, 'data-testid="flow-quirk-c1-act"') >= 1 &&
+  apostleHtml.includes('小惡魔巴弗滅'),
+  true);
+
+// Q2: 棄暗投明之人渲染文字備忘與顛覆點按鈕
+const turncoatChar = createNewCharacter({ name: '反叛角色' });
+turncoatChar.quirk = '棄暗投明之人';
+turncoatChar.classResources = { subversion: 2 };
+turncoatChar.flowState = { 'quirk:棄暗投明之人': { text: '銀河十字路組織' } };
+const turncoatHtml = render(turncoatChar, { initialTab: 'skills' });
+check('Q2 棄暗投明之人渲染文字輸入（c0）與顛覆點代替物語點按鈕（c1-act）',
+  countOf(turncoatHtml, 'data-testid="flow-quirk-c0"') >= 1 &&
+  countOf(turncoatHtml, 'data-testid="flow-quirk-c1-act"') >= 1 &&
+  turncoatHtml.includes('銀河十字路組織'),
+  true);
+
+// Q3: 來自遙遠的世界渲染進入衝突場景按鈕
+const distantChar = createNewCharacter({ name: '異界角色' });
+distantChar.quirk = '來自遙遠的世界';
+const distantHtml = render(distantChar, { initialTab: 'skills' });
+check('Q3 來自遙遠的世界渲染進入衝突場景按鈕（flow-quirk-act）',
+  countOf(distantHtml, 'data-testid="flow-quirk-act"') >= 1 &&
+  distantHtml.includes('進入衝突場景'),
+  true);
+
+// Q4: 草木成精渲染自訂咒語備忘與陽光開關
+const arborealChar = createNewCharacter({ name: '植物角色' });
+arborealChar.quirk = '草木成精';
+arborealChar.flowState = { 'quirk:草木成精': { text: '荊棘纏繞', on: true } };
+const arborealHtml = render(arborealChar, { initialTab: 'skills' });
+check('Q4 草木成精渲染文字框（c0）與陽光開關（c1）',
+  countOf(arborealHtml, 'data-testid="flow-quirk-c0"') >= 1 &&
+  countOf(arborealHtml, 'data-testid="flow-quirk-c1"') >= 1 &&
+  arborealHtml.includes('荊棘纏繞'),
+  true);
+
+// Q5: 會說話的野獸渲染多選控件與備忘框
+const beastChar = createNewCharacter({ name: '野獸角色' });
+beastChar.quirk = '會說話的野獸';
+beastChar.flowState = { 'quirk:會說話的野獸': { picks: ['unarmedDamage', 'customWeapon'], text: '撕裂爪' } };
+const beastHtml = render(beastChar, { initialTab: 'skills' });
+check('Q5 會說話的野獸渲染多選控件（c0）與文字備忘（c1）',
+  countOf(beastHtml, 'data-testid="flow-quirk-c0"') >= 1 &&
+  countOf(beastHtml, 'data-testid="flow-quirk-c1"') >= 1 &&
+  beastHtml.includes('撕裂爪'),
+  true);
+
+// Q6: 新人類渲染屬性下拉與場景開關
+const humanChar = createNewCharacter({ name: '超能力角色' });
+humanChar.quirk = '新人類';
+humanChar.flowState = { 'quirk:新人類': { choice: 'INS', on: true } };
+const humanHtml = render(humanChar, { initialTab: 'skills' });
+check('Q6 新人類渲染屬性選擇下拉（c0）與場景提升開關（c1）',
+  countOf(humanHtml, 'data-testid="flow-quirk-c0"') >= 1 &&
+  countOf(humanHtml, 'data-testid="flow-quirk-c1"') >= 1,
+  true);
+
 /* ──────────────────────────────────────────────────────────────── */
 const failed = results.filter((r) => !r.ok);
 for (const r of results) console.log(`  ${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.detail === '' ? '' : `  —— ${r.detail}`}`);

@@ -9,6 +9,12 @@
 
 ---
 
+*2026-11-05（Wave 5 金手指 18 筆全閉環完成）：依 docs/plan/worklist.md 與附錄完成 Wave 5 金手指（群組 Q4，共 18 筆）全閉環實裝。
+① 資料與管線支援：在 scratch/flows/quirk.json 為 18 筆條目補齊 controls 配置（涵蓋 button、toggle、text、select、multiSelect，及 cost、gain、reset 等元資料）；在 effectFlow.js 擴充支援 subversion（顛覆點）職業資源直通讀取與扣款（isClassResource: true），並支援主動控件直接獲得增益 gain（如物語點 fp，寫入角色屬性或 classResources，並生成變更履歷與提示）；build-effect-flows.mjs 支援 gain 透傳並保留 row.status === 'wired' 現有機制，經 npm run build:flows 將 18 筆全數編譯入 src/features/character-sheet/data/effectFlows.json（via: 'flow-control'）。
+② 測試護欄與串鏈：建立 tests/quirkFlow.test.mjs（81 條純函式與執行計畫斷言），涵蓋 18 筆結構、顛覆點不足阻擋與扣款、獲得物語點與場景上限重置、自私片刻、傳家寶/古代武器/妖精 GM 結算、打破約定，以及文字、多選、開關狀態讀寫與重置；掛入 package.json（全鏈第 65 關 test:quirkflow）。
+③ 跑團卡渲染與端到端驗證：在 tests/playHudFlow.test.mjs 增補 Section Q（6 條 SSR 斷言），驗證信魔使徒、棄暗投明之人、來自遙遠的世界、草木成精、會說話的野獸、新人類之 UI 控件渲染；更新 tests/effectFlows.test.mjs 控件白名單；更新 tests/planWorklist.test.mjs 增補 C5 斷言（25 條全綠）。
+④ 刻意破壞驗證與工單結算：完成兩次刻意破壞驗證（顛覆點 isClassResource 與獲得 FP 期望值）確認皆能精準觸發 FAIL；全鏈 65 關 npm test、npm run test:emoji、npm run build 全綠通過。worklist.md 與 worklist.json W5 18 筆金手指全數標記 done（全工單已完成 57 / 86 筆）。*
+
 *2026-11-05（Wave 4 英雄技能 21 筆全數完成）：依 `docs/plan/04-heroic-plans.md` 與 `worklist.md` 完成 Wave 4 英雄技能全組實裝。
 ① G1~G3 完成：G1（4 筆，select 下拉選單）；G2（6 筆，multiSelect 多選，min/max 限制與 picks 去重）；G3（4 筆，text 自由文字輸入，並修復 `flowResetState` 確保場景重置時玩家自訂文字不丟失）。
 ② G4 子實體卡實裝：建立純函式模組 `src/features/character-sheet/utils/summonAvatar.js` 與全新子實體卡元件 `SummonEntityCard.jsx`，精準還原原書 Core p.138 規範（等級＝角色等級；顯現體最大 HP＝2×基本 MIG 骰面＋角色最大 HP/2；5 組首次召喚自選鎖定：d10 屬性指派、2 項傷害抗性、四選二攻擊選項、非物理傷害屬性、命中檢定屬性；未填齊時不可召喚並以原因提示阻擋；召喚時扣除 1 物語點與當前 HP 一半；變體版另含脈衝授權與快速召喚互斥提示）。

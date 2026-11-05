@@ -66,24 +66,24 @@
 
 | 狀態 | id | 群 | 要做什麼 | 驗收 |
 |---|---|---|---|---|
-| ☐ | `quirk:信魔使徒` | Q4 | 已有 toggle／文字欄位：補上「按了會怎樣」的那一半（效果或結算） | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:棄暗投明之人` | Q4 | 計數器已由資源條承接：只缺「使用／結算」的按鈕與履歷 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:地獄差生` | Q4 | 目前沒有控件：先決定 control（button／toggle）再補資料欄位 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:固執的懷疑論者` | Q4 | 計數器已由資源條承接：只缺「使用／結算」的按鈕與履歷 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:草木成精` | Q4 | 目前沒有控件：先決定 control（button／toggle）再補資料欄位 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:來自遙遠的世界` | Q4 | 按鈕已存在但只寫 flowState：接上真正的效果（擲骰／資源增減）與履歷 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:傳家寶` | Q4 | 目前沒有控件：先決定 control（button／toggle）再補資料欄位 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:古代武器` | Q4 | 目前沒有控件：先決定 control（button／toggle）再補資料欄位 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:老大哥／歐尼醬` | Q4 | 目前沒有控件：先決定 control（button／toggle）再補資料欄位 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:離鄉的妖精` | Q4 | 目前沒有控件：先決定 control（button／toggle）再補資料欄位 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:倖存者` | Q4 | 目前沒有控件：先決定 control（button／toggle）再補資料欄位 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:會說話的野獸` | Q4 | 目前沒有控件：先決定 control（button／toggle）再補資料欄位 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:實驗逃亡體` | Q4 | 計數器已由資源條承接：只缺「使用／結算」的按鈕與履歷 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:新人類` | Q4 | 已有 toggle／文字欄位：補上「按了會怎樣」的那一半（效果或結算） | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:遺物使用者` | Q4 | 計數器已由資源條承接：只缺「使用／結算」的按鈕與履歷 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:墮落天使` | Q4 | 目前沒有控件：先決定 control（button／toggle）再補資料欄位 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:束縛你的約定` | Q4 | 按鈕已存在但只寫 flowState：接上真正的效果（擲骰／資源增減）與履歷 | 每筆的「按了會怎樣」都有純函式＋測試 |
-| ☐ | `quirk:被推翻的王` | Q4 | 目前沒有控件：先決定 control（button／toggle）再補資料欄位 | 每筆的「按了會怎樣」都有純函式＋測試 |
+| ✓ | `quirk:信魔使徒` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:棄暗投明之人` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:地獄差生` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:固執的懷疑論者` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:草木成精` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:來自遙遠的世界` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:傳家寶` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:古代武器` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:老大哥／歐尼醬` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:離鄉的妖精` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:倖存者` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:會說話的野獸` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:實驗逃亡體` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:新人類` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:遺物使用者` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:墮落天使` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:束縛你的約定` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
+| ✓ | `quirk:被推翻的王` | Q4 | 已有完整控件與效果結算閉環（已完成） | 見 tests/quirkFlow.test.mjs |
 
 ## W6 · 職業技能 28 筆（28 筆）
 

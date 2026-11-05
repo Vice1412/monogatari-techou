@@ -638,12 +638,23 @@ const COST_RESOURCES = Object.freeze({
   mp: { field: 'currentMp', statKey: 'maxMp', label: 'MP' },
   ip: { field: 'currentIp', statKey: 'maxIp', label: 'IP' },
   fp: { field: 'fabulaPoints', statKey: null, label: '物語點', fallback: 3 },
-  zenit: { field: 'zenit', statKey: null, label: '資金', fallback: 0 }
+  zenit: { field: 'zenit', statKey: null, label: '資金', fallback: 0 },
+  subversion: { field: 'subversion', isClassResource: true, label: '顛覆點', fallback: 0 },
+  // 2026-11-05（W5 驗收）：這三個池子的「+1d6／+1d8」原本只寫在按鈕的 label 上，
+  // 按下去什麼都不會累積。擲骰式累積要有資源名才推得動，所以在這裡補齊。
+  instability: { field: 'instability', isClassResource: true, label: '不穩定值', fallback: 0 },
+  anomaly: { field: 'anomaly', isClassResource: true, label: '異常值', fallback: 0 },
+  doubt: { field: 'doubt', isClassResource: true, label: '懷疑點', fallback: 0 }
 });
 
 /** 目前可用量；`null` ＝「沒有足夠資訊可算」（不是 0，不然會誤擋）。 */
 const readAvailable = (character, key, stats) => {
   const meta = COST_RESOURCES[key];
+  if (!meta) return null;
+  if (meta.isClassResource) {
+    const res = toFiniteInt(character?.classResources?.[meta.field]);
+    return res !== null ? res : meta.fallback;
+  }
   const own = toFiniteInt(character?.[meta.field]);
   if (own !== null) return own;
   if (meta.statKey) return toFiniteInt(stats?.[meta.statKey]);
@@ -775,9 +786,79 @@ export const flowActionPlan = (item, character, ctx = {}) => {
     const meta = COST_RESOURCES[key];
     const from = readAvailable(character, key, stats);
     const to = Math.max(0, from - paid[key]);
-    patch[meta.field] = to;
-    changes.push({ field: meta.field, from, to });
+    if (meta.isClassResource) {
+      patch.classResources = {
+        ...(patch.classResources || character?.classResources || {}),
+        [meta.field]: to
+      };
+    } else {
+      patch[meta.field] = to;
+      changes.push({ field: meta.field, from, to });
+    }
     paidNotes.push(`${meta.label} ${from} → ${to}`);
+  }
+
+  const gain = activeControl?.gain;
+  const gainedNotes = [];
+  if (gain && typeof gain === 'object') {
+    for (const key of Object.keys(gain)) {
+      const amount = toFiniteInt(gain[key]);
+      if (amount === null || amount <= 0) continue;
+      const meta = COST_RESOURCES[key];
+      if (meta) {
+        const from = readAvailable(character, key, stats);
+        const to = from + amount;
+        if (meta.isClassResource) {
+          patch.classResources = {
+            ...(patch.classResources || character?.classResources || {}),
+            [meta.field]: to
+          };
+        } else {
+          patch[meta.field] = to;
+          changes.push({ field: meta.field, from, to });
+        }
+        gainedNotes.push(`${meta.label} +${amount}（${from} → ${to}）`);
+      }
+    }
+  }
+
+  // ── 擲骰式累積（W5 驗收時補上）
+  // `control.roll = { resource, dice, sign?, max?, onlyIfRollLte? }`
+  // 純函式不擲骰：呼叫端（HUD）擲完把點數傳進來；沒有傳就**拒絕**，
+  // 因為「假裝按下去有效果」比按不動更糟（玩家會以為值已經加上去了）。
+  const rollSpec = activeControl?.roll;
+  const rolledNotes = [];
+  if (rollSpec && typeof rollSpec === 'object' && rollSpec.resource) {
+    if (!Number.isFinite(ctx.roll)) {
+      return { ...base, reason: `【${activeControl.label || item.name}】需要先擲 ${rollSpec.dice || '1d6'}`, unresolved };
+    }
+    const meta = COST_RESOURCES[rollSpec.resource];
+    // 兩種語意：
+    //   · 純累積（實驗逃亡體／遺物使用者）→ 增加的量**就是骰值**（1d8 擲 5 就 +5）
+    //   · 判定式（固執的懷疑論者 1-4 才生效）→ 骰值只用來過門檻，增加量固定（預設 1）
+    const isCheck = Number.isFinite(rollSpec.onlyIfRollLte);
+    let amount = isCheck ? (toFiniteInt(rollSpec.amount) ?? 1) : Math.trunc(ctx.roll);
+    if (isCheck && Math.trunc(ctx.roll) > rollSpec.onlyIfRollLte) {
+      rolledNotes.push(`${rollSpec.dice || '1d6'} 擲出 ${Math.trunc(ctx.roll)} → 超過 ${rollSpec.onlyIfRollLte}，不累積`);
+      amount = 0;
+    }
+    if (meta && amount !== 0) {
+      const sign = rollSpec.sign === -1 ? -1 : 1;
+      const from = readAvailable(character, rollSpec.resource, stats);
+      const cap = Number.isFinite(rollSpec.max) ? rollSpec.max : Infinity;
+      const to = Math.min(cap, Math.max(0, from + sign * amount));
+      if (meta.isClassResource) {
+        patch.classResources = {
+          ...(patch.classResources || character?.classResources || {}),
+          [meta.field]: to
+        };
+      } else {
+        patch[meta.field] = to;
+        changes.push({ field: meta.field, from, to });
+      }
+      // 骰值一律印「實際擲出的點數」；判定式條目的 `amount` 是固定增加量，不是骰值。
+      rolledNotes.push(`${rollSpec.dice || '1d6'} 擲出 ${Math.trunc(ctx.roll)} → ${meta.label} ${from} → ${to}`);
+    }
   }
 
   const costText = costTextOf(paid);
@@ -800,8 +881,8 @@ export const flowActionPlan = (item, character, ctx = {}) => {
       changes,
       ...(note ? { note } : {})
     },
-    toast: paidNotes.length > 0
-      ? `${title}；${paidNotes.join('、')}${note ? `；${note}` : ''}`
+    toast: (paidNotes.length > 0 || gainedNotes.length > 0 || rolledNotes.length > 0)
+      ? `${title}；${[...paidNotes, ...gainedNotes, ...rolledNotes].join('、')}${note ? `；${note}` : ''}`
       : `${title}${note ? `；${note}` : ''}`,
     unresolved
   };

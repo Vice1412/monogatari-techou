@@ -70,9 +70,9 @@ ok('B3 每一筆都有「要做什麼」', rows.every((r) => typeof r.need === '
 ok('B4 每一筆都有「驗收」', rows.every((r) => typeof r.accept === 'string' && r.accept.length >= 4));
 ok('B5 status 只有 done／todo', rows.every((r) => ['done', 'todo'].includes(r.status)));
 eq('B6 波次只用到 W1–W7', [...new Set(rows.map((r) => r.wave))].sort(), ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7']);
-ok('B7 金手指的已做項只有 W1／W2 那批',
+ok('B7 金手指的已做項為 W1／W2／W5 那批',
   rows.filter((r) => r.category === 'quirk' && r.status === 'done')
-    .every((r) => r.wave === 'W1' || r.wave === 'W2'));
+    .every((r) => r.wave === 'W1' || r.wave === 'W2' || r.wave === 'W5'));
 
 // ── C. 與真實資料交叉核對（不是只看工單自己說）
 const w2 = rows.filter((r) => r.wave === 'W2');
@@ -100,6 +100,14 @@ const wrongShape = heroicDone.filter((r) => {
   return !kinds.includes(expected);
 });
 ok('C4 已完成的英雄技能都符合該群應該長出來的控件形狀', wrongShape, wrongShape.map((r) => `${r.name}(${r.group})`));
+
+const w5 = rows.filter((r) => r.wave === 'W5');
+ok('C5 W5 金手指 18 筆在資料裡全數具備 controls',
+  w5.every((r) => {
+    const item = flow.items.find((i) => i.name === r.name)
+      || flow.items.find((i) => i.name.includes(r.name.split(/[／\\]/)[0]));
+    return Array.isArray(item?.controls) && item.controls.length > 0;
+  }), w5.map((r) => r.name).join('、'));
 
 // ── D. 人看的表格與 JSON 同步
 const doneRows = (md.match(/^\| ✓ \|/gm) || []).length;

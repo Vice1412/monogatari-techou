@@ -8536,7 +8536,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "取得次數的門檻有了，但「多兩個嵌合咒語槽」沒有進額度計算，第二份物種清單也沒有地方記。",
    "evidence": [
@@ -9832,7 +9832,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "這是取得時要記住的組態，屬於角色資料而非畫面狀態；目前只存在效果文裡。",
    "evidence": [
@@ -10117,7 +10117,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "三個分支都依賴「武器類別」與「屬性替換」，兩者都沒有可讀欄位。",
    "evidence": [
@@ -11420,7 +11420,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "穩固形態是跨場景常駐的選定結果，且會改變「是否視為顯現」的判定；現行只有顯現上限。",
    "evidence": [
@@ -11821,7 +11821,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "夥伴卡已經存在（授予實體有地方），但三項數值加值與額外技能都沒有落地。",
    "evidence": [
@@ -12392,7 +12392,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "「取得時選兩個物種」要記住（最多三次取得），踉蹌也不是既有狀態。",
    "evidence": [
@@ -14693,6 +14693,9 @@
     "kind": "button",
     "label": "進入衝突場景（+1 物語點）",
     "reset": "scene",
+    "gain": {
+     "fp": 1
+    },
     "outcome": "物語點 +1"
    },
    "controls": [
@@ -14700,6 +14703,9 @@
      "kind": "button",
      "label": "進入衝突場景（+1 物語點）",
      "reset": "scene",
+     "gain": {
+      "fp": 1
+     },
      "outcome": "物語點 +1"
     }
    ],
@@ -14745,6 +14751,11 @@
      "label": "惡魔夥伴名字與外表",
      "multiline": true,
      "maxLength": 200
+    },
+    {
+     "kind": "button",
+     "label": "指揮惡魔夥伴行動",
+     "outcome": "消耗一個動作讓惡魔夥伴執行一個動作（每回合限一次）"
     }
    ],
    "effects": [
@@ -14757,7 +14768,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "夥伴子系統只服務旅人與死靈術士僕從，金手指給的惡魔夥伴沒有收件處，HP 公式與 +3 也無處計算。",
    "evidence": [
@@ -14778,11 +14789,47 @@
    "name": "倖存者",
    "flow": "modifier",
    "control": {
-    "kind": "none"
+    "kind": "select",
+    "label": "求生經驗所選增益",
+    "options": [
+     {
+      "value": "martial",
+      "label": "獲得四項職業武裝熟練度"
+     },
+     {
+      "value": "spell",
+      "label": "學習一個元素師或靈師咒語"
+     },
+     {
+      "value": "ip",
+      "label": "永久提升 2 點道具點 IP"
+     }
+    ]
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "select",
+     "label": "求生經驗所選增益",
+     "options": [
+      {
+       "value": "martial",
+       "label": "獲得四項職業武裝熟練度"
+      },
+      {
+       "value": "spell",
+       "label": "學習一個元素師或靈師咒語"
+      },
+      {
+       "value": "ip",
+       "label": "永久提升 2 點道具點 IP"
+      }
+     ]
+    },
+    {
+     "kind": "text",
+     "label": "求生背景備忘",
+     "multiline": true,
+     "maxLength": 200
     }
    ],
    "effects": [
@@ -14816,7 +14863,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "HP/MP+5、IP+2、四項熟練度都真的接了（profs 走 getProficiencies）；但選項②「學一個咒語」在非施法者身上學不到。",
    "evidence": [
@@ -14889,11 +14936,26 @@
    "name": "傳家寶",
    "flow": "grant",
    "control": {
-    "kind": "none"
+    "kind": "text",
+    "label": "傳家寶物品備忘",
+    "multiline": true,
+    "maxLength": 200
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "text",
+     "label": "傳家寶物品備忘",
+     "multiline": true,
+     "maxLength": 200
+    },
+    {
+     "kind": "button",
+     "label": "章節末 GM 結算（獲得 1 物語點）",
+     "reset": "chapter",
+     "gain": {
+      "fp": 1
+     },
+     "outcome": "因物品特殊性質出現併發情況，GM 獎勵 1 物語點"
     }
    ],
    "effects": [
@@ -14906,7 +14968,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "物品可自行加進行囊；但 1200z／800z 的價值上限與「未經同意不得毀損遺失」沒有任何檢查，章節末 +1 物語點為 GM 判定。",
    "evidence": [
@@ -15040,11 +15102,26 @@
    "name": "古代武器",
    "flow": "grant",
    "control": {
-    "kind": "none"
+    "kind": "text",
+    "label": "古代武器備忘",
+    "multiline": true,
+    "maxLength": 200
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "text",
+     "label": "古代武器備忘",
+     "multiline": true,
+     "maxLength": 200
+    },
+    {
+     "kind": "button",
+     "label": "章節末 GM 結算（獲得 1 物語點）",
+     "reset": "chapter",
+     "gain": {
+      "fp": 1
+     },
+     "outcome": "因武器獨特性質引發複雜情況，GM 獎勵 1 物語點"
     }
    ],
    "effects": [
@@ -15057,7 +15134,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "武器可用自由武器鍛造台自己寫；但 1200z／稀有品質上限、火器類建議與「不可被毀損」沒有任何檢查，每章節 1 物語點無落點。",
    "evidence": [
@@ -15078,13 +15155,33 @@
    "name": "固執的懷疑論者",
    "flow": "action",
    "control": {
-    "kind": "none",
-    "backedBy": "doubt"
+    "kind": "button",
+    "label": "受到效果時擲 1d6（1-4 生效且懷疑點+1；5-6 免疫）",
+    "roll": {
+     "resource": "doubt",
+     "dice": "1d6",
+     "sign": 1,
+     "onlyIfRollLte": 4
+    },
+    "outcome": "1-4 效果如常生效且懷疑點 +1；5-6 不受該效果影響"
    },
    "controls": [
     {
-     "kind": "none",
-     "backedBy": "doubt"
+     "kind": "button",
+     "label": "受到效果時擲 1d6（1-4 生效且懷疑點+1；5-6 免疫）",
+     "roll": {
+      "resource": "doubt",
+      "dice": "1d6",
+      "sign": 1,
+      "onlyIfRollLte": 4
+     },
+     "outcome": "1-4 效果如常生效且懷疑點 +1；5-6 不受該效果影響"
+    },
+    {
+     "kind": "button",
+     "label": "章節末回憶判定（2d20 ≤ 等級）",
+     "reset": "chapter",
+     "outcome": "若 2d20 ≤ 等級則懷疑點 +1；達 20 點喚醒記憶"
     }
    ],
    "effects": [
@@ -15097,10 +15194,7 @@
     }
    ],
    "apply": {
-    "via": "existing",
-    "evidence": [
-     "src/features/character-sheet/data/classResources.js（backedBy: doubt）"
-    ]
+    "via": "flow-control"
    },
    "note": "懷疑點池已存在；但每次受效果必擲的 1d6 判定、「5-6 免疫」與達 20 的回憶觸發都沒有入口。",
    "evidence": [
@@ -15121,17 +15215,23 @@
    "name": "地獄差生",
    "flow": "state",
    "control": {
-    "kind": "counter",
-    "label": "",
-    "max": "10",
-    "reset": "none"
+    "kind": "button",
+    "label": "休息：做好事獲得差生點（+1d6）",
+    "outcome": "描述如何使這個地方變得更好，差生點增加 1d6"
    },
    "controls": [
     {
-     "kind": "counter",
-     "label": "",
-     "max": "10",
-     "reset": "none"
+     "kind": "button",
+     "label": "休息：做好事獲得差生點（+1d6）",
+     "outcome": "描述如何使這個地方變得更好，差生點增加 1d6"
+    },
+    {
+     "kind": "button",
+     "label": "自私片刻（獲得 1 物語點，清零差生點）",
+     "gain": {
+      "fp": 1
+     },
+     "outcome": "獲得 1 物語點，所有差生點歸零"
     }
    ],
    "effects": [
@@ -15165,11 +15265,47 @@
    "name": "墮落天使",
    "flow": "modifier",
    "control": {
-    "kind": "none"
+    "kind": "select",
+    "label": "墮落恩賜（三選一）",
+    "options": [
+     {
+      "value": "item",
+      "label": "獲得一件價值 ≤1000z 的道具"
+     },
+     {
+      "value": "spell",
+      "label": "學習一個自選靈師咒語"
+     },
+     {
+      "value": "mp",
+      "label": "最大 MP 永久提升 10 點"
+     }
+    ]
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "select",
+     "label": "墮落恩賜（三選一）",
+     "options": [
+      {
+       "value": "item",
+       "label": "獲得一件價值 ≤1000z 的道具"
+      },
+      {
+       "value": "spell",
+       "label": "學習一個自選靈師咒語"
+      },
+      {
+       "value": "mp",
+       "label": "最大 MP 永久提升 10 點"
+      }
+     ]
+    },
+    {
+     "kind": "text",
+     "label": "所選咒語或道具備忘",
+     "multiline": true,
+     "maxLength": 200
     }
    ],
    "effects": [
@@ -15189,7 +15325,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "抗性與「最大 MP +10」都真的接了；選項①道具可手動加行囊、選項②咒語在非施法者身上被擋，每章節 1 物語點為 GM 判定。",
    "evidence": [
@@ -15426,13 +15562,15 @@
    "name": "富家子弟",
    "flow": "action",
    "control": {
-    "kind": "none",
-    "backedBy": "fatigue"
+    "kind": "button",
+    "label": "使用保鑣增益（+1d6 疲勞值）",
+    "outcome": "傷害減半／休息時問 GM 一個問題／元素水晶追加【5+等級一半】傷害"
    },
    "controls": [
     {
-     "kind": "none",
-     "backedBy": "fatigue"
+     "kind": "button",
+     "label": "使用保鑣增益（+1d6 疲勞值）",
+     "outcome": "傷害減半／休息時問 GM 一個問題／元素水晶追加【5+等級一半】傷害"
     }
    ],
    "effects": [
@@ -15459,10 +15597,7 @@
     }
    ],
    "apply": {
-    "via": "existing",
-    "evidence": [
-     "src/features/character-sheet/data/classResources.js（backedBy: fatigue）"
-    ]
+    "via": "flow-control"
    },
    "note": "+1000z 與疲勞值池都真的接了；三個增益本身沒有按鈕，而且編輯器的「移除」繞過帳本 → 移除後 1000z 不會退。",
    "evidence": [
@@ -15487,13 +15622,27 @@
    "name": "實驗逃亡體",
    "flow": "action",
    "control": {
-    "kind": "none",
-    "backedBy": "instability"
+    "kind": "button",
+    "label": "忽略這次成本（+1d8 不穩定值）",
+    "roll": {
+     "resource": "instability",
+     "dice": "1d8",
+     "sign": 1,
+     "max": 10
+    },
+    "outcome": "本次 ≤100 點成本視為 0，不穩定值累積 1d8（達 10 點 HP 降為 0 並投降）"
    },
    "controls": [
     {
-     "kind": "none",
-     "backedBy": "instability"
+     "kind": "button",
+     "label": "忽略這次成本（+1d8 不穩定值）",
+     "roll": {
+      "resource": "instability",
+      "dice": "1d8",
+      "sign": 1,
+      "max": 10
+     },
+     "outcome": "本次 ≤100 點成本視為 0，不穩定值累積 1d8（達 10 點 HP 降為 0 並投降）"
     }
    ],
    "effects": [
@@ -15513,10 +15662,7 @@
     }
    ],
    "apply": {
-    "via": "existing",
-    "evidence": [
-     "src/features/character-sheet/data/classResources.js（backedBy: instability）"
-    ]
+    "via": "flow-control"
    },
    "note": "不穩定值池已接（含上限與章節降幅）；「忽略成本」本身沒有按鈕，達 10 的自動歸零／投降也沒有觸發。",
    "evidence": [
@@ -15690,14 +15836,53 @@
    "name": "新人類",
    "flow": "state",
    "control": {
-    "kind": "toggle",
-    "label": "本場景：屬性骰升一階／d12 視作 d20",
-    "reset": "scene"
+    "kind": "select",
+    "label": "指定潛能屬性",
+    "options": [
+     {
+      "value": "DEX",
+      "label": "靈巧 DEX"
+     },
+     {
+      "value": "INS",
+      "label": "洞察 INS"
+     },
+     {
+      "value": "MIG",
+      "label": "力量 MIG"
+     },
+     {
+      "value": "WLP",
+      "label": "意志 WLP"
+     }
+    ]
    },
    "controls": [
     {
+     "kind": "select",
+     "label": "指定潛能屬性",
+     "options": [
+      {
+       "value": "DEX",
+       "label": "靈巧 DEX"
+      },
+      {
+       "value": "INS",
+       "label": "洞察 INS"
+      },
+      {
+       "value": "MIG",
+       "label": "力量 MIG"
+      },
+      {
+       "value": "WLP",
+       "label": "意志 WLP"
+      }
+     ]
+    },
+    {
      "kind": "toggle",
-     "label": "本場景：屬性骰升一階／d12 視作 d20",
+     "label": "本場景：所選屬性骰升一階（d12 視作 d20）",
      "reset": "scene"
     }
    ],
@@ -15732,11 +15917,51 @@
    "name": "會說話的野獸",
    "flow": "modifier",
    "control": {
-    "kind": "none"
+    "kind": "multiSelect",
+    "label": "野性增益（三選二）",
+    "max": 2,
+    "options": [
+     {
+      "value": "customWeapon",
+      "label": "可裝備一個自訂武器"
+     },
+     {
+      "value": "npcSpell",
+      "label": "學習一個自訂 NPC 咒語（MIG+WLP）"
+     },
+     {
+      "value": "unarmedDamage",
+      "label": "徒手攻擊傷害 +6（30 級起 +10）"
+     }
+    ],
+    "min": 2
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "multiSelect",
+     "label": "野性增益（三選二）",
+     "max": 2,
+     "options": [
+      {
+       "value": "customWeapon",
+       "label": "可裝備一個自訂武器"
+      },
+      {
+       "value": "npcSpell",
+       "label": "學習一個自訂 NPC 咒語（MIG+WLP）"
+      },
+      {
+       "value": "unarmedDamage",
+       "label": "徒手攻擊傷害 +6（30 級起 +10）"
+      }
+     ],
+     "min": 2
+    },
+    {
+     "kind": "text",
+     "label": "自訂咒語或武器備忘",
+     "multiline": true,
+     "maxLength": 200
     }
    ],
    "effects": [
@@ -15792,7 +16017,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "防具空 +2/+2 已算；徒手 +6／30 級 +10 已拆成兩個帶等級條件的效果；其餘兩個增益（自訂武器／NPC 咒語）由子系統承接。",
    "evidence": [
@@ -15817,14 +16042,21 @@
    "name": "束縛你的約定",
    "flow": "modifier",
    "control": {
-    "kind": "button",
-    "label": "打破約定（999 傷害）",
-    "outcome": "對所有目標造成 999 點無視相性的傷害；反派失去終結點，本角色成為最終反派並換角"
+    "kind": "text",
+    "label": "約定之咒備忘",
+    "multiline": true,
+    "maxLength": 200
    },
    "controls": [
     {
+     "kind": "text",
+     "label": "約定之咒備忘",
+     "multiline": true,
+     "maxLength": 200
+    },
+    {
      "kind": "button",
-     "label": "打破約定（999 傷害）",
+     "label": "打破約定（造成 999 傷害並退場）",
      "outcome": "對所有目標造成 999 點無視相性的傷害；反派失去終結點，本角色成為最終反派並換角"
     }
    ],
@@ -15873,13 +16105,25 @@
    "name": "棄暗投明之人",
    "flow": "action",
    "control": {
-    "kind": "none",
-    "backedBy": "subversion"
+    "kind": "text",
+    "label": "組織與策略備忘",
+    "multiline": true,
+    "maxLength": 200
    },
    "controls": [
     {
-     "kind": "none",
-     "backedBy": "subversion"
+     "kind": "text",
+     "label": "組織與策略備忘",
+     "multiline": true,
+     "maxLength": 200
+    },
+    {
+     "kind": "button",
+     "label": "花費 1 顛覆點（代替 1 次物語點）",
+     "cost": {
+      "subversion": 1
+     },
+     "outcome": "消耗 1 點顛覆點代替本次物語點花費"
     }
    ],
    "effects": [
@@ -15913,10 +16157,7 @@
     }
    ],
    "apply": {
-    "via": "existing",
-    "evidence": [
-     "src/features/character-sheet/data/classResources.js（backedBy: subversion）"
-    ]
+    "via": "flow-control"
    },
    "note": "顛覆點池已存在；缺「用顛覆點代替物語點」的按鈕、擊敗領袖後的 +10/+10，物品得自己加行囊。",
    "evidence": [
@@ -16264,11 +16505,15 @@
    "name": "老大哥\\歐尼醬",
    "flow": "modifier",
    "control": {
-    "kind": "none"
+    "kind": "toggle",
+    "label": "休息時進行 2 次營地活動",
+    "reset": "rest"
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "toggle",
+     "label": "休息時進行 2 次營地活動",
+     "reset": "rest"
     }
    ],
    "effects": [
@@ -16288,7 +16533,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "活動數 3 已由 campActivityCount 接進 CampActivitiesBlock（含「金手指開的」標註）；但「一次休息做兩次活動」這個選項沒有入口。",
    "evidence": [
@@ -16361,11 +16606,22 @@
    "name": "草木成精",
    "flow": "modifier",
    "control": {
-    "kind": "none"
+    "kind": "text",
+    "label": "自訂 NPC 咒語備忘",
+    "multiline": true,
+    "maxLength": 200
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "text",
+     "label": "自訂 NPC 咒語備忘",
+     "multiline": true,
+     "maxLength": 200
+    },
+    {
+     "kind": "toggle",
+     "label": "處於陽光下（該 NPC 咒語 MP 消耗 -5）",
+     "reset": "scene"
     }
    ],
    "effects": [
@@ -16392,7 +16648,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "免疫與易傷兩組選項都已算並顯示；缺 NPC 咒語（無任何收件處）與「陽光下該咒語 MP-5」的折抵。",
    "evidence": [
@@ -16471,11 +16727,22 @@
    "name": "被推翻的王",
    "flow": "modifier",
    "control": {
-    "kind": "none"
+    "kind": "text",
+    "label": "秘密弱點備忘",
+    "multiline": true,
+    "maxLength": 200
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "text",
+     "label": "秘密弱點備忘",
+     "multiline": true,
+     "maxLength": 200
+    },
+    {
+     "kind": "toggle",
+     "label": "直面並克服弱點（所有羈絆強度視作 +1）",
+     "reset": "none"
     }
    ],
    "effects": [
@@ -16509,7 +16776,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "四項全部沒有落點：+5 傷害、雙骰同點即大成功、弱點懲罰、羈絆強度 +1（羈絆本身是通用功能，但沒有 +1 修飾）。",
    "evidence": [
@@ -16739,13 +17006,28 @@
    "name": "遺物使用者",
    "flow": "action",
    "control": {
-    "kind": "none",
-    "backedBy": "anomaly"
+    "kind": "text",
+    "label": "遺物武器描述",
+    "multiline": true,
+    "maxLength": 200
    },
    "controls": [
     {
-     "kind": "none",
-     "backedBy": "anomaly"
+     "kind": "text",
+     "label": "遺物武器描述",
+     "multiline": true,
+     "maxLength": 200
+    },
+    {
+     "kind": "button",
+     "label": "顯現遺物能力（+1d6 異常值）",
+     "roll": {
+      "resource": "anomaly",
+      "dice": "1d6",
+      "sign": 1,
+      "max": 10
+     },
+     "outcome": "①向 GM 提問 ②選一學派儀式半價（可疊）③+5 傷害並無視相性，附帶一次自由攻擊"
     }
    ],
    "effects": [
@@ -16765,10 +17047,7 @@
     }
    ],
    "apply": {
-    "via": "existing",
-    "evidence": [
-     "src/features/character-sheet/data/classResources.js（backedBy: anomaly）"
-    ]
+    "via": "flow-control"
    },
    "note": "異常值池已存在（含歸零與上限）；三個能力、+5 傷害、儀式半價、達 10 的 d6 判定全部沒有落點。",
    "evidence": [
@@ -16789,11 +17068,26 @@
    "name": "離鄉的妖精",
    "flow": "grant",
    "control": {
-    "kind": "none"
+    "kind": "text",
+    "label": "妖精弱點備忘",
+    "multiline": true,
+    "maxLength": 200
    },
    "controls": [
     {
-     "kind": "none"
+     "kind": "text",
+     "label": "妖精弱點備忘",
+     "multiline": true,
+     "maxLength": 200
+    },
+    {
+     "kind": "button",
+     "label": "章節末 GM 結算（獲得 1 物語點）",
+     "reset": "chapter",
+     "gain": {
+      "fp": 1
+     },
+     "outcome": "因弱點引發突發情況或強制檢定失敗，GM 給予 1 物語點"
     }
    ],
    "effects": [
@@ -16806,7 +17100,7 @@
     }
    ],
    "apply": {
-    "via": "flow-listed"
+    "via": "flow-control"
    },
    "note": "咒語與儀式權限只由職業技能判定，非施法者拿了這個金手指仍然顯示「剩餘 0 / 0」而學不到；溝通與妖精弱點屬敘事。",
    "evidence": [

@@ -80,7 +80,12 @@ const INTEGRATED_BY_MODULE = {
 };
 
 const deriveApply = (row) => {
-  if (RESOURCE_BACKED_IDS[row.id]) {
+  const rawControls = Array.isArray(row.controls) && row.controls.length
+    ? row.controls
+    : [row.control || { kind: 'none' }];
+  const hasInteractive = rawControls.some((c) => c && c.kind !== 'none' && c.kind !== 'counter');
+
+  if (RESOURCE_BACKED_IDS[row.id] && !hasInteractive) {
     return {
       via: 'existing',
       evidence: [`src/features/character-sheet/data/classResources.js（backedBy: ${RESOURCE_BACKED_IDS[row.id]}）`]
@@ -95,8 +100,8 @@ const deriveApply = (row) => {
       evidence: (row.evidence || []).map((e) => e.at).filter(Boolean).slice(0, 3)
     };
   }
-  const kind = row.control?.kind || 'none';
-  if (kind === 'counter' || kind === 'toggle' || kind === 'button' || kind === 'select') {
+  const hasAnyControl = rawControls.some((c) => c && c.kind !== 'none');
+  if (hasAnyControl) {
     return { via: 'flow-control' };
   }
   if (Array.isArray(row.effects) && row.effects.length > 0) {
@@ -196,11 +201,11 @@ for (const row of rows) {
   const inv = inventory.find((i) => i.id === row.id);
 
   const formatControl = (ctrl) => {
-    if (backedBy) {
+    const k = ctrl?.kind || 'none';
+    if (backedBy && k === 'counter') {
       return { kind: 'none', backedBy };
     }
-    const k = ctrl?.kind || 'none';
-    if (k === 'none') return { kind: 'none' };
+    if (k === 'none') return { kind: 'none', ...(backedBy ? { backedBy } : {}) };
     return {
       kind: k,
       label: ctrl?.label || '',
@@ -208,6 +213,10 @@ for (const row of rows) {
       ...(ctrl?.reset ? { reset: ctrl.reset } : {}),
       ...(ctrl?.initial != null ? { initial: ctrl.initial } : {}),
       ...(ctrl?.cost && Object.keys(ctrl.cost).length ? { cost: ctrl.cost } : {}),
+      ...(ctrl?.gain && Object.keys(ctrl.gain).length ? { gain: ctrl.gain } : {}),
+      // 擲骰式累積：`{ resource, dice, sign?, max?, onlyIfRollLte? }`。
+      // 沒有這個欄位時，「+1d6 不穩定值」只是 label 上的一句願望（W5 驗收時抓到的）。
+      ...(ctrl?.roll && typeof ctrl.roll === 'object' ? { roll: ctrl.roll } : {}),
       ...(ctrl?.outcome ? { outcome: ctrl.outcome } : {}),
       ...(Array.isArray(ctrl?.options) && ctrl.options.length
         ? {

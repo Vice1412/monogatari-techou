@@ -91,9 +91,9 @@ check('total 與清單一致', REPORT.total, FLOW_ITEMS.length);
 const APPLY_VIAS = ['existing', 'flow-control', 'flow-listed', 'none'];
 check('每一筆的 apply.via 都在封閉詞彙內',
   FLOW_ITEMS.filter((i) => !APPLY_VIAS.includes(i.apply?.via)).map((i) => i.id), []);
-check('flow-control 的條目一定有控件（counter/toggle/button/select）',
+check('flow-control 的條目一定有控件（counter/toggle/button/select/multiSelect/text/recordList）',
   FLOW_ITEMS.filter((i) => i.apply?.via === 'flow-control'
-    && !['counter', 'toggle', 'button', 'select'].includes(i.control?.kind)).map((i) => i.id), []);
+    && !['counter', 'toggle', 'button', 'select', 'multiSelect', 'text', 'recordList'].includes(i.control?.kind)).map((i) => i.id), []);
 check('narrative 一定是 via=none',
   FLOW_ITEMS.filter((i) => i.flow === 'narrative' && i.apply?.via !== 'none').map((i) => i.id), []);
 
@@ -597,6 +597,40 @@ check('只重置對應 scope（不破之人 reset 是 scene）', sceneResetChar.
 check('fields 在 resetFlowScope 時不被清除', sceneResetChar.flowState['heroic:不破之人'].fields, { note: '重要資料' });
 const restResetChar = resetFlowScope(charForReset, 'rest');
 check('非對應 scope 重置時不修改角色引用', restResetChar === charForReset, true);
+
+// ─────────────────────────────────────────────────────────── N
+section('N. 擲骰式累積（control.roll）：骰子在 UI，算術在純函式');
+// 這些條目以前只有一個按鈕，按下去只寫 flowState——「+1d6 不穩定值」永遠不會發生。
+// 三條規則：沒給骰值要拒絕、純累積用骰值、判定式只用骰值過門檻。
+const rollCtx = (extra = {}) => ({ sl: 0, level: 10, vars: {}, controlIndex: 0, ...extra });
+const mkRes = (name, res, value) => {
+  const c = mkChar({ name });
+  c.quirk = name;
+  c.classResources = { ...(c.classResources || {}), [res]: value };
+  return c;
+};
+
+const escapeItem = FLOW_ITEMS.find((i) => i.name === '實驗逃亡體');
+check('N1 沒給骰值時拒絕（純函式不自己擲）',
+  flowActionPlan(escapeItem, mkRes('實驗逃亡體', 'instability', 3), rollCtx()).ok, false);
+check('N2 拒絕的理由說得出要擲什麼',
+  /需要先擲 1d8/.test(String(flowActionPlan(escapeItem, mkRes('實驗逃亡體', 'instability', 3), rollCtx()).reason)), true);
+check('N3 純累積：1d8 擲 5 → 不穩定值 3 → 8',
+  flowActionPlan(escapeItem, mkRes('實驗逃亡體', 'instability', 3), rollCtx({ roll: 5 })).patch.classResources.instability, 8);
+check('N4 純累積：累積不超過上限 10（8 + 7 → 10）',
+  flowActionPlan(escapeItem, mkRes('實驗逃亡體', 'instability', 8), rollCtx({ roll: 7 })).patch.classResources.instability, 10);
+
+const skepticItem = FLOW_ITEMS.find((i) => i.name === '固執的懷疑論者');
+check('N5 判定式：1d6 擲 3（≤4）→ 懷疑點只 +1（不是 +3）',
+  flowActionPlan(skepticItem, mkRes('固執的懷疑論者', 'doubt', 2), rollCtx({ roll: 3 })).patch.classResources.doubt, 3);
+check('N6 判定式：1d6 擲 5（>4）→ 懷疑點不動',
+  flowActionPlan(skepticItem, mkRes('固執的懷疑論者', 'doubt', 2), rollCtx({ roll: 5 })).patch.classResources, undefined);
+check('N7 判定式的 toast 寫的是「擲出 3」而不是增加量',
+  /擲出 3/.test(String(flowActionPlan(skepticItem, mkRes('固執的懷疑論者', 'doubt', 2), rollCtx({ roll: 3 })).toast)), true);
+
+const relicItem = FLOW_ITEMS.find((i) => i.name === '遺物使用者');
+check('N8 遺物使用者：1d6 擲 4 → 異常值 2 → 6',
+  flowActionPlan(relicItem, mkRes('遺物使用者', 'anomaly', 2), rollCtx({ roll: 4, controlIndex: 1 })).patch.classResources.anomaly, 6);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

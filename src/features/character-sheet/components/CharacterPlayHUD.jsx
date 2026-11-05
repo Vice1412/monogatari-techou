@@ -914,7 +914,22 @@ export default function CharacterPlayHUD({
         onPicks={(picks) => adjustFlowCounter(item, { ...state, picks })}
         onText={(text) => adjustFlowCounter(item, { ...state, text })}
         onListChange={(list) => adjustFlowCounter(item, { ...state, list })}
-        onAct={(idx) => applyFlowPlan(flowActionPlan(item, character, { sl, level: characterLevel, stats, controlIndex: idx, vars }))}
+        // 擲骰式累積（W5 驗收補上）：`control.roll` 存在時，這裡負責**擲**再交給純函式。
+        // 純函式不擲骰（沒給 roll 就拒絕），所以骰子只能落在 UI 這一層。
+        onAct={(idx) => {
+          const ctrl = controlsOf(item)[idx];
+          let roll;
+          if (ctrl?.roll?.dice) {
+            const m = /^(\d*)d(\d+)$/.exec(String(ctrl.roll.dice));
+            const count = m ? (Number(m[1]) || 1) : 1;
+            const faces = m ? Number(m[2]) : 6;
+            roll = 0;
+            for (let i = 0; i < count; i += 1) roll += Math.floor(Math.random() * faces) + 1;
+          }
+          applyFlowPlan(flowActionPlan(item, character, {
+            sl, level: characterLevel, stats, controlIndex: idx, vars, ...(roll ? { roll } : {})
+          }));
+        }}
         testId={testId}
       />
     );
