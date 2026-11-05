@@ -9,6 +9,11 @@
 
 ---
 
+*2026-11-05（Wave 3【升級】與 1000z 特性庫實裝）：依 `docs/plan/06-traits-under-1000z.md` 完成 W3 實裝。
+① 建立 `src/features/character-sheet/data/equipmentTraits.js`：收錄 24 筆特性（武器 11 筆、防具/盾牌 6 筆、飾品 5 筆，及 >1000z 基準特性），支援多選與選項字典，匯出 `traitsFor`（篩選槽位與價格）與 `traitPrice`（計算折抵，依原書公式 Z − 高瞻遠矚SL × 100，最低 0z）。
+② 規格登記與改造流程：在 `flowDataSpecs.js` 登記 `heroic:升級` 之 records/requires 規格；在 `flowData.js` 實裝 `getForesightSL` 與 `planUpgradeTrait`，驗證槽位匹配、特性價格（≤1000z）、資金餘額並生成 `kind: 'heroic'` 改造履歷。
+③ 護欄與刻意破壞驗證：建立 `tests/equipmentTraits.test.mjs`（23 條斷言，A1～E6），串入 `package.json` 的 `test` 串鏈（成為第 63 關）；完成兩次刻意破壞驗證（篩選邊界與高瞻遠矚折抵倍率，均成功觸發 exit 1）。全鏈 63 關 `npm test`、`npm run test:emoji`、`npm run build` 全數 PASS。*
+
 *建立於 2026-10-03 DSH 稽核。稽核範圍：`src/` 75 檔、38,481 行；`npm run build` 通過。*
 *2026-10-03：同步使用者裁定之圖示三軌分類（敘事 → Game-Icons；功能性控件 → Unicode 豁免），並修正 `GEMINI.md` 規則五.1 之 Emoji 檢測正則。*
 *2026-10-04：稽核複驗並更新基準——§3.1 哨兵遷移完成、§4 A 殘留數更新為 76 行 / 145 次（`src/` 程式碼檔 75 個 / 38,619 行）、§4 E 補列測試現況、§6 D 階段 1 標記完成。*

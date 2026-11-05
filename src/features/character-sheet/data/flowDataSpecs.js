@@ -31,6 +31,24 @@ export const FLOW_DATA_SPECS = Object.freeze({
     ],
     // 未填齊資料時增益禁用並標明原因
     requireRecordsForBuffs: true
+  },
+  'heroic:升級': {
+    title: '升級：每次休息一次，為裝備添加／替換特性',
+    settlements: [{ id: 'rest', label: '休息：挑選要改的裝備與特性', dice: null }],
+    // 用 recordList：每一次休息一筆，記錄「哪件裝備、原本的特性、換成什麼、付了多少」
+    records: {
+      label: '本次休息的改造',
+      min: 0,
+      max: 8,
+      fields: [
+        { key: 'itemName', label: '裝備名稱', required: true, maxLength: 32 },
+        { key: 'slot', label: '類別', required: true, options: ['武器', '護甲', '盾牌'] },
+        { key: 'traitId', label: '特性', required: true, source: 'EQUIPMENT_TRAITS:1000' },
+        { key: 'replaced', label: '被替換的舊特性', required: false, maxLength: 32 },
+        { key: 'paid', label: '支付金額', required: true, numeric: true }
+      ]
+    },
+    requires: { slotScope: ['weapon', 'armor', 'shield'], maxCost: 1000 }
   }
 });
 

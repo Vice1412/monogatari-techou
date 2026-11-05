@@ -106,7 +106,7 @@ import { applyCampPlan, describeCampOutcome } from '../utils/campOutcome';
 import { resolveCreationRules } from '../data/creationRules';
 import { modeRestrictsEquipment, isTechnosphereEnabled, isSkillSuppressedByTechnospheres, getLevelUpMnemosphereCandidates, MNEMOSPHERE_MAX_LEVEL } from '../data/technospheres';
 import ZeroPowerBlock from './ZeroPowerBlock';
-import { specFor, readEntry, setRecord, addRecord, removeRecord, planBuffUse, planSettlement } from '../utils/flowData';
+import { specFor, readEntry, setRecord, addRecord, removeRecord, planBuffUse, planSettlement, deriveUpgradePaid, applyUpgradeDraft } from '../utils/flowData';
 import FlowDataPanel from './FlowDataPanel';
 import { getCharacterTheme } from '../utils/characterThemes';
 import { getDualShieldState, withHrBonus, EQUIPMENT_SLOTS, applyEquipmentChoice } from '../utils/equipmentRules';
@@ -4344,6 +4344,58 @@ export default function CharacterPlayHUD({
                                     `flow-heroic-${idx}`
                                   )}
                                 </div>
+                                {/* 有「資料規格」的英雄技能掛專屬面板（目前是【升級】）。
+                                    沒有這一段的話，`renderFlowControls` 會因為 spec 存在而抑制通用按鈕，
+                                    結果卡片上什麼都沒有——比沒有 spec 更糟（W3 驗收抓到的缺口）。 */}
+                                {(() => {
+                                  const heroicItemId = `heroic:${resolved.name}`;
+                                  const heroicSpec = specFor(heroicItemId);
+                                  if (!heroicSpec) return null;
+                                  return (
+                                    <div className="pt-1">
+                                      <FlowDataPanel
+                                        character={character}
+                                        itemId={heroicItemId}
+                                        spec={heroicSpec}
+                                        entry={readEntry(character, heroicItemId)}
+                                        theme={theme}
+                                        onRecordChange={(i, patch) => {
+                                          // 【升級】的支付金額由「特性原價 − 高瞻遠矚SL×100」推導，
+                                          // 玩家改類別或特性時要跟著重算（不是叫他自己算）。
+                                          const rec = readEntry(character, heroicItemId).records[i] || {};
+                                          const next = deriveUpgradePaid(character, rec, patch);
+                                          onChange({
+                                            ...setRecord(character, heroicItemId, i, next),
+                                            updatedAt: new Date().toISOString()
+                                          });
+                                        }}
+                                        onAddRecord={() => onChange({
+                                          ...addRecord(character, heroicItemId),
+                                          updatedAt: new Date().toISOString()
+                                        })}
+                                        onRemoveRecord={(i) => onChange({
+                                          ...removeRecord(character, heroicItemId, i),
+                                          updatedAt: new Date().toISOString()
+                                        })}
+                                        onApplyRecord={(i) => {
+                                          const plan = applyUpgradeDraft(character, i);
+                                          if (!plan.ok) {
+                                            showToast(plan.reason, 'warning');
+                                            return;
+                                          }
+                                          onChange(loggableChange(character, {
+                                            ...character,
+                                            ...plan.patch,
+                                            updatedAt: new Date().toISOString()
+                                          }, plan.log));
+                                          showToast(plan.toast, 'success');
+                                        }}
+                                        applyLabel="套用（扣款並寫履歷）"
+                                        testId={`flowdata-heroic-${resolved.name}`}
+                                      />
+                                    </div>
+                                  );
+                                })()}
                               </div>
                             );
                           })}

@@ -25,7 +25,10 @@ import {
   removeListRecord,
   canUseBuff,
   planBuffUse,
-  planSettlement
+  planSettlement,
+  getForesightSL,
+  deriveUpgradePaid,
+  applyUpgradeDraft
 } from '../src/features/character-sheet/utils/flowData.js';
 
 import { CLASS_RESOURCES } from '../src/features/character-sheet/data/classResources.js';
@@ -306,6 +309,49 @@ check('7c helper：找不到 testid 回 false（不是拋錯）',
   hasDisabledAttr(FAKE.missing, 'x'), false);
 check('7d helper：hasTestId 分得出有／沒有',
   [hasTestId(FAKE.enabled, 'x'), hasTestId(FAKE.missing, 'x')], [true, false]);
+
+// ─────────────────────────────────────────────────────────── 8. 【升級】的草稿結算
+// 這一組守的是「面板按得過、記帳卻沒動」：金額要自己推導、套用要真的扣款、而且不能扣兩次。
+const UPGRADE_ID = 'heroic:升級';
+const upgChar = {
+  ...charComplete,
+  zenit: 1000,
+  classes: [{ className: '修補匠', level: 5, skills: [{ name: '高瞻遠矚', sl: 2 }] }],
+  flowState: {
+    [UPGRADE_ID]: {
+      n: 0, on: false, choice: '',
+      fields: {
+        本次休息的改造: [{ id: 'u1', itemName: '旅行長劍', slot: '武器', traitId: '', replaced: '', paid: '' }]
+      },
+      picks: [], text: '', list: []
+    }
+  }
+};
+const upgDraft = upgChar.flowState[UPGRADE_ID].fields.本次休息的改造[0];
+check('8a getForesightSL 讀得到高瞻遠矚 SL 2', getForesightSL(upgChar), 2);
+check('8b 選「穿刺」自動推導實付 200z（400 − 2×100）',
+  deriveUpgradePaid(upgChar, upgDraft, { traitId: 'traitPierce' }).paid, 200);
+check('8c 沒選特性時不改動 patch',
+  deriveUpgradePaid(upgChar, upgDraft, { itemName: 'x' }), { itemName: 'x' });
+
+const upgReady = {
+  ...upgChar,
+  flowState: {
+    [UPGRADE_ID]: {
+      ...upgChar.flowState[UPGRADE_ID],
+      fields: { 本次休息的改造: [{ ...upgDraft, traitId: 'traitPierce', paid: 200 }] }
+    }
+  }
+};
+const upgApplied = applyUpgradeDraft(upgReady, 0);
+check('8d 套用成功', upgApplied.ok, true);
+check('8e 套用後扣 200z', upgApplied.patch.zenit, 800);
+check('8f 該筆標成 applied（避免重複扣款）',
+  upgApplied.patch.flowState[UPGRADE_ID].fields.本次休息的改造[0].applied, true);
+check('8g 同一筆再套用一次會被拒絕',
+  applyUpgradeDraft({ ...upgReady, zenit: 800, flowState: upgApplied.patch.flowState }, 0).ok, false);
+check('8h 餘額不足時拒絕並說出金額',
+  /資金不足/.test(String(applyUpgradeDraft({ ...upgReady, zenit: 50 }, 0).reason || '')), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

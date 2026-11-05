@@ -4,8 +4,9 @@
  */
 
 import { FLOW_DATA_SPECS, specFor } from '../data/flowDataSpecs';
+import { EQUIPMENT_TRAITS, traitsFor, traitPrice } from '../data/equipmentTraits';
 
-export { FLOW_DATA_SPECS, specFor };
+export { FLOW_DATA_SPECS, specFor, EQUIPMENT_TRAITS, traitsFor, traitPrice };
 
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
 
@@ -387,4 +388,163 @@ export const planSettlement = (character, itemId, settlementId, { roll } = {}) =
     toast: title,
     roll
   };
+};
+
+/**
+ * 取得角色「高瞻遠矚」技能的等級 SL（修補匠職業技能）。
+ */
+export const getForesightSL = (character) => {
+  for (const cls of character?.classes || []) {
+    for (const sk of cls?.skills || []) {
+      if (sk?.name === '高瞻遠矚') {
+        const sl = parseInt(sk.sl, 10);
+        return Number.isFinite(sl) && sl > 0 ? sl : 0;
+      }
+    }
+  }
+  return 0;
+};
+
+/**
+ * 【升級】裝備特性添加／替換計畫。
+ * @param {object} character 角色資料
+ * @param {object} params 參數
+ * @returns {object} { ok, reason, cost, paid, patch, log, toast }
+ */
+export const planUpgradeTrait = (character, { itemName, slot, traitId, replaced = '', customPaid } = {}) => {
+  const spec = specFor('heroic:升級');
+  if (!spec) return { ok: false, reason: '找不到【升級】資料規格' };
+
+  if (!itemName || !String(itemName).trim()) {
+    return { ok: false, reason: '請填寫裝備名稱' };
+  }
+  const slotMap = { '武器': 'weapon', '護甲': 'armor', '盾牌': 'shield', weapon: 'weapon', armor: 'armor', shield: 'shield' };
+  const normalizedSlot = slotMap[slot];
+  if (!normalizedSlot) {
+    return { ok: false, reason: '類別必須為武器、護甲或盾牌' };
+  }
+
+  const trait = EQUIPMENT_TRAITS.find((t) => t.id === traitId);
+  if (!trait) {
+    return { ok: false, reason: '找不到指定的特性' };
+  }
+  if (!trait.slots.includes(normalizedSlot)) {
+    return { ok: false, reason: `該特性無法附加於${slot}` };
+  }
+  if (trait.cost > 1000) {
+    return { ok: false, reason: `特性【${trait.name}】原價 ${trait.cost}z 超過 1000z 上限，無法透過【升級】附加` };
+  }
+
+  const foresightSL = getForesightSL(character);
+  const calculatedPrice = traitPrice(trait, foresightSL);
+  const paid = (customPaid !== undefined && Number.isFinite(Number(customPaid)) && Number(customPaid) >= 0)
+    ? Math.floor(Number(customPaid))
+    : calculatedPrice;
+
+  const currentZenit = Number(character?.zenit) || 0;
+  if (paid > currentZenit) {
+    return { ok: false, reason: `資金不足（需要 ${paid}z，現有 ${currentZenit}z）` };
+  }
+
+  const newZenit = currentZenit - paid;
+  const entry = normalizeFlowEntry(character, 'heroic:升級');
+  const recordKey = getRecordKey(spec);
+  const currentRecords = Array.isArray(entry.fields?.[recordKey]) ? [...entry.fields[recordKey]] : [];
+
+  const newRecord = {
+    id: `rec_${currentRecords.length + 1}`,
+    itemName: String(itemName).trim(),
+    slot: slot === 'weapon' ? '武器' : (slot === 'armor' ? '護甲' : (slot === 'shield' ? '盾牌' : slot)),
+    traitId: trait.id,
+    traitName: trait.name,
+    replaced: String(replaced || '').trim(),
+    paid
+  };
+  const nextRecords = [...currentRecords, newRecord];
+
+  const patch = {
+    zenit: newZenit,
+    flowState: {
+      ...(character?.flowState || {}),
+      'heroic:升級': {
+        ...entry,
+        fields: {
+          ...entry.fields,
+          [recordKey]: nextRecords
+        }
+      }
+    }
+  };
+
+  const replacedText = replaced ? `（替換【${replaced}】）` : '';
+  const title = `【升級】為【${itemName}】附加特性【${trait.name}】${replacedText}（支付 ${paid}z）`;
+  const log = {
+    kind: 'heroic',
+    title,
+    changes: [{ field: 'zenit', from: currentZenit, to: newZenit }],
+    note: `特性原價 ${trait.cost}z，高瞻遠矚 SL ${foresightSL} 減免 ${trait.cost - calculatedPrice}z，實付 ${paid}z`
+  };
+
+  return {
+    ok: true,
+    cost: trait.cost,
+    paid,
+    foresightSL,
+    patch,
+    log,
+    toast: title
+  };
+};
+
+/**
+ * 【升級】的「草稿列」：面板上一筆記錄就是一次未套用的改造。
+ *
+ * 為什麼不沿用 `planUpgradeTrait`：那一支是「輸入表單 → 產生一筆新記錄」，
+ * 而面板上的記錄本來就已經存在（玩家正在編輯它）。直接套用會多出一筆重複記錄。
+ * 這一支改採「就地結算」：算價、扣款、把該筆標成 `applied`。
+ *
+ * 兩支共用同一個驗證（`validateUpgradeInput`），避免「面板按得過、API 擋得住」的分歧。
+ */
+export const deriveUpgradePaid = (character, record, patch = {}) => {
+  const merged = { ...record, ...patch };
+  const trait = EQUIPMENT_TRAITS.find((t) => t.id === merged.traitId);
+  if (!trait) return patch;
+  return { ...patch, paid: traitPrice(trait, getForesightSL(character)) };
+};
+
+export const applyUpgradeDraft = (character, index) => {
+  const spec = specFor('heroic:升級');
+  if (!spec) return { ok: false, reason: '找不到【升級】資料規格' };
+  const entry = readEntry(character, 'heroic:升級');
+  const record = entry.records[index];
+  if (!record) return { ok: false, reason: '找不到這一筆改造' };
+  // 已套用的那一筆不能再扣一次款（面板上的「套用」也會變成「已套用」）。
+  if (record.applied) return { ok: false, reason: '這一筆已經套用過了' };
+
+  const check = planUpgradeTrait(character, {
+    itemName: record.itemName,
+    slot: record.slot,
+    traitId: record.traitId,
+    replaced: record.replaced
+  });
+  if (!check.ok) return check;
+
+  // 就地結算：扣款 ＋ 該筆標成 applied（不新增記錄）
+  const records = entry.records.map((r, i) => (i === index
+    ? { ...r, applied: true, paid: check.paid, traitName: (EQUIPMENT_TRAITS.find((t) => t.id === r.traitId) || {}).name || '' }
+    : r));
+  const patch = {
+    zenit: check.patch.zenit,
+    flowState: {
+      ...(character?.flowState || {}),
+      'heroic:升級': {
+        ...normalizeFlowEntry(character, 'heroic:升級'),
+        fields: {
+          ...(normalizeFlowEntry(character, 'heroic:升級').fields || {}),
+          [getRecordKey(spec)]: records
+        }
+      }
+    }
+  };
+  return { ok: true, patch, log: check.log, toast: check.toast, paid: check.paid };
 };
