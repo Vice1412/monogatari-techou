@@ -12,6 +12,9 @@
 > **逐筆工單在 [`worklist.md`](worklist.md)**（機器可讀版 `worklist.json`）。
 > 85 筆＋1 項系統工作每一筆都在上面，`tests/planWorklist.test.mjs` 會比對「附錄有幾筆／工單有幾筆」，
 > **漏一筆就紅**。施工時請照工單的 ☐／✓ 推進，不要自己挑。
+>
+> **不在工單上的尾巴**（C5／C3 收尾、W4／W5 驗收記下的 9 條）在 [`w6-kickoff.md`](w6-kickoff.md)；
+> 其中標「需裁定」的等 [`decisions-pending.md`](decisions-pending.md) 有答案再動。
 
 | 波 | 讀哪一冊 | 做什麼 | 完成判準 |
 |---|---|---|---|

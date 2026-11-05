@@ -118,6 +118,16 @@ eq('D2 md 的 ✓ 數量等於 JSON 的 done 數量', doneRows, rows.filter((r) 
 // ── E. 工單與文件沒有互相矛盾（README 指到它）
 const readme = fs.readFileSync(path.join(PLAN, 'README.md'), 'utf8');
 ok('E1 README 有指到 worklist', /worklist\.md/.test(readme));
+// 開工清單與待裁定清單也要有入口，否則它們會變成兩個沒人讀的檔案。
+ok('E2 README 有指到 W6 開工清單', /w6-kickoff\.md/.test(readme));
+ok('E3 README 有指到待裁定清單', /decisions-pending\.md/.test(readme));
+const kickoff = fs.readFileSync(path.join(PLAN, 'w6-kickoff.md'), 'utf8');
+ok('E4 開工清單列出 C5／C3 的收尾（A1／A2／B1）',
+  ['A1', 'A2', 'B1'].every((id) => kickoff.includes(`| ${id} |`)));
+ok('E5 開工清單指到 decisions-pending', /decisions-pending\.md/.test(kickoff));
+const pending = fs.readFileSync(path.join(PLAN, 'decisions-pending.md'), 'utf8');
+ok('E6 待裁定清單有 6 個編號題（1–6）',
+  ['## 1.', '## 2.', '## 3.', '## 4.', '## 5.', '## 6.'].every((h) => pending.includes(h)));
 
 console.log(`\n通過 ${pass} / ${pass + fails.length}${fails.length ? `　失敗 ${fails.length}` : '　（全部通過）'}`);
 fails.forEach((f) => console.log('  FAIL  ' + f));
