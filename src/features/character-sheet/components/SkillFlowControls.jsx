@@ -26,7 +26,7 @@
  * 所以顏色走 `style`，結構與字級走 `className`（字級只能用 `text-t10`…`text-t39`）。
  */
 import React from 'react';
-import { evaluateControlValue, controlsOf } from '../utils/effectFlow';
+import { evaluateControlValue, controlsOf, multiSelectMax, toggleMultiSelectPicks } from '../utils/effectFlow';
 
 /** 主題缺欄時的票色退回（與 ClassResourceStrip／HudWindow 同一組羊皮紙階）。 */
 const FALLBACK = {
@@ -312,22 +312,14 @@ function ButtonControl({ control, item, state, theme, testId, costBlocked, onAct
  * 373 筆裡有 116 筆是純敘事條目，畫框會讓「有東西可以按」與「只是說明」長得一樣。
  */
 
-function MultiSelectControl({ control, item, state, theme, testId, onPicks = noop }) {
+function MultiSelectControl({ control, item, state, theme, testId, onPicks = noop, takes = 1 }) {
   const picks = Array.isArray(state?.picks) ? state.picks : [];
   const options = Array.isArray(control.options) ? control.options : [];
-  const max = Number.isFinite(control.max) ? control.max : Infinity;
+  // 上限與「同組互斥」的規則都住在純函式裡（`multiSelectMax`／`toggleMultiSelectPicks`），
+  // 因為 SSR 測不到點擊；元件只負責把算好的結果畫出來。
+  const max = multiSelectMax(control, takes);
   const atMax = picks.length >= max;
-
-  const handleToggle = (val) => {
-    let next;
-    if (picks.includes(val)) {
-      next = picks.filter((p) => p !== val);
-    } else {
-      if (atMax) return;
-      next = [...picks, val];
-    }
-    onPicks(next);
-  };
+  const handleToggle = (val) => onPicks(toggleMultiSelectPicks(control, picks, val, { max }));
 
   return (
     <div data-testid={testId} className="p-2.5 rounded border space-y-2" style={{ backgroundColor: theme.subpanelBg, borderColor: theme.border }}>
@@ -489,6 +481,8 @@ export default function SkillFlowControls({
   onPicks = noop,
   onText = noop,
   onListChange = noop,
+  // 裁定 5A：有些條目的上限是「每次取得 N 個 × 取得次數」，母元件負責數次數。
+  takes = 1,
   testId
 }) {
   if (!item) return null;
@@ -587,6 +581,7 @@ export default function SkillFlowControls({
           state={safeState}
           theme={pal}
           testId={cid}
+          takes={takes}
           onPicks={onPicks}
         />
       );

@@ -14,6 +14,8 @@ import {
 } from 'react-icons/gi';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 import EmptyState from '../../../../components/ui/EmptyState';
+import { addInventoryItem } from '../../utils/inventory';
+import { applySaltAndPepper, applyDashOfLove, buildCookedDelicacyItem } from '../../utils/gourmetActions';
 import {
   TASTES,
   TASTE_SHORT,
@@ -135,6 +137,12 @@ export default function GourmetCookbook({
   const [batchOpen, setBatchOpen] = useState(false);
   const [batchDraft, setBatchDraft] = useState({});
   const [batchSeq, setBatchSeq] = useState('');
+  /** 鹽與胡椒調味暫存：{ [ingredientId]: newTaste } */
+  const [seasonedTastes, setSeasonedTastes] = useState({});
+  const [seasonTargetId, setSeasonTargetId] = useState('');
+  const [seasonTaste, setSeasonTaste] = useState(TASTES[0]);
+  /** 加點愛額外盟友數 */
+  const [extraAllies, setExtraAllies] = useState(0);
 
   const data = character?.gourmetData || {};
   const ingredients = data.ingredients || [];
@@ -158,6 +166,12 @@ export default function GourmetCookbook({
     (h) => (typeof h === 'string' ? h : h?.name) === '大吃一頓'
   );
   const maxDishIngredients = hasGreatFeast ? 4 : 3;
+
+  const hasSaltAndPepper = Boolean(
+    (gourmetClass?.skills || []).some((s) => s.name === '鹽與胡椒' && Number(s.sl) > 0)
+  );
+  const dashOfLoveSkill = (gourmetClass?.skills || []).find((s) => s.name === '加點愛');
+  const dashOfLoveSL = dashOfLoveSkill ? Number(dashOfLoveSkill.sl) : 0;
 
   const write = (patch) => {
     onChange({
@@ -295,11 +309,71 @@ export default function GourmetCookbook({
     });
   };
 
-  const pickedIngredients = picked.map((id) => ingredients.find((i) => i.id === id)).filter(Boolean);
+  const pickedIngredients = picked.map((id) => {
+    const ing = ingredients.find((i) => i.id === id);
+    if (!ing) return null;
+    const seasoned = seasonedTastes[id];
+    return seasoned ? { ...ing, taste: seasoned, isSeasoned: true } : ing;
+  }).filter(Boolean);
   const cookPairs = pairsFromTastes(pickedIngredients.map((i) => i.taste));
   const canCook = pickedIngredients.length >= 2;
   const dishText = composeDelicacyText(dishName, cookPairs, cookbook, level);
   const conflicts = conflictingPairKeys(cookPairs, cookbook);
+
+  const handleCookSaveToBackpack = () => {
+    if (!canCook) return;
+    const delicacyItem = buildCookedDelicacyItem({ dishName, dishText });
+    const nextIngredients = ingredients.filter((i) => !picked.includes(i.id));
+    const nextChar = addInventoryItem({
+      ...character,
+      gourmetData: {
+        ...data,
+        ingredients: nextIngredients
+      }
+    }, delicacyItem);
+    onChange(nextChar);
+    showToast(`成功烹飪【${delicacyItem.name}】並存入行囊！`, 'success');
+    setPicked([]);
+    setSeasonedTastes({});
+    setDishName('');
+  };
+
+  const handleCookEatNow = () => {
+    if (!canCook) return;
+    let nextChar = { ...character };
+    let loveNote = '';
+
+    if (dashOfLoveSL > 0 && extraAllies > 0) {
+      const resLove = applyDashOfLove({
+        skillSL: dashOfLoveSL,
+        currentMp: character.currentMp,
+        extraAllies
+      });
+      if (!resLove.ok) {
+        showToast(resLove.reason, 'warning');
+        return;
+      }
+      nextChar.currentMp = resLove.nextMp;
+      loveNote = `（花費 ${resLove.costMp} MP 加點愛，額外影響 ${resLove.extraAllies} 名盟友！）`;
+    }
+
+    const nextIngredients = ingredients.filter((i) => !picked.includes(i.id));
+    nextChar = {
+      ...nextChar,
+      gourmetData: {
+        ...data,
+        ingredients: nextIngredients
+      },
+      updatedAt: new Date().toISOString()
+    };
+
+    onChange(nextChar);
+    showToast(`現場享用美食【${dishName || '特製美食'}】！${loveNote}`, 'success');
+    setPicked([]);
+    setSeasonedTastes({});
+    setDishName('');
+    setExtraAllies(0);
+  };
 
   // ── 共用區塊 ────────────────────────────────────────────
 
@@ -946,6 +1020,8 @@ export default function GourmetCookbook({
             {/* 依口味分組的選料區——組口味時正是照口味在找食材 */}
             {renderGrouped((ing) => {
               const on = picked.includes(ing.id);
+              const seasoned = seasonedTastes[ing.id];
+              const displayTaste = seasoned || ing.taste;
               return (
                 <button
                   key={ing.id}
@@ -953,15 +1029,91 @@ export default function GourmetCookbook({
                   onClick={() => togglePick(ing.id)}
                   className={`px-2 py-1.5 rounded border text-t11 font-bold transition-all cursor-pointer text-left ${
                     on
-                      ? 'ring-2 ring-[#3c2415] ' + (TASTE_COLOR[ing.taste] || '')
-                      : TASTE_COLOR[ing.taste] || 'bg-[#fbf7ee] border-[#d6c7ab]'
+                      ? 'ring-2 ring-[#3c2415] ' + (TASTE_COLOR[displayTaste] || '')
+                      : TASTE_COLOR[displayTaste] || 'bg-[#fbf7ee] border-[#d6c7ab]'
                   }`}
                 >
                   <span className="block truncate">{ing.name}</span>
-                  <span className="block text-t10 font-mono opacity-80">{ing.taste}</span>
+                  <span className="block text-t10 font-mono opacity-80">
+                    {displayTaste}
+                    {seasoned && '（已調味）'}
+                  </span>
                 </button>
               );
             })}
+
+            {/* 鹽與胡椒調味面板 */}
+            {hasSaltAndPepper && pickedIngredients.length > 0 && (
+              <div data-testid="salt-pepper-panel" className="p-2 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-1.5">
+                <div className="flex items-center justify-between text-t11 font-bold text-[#3c2415]">
+                  <span className="flex items-center gap-1">
+                    <GiSaltShaker className="w-3.5 h-3.5 text-[#8c3235]" />
+                    <span>【鹽與胡椒】花費 2 IP 調整食材口味</span>
+                  </span>
+                  <span className="text-t10 text-[#6b5a4b] tabular-nums">目前 IP：{character.currentIp ?? 0}</span>
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <select
+                    data-testid="salt-pepper-select-target"
+                    value={seasonTargetId || pickedIngredients[0]?.id || ''}
+                    onChange={(e) => setSeasonTargetId(e.target.value)}
+                    className="px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-t11 text-[#3c2415]"
+                  >
+                    {pickedIngredients.map((ing) => (
+                      <option key={ing.id} value={ing.id}>
+                        {ing.name}（原：{ing.taste}）
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-t11 text-[#6b5a4b]">改為</span>
+                  <select
+                    data-testid="salt-pepper-select-taste"
+                    value={seasonTaste}
+                    onChange={(e) => setSeasonTaste(e.target.value)}
+                    className="px-2 py-1 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-t11 text-[#3c2415]"
+                  >
+                    {TASTES.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    data-testid="salt-pepper-apply-btn"
+                    disabled={(character.currentIp ?? 0) < 2}
+                    onClick={() => {
+                      const tId = seasonTargetId || pickedIngredients[0]?.id;
+                      if (!tId) return;
+                      const res = applySaltAndPepper({
+                        pickedIngredients,
+                        targetId: tId,
+                        newTaste: seasonTaste,
+                        currentIp: character.currentIp
+                      });
+                      if (!res.ok) {
+                        showToast(res.reason, 'warning');
+                        return;
+                      }
+                      onChange({
+                        ...character,
+                        currentIp: res.nextIp,
+                        updatedAt: new Date().toISOString()
+                      });
+                      setSeasonedTastes((prev) => ({ ...prev, [tId]: seasonTaste }));
+                      showToast(`花費 2 IP 將食材口味調整為【${seasonTaste}】！`, 'success');
+                    }}
+                    className={`px-2 py-1 rounded text-t11 font-bold transition-colors ${
+                      (character.currentIp ?? 0) >= 2
+                        ? 'bg-[#245c45] text-[#fffdf9] hover:bg-[#1e4b39] cursor-pointer'
+                        : 'bg-[#e8dcc4] text-[#7c6a58] cursor-not-allowed'
+                    }`}
+                  >
+                    套用調味（2 IP）
+                  </button>
+                </div>
+              </div>
+            )}
 
             {canCook && (
               <div className="p-2.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] space-y-2">
@@ -1025,15 +1177,72 @@ export default function GourmetCookbook({
                   </pre>
                 </div>
 
+                {/* 加點愛（若具備技能） */}
+                {dashOfLoveSL > 0 && (
+                  <div data-testid="dash-of-love-panel" className="p-2 rounded bg-[#fffdf9] border border-[#d6c7ab] flex items-center justify-between gap-2 flex-wrap">
+                    <span className="text-t11 font-bold text-[#3c2415] flex items-center gap-1">
+                      <span>【加點愛】額外影響盟友數：</span>
+                      <span className="text-t10 text-[#6b5a4b]">（每位消耗 10 MP，上限 {dashOfLoveSL} 人）</span>
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        data-testid="dash-of-love-minus"
+                        disabled={extraAllies <= 0}
+                        onClick={() => setExtraAllies((v) => Math.max(0, v - 1))}
+                        className="w-5 h-5 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs font-bold text-[#3c2415] flex items-center justify-center disabled:opacity-40"
+                      >
+                        -
+                      </button>
+                      <span data-testid="dash-of-love-count" className="w-6 text-center font-bold text-t11 text-[#3c2415]">
+                        {extraAllies}
+                      </span>
+                      <button
+                        type="button"
+                        data-testid="dash-of-love-plus"
+                        disabled={extraAllies >= dashOfLoveSL}
+                        onClick={() => setExtraAllies((v) => Math.min(dashOfLoveSL, v + 1))}
+                        className="w-5 h-5 rounded border border-[#d6c7ab] bg-[#fbf7ee] text-xs font-bold text-[#3c2415] flex items-center justify-center disabled:opacity-40"
+                      >
+                        +
+                      </button>
+                      <span className="text-t10 font-bold text-[#8c3235] ml-1">
+                        需消耗 {extraAllies * 10} MP
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  <button
+                    type="button"
+                    data-testid="cook-save-backpack"
+                    onClick={handleCookSaveToBackpack}
+                    className="w-full px-3 py-2 rounded bg-[#245c45] hover:bg-[#1e4b39] text-[#fffdf9] text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                  >
+                    <GiCookingPot className="w-3.5 h-3.5" />
+                    <span>做成美食存入行囊</span>
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="cook-eat-now"
+                    onClick={handleCookEatNow}
+                    className="w-full px-3 py-2 rounded bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1"
+                  >
+                    <GiKnifeFork className="w-3.5 h-3.5" />
+                    <span>現場享用美食{extraAllies > 0 ? `（含 ${extraAllies} 名盟友）` : ''}</span>
+                  </button>
+                </div>
+
                 <button
                   type="button"
                   onClick={async () => {
                     const ok = await copyToClipboard(dishText);
                     showToast(ok ? '已複製美食效果' : '複製失敗，請手動選取', ok ? 'success' : 'warning');
                   }}
-                  className="w-full px-3 py-2 rounded bg-[#a63d40] hover:bg-[#76252d] text-[#fffdf9] text-xs font-bold shadow-sm transition-colors cursor-pointer"
+                  className="w-full px-3 py-1.5 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#fbf7ee] text-[#6b5a4b] text-t11 font-bold transition-colors cursor-pointer"
                 >
-                  複製這份美食的完整效果
+                  複製這份美食的文字效果
                 </button>
               </div>
             )}

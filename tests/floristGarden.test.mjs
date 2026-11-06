@@ -29,7 +29,15 @@ import {
   isSeedEffectActiveAt
 } from '../src/features/character-sheet/data/skillSuboptionsData.js';
 import FloristGardenPreview from '../src/features/character-sheet/components/companions/FloristGardenPreview.jsx';
-import { plantSeed, canPlantSeed } from '../src/features/character-sheet/components/companions/FloristGardenTracker.jsx';
+import FloristGardenTracker, {
+  plantSeed,
+  canPlantSeed,
+  canGraftSeed,
+  graftSeed,
+  getTreeOfLifeHeal,
+  isCrisisState,
+  removeSeedWithTreeOfLife
+} from '../src/features/character-sheet/components/companions/FloristGardenTracker.jsx';
 import ClassSkillCard from '../src/features/character-sheet/components/ClassSkillCard.jsx';
 import { createNewCharacter } from '../src/features/character-sheet/utils/characterEngine.js';
 import { getCharacterTheme } from '../src/features/character-sheet/utils/characterThemes.js';
@@ -241,6 +249,106 @@ const failedRes = plantSeed(testCharLowMp, '熾焰菊', { costMp: 20 });
 check('MP 不足時不種且失敗', failedRes.ok, false);
 check('MP 不足時 MP 未被扣除（仍是 15）', failedRes.character.currentMp, 15);
 check('MP 不足時花園依然是空', failedRes.character.floristGarden.length, 0);
+
+// ─────────────────────────────────────────────────────────── G
+section('G. 【嫁接】：換種並保留生長命刻（clock >= 1 條件與原子置換）');
+const graftChar0 = {
+  floristGarden: [{ instanceId: 'inst_1', seedName: '熾焰菊', clock: 0 }]
+};
+const graftCheck0 = canGraftSeed(graftChar0, 'inst_1', '極地水仙');
+check('clock = 0 時禁止嫁接（未達 1 格）', graftCheck0.ok, false);
+
+const graftChar2 = {
+  floristGarden: [{ instanceId: 'inst_1', seedName: '熾焰菊', clock: 2 }]
+};
+const graftSame = canGraftSeed(graftChar2, 'inst_1', '熾焰菊');
+check('嫁接同種種子時禁止', graftSame.ok, false);
+
+const graftSuccess = graftSeed(graftChar2, 'inst_1', '極地水仙');
+check('嫁接成功執行', graftSuccess.ok, true);
+const graftedItem = graftSuccess.character.floristGarden[0];
+check('種子已置換為新種類', graftedItem.seedName, '極地水仙');
+check('嫁接後生長命刻保持不變（仍為 2 格）', graftedItem.clock, 2);
+
+// ─────────────────────────────────────────────────────────── H
+section('H. 【生命之樹】：離園危機生物恢復 5 + (SL × 5) HP');
+check('生命之樹 SL1 恢復 10 HP', getTreeOfLifeHeal(1), 10);
+check('生命之樹 SL3 恢復 20 HP', getTreeOfLifeHeal(3), 20);
+
+// 危機判定：當前 HP <= 最大 HP / 2
+check('HP 20 / 40 處於危機', isCrisisState(20, 40), true);
+check('HP 15 / 40 處於危機', isCrisisState(15, 40), true);
+check('HP 21 / 40 非危機', isCrisisState(21, 40), false);
+
+// 離園治療測試
+const charCrisis = {
+  currentHp: 10,
+  maxHp: 40,
+  floristGarden: [{ instanceId: 'inst_1', seedName: '熾焰菊', clock: 4 }]
+};
+const tolResCrisis = removeSeedWithTreeOfLife(charCrisis, 'inst_1', {
+  treeOfLifeSL: 2,
+  targetIsCrisis: true,
+  healSelf: true
+});
+check('處於危機時離園成功恢復 HP（5 + 2*5 = 15 HP，10 -> 25）',
+  tolResCrisis.ok && tolResCrisis.character.currentHp, 25);
+check('離園後花園清空', tolResCrisis.character.floristGarden.length, 0);
+check('回報治療數額為 15', tolResCrisis.healedAmount, 15);
+
+const charHealthy = {
+  currentHp: 35,
+  maxHp: 40,
+  floristGarden: [{ instanceId: 'inst_1', seedName: '熾焰菊', clock: 4 }]
+};
+const tolResHealthy = removeSeedWithTreeOfLife(charHealthy, 'inst_1', {
+  treeOfLifeSL: 2,
+  targetIsCrisis: false,
+  healSelf: true
+});
+check('非危機時離園不恢復 HP（仍為 35）', tolResHealthy.character.currentHp, 35);
+check('非危機時回報治療數額為 0', tolResHealthy.healedAmount, 0);
+
+// ─────────────────────────────────────────────────────────── I
+section('I. 跑團卡花園盤 SSR 渲染：嫁接按鈕與既有控件守門');
+const charWithGraft = {
+  classes: [{ className: '植物學家', skills: [{ name: '植生術', sl: 1 }, { name: '嫁接', sl: 1 }] }],
+  floristGarden: [{ instanceId: 'inst_1', seedName: '熾焰菊', clock: 2 }]
+};
+const markupGraft = renderToStaticMarkup(
+  React.createElement(FloristGardenTracker, {
+    character: charWithGraft,
+    skillSL: 1,
+    selectedOptions: ['熾焰菊', '極地水仙']
+  })
+);
+check('習得【嫁接】且 clock >= 1 時渲染嫁接按鈕', markupGraft.includes('data-testid="graft-seed"'), true);
+
+const charNoGraftSkill = {
+  classes: [{ className: '植物學家', skills: [{ name: '植生術', sl: 1 }] }],
+  floristGarden: [{ instanceId: 'inst_1', seedName: '熾焰菊', clock: 2 }]
+};
+const markupNoGraft = renderToStaticMarkup(
+  React.createElement(FloristGardenTracker, {
+    character: charNoGraftSkill,
+    skillSL: 1,
+    selectedOptions: ['熾焰菊', '極地水仙']
+  })
+);
+check('未習得【嫁接】時不渲染嫁接按鈕', markupNoGraft.includes('data-testid="graft-seed"'), false);
+
+const charGraftClockZero = {
+  classes: [{ className: '植物學家', skills: [{ name: '植生術', sl: 1 }, { name: '嫁接', sl: 1 }] }],
+  floristGarden: [{ instanceId: 'inst_1', seedName: '熾焰菊', clock: 0 }]
+};
+const markupGraftClock0 = renderToStaticMarkup(
+  React.createElement(FloristGardenTracker, {
+    character: charGraftClockZero,
+    skillSL: 1,
+    selectedOptions: ['熾焰菊', '極地水仙']
+  })
+);
+check('習得【嫁接】但 clock = 0 時不渲染嫁接按鈕', markupGraftClock0.includes('data-testid="graft-seed"'), false);
 
 // ─────────────────────────────────────────────────────────── 收尾
 console.log(lines.join('\n'));

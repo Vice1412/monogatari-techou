@@ -528,7 +528,12 @@ export const describeRitualRights = (character, opts = {}) => {
   // ① 職業技能：<學派>學派儀式 ＋ 四條擴充職業的 Ritualism 權限。
   tableOf(opts, 'ritualSkillSources', RITUAL_SKILL_SOURCES).forEach((src) => {
     if ((levels.get(src.skill) || 0) <= 0) return;
-    push(src, src.skill);
+    let formula = src.formula;
+    if (src.skill === '嵌合學派儀式') {
+      const choice = character?.flowState?.['class:嵌合師:嵌合學派儀式']?.choice;
+      if (choice === 'MIG + WLP') formula = 'MIG + WLP';
+    }
+    push({ ...src, formula }, src.skill);
   });
 
   // ② 職業免費能力：freeBonus 內含「儀式學派」者（元素師／熵師／靈師／嵌合師）。

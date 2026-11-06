@@ -6,6 +6,7 @@ import FUIcon from '../../components/ui/FUIcon';
 import CopyTextButton from '../../components/ui/CopyTextButton';
 import { formatRollResultCopyText } from '../character-sheet/utils/playCopyFormat';
 import { GiSparkles, GiRollingDices, GiHazardSign, GiTrophyCup, GiCrossedSwords, GiHeartShield, GiCycle, GiScrollQuill } from 'react-icons/gi';
+import { computeRollOutcome, swapDieWithLuckyNumber } from './utils/rollOutcome';
 
 const DICE_TIERS = [6, 8, 10, 12];
 
@@ -85,29 +86,16 @@ export default function DiceRollerModal({
   // 判定與格式化在 `character-sheet/utils/rollRecord.js`——擲骰器只回報「發生了什麼」，
   // 不決定「值不值得記」。判定只寫一份，兩邊才不會分岔。
   const onRecordRoll = initialConfig?.onRecordRoll || null;
-
-  const computeRollOutcome = (r1, r2, mod) => {
-    const total = r1 + r2 + mod;
-    const hr = Math.max(r1, r2);
-    const isCritical = r1 === r2 && r1 >= 6;
-    const isFumble = r1 === 1 && r2 === 1;
-    return {
-      die1: r1,
-      die2: r2,
-      modifier: mod,
-      total,
-      hr,
-      isCritical,
-      isFumble
-    };
-  };
+  const rollMode = initialConfig?.mode || 'normal';
+  const currentLuckyNumber = initialConfig?.luckyNumber || 0;
+  const onUpdateLuckyNumber = initialConfig?.onUpdateLuckyNumber || null;
 
   const handleRoll = () => {
     setIsRolling(true);
     setTimeout(() => {
       const r1 = Math.floor(Math.random() * die1Type) + 1;
       const r2 = Math.floor(Math.random() * die2Type) + 1;
-      const outcome = computeRollOutcome(r1, r2, modifier);
+      const outcome = computeRollOutcome(r1, r2, modifier, { mode: rollMode });
 
       setRollResult(outcome);
       setFpBonus(0);

@@ -602,10 +602,43 @@ export const resetScopeLabel = (scope) => ({
   round: '回合結束',
   rest: '休息',
   chapter: '章節結束',
+  session: '遊戲環節結束',
   conflict: '衝突結束',
   hpZero: 'HP 歸零',
   turn: '回合結束'
 }[scope] || '重置');
+
+/**
+ * 多選控件的「勾一下」——純函式，因為這裡藏著兩條規則，SSR 測不到點擊。
+ *
+ * 1. **同組互斥**（裁定 3A）：【穩固突變】的追獵／腕力／靈巧只能選一種。
+ *    勾同組的另一個時，先剔除同組舊的——不是「加到上限再擋」，那樣玩家得先自己取消。
+ * 2. **上限**（裁定 5A）：上限可能是「每次取得 N × 取得次數」，由呼叫端算好傳進來。
+ *
+ * @param {object} control 資料裡的那一顆控件（讀 `groups`）
+ * @param {string[]} picks 目前選了什麼
+ * @param {string} value 這次勾的值
+ * @param {{max?:number}} [opts] 已算好的實際上限
+ * @returns {string[]} 新的 picks（不變時回**同一個陣列參考**，讓呼叫端知道「沒動」）
+ */
+export const toggleMultiSelectPicks = (control, picks, value, { max = Infinity } = {}) => {
+  const current = Array.isArray(picks) ? picks : [];
+  if (!value) return current;
+  if (current.includes(value)) return current.filter((p) => p !== value);
+
+  const groups = Array.isArray(control?.groups) ? control.groups : [];
+  const group = groups.find((g) => Array.isArray(g?.oneOf) && g.oneOf.includes(value));
+  const base = group ? current.filter((p) => !group.oneOf.includes(p)) : current;
+  if (base.length >= max) return current;
+  return [...base, value];
+};
+
+/** 多選控件的實際上限：`maxPerTake × takes`，並以 `max` 當天花板。 */
+export const multiSelectMax = (control, takes = 1) => {
+  const cap = Number.isFinite(control?.max) ? control.max : Infinity;
+  const perTake = Number.isFinite(control?.maxPerTake) ? control.maxPerTake : null;
+  return perTake === null ? cap : Math.min(cap, perTake * Math.max(1, takes));
+};
 
 export const resetFlowScope = (character, scope) => {
   if (!character || typeof character !== 'object' || !scope) return character;
@@ -640,11 +673,14 @@ const COST_RESOURCES = Object.freeze({
   fp: { field: 'fabulaPoints', statKey: null, label: '物語點', fallback: 3 },
   zenit: { field: 'zenit', statKey: null, label: '資金', fallback: 0 },
   subversion: { field: 'subversion', isClassResource: true, label: '顛覆點', fallback: 0 },
+  tradePoints: { field: 'tradePoints', isClassResource: true, label: '貿易點數', fallback: 0 },
   // 2026-11-05（W5 驗收）：這三個池子的「+1d6／+1d8」原本只寫在按鈕的 label 上，
   // 按下去什麼都不會累積。擲骰式累積要有資源名才推得動，所以在這裡補齊。
   instability: { field: 'instability', isClassResource: true, label: '不穩定值', fallback: 0 },
   anomaly: { field: 'anomaly', isClassResource: true, label: '異常值', fallback: 0 },
-  doubt: { field: 'doubt', isClassResource: true, label: '懷疑點', fallback: 0 }
+  doubt: { field: 'doubt', isClassResource: true, label: '懷疑點', fallback: 0 },
+  // 裁定 1A：差生點也要能被 `gain`／`zero` 指到（少了這一格，`zero` 會靜默略過）。
+  delinquent: { field: 'delinquent', isClassResource: true, label: '差生點', fallback: 0 }
 });
 
 /** 目前可用量；`null` ＝「沒有足夠資訊可算」（不是 0，不然會誤擋）。 */
@@ -801,13 +837,21 @@ export const flowActionPlan = (item, character, ctx = {}) => {
   const gain = activeControl?.gain;
   const gainedNotes = [];
   if (gain && typeof gain === 'object') {
+    const vars = ctx?.vars || flowVarsFor(character);
     for (const key of Object.keys(gain)) {
-      const amount = toFiniteInt(gain[key]);
+      const rawVal = gain[key];
+      const amount = typeof rawVal === 'string'
+        ? evaluateControlValue(rawVal, { sl, level, vars })
+        : toFiniteInt(rawVal);
       if (amount === null || amount <= 0) continue;
       const meta = COST_RESOURCES[key];
       if (meta) {
         const from = readAvailable(character, key, stats);
-        const to = from + amount;
+        let to = from + amount;
+        if (key === 'tradePoints') {
+          const maxTp = Math.max(3, sl + 3);
+          to = Math.min(maxTp, to);
+        }
         if (meta.isClassResource) {
           patch.classResources = {
             ...(patch.classResources || character?.classResources || {}),
@@ -861,6 +905,31 @@ export const flowActionPlan = (item, character, ctx = {}) => {
     }
   }
 
+  // ── 歸零（裁定 1A）：`control.zero = ['delinquent']`
+  // 「自私片刻」說它會把差生點清零，那就真的清零——不是只在 toast 裡寫一句。
+  const zeroNotes = [];
+  if (Array.isArray(activeControl?.zero)) {
+    for (const key of activeControl.zero) {
+      const meta = COST_RESOURCES[key];
+      if (!meta) continue;
+      const from = readAvailable(character, key, stats);
+      if (from === 0) {
+        zeroNotes.push(`${meta.label} 本來就是 0`);
+        continue;
+      }
+      if (meta.isClassResource) {
+        patch.classResources = {
+          ...(patch.classResources || character?.classResources || {}),
+          [meta.field]: 0
+        };
+      } else {
+        patch[meta.field] = 0;
+        changes.push({ field: meta.field, from, to: 0 });
+      }
+      zeroNotes.push(`${meta.label} ${from} → 0`);
+    }
+  }
+
   const costText = costTextOf(paid);
   const title = costText ? `使用【${item.name}】（${costText}）` : `使用【${item.name}】`;
   const note = unresolved.length > 0
@@ -881,8 +950,8 @@ export const flowActionPlan = (item, character, ctx = {}) => {
       changes,
       ...(note ? { note } : {})
     },
-    toast: (paidNotes.length > 0 || gainedNotes.length > 0 || rolledNotes.length > 0)
-      ? `${title}；${[...paidNotes, ...gainedNotes, ...rolledNotes].join('、')}${note ? `；${note}` : ''}`
+    toast: (paidNotes.length > 0 || gainedNotes.length > 0 || rolledNotes.length > 0 || zeroNotes.length > 0)
+      ? `${title}；${[...paidNotes, ...gainedNotes, ...rolledNotes, ...zeroNotes].join('、')}${note ? `；${note}` : ''}`
       : `${title}${note ? `；${note}` : ''}`,
     unresolved
   };

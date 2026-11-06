@@ -173,6 +173,24 @@ export const CLASS_RESOURCES = [
     hint: '每次效果生效 +1；每章節可再擲 2d20 賺 1；達 20 以上觸發回想記憶',
     source: 'Techno Fantasy p.126',
   },
+  // 2026-11-06（裁定 1A）：差生點以前只寫在按鈕標籤上，玩家看不到數字、也歸不了零。
+  // 做成資源條之後，「做好事 +1d6」與「自私片刻歸零」才有共同的去處。
+  // `resetTo: null` 是刻意的：原書只說「自私片刻清零」，沒有章節／場景自動重置。
+  {
+    id: 'delinquent',
+    kind: 'value',
+    min: 0,
+    quirkName: '地獄差生',
+    label: '差生點',
+    initial: 0,
+    max: 10,
+    // 沒有自動重置（原書只說「自私片刻清零」），所以 resetLabel 必須是 null
+    // ——`test:classResources` 有「沒有重置就不准有標籤」的配對檢查。
+    resetLabel: null,
+    resetTo: null,
+    hint: '上限 10。休息時做好事 +1d6；自私片刻獲得 1 物語點並把差生點歸零（不自動重置）',
+    source: 'Techno Fantasy p.124',
+  },
 ];
 
 /** 取得角色某職業某技能的 SL；沒有該職業或該技能時回傳 0。 */

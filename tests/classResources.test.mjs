@@ -124,7 +124,8 @@ for (const r of CLASS_RESOURCES) {
   check(`${r.id} resetLabel 與 resetTo/resetRoll 規格合法`, resetPaired, true);
 }
 // 3（墳墓點／貿易點數／幸運數字）＋ 8（英雄技能 3 ＋ 金手指 5，2026-10-06）
-check('資源總數 = 11', CLASS_RESOURCES.length, 11);
+// 2026-11-06（裁定 1A）：11 → 12，新增【地獄差生】的差生點。
+check('資源總數 = 12', CLASS_RESOURCES.length, 12);
 check('每個資源都有官方出處', CLASS_RESOURCES.every((r) => /p\.\d+/.test(r.source)), true);
 
 // ─────────────────────────────────────────────────────────── H

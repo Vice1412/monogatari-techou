@@ -113,13 +113,30 @@ export const describeGearSummary = (gear) => {
 };
 
 /**
+ * 正規化消耗品/物品效果模型（可選）。
+ */
+export const normalizeEffectModel = (model) => {
+  if (!model || typeof model !== 'object') return null;
+  return {
+    healHp: Math.max(0, Math.floor(Number(model.healHp) || 0)),
+    healMp: Math.max(0, Math.floor(Number(model.healMp) || 0)),
+    isPotion: Boolean(model.isPotion),
+    isDelicacy: Boolean(model.isDelicacy),
+    damage: Math.max(0, Math.floor(Number(model.damage) || 0)),
+    damageType: typeof model.damageType === 'string' ? model.damageType.trim() : '',
+    targets: Math.max(1, Math.floor(Number(model.targets) || 1))
+  };
+};
+
+/**
  * 建立一筆物品資料。`name` 空白的回 `null`——沒有名字的物品沒有意義，
  * 讓呼叫端直接不新增，而不是塞一筆空白進清單。
  */
-export const createInventoryItem = ({ name, category, value, effect, qty, gear } = {}) => {
+export const createInventoryItem = ({ name, category, value, effect, qty, gear, effectModel } = {}) => {
   const trimmed = typeof name === 'string' ? name.trim() : '';
   if (!trimmed) return null;
   const nextCategory = normalizeCategory(category);
+  const normalizedModel = normalizeEffectModel(effectModel);
   return {
     id: makeInventoryItemId(),
     name: trimmed,
@@ -128,7 +145,8 @@ export const createInventoryItem = ({ name, category, value, effect, qty, gear }
     effect: typeof effect === 'string' ? effect.trim() : '',
     qty: normalizeQty(qty),
     // 只有裝備類才帶 gear；其餘品類即使傳了也不留（避免資料長出沒有意義的欄位）
-    ...(nextCategory === 'equipment' ? { gear: normalizeGear(gear) } : {})
+    ...(nextCategory === 'equipment' ? { gear: normalizeGear(gear) } : {}),
+    ...(normalizedModel ? { effectModel: normalizedModel } : {})
   };
 };
 
@@ -199,4 +217,117 @@ export const applySellItem = (character, { itemId, amount } = {}) => {
     changes: [{ field: 'zenit', from, to }]
   });
   return { ok: true, character: next, gain, item };
+};
+
+/**
+ * 消耗品使用（支援修補匠【藥水雨】與商人【過期食品】）。
+ *
+ * @param {object} character
+ * @param {string} itemId
+ * @param {object} options
+ * @returns {{ ok: boolean, character: object, reason?: string, outcome?: object }}
+ */
+export const consumeInventoryItem = (character, itemId, options = {}) => {
+  const list = readInventory(character);
+  const itemIndex = list.findIndex((it) => it && it.id === itemId);
+  if (itemIndex < 0) {
+    return { ok: false, character, reason: '找不到這件物品' };
+  }
+
+  const targetItem = list[itemIndex];
+  const curQty = normalizeQty(targetItem.qty);
+  if (curQty <= 0) {
+    return { ok: false, character, reason: '物品數量不足' };
+  }
+
+  const nextList = [...list];
+  if (curQty > 1) {
+    nextList[itemIndex] = { ...targetItem, qty: curQty - 1 };
+  } else {
+    nextList.splice(itemIndex, 1);
+  }
+
+  let nextChar = {
+    ...character,
+    inventory: nextList,
+    updatedAt: new Date().toISOString()
+  };
+
+  const model = targetItem.effectModel || {};
+  let baseHp = model.healHp || 0;
+  let baseMp = model.healMp || 0;
+
+  if (baseHp === 0 && baseMp === 0 && targetItem.effect) {
+    const hpMatch = targetItem.effect.match(/回復\s*(\d+)\s*點?\s*HP|恢復\s*(\d+)\s*點?\s*HP/i);
+    if (hpMatch) baseHp = Number(hpMatch[1] || hpMatch[2]) || 0;
+    const mpMatch = targetItem.effect.match(/回復\s*(\d+)\s*點?\s*MP|恢復\s*(\d+)\s*點?\s*MP/i);
+    if (mpMatch) baseMp = Number(mpMatch[1] || mpMatch[2]) || 0;
+  }
+
+  // 1. 商人【過期食品】模式：轉為毒屬性傷害
+  if (options.isSpoiledFood) {
+    const poisonDamage = baseHp > 0 ? baseHp : 40;
+    return {
+      ok: true,
+      character: nextChar,
+      outcome: {
+        type: 'spoiledFood',
+        item: targetItem,
+        poisonDamage,
+        message: `將【${targetItem.name}】投擲為過期食品，造成 ${poisonDamage} 點毒屬性傷害！`
+      }
+    };
+  }
+
+  // 2. 修補匠【藥水雨】模式：恢復量折半，影響最多 SL+1 個生物
+  if (options.isPotionRain) {
+    const sl = Math.max(1, Math.floor(Number(options.potionRainSL) || 1));
+    const targets = sl + 1;
+    const halvedHp = Math.floor(baseHp / 2);
+    const halvedMp = Math.floor(baseMp / 2);
+
+    if (halvedHp > 0 && typeof nextChar.currentHp === 'number') {
+      const maxHp = Number(nextChar.maxHp) || 999;
+      nextChar.currentHp = Math.min(maxHp, nextChar.currentHp + halvedHp);
+    }
+    if (halvedMp > 0 && typeof nextChar.currentMp === 'number') {
+      const maxMp = Number(nextChar.maxMp) || 999;
+      nextChar.currentMp = Math.min(maxMp, nextChar.currentMp + halvedMp);
+    }
+
+    return {
+      ok: true,
+      character: nextChar,
+      outcome: {
+        type: 'potionRain',
+        item: targetItem,
+        targets,
+        halvedHp,
+        halvedMp,
+        message: `發動【藥水雨】：藥水化為細雨影響最多 ${targets} 個生物（每人回復 ${halvedHp} HP / ${halvedMp} MP）！`
+      }
+    };
+  }
+
+  // 3. 一般消耗
+  if (baseHp > 0 && typeof nextChar.currentHp === 'number') {
+    const maxHp = Number(nextChar.maxHp) || 999;
+    nextChar.currentHp = Math.min(maxHp, nextChar.currentHp + baseHp);
+  }
+  if (baseMp > 0 && typeof nextChar.currentMp === 'number') {
+    const maxMp = Number(nextChar.maxMp) || 999;
+    nextChar.currentMp = Math.min(maxMp, nextChar.currentMp + baseMp);
+  }
+
+  return {
+    ok: true,
+    character: nextChar,
+    outcome: {
+      type: 'normal',
+      item: targetItem,
+      healedHp: baseHp,
+      healedMp: baseMp,
+      message: `使用了【${targetItem.name}】` + (baseHp > 0 || baseMp > 0 ? `（回復 ${baseHp} HP / ${baseMp} MP）` : '。')
+    }
+  };
 };

@@ -9,6 +9,20 @@
 
 ---
 
+*2026-11-06（Wave 6 職業技能全部 28 筆全閉環完工）：依 docs/plan/05-class-plans.md 與 worklist.md 完成 Wave 6 職業技能剩餘 15 筆（C6 徽記實體 2 筆、C1 物件型 5 筆、C2 旅行骰 4 筆、C4 暫存效果表 4 筆）全閉環實裝，Wave 6 全部 28 筆職業技能至此徹底結算大功告成（全工單完成 85 / 86 筆，僅剩 W7 命刻搬家 1 筆）。
+① C6 徽記實體（2 筆）：建立純函式模組 utils/symbolist.js（maxSymbolMarks 上限 SL+1、addSymbolMark、removeSymbolMark、clearSymbolMarks、listSymbolMarkBearers）；新建元件 SymbolistMarks.jsx（掛載於 HUD 徽記學下方，支援刻劃、攜帶者指派、維持上限指示、單個與全部摧毀）；【咒語徽記】直接讀取並渲染維持中之受術攜帶者清單（spell-mark-targets）；新建 tests/symbolistMarks.test.mjs（16 條斷言全綠），掛入 package.json（全鏈第 68 關 test:symbolistmarks）。
+② C1 物件型（5 筆）：utils/inventory.js 擴充支援 effectModel 與 consumeInventoryItem（支援一般消耗回復、修補匠【藥水雨】回復折半且最多影響 SL+1 人、商人【過期食品】將治療轉為等額毒傷害）；BackpackItemModal 增設消耗品回復參數與藥水標記；BackpackGrid 詳情區增設「消耗品使用」操作與【藥水雨】／【過期食品】勾選開關；新建 utils/gourmetActions.js（applySaltAndPepper 花 2 IP 調整單一食材口味、applyDashOfLove 花費 extraAllies×10 MP 額外影響盟友、buildCookedDelicacyItem 打包美食為消耗品）；GourmetCookbook 選料區支援【鹽與胡椒】2 IP 調味面板，烹飪完成支援【加點愛】盟友步進器、「做成美食存入行囊」與「現場食用」閉環扣除食材；新建 tests/inventoryConsumable.test.mjs（25 條斷言全綠），掛入 package.json（全鏈第 69 關 test:consumable）。
+③ C2 旅行骰（4 筆）：建立純函式模組 utils/travelRoll.js，落實 Core p.92 規則（resolveTravelDie 換算【通曉道路】SL 0~3 升階為 d6/d8/d10/d12；evalTravelRoll 判定擲出 1 為危險、支援【有備無患】重擲、≥6 觸發【寶藏獵人】獲得 SL×100z、觸發【準備食材】獲得 SL×2 份食材；applyTravelOutcome 結算金幣與食材自動入袋）。
+④ C4 暫存效果表（4 筆）：建立純函式模組 utils/pendingBuffs.js（遵循裁定 D5 不跨卡寫入，只在本卡記錄待生效增益）；支援【支援魔法】花 5 MP 登記檢定暫存增益、【我相信你】花 5 MP 登記盟友重擲增益、【能言善辯】花 10 MP 推進 1 格命刻、【壓縮技術】花 2 IP 切換載具模組化收納狀態；新建 tests/travelAndBuffs.test.mjs（16 條斷言全綠），掛入 package.json（全鏈第 70 關 test:travelbuffs）。
+⑤ 刻意破壞驗證與工單結算：完成 3 次刻意破壞驗證（徽記維持上限公式、藥水雨目標上限 SL+1、旅行骰階換算）均精準轉紅（exit 1）；7 筆新條目編譯入 effectFlows.json，消滅所有空轉假按鈕；worklist.md 與 worklist.json W6 28 筆全數標記 done，全工單已完成 85 / 86 筆。*
+
+*2026-11-06（Wave 6 職業技能第一批 13 筆閉環實裝）：依 docs/plan/05-class-plans.md 與 worklist.md 完成 Wave 6 職業技能第一批（C5 花園三補、C3 貿易池收斂、C8 單筆群、C7 擲骰器改寫，共 13 筆）全閉環實裝。
+① C5 花園三補（3 筆）：植生術單一扣款路徑（花園盤播種扣 20 MP，不足時阻擋）；嫁接（canGraftSeed / graftSeed，限制 clock >= 1 原子性換種並保留生長命刻，FloristGardenTracker 增加嫁接展開選單）；生命之樹（removeSeedWithTreeOfLife，種子離園時自動結算危機 HP <= maxHp/2 恢復 5+SL*5 點 HP）；class.json 標記為 wired (control: none)，編譯後收斂為 via: existing 移除通用空轉按鈕；test:florist 新增 G/H/I 區段（73 條全綠）。
+② C3 貿易池收斂（4 筆）：COST_RESOURCES 擴充支援 tradePoints（isClassResource: true），flowActionPlan 支援直接讀取與扣除貿易點數，並支援 evalExpr 計算 gain: { tradePoints: 'SL + 1' } 且受限於上限 SL+3；貿易之風配置花費 2 點（創造材料或 NPC）與休息結算按鈕；真正的財富配置每環節一次獲得 SL+1 點數按鈕（reset: session）；我聽說過 / 小金庫配置花費 1 點按鈕；彻底移除 4 顆假計數器，新建 tests/merchantFlow.test.mjs（37 條全綠），掛入 package.json（第 66 關 test:merchantflow）。
+③ C8 單筆群（4 筆）：嵌合學派儀式配置 select 控件（INS+WLP / MIG+WLP），spellGrants.js 的 describeRitualRights 動態讀取 flowState.choice 切換公式（test:spellgrants 新增 B14/B15 斷言，44 條全綠）；不屈意志配置三選一好處 select 與領取按鈕；靈光一閃配置雙控件（提問數計數器上限 SL ＋ recordList 調查名冊）；忠實夥伴實體卡由 WayfarerCompanionModal 承接。
+④ C7 擲骰器改寫（2 筆）：建立純函式模組 rollOutcome.js，實裝 evalGambitDie（偶數翻倍、奇數視為 1）與 computeRollOutcome(..., { mode: 'gambit' })，大成功/大失敗以原始骰面為準；實裝 swapDieWithLuckyNumber（替換骰值為幸運數字，原始值成為新幸運數字）；DiceRollerModal 接入該引擎；新建 tests/rollOutcome.test.mjs（33 條全綠），掛入 package.json（第 67 關 test:rolloutcome）。
+⑤ 刻意破壞驗證與全量通過：完成 4 次刻意破壞驗證（花園嫁接保留命刻、貿易點數扣款、嵌合儀式公式切換、孤注一擲偶數翻倍）均精準觸發 FAIL；全鏈 67 關 npm test、npm run test:emoji、npm run build 全數 PASS；worklist.md 與 worklist.json W6 前 13 筆標記 done（全工單已完成 70 / 86 筆）。*
+
 *2026-11-05（Wave 5 金手指 18 筆全閉環完成）：依 docs/plan/worklist.md 與附錄完成 Wave 5 金手指（群組 Q4，共 18 筆）全閉環實裝。
 ① 資料與管線支援：在 scratch/flows/quirk.json 為 18 筆條目補齊 controls 配置（涵蓋 button、toggle、text、select、multiSelect，及 cost、gain、reset 等元資料）；在 effectFlow.js 擴充支援 subversion（顛覆點）職業資源直通讀取與扣款（isClassResource: true），並支援主動控件直接獲得增益 gain（如物語點 fp，寫入角色屬性或 classResources，並生成變更履歷與提示）；build-effect-flows.mjs 支援 gain 透傳並保留 row.status === 'wired' 現有機制，經 npm run build:flows 將 18 筆全數編譯入 src/features/character-sheet/data/effectFlows.json（via: 'flow-control'）。
 ② 測試護欄與串鏈：建立 tests/quirkFlow.test.mjs（81 條純函式與執行計畫斷言），涵蓋 18 筆結構、顛覆點不足阻擋與扣款、獲得物語點與場景上限重置、自私片刻、傳家寶/古代武器/妖精 GM 結算、打破約定，以及文字、多選、開關狀態讀寫與重置；掛入 package.json（全鏈第 65 關 test:quirkflow）。

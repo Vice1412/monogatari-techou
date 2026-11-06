@@ -165,6 +165,27 @@ const dedup = describeRitualRights(
 check('B13 免費能力＋同學派技能 → 學派不重複', dedup.schools.filter((s) => s.name === '元素').length === 1,
   `[${dedup.summary}]`);
 
+// B14: 嵌合學派儀式預設公式為 INS + WLP
+const chimeristCharDefault = {
+  classes: [{ className: '嵌合師', skills: [{ name: '嵌合學派儀式', sl: 1 }] }]
+};
+const rightsDefault = describeRitualRights(chimeristCharDefault);
+const chimeristSchoolDefault = rightsDefault.schools.find((s) => s.name === '嵌合');
+check('B14 嵌合學派儀式未指定時預設公式為 INS + WLP',
+  chimeristSchoolDefault?.formula === 'INS + WLP',
+  chimeristSchoolDefault?.formula);
+
+// B15: 嵌合學派儀式選擇 MIG + WLP 時動態切換
+const chimeristCharMig = {
+  classes: [{ className: '嵌合師', skills: [{ name: '嵌合學派儀式', sl: 1 }] }],
+  flowState: { 'class:嵌合師:嵌合學派儀式': { choice: 'MIG + WLP' } }
+};
+const rightsMig = describeRitualRights(chimeristCharMig);
+const chimeristSchoolMig = rightsMig.schools.find((s) => s.name === '嵌合');
+check('B15 嵌合學派儀式選擇 MIG + WLP 時動態切換公式為 MIG + WLP',
+  chimeristSchoolMig?.formula === 'MIG + WLP',
+  chimeristSchoolMig?.formula);
+
 /* ────────────────────────────────────────────────────────────────
    C. 對照表防漂移（技能改名時這裡先紅，而不是玩家發現面板變空）
    ──────────────────────────────────────────────────────────────── */

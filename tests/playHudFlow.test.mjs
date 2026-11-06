@@ -54,8 +54,8 @@ check('A1 計數器長在職業技能卡上',
   countOf(scholarHtml, 'data-testid="flow-skill-博學士-靈光一閃"') >= 1,
   `${countOf(scholarHtml, 'data-testid="flow-skill-博學士-靈光一閃"')} 顆`);
 check('A2 有加減兩顆按鈕',
-  countOf(scholarHtml, 'flow-skill-博學士-靈光一閃-minus') >= 1
-  && countOf(scholarHtml, 'flow-skill-博學士-靈光一閃-plus') >= 1,
+  (countOf(scholarHtml, 'flow-skill-博學士-靈光一閃-minus') >= 1 || countOf(scholarHtml, 'flow-skill-博學士-靈光一閃-c0-minus') >= 1)
+  && (countOf(scholarHtml, 'flow-skill-博學士-靈光一閃-plus') >= 1 || countOf(scholarHtml, 'flow-skill-博學士-靈光一閃-c0-plus') >= 1),
   true);
 check('A3 上限算式算得出來就印成「值 / 上限」（SL 2 → 0 / 2）',
   scholarHtml.includes('0') && countOf(scholarHtml, '/ 2') >= 1,
@@ -704,6 +704,34 @@ const humanHtml = render(humanChar, { initialTab: 'skills' });
 check('Q6 新人類渲染屬性選擇下拉（c0）與場景提升開關（c1）',
   countOf(humanHtml, 'data-testid="flow-quirk-c0"') >= 1 &&
   countOf(humanHtml, 'data-testid="flow-quirk-c1"') >= 1,
+  true);
+
+/* ────────────────────────────────────────────────────────────────
+   R. W6 商人技能（C3 貿易池收斂）跑團卡按鈕渲染驗證
+   ──────────────────────────────────────────────────────────────── */
+// R1: 貿易之風渲染雙按鈕（花費 2 點與休息結算）
+const merchantChar = createNewCharacter({ name: '商人角色' });
+merchantChar.classes = [
+  {
+    className: '商人',
+    skills: [
+      { name: '貿易之風', sl: 2 },
+      { name: '我聽說過', sl: 1 }
+    ]
+  }
+];
+merchantChar.classResources = { tradePoints: 3 };
+const merchantHtml = render(merchantChar, { initialTab: 'skills' });
+check('R1 貿易之風在跑團卡渲染花費 2 點與休息結算兩顆按鈕',
+  merchantHtml.includes('花費 2 點') &&
+  merchantHtml.includes('休息結算') &&
+  !merchantHtml.includes('flow-class-0-counter'),
+  true);
+
+// R2: 我聽說過渲染花費 1 點按鈕
+check('R2 我聽說過在跑團卡渲染花費 1 點按鈕且無假計數器',
+  merchantHtml.includes('花費 1 點') &&
+  !merchantHtml.includes('flow-class-1-counter'),
   true);
 
 /* ──────────────────────────────────────────────────────────────── */

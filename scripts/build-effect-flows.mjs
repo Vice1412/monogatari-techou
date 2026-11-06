@@ -76,6 +76,66 @@ const INTEGRATED_BY_MODULE = {
   'class:嵌合師:嵌合學派儀式': {
     via: 'existing',
     evidence: ['src/features/character-sheet/utils/spellGrants.js:208（RITUAL_SKILL_SOURCES 第 2 筆）']
+  },
+  'class:徽記師:徽記學': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/components/companions/SymbolistMarks.jsx']
+  },
+  'class:徽記師:咒語徽記': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/components/CharacterPlayHUD.jsx:4060']
+  },
+  'class:美食家:烹飪': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/components/companions/GourmetCookbook.jsx']
+  },
+  'class:美食家:加點愛': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/gourmetActions.js:applyDashOfLove']
+  },
+  'class:美食家:鹽與胡椒': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/gourmetActions.js:applySaltAndPepper']
+  },
+  'class:商人:過期食品': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/inventory.js:consumeInventoryItem']
+  },
+  'class:修補匠:藥水雨': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/inventory.js:consumeInventoryItem']
+  },
+  'class:旅人:有備無患': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/travelRoll.js:evalTravelRoll']
+  },
+  'class:旅人:寶藏獵人': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/travelRoll.js:evalTravelRoll']
+  },
+  'class:旅人:通曉道路': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/travelRoll.js:resolveTravelDie']
+  },
+  'class:美食家:準備食材': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/travelRoll.js:evalTravelRoll']
+  },
+  'class:靈師:支援魔法': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/pendingBuffs.js:applySupportMagic']
+  },
+  'class:吟唱者:我相信你': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/pendingBuffs.js:applyIBelieveInYou']
+  },
+  'class:吟唱者:能言善辯': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/pendingBuffs.js:applySmoothTalker']
+  },
+  'class:機師:壓縮技術': {
+    via: 'existing',
+    evidence: ['src/features/character-sheet/utils/pendingBuffs.js:applyCompressionTechnique']
   }
 };
 
@@ -93,7 +153,7 @@ const deriveApply = (row) => {
   }
   if (row.flow === 'narrative') return { via: 'none' };
   const integrated = INTEGRATED_BY_MODULE[row.id];
-  if (integrated) return integrated;
+  if (integrated && !hasInteractive) return integrated;
   if (row.status === 'wired') {
     return {
       via: 'existing',
@@ -217,6 +277,12 @@ for (const row of rows) {
       // 擲骰式累積：`{ resource, dice, sign?, max?, onlyIfRollLte? }`。
       // 沒有這個欄位時，「+1d6 不穩定值」只是 label 上的一句願望（W5 驗收時抓到的）。
       ...(ctrl?.roll && typeof ctrl.roll === 'object' ? { roll: ctrl.roll } : {}),
+      // 歸零某個資源（裁定 1A：「自私片刻」把差生點清零）。
+      ...(Array.isArray(ctrl?.zero) && ctrl.zero.length ? { zero: ctrl.zero } : {}),
+      // 同組互斥（裁定 3A：【穩固突變】的追獵／腕力／靈巧只能選一個）。
+      ...(Array.isArray(ctrl?.groups) && ctrl.groups.length ? { groups: ctrl.groups } : {}),
+      // 每次取得的上限（裁定 5A：【解剖學家】2 × 取得次數）。
+      ...(Number.isFinite(ctrl?.maxPerTake) ? { maxPerTake: ctrl.maxPerTake } : {}),
       ...(ctrl?.outcome ? { outcome: ctrl.outcome } : {}),
       ...(Array.isArray(ctrl?.options) && ctrl.options.length
         ? {

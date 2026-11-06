@@ -17,6 +17,10 @@ export default function BackpackItemModal({ isOpen, onClose, onSubmit, initial =
   const [qty, setQty] = useState('1');
   // 裝備類才有的欄位（2026-11-03 使用者第二輪）：傷害／類別／屬性／檢定……
   const [gear, setGear] = useState({ ...DEFAULT_GEAR });
+  // 消耗品專屬效果模型
+  const [healHp, setHealHp] = useState('');
+  const [healMp, setHealMp] = useState('');
+  const [isPotion, setIsPotion] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -26,12 +30,22 @@ export default function BackpackItemModal({ isOpen, onClose, onSubmit, initial =
     setEffect(initial?.effect || '');
     setQty(String(initial?.qty || 1));
     setGear({ ...DEFAULT_GEAR, ...(initial?.gear || {}) });
+    setHealHp(initial?.effectModel?.healHp ? String(initial.effectModel.healHp) : '');
+    setHealMp(initial?.effectModel?.healMp ? String(initial.effectModel.healMp) : '');
+    setIsPotion(Boolean(initial?.effectModel?.isPotion));
   }, [isOpen, initial]);
 
   const submit = () => {
     const trimmed = name.trim();
     if (!trimmed) return;
-    onSubmit({ name: trimmed, category, value, effect, qty, gear });
+    const effectModel = category === 'consumable' && (healHp || healMp || isPotion)
+      ? {
+          healHp: Math.max(0, parseInt(healHp, 10) || 0),
+          healMp: Math.max(0, parseInt(healMp, 10) || 0),
+          isPotion
+        }
+      : undefined;
+    onSubmit({ name: trimmed, category, value, effect, qty, gear, effectModel });
   };
 
   return (
@@ -98,6 +112,45 @@ export default function BackpackItemModal({ isOpen, onClose, onSubmit, initial =
 
         {category === 'equipment' && (
           <EquipmentItemFields value={gear} onChange={setGear} />
+        )}
+
+        {category === 'consumable' && (
+          <div className="p-2 rounded bg-[#f4ebd9] border border-[#d6c7ab] space-y-2">
+            <span className="font-bold text-t11 text-[#3c2415] block">消耗品效果參數（供戰鬥/藥水雨/過期食品結算）</span>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-t10 font-bold text-[#6b5a4b] block mb-0.5">回復 HP 點數</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={healHp}
+                  onChange={(e) => setHealHp(e.target.value)}
+                  placeholder="例：40"
+                  className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] text-[#3c2415]"
+                />
+              </div>
+              <div>
+                <label className="text-t10 font-bold text-[#6b5a4b] block mb-0.5">回復 MP 點數</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={healMp}
+                  onChange={(e) => setHealMp(e.target.value)}
+                  placeholder="例：40"
+                  className="w-full px-2 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] text-[#3c2415]"
+                />
+              </div>
+            </div>
+            <label className="flex items-center gap-1.5 text-t11 font-bold text-[#3c2415] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isPotion}
+                onChange={(e) => setIsPotion(e.target.checked)}
+                className="rounded border-[#d6c7ab]"
+              />
+              <span>此消耗品屬於「藥水／靈藥（Potion/Elixir）」</span>
+            </label>
+          </div>
         )}
 
         <div>

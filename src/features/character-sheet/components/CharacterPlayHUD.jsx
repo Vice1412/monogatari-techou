@@ -205,6 +205,8 @@ import TinkererGadgetsQuickRef from './companions/TinkererGadgetsQuickRef';
 import SuboptionDetailsList from './SuboptionDetailsList';
 import ChanterComposer from './companions/ChanterComposer';
 import FloristGardenTracker from './companions/FloristGardenTracker';
+import SymbolistMarks from './companions/SymbolistMarks';
+import { listSymbolMarkBearers } from '../utils/symbolist';
 import ErrorBoundary from '../../../components/ui/ErrorBoundary';
 import { shouldRenderArcanistPanel } from '../utils/arcanist';
 import { withEn } from '../../../utils/properNouns';
@@ -930,6 +932,16 @@ export default function CharacterPlayHUD({
             sl, level: characterLevel, stats, controlIndex: idx, vars, ...(roll ? { roll } : {})
           }));
         }}
+        // 裁定 5A：某些條目的上限是「每次取得 N × 取得次數」。
+        // 次數只能由角色資料數出來（英雄技能同名出現幾次、職業技能同一條學了幾份）。
+        takes={(() => {
+          const key = item?.name || '';
+          const fromHeroic = (character.heroicSkills || [])
+            .filter((h) => (typeof h === 'string' ? h : h?.name) === key).length;
+          const fromClass = (character.classes || [])
+            .reduce((n, c) => n + (c.skills || []).filter((s) => s.name === key).length, 0);
+          return Math.max(1, fromHeroic + fromClass);
+        })()}
         testId={testId}
       />
     );
@@ -4054,6 +4066,24 @@ export default function CharacterPlayHUD({
                                   )}
                                 </div>
 
+                                {/* 徽記師【咒語徽記】：直接顯示當前可選之受術攜帶者清單 */}
+                                {cName === '徽記師' && normSkName === '咒語徽記' && (
+                                  <div data-testid="spell-mark-targets" className="mt-2 p-2 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-t11 space-y-1">
+                                    <span className="font-bold text-[#3c2415] block">當前徽記攜帶者（可作為自身目標咒語之受術者）：</span>
+                                    {listSymbolMarkBearers(character).length === 0 ? (
+                                      <span className="text-[#6b5a4b]">目前尚無維持中的徽記攜帶者（請先於【徽記學】刻劃徽記）</span>
+                                    ) : (
+                                      <div className="flex gap-1 flex-wrap">
+                                        {listSymbolMarkBearers(character).map((b) => (
+                                          <span key={b} className="px-1.5 py-0.5 rounded bg-[#fffdf9] border border-[#d6c7ab] font-bold text-[#3c2415]">
+                                            {b}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
                                 {/* 子項目已掌握清單與專屬機制 */}
                                 {sk.selectedOptions && (Array.isArray(sk.selectedOptions) ? sk.selectedOptions.length > 0 : ((sk.selectedOptions.keys || []).length > 0 || (sk.selectedOptions.tones || []).length > 0)) && (
                                   <div className="mt-2.5 pt-2 border-t border-[#e8dcc4] space-y-2.5">
@@ -4078,7 +4108,18 @@ export default function CharacterPlayHUD({
                                       />
                                     )}
 
-                                    {/* 3. 子項目效果速查清單與視圖切換 */}
+                                    {/* 3. 若為徽記師【徽記學】，常駐渲染徽記實體追蹤盤 */}
+                                    {cName === '徽記師' && normSkName === '徽記學' && (
+                                      <SymbolistMarks
+                                        character={character}
+                                        skillSL={sk.sl}
+                                        selectedOptions={sk.selectedOptions}
+                                        onChange={onChange}
+                                        showToast={showToast}
+                                      />
+                                    )}
+
+                                    {/* 4. 子項目效果速查清單與視圖切換 */}
                                     <div className="flex items-center justify-between text-t12 font-bold text-[#3c2415]">
                                       <span className="flex items-center gap-1 text-[#6b5a4b]">
                                         <GiSparkles className="w-3.5 h-3.5 text-[#6b5a4b]" />

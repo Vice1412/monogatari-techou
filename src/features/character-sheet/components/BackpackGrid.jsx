@@ -17,7 +17,8 @@ import {
   inventoryCategoryLabel,
   describeInventoryTotal,
   describeGearSummary,
-  readInventory
+  readInventory,
+  consumeInventoryItem
 } from '../utils/inventory';
 
 /**
@@ -74,6 +75,19 @@ export default function BackpackGrid({
     return first && first.value !== null ? String(first.value) : '';
   });
 
+  const [usePotionRain, setUsePotionRain] = useState(false);
+  const [useSpoiledFood, setUseSpoiledFood] = useState(false);
+
+  const potionRainSkill = (character?.classes || [])
+    .flatMap((c) => c.skills || [])
+    .find((s) => s.name === '藥水雨');
+  const hasPotionRain = Boolean(potionRainSkill && Number(potionRainSkill.sl) > 0);
+  const potionRainSL = hasPotionRain ? Number(potionRainSkill.sl) : 1;
+
+  const hasSpoiledFood = (character?.classes || [])
+    .flatMap((c) => c.skills || [])
+    .some((s) => s.name === '過期食品' && Number(s.sl) > 0);
+
   const visible = useMemo(
     () => (filter === 'all' ? items : items.filter((it) => it.category === filter)),
     [items, filter]
@@ -85,6 +99,27 @@ export default function BackpackGrid({
     setSelectedId(item.id);
     // 金額預填物品價值——那是最常見的成交價，不是規則（原書沒有公定售價）
     setSellAmount(item.value === null ? '' : String(item.value));
+    setUsePotionRain(false);
+    setUseSpoiledFood(false);
+  };
+
+  const handleConsume = () => {
+    if (!selected) return;
+    const res = consumeInventoryItem(character, selected.id, {
+      isPotionRain: usePotionRain,
+      potionRainSL,
+      isSpoiledFood: useSpoiledFood
+    });
+    if (!res.ok) {
+      showToast(res.reason, 'warning');
+      return;
+    }
+    onChange(res.character);
+    showToast(res.outcome.message, 'success');
+    const stillExists = (res.character.inventory || []).some((it) => it.id === selected.id);
+    if (!stillExists) setSelectedId(null);
+    setUsePotionRain(false);
+    setUseSpoiledFood(false);
   };
 
   const confirmSell = () => {
@@ -217,6 +252,59 @@ export default function BackpackGrid({
           )}
           {selected.effect && (
             <p className="text-t11 text-[#3c2415] leading-relaxed whitespace-pre-wrap">{selected.effect}</p>
+          )}
+
+          {/* 消耗品使用（支援修補匠【藥水雨】與商人【過期食品】） */}
+          {selected.category === 'consumable' && (
+            <div data-testid="backpack-consume-section" className="p-2 rounded bg-[#f4ebd9] border border-[#d6c7ab] space-y-1.5">
+              <div className="flex items-center justify-between gap-1">
+                <span className="font-bold text-t11 text-[#3c2415]">消耗品使用</span>
+                <button
+                  type="button"
+                  data-testid="backpack-consume-btn"
+                  onClick={handleConsume}
+                  className="px-2.5 py-0.5 rounded bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] font-bold text-t11 flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <GiPotionBall className="w-3 h-3" />
+                  <span>使用一件</span>
+                </button>
+              </div>
+
+              {(hasPotionRain || hasSpoiledFood) && (
+                <div className="flex gap-2 flex-wrap pt-0.5 text-t10 text-[#3c2415]">
+                  {hasPotionRain && (
+                    <label className="flex items-center gap-1 cursor-pointer font-bold">
+                      <input
+                        type="checkbox"
+                        data-testid="backpack-toggle-potion-rain"
+                        checked={usePotionRain}
+                        onChange={(e) => {
+                          setUsePotionRain(e.target.checked);
+                          if (e.target.checked) setUseSpoiledFood(false);
+                        }}
+                        className="rounded border-[#d6c7ab]"
+                      />
+                      <span>發動【藥水雨】（折半回復，最多 {potionRainSL + 1} 人）</span>
+                    </label>
+                  )}
+                  {hasSpoiledFood && (
+                    <label className="flex items-center gap-1 cursor-pointer font-bold text-[#8c3235]">
+                      <input
+                        type="checkbox"
+                        data-testid="backpack-toggle-spoiled-food"
+                        checked={useSpoiledFood}
+                        onChange={(e) => {
+                          setUseSpoiledFood(e.target.checked);
+                          if (e.target.checked) setUsePotionRain(false);
+                        }}
+                        className="rounded border-[#d6c7ab]"
+                      />
+                      <span>投擲為【過期食品】（轉為等額毒傷害）</span>
+                    </label>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           {/* 賣出金額**常駐**（2026-11-03 第二版）：使用者要的是「輸入金額才把東西賣出去」，

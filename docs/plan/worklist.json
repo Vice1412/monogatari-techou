@@ -641,7 +641,7 @@
       "name": "徽記學",
       "group": "C6",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "新 SymbolistMarks 元件（19 種徽記）",
       "accept": "建立／摧毀／攜帶者可運作；不新增第二份清單",
       "note": ""
@@ -652,7 +652,7 @@
       "name": "咒語徽記",
       "group": "C6",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "新 SymbolistMarks 元件（19 種徽記）",
       "accept": "建立／摧毀／攜帶者可運作；不新增第二份清單",
       "note": ""
@@ -663,7 +663,7 @@
       "name": "植生術",
       "group": "C8",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "各自一個小欄位（choice／list／旗標）",
       "accept": "欄位存得住、重開卡仍在、履歷寫得出",
       "note": ""
@@ -674,7 +674,7 @@
       "name": "嫁接",
       "group": "C8",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "各自一個小欄位（choice／list／旗標）",
       "accept": "欄位存得住、重開卡仍在、履歷寫得出",
       "note": ""
@@ -685,7 +685,7 @@
       "name": "生命之樹",
       "group": "C8",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "各自一個小欄位（choice／list／旗標）",
       "accept": "欄位存得住、重開卡仍在、履歷寫得出",
       "note": ""
@@ -696,7 +696,7 @@
       "name": "烹飪",
       "group": "C1",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "inventory item 加 effectModel；BackpackItemModal 加欄位",
       "accept": "模型可存、讀回一致；舊物品沒有模型時不炸",
       "note": ""
@@ -707,7 +707,7 @@
       "name": "加點愛",
       "group": "C1",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "inventory item 加 effectModel；BackpackItemModal 加欄位",
       "accept": "模型可存、讀回一致；舊物品沒有模型時不炸",
       "note": ""
@@ -718,7 +718,7 @@
       "name": "鹽與胡椒",
       "group": "C1",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "inventory item 加 effectModel；BackpackItemModal 加欄位",
       "accept": "模型可存、讀回一致；舊物品沒有模型時不炸",
       "note": ""
@@ -729,7 +729,7 @@
       "name": "過期食品",
       "group": "C1",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "inventory item 加 effectModel；BackpackItemModal 加欄位",
       "accept": "模型可存、讀回一致；舊物品沒有模型時不炸",
       "note": ""
@@ -740,7 +740,7 @@
       "name": "藥水雨",
       "group": "C1",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "inventory item 加 effectModel；BackpackItemModal 加欄位",
       "accept": "模型可存、讀回一致；舊物品沒有模型時不炸",
       "note": ""
@@ -751,7 +751,7 @@
       "name": "有備無患",
       "group": "C2",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "新旅行骰面板（純函式先寫）",
       "accept": "骰階換算、SL 門檻、重擲各一條測試",
       "note": ""
@@ -762,7 +762,7 @@
       "name": "寶藏獵人",
       "group": "C2",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "新旅行骰面板（純函式先寫）",
       "accept": "骰階換算、SL 門檻、重擲各一條測試",
       "note": ""
@@ -773,7 +773,7 @@
       "name": "通曉道路",
       "group": "C2",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "新旅行骰面板（純函式先寫）",
       "accept": "骰階換算、SL 門檻、重擲各一條測試",
       "note": ""
@@ -784,7 +784,7 @@
       "name": "準備食材",
       "group": "C2",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "新旅行骰面板（純函式先寫）",
       "accept": "骰階換算、SL 門檻、重擲各一條測試",
       "note": ""
@@ -795,7 +795,7 @@
       "name": "貿易之風",
       "group": "C3",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "收斂到同一個池（W0-8 backedBy）＋一顆花費鈕",
       "accept": "跑團卡只剩一個貿易點數；花費寫 classResources",
       "note": ""
@@ -806,7 +806,7 @@
       "name": "真正的財富",
       "group": "C3",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "收斂到同一個池（W0-8 backedBy）＋一顆花費鈕",
       "accept": "跑團卡只剩一個貿易點數；花費寫 classResources",
       "note": ""
@@ -817,7 +817,7 @@
       "name": "我聽說過",
       "group": "C3",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "收斂到同一個池（W0-8 backedBy）＋一顆花費鈕",
       "accept": "跑團卡只剩一個貿易點數；花費寫 classResources",
       "note": ""
@@ -828,7 +828,7 @@
       "name": "小金庫",
       "group": "C3",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "收斂到同一個池（W0-8 backedBy）＋一顆花費鈕",
       "accept": "跑團卡只剩一個貿易點數；花費寫 classResources",
       "note": ""
@@ -839,7 +839,7 @@
       "name": "支援魔法",
       "group": "C4",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "pendingBuffs[] 暫存表（不做跨卡寫入）",
       "accept": "新增／到期／移除各一條；不動別人的卡",
       "note": ""
@@ -850,7 +850,7 @@
       "name": "我相信你",
       "group": "C4",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "pendingBuffs[] 暫存表（不做跨卡寫入）",
       "accept": "新增／到期／移除各一條；不動別人的卡",
       "note": ""
@@ -861,7 +861,7 @@
       "name": "能言善辯",
       "group": "C4",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "pendingBuffs[] 暫存表（不做跨卡寫入）",
       "accept": "新增／到期／移除各一條；不動別人的卡",
       "note": ""
@@ -872,7 +872,7 @@
       "name": "壓縮技術",
       "group": "C4",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "pendingBuffs[] 暫存表（不做跨卡寫入）",
       "accept": "新增／到期／移除各一條；不動別人的卡",
       "note": ""
@@ -883,7 +883,7 @@
       "name": "孤注一擲",
       "group": "C7",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "擲骰器加 mode（偶數翻倍／改一顆骰）",
       "accept": "判定抽成純函式並有邊界測試",
       "note": ""
@@ -894,7 +894,7 @@
       "name": "幸運七",
       "group": "C7",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "擲骰器加 mode（偶數翻倍／改一顆骰）",
       "accept": "判定抽成純函式並有邊界測試",
       "note": ""
@@ -905,7 +905,7 @@
       "name": "不屈意志",
       "group": "C8",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "各自一個小欄位（choice／list／旗標）",
       "accept": "欄位存得住、重開卡仍在、履歷寫得出",
       "note": ""
@@ -916,7 +916,7 @@
       "name": "嵌合學派儀式",
       "group": "C8",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "各自一個小欄位（choice／list／旗標）",
       "accept": "欄位存得住、重開卡仍在、履歷寫得出",
       "note": ""
@@ -927,7 +927,7 @@
       "name": "忠實夥伴",
       "group": "C8",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "各自一個小欄位（choice／list／旗標）",
       "accept": "欄位存得住、重開卡仍在、履歷寫得出",
       "note": ""
@@ -938,7 +938,7 @@
       "name": "靈光一閃",
       "group": "C8",
       "wave": "W6",
-      "status": "todo",
+      "status": "done",
       "need": "各自一個小欄位（choice／list／旗標）",
       "accept": "欄位存得住、重開卡仍在、履歷寫得出",
       "note": ""

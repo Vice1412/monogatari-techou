@@ -89,34 +89,34 @@
 
 | 狀態 | id | 群 | 要做什麼 | 驗收 |
 |---|---|---|---|---|
-| ☐ | `class:徽記師:徽記學` | C6 | 新 SymbolistMarks 元件（19 種徽記） | 建立／摧毀／攜帶者可運作；不新增第二份清單 |
-| ☐ | `class:徽記師:咒語徽記` | C6 | 新 SymbolistMarks 元件（19 種徽記） | 建立／摧毀／攜帶者可運作；不新增第二份清單 |
-| ☐ | `class:植物學家:植生術` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
-| ☐ | `class:植物學家:嫁接` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
-| ☐ | `class:植物學家:生命之樹` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
-| ☐ | `class:美食家:烹飪` | C1 | inventory item 加 effectModel；BackpackItemModal 加欄位 | 模型可存、讀回一致；舊物品沒有模型時不炸 |
-| ☐ | `class:美食家:加點愛` | C1 | inventory item 加 effectModel；BackpackItemModal 加欄位 | 模型可存、讀回一致；舊物品沒有模型時不炸 |
-| ☐ | `class:美食家:鹽與胡椒` | C1 | inventory item 加 effectModel；BackpackItemModal 加欄位 | 模型可存、讀回一致；舊物品沒有模型時不炸 |
-| ☐ | `class:商人:過期食品` | C1 | inventory item 加 effectModel；BackpackItemModal 加欄位 | 模型可存、讀回一致；舊物品沒有模型時不炸 |
-| ☐ | `class:修補匠:藥水雨` | C1 | inventory item 加 effectModel；BackpackItemModal 加欄位 | 模型可存、讀回一致；舊物品沒有模型時不炸 |
-| ☐ | `class:旅人:有備無患` | C2 | 新旅行骰面板（純函式先寫） | 骰階換算、SL 門檻、重擲各一條測試 |
-| ☐ | `class:旅人:寶藏獵人` | C2 | 新旅行骰面板（純函式先寫） | 骰階換算、SL 門檻、重擲各一條測試 |
-| ☐ | `class:旅人:通曉道路` | C2 | 新旅行骰面板（純函式先寫） | 骰階換算、SL 門檻、重擲各一條測試 |
-| ☐ | `class:美食家:準備食材` | C2 | 新旅行骰面板（純函式先寫） | 骰階換算、SL 門檻、重擲各一條測試 |
-| ☐ | `class:商人:貿易之風` | C3 | 收斂到同一個池（W0-8 backedBy）＋一顆花費鈕 | 跑團卡只剩一個貿易點數；花費寫 classResources |
-| ☐ | `class:商人:真正的財富` | C3 | 收斂到同一個池（W0-8 backedBy）＋一顆花費鈕 | 跑團卡只剩一個貿易點數；花費寫 classResources |
-| ☐ | `class:商人:我聽說過` | C3 | 收斂到同一個池（W0-8 backedBy）＋一顆花費鈕 | 跑團卡只剩一個貿易點數；花費寫 classResources |
-| ☐ | `class:商人:小金庫` | C3 | 收斂到同一個池（W0-8 backedBy）＋一顆花費鈕 | 跑團卡只剩一個貿易點數；花費寫 classResources |
-| ☐ | `class:靈師:支援魔法` | C4 | pendingBuffs[] 暫存表（不做跨卡寫入） | 新增／到期／移除各一條；不動別人的卡 |
-| ☐ | `class:吟唱者:我相信你` | C4 | pendingBuffs[] 暫存表（不做跨卡寫入） | 新增／到期／移除各一條；不動別人的卡 |
-| ☐ | `class:吟唱者:能言善辯` | C4 | pendingBuffs[] 暫存表（不做跨卡寫入） | 新增／到期／移除各一條；不動別人的卡 |
-| ☐ | `class:機師:壓縮技術` | C4 | pendingBuffs[] 暫存表（不做跨卡寫入） | 新增／到期／移除各一條；不動別人的卡 |
-| ☐ | `class:卡牌大師:孤注一擲` | C7 | 擲骰器加 mode（偶數翻倍／改一顆骰） | 判定抽成純函式並有邊界測試 |
-| ☐ | `class:熵師:幸運七` | C7 | 擲骰器加 mode（偶數翻倍／改一顆骰） | 判定抽成純函式並有邊界測試 |
-| ☐ | `class:狂怒鬥士:不屈意志` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
-| ☐ | `class:嵌合師:嵌合學派儀式` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
-| ☐ | `class:旅人:忠實夥伴` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
-| ☐ | `class:博學士:靈光一閃` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
+| ✓ | `class:徽記師:徽記學` | C6 | 新 SymbolistMarks 元件（19 種徽記） | 建立／摧毀／攜帶者可運作；不新增第二份清單 |
+| ✓ | `class:徽記師:咒語徽記` | C6 | 新 SymbolistMarks 元件（19 種徽記） | 建立／摧毀／攜帶者可運作；不新增第二份清單 |
+| ✓ | `class:植物學家:植生術` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
+| ✓ | `class:植物學家:嫁接` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
+| ✓ | `class:植物學家:生命之樹` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
+| ✓ | `class:美食家:烹飪` | C1 | inventory item 加 effectModel；BackpackItemModal 加欄位 | 模型可存、讀回一致；舊物品沒有模型時不炸 |
+| ✓ | `class:美食家:加點愛` | C1 | inventory item 加 effectModel；BackpackItemModal 加欄位 | 模型可存、讀回一致；舊物品沒有模型時不炸 |
+| ✓ | `class:美食家:鹽與胡椒` | C1 | inventory item 加 effectModel；BackpackItemModal 加欄位 | 模型可存、讀回一致；舊物品沒有模型時不炸 |
+| ✓ | `class:商人:過期食品` | C1 | inventory item 加 effectModel；BackpackItemModal 加欄位 | 模型可存、讀回一致；舊物品沒有模型時不炸 |
+| ✓ | `class:修補匠:藥水雨` | C1 | inventory item 加 effectModel；BackpackItemModal 加欄位 | 模型可存、讀回一致；舊物品沒有模型時不炸 |
+| ✓ | `class:旅人:有備無患` | C2 | 新旅行骰面板（純函式先寫） | 骰階換算、SL 門檻、重擲各一條測試 |
+| ✓ | `class:旅人:寶藏獵人` | C2 | 新旅行骰面板（純函式先寫） | 骰階換算、SL 門檻、重擲各一條測試 |
+| ✓ | `class:旅人:通曉道路` | C2 | 新旅行骰面板（純函式先寫） | 骰階換算、SL 門檻、重擲各一條測試 |
+| ✓ | `class:美食家:準備食材` | C2 | 新旅行骰面板（純函式先寫） | 骰階換算、SL 門檻、重擲各一條測試 |
+| ✓ | `class:商人:貿易之風` | C3 | 收斂到同一個池（W0-8 backedBy）＋一顆花費鈕 | 跑團卡只剩一個貿易點數；花費寫 classResources |
+| ✓ | `class:商人:真正的財富` | C3 | 收斂到同一個池（W0-8 backedBy）＋一顆花費鈕 | 跑團卡只剩一個貿易點數；花費寫 classResources |
+| ✓ | `class:商人:我聽說過` | C3 | 收斂到同一個池（W0-8 backedBy）＋一顆花費鈕 | 跑團卡只剩一個貿易點數；花費寫 classResources |
+| ✓ | `class:商人:小金庫` | C3 | 收斂到同一個池（W0-8 backedBy）＋一顆花費鈕 | 跑團卡只剩一個貿易點數；花費寫 classResources |
+| ✓ | `class:靈師:支援魔法` | C4 | pendingBuffs[] 暫存表（不做跨卡寫入） | 新增／到期／移除各一條；不動別人的卡 |
+| ✓ | `class:吟唱者:我相信你` | C4 | pendingBuffs[] 暫存表（不做跨卡寫入） | 新增／到期／移除各一條；不動別人的卡 |
+| ✓ | `class:吟唱者:能言善辯` | C4 | pendingBuffs[] 暫存表（不做跨卡寫入） | 新增／到期／移除各一條；不動別人的卡 |
+| ✓ | `class:機師:壓縮技術` | C4 | pendingBuffs[] 暫存表（不做跨卡寫入） | 新增／到期／移除各一條；不動別人的卡 |
+| ✓ | `class:卡牌大師:孤注一擲` | C7 | 擲骰器加 mode（偶數翻倍／改一顆骰） | 判定抽成純函式並有邊界測試 |
+| ✓ | `class:熵師:幸運七` | C7 | 擲骰器加 mode（偶數翻倍／改一顆骰） | 判定抽成純函式並有邊界測試 |
+| ✓ | `class:狂怒鬥士:不屈意志` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
+| ✓ | `class:嵌合師:嵌合學派儀式` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
+| ✓ | `class:旅人:忠實夥伴` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
+| ✓ | `class:博學士:靈光一閃` | C8 | 各自一個小欄位（choice／list／旗標） | 欄位存得住、重開卡仍在、履歷寫得出 |
 
 ## W7 · 命刻搬家（1 筆）
 

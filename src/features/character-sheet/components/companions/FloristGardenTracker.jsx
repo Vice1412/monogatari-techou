@@ -1,5 +1,14 @@
 
 /**
+ * 取得植物學家特定技能的 SL。
+ */
+export const getFloristSkillSL = (character, skillName) => {
+  const florist = character?.classes?.find(c => c.className === '植物學家');
+  const skill = florist?.skills?.find(s => s.name === skillName);
+  return skill?.sl || 0;
+};
+
+/**
  * 檢查是否可播種（純函式）。
  */
 export const canPlantSeed = (character, maxCapacity = 1, costMp = 20) => {
@@ -37,6 +46,93 @@ export const plantSeed = (character, seedName, { costMp = 20, maxCapacity = 1 } 
   return { ok: true, character: nextChar, newEntry };
 };
 
+/**
+ * 檢查是否可進行【嫁接】（純函式）。
+ * 原書：只要生長命刻有 1 格或更多被填充（clock >= 1），可換成另一種已發現的不同種子並保持命刻格數。
+ */
+export const canGraftSeed = (character, instanceId, newSeedName) => {
+  const garden = character?.floristGarden || [];
+  const current = garden.find(i => i.instanceId === instanceId);
+  if (!current) return { ok: false, reason: '花園中無此種子' };
+  if ((current.clock || 0) < 1) return { ok: false, reason: '生長命刻必須至少有 1 格才能進行嫁接' };
+  if (!newSeedName) return { ok: false, reason: '未指定要嫁接的新種子' };
+  if (newSeedName === current.seedName) return { ok: false, reason: '必須嫁接不同種類的魔法種子' };
+  return { ok: true, current };
+};
+
+/**
+ * 執行【嫁接】（純函式）：換種並保留生長命刻格數。
+ */
+export const graftSeed = (character, instanceId, newSeedName) => {
+  const check = canGraftSeed(character, instanceId, newSeedName);
+  if (!check.ok) return { ok: false, character, reason: check.reason };
+  const garden = character?.floristGarden || [];
+  const updatedGarden = garden.map(item => {
+    if (item.instanceId === instanceId) {
+      return {
+        ...item,
+        seedName: newSeedName,
+        // clock 保持不變！
+        graftedAt: new Date().toISOString()
+      };
+    }
+    return item;
+  });
+  return {
+    ok: true,
+    character: {
+      ...character,
+      floristGarden: updatedGarden,
+      updatedAt: new Date().toISOString()
+    }
+  };
+};
+
+/**
+ * 計算【生命之樹】治療量（純函式）：5 + (SL × 5)。
+ */
+export const getTreeOfLifeHeal = (sl = 1) => 5 + (sl * 5);
+
+/**
+ * 判定目標生物是否處於危機（純函式）。
+ */
+export const isCrisisState = (hp, maxHp) => {
+  return (hp || 0) <= Math.floor((maxHp || 0) / 2);
+};
+
+/**
+ * 移出花園並結算【生命之樹】（純函式）。
+ */
+export const removeSeedWithTreeOfLife = (
+  character,
+  instanceId,
+  { treeOfLifeSL = 0, targetIsCrisis = false, healSelf = false } = {}
+) => {
+  const garden = character?.floristGarden || [];
+  const removed = garden.find(i => i.instanceId === instanceId);
+  if (!removed) return { ok: false, character, reason: '花園中無此種子' };
+  const nextGarden = garden.filter(i => i.instanceId !== instanceId);
+  let nextChar = {
+    ...character,
+    floristGarden: nextGarden,
+    updatedAt: new Date().toISOString()
+  };
+  let healedAmount = 0;
+  if (treeOfLifeSL > 0 && targetIsCrisis && healSelf) {
+    healedAmount = getTreeOfLifeHeal(treeOfLifeSL);
+    const curHp = nextChar.currentHp ?? nextChar.maxHp ?? 0;
+    const maxHp = nextChar.maxHp ?? 999;
+    nextChar.currentHp = Math.min(maxHp, curHp + healedAmount);
+  }
+  return {
+    ok: true,
+    character: nextChar,
+    removedSeed: removed.seedName,
+    clock: removed.clock || 0,
+    healedAmount
+  };
+};
+
 import React, { useState } from 'react';
 import { GiSprout, GiFlowerPot, GiSparkles, GiCheckMark, GiHazardSign, GiPlantRoots } from 'react-icons/gi';
 import EmptyState from '../../../../components/ui/EmptyState';
@@ -68,6 +164,12 @@ export default function FloristGardenTracker({
   showToast
 }) {
   const [selectedSeedToPlant, setSelectedSeedToPlant] = useState('');
+  const [graftingId, setGraftingId] = useState(null);
+  const [graftTargetSeed, setGraftTargetSeed] = useState('');
+
+  // 檢查是否掌握【嫁接】與【生命之樹】
+  const hasGraft = getFloristSkillSL(character, '嫁接') > 0;
+  const treeOfLifeSL = getFloristSkillSL(character, '生命之樹');
 
   // 取得角色當前花園資料
   const gardenList = character.floristGarden || [];
@@ -102,6 +204,19 @@ export default function FloristGardenTracker({
     if (showToast) showToast(`已將【${seedName}】播種至花園！消耗 20 MP，生長命刻：0 格。`, 'success');
   };
 
+  // 執行【嫁接】換種
+  const handleGraft = (instanceId, newSeed) => {
+    const res = graftSeed(character, instanceId, newSeed);
+    if (!res.ok) {
+      if (showToast) showToast(res.reason, 'warning');
+      return;
+    }
+    if (onChange) onChange(res.character);
+    setGraftingId(null);
+    setGraftTargetSeed('');
+    if (showToast) showToast(`【嫁接】成功！已將種子換為【${newSeed}】，保留當前生長命刻！`, 'success');
+  };
+
   // 推進單一植物命刻
   const handleStepClock = (instanceId, delta) => {
     const updated = gardenList.map(item => {
@@ -114,11 +229,31 @@ export default function FloristGardenTracker({
     updateGarden(updated);
   };
 
-  // 移出花園／收穫
+  // 移出花園／收穫（結合【生命之樹】）
   const handleRemoveSeed = (instanceId, seedName) => {
-    const updated = gardenList.filter(item => item.instanceId !== instanceId);
-    updateGarden(updated);
-    if (showToast) showToast(`已將【${seedName}】移出花園。`, 'info');
+    const maxHp = character?.maxHp ?? 999;
+    const curHp = character?.currentHp ?? maxHp;
+    const isSelfCrisis = isCrisisState(curHp, maxHp);
+
+    const res = removeSeedWithTreeOfLife(character, instanceId, {
+      treeOfLifeSL,
+      targetIsCrisis: isSelfCrisis,
+      healSelf: true
+    });
+
+    if (!res.ok) {
+      if (showToast) showToast(res.reason, 'warning');
+      return;
+    }
+    if (onChange) onChange(res.character);
+
+    if (res.healedAmount > 0) {
+      if (showToast) showToast(`已將【${seedName}】移出花園。觸發【生命之樹】！為處於危機的你恢復了 ${res.healedAmount} 點 HP！`, 'success');
+    } else if (treeOfLifeSL > 0) {
+      if (showToast) showToast(`已將【${seedName}】移出花園。【生命之樹】已就緒：可為一名處於危機的生物恢復 ${getTreeOfLifeHeal(treeOfLifeSL)} 點 HP！`, 'info');
+    } else {
+      if (showToast) showToast(`已將【${seedName}】移出花園。`, 'info');
+    }
   };
 
   // 回合結束：花園全體生長 (+1 格)
@@ -260,6 +395,29 @@ export default function FloristGardenTracker({
                     >
                       <span>+1 格</span>
                     </button>
+                    {hasGraft && clock >= 1 && (
+                      <button
+                        type="button"
+                        data-testid="graft-seed"
+                        onClick={() => {
+                          if (graftingId === item.instanceId) {
+                            setGraftingId(null);
+                            setGraftTargetSeed('');
+                          } else {
+                            setGraftingId(item.instanceId);
+                            setGraftTargetSeed('');
+                          }
+                        }}
+                        className={`px-2 py-0.5 rounded text-t11 font-bold transition-colors cursor-pointer border ${
+                          graftingId === item.instanceId
+                            ? 'bg-[#8c2d36] text-white border-[#8c2d36]'
+                            : 'bg-[#f4ebd9] text-[#245c45] border-[#d6c7ab] hover:bg-[#e8dcc4]'
+                        }`}
+                        title="【嫁接】：換種並保留當前生長命刻格數"
+                      >
+                        <span>{graftingId === item.instanceId ? '取消嫁接' : '嫁接'}</span>
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => handleRemoveSeed(item.instanceId, item.seedName)}
@@ -270,6 +428,35 @@ export default function FloristGardenTracker({
                     </button>
                   </div>
                 </div>
+
+                {/* 嫁接選擇列 */}
+                {graftingId === item.instanceId && (
+                  <div className="flex items-center gap-2 p-2 bg-[#f4ebd9] rounded border border-[#245c45] text-xs">
+                    <span className="text-t11 font-bold text-[#245c45] shrink-0">嫁接為：</span>
+                    <select
+                      value={graftTargetSeed}
+                      onChange={e => setGraftTargetSeed(e.target.value)}
+                      className="flex-1 bg-white border border-[#d6c7ab] rounded px-2 py-1 text-xs text-[#245c45] font-sans outline-none focus:ring-1 focus:ring-[#245c45] cursor-pointer"
+                    >
+                      <option value="">-- 選擇新種子（保留 {clock} 格命刻）--</option>
+                      {fallbackSeeds
+                        .filter(s => s.name !== item.seedName)
+                        .map(s => (
+                          <option key={s.id || s.name} value={s.name}>
+                            {s.name} ({s.duration || '至多 4 回合'})
+                          </option>
+                        ))}
+                    </select>
+                    <button
+                      type="button"
+                      disabled={!graftTargetSeed}
+                      onClick={() => handleGraft(item.instanceId, graftTargetSeed)}
+                      className="px-2.5 py-1 rounded bg-[#245c45] hover:bg-[#1e4b39] disabled:opacity-40 text-white font-bold text-xs transition-all shrink-0 cursor-pointer shadow-e1"
+                    >
+                      確認嫁接
+                    </button>
+                  </div>
+                )}
 
                 {/* 4 格命刻進度指示器 */}
                 <div className="grid grid-cols-4 gap-1.5 pt-1">

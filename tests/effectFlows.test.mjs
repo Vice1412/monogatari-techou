@@ -33,7 +33,9 @@ import {
   flowCoverageReport,
   controlsOf,
   resetScopeLabel,
-  resetFlowScope
+  resetFlowScope,
+  toggleMultiSelectPicks,
+  multiSelectMax
 } from '../src/features/character-sheet/utils/effectFlow.js';
 // 金手指的 effects 鍵白名單守衛（§K）需要原始資料，不是流程資料。
 import rulesData from '../src/features/character-sheet/data/rulesData.json';
@@ -631,6 +633,41 @@ check('N7 判定式的 toast 寫的是「擲出 3」而不是增加量',
 const relicItem = FLOW_ITEMS.find((i) => i.name === '遺物使用者');
 check('N8 遺物使用者：1d6 擲 4 → 異常值 2 → 6',
   flowActionPlan(relicItem, mkRes('遺物使用者', 'anomaly', 2), rollCtx({ roll: 4, controlIndex: 1 })).patch.classResources.anomaly, 6);
+
+// ─────────────────────────────────────────────────────────── O
+section('O. 裁定 1A／3A／5A：歸零、同組互斥、上限＝每次取得 × 次數');
+// 這三條都是「按鈕說它會做某件事、其實以前沒做」那一類（裁定時使用者都是看畫面選的）。
+const delinquentItem = FLOW_ITEMS.find((i) => i.name === '地獄差生');
+const selfishIdx = (delinquentItem.controls || []).findIndex((c) => Array.isArray(c.zero));
+check('O1 自私片刻宣告了 zero: delinquent', selfishIdx >= 0, true);
+const selfishPlan = flowActionPlan(
+  delinquentItem,
+  mkChar({ classResources: { delinquent: 7 } }),
+  rollCtx({ controlIndex: selfishIdx })
+);
+check('O2 自私片刻真的把差生點歸零', selfishPlan.patch?.classResources?.delinquent, 0);
+check('O3 toast 寫得出「差生點 7 → 0」', /差生點 7 → 0/.test(String(selfishPlan.toast)), true);
+
+const steadfastControl = FLOW_ITEMS.find((i) => i.name === '穩固突變')?.control;
+check('O5 穩固突變宣告了 oneOf 群組', Array.isArray(steadfastControl?.groups) && steadfastControl.groups.length > 0, true);
+check('O6 勾「追獵」後再勾「腕力」→ 追獵被剔除',
+  toggleMultiSelectPicks(steadfastControl, ['追獵形態'], '腕力形態', { max: 2 }), ['腕力形態']);
+check('O7 勾同組不影響非同組的選項',
+  toggleMultiSelectPicks(steadfastControl, ['追獵形態', '兩棲形態'], '腕力形態', { max: 2 }).sort(),
+  ['兩棲形態', '腕力形態'].sort());
+check('O8 取消勾選照常運作',
+  toggleMultiSelectPicks(steadfastControl, ['追獵形態', '兩棲形態'], '追獵形態', { max: 2 }), ['兩棲形態']);
+check('O9 到上限且不在同組時不動（回同一個參考）', (() => {
+  const picks = ['兩棲形態', '疊甲形態'];
+  return toggleMultiSelectPicks(steadfastControl, picks, '放電形態', { max: 2 }) === picks;
+})(), true);
+
+const anatomyControl = FLOW_ITEMS.find((i) => i.name === '解剖學家')?.control;
+check('O10 解剖學家宣告 maxPerTake: 2', anatomyControl?.maxPerTake, 2);
+check('O11 取得一次時上限 2', multiSelectMax(anatomyControl, 1), 2);
+check('O12 取得三次時上限 6', multiSelectMax(anatomyControl, 3), 6);
+check('O13 取得十次也不會超過天花板 6', multiSelectMax(anatomyControl, 10), 6);
+check('O14 沒有 maxPerTake 的控件維持原本 max', multiSelectMax({ max: 3 }, 5), 3);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
