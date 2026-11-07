@@ -31,8 +31,18 @@ const ICONS = {
   luckyNumber: GiClover
 };
 
-export default function ClassResourceStrip({ character, onChange, showToast = () => {} }) {
-  const resources = getActiveClassResources(character);
+export default function ClassResourceStrip({
+  character,
+  onChange,
+  showToast = () => {},
+  // 2026-11-07：金手指卡片裡要就地顯示「這一條的資源」（差生點／疲勞值…），
+  // 不必叫玩家自己翻到下面的「職業資源」區塊找。預設 null＝照舊全部顯示。
+  filter = null,
+  // 標題也要能換：金手指卡片上寫「職業資源」會讓人以為跑錯頁。
+  title = '職業資源',
+  subtitle = '依職業自動出現'
+}) {
+  const resources = getActiveClassResources(character).filter((r) => (filter ? filter(r) : true));
 
   // 沒有對應職業 -> 完全不渲染，不對其他角色造成噪音
   if (resources.length === 0) return null;
@@ -50,9 +60,9 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
       <div className="flex items-center justify-between text-xs">
         <span className="font-bold text-[#3c2415] flex items-center gap-1">
           <GiGraveFlowers className="w-3.5 h-3.5 text-[#6b5a4b]" />
-          <span>職業資源</span>
+          <span>{title}</span>
         </span>
-        <span className="text-t10 text-[#6b5a4b] font-mono">依職業自動出現</span>
+        <span className="text-t10 text-[#6b5a4b]">{subtitle}</span>
       </div>
 
       <div className="space-y-2">
@@ -150,7 +160,7 @@ export default function ClassResourceStrip({ character, onChange, showToast = ()
               )}
 
               {resource.hint && (
-                <span className="text-t10 text-[#6b5a4b] font-mono ml-auto">{resource.hint}</span>
+                <span className="text-t10 text-[#6b5a4b] ml-auto">{resource.hint}</span>
               )}
             </div>
           );

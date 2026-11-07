@@ -178,7 +178,9 @@ export const CLASS_RESOURCES = [
   // `resetTo: null` 是刻意的：原書只說「自私片刻清零」，沒有章節／場景自動重置。
   {
     id: 'delinquent',
-    kind: 'value',
+    // `pool` 而不是 `value`：只有 `pool` 會把 `max` 帶到畫面上（`value` 是「無上限的計數」）。
+    // 差生點有上限 10；用 `value` 的話刻度會顯示成「0／無上限」，玩家看不出離「被記過」還差幾點。
+    kind: 'pool',
     min: 0,
     quirkName: '地獄差生',
     label: '差生點',
@@ -234,6 +236,11 @@ export const getActiveClassResources = (character) => {
       kind: def.kind,
       label: def.label,
       hint: def.hint,
+      // 2026-11-07：把「這一條屬於誰」一起帶出去。金手指卡片要篩出「這一條金手指的刻度」，
+      // 篩不到就整條不見（使用者回報「按鈕灰掉、連指引都沒有」的後半段）。
+      quirkName: def.quirkName || null,
+      heroicName: def.heroicName || null,
+      className: def.className || null,
       resetLabel: def.resetLabel,
       resetRoll: def.resetRoll ?? null,
       resetSign: def.resetSign ?? null,

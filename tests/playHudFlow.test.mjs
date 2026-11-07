@@ -734,6 +734,23 @@ check('R2 我聽說過在跑團卡渲染花費 1 點按鈕且無假計數器',
   !merchantHtml.includes('flow-class-1-counter'),
   true);
 
+/* ────────────────────────────────────────────────────────────────
+   P. 擲骰型按鈕不可以被「需要先擲骰」擋成灰色（2026-11-07 使用者回報）
+   ──────────────────────────────────────────────────────────────── */
+// 病根：`getCostBlocked` 與 `onAct` 共用 `flowActionPlan`，而前者沒有傳 `roll`。
+// 於是「這顆按鈕會擲骰」被誤讀成「現在不能按」——按鈕永久變灰，
+// 但骰子本來就是按下之後才擲的。這一組守兩件事：按得下去，以及看得到刻度。
+const delinquentChar = createNewCharacter({ name: '差生' });
+delinquentChar.quirk = '地獄差生';
+const delinquentHtml = render(delinquentChar, { initialTab: 'skills' });
+check('P1 地獄差生的「做好事」按鈕沒有被擋成 disabled',
+  hasDisabledAttr(delinquentHtml, 'flow-quirk-c0-act') === false, true);
+check('P2 畫面不再出現「需要先擲」這種擋人訊息',
+  !/需要先擲/.test(delinquentHtml), true);
+check('P3 金手指卡片裡就看得到差生點刻度',
+  delinquentHtml.includes('金手指資源') && /差生點/.test(delinquentHtml), true);
+check('P4 刻度寫得出上限（出現「/ 10」）', /\/\s*10/.test(delinquentHtml), true);
+
 /* ──────────────────────────────────────────────────────────────── */
 const failed = results.filter((r) => !r.ok);
 for (const r of results) console.log(`  ${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.detail === '' ? '' : `  —— ${r.detail}`}`);

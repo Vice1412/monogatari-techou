@@ -894,7 +894,12 @@ export default function CharacterPlayHUD({
     const vars = flowVarsFor(character);
     const getCostBlocked = (ctrl, idx) => {
       if (ctrl?.kind !== 'button') return null;
-      const plan = flowActionPlan(item, character, { sl, level: characterLevel, stats, controlIndex: idx, vars });
+      // 這一支只回答「能不能按」，不是真的要執行，所以**不能**被「需要擲骰」擋下來：
+      // 骰子是按下之後才擲的（`onAct` 負責）。少了 `roll` 時 `flowActionPlan` 會回 ok:false，
+      // 按鈕就永久變灰、玩家永遠按不到那一擲（2026-11-07 的真實回報）。
+      const plan = flowActionPlan(item, character, {
+        sl, level: characterLevel, stats, controlIndex: idx, vars, roll: 1
+      });
       if (!plan.ok) return { blocked: true, reason: plan.reason || '現在不能使用' };
       return null;
     };
@@ -4517,6 +4522,17 @@ export default function CharacterPlayHUD({
                             ) : (
                               <p className="text-t12 text-[#7c6a58]">已啟用金手指【{character.quirk}】。</p>
                             )}
+                            {/* 這一條金手指自己的刻度（差生點／疲勞值…）就放在按鈕旁邊。
+                                少了它，玩家只會看到一顆灰掉的按鈕，卻不知道數字要在哪裡調
+                                ——2026-11-07 使用者回報「連一個指引都沒有」就是這個。 */}
+                            <ClassResourceStrip
+                              character={character}
+                              onChange={onChange}
+                              showToast={showToast}
+                              title="金手指資源"
+                              subtitle="使用這個金手指時累積"
+                              filter={(r) => Boolean(r.quirkName) && r.quirkName === character.quirk}
+                            />
                             {/* 金手指的流程控件（專屬 FlowDataPanel 或通用計數器／開關／按鈕） */}
                             {(() => {
                               const itemId = `quirk:${character.quirk}`;
@@ -5354,6 +5370,10 @@ export default function CharacterPlayHUD({
         character={character}
         onChange={onChange}
         showToast={showToast}
+        // 金手指的資源（差生點、疲勞值…）改在**金手指卡片裡**顯示——那是玩家正在看按鈕的地方。
+        // 這裡只留職業與英雄技能的池子，避免同一條數字出現兩次（也避免等寬字預算超標）。
+        filter={(r) => !r.quirkName}
+        subtitle="依職業／英雄技能自動出現"
       />
 
       {/* 4. 金手指相性（F-023，2026-10-26 P11） */}
