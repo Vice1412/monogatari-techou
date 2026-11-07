@@ -208,6 +208,16 @@ const editableSpellNoOptions = editableSpellHtml.replace(/<option[^>]*>[^<]*<\/o
 check('EditableSkill：摘要顯示自定義公式【MIG + WLP】', editableSpellNoOptions.includes('[MIG + WLP]'));
 
 lines.push('');
+lines.push('H. EditableSkill 編輯模式即時同步（Live Draft）守門');
+check('EditableSkill 具備 syncDraft 即時草稿同步機制', editableSrc.includes('syncDraft'));
+check('EditableSkill 切換咒語公式時觸發即時更新 updateSpellDataField',
+  /updateSpellDataField\(\{\s*formula:\s*e\.target\.value\s*\}\)/.test(editableSrc));
+check('EditableSkill 勾選攻擊性咒語時觸發即時更新 updateSpellDataField',
+  /updateSpellDataField\(\{\s*isOffensive:\s*e\.target\.checked\s*\}\)/.test(editableSrc));
+check('EditableSkill 具備進入編輯前的備份與取消還原機制',
+  editableSrc.includes('backupRef.current') && editableSrc.includes('handleCancel'));
+
+lines.push('');
 lines.push(`  通過 ${pass} / ${pass + fail}`);
 console.log(lines.join('\n'));
 if (fail > 0) {

@@ -2274,7 +2274,7 @@ export default function App({
                               spellTextToCopy += ` (MP: ${spellData.mp} | 目標: ${getPlainText(replacedTarget, selections, state.level, state.partyLevel)} | 持續: ${spellData.duration})\n`;
                               if (isOffensive) {
                                 const accStr = totalMagicAcc > 0 ? ` +${totalMagicAcc}` : (totalMagicAcc < 0 ? ` - ${Math.abs(totalMagicAcc)}` : '');
-                                const formulaDisplay = state.magicFormula || '[INS + WLP]';
+                                const formulaDisplay = spellObj.formula || spellObj.selections?.formula || state.magicFormula || '[INS + WLP]';
                                 spellTextToCopy += `> ${formulaDisplay}${accStr} ✦ 魔法攻擊\n`;
                               }
                               let effectText = effectiveDesc.replace(/【HR\+(\d+)】/g, (match, p1) => `[HR + ${parseInt(p1) + finalStats.Dmg}]`);
@@ -2315,7 +2315,7 @@ export default function App({
                                   </div>
                                 )}
 
-                                {isOffensive && <div className="text-[#8c2d36] text-t12 font-bold mb-1.5 flex items-center gap-1.5"><span className="text-[#2c221e] tracking-widest">{state.magicFormula || '[INS + WLP]'}</span> {totalMagicAcc !== 0 && <span className="text-[#3c2415]">{totalMagicAcc > 0 ? `+ ${totalMagicAcc}` : `- ${Math.abs(totalMagicAcc)}`}</span>} ✦ 魔法攻擊</div>}
+                                {isOffensive && <div className="text-[#8c2d36] text-t12 font-bold mb-1.5 flex items-center gap-1.5"><span className="text-[#2c221e] tracking-widest">{spellObj.formula || spellObj.selections?.formula || state.magicFormula || '[INS + WLP]'}</span> {totalMagicAcc !== 0 && <span className="text-[#3c2415]">{totalMagicAcc > 0 ? `+ ${totalMagicAcc}` : `- ${Math.abs(totalMagicAcc)}`}</span>} ✦ 魔法攻擊</div>}
 
                                 <div className={`text-sm leading-relaxed ${selections.customDesc !== undefined ? 'text-[#3c2415] font-medium' : 'text-[#3c2415]'}`}>
                                   {spellData ? renderFormattedText(replacedEffect, selections, state.level, state.partyLevel) : "無詳細資料。"}

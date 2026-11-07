@@ -6,7 +6,7 @@
  *
  * ※ 下方 import 由腳本依「區塊實際用到的識別字」自動產生，未使用的都已剔除。
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Edit3, Save, Trash2, X, Lock } from 'lucide-react';
 import { DAMAGE_TYPES, CATEGORIES, TYPE_STYLES, isOffensiveSpell, normalizeSpellName } from '../data';
 import { renderFormattedText } from '../utils/displayText';
@@ -30,6 +30,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
     ? skill.selectionsConfig.find((cfg) => cfg && cfg.key === key)
     : undefined);
   const [isEditing, setIsEditing] = useState(false);
+  const backupRef = useRef(null);
   const [editName, setEditName] = useState(skill.customName || skill.originalName);
   const [editDesc, setEditDesc] = useState(
     skill.customDesc !== undefined ? skill.customDesc :
@@ -76,21 +77,39 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
     }
   }, [isEditing, skill, baseSkill]);
 
-  const handleSave = () => {
-    let computedTarget = editSpellData.targetType;
-    if (editSpellData.targetType === '至多 X 個生物') {
-      computedTarget = `至多 ${editSpellData.maxTargets.trim() || '3'} 個生物`;
-    }
-    let cleanBaseMp = editSpellData.baseMp.replace(/×\s*T/gi, '').trim() || '10';
-    let computedMp = editSpellData.targetType === '至多 X 個生物' ? `${cleanBaseMp} × T` : cleanBaseMp;
+  const startEditing = () => {
+    backupRef.current = JSON.parse(JSON.stringify(skill));
+    setIsEditing(true);
+  };
 
-    const finalName = editName.trim();
+  const handleCancel = () => {
+    if (backupRef.current && onUpdate) {
+      onUpdate(skill.id, backupRef.current);
+    }
+    setIsEditing(false);
+  };
+
+  const syncDraft = (overrides = {}) => {
+    if (!onUpdate) return;
+    const activeName = overrides.name !== undefined ? overrides.name : editName;
+    const activeDesc = overrides.desc !== undefined ? overrides.desc : editDesc;
+    const activeSpell = overrides.spellData !== undefined ? overrides.spellData : editSpellData;
+    const activeAttack = overrides.attack !== undefined ? overrides.attack : editAttack;
+
+    let computedTarget = activeSpell.targetType;
+    if (activeSpell.targetType === '至多 X 個生物') {
+      computedTarget = `至多 ${(activeSpell.maxTargets || '').trim() || '3'} 個生物`;
+    }
+    let cleanBaseMp = (activeSpell.baseMp || '').replace(/×\s*T/gi, '').trim() || '10';
+    let computedMp = activeSpell.targetType === '至多 X 個生物' ? `${cleanBaseMp} × T` : cleanBaseMp;
+
+    const finalName = (activeName || '').trim();
 
     onUpdate(skill.id, {
       customName: finalName === (skill.originalName || '') ? undefined : finalName,
-      customDesc: editDesc,
+      customDesc: activeDesc,
       attack: skill.category === 'attack' ? {
-        ...editAttack,
+        ...activeAttack,
         // 有同名選單的欄位一律存回佔位符：寫死等於把選單永久鎖住（見 utils/attackDisplay.js）。
         distance: unfreezeAttackField(editAttack.distance, 'distance', skill.selectionsConfig),
         formula: unfreezeAttackField(editAttack.formula, 'formula', skill.selectionsConfig),
@@ -99,14 +118,24 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
       spellData: skill.category === 'spell' ? {
         mp: computedMp,
         baseMp: cleanBaseMp,
-        targetType: editSpellData.targetType,
-        maxTargets: editSpellData.maxTargets,
+        targetType: activeSpell.targetType,
+        maxTargets: activeSpell.maxTargets,
         target: computedTarget,
-        duration: editSpellData.duration?.trim() || '瞬發',
-        isOffensive: editSpellData.isOffensive,
-        formula: editSpellData.isOffensive ? (editSpellData.formula || '[INS + WLP]') : undefined
+        duration: activeSpell.duration?.trim() || '瞬發',
+        isOffensive: activeSpell.isOffensive,
+        formula: activeSpell.isOffensive ? (activeSpell.formula || '[INS + WLP]') : undefined
       } : undefined
     });
+  };
+
+  const updateSpellDataField = (patch) => {
+    const nextSpell = { ...editSpellData, ...patch };
+    setEditSpellData(nextSpell);
+    syncDraft({ spellData: nextSpell });
+  };
+
+  const handleSave = () => {
+    syncDraft();
     setIsEditing(false);
   };
   const handleCategoryChange = (e) => onUpdate(skill.id, { category: e.target.value });
@@ -114,7 +143,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
   if (isEditing) {
     return (
       <div className="border-2 border-dashed border-[#a63d40] p-3 mb-3 bg-[#fffdf9] rounded text-[#2c221e]">
-        <div className="flex items-center gap-2 mb-2"><span className="text-xs font-bold text-[#6b5a4b]">編輯名稱：</span><input type="text" className="flex-1 bg-[#fbf7ee] border border-[#d6c7ab] p-1.5 rounded text-sm text-[#2c221e] font-bold outline-none focus:border-[#3c2415]" value={editName} onChange={(e) => setEditName(e.target.value)} /></div>
+        <div className="flex items-center gap-2 mb-2"><span className="text-xs font-bold text-[#6b5a4b]">編輯名稱：</span><input type="text" className="flex-1 bg-[#fbf7ee] border border-[#d6c7ab] p-1.5 rounded text-sm text-[#2c221e] font-bold outline-none focus:border-[#3c2415]" value={editName} onChange={(e) => { setEditName(e.target.value); syncDraft({ name: e.target.value }); }} /></div>
 
         {skill.category === 'attack' && (
           <>
@@ -123,22 +152,22 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                 {selCfg('distance') ? (
                   <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.distance || ''} onChange={e => onUpdateSelection(skill.id, 'distance', e.target.value)}><option value="">選擇</option>{selCfg('distance').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
                 ) : (
-                  <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.distance} onChange={e => setEditAttack({ ...editAttack, distance: e.target.value })}><option value="近戰">近戰</option><option value="遠程">遠程</option></select>
+                  <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.distance} onChange={e => { const next = { ...editAttack, distance: e.target.value }; setEditAttack(next); syncDraft({ attack: next }); }}><option value="近戰">近戰</option><option value="遠程">遠程</option></select>
                 )}
               </div>
               <div><label className="block text-[#6b5a4b] mb-1 font-bold">檢定公式</label>
                 {selCfg('formula') ? (
                   <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.formula || ''} onChange={e => onUpdateSelection(skill.id, 'formula', e.target.value)}><option value="">選擇</option>{selCfg('formula').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
                 ) : (
-                  <input type="text" className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.formula} onChange={e => setEditAttack({ ...editAttack, formula: e.target.value })} />
+                  <input type="text" className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.formula} onChange={e => { const next = { ...editAttack, formula: e.target.value }; setEditAttack(next); syncDraft({ attack: next }); }} />
                 )}
               </div>
-              <div><label className="block text-[#6b5a4b] mb-1 font-bold font-mono">基礎傷害 HR+</label><input type="number" className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.baseDmg} onChange={e => setEditAttack({ ...editAttack, baseDmg: parseInt(e.target.value) || 0 })} /></div>
+              <div><label className="block text-[#6b5a4b] mb-1 font-bold font-mono">基礎傷害 HR+</label><input type="number" className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.baseDmg} onChange={e => { const next = { ...editAttack, baseDmg: parseInt(e.target.value) || 0 }; setEditAttack(next); syncDraft({ attack: next }); }} /></div>
               <div><label className="block text-[#6b5a4b] mb-1 font-bold">屬性</label>
                 {selCfg('type') ? (
                   <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.type || ''} onChange={e => onUpdateSelection(skill.id, 'type', e.target.value)}><option value="">選擇</option>{selCfg('type').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
                 ) : (
-                  <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.type} onChange={e => setEditAttack({ ...editAttack, type: e.target.value })}>{DAMAGE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select>
+                  <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.type} onChange={e => { const next = { ...editAttack, type: e.target.value }; setEditAttack(next); syncDraft({ attack: next }); }}>{DAMAGE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select>
                 )}
               </div>
             </div>
@@ -158,7 +187,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                 <select
                   className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e] font-bold"
                   value={editSpellData.targetType}
-                  onChange={e => setEditSpellData({ ...editSpellData, targetType: e.target.value })}
+                  onChange={e => updateSpellDataField({ targetType: e.target.value })}
                 >
                   <option value="一個生物">一個生物</option>
                   <option value="自身">自身</option>
@@ -177,7 +206,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                     className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e] font-bold"
                     placeholder="例: 3"
                     value={editSpellData.maxTargets}
-                    onChange={e => setEditSpellData({ ...editSpellData, maxTargets: e.target.value })}
+                    onChange={e => updateSpellDataField({ maxTargets: e.target.value })}
                   />
                 </div>
               ) : (
@@ -194,7 +223,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                     className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e] font-bold"
                     placeholder="例: 10"
                     value={editSpellData.baseMp}
-                    onChange={e => setEditSpellData({ ...editSpellData, baseMp: e.target.value })}
+                    onChange={e => updateSpellDataField({ baseMp: e.target.value })}
                   />
                   {editSpellData.targetType === '至多 X 個生物' && (
                     <span className="text-[#2c221e] font-extrabold text-sm shrink-0">× T</span>
@@ -207,7 +236,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                 <select
                   className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e] font-bold"
                   value={editSpellData.duration}
-                  onChange={e => setEditSpellData({ ...editSpellData, duration: e.target.value })}
+                  onChange={e => updateSpellDataField({ duration: e.target.value })}
                 >
                   <option value="瞬發">瞬發</option>
                   <option value="場景">場景</option>
@@ -222,7 +251,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                   type="checkbox"
                   className="w-4 h-4 rounded accent-[#a63d40]"
                   checked={editSpellData.isOffensive}
-                  onChange={e => setEditSpellData({ ...editSpellData, isOffensive: e.target.checked })}
+                  onChange={e => updateSpellDataField({ isOffensive: e.target.checked })}
                 />
                 <span>攻擊性咒語 (包含魔法檢定)</span>
               </label>
@@ -233,7 +262,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
                   <select
                     className="bg-[#fffdf9] text-[#2c221e] text-xs font-bold border border-[#d6c7ab] p-1 rounded outline-none"
                     value={editSpellData.formula}
-                    onChange={e => setEditSpellData({ ...editSpellData, formula: e.target.value })}
+                    onChange={e => updateSpellDataField({ formula: e.target.value })}
                   >
                     <option value="[INS + WLP]">【INS + WLP】(洞察 + 意志)</option>
                     <option value="[MIG + WLP]">【MIG + WLP】(體格 + 意志)</option>
@@ -244,15 +273,15 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
           </div>
         )}
 
-        <textarea className="w-full bg-[#fbf7ee] text-[#2c221e] p-2 border border-[#d6c7ab] outline-none h-24 resize-none rounded leading-relaxed text-sm focus:border-[#3c2415]" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder={skill.category === 'attack' ? "輸入自訂的額外效果..." : "技能效果與敘述..."} />
-        <div className="flex justify-end gap-2 mt-3"><button onClick={() => setIsEditing(false)} className="text-sm px-3 py-1 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] rounded transition-colors border border-[#d6c7ab]">取消</button><button onClick={handleSave} className="text-sm px-3 py-1 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] rounded flex items-center gap-1 transition-colors"><Save size={14} /> 保存</button></div>
+        <textarea className="w-full bg-[#fbf7ee] text-[#2c221e] p-2 border border-[#d6c7ab] outline-none h-24 resize-none rounded leading-relaxed text-sm focus:border-[#3c2415]" value={editDesc} onChange={(e) => { setEditDesc(e.target.value); syncDraft({ desc: e.target.value }); }} placeholder={skill.category === 'attack' ? "輸入自訂的額外效果..." : "技能效果與敘述..."} />
+        <div className="flex justify-end gap-2 mt-3"><button onClick={handleCancel} className="text-sm px-3 py-1 bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] rounded transition-colors border border-[#d6c7ab]">取消</button><button onClick={handleSave} className="text-sm px-3 py-1 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] rounded flex items-center gap-1 transition-colors"><Save size={14} /> 保存</button></div>
       </div>
     );
   }
 
   return (
     <div className={`group relative border-l-4 ${skill.source === 'levelPassive' ? 'border-[#3c2415] bg-[#f9f5eb]' : 'border-[#7c6a58] bg-[#fffdf9]'} hover:bg-[#fbf7ee] transition-colors rounded-r py-2.5 pl-3 mb-3 border border-[#d6c7ab] ${skill.isSecretArt ? 'ring-1 ring-[#3c2415]/30 bg-[#fffdf9]' : ''}`}>
-      <div className="absolute right-1 top-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#fffdf9] p-1 rounded shadow border border-[#d6c7ab] z-10"><button onClick={() => setIsEditing(true)} className="p-1 hover:text-[#3c2415]" title="編輯"><Edit3 size={14} /></button>{!isDefault && <button onClick={() => onDelete(skill.id)} className="p-1 hover:text-[#76252d]" title="刪除"><Trash2 size={14} /></button>}</div>
+      <div className="absolute right-1 top-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#fffdf9] p-1 rounded shadow border border-[#d6c7ab] z-10"><button onClick={startEditing} className="p-1 hover:text-[#3c2415]" title="編輯"><Edit3 size={14} /></button>{!isDefault && <button onClick={() => onDelete(skill.id)} className="p-1 hover:text-[#76252d]" title="刪除"><Trash2 size={14} /></button>}</div>
       <div className="font-bold text-t14 mb-1 flex items-center gap-2 text-[#3c2415]"><span className="text-[#6b5a4b] text-xs bg-[#f4ebd9] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{CATEGORIES.find(c => c.id === skill.category)?.name || '未分類'}</span>{normalizeSpellName(skill.customName || skill.originalName)}
         {skill.isSecretArt && (
           <span className="text-t10 text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
