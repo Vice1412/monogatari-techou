@@ -190,28 +190,27 @@ const customSpellSkill = {
 
 const readOnlySpellHtml = renderToStaticMarkup(
   React.createElement(ReadOnlySkill, {
-    skill: customSpellSkill, finalStats: { Acc: 1, MagicAccModifier: 0, magicFormula: '[INS + WLP]' },
+    skill: customSpellSkill, finalStats: { Acc: 1, MagicAccModifier: 0, magicFormula: '[MIG + WLP]' },
     npcName: '測試施法者', npcLevel: 5, partyLevel: 5, onInspectorClick: noop,
   })
 );
-check('ReadOnlySkill：畫面正確顯示選定的【MIG + WLP】公式', readOnlySpellHtml.includes('[MIG + WLP]'));
+check('ReadOnlySkill：畫面正確繼承全域【MIG + WLP】公式', readOnlySpellHtml.includes('[MIG + WLP]'));
 check('ReadOnlySkill：畫面不被覆蓋為預設的 [INS + WLP]', !readOnlySpellHtml.includes('[INS + WLP]'));
 check('ReadOnlySkill：標註為魔法攻擊', readOnlySpellHtml.includes('魔法攻擊'));
 
 const editableSpellHtml = renderToStaticMarkup(
   React.createElement(EditableSkill, {
     skill: customSpellSkill, rawSkill: customSpellSkill, onUpdate: noop, onDelete: noop, onUpdateSelection: noop,
-    finalStats: { Acc: 1, MagicAccModifier: 0, magicFormula: '[INS + WLP]' }, npcLevel: 5, partyLevel: 5,
+    finalStats: { Acc: 1, MagicAccModifier: 0, magicFormula: '[MIG + WLP]' }, npcLevel: 5, partyLevel: 5,
   })
 );
 const editableSpellNoOptions = editableSpellHtml.replace(/<option[^>]*>[^<]*<\/option>/g, '');
-check('EditableSkill：摘要顯示自定義公式【MIG + WLP】', editableSpellNoOptions.includes('[MIG + WLP]'));
+check('EditableSkill：摘要繼承全域公式【MIG + WLP】', editableSpellNoOptions.includes('[MIG + WLP]'));
 
 lines.push('');
 lines.push('H. EditableSkill 編輯模式即時同步（Live Draft）守門');
+check('EditableSkill 自訂技能表單不再提供重複的公式選單（統一由全域設定）', !editableSrc.includes('魔法檢定公式:'));
 check('EditableSkill 具備 syncDraft 即時草稿同步機制', editableSrc.includes('syncDraft'));
-check('EditableSkill 切換咒語公式時觸發即時更新 updateSpellDataField',
-  /updateSpellDataField\(\{\s*formula:\s*e\.target\.value\s*\}\)/.test(editableSrc));
 check('EditableSkill 勾選攻擊性咒語時觸發即時更新 updateSpellDataField',
   /updateSpellDataField\(\{\s*isOffensive:\s*e\.target\.checked\s*\}\)/.test(editableSrc));
 check('EditableSkill 具備進入編輯前的備份與取消還原機制',

@@ -67,7 +67,7 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
     textToCopy += `> ${normalizeSpellName(displaySkillName)} (MP: ${spMp} | 目標: ${spTarget} | 持續: ${spDuration})\n`;
     if (showOffensiveIcon) {
       const accStr = totalMagicAcc > 0 ? ` +${totalMagicAcc}` : (totalMagicAcc < 0 ? ` - ${Math.abs(totalMagicAcc)}` : '');
-      const formulaDisplay = skill.spellData?.formula || finalStats?.magicFormula || '[INS + WLP]';
+      const formulaDisplay = finalStats?.magicFormula || skill.spellData?.formula || '[INS + WLP]';
       textToCopy += `> ${formulaDisplay}${accStr} ✦ 魔法攻擊\n`;
     }
     if (replacedDesc) textToCopy += `> ${getPlainText(replacedDesc, skill.selections, npcLevel, partyLevel, true).split('\n').join('\n> ')}\n`;
@@ -123,7 +123,7 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
 
       {showOffensiveIcon && (
         <div className="text-[#8c2d36] text-t12 font-bold mb-1.5 ml-2 md:ml-4 flex items-center gap-1.5">
-          <span className="text-[#2c221e] tracking-widest">{skill.spellData?.formula || finalStats?.magicFormula || '[INS + WLP]'}</span> {totalMagicAcc !== 0 && <span className="text-[#3c2415]">{totalMagicAcc > 0 ? `+ ${totalMagicAcc}` : `- ${Math.abs(totalMagicAcc)}`}</span>} ✦ 魔法攻擊
+          <span className="text-[#2c221e] tracking-widest">{finalStats?.magicFormula || skill.spellData?.formula || '[INS + WLP]'}</span> {totalMagicAcc !== 0 && <span className="text-[#3c2415]">{totalMagicAcc > 0 ? `+ ${totalMagicAcc}` : `- ${Math.abs(totalMagicAcc)}`}</span>} ✦ 魔法攻擊
         </div>
       )}
 

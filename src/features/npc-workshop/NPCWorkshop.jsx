@@ -683,8 +683,7 @@ export default function App({
     baseMp: '10',
     targetType: '一個生物',
     maxTargets: '3',
-    duration: '瞬發',
-    formula: '[INS + WLP]'
+    duration: '瞬發'
   });
 
   const handleAddCustomSkill = () => {
@@ -722,8 +721,7 @@ export default function App({
           maxTargets: newCustomSkill.maxTargets || '3',
           target: computedTarget,
           duration: newCustomSkill.duration?.trim() || '瞬發',
-          isOffensive: newCustomSkill.isOffensiveSpell,
-          formula: newCustomSkill.isOffensiveSpell ? (newCustomSkill.formula || '[INS + WLP]') : undefined
+          isOffensive: newCustomSkill.isOffensiveSpell
         }
       } : {})
     };
@@ -737,8 +735,7 @@ export default function App({
       baseMp: '10',
       targetType: '一個生物',
       maxTargets: '3',
-      duration: '瞬發',
-      formula: '[INS + WLP]'
+      duration: '瞬發'
     });
     showToast(`成功新增自訂技能：「${finalName}」`, 'success');
   };
@@ -3344,37 +3341,35 @@ export default function App({
               </div>
             </div>
 
-            {/* 攻擊性咒語檢定公式選擇區塊 */}
-            {hasOffensiveSpells && (
-              <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-5 overflow-hidden relative group duration-300 animate-fade-in">
-                <label className="block text-sm text-[#3c2415] mb-3 font-bold tracking-[0.2em] flex items-center gap-2 uppercase">
-                  <span className="fu-icon text-lg">c</span> 攻擊性咒語檢定公式
-                </label>
-                <p className="text-xs text-[#6b5a4b] mb-4">此 NPC 獲得了攻擊性咒語。請選擇所有攻擊性咒語適用的精確度檢定公式：</p>
-                <div className="grid grid-cols-2 gap-4 max-w-md">
-                  {[
-                    { value: '[INS + WLP]', label: '【洞察】+ 【意志】', desc: '標準魔法檢定' },
-                    { value: '[MIG + WLP]', label: '【力量】+ 【意志】', desc: '近戰/力量魔法檢定' }
-                  ].map((opt) => {
-                    const isSelected = (state.magicFormula || '[INS + WLP]') === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setState(prev => ({ ...prev, magicFormula: opt.value }))}
-                        className={`flex flex-col items-center justify-center p-3 rounded border-2 transition-all duration-200 ${isSelected
-                          ? 'border-[#3c2415] bg-[#fffdf9] text-[#2c221e]'
-                          : 'border-[#d6c7ab] bg-[#fffdf9] text-[#6b5a4b] hover:border-[#7c6a58] hover:text-[#2c221e]'
-                          }`}
-                      >
-                        <span className="text-xs font-black tracking-widest mb-1">{opt.value}</span>
-                        <span className="text-t10 font-bold opacity-80">{opt.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+            {/* 全域攻擊性咒語檢定公式選擇區塊 */}
+            <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-5 overflow-hidden relative group duration-300 animate-fade-in mt-4">
+              <label className="block text-sm text-[#3c2415] mb-3 font-bold tracking-[0.2em] flex items-center gap-2 uppercase">
+                <span className="fu-icon text-lg">c</span> 攻擊性咒語檢定公式
+              </label>
+              <p className="text-xs text-[#6b5a4b] mb-4">設定此 NPC 施放攻擊性咒語時適用的檢定公式（所有攻擊性咒語均全域適用）：</p>
+              <div className="grid grid-cols-2 gap-4 max-w-md">
+                {[
+                  { value: '[INS + WLP]', label: '【洞察】+ 【意志】', desc: '標準魔法檢定' },
+                  { value: '[MIG + WLP]', label: '【力量】+ 【意志】', desc: '近戰/力量魔法檢定' }
+                ].map((opt) => {
+                  const isSelected = (state.magicFormula || '[INS + WLP]') === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setState(prev => ({ ...prev, magicFormula: opt.value }))}
+                      className={`flex flex-col items-center justify-center p-3 rounded border-2 transition-all duration-200 ${isSelected
+                        ? 'border-[#3c2415] bg-[#fffdf9] text-[#2c221e]'
+                        : 'border-[#d6c7ab] bg-[#fffdf9] text-[#6b5a4b] hover:border-[#7c6a58] hover:text-[#2c221e]'
+                        }`}
+                    >
+                      <span className="text-xs font-black tracking-widest mb-1">{opt.value}</span>
+                      <span className="text-t10 font-bold opacity-80">{opt.label}</span>
+                    </button>
+                  );
+                })}
               </div>
-            )}
+            </div>
 
               </div>
             )}
@@ -3687,17 +3682,9 @@ export default function App({
                             </label>
 
                             {newCustomSkill.isOffensiveSpell && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-[#3c2415]">魔法檢定公式:</span>
-                                <select
-                                  className="bg-[#fffdf9] text-[#3c2415] text-xs font-bold border border-[#d6c7ab] p-1.5 rounded outline-none focus:border-[#3c2415]"
-                                  value={newCustomSkill.formula}
-                                  onChange={(e) => setNewCustomSkill(prev => ({ ...prev, formula: e.target.value }))}
-                                >
-                                  <option value="[INS + WLP]">【INS + WLP】(洞察 + 意志)</option>
-                                  <option value="[MIG + WLP]">【MIG + WLP】(體格 + 意志)</option>
-                                </select>
-                              </div>
+                              <span className="text-xs text-[#6b5a4b] font-bold">
+                                檢定公式：<span className="text-[#3c2415] font-mono">{finalStats.magicFormula || '[INS + WLP]'}</span>（全域設定）
+                              </span>
                             )}
                           </div>
                         </div>

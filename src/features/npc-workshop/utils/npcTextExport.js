@@ -116,7 +116,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
           if (isOffensive) {
             const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
             const accStr = totalMagicAcc >= 0 ? `+${totalMagicAcc}` : `${totalMagicAcc}`;
-            const formulaDisplay = spData.formula || state.magicFormula || '[INS + WLP]';
+            const formulaDisplay = state.magicFormula || spData.formula || '[INS + WLP]';
             text += `> *精確: ${formulaDisplay} ${accStr} ✦ 魔法攻擊*\n`;
           }
         }
@@ -183,7 +183,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
           if (isOffensive) {
             const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
             const accStr = totalMagicAcc >= 0 ? `+${totalMagicAcc}` : `${totalMagicAcc}`;
-            const formulaDisplay = spData.formula || state.magicFormula || '[INS + WLP]';
+            const formulaDisplay = state.magicFormula || spData.formula || '[INS + WLP]';
             offensiveStr = ` [${formulaDisplay} ${accStr} ✦ 魔法攻擊]`;
           }
           spellInfo = ` (MP: ${spMp} | 目標: ${spTarget} | 持續: ${spDuration})${offensiveStr}`;
@@ -366,7 +366,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
           const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
           const accStr = totalMagicAcc > 0 ? `+${totalMagicAcc}` : totalMagicAcc < 0 ? `${totalMagicAcc}` : '';
           let magicDice = '1d{INS}+1d{WLP}';
-          const fMatch = (spData.formula || state.magicFormula || '').match(/([A-Za-z]+)\s*\+\s*([A-Za-z]+)/);
+          const fMatch = (state.magicFormula || spData.formula || '').match(/([A-Za-z]+)\s*\+\s*([A-Za-z]+)/);
           if (fMatch && fMatch[1] && fMatch[2]) {
             magicDice = `1d{${fMatch[1].toUpperCase()}}+1d{${fMatch[2].toUpperCase()}}`;
           }
@@ -507,7 +507,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
           if (isOffensive) {
             const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
             const accStr = totalMagicAcc > 0 ? ` +${totalMagicAcc}` : (totalMagicAcc < 0 ? ` - ${Math.abs(totalMagicAcc)}` : '');
-            const formulaDisplay = spData.formula || state.magicFormula || '[INS + WLP]';
+            const formulaDisplay = state.magicFormula || spData.formula || '[INS + WLP]';
             md += `> ${formulaDisplay}${accStr} ✦ 魔法攻擊\n`;
           }
         }

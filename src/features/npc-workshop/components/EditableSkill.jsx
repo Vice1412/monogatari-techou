@@ -47,8 +47,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
     targetType: initialTargetType,
     maxTargets: initialMaxTargets,
     duration: skill.spellData?.duration || '瞬發',
-    isOffensive: skill.spellData?.isOffensive || isOffensiveSpell(skill.customName || skill.originalName),
-    formula: skill.spellData?.formula || '[INS + WLP]'
+    isOffensive: skill.spellData?.isOffensive || isOffensiveSpell(skill.customName || skill.originalName)
   });
 
   const isDefault = skill.isDefault || (!skill.source && skill.category === 'attack' && !skill.id.startsWith('custom_')) || skill.source === 'levelPassive';
@@ -71,8 +70,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
         targetType: tType,
         maxTargets: mTargets,
         duration: skill.spellData?.duration || '瞬發',
-        isOffensive: skill.spellData?.isOffensive || isOffensiveSpell(skill.customName || skill.originalName),
-        formula: skill.spellData?.formula || '[INS + WLP]'
+        isOffensive: skill.spellData?.isOffensive || isOffensiveSpell(skill.customName || skill.originalName)
       });
     }
   }, [isEditing, skill, baseSkill]);
@@ -122,8 +120,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
         maxTargets: activeSpell.maxTargets,
         target: computedTarget,
         duration: activeSpell.duration?.trim() || '瞬發',
-        isOffensive: activeSpell.isOffensive,
-        formula: activeSpell.isOffensive ? (activeSpell.formula || '[INS + WLP]') : undefined
+        isOffensive: activeSpell.isOffensive
       } : undefined
     });
   };
@@ -257,17 +254,9 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
               </label>
 
               {editSpellData.isOffensive && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-[#6b5a4b]">魔法檢定公式:</span>
-                  <select
-                    className="bg-[#fffdf9] text-[#2c221e] text-xs font-bold border border-[#d6c7ab] p-1 rounded outline-none"
-                    value={editSpellData.formula}
-                    onChange={e => updateSpellDataField({ formula: e.target.value })}
-                  >
-                    <option value="[INS + WLP]">【INS + WLP】(洞察 + 意志)</option>
-                    <option value="[MIG + WLP]">【MIG + WLP】(體格 + 意志)</option>
-                  </select>
-                </div>
+                <span className="text-xs text-[#6b5a4b] font-bold">
+                  檢定公式：<span className="text-[#3c2415] font-mono">{finalStats?.magicFormula || '[INS + WLP]'}</span>（全域設定）
+                </span>
               )}
             </div>
           </div>
@@ -311,7 +300,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
           </div>
           {(skill.spellData?.isOffensive || isOffensiveSpell(skill.customName || skill.originalName)) && (
             <div className="text-[#8c2d36] text-xs font-bold mb-1.5 flex items-center gap-1.5">
-              <span className="text-[#2c221e] tracking-widest">{skill.spellData?.formula || finalStats?.magicFormula || '[INS + WLP]'}</span>
+              <span className="text-[#2c221e] tracking-widest">{finalStats?.magicFormula || skill.spellData?.formula || '[INS + WLP]'}</span>
               {((finalStats?.Acc || 0) + (finalStats?.MagicAccModifier || 0)) !== 0 && (
                 <span className="text-[#3c2415]">
                   {((finalStats?.Acc || 0) + (finalStats?.MagicAccModifier || 0)) > 0

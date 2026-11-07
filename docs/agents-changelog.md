@@ -9,6 +9,12 @@
 
 ---
 
+*2026-11-07（NPC工坊魔法檢定公式架構簡化：自訂技能移除重複公式選單、統一繼承全域設置）：依使用者反饋「既然有全域的檢定公式，直接在那邊設置就好，自訂技能那邊不要給用戶選擇檢定公式以免重複定義」進行架構精簡與重構。
+① 消除重複定義：在 EditableSkill.jsx 與 NPCWorkshop.jsx 的「新增自訂技能」面板中，徹底移除「魔法檢定公式」下拉選單；勾選攻擊性咒語時，僅展示由全域公式統一繼承之提示字樣，介面大幅清爽化。
+② 全域公式常駐開放：將步驟 3「能力」中的「攻擊性咒語檢定公式」區塊從原本需滿足 hasOffensiveSpells 才顯示的條件中釋放出來，常駐於屬性與防禦下方，讓 GM 在規劃角色四維屬性時即可直接全域選定適用【INS + WLP】或【MIG + WLP】。
+③ 渲染與匯出統一走全域：ReadOnlySkill.jsx、EditableSkill.jsx 摘要列、以及 npcTextExport.js 各文本與 ccfolia 匯出格式，統一以全域 finalStats.magicFormula / state.magicFormula 為準。
+④ 測試護欄對齊：tests/npcAttackDisplay.test.mjs 調整 G 與 H 區段，驗證 EditableSkill 原始碼中不再包含重複的公式選單，且當全域公式變更為【MIG + WLP】時，所有攻擊性咒語卡片與摘要一體正確繼承。全鏈 50 條斷言全綠、npm run test:emoji 零違規、npm run build 通過。*
+
 *2026-11-07（NPC工坊自定義咒語【MIG + WLP】公式即時同步與連動徹底修復）：針對使用者回報「自定義咒語選了公式【MIG + WLP】後右側角色卡依然停留在 [INS + WLP] 完全沒有變化」問題進行深度排查與徹底修復。
 ① 根因鎖定：EditableSkill.jsx 處於編輯狀態時，內部 editSpellData 等狀態獨立存在，在使用者切換魔法檢定公式下拉選單或修改各項輸入時，並未即時向外傳遞變更（僅在點擊保存時才觸發 onUpdate）。右側角色卡預覽（ReadOnlySkill）依據父層 state 渲染，導致 GM 在編輯面板選擇【MIG + WLP】時，眼睛看著右側預覽卡片紋絲不動，產生「選了無效」的反直覺體驗。
 ② 即時草稿同步機制（Live Draft Sync）：在 EditableSkill.jsx 引進 syncDraft 與 updateSpellDataField 機制，在編輯名稱、目標、MP、持續時間、攻擊性咒語勾選，特別是切換【魔法檢定公式】時，即時向父層觸發 onUpdate 更新 state.skills，右側角色卡預覽立即零延遲變更為【MIG + WLP】；點擊「取消」時依賴 backupRef.current 完整還原編輯前快照；點擊「保存」確保狀態確認。
