@@ -299,6 +299,7 @@ export const calculateNpcStats = (npc) => {
     Acc: lvlData.acc,
     Dmg: lvlData.dmg,
     MagicAccModifier: 0,
+    magicFormula: npc.magicFormula || '[INS + WLP]',
     statusImmunities: [],
     spellList: []
   };

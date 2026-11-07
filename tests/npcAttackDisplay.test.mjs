@@ -165,6 +165,49 @@ check('EditableSkill：選單方塊的屬性下拉停在「暗」（value 綁 se
   (editableHtml.match(/<select[^>]*>[\s\S]{0,200}?<\/select>/g) || []).slice(0, 2).join(' | '));
 
 lines.push('');
+lines.push('G. 自定義攻擊性咒語公式渲染（ReadOnlySkill / EditableSkill）');
+
+const customSpellSkill = {
+  id: 'custom_spell_1',
+  category: 'spell',
+  originalName: '自訂毒爆',
+  customName: '自訂毒爆',
+  originalDesc: '造成劇毒爆炸。',
+  customDesc: '造成劇毒爆炸。',
+  isModified: true,
+  source: 'custom',
+  spellData: {
+    mp: '10',
+    baseMp: '10',
+    targetType: '一個生物',
+    maxTargets: '1',
+    target: '一個生物',
+    duration: '瞬發',
+    isOffensive: true,
+    formula: '[MIG + WLP]',
+  },
+};
+
+const readOnlySpellHtml = renderToStaticMarkup(
+  React.createElement(ReadOnlySkill, {
+    skill: customSpellSkill, finalStats: { Acc: 1, MagicAccModifier: 0, magicFormula: '[INS + WLP]' },
+    npcName: '測試施法者', npcLevel: 5, partyLevel: 5, onInspectorClick: noop,
+  })
+);
+check('ReadOnlySkill：畫面正確顯示選定的【MIG + WLP】公式', readOnlySpellHtml.includes('[MIG + WLP]'));
+check('ReadOnlySkill：畫面不被覆蓋為預設的 [INS + WLP]', !readOnlySpellHtml.includes('[INS + WLP]'));
+check('ReadOnlySkill：標註為魔法攻擊', readOnlySpellHtml.includes('魔法攻擊'));
+
+const editableSpellHtml = renderToStaticMarkup(
+  React.createElement(EditableSkill, {
+    skill: customSpellSkill, rawSkill: customSpellSkill, onUpdate: noop, onDelete: noop, onUpdateSelection: noop,
+    finalStats: { Acc: 1, MagicAccModifier: 0, magicFormula: '[INS + WLP]' }, npcLevel: 5, partyLevel: 5,
+  })
+);
+const editableSpellNoOptions = editableSpellHtml.replace(/<option[^>]*>[^<]*<\/option>/g, '');
+check('EditableSkill：摘要顯示自定義公式【MIG + WLP】', editableSpellNoOptions.includes('[MIG + WLP]'));
+
+lines.push('');
 lines.push(`  通過 ${pass} / ${pass + fail}`);
 console.log(lines.join('\n'));
 if (fail > 0) {

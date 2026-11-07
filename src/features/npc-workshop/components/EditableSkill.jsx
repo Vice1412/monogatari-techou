@@ -33,7 +33,7 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
   const [editName, setEditName] = useState(skill.customName || skill.originalName);
   const [editDesc, setEditDesc] = useState(
     skill.customDesc !== undefined ? skill.customDesc :
-    (skill.originalDesc || (baseSkill.category === 'attack' ? baseSkill.attack?.extra || "" : ""))
+      (skill.originalDesc || (baseSkill.category === 'attack' ? baseSkill.attack?.extra || "" : ""))
   );
   const [editAttack, setEditAttack] = useState(() => seedAttack(baseSkill.attack));
 
@@ -57,14 +57,14 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
       setEditName(skill.customName || skill.originalName);
       setEditDesc(
         skill.customDesc !== undefined ? skill.customDesc :
-        (skill.originalDesc || (baseSkill.category === 'attack' ? baseSkill.attack?.extra || "" : ""))
+          (skill.originalDesc || (baseSkill.category === 'attack' ? baseSkill.attack?.extra || "" : ""))
       );
       setEditAttack(seedAttack(baseSkill.attack));
-      
+
       const tType = skill.spellData?.targetType || (skill.spellData?.target?.includes('至多') ? '至多 X 個生物' : skill.spellData?.target || '一個生物');
       const mTargets = skill.spellData?.maxTargets || (skill.spellData?.target?.match(/\d+/) ? skill.spellData.target.match(/\d+/)[0] : '3');
       const bMp = skill.spellData?.baseMp || (skill.spellData?.mp ? skill.spellData.mp.replace(/×\s*T/gi, '').trim() : '10');
-      
+
       setEditSpellData({
         baseMp: bMp,
         targetType: tType,
@@ -118,35 +118,35 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
 
         {skill.category === 'attack' && (
           <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-1 bg-[#f7f3e8] p-2 rounded border border-[#e8dcc4] text-xs">
-            <div><label className="block text-[#6b5a4b] mb-1 font-bold">距離</label>
-              {selCfg('distance') ? (
-                <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.distance || ''} onChange={e => onUpdateSelection(skill.id, 'distance', e.target.value)}><option value="">選擇</option>{selCfg('distance').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
-              ) : (
-                <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.distance} onChange={e => setEditAttack({ ...editAttack, distance: e.target.value })}><option value="近戰">近戰</option><option value="遠程">遠程</option></select>
-              )}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-1 bg-[#f7f3e8] p-2 rounded border border-[#e8dcc4] text-xs">
+              <div><label className="block text-[#6b5a4b] mb-1 font-bold">距離</label>
+                {selCfg('distance') ? (
+                  <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.distance || ''} onChange={e => onUpdateSelection(skill.id, 'distance', e.target.value)}><option value="">選擇</option>{selCfg('distance').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
+                ) : (
+                  <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.distance} onChange={e => setEditAttack({ ...editAttack, distance: e.target.value })}><option value="近戰">近戰</option><option value="遠程">遠程</option></select>
+                )}
+              </div>
+              <div><label className="block text-[#6b5a4b] mb-1 font-bold">檢定公式</label>
+                {selCfg('formula') ? (
+                  <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.formula || ''} onChange={e => onUpdateSelection(skill.id, 'formula', e.target.value)}><option value="">選擇</option>{selCfg('formula').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
+                ) : (
+                  <input type="text" className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.formula} onChange={e => setEditAttack({ ...editAttack, formula: e.target.value })} />
+                )}
+              </div>
+              <div><label className="block text-[#6b5a4b] mb-1 font-bold font-mono">基礎傷害 HR+</label><input type="number" className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.baseDmg} onChange={e => setEditAttack({ ...editAttack, baseDmg: parseInt(e.target.value) || 0 })} /></div>
+              <div><label className="block text-[#6b5a4b] mb-1 font-bold">屬性</label>
+                {selCfg('type') ? (
+                  <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.type || ''} onChange={e => onUpdateSelection(skill.id, 'type', e.target.value)}><option value="">選擇</option>{selCfg('type').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
+                ) : (
+                  <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.type} onChange={e => setEditAttack({ ...editAttack, type: e.target.value })}>{DAMAGE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select>
+                )}
+              </div>
             </div>
-            <div><label className="block text-[#6b5a4b] mb-1 font-bold">檢定公式</label>
-              {selCfg('formula') ? (
-                <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.formula || ''} onChange={e => onUpdateSelection(skill.id, 'formula', e.target.value)}><option value="">選擇</option>{selCfg('formula').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
-              ) : (
-                <input type="text" className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.formula} onChange={e => setEditAttack({ ...editAttack, formula: e.target.value })} />
-              )}
-            </div>
-            <div><label className="block text-[#6b5a4b] mb-1 font-bold font-mono">基礎傷害 HR+</label><input type="number" className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.baseDmg} onChange={e => setEditAttack({ ...editAttack, baseDmg: parseInt(e.target.value) || 0 })} /></div>
-            <div><label className="block text-[#6b5a4b] mb-1 font-bold">屬性</label>
-              {selCfg('type') ? (
-                <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={skill.selections?.type || ''} onChange={e => onUpdateSelection(skill.id, 'type', e.target.value)}><option value="">選擇</option>{selCfg('type').options.map(o => <option key={o} value={o}>{o}</option>)}</select>
-              ) : (
-                <select className="w-full bg-[#fffdf9] border border-[#d6c7ab] p-1 rounded text-[#2c221e]" value={editAttack.type} onChange={e => setEditAttack({ ...editAttack, type: e.target.value })}>{DAMAGE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select>
-              )}
-            </div>
-          </div>
-          {(selCfg('distance') || selCfg('formula') || selCfg('type')) && (
-            <p className="text-t12 text-[#3c2415] font-bold mb-2 leading-relaxed">
-              ※ 距離／公式／屬性與卡片上的同名選單是同一份設定——在這裡改就是改那裡，不會另外鎖死一份值。
-            </p>
-          )}
+            {(selCfg('distance') || selCfg('formula') || selCfg('type')) && (
+              <p className="text-t12 text-[#3c2415] font-bold mb-2 leading-relaxed">
+                ※ 距離／公式／屬性與卡片上的同名選單是同一份設定——在這裡改就是改那裡，不會另外鎖死一份值。
+              </p>
+            )}
           </>
         )}
 
@@ -254,9 +254,9 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
     <div className={`group relative border-l-4 ${skill.source === 'levelPassive' ? 'border-[#3c2415] bg-[#f9f5eb]' : 'border-[#7c6a58] bg-[#fffdf9]'} hover:bg-[#fbf7ee] transition-colors rounded-r py-2.5 pl-3 mb-3 border border-[#d6c7ab] ${skill.isSecretArt ? 'ring-1 ring-[#3c2415]/30 bg-[#fffdf9]' : ''}`}>
       <div className="absolute right-1 top-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#fffdf9] p-1 rounded shadow border border-[#d6c7ab] z-10"><button onClick={() => setIsEditing(true)} className="p-1 hover:text-[#3c2415]" title="編輯"><Edit3 size={14} /></button>{!isDefault && <button onClick={() => onDelete(skill.id)} className="p-1 hover:text-[#76252d]" title="刪除"><Trash2 size={14} /></button>}</div>
       <div className="font-bold text-t14 mb-1 flex items-center gap-2 text-[#3c2415]"><span className="text-[#6b5a4b] text-xs bg-[#f4ebd9] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{CATEGORIES.find(c => c.id === skill.category)?.name || '未分類'}</span>{normalizeSpellName(skill.customName || skill.originalName)}
-          {skill.isSecretArt && (
-            <span className="text-t10 text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
-          )}{isOffensiveSpell(skill.customName || skill.originalName) && <span className="fu-icon text-[#8c2d36] drop- text-lg ml-0.5">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{!isDefault && <span className="text-t10 text-[#8c2d36] border border-[#8c2d36]/50 bg-[#f9f5eb] px-1 rounded">自訂</span>}{skill.source === 'levelPassive' && <span className="text-t10 text-[#3c2415] border border-[#d6c7ab] bg-[#f4ebd9] px-1 rounded"><Lock size={10} className="inline mr-1 mb-0.5" />等級解鎖</span>}</div>
+        {skill.isSecretArt && (
+          <span className="text-t10 text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
+        )}{isOffensiveSpell(skill.customName || skill.originalName) && <span className="fu-icon text-[#8c2d36] drop- text-lg ml-0.5">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{!isDefault && <span className="text-t10 text-[#8c2d36] border border-[#8c2d36]/50 bg-[#f9f5eb] px-1 rounded">自訂</span>}{skill.source === 'levelPassive' && <span className="text-t10 text-[#3c2415] border border-[#d6c7ab] bg-[#f4ebd9] px-1 rounded"><Lock size={10} className="inline mr-1 mb-0.5" />等級解鎖</span>}</div>
       {skill.selectionsConfig && (
         <div className={`mt-2 flex flex-col gap-2 p-2 bg-[#f7f3e8] border border-[#e8dcc4] rounded text-xs border-l-2 ${skill.source === 'levelPassive' ? 'border-[#3c2415]' : 'border-[#8c2d36]'} mb-2`}>
           {skill.selectionsConfig
@@ -272,13 +272,28 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
       )}
 
       {(skill.category === 'spell' || skill.spellData) && (
-        <div className="bg-[#f7f3e8] border border-[#e8dcc4] p-1.5 my-1 rounded text-xs text-[#6b5a4b] font-bold flex flex-wrap gap-2 items-center w-fit">
-          <span>MP: <span className="text-[#3c2415]">{skill.spellData?.mp || '10'}</span></span>
-          <span className="text-[#d6c7ab]">|</span>
-          <span>目標: <span className="text-[#2c221e]">{skill.spellData?.target || '一個生物'}</span></span>
-          <span className="text-[#d6c7ab]">|</span>
-          <span>持續: <span className="text-[#2c221e]">{skill.spellData?.duration || '瞬發'}</span></span>
-        </div>
+        <>
+          <div className="bg-[#f7f3e8] border border-[#e8dcc4] p-1.5 my-1 rounded text-xs text-[#6b5a4b] font-bold flex flex-wrap gap-2 items-center w-fit">
+            <span>MP: <span className="text-[#3c2415]">{skill.spellData?.mp || '10'}</span></span>
+            <span className="text-[#d6c7ab]">|</span>
+            <span>目標: <span className="text-[#2c221e]">{skill.spellData?.target || '一個生物'}</span></span>
+            <span className="text-[#d6c7ab]">|</span>
+            <span>持續: <span className="text-[#2c221e]">{skill.spellData?.duration || '瞬發'}</span></span>
+          </div>
+          {(skill.spellData?.isOffensive || isOffensiveSpell(skill.customName || skill.originalName)) && (
+            <div className="text-[#8c2d36] text-xs font-bold mb-1.5 flex items-center gap-1.5">
+              <span className="text-[#2c221e] tracking-widest">{skill.spellData?.formula || finalStats?.magicFormula || '[INS + WLP]'}</span>
+              {((finalStats?.Acc || 0) + (finalStats?.MagicAccModifier || 0)) !== 0 && (
+                <span className="text-[#3c2415]">
+                  {((finalStats?.Acc || 0) + (finalStats?.MagicAccModifier || 0)) > 0
+                    ? `+ ${((finalStats?.Acc || 0) + (finalStats?.MagicAccModifier || 0))}`
+                    : `- ${Math.abs((finalStats?.Acc || 0) + (finalStats?.MagicAccModifier || 0))}`}
+                </span>
+              )}
+              <span>✦ 魔法攻擊</span>
+            </div>
+          )}
+        </>
       )}
 
       {(() => {

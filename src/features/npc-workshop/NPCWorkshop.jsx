@@ -1263,6 +1263,7 @@ export default function App({
       Acc: lvlData.acc,
       Dmg: lvlData.dmg,
       MagicAccModifier: 0,
+      magicFormula: state.magicFormula || '[INS + WLP]',
       statusImmunities: [],
       spellList: []
     };

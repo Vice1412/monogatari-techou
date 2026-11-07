@@ -106,6 +106,19 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         if (s.attack) {
           const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
           text += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
+        } else if (s.category === 'spell' || s.spellData) {
+          const spData = s.spellData || {};
+          const spMp = spData.mp || '10';
+          const spTarget = getPlainText(spData.target || '一個生物', s.selections, state.level, state.partyLevel);
+          const spDuration = spData.duration || '瞬發';
+          text += `> (MP: ${spMp} | 目標: ${spTarget} | 持續: ${spDuration})\n`;
+          const isOffensive = spData.isOffensive || isOffensiveSpell(skillName);
+          if (isOffensive) {
+            const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
+            const accStr = totalMagicAcc >= 0 ? `+${totalMagicAcc}` : `${totalMagicAcc}`;
+            const formulaDisplay = spData.formula || state.magicFormula || '[INS + WLP]';
+            text += `> *精確: ${formulaDisplay} ${accStr} ✦ 魔法攻擊*\n`;
+          }
         }
         text += `> ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true).split('\n').join('\n> ')}\n\n`;
       });
@@ -158,7 +171,24 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
         const atk = s.attack ? resolveAttack(s.attack, s.selections, s.selectionsConfig) : null;
         let atkStr = atk ? ` [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害` : '';
-        text += `- ${skillName}${atkStr}\n  ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true)}\n`;
+        const isSpell = s.category === 'spell' || !!s.spellData;
+        const spData = s.spellData || {};
+        const isOffensive = isSpell && (spData.isOffensive || isOffensiveSpell(skillName));
+        let spellInfo = '';
+        if (isSpell) {
+          const spMp = spData.mp || '10';
+          const spTarget = getPlainText(spData.target || '一個生物', s.selections, state.level, state.partyLevel);
+          const spDuration = spData.duration || '瞬發';
+          let offensiveStr = '';
+          if (isOffensive) {
+            const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
+            const accStr = totalMagicAcc >= 0 ? `+${totalMagicAcc}` : `${totalMagicAcc}`;
+            const formulaDisplay = spData.formula || state.magicFormula || '[INS + WLP]';
+            offensiveStr = ` [${formulaDisplay} ${accStr} ✦ 魔法攻擊]`;
+          }
+          spellInfo = ` (MP: ${spMp} | 目標: ${spTarget} | 持續: ${spDuration})${offensiveStr}`;
+        }
+        text += `- ${skillName}${atkStr}${spellInfo}\n  ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true)}\n`;
       });
     }
     if (revealLevel === 'full' && state.tactics) {
@@ -329,7 +359,25 @@ export const buildNpcText = (ctx, format = 'markdown') => {
       otherSkills.forEach(s => {
         let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
         const desc = getPlainText(s.customDesc || s.originalDesc || '', s.selections, state.level, state.partyLevel, true);
-        cmdLines.push(`【${skillName}】${desc.replace(/\n+/g, ' ')}`);
+        const isSpell = s.category === 'spell' || !!s.spellData;
+        const spData = s.spellData || {};
+        const isOffensive = isSpell && (spData.isOffensive || isOffensiveSpell(skillName));
+        if (isOffensive) {
+          const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
+          const accStr = totalMagicAcc > 0 ? `+${totalMagicAcc}` : totalMagicAcc < 0 ? `${totalMagicAcc}` : '';
+          let magicDice = '1d{INS}+1d{WLP}';
+          const fMatch = (spData.formula || state.magicFormula || '').match(/([A-Za-z]+)\s*\+\s*([A-Za-z]+)/);
+          if (fMatch && fMatch[1] && fMatch[2]) {
+            magicDice = `1d{${fMatch[1].toUpperCase()}}+1d{${fMatch[2].toUpperCase()}}`;
+          }
+          cmdLines.push(`${magicDice}${accStr} 【${skillName}】魔攻檢定 (MP: ${spData.mp || '?'})`);
+          cmdLines.push(`效果：${desc.replace(/\n+/g, ' ')}`);
+        } else if (isSpell) {
+          cmdLines.push(`【${skillName}】咒語發動 (MP: ${spData.mp || '?'} | 目標: ${spData.target || '一個生物'})`);
+          cmdLines.push(`效果：${desc.replace(/\n+/g, ' ')}`);
+        } else {
+          cmdLines.push(`【${skillName}】${desc.replace(/\n+/g, ' ')}`);
+        }
       });
     }
 
@@ -449,6 +497,19 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         if (s.attack) {
           const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
           md += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
+        } else if (s.category === 'spell' || s.spellData) {
+          const spData = s.spellData || {};
+          const spMp = spData.mp || '10';
+          const spTarget = getPlainText(spData.target || '一個生物', s.selections, state.level, state.partyLevel);
+          const spDuration = spData.duration || '瞬發';
+          md += `> (MP: ${spMp} | 目標: ${spTarget} | 持續: ${spDuration})\n`;
+          const isOffensive = spData.isOffensive || isOffensiveSpell(skillName);
+          if (isOffensive) {
+            const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
+            const accStr = totalMagicAcc > 0 ? ` +${totalMagicAcc}` : (totalMagicAcc < 0 ? ` - ${Math.abs(totalMagicAcc)}` : '');
+            const formulaDisplay = spData.formula || state.magicFormula || '[INS + WLP]';
+            md += `> ${formulaDisplay}${accStr} ✦ 魔法攻擊\n`;
+          }
         }
         if (s.customDesc || s.originalDesc) {
           md += `> ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true)}\n`;

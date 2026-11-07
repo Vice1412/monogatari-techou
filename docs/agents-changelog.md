@@ -9,6 +9,13 @@
 
 ---
 
+*2026-11-07（NPC工坊自定義攻擊性咒語公式【MIG + WLP】顯示修復）：修復使用者在 NPC 工坊建角自訂咒語時，勾選攻擊性咒語並選取【MIG + WLP】公式後，右側角色卡卡片與匯出文本依然硬編碼顯示預設 [INS + WLP] 的缺陷。
+① 修復卡片渲染：ReadOnlySkill.jsx 的 formulaDisplay 原本硬讀 finalStats.magicFormula || '[INS + WLP]'，完全忽略了 skill.spellData.formula；現改為優先讀取 skill.spellData?.formula || finalStats?.magicFormula || '[INS + WLP]'，並於卡片上正確渲染【MIG + WLP】與複製字串。
+② 修復能力清單展示：EditableSkill.jsx 於非編輯狀態下，對攻擊性咒語補上魔法攻擊檢定公式之摘要列，讓使用者在左側表單中能一目了然所選公式。
+③ 補齊數值層與引擎：NPCWorkshop.jsx 的 calculateStats 與 utils/npcEngine.js 的 calculateNpcStats 均補入 magicFormula: state.magicFormula || '[INS + WLP]'，確保 finalStats 具備全域公式屬性。
+④ 匯出格式全對齊：utils/npcTextExport.js 於 Discord、Plain、Markdown 與 ccfolia 匯出中，自定義咒語如果是攻擊性咒語，統一使用其選定之 formula，並在 ccfolia 匯出中依選定公式動態產生擲骰指令（如 1d{MIG}+1d{WLP} 魔攻檢定）。
+⑤ 護欄與刻意破壞驗證：tests/npcAttackDisplay.test.mjs 增設 G 區段（4 條斷言），驗證 ReadOnlySkill 與 EditableSkill 渲染自訂【MIG + WLP】；tests/npcWorkshop.test.mjs 增設 5 條斷言驗證 calculateNpcStats 與 buildNpcText 各格式輸出；刻意將 ReadOnlySkill 改回硬編碼 '[INS + WLP]' 確認觸發 exit 1（2 項失敗）驗證護欄有效。全站 70+ 道測試、npm run test:emoji、npm run build 全數通過。*
+
 *2026-11-06（Wave 6 職業技能全部 28 筆全閉環完工）：依 docs/plan/05-class-plans.md 與 worklist.md 完成 Wave 6 職業技能剩餘 15 筆（C6 徽記實體 2 筆、C1 物件型 5 筆、C2 旅行骰 4 筆、C4 暫存效果表 4 筆）全閉環實裝，Wave 6 全部 28 筆職業技能至此徹底結算大功告成（全工單完成 85 / 86 筆，僅剩 W7 命刻搬家 1 筆）。
 ① C6 徽記實體（2 筆）：建立純函式模組 utils/symbolist.js（maxSymbolMarks 上限 SL+1、addSymbolMark、removeSymbolMark、clearSymbolMarks、listSymbolMarkBearers）；新建元件 SymbolistMarks.jsx（掛載於 HUD 徽記學下方，支援刻劃、攜帶者指派、維持上限指示、單個與全部摧毀）；【咒語徽記】直接讀取並渲染維持中之受術攜帶者清單（spell-mark-targets）；新建 tests/symbolistMarks.test.mjs（16 條斷言全綠），掛入 package.json（全鏈第 68 關 test:symbolistmarks）。
 ② C1 物件型（5 筆）：utils/inventory.js 擴充支援 effectModel 與 consumeInventoryItem（支援一般消耗回復、修補匠【藥水雨】回復折半且最多影響 SL+1 人、商人【過期食品】將治療轉為等額毒傷害）；BackpackItemModal 增設消耗品回復參數與藥水標記；BackpackGrid 詳情區增設「消耗品使用」操作與【藥水雨】／【過期食品】勾選開關；新建 utils/gourmetActions.js（applySaltAndPepper 花 2 IP 調整單一食材口味、applyDashOfLove 花費 extraAllies×10 MP 額外影響盟友、buildCookedDelicacyItem 打包美食為消耗品）；GourmetCookbook 選料區支援【鹽與胡椒】2 IP 調味面板，烹飪完成支援【加點愛】盟友步進器、「做成美食存入行囊」與「現場食用」閉環扣除食材；新建 tests/inventoryConsumable.test.mjs（25 條斷言全綠），掛入 package.json（全鏈第 69 關 test:consumable）。

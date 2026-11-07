@@ -256,6 +256,10 @@ section('E. NPC 數值計算（等級 × 階級 × 物種）');
   // 等級不在官方階梯上時退回 5 級（不拋錯）
   check('等級 7 退回 5 級表', calculateNpcStats(npc({ level: 7 })).HP, 70);
   check('等級 0 退回 5 級表', calculateNpcStats(npc({ level: 0 })).HP, 70);
+
+  // 魔法檢定公式
+  check('帶出全域魔法公式', calculateNpcStats(npc({ magicFormula: '[MIG + WLP]' })).magicFormula, '[MIG + WLP]');
+  check('預設魔法公式為 [INS + WLP]', calculateNpcStats(npc()).magicFormula, '[INS + WLP]');
 }
 
 // ─────────────────────────────────────────────────────────── F
@@ -588,6 +592,34 @@ section('I. ★ 死碼與分歧的護欄（calculateNpcBudgets）');
 
   // 尚未建立 NPC 時不輸出（與原本的 `if (!state) return;` 等價）。
   check('沒有 state 時回傳 undefined', buildNpcText(mkCtx({ state: null }), 'markdown'), undefined);
+
+  // 自定義咒語公式與檢定匯出（Markdown / ccfolia / Discord / Plain）
+  const withCustomSpell = mkCtx();
+  withCustomSpell.processedSkills = [
+    ...withCustomSpell.processedSkills,
+    {
+      id: 'custom_sp_1',
+      originalName: '炎陽射線',
+      customName: '炎陽射線',
+      category: 'spell',
+      isOverBudget: false,
+      selections: {},
+      spellData: {
+        mp: '10',
+        target: '一個生物',
+        duration: '瞬發',
+        isOffensive: true,
+        formula: '[MIG + WLP]',
+      },
+      customDesc: '射出熾熱射線。',
+    },
+  ];
+  const customMd = buildNpcText(withCustomSpell, 'markdown');
+  check('markdown：自定義咒語包含 [MIG + WLP] 魔法攻擊', customMd.includes('[MIG + WLP]'), true);
+  const customCcfolia = buildNpcText(withCustomSpell, 'ccfolia');
+  check('ccfolia：自定義咒語魔攻檢定生成 1d{MIG}+1d{WLP} 骰子指令', customCcfolia.includes('1d{MIG}+1d{WLP}'), true);
+  const customPlain = buildNpcText(withCustomSpell, 'plain');
+  check('plain：自定義咒語包含 [MIG + WLP]', customPlain.includes('[MIG + WLP]'), true);
 }
 
 // ─────────────────────────────────────────────────────────── 結果
