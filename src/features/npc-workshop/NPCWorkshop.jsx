@@ -2363,7 +2363,7 @@ export default function App({
   const handleCopyFullNpc = (format = 'markdown') => {
     const trimmedText = buildNpcText({
       state, revealLevel, currentTheme, mergedAffinities,
-      processedSkills, calculateStats, secretArtTarget,
+      processedSkills, calculateStats, secretArtTarget, groupedSkills,
     }, format);
     if (trimmedText === undefined) return; // 尚未建立 NPC 時不動作（與原本的 `if (!state) return` 等價）
 

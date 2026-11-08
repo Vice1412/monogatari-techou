@@ -550,8 +550,44 @@ section('I. ★ 死碼與分歧的護欄（calculateNpcBudgets）');
   check('plain：與 markdown 內容不同', plain !== md, true);
   check('discord：回傳非空字串', buildNpcText(mkCtx(), 'discord').length > 0, true);
 
-  // ccfolia 是「指令腳本」格式，最明顯的特徵是先攻檢定指令。
-  check('ccfolia：含先攻檢定指令', buildNpcText(mkCtx(), 'ccfolia').includes('1d{DEX}+1d{INS}'), true);
+  // ccfolia：使用者要求完全不輸出屬性與先攻檢定
+  const ccfCtx = mkCtx({
+    mergedAffinities: { 物理: 'normal', 風: 'vul', 火: 'vul', 暗: 'res', 毒: 'res', 冰: 'imm' },
+  });
+  const ccfJson = JSON.parse(buildNpcText(ccfCtx, 'ccfolia'));
+  check('ccfolia：不含先攻檢定指令', ccfJson.data.commands.includes('1d{DEX}+1d{INS}'), false);
+  check('ccfolia：不含屬性檢定指令', ccfJson.data.commands.includes('屬性檢定與先攻'), false);
+  check('ccfolia：含基本攻擊命中檢定', ccfJson.data.commands.includes('命中檢定'), true);
+  check('ccfolia：相性格式為 弱點/抗性—— 且頓號分隔', ccfJson.data.memo.includes('弱點：風、火——抗性：暗、毒——免疫：冰'), true);
+  check('ccfolia：不含戰術慣例', ccfJson.data.memo.includes('戰術慣例'), false);
+
+  // 反派 UP 應改為終結點
+  const villainCtx = mkCtx({
+    state: {
+      ...mkCtx().state,
+      villainTier: 'major',
+    }
+  });
+  const villainCcf = JSON.parse(buildNpcText(villainCtx, 'ccfolia'));
+  check('ccfolia：反派 memo 寫 終結點 而非 UP', villainCcf.data.memo.includes('終結點: 10'), true);
+  check('ccfolia：反派 memo 不寫 UP:', villainCcf.data.memo.includes('UP:'), false);
+  check('ccfolia：反派 status label 為 終結點', villainCcf.data.status.some(s => s.label === '終結點'), true);
+  check('ccfolia：反派 status label 無 UP', villainCcf.data.status.some(s => s.label === 'UP'), false);
+  check('ccfolia：反派 commands 含 :終結點-1', villainCcf.data.commands.includes(':終結點-1'), true);
+  check('ccfolia：反派 commands 不含 :UP-1', villainCcf.data.commands.includes(':UP-1'), false);
+
+  // 解鎖天賦（levelPassive）與 hideInPreview 不應出現在特殊規則與能力中
+  const withPassiveCtx = mkCtx();
+  withPassiveCtx.processedSkills = [
+    ...withPassiveCtx.processedSkills,
+    { id: 'pass1', originalName: 'Lv.10 解鎖天賦：精確瞄準', customName: 'Lv.10 解鎖天賦：精確瞄準', category: 'rule', source: 'levelPassive', isOverBudget: false, selections: {} },
+    { id: 'pass2', originalName: '隱藏技能', customName: '隱藏技能', category: 'rule', hideInPreview: true, isOverBudget: false, selections: {} },
+    { id: 'valid_rule', originalName: '可見特殊規則', customName: '可見特殊規則', category: 'rule', isOverBudget: false, selections: {} },
+  ];
+  const passiveCcf = JSON.parse(buildNpcText(withPassiveCtx, 'ccfolia'));
+  check('ccfolia：特殊能力不含 levelPassive 解鎖天賦', passiveCcf.data.commands.includes('解鎖天賦'), false);
+  check('ccfolia：特殊能力不含 hideInPreview 技能', passiveCcf.data.commands.includes('隱藏技能'), false);
+  check('ccfolia：特殊能力包含正常規則技能', passiveCcf.data.commands.includes('可見特殊規則'), true);
 
   // 額度溢出（isOverBudget）的技能必須被排除——這是輸出正確性的核心。
   const withOver = mkCtx();

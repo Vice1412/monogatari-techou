@@ -33,6 +33,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
   const {
     state, revealLevel, currentTheme, mergedAffinities,
     processedSkills, calculateStats, secretArtTarget,
+    groupedSkills,
   } = ctx;
 
   if (!state) return;
@@ -212,7 +213,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     const memoLines = [];
     memoLines.push(`【${rankDisplay}】${state.role}`);
     if (villainTier !== 'none' && revealLevel === 'full') {
-      memoLines.push(`反派位階：${villainInfo.label} (UP: ${villainInfo.up})`);
+      memoLines.push(`反派位階：${villainInfo.label} (終結點: ${villainInfo.up})`);
     }
     if (speciesName) {
       memoLines.push(`物種：${speciesName}`);
@@ -225,36 +226,43 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         memoLines.push(`特質：${state.traits}`);
       }
 
-      // 相性
-      const affs = [];
+      // 相性：『弱點：風、火——抗性：暗、毒——免疫：冰』
+      const affGroups = {
+        vul: [],
+        res: [],
+        imm: [],
+        abs: []
+      };
       DAMAGE_TYPES.forEach(t => {
         const aff = mergedAffinities[t];
-        if (aff && aff !== 'normal') {
-          const label = aff === 'vul' ? '弱點' : aff === 'res' ? '抗性' : aff === 'imm' ? '免疫' : '吸收';
-          affs.push(`${t}:${label}`);
+        if (aff && affGroups[aff]) {
+          affGroups[aff].push(t);
         }
       });
-      if (affs.length > 0) {
-        memoLines.push(`相性：${affs.join(', ')}`);
+      const affParts = [];
+      if (affGroups.vul.length > 0) affParts.push(`弱點：${affGroups.vul.join('、')}`);
+      if (affGroups.res.length > 0) affParts.push(`抗性：${affGroups.res.join('、')}`);
+      if (affGroups.imm.length > 0) affParts.push(`免疫：${affGroups.imm.join('、')}`);
+      if (affGroups.abs.length > 0) affParts.push(`吸收：${affGroups.abs.join('、')}`);
+      if (affParts.length > 0) {
+        memoLines.push(affParts.join('——'));
       }
       if (stats.statusImmunities && stats.statusImmunities.length > 0) {
         memoLines.push(`異常免疫：${stats.statusImmunities.join(', ')}`);
       }
     }
-    if (revealLevel === 'full' && state.tactics) {
-      memoLines.push(`\n戰術慣例：\n${state.tactics}`);
-    }
+    // 依使用者指示：戰術慣例不用寫
     if (revealLevel === 'full' && state.story) {
       memoLines.push(`\n背景故事：\n${state.story}`);
     }
 
-    // 2. Build Status (HP, MP, UP)
+    // 2. Build Status (HP, MP, 終結點)
     const statusArr = [
       { label: "HP", value: stats.HP, max: stats.HP },
       { label: "MP", value: stats.MP, max: stats.MP }
     ];
     if (villainTier !== 'none' && villainInfo.up > 0) {
-      statusArr.push({ label: "UP", value: villainInfo.up, max: villainInfo.up });
+      statusArr.push({ label: "終結點", value: villainInfo.up, max: villainInfo.up });
     }
 
     // 3. Build Params (DEX, INS, MIG, WLP, DEF, M.DEF, INIT)
@@ -273,21 +281,20 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     ];
 
     // 4. Build Commands (Chat Palette / 聊天調色盤)
+    // 依使用者指示：屬性檢定與先攻完全不需要寫
     const cmdLines = [];
-    cmdLines.push(`// ===== 屬性檢定與先攻 (Fabula Ultima) =====`);
-    cmdLines.push(`1d{DEX}+1d{INS} 【先攻檢定 DEX+INS】`);
-    cmdLines.push(`1d{DEX}+1d{INS} 【靈巧+洞察檢定】`);
-    cmdLines.push(`1d{DEX}+1d{MIG} 【靈巧+力量檢定】`);
-    cmdLines.push(`1d{DEX}+1d{WLP} 【靈巧+意志檢定】`);
-    cmdLines.push(`1d{INS}+1d{MIG} 【洞察+力量檢定】`);
-    cmdLines.push(`1d{INS}+1d{WLP} 【洞察+意志檢定】`);
-    cmdLines.push(`1d{MIG}+1d{WLP} 【力量+意志檢定】`);
+
+    // 技能清單嚴格對齊角色卡預覽（不輸出解鎖天賦 levelPassive 或 hideInPreview 項目）
+    const effectiveGroupedSkills = groupedSkills || {
+      attack: (processedSkills || []).filter(s => s.category === 'attack' && !s.hideInPreview && s.source !== 'levelPassive'),
+      spell: (processedSkills || []).filter(s => s.category === 'spell' && !s.hideInPreview && s.source !== 'levelPassive'),
+      action: (processedSkills || []).filter(s => s.category === 'action' && !s.hideInPreview && s.source !== 'levelPassive'),
+      rule: (processedSkills || []).filter(s => (s.category === 'rule' || s.category === 'boss' || s.category === undefined) && !s.hideInPreview && s.source !== 'levelPassive' && !s.attack)
+    };
 
     // 基本攻擊
-    const validSkills = processedSkills.filter(s => !s.isOverBudget);
-    const attackSkills = validSkills.filter(s => s.attack);
+    const attackSkills = (effectiveGroupedSkills.attack || []).filter(s => !s.isOverBudget);
     if (attackSkills.length > 0) {
-      cmdLines.push(``);
       cmdLines.push(`// ===== 基本攻擊 =====`);
       attackSkills.forEach(s => {
         let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
@@ -295,7 +302,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         const dist = getPlainText(atk.distance, s.selections, state.level, state.partyLevel);
         const rawFormula = getPlainText(atk.formula, s.selections, state.level, state.partyLevel);
         const dmgType = getPlainText(atk.type, s.selections, state.level, state.partyLevel);
-        const totalDmg = (s.attack.baseDmg || 0) + (stats.Dmg || 0);
+        const totalDmg = (s.attack?.baseDmg || 0) + (stats.Dmg || 0);
 
         let diceExpr = '1d{DEX}+1d{MIG}';
         const match = rawFormula.match(/([A-Za-z]+)\s*\+\s*([A-Za-z]+)/);
@@ -309,7 +316,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         cmdLines.push(`${diceExpr}${accStr} 【${skillName}】命中檢定 [${dist}]`);
         cmdLines.push(`傷害：【${dmgType}】HR + ${totalDmg}`);
 
-        const extraText = getPlainText(s.customDesc || s.originalDesc || s.attack.extra || '', s.selections, state.level, state.partyLevel, true);
+        const extraText = getPlainText(s.customDesc || s.originalDesc || s.attack?.extra || '', s.selections, state.level, state.partyLevel, true);
         if (extraText) {
           cmdLines.push(`效果：${extraText.replace(/\n+/g, ' ')}`);
         }
@@ -317,51 +324,49 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     }
 
     // 咒語
-    if (stats.spellList && stats.spellList.length > 0) {
-      cmdLines.push(``);
+    const customSpells = (effectiveGroupedSkills.spell || []).filter(s => !s.isOverBudget);
+    const hasSpellList = stats.spellList && stats.spellList.length > 0;
+    if (hasSpellList || customSpells.length > 0) {
+      if (cmdLines.length > 0) cmdLines.push(``);
       cmdLines.push(`// ===== 咒語 =====`);
-      stats.spellList.forEach(spellObj => {
-        const rawSpellName = spellObj.name;
-        const selections = spellObj.selections || {};
-        const cleanSpellName = normalizeSpellName(rawSpellName);
-        const effectiveName = selections.customName !== undefined ? selections.customName : cleanSpellName;
-        const spellData = SPELLS_DATA[cleanSpellName];
-        const effectiveDesc = selections.customDesc !== undefined ? selections.customDesc : spellData?.effect || '';
-        const isOffensive = isOffensiveSpell(rawSpellName);
-        const replacedTarget = getPlainText(spellData?.target, selections, state.level, state.partyLevel);
-        const replacedEffect = getPlainText(
-          effectiveDesc ? effectiveDesc.replace(/【HR\+(\d+)】/g, (match, p1) => `[HR + ${parseInt(p1) + stats.Dmg}]`) : '',
-          selections, state.level, state.partyLevel, true
-        );
 
-        if (isOffensive) {
-          const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
-          const accStr = totalMagicAcc > 0 ? `+${totalMagicAcc}` : totalMagicAcc < 0 ? `${totalMagicAcc}` : '';
-          let magicDice = '1d{INS}+1d{WLP}';
-          const fMatch = (state.magicFormula || '').match(/([A-Za-z]+)\s*\+\s*([A-Za-z]+)/);
-          if (fMatch && fMatch[1] && fMatch[2]) {
-            magicDice = `1d{${fMatch[1].toUpperCase()}}+1d{${fMatch[2].toUpperCase()}}`;
+      if (hasSpellList) {
+        stats.spellList.forEach(spellObj => {
+          const rawSpellName = spellObj.name;
+          const selections = spellObj.selections || {};
+          const cleanSpellName = normalizeSpellName(rawSpellName);
+          const effectiveName = selections.customName !== undefined ? selections.customName : cleanSpellName;
+          const spellData = SPELLS_DATA[cleanSpellName];
+          const effectiveDesc = selections.customDesc !== undefined ? selections.customDesc : spellData?.effect || '';
+          const isOffensive = isOffensiveSpell(rawSpellName);
+          const replacedTarget = getPlainText(spellData?.target, selections, state.level, state.partyLevel);
+          const replacedEffect = getPlainText(
+            effectiveDesc ? effectiveDesc.replace(/【HR\+(\d+)】/g, (match, p1) => `[HR + ${parseInt(p1) + stats.Dmg}]`) : '',
+            selections, state.level, state.partyLevel, true
+          );
+
+          if (isOffensive) {
+            const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
+            const accStr = totalMagicAcc > 0 ? `+${totalMagicAcc}` : totalMagicAcc < 0 ? `${totalMagicAcc}` : '';
+            let magicDice = '1d{INS}+1d{WLP}';
+            const fMatch = (state.magicFormula || '').match(/([A-Za-z]+)\s*\+\s*([A-Za-z]+)/);
+            if (fMatch && fMatch[1] && fMatch[2]) {
+              magicDice = `1d{${fMatch[1].toUpperCase()}}+1d{${fMatch[2].toUpperCase()}}`;
+            }
+            cmdLines.push(`${magicDice}${accStr} 【${normalizeSpellName(effectiveName)}】魔攻檢定 (MP: ${spellData?.mp || '?'})`);
+            cmdLines.push(`效果：${replacedEffect.replace(/\n+/g, ' ')}`);
+          } else {
+            cmdLines.push(`【${normalizeSpellName(effectiveName)}】咒語發動 (MP: ${spellData?.mp || '?'} | 目標: ${replacedTarget})`);
+            cmdLines.push(`效果：${replacedEffect.replace(/\n+/g, ' ')}`);
           }
-          cmdLines.push(`${magicDice}${accStr} 【${normalizeSpellName(effectiveName)}】魔攻檢定 (MP: ${spellData?.mp || '?'})`);
-          cmdLines.push(`效果：${replacedEffect.replace(/\n+/g, ' ')}`);
-        } else {
-          cmdLines.push(`【${normalizeSpellName(effectiveName)}】咒語發動 (MP: ${spellData?.mp || '?'} | 目標: ${replacedTarget})`);
-          cmdLines.push(`效果：${replacedEffect.replace(/\n+/g, ' ')}`);
-        }
-      });
-    }
+        });
+      }
 
-    // 特殊規則與能力
-    const otherSkills = validSkills.filter(s => !s.attack);
-    if (otherSkills.length > 0) {
-      cmdLines.push(``);
-      cmdLines.push(`// ===== 特殊規則與能力 =====`);
-      otherSkills.forEach(s => {
+      customSpells.forEach(s => {
         let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
         const desc = getPlainText(s.customDesc || s.originalDesc || '', s.selections, state.level, state.partyLevel, true);
-        const isSpell = s.category === 'spell' || !!s.spellData;
         const spData = s.spellData || {};
-        const isOffensive = isSpell && (spData.isOffensive || isOffensiveSpell(skillName));
+        const isOffensive = spData.isOffensive || isOffensiveSpell(skillName);
         if (isOffensive) {
           const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
           const accStr = totalMagicAcc > 0 ? `+${totalMagicAcc}` : totalMagicAcc < 0 ? `${totalMagicAcc}` : '';
@@ -372,24 +377,37 @@ export const buildNpcText = (ctx, format = 'markdown') => {
           }
           cmdLines.push(`${magicDice}${accStr} 【${skillName}】魔攻檢定 (MP: ${spData.mp || '?'})`);
           cmdLines.push(`效果：${desc.replace(/\n+/g, ' ')}`);
-        } else if (isSpell) {
+        } else {
           cmdLines.push(`【${skillName}】咒語發動 (MP: ${spData.mp || '?'} | 目標: ${spData.target || '一個生物'})`);
           cmdLines.push(`效果：${desc.replace(/\n+/g, ' ')}`);
-        } else {
-          cmdLines.push(`【${skillName}】${desc.replace(/\n+/g, ' ')}`);
         }
       });
     }
 
+    // 特殊規則與能力（僅包含角色卡預覽會顯示的 action 與 rule，不含 levelPassive 解鎖天賦）
+    const actionSkills = (effectiveGroupedSkills.action || []).filter(s => !s.isOverBudget);
+    const ruleSkills = (effectiveGroupedSkills.rule || []).filter(s => !s.isOverBudget);
+    const specialSkills = [...actionSkills, ...ruleSkills];
+
+    if (specialSkills.length > 0) {
+      if (cmdLines.length > 0) cmdLines.push(``);
+      cmdLines.push(`// ===== 特殊規則與能力 =====`);
+      specialSkills.forEach(s => {
+        let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+        const desc = getPlainText(s.customDesc || s.originalDesc || '', s.selections, state.level, state.partyLevel, true);
+        cmdLines.push(`【${skillName}】${desc.replace(/\n+/g, ' ')}`);
+      });
+    }
+
     // 狀態管理快捷
-    cmdLines.push(``);
+    if (cmdLines.length > 0) cmdLines.push(``);
     cmdLines.push(`// ===== 狀態管理快捷 =====`);
     cmdLines.push(`:HP-`);
     cmdLines.push(`:HP+`);
     cmdLines.push(`:MP-`);
     cmdLines.push(`:MP+`);
     if (villainTier !== 'none' && villainInfo.up > 0) {
-      cmdLines.push(`:UP-1`);
+      cmdLines.push(`:終結點-1`);
     }
 
     const ccfoliaData = {
