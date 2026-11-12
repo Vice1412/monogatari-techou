@@ -658,6 +658,102 @@ section('I. ★ 死碼與分歧的護欄（calculateNpcBudgets）');
   check('ccfolia：自定義咒語施法檢定生成 1{MIG}+1{WLP} 骰子指令', customCcfolia.includes('1{MIG}+1{WLP}') && customCcfolia.includes('施法檢定'), true);
   const customPlain = buildNpcText(withCustomSpell, 'plain');
   check('plain：自定義咒語包含 [MIG + WLP]', customPlain.includes('[MIG + WLP]'), true);
+
+  // 區塊拆分與順序護欄：基本攻擊 -> 咒語 -> 其餘行動 -> 特殊規則
+  const allSectionsCtx = mkCtx({
+    state: {
+      name: '全能測試體',
+      level: 10,
+    }
+  });
+  allSectionsCtx.processedSkills = [
+    {
+      id: 'atk_1',
+      originalName: '巨力揮擊',
+      category: 'attack',
+      isOverBudget: false,
+      selections: {},
+      attack: {
+        distance: '近戰',
+        formula: '【DEX + MIG】',
+        type: '物理',
+        baseDmg: 5,
+      },
+      customDesc: '猛烈揮擊',
+    },
+    {
+      id: 'sp_1',
+      originalName: '虛空火球',
+      category: 'spell',
+      isOverBudget: false,
+      selections: {},
+      spellData: {
+        mp: '10',
+        target: '一個生物',
+        duration: '瞬發',
+        isOffensive: true,
+        formula: '[INS + WLP]',
+      },
+      customDesc: '引爆虛空',
+    },
+    {
+      id: 'act_1',
+      originalName: '戰吼號令',
+      category: 'action',
+      isOverBudget: false,
+      selections: {},
+      customDesc: '激勵同伴',
+    },
+    {
+      id: 'rule_1',
+      originalName: '鋼鐵之軀',
+      category: 'rule',
+      isOverBudget: false,
+      selections: {},
+      customDesc: '獲得護甲',
+    },
+  ];
+
+  // Markdown 順序與拆分
+  const allMd = buildNpcText(allSectionsCtx, 'markdown');
+  const mdAtkIdx = allMd.indexOf('#### 基本攻擊');
+  const mdSpellIdx = allMd.indexOf('#### 咒語');
+  const mdActIdx = allMd.indexOf('#### 其餘行動');
+  const mdRuleIdx = allMd.indexOf('#### 特殊規則');
+  check('markdown：拆出基本攻擊', mdAtkIdx !== -1, true);
+  check('markdown：拆出咒語', mdSpellIdx !== -1, true);
+  check('markdown：拆出其餘行動', mdActIdx !== -1, true);
+  check('markdown：拆出特殊規則', mdRuleIdx !== -1, true);
+  check('markdown：順序為 基本攻擊 < 咒語 < 其餘行動 < 特殊規則', mdAtkIdx < mdSpellIdx && mdSpellIdx < mdActIdx && mdActIdx < mdRuleIdx, true);
+  check('markdown：不包含舊的 基本攻擊與行動', allMd.includes('#### 基本攻擊與行動'), false);
+
+  // Discord 順序與拆分
+  const allDiscord = buildNpcText(allSectionsCtx, 'discord');
+  const dcAtkIdx = allDiscord.indexOf('**基本攻擊**');
+  const dcSpellIdx = allDiscord.indexOf('**咒語**');
+  const dcActIdx = allDiscord.indexOf('**其餘行動**');
+  const dcRuleIdx = allDiscord.indexOf('**特殊規則**');
+  check('discord：順序為 基本攻擊 < 咒語 < 其餘行動 < 特殊規則', dcAtkIdx !== -1 && dcAtkIdx < dcSpellIdx && dcSpellIdx < dcActIdx && dcActIdx < dcRuleIdx, true);
+  check('discord：不包含舊的 基本攻擊與行動', allDiscord.includes('**基本攻擊與行動**'), false);
+
+  // Plain 順序與拆分
+  const allPlain = buildNpcText(allSectionsCtx, 'plain');
+  const plAtkIdx = allPlain.indexOf('[ 基本攻擊 ]');
+  const plSpellIdx = allPlain.indexOf('[ 咒語 ]');
+  const plActIdx = allPlain.indexOf('[ 其餘行動 ]');
+  const plRuleIdx = allPlain.indexOf('[ 特殊規則 ]');
+  check('plain：順序為 基本攻擊 < 咒語 < 其餘行動 < 特殊規則', plAtkIdx !== -1 && plAtkIdx < plSpellIdx && plSpellIdx < plActIdx && plActIdx < plRuleIdx, true);
+  check('plain：不包含舊的 基本攻擊與行動', allPlain.includes('[ 基本攻擊與行動 ]'), false);
+
+  // ccfolia 順序與拆分
+  const allCcfJson = JSON.parse(buildNpcText(allSectionsCtx, 'ccfolia'));
+  const ccfCmds = allCcfJson.data.commands;
+  const ccfAtkIdx = ccfCmds.indexOf('// ===== 基本攻擊 =====');
+  const ccfSpellIdx = ccfCmds.indexOf('// ===== 咒語 =====');
+  const ccfActIdx = ccfCmds.indexOf('// ===== 其餘行動 =====');
+  const ccfRuleIdx = ccfCmds.indexOf('// ===== 特殊規則 =====');
+  check('ccfolia：順序為 基本攻擊 < 咒語 < 其餘行動 < 特殊規則', ccfAtkIdx !== -1 && ccfAtkIdx < ccfSpellIdx && ccfSpellIdx < ccfActIdx && ccfActIdx < ccfRuleIdx, true);
+  check('ccfolia：不包含舊的 特殊規則與能力', ccfCmds.includes('// ===== 特殊規則與能力 ====='), false);
 }
 
 // ─────────────────────────────────────────────────────────── 結果

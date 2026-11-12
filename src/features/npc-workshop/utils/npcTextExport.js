@@ -76,11 +76,42 @@ export const buildNpcText = (ctx, format = 'markdown') => {
 
   let text = "";
 
+  const filterBudget = (list) => (list || []).filter(s => !s.isOverBudget && !s.hideInPreview && s.source !== 'levelPassive');
+
+  let attackSkills = [];
+  let customSpells = [];
+  let actionSkills = [];
+  let ruleSkills = [];
+
+  if (groupedSkills) {
+    attackSkills = filterBudget(groupedSkills.attack);
+    customSpells = filterBudget(groupedSkills.spell);
+    actionSkills = filterBudget(groupedSkills.action);
+    ruleSkills = filterBudget(groupedSkills.rule);
+  } else {
+    const valid = filterBudget(processedSkills);
+    attackSkills = valid.filter(s => s.category === 'attack' || !!s.attack);
+    customSpells = valid.filter(s => s.category === 'spell' || !!s.spellData);
+    actionSkills = valid.filter(s => s.category === 'action');
+    const explicitRules = valid.filter(s => (s.category === 'rule' || s.category === 'boss' || (!s.category && !s.attack && !s.spellData)));
+    const negSkills = (state?.selectedNegativeSkills || []).map(neg => {
+      const skillData = NEGATIVE_SKILLS_DATA.find(s => s.id === neg.id);
+      if (!skillData) return null;
+      return { ...skillData, ...neg, category: 'rule', source: 'negative' };
+    }).filter(Boolean);
+    ruleSkills = [...explicitRules, ...negSkills];
+  }
+
+  const hasSpellList = stats.spellList && stats.spellList.length > 0;
+  const hasAnySpells = hasSpellList || customSpells.length > 0;
+
   if (format === 'discord') {
     const rankDisplay = state.rank === "冠位" ? `${state.rank} (${state.championMultiplier})` : state.rank;
+    const villainTier = state.villainTier || 'none';
+    const villainInfo = VILLAIN_TIERS[villainTier];
     text += "```yaml\n";
     text += `=== ${state.name || '未知實體'} (Lv.${state.level}) ===\n`;
-    text += `【${rankDisplay}】${state.role}${state.villainTier !== 'none' && revealLevel === 'full' ? ` (${VILLAIN_TIERS[state.villainTier].label} - 終結點 ${VILLAIN_TIERS[state.villainTier].up})` : ''}\n`;
+    text += `【${rankDisplay}】${state.role}${villainTier !== 'none' && villainInfo && revealLevel === 'full' ? ` (${villainInfo.label} - 終結點 ${villainInfo.up})` : ''}\n`;
     text += "```\n";
     if (isRevealed('stats')) {
       if (state.traits) text += `*特質: ${state.traits}*\n`;
@@ -95,11 +126,26 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     }
 
     if (isRevealed('combat')) {
-      const validSkills = processedSkills.filter(s => !s.isOverBudget);
-      const customSpells = validSkills.filter(s => s.category === 'spell' || !!s.spellData);
-      const hasSpellList = stats.spellList && stats.spellList.length > 0;
-      const hasAnySpells = hasSpellList || customSpells.length > 0;
+      // 1. 基本攻擊
+      if (attackSkills.length > 0) {
+        text += `**基本攻擊**\n`;
+        attackSkills.forEach(s => {
+          let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+          text += `> **${skillName}**\n`;
+          if (s.attack) {
+            const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
+            text += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
+          }
+          const desc = getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true);
+          if (desc) {
+            text += `> ${desc.split('\n').join('\n> ')}\n\n`;
+          } else {
+            text += `\n`;
+          }
+        });
+      }
 
+      // 2. 咒語
       if (hasAnySpells) {
         text += `**咒語**\n`;
         if (hasSpellList) {
@@ -151,18 +197,29 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         });
       }
 
-      // 基本攻擊與行動（排除自訂咒語）
-      const nonSpellSkills = validSkills.filter(s => !(s.category === 'spell' || !!s.spellData));
-      if (nonSpellSkills.length > 0) {
-        text += `**基本攻擊與行動**\n`;
-        nonSpellSkills.forEach(s => {
-          if (revealLevel !== 'full' && (s.source === 'bossSkill' || s.category === 'rule' || s.category === 'action')) return;
+      // 3. 其餘行動
+      if (actionSkills.length > 0) {
+        text += `**其餘行動**\n`;
+        actionSkills.forEach(s => {
+          if (revealLevel !== 'full' && s.source === 'bossSkill') return;
           let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
           text += `> **${skillName}**\n`;
-          if (s.attack) {
-            const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
-            text += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
+          const desc = getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true);
+          if (desc) {
+            text += `> ${desc.split('\n').join('\n> ')}\n\n`;
+          } else {
+            text += `\n`;
           }
+        });
+      }
+
+      // 4. 特殊規則
+      if (ruleSkills.length > 0) {
+        text += `**特殊規則**\n`;
+        ruleSkills.forEach(s => {
+          if (revealLevel !== 'full' && s.source === 'bossSkill') return;
+          let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+          text += `> **${skillName}**\n`;
           const desc = getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true);
           if (desc) {
             text += `> ${desc.split('\n').join('\n> ')}\n\n`;
@@ -183,7 +240,9 @@ export const buildNpcText = (ctx, format = 'markdown') => {
   } else if (format === 'plain') {
     text += `${state.name} (Lv. ${state.level})\n`;
     const rankDisplay = state.rank === "冠位" ? `${state.rank} (${state.championMultiplier})` : state.rank;
-    text += `【${rankDisplay}】${state.role}${state.villainTier !== 'none' && revealLevel === 'full' ? ` (${VILLAIN_TIERS[state.villainTier].label} - 終結點 ${VILLAIN_TIERS[state.villainTier].up})` : ''}\n`;
+    const villainTier = state.villainTier || 'none';
+    const villainInfo = VILLAIN_TIERS[villainTier];
+    text += `【${rankDisplay}】${state.role}${villainTier !== 'none' && villainInfo && revealLevel === 'full' ? ` (${villainInfo.label} - 終結點 ${villainInfo.up})` : ''}\n`;
     if (isRevealed('stats')) {
       if (state.traits) text += `特質: ${state.traits}\n`;
       text += `DEX d${stats.DEX.replace('d','')} | INS d${stats.INS.replace('d','')} | MIG d${stats.MIG.replace('d','')} | WLP d${stats.WLP.replace('d','')}\n`;
@@ -194,11 +253,20 @@ export const buildNpcText = (ctx, format = 'markdown') => {
       text += `\n`;
     }
     if (isRevealed('combat')) {
-      const validSkills = processedSkills.filter(s => !s.isOverBudget);
-      const customSpells = validSkills.filter(s => s.category === 'spell' || !!s.spellData);
-      const hasSpellList = stats.spellList && stats.spellList.length > 0;
-      const hasAnySpells = hasSpellList || customSpells.length > 0;
+      // 1. 基本攻擊
+      if (attackSkills.length > 0) {
+        text += `[ 基本攻擊 ]\n`;
+        attackSkills.forEach(s => {
+          let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+          const atk = s.attack ? resolveAttack(s.attack, s.selections, s.selectionsConfig) : null;
+          let atkStr = atk ? ` [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害` : '';
+          const desc = getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true);
+          text += `- ${skillName}${atkStr}\n  ${desc}\n`;
+        });
+        text += `\n`;
+      }
 
+      // 2. 咒語
       if (hasAnySpells) {
         text += `[ 咒語 ]\n`;
         if (hasSpellList) {
@@ -241,18 +309,28 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         text += `\n`;
       }
 
-      // 基本攻擊與行動（排除自訂咒語）
-      const nonSpellSkills = validSkills.filter(s => !(s.category === 'spell' || !!s.spellData));
-      if (nonSpellSkills.length > 0) {
-        text += `[ 基本攻擊與行動 ]\n`;
-        nonSpellSkills.forEach(s => {
-          if (revealLevel !== 'full' && (s.source === 'bossSkill' || s.category === 'rule' || s.category === 'action')) return;
+      // 3. 其餘行動
+      if (actionSkills.length > 0) {
+        text += `[ 其餘行動 ]\n`;
+        actionSkills.forEach(s => {
+          if (revealLevel !== 'full' && s.source === 'bossSkill') return;
           let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
-          const atk = s.attack ? resolveAttack(s.attack, s.selections, s.selectionsConfig) : null;
-          let atkStr = atk ? ` [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害` : '';
           const desc = getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true);
-          text += `- ${skillName}${atkStr}\n  ${desc}\n`;
+          text += `- ${skillName}\n  ${desc}\n`;
         });
+        text += `\n`;
+      }
+
+      // 4. 特殊規則
+      if (ruleSkills.length > 0) {
+        text += `[ 特殊規則 ]\n`;
+        ruleSkills.forEach(s => {
+          if (revealLevel !== 'full' && s.source === 'bossSkill') return;
+          let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+          const desc = getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true);
+          text += `- ${skillName}\n  ${desc}\n`;
+        });
+        text += `\n`;
       }
     }
     if (revealLevel === 'full' && state.tactics) {
@@ -324,16 +402,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     // 依使用者指示：屬性檢定與先攻完全不需要寫
     const cmdLines = [];
 
-    // 技能清單嚴格對齊角色卡預覽（不輸出解鎖天賦 levelPassive 或 hideInPreview 項目）
-    const effectiveGroupedSkills = groupedSkills || {
-      attack: (processedSkills || []).filter(s => s.category === 'attack' && !s.hideInPreview && s.source !== 'levelPassive'),
-      spell: (processedSkills || []).filter(s => s.category === 'spell' && !s.hideInPreview && s.source !== 'levelPassive'),
-      action: (processedSkills || []).filter(s => s.category === 'action' && !s.hideInPreview && s.source !== 'levelPassive'),
-      rule: (processedSkills || []).filter(s => (s.category === 'rule' || s.category === 'boss' || s.category === undefined) && !s.hideInPreview && s.source !== 'levelPassive' && !s.attack)
-    };
-
     // 基本攻擊
-    const attackSkills = (effectiveGroupedSkills.attack || []).filter(s => !s.isOverBudget);
     if (attackSkills.length > 0) {
       cmdLines.push(`// ===== 基本攻擊 =====`);
       attackSkills.forEach(s => {
@@ -361,9 +430,7 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     }
 
     // 咒語
-    const customSpells = (effectiveGroupedSkills.spell || []).filter(s => !s.isOverBudget);
-    const hasSpellList = stats.spellList && stats.spellList.length > 0;
-    if (hasSpellList || customSpells.length > 0) {
+    if (hasAnySpells) {
       if (cmdLines.length > 0) cmdLines.push(``);
       cmdLines.push(`// ===== 咒語 =====`);
 
@@ -429,15 +496,22 @@ export const buildNpcText = (ctx, format = 'markdown') => {
       });
     }
 
-    // 特殊規則與能力（僅包含角色卡預覽會顯示的 action 與 rule，不含 levelPassive 解鎖天賦）
-    const actionSkills = (effectiveGroupedSkills.action || []).filter(s => !s.isOverBudget);
-    const ruleSkills = (effectiveGroupedSkills.rule || []).filter(s => !s.isOverBudget);
-    const specialSkills = [...actionSkills, ...ruleSkills];
-
-    if (specialSkills.length > 0) {
+    // 其餘行動
+    if (actionSkills.length > 0) {
       if (cmdLines.length > 0) cmdLines.push(``);
-      cmdLines.push(`// ===== 特殊規則與能力 =====`);
-      specialSkills.forEach(s => {
+      cmdLines.push(`// ===== 其餘行動 =====`);
+      actionSkills.forEach(s => {
+        let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+        const desc = getPlainText(s.customDesc || s.originalDesc || '', s.selections, state.level, state.partyLevel, true);
+        cmdLines.push(`【${skillName}】${desc.replace(/\n+/g, ' ')}`);
+      });
+    }
+
+    // 特殊規則
+    if (ruleSkills.length > 0) {
+      if (cmdLines.length > 0) cmdLines.push(``);
+      cmdLines.push(`// ===== 特殊規則 =====`);
+      ruleSkills.forEach(s => {
         let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
         const desc = getPlainText(s.customDesc || s.originalDesc || '', s.selections, state.level, state.partyLevel, true);
         cmdLines.push(`【${skillName}】${desc.replace(/\n+/g, ' ')}`);
@@ -473,7 +547,9 @@ export const buildNpcText = (ctx, format = 'markdown') => {
   } else {
     let md = `### ${state.name} (Lv. ${state.level})\n`;
     const rankDisplay = state.rank === "冠位" ? `${state.rank} (${state.championMultiplier})` : state.rank;
-    md += `**【${rankDisplay}】${state.role}** ${state.villainTier !== 'none' && revealLevel === 'full' ? `(${VILLAIN_TIERS[state.villainTier].label} - 終結點 ${VILLAIN_TIERS[state.villainTier].up})` : ''}\n`;
+    const villainTier = state.villainTier || 'none';
+    const villainInfo = VILLAIN_TIERS[villainTier];
+    md += `**【${rankDisplay}】${state.role}** ${villainTier !== 'none' && villainInfo && revealLevel === 'full' ? `(${villainInfo.label} - 終結點 ${villainInfo.up})` : ''}\n`;
 
     if (isRevealed('stats')) {
       if (state.traits) md += `*特質: ${state.traits}*\n`;
@@ -488,26 +564,33 @@ export const buildNpcText = (ctx, format = 'markdown') => {
       md += `**HP: ${stats.HP} (危機 ${Math.floor(stats.HP / 2)}) | MP: ${stats.MP} | 先攻: ?? | 物防 DEF: ?? | 魔防 M.DEF: ??**\n\n`;
     }
 
-    const validNegs = (state.selectedNegativeSkills || []).map(neg => {
-      const skill = NEGATIVE_SKILLS_DATA.find(s => s.id === neg.id);
-      return skill ? { ...skill, selections: neg.selections } : null;
-    }).filter(Boolean);
-
-    if (revealLevel === 'full' && validNegs.length > 0) {
-      md += `#### 負面技能\n`;
-      validNegs.forEach(skill => {
-        md += `> **${skill.originalName}**\n`;
-        md += `> ${getPlainText(skill.originalDesc, skill.selections, state.level, state.partyLevel, true)}\n\n`;
-      });
-    }
-
     if (isRevealed('combat')) {
       const validNpcName = state.name && state.name.trim() !== "" && state.name !== "未知實體" ? state.name.trim() : null;
-      const validSkills = processedSkills.filter(s => !s.isOverBudget);
-      const customSpells = validSkills.filter(s => s.category === 'spell' || !!s.spellData);
-      const hasSpellList = stats.spellList && stats.spellList.length > 0;
-      const hasAnySpells = hasSpellList || customSpells.length > 0;
 
+      // 1. 基本攻擊
+      if (attackSkills.length > 0) {
+        md += `#### 基本攻擊\n`;
+        attackSkills.forEach(s => {
+          let rawName = s.customName || s.originalName;
+          let skillName = rawName.replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+          md += `> **${skillName}**\n`;
+          if (s.attack) {
+            const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
+            md += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
+          }
+          if (s.customDesc || s.originalDesc) {
+            md += `> ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true)}\n`;
+          }
+          const isSecret = s.isSecretArt || (secretArtTarget && (secretArtTarget === rawName || secretArtTarget === skillName || secretArtTarget === s.originalName || secretArtTarget === s.customName));
+          if (isSecret) {
+            const label = s.attack ? '攻擊' : '技能';
+            md += `> *(此${label}為祕技，除了目標之外沒有人會意識到那是什麼。)*\n`;
+          }
+          md += `\n`;
+        });
+      }
+
+      // 2. 咒語
       if (hasAnySpells) {
         md += `#### 咒語\n`;
         if (hasSpellList) {
@@ -573,26 +656,39 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         });
       }
 
-      // 基本攻擊與行動（排除自訂咒語）
-      const nonSpellSkills = validSkills.filter(s => !(s.category === 'spell' || !!s.spellData));
-      if (nonSpellSkills.length > 0) {
-        md += `#### 基本攻擊與行動\n`;
-        nonSpellSkills.forEach(s => {
-          if (revealLevel !== 'full' && (s.source === 'bossSkill' || s.category === 'rule' || s.category === 'action')) return;
+      // 3. 其餘行動
+      if (actionSkills.length > 0) {
+        md += `#### 其餘行動\n`;
+        actionSkills.forEach(s => {
+          if (revealLevel !== 'full' && s.source === 'bossSkill') return;
           let rawName = s.customName || s.originalName;
           let skillName = rawName.replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
           md += `> **${skillName}**\n`;
-          if (s.attack) {
-            const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
-            md += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
-          }
           if (s.customDesc || s.originalDesc) {
             md += `> ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true)}\n`;
           }
           const isSecret = s.isSecretArt || (secretArtTarget && (secretArtTarget === rawName || secretArtTarget === skillName || secretArtTarget === s.originalName || secretArtTarget === s.customName));
           if (isSecret) {
-            const label = s.attack ? '攻擊' : '技能';
-            md += `> *(此${label}為祕技，除了目標之外沒有人會意識到那是什麼。)*\n`;
+            md += `> *(此技能為祕技，除了目標之外沒有人會意識到那是什麼。)*\n`;
+          }
+          md += `\n`;
+        });
+      }
+
+      // 4. 特殊規則
+      if (ruleSkills.length > 0) {
+        md += `#### 特殊規則\n`;
+        ruleSkills.forEach(s => {
+          if (revealLevel !== 'full' && s.source === 'bossSkill') return;
+          let rawName = s.customName || s.originalName;
+          let skillName = rawName.replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+          md += `> **${skillName}**\n`;
+          if (s.customDesc || s.originalDesc) {
+            md += `> ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true)}\n`;
+          }
+          const isSecret = s.isSecretArt || (secretArtTarget && (secretArtTarget === rawName || secretArtTarget === skillName || secretArtTarget === s.originalName || secretArtTarget === s.customName));
+          if (isSecret) {
+            md += `> *(此技能為祕技，除了目標之外沒有人會意識到那是什麼。)*\n`;
           }
           md += `\n`;
         });
