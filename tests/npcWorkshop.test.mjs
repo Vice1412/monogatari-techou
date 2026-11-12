@@ -558,8 +558,10 @@ section('I. ★ 死碼與分歧的護欄（calculateNpcBudgets）');
   check('ccfolia：不含先攻檢定指令', ccfJson.data.commands.includes('1d{DEX}+1d{INS}'), false);
   check('ccfolia：不含屬性檢定指令', ccfJson.data.commands.includes('屬性檢定與先攻'), false);
   check('ccfolia：含基本攻擊命中檢定', ccfJson.data.commands.includes('命中檢定'), true);
-  check('ccfolia：相性格式為 弱點/抗性—— 且頓號分隔', ccfJson.data.memo.includes('弱點：風、火——抗性：暗、毒——免疫：冰'), true);
+  check('ccfolia：相性格式為 弱點（...）、抗性（...）', ccfJson.data.memo.includes('弱點（風、火）、抗性（暗、毒）、免疫（冰）'), true);
   check('ccfolia：不含戰術慣例', ccfJson.data.memo.includes('戰術慣例'), false);
+  check('ccfolia：status 包含 DEF 與 M.DEF', ccfJson.data.status.some(s => s.label === 'DEF') && ccfJson.data.status.some(s => s.label === 'M.DEF'), true);
+  check('ccfolia：params 屬性骰含 d 前綴', ccfJson.data.params.some(p => p.label === 'DEX' && p.value.startsWith('d')), true);
 
   // 反派 UP 應改為終結點
   const villainCtx = mkCtx({
@@ -651,9 +653,9 @@ section('I. ★ 死碼與分歧的護欄（calculateNpcBudgets）');
     },
   ];
   const customMd = buildNpcText(withCustomSpell, 'markdown');
-  check('markdown：自定義咒語包含 [MIG + WLP] 魔法攻擊', customMd.includes('[MIG + WLP]'), true);
+  check('markdown：自定義咒語包含 [MIG + WLP] 攻擊性咒語', customMd.includes('[MIG + WLP]') && customMd.includes('攻擊性咒語'), true);
   const customCcfolia = buildNpcText(withCustomSpell, 'ccfolia');
-  check('ccfolia：自定義咒語魔攻檢定生成 1d{MIG}+1d{WLP} 骰子指令', customCcfolia.includes('1d{MIG}+1d{WLP}'), true);
+  check('ccfolia：自定義咒語施法檢定生成 1{MIG}+1{WLP} 骰子指令', customCcfolia.includes('1{MIG}+1{WLP}') && customCcfolia.includes('施法檢定'), true);
   const customPlain = buildNpcText(withCustomSpell, 'plain');
   check('plain：自定義咒語包含 [MIG + WLP]', customPlain.includes('[MIG + WLP]'), true);
 }

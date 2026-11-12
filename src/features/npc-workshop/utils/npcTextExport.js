@@ -29,6 +29,32 @@ import { getPlainText } from './displayText';
 import { resolveAttack } from './attackDisplay';
 import { SPECIES_DATA } from '../data/speciesData';
 
+/**
+ * 統一相性文字排版格式：
+ * 『弱點（火、光）、抗性（暗、土）、免疫（冰、毒）、吸收（電）』
+ */
+export const formatAffinitiesText = (mergedAffinities) => {
+  if (!mergedAffinities) return '';
+  const affGroups = {
+    vul: [],
+    res: [],
+    imm: [],
+    abs: []
+  };
+  DAMAGE_TYPES.forEach(t => {
+    const aff = mergedAffinities[t];
+    if (aff && affGroups[aff]) {
+      affGroups[aff].push(t);
+    }
+  });
+  const affParts = [];
+  if (affGroups.vul.length > 0) affParts.push(`弱點（${affGroups.vul.join('、')}）`);
+  if (affGroups.res.length > 0) affParts.push(`抗性（${affGroups.res.join('、')}）`);
+  if (affGroups.imm.length > 0) affParts.push(`免疫（${affGroups.imm.join('、')}）`);
+  if (affGroups.abs.length > 0) affParts.push(`吸收（${affGroups.abs.join('、')}）`);
+  return affParts.join('、');
+};
+
 export const buildNpcText = (ctx, format = 'markdown') => {
   const {
     state, revealLevel, currentTheme, mergedAffinities,
@@ -54,75 +80,97 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     const rankDisplay = state.rank === "冠位" ? `${state.rank} (${state.championMultiplier})` : state.rank;
     text += "```yaml\n";
     text += `=== ${state.name || '未知實體'} (Lv.${state.level}) ===\n`;
-    text += `【${rankDisplay}】${state.role}${state.villainTier !== 'none' && revealLevel === 'full' ? ` (${VILLAIN_TIERS[state.villainTier].label})` : ''}\n`;
+    text += `【${rankDisplay}】${state.role}${state.villainTier !== 'none' && revealLevel === 'full' ? ` (${VILLAIN_TIERS[state.villainTier].label} - 終結點 ${VILLAIN_TIERS[state.villainTier].up})` : ''}\n`;
     text += "```\n";
     if (isRevealed('stats')) {
       if (state.traits) text += `*特質: ${state.traits}*\n`;
       text += `\`DEX d${stats.DEX.replace('d','')} | INS d${stats.INS.replace('d','')} | MIG d${stats.MIG.replace('d','')} | WLP d${stats.WLP.replace('d','')}\`\n`;
       text += `\`HP ${stats.HP} (危機 ${Math.floor(stats.HP / 2)}) | MP ${stats.MP} | 先攻 ${stats.Init} | 物防 DEF ${stats.Def} | 魔防 M.DEF ${stats.MDef}\`\n`;
-      let affs = [];
-      DAMAGE_TYPES.forEach(t => {
-        const aff = mergedAffinities[t];
-        if (aff && aff !== 'normal') {
-          const label = aff === 'vul' ? '弱點' : aff === 'res' ? '抗性' : aff === 'imm' ? '免疫' : '吸收';
-          affs.push(`${t}:${label}`);
-        }
-      });
-      if (affs.length > 0) text += `*相性*: ${affs.join(', ')}\n`;
-      if (stats.statusImmunities.length > 0) text += `*異常免疫*: ${stats.statusImmunities.join(', ')}\n`;
+      const affText = formatAffinitiesText(mergedAffinities);
+      if (affText) text += `*相性*: ${affText}\n`;
+      if (stats.statusImmunities && stats.statusImmunities.length > 0) text += `*異常免疫*: ${stats.statusImmunities.join(', ')}\n`;
       text += `\n`;
     } else {
       text += `\`HP ${stats.HP} (危機 ${Math.floor(stats.HP / 2)}) | MP ${stats.MP} | 先攻 ?? | 物防 DEF ?? | 魔防 M.DEF ??\`\n\n`;
     }
 
     if (isRevealed('combat')) {
-      if (stats.spellList && stats.spellList.length > 0) {
+      const validSkills = processedSkills.filter(s => !s.isOverBudget);
+      const customSpells = validSkills.filter(s => s.category === 'spell' || !!s.spellData);
+      const hasSpellList = stats.spellList && stats.spellList.length > 0;
+      const hasAnySpells = hasSpellList || customSpells.length > 0;
+
+      if (hasAnySpells) {
         text += `**咒語**\n`;
-        stats.spellList.forEach(spellObj => {
-          const rawSpellName = spellObj.name;
-          const selections = spellObj.selections || {};
-          const cleanSpellName = normalizeSpellName(rawSpellName);
-          const effectiveName = selections.customName !== undefined ? selections.customName : cleanSpellName;
-          const spellData = SPELLS_DATA[cleanSpellName];
-          const effectiveDesc = selections.customDesc !== undefined ? selections.customDesc : spellData?.effect || '';
-          const isOffensive = isOffensiveSpell(rawSpellName);
-          const totalMagicAcc = stats.Acc + stats.MagicAccModifier;
-          const replacedTarget = getPlainText(spellData?.target, selections, state.level, state.partyLevel);
-          const replacedEffect = getPlainText(effectiveDesc ? effectiveDesc.replace(/【HR\+(\d+)】/g, (match, p1) => `[HR + ${parseInt(p1) + stats.Dmg}]`) : '', selections, state.level, state.partyLevel, true);
+        if (hasSpellList) {
+          stats.spellList.forEach(spellObj => {
+            const rawSpellName = spellObj.name;
+            const selections = spellObj.selections || {};
+            const cleanSpellName = normalizeSpellName(rawSpellName);
+            const effectiveName = selections.customName !== undefined ? selections.customName : cleanSpellName;
+            const spellData = SPELLS_DATA[cleanSpellName];
+            const effectiveDesc = selections.customDesc !== undefined ? selections.customDesc : spellData?.effect || '';
+            const isOffensive = isOffensiveSpell(rawSpellName);
+            const totalMagicAcc = stats.Acc + stats.MagicAccModifier;
+            const replacedTarget = getPlainText(spellData?.target, selections, state.level, state.partyLevel);
+            const replacedEffect = getPlainText(effectiveDesc ? effectiveDesc.replace(/【HR\+(\d+)】/g, (match, p1) => `[HR + ${parseInt(p1) + stats.Dmg}]`) : '', selections, state.level, state.partyLevel, true);
 
-          text += `> **${normalizeSpellName(effectiveName)}** (MP: ${spellData?.mp || '?'} | 目標: ${replacedTarget} | 持續: ${spellData?.duration || '瞬發'})\n`;
-          if (isOffensive) {
-            const accStr = totalMagicAcc >= 0 ? `+${totalMagicAcc}` : `${totalMagicAcc}`;
-            text += `> *精確: ${state.magicFormula || '[INS + WLP]'} ${accStr}*\n`;
-          }
-          text += `> ${replacedEffect.split('\n').join('\n> ')}\n\n`;
-        });
-      }
-
-      text += `**基本攻擊與行動**\n`;
-      processedSkills.filter(s => !s.isOverBudget).forEach(s => {
-        if (revealLevel !== 'full' && (s.source === 'bossSkill' || s.category === 'rule' || s.category === 'action')) return;
-        let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
-        text += `> **${skillName}**\n`;
-        if (s.attack) {
-          const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
-          text += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
-        } else if (s.category === 'spell' || s.spellData) {
+            text += `> **${normalizeSpellName(effectiveName)}** (MP: ${spellData?.mp || '?'} | 目標: ${replacedTarget} | 持續: ${spellData?.duration || '瞬發'})\n`;
+            if (isOffensive) {
+              const accStr = totalMagicAcc >= 0 ? `+${totalMagicAcc}` : `${totalMagicAcc}`;
+              text += `> ${state.magicFormula || '[INS + WLP]'} ${accStr} ✦ 攻擊性咒語\n`;
+            }
+            if (replacedEffect) {
+              text += `> ${replacedEffect.split('\n').join('\n> ')}\n\n`;
+            } else {
+              text += `\n`;
+            }
+          });
+        }
+        customSpells.forEach(s => {
+          let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
           const spData = s.spellData || {};
           const spMp = spData.mp || '10';
           const spTarget = getPlainText(spData.target || '一個生物', s.selections, state.level, state.partyLevel);
           const spDuration = spData.duration || '瞬發';
-          text += `> (MP: ${spMp} | 目標: ${spTarget} | 持續: ${spDuration})\n`;
           const isOffensive = spData.isOffensive || isOffensiveSpell(skillName);
+          const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
+          const accStr = totalMagicAcc >= 0 ? `+${totalMagicAcc}` : `${totalMagicAcc}`;
+          const formulaDisplay = state.magicFormula || spData.formula || '[INS + WLP]';
+
+          text += `> **${skillName}** (MP: ${spMp} | 目標: ${spTarget} | 持續: ${spDuration})\n`;
           if (isOffensive) {
-            const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
-            const accStr = totalMagicAcc >= 0 ? `+${totalMagicAcc}` : `${totalMagicAcc}`;
-            const formulaDisplay = state.magicFormula || spData.formula || '[INS + WLP]';
-            text += `> *精確: ${formulaDisplay} ${accStr} ✦ 魔法攻擊*\n`;
+            text += `> ${formulaDisplay} ${accStr} ✦ 攻擊性咒語\n`;
           }
-        }
-        text += `> ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true).split('\n').join('\n> ')}\n\n`;
-      });
+          const desc = getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true);
+          if (desc) {
+            text += `> ${desc.split('\n').join('\n> ')}\n\n`;
+          } else {
+            text += `\n`;
+          }
+        });
+      }
+
+      // 基本攻擊與行動（排除自訂咒語）
+      const nonSpellSkills = validSkills.filter(s => !(s.category === 'spell' || !!s.spellData));
+      if (nonSpellSkills.length > 0) {
+        text += `**基本攻擊與行動**\n`;
+        nonSpellSkills.forEach(s => {
+          if (revealLevel !== 'full' && (s.source === 'bossSkill' || s.category === 'rule' || s.category === 'action')) return;
+          let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+          text += `> **${skillName}**\n`;
+          if (s.attack) {
+            const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
+            text += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
+          }
+          const desc = getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true);
+          if (desc) {
+            text += `> ${desc.split('\n').join('\n> ')}\n\n`;
+          } else {
+            text += `\n`;
+          }
+        });
+      }
     }
     if (revealLevel === 'full' && state.tactics) {
       text += `**戰術慣例**:\n${state.tactics}\n`;
@@ -135,62 +183,77 @@ export const buildNpcText = (ctx, format = 'markdown') => {
   } else if (format === 'plain') {
     text += `${state.name} (Lv. ${state.level})\n`;
     const rankDisplay = state.rank === "冠位" ? `${state.rank} (${state.championMultiplier})` : state.rank;
-    text += `【${rankDisplay}】${state.role}\n`;
+    text += `【${rankDisplay}】${state.role}${state.villainTier !== 'none' && revealLevel === 'full' ? ` (${VILLAIN_TIERS[state.villainTier].label} - 終結點 ${VILLAIN_TIERS[state.villainTier].up})` : ''}\n`;
     if (isRevealed('stats')) {
       if (state.traits) text += `特質: ${state.traits}\n`;
       text += `DEX d${stats.DEX.replace('d','')} | INS d${stats.INS.replace('d','')} | MIG d${stats.MIG.replace('d','')} | WLP d${stats.WLP.replace('d','')}\n`;
       text += `HP: ${stats.HP} (危機: ${Math.floor(stats.HP / 2)}) | MP: ${stats.MP} | 先攻 INIT: ${stats.Init} | 物防 DEF: ${stats.Def} | 魔防 M.DEF: ${stats.MDef}\n`;
-      DAMAGE_TYPES.forEach(t => {
-        const aff = mergedAffinities[t];
-        if (aff && aff !== 'normal') {
-          const label = aff === 'vul' ? '弱點' : aff === 'res' ? '抗性' : aff === 'imm' ? '免疫' : '吸收';
-          text += `${t}: ${label}\n`;
-        }
-      });
-      if (stats.statusImmunities.length > 0) text += `異常免疫: ${stats.statusImmunities.join('、')}\n`;
+      const affText = formatAffinitiesText(mergedAffinities);
+      if (affText) text += `相性: ${affText}\n`;
+      if (stats.statusImmunities && stats.statusImmunities.length > 0) text += `異常免疫: ${stats.statusImmunities.join('、')}\n`;
       text += `\n`;
     }
     if (isRevealed('combat')) {
-      if (stats.spellList && stats.spellList.length > 0) {
+      const validSkills = processedSkills.filter(s => !s.isOverBudget);
+      const customSpells = validSkills.filter(s => s.category === 'spell' || !!s.spellData);
+      const hasSpellList = stats.spellList && stats.spellList.length > 0;
+      const hasAnySpells = hasSpellList || customSpells.length > 0;
+
+      if (hasAnySpells) {
         text += `[ 咒語 ]\n`;
-        stats.spellList.forEach(spellObj => {
-          const rawSpellName = spellObj.name;
-          const selections = spellObj.selections || {};
-          const cleanSpellName = normalizeSpellName(rawSpellName);
-          const effectiveName = selections.customName !== undefined ? selections.customName : cleanSpellName;
-          const spellData = SPELLS_DATA[cleanSpellName];
-          const effectiveDesc = selections.customDesc !== undefined ? selections.customDesc : spellData?.effect || '';
-          const replacedTarget = getPlainText(spellData?.target, selections, state.level, state.partyLevel);
-          const replacedEffect = getPlainText(effectiveDesc ? effectiveDesc.replace(/【HR\+(\d+)】/g, (match, p1) => `[HR + ${parseInt(p1) + stats.Dmg}]`) : '', selections, state.level, state.partyLevel, true);
-          text += `- ${effectiveName} (MP: ${spellData?.mp || '?'} | 目標: ${replacedTarget} | 持續: ${spellData?.duration || '瞬發'})\n  ${replacedEffect}\n`;
-        });
-        text += `\n`;
-      }
-      text += `[ 基本攻擊與行動 ]\n`;
-      processedSkills.filter(s => !s.isOverBudget).forEach(s => {
-        if (revealLevel !== 'full' && (s.source === 'bossSkill' || s.category === 'rule' || s.category === 'action')) return;
-        let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
-        const atk = s.attack ? resolveAttack(s.attack, s.selections, s.selectionsConfig) : null;
-        let atkStr = atk ? ` [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害` : '';
-        const isSpell = s.category === 'spell' || !!s.spellData;
-        const spData = s.spellData || {};
-        const isOffensive = isSpell && (spData.isOffensive || isOffensiveSpell(skillName));
-        let spellInfo = '';
-        if (isSpell) {
+        if (hasSpellList) {
+          stats.spellList.forEach(spellObj => {
+            const rawSpellName = spellObj.name;
+            const selections = spellObj.selections || {};
+            const cleanSpellName = normalizeSpellName(rawSpellName);
+            const effectiveName = selections.customName !== undefined ? selections.customName : cleanSpellName;
+            const spellData = SPELLS_DATA[cleanSpellName];
+            const effectiveDesc = selections.customDesc !== undefined ? selections.customDesc : spellData?.effect || '';
+            const isOffensive = isOffensiveSpell(rawSpellName);
+            const totalMagicAcc = stats.Acc + stats.MagicAccModifier;
+            const replacedTarget = getPlainText(spellData?.target, selections, state.level, state.partyLevel);
+            const replacedEffect = getPlainText(effectiveDesc ? effectiveDesc.replace(/【HR\+(\d+)】/g, (match, p1) => `[HR + ${parseInt(p1) + stats.Dmg}]`) : '', selections, state.level, state.partyLevel, true);
+            let offensiveStr = '';
+            if (isOffensive) {
+              const accStr = totalMagicAcc >= 0 ? `+${totalMagicAcc}` : `${totalMagicAcc}`;
+              offensiveStr = ` [${state.magicFormula || '[INS + WLP]'} ${accStr} ✦ 攻擊性咒語]`;
+            }
+            text += `- ${effectiveName} (MP: ${spellData?.mp || '?'} | 目標: ${replacedTarget} | 持續: ${spellData?.duration || '瞬發'})${offensiveStr}\n  ${replacedEffect}\n`;
+          });
+        }
+        customSpells.forEach(s => {
+          let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+          const spData = s.spellData || {};
           const spMp = spData.mp || '10';
           const spTarget = getPlainText(spData.target || '一個生物', s.selections, state.level, state.partyLevel);
           const spDuration = spData.duration || '瞬發';
+          const isOffensive = spData.isOffensive || isOffensiveSpell(skillName);
           let offensiveStr = '';
           if (isOffensive) {
             const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
             const accStr = totalMagicAcc >= 0 ? `+${totalMagicAcc}` : `${totalMagicAcc}`;
             const formulaDisplay = state.magicFormula || spData.formula || '[INS + WLP]';
-            offensiveStr = ` [${formulaDisplay} ${accStr} ✦ 魔法攻擊]`;
+            offensiveStr = ` [${formulaDisplay} ${accStr} ✦ 攻擊性咒語]`;
           }
-          spellInfo = ` (MP: ${spMp} | 目標: ${spTarget} | 持續: ${spDuration})${offensiveStr}`;
-        }
-        text += `- ${skillName}${atkStr}${spellInfo}\n  ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true)}\n`;
-      });
+          const desc = getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true);
+          text += `- ${skillName} (MP: ${spMp} | 目標: ${spTarget} | 持續: ${spDuration})${offensiveStr}\n  ${desc}\n`;
+        });
+        text += `\n`;
+      }
+
+      // 基本攻擊與行動（排除自訂咒語）
+      const nonSpellSkills = validSkills.filter(s => !(s.category === 'spell' || !!s.spellData));
+      if (nonSpellSkills.length > 0) {
+        text += `[ 基本攻擊與行動 ]\n`;
+        nonSpellSkills.forEach(s => {
+          if (revealLevel !== 'full' && (s.source === 'bossSkill' || s.category === 'rule' || s.category === 'action')) return;
+          let skillName = (s.customName || s.originalName).replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+          const atk = s.attack ? resolveAttack(s.attack, s.selections, s.selectionsConfig) : null;
+          let atkStr = atk ? ` [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害` : '';
+          const desc = getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true);
+          text += `- ${skillName}${atkStr}\n  ${desc}\n`;
+        });
+      }
     }
     if (revealLevel === 'full' && state.tactics) {
       text += `\n戰術慣例:\n${state.tactics}\n`;
@@ -206,10 +269,6 @@ export const buildNpcText = (ctx, format = 'markdown') => {
     const speciesName = state.selectedSpeciesId ? (SPECIES_DATA.find(sp => sp.id === state.selectedSpeciesId)?.name || '') : '';
 
     // 1. Build Memo (說明欄)
-    //
-    // GM-09-02：ccfolia 分支原本**完全不理會 revealLevel**——研究檢定切到 10+ 之後，
-    // 其餘三種格式都剔掉了故事與戰術、也把數值遮成 ??，只有這裡照樣全送，
-    // 等於把 GM 刻意要藏的東西直接交到玩家手上。這裡補上與其他分支一致的閘門。
     const memoLines = [];
     memoLines.push(`【${rankDisplay}】${state.role}`);
     if (villainTier !== 'none' && revealLevel === 'full') {
@@ -226,26 +285,10 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         memoLines.push(`特質：${state.traits}`);
       }
 
-      // 相性：『弱點：風、火——抗性：暗、毒——免疫：冰』
-      const affGroups = {
-        vul: [],
-        res: [],
-        imm: [],
-        abs: []
-      };
-      DAMAGE_TYPES.forEach(t => {
-        const aff = mergedAffinities[t];
-        if (aff && affGroups[aff]) {
-          affGroups[aff].push(t);
-        }
-      });
-      const affParts = [];
-      if (affGroups.vul.length > 0) affParts.push(`弱點：${affGroups.vul.join('、')}`);
-      if (affGroups.res.length > 0) affParts.push(`抗性：${affGroups.res.join('、')}`);
-      if (affGroups.imm.length > 0) affParts.push(`免疫：${affGroups.imm.join('、')}`);
-      if (affGroups.abs.length > 0) affParts.push(`吸收：${affGroups.abs.join('、')}`);
-      if (affParts.length > 0) {
-        memoLines.push(affParts.join('——'));
+      // 相性：『弱點（火、光）、抗性（暗、土）、免疫（冰、毒）、吸收（電）』
+      const affText = formatAffinitiesText(mergedAffinities);
+      if (affText) {
+        memoLines.push(affText);
       }
       if (stats.statusImmunities && stats.statusImmunities.length > 0) {
         memoLines.push(`異常免疫：${stats.statusImmunities.join(', ')}`);
@@ -256,27 +299,24 @@ export const buildNpcText = (ctx, format = 'markdown') => {
       memoLines.push(`\n背景故事：\n${state.story}`);
     }
 
-    // 2. Build Status (HP, MP, 終結點)
+    // 2. Build Status (HP, MP, DEF, M.DEF, 終結點)
     const statusArr = [
       { label: "HP", value: stats.HP, max: stats.HP },
-      { label: "MP", value: stats.MP, max: stats.MP }
+      { label: "MP", value: stats.MP, max: stats.MP },
+      { label: "DEF", value: stats.Def, max: stats.Def },
+      { label: "M.DEF", value: stats.MDef, max: stats.MDef }
     ];
     if (villainTier !== 'none' && villainInfo.up > 0) {
       statusArr.push({ label: "終結點", value: villainInfo.up, max: villainInfo.up });
     }
 
-    // 3. Build Params (DEX, INS, MIG, WLP, DEF, M.DEF, INIT)
-    const dexNum = String(stats.DEX).replace('d', '');
-    const insNum = String(stats.INS).replace('d', '');
-    const migNum = String(stats.MIG).replace('d', '');
-    const wlpNum = String(stats.WLP).replace('d', '');
+    // 3. Build Params (DEX, INS, MIG, WLP, INIT)
+    const formatDie = (d) => String(d).startsWith('d') ? String(d) : `d${d}`;
     const paramsArr = [
-      { label: "DEX", value: dexNum },
-      { label: "INS", value: insNum },
-      { label: "MIG", value: migNum },
-      { label: "WLP", value: wlpNum },
-      { label: "DEF", value: String(stats.Def) },
-      { label: "M.DEF", value: String(stats.MDef) },
+      { label: "DEX", value: formatDie(stats.DEX) },
+      { label: "INS", value: formatDie(stats.INS) },
+      { label: "MIG", value: formatDie(stats.MIG) },
+      { label: "WLP", value: formatDie(stats.WLP) },
       { label: "INIT", value: String(stats.Init) }
     ];
 
@@ -304,22 +344,19 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         const dmgType = getPlainText(atk.type, s.selections, state.level, state.partyLevel);
         const totalDmg = (s.attack?.baseDmg || 0) + (stats.Dmg || 0);
 
-        let diceExpr = '1d{DEX}+1d{MIG}';
+        let diceExpr = '1{DEX}+1{MIG}';
         const match = rawFormula.match(/([A-Za-z]+)\s*\+\s*([A-Za-z]+)/);
         if (match && match[1] && match[2]) {
-          diceExpr = `1d{${match[1].toUpperCase()}}+1d{${match[2].toUpperCase()}}`;
+          diceExpr = `1{${match[1].toUpperCase()}}+1{${match[2].toUpperCase()}}`;
         }
 
         const accMod = stats.Acc || 0;
         const accStr = accMod > 0 ? `+${accMod}` : accMod < 0 ? `${accMod}` : '';
 
         cmdLines.push(`${diceExpr}${accStr} 【${skillName}】命中檢定 [${dist}]`);
-        cmdLines.push(`傷害：【${dmgType}】HR + ${totalDmg}`);
-
         const extraText = getPlainText(s.customDesc || s.originalDesc || s.attack?.extra || '', s.selections, state.level, state.partyLevel, true);
-        if (extraText) {
-          cmdLines.push(`效果：${extraText.replace(/\n+/g, ' ')}`);
-        }
+        const extraStr = extraText ? ` ✦ 效果：${extraText.replace(/\n+/g, ' ')}` : '';
+        cmdLines.push(`【${dmgType}】HR + ${totalDmg}${extraStr}`);
       });
     }
 
@@ -348,16 +385,20 @@ export const buildNpcText = (ctx, format = 'markdown') => {
           if (isOffensive) {
             const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
             const accStr = totalMagicAcc > 0 ? `+${totalMagicAcc}` : totalMagicAcc < 0 ? `${totalMagicAcc}` : '';
-            let magicDice = '1d{INS}+1d{WLP}';
+            let magicDice = '1{INS}+1{WLP}';
             const fMatch = (state.magicFormula || '').match(/([A-Za-z]+)\s*\+\s*([A-Za-z]+)/);
             if (fMatch && fMatch[1] && fMatch[2]) {
-              magicDice = `1d{${fMatch[1].toUpperCase()}}+1d{${fMatch[2].toUpperCase()}}`;
+              magicDice = `1{${fMatch[1].toUpperCase()}}+1{${fMatch[2].toUpperCase()}}`;
             }
-            cmdLines.push(`${magicDice}${accStr} 【${normalizeSpellName(effectiveName)}】魔攻檢定 (MP: ${spellData?.mp || '?'})`);
-            cmdLines.push(`效果：${replacedEffect.replace(/\n+/g, ' ')}`);
+            cmdLines.push(`${magicDice}${accStr} 【${normalizeSpellName(effectiveName)}】施法檢定 (MP: ${spellData?.mp || '?'})`);
+            if (replacedEffect) {
+              cmdLines.push(`效果：${replacedEffect.replace(/\n+/g, ' ')}`);
+            }
           } else {
             cmdLines.push(`【${normalizeSpellName(effectiveName)}】咒語發動 (MP: ${spellData?.mp || '?'} | 目標: ${replacedTarget})`);
-            cmdLines.push(`效果：${replacedEffect.replace(/\n+/g, ' ')}`);
+            if (replacedEffect) {
+              cmdLines.push(`效果：${replacedEffect.replace(/\n+/g, ' ')}`);
+            }
           }
         });
       }
@@ -370,16 +411,20 @@ export const buildNpcText = (ctx, format = 'markdown') => {
         if (isOffensive) {
           const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
           const accStr = totalMagicAcc > 0 ? `+${totalMagicAcc}` : totalMagicAcc < 0 ? `${totalMagicAcc}` : '';
-          let magicDice = '1d{INS}+1d{WLP}';
+          let magicDice = '1{INS}+1{WLP}';
           const fMatch = (state.magicFormula || spData.formula || '').match(/([A-Za-z]+)\s*\+\s*([A-Za-z]+)/);
           if (fMatch && fMatch[1] && fMatch[2]) {
-            magicDice = `1d{${fMatch[1].toUpperCase()}}+1d{${fMatch[2].toUpperCase()}}`;
+            magicDice = `1{${fMatch[1].toUpperCase()}}+1{${fMatch[2].toUpperCase()}}`;
           }
-          cmdLines.push(`${magicDice}${accStr} 【${skillName}】魔攻檢定 (MP: ${spData.mp || '?'})`);
-          cmdLines.push(`效果：${desc.replace(/\n+/g, ' ')}`);
+          cmdLines.push(`${magicDice}${accStr} 【${skillName}】施法檢定 (MP: ${spData.mp || '?'})`);
+          if (desc) {
+            cmdLines.push(`效果：${desc.replace(/\n+/g, ' ')}`);
+          }
         } else {
           cmdLines.push(`【${skillName}】咒語發動 (MP: ${spData.mp || '?'} | 目標: ${spData.target || '一個生物'})`);
-          cmdLines.push(`效果：${desc.replace(/\n+/g, ' ')}`);
+          if (desc) {
+            cmdLines.push(`效果：${desc.replace(/\n+/g, ' ')}`);
+          }
         }
       });
     }
@@ -428,117 +473,130 @@ export const buildNpcText = (ctx, format = 'markdown') => {
   } else {
     let md = `### ${state.name} (Lv. ${state.level})\n`;
     const rankDisplay = state.rank === "冠位" ? `${state.rank} (${state.championMultiplier})` : state.rank;
-    md += `**【${rankDisplay}】${state.role}** ${state.villainTier !== 'none' && revealLevel === 'full' ? `(${VILLAIN_TIERS[state.villainTier].label} - UP ${VILLAIN_TIERS[state.villainTier].up})` : ''}\n`;
+    md += `**【${rankDisplay}】${state.role}** ${state.villainTier !== 'none' && revealLevel === 'full' ? `(${VILLAIN_TIERS[state.villainTier].label} - 終結點 ${VILLAIN_TIERS[state.villainTier].up})` : ''}\n`;
 
     if (isRevealed('stats')) {
       if (state.traits) md += `*特質: ${state.traits}*\n`;
       md += `\n**DEX ${stats.DEX.startsWith('d') ? stats.DEX : 'd' + stats.DEX} | INS ${stats.INS.startsWith('d') ? stats.INS : 'd' + stats.INS} | MIG ${stats.MIG.startsWith('d') ? stats.MIG : 'd' + stats.MIG} | WLP ${stats.WLP.startsWith('d') ? stats.WLP : 'd' + stats.WLP}**\n`;
       md += `**HP: ${stats.HP} (危機 ${Math.floor(stats.HP / 2)}) | MP: ${stats.MP} | 先攻: ${stats.Init} | 物防 DEF: ${stats.Def} | 魔防 M.DEF: ${stats.MDef}**\n\n`;
 
-      let affStr = "";
-      DAMAGE_TYPES.forEach(t => {
-        const aff = mergedAffinities[t];
-        if (aff && aff !== 'normal') {
-          const label = aff === 'vul' ? '弱點' : aff === 'res' ? '抗性' : aff === 'imm' ? '免疫' : '吸收';
-          affStr += `* ${t}: ${label}\n`;
-        }
-      });
-      if (affStr) md += affStr;
-      if (stats.statusImmunities.length > 0) md += `* 異常免疫: ${stats.statusImmunities.join('、')}\n`;
+      const affText = formatAffinitiesText(mergedAffinities);
+      if (affText) md += `* 相性: ${affText}\n`;
+      if (stats.statusImmunities && stats.statusImmunities.length > 0) md += `* 異常免疫: ${stats.statusImmunities.join('、')}\n`;
       md += `\n`;
     } else {
       md += `**HP: ${stats.HP} (危機 ${Math.floor(stats.HP / 2)}) | MP: ${stats.MP} | 先攻: ?? | 物防 DEF: ?? | 魔防 M.DEF: ??**\n\n`;
     }
 
-    if (revealLevel === 'full' && (state.selectedNegativeSkills || []).length > 0) {
+    const validNegs = (state.selectedNegativeSkills || []).map(neg => {
+      const skill = NEGATIVE_SKILLS_DATA.find(s => s.id === neg.id);
+      return skill ? { ...skill, selections: neg.selections } : null;
+    }).filter(Boolean);
+
+    if (revealLevel === 'full' && validNegs.length > 0) {
       md += `#### 負面技能\n`;
-      state.selectedNegativeSkills.forEach(neg => {
-        const skill = NEGATIVE_SKILLS_DATA.find(s => s.id === neg.id);
-        if (skill) {
-          md += `> **${skill.originalName}**\n`;
-          md += `> ${getPlainText(skill.originalDesc, neg.selections, state.level, state.partyLevel, true)}\n\n`;
-        }
+      validNegs.forEach(skill => {
+        md += `> **${skill.originalName}**\n`;
+        md += `> ${getPlainText(skill.originalDesc, skill.selections, state.level, state.partyLevel, true)}\n\n`;
       });
     }
 
     if (isRevealed('combat')) {
       const validNpcName = state.name && state.name.trim() !== "" && state.name !== "未知實體" ? state.name.trim() : null;
+      const validSkills = processedSkills.filter(s => !s.isOverBudget);
+      const customSpells = validSkills.filter(s => s.category === 'spell' || !!s.spellData);
+      const hasSpellList = stats.spellList && stats.spellList.length > 0;
+      const hasAnySpells = hasSpellList || customSpells.length > 0;
 
-      if (stats.spellList && stats.spellList.length > 0) {
+      if (hasAnySpells) {
         md += `#### 咒語\n`;
-        stats.spellList.forEach(spellObj => {
-          const rawSpellName = spellObj.name;
-          const selections = spellObj.selections || {};
-          const cleanSpellName = normalizeSpellName(rawSpellName);
-          const effectiveName = selections.customName !== undefined ? selections.customName : cleanSpellName;
-          const spellData = SPELLS_DATA[cleanSpellName];
-          const effectiveDesc = selections.customDesc !== undefined ? selections.customDesc : spellData?.effect || '';
-          const isOffensive = isOffensiveSpell(rawSpellName);
-          const isSecretArtForSpell = cleanSpellName === secretArtTarget || rawSpellName === secretArtTarget;
-          const totalMagicAcc = stats.Acc + stats.MagicAccModifier;
+        if (hasSpellList) {
+          stats.spellList.forEach(spellObj => {
+            const rawSpellName = spellObj.name;
+            const selections = spellObj.selections || {};
+            const cleanSpellName = normalizeSpellName(rawSpellName);
+            const effectiveName = selections.customName !== undefined ? selections.customName : cleanSpellName;
+            const spellData = SPELLS_DATA[cleanSpellName];
+            const effectiveDesc = selections.customDesc !== undefined ? selections.customDesc : spellData?.effect || '';
+            const isOffensive = isOffensiveSpell(rawSpellName);
+            const isSecretArtForSpell = cleanSpellName === secretArtTarget || rawSpellName === secretArtTarget;
+            const totalMagicAcc = stats.Acc + stats.MagicAccModifier;
 
-          let nameState = { used: false };
-          const replaceNPC = (txt) => {
-            if (typeof txt !== 'string' || !validNpcName) return txt;
-            return txt.replace(/此\s?NPC\s?/g, () => {
-              if (!nameState.used) { nameState.used = true; return `__NPC_NAME__${validNpcName}__NPC_END__`; }
-              return "它";
-            });
-          };
+            let nameState = { used: false };
+            const replaceNPC = (txt) => {
+              if (typeof txt !== 'string' || !validNpcName) return txt;
+              return txt.replace(/此\s?NPC\s?/g, () => {
+                if (!nameState.used) { nameState.used = true; return `__NPC_NAME__${validNpcName}__NPC_END__`; }
+                return "它";
+              });
+            };
 
-          const replacedTarget = replaceNPC(spellData?.target);
-          const rawEffectBase = effectiveDesc ? effectiveDesc.replace(/【HR\+(\d+)】/g, (match, p1) => `[HR + ${parseInt(p1) + stats.Dmg}]`) : '';
-          const replacedEffect = replaceNPC(rawEffectBase);
+            const replacedTarget = replaceNPC(spellData?.target);
+            const rawEffectBase = effectiveDesc ? effectiveDesc.replace(/【HR\+(\d+)】/g, (match, p1) => `[HR + ${parseInt(p1) + stats.Dmg}]`) : '';
+            const replacedEffect = replaceNPC(rawEffectBase);
 
-          md += `> **${normalizeSpellName(effectiveName)}** (MP: ${spellData?.mp || '?'} | 目標: ${getPlainText(replacedTarget, selections, state.level, state.partyLevel)} | 持續: ${spellData?.duration || '瞬發'})\n`;
-          if (isOffensive) {
-            const accStr = totalMagicAcc > 0 ? ` +${totalMagicAcc}` : (totalMagicAcc < 0 ? ` - ${Math.abs(totalMagicAcc)}` : '');
-            const formulaDisplay = state.magicFormula || '[INS + WLP]';
-            md += `> ${formulaDisplay}${accStr} ✦ 魔法攻擊\n`;
-          }
-          if (spellData) {
-            md += `> ${getPlainText(replacedEffect, selections, state.level, state.partyLevel, true).split('\n').join('\n> ')}\n`;
-          }
-          if (isSecretArtForSpell) {
-            md += `> *(此咒語為祕技，除了目標之外沒有人會意識到那是什麼。)*\n`;
-          }
-          md += `\n`;
-        });
-      }
-
-      md += `#### 基本攻擊與行動\n`;
-      processedSkills.filter(s => !s.isOverBudget).forEach(s => {
-        if (revealLevel !== 'full' && (s.source === 'bossSkill' || s.category === 'rule' || s.category === 'action')) return;
-        let rawName = s.customName || s.originalName;
-        let skillName = rawName.replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
-        md += `> **${skillName}**\n`;
-        if (s.attack) {
-          const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
-          md += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
-        } else if (s.category === 'spell' || s.spellData) {
+            md += `> **${normalizeSpellName(effectiveName)}** (MP: ${spellData?.mp || '?'} | 目標: ${getPlainText(replacedTarget, selections, state.level, state.partyLevel)} | 持續: ${spellData?.duration || '瞬發'})\n`;
+            if (isOffensive) {
+              const accStr = totalMagicAcc > 0 ? ` +${totalMagicAcc}` : (totalMagicAcc < 0 ? ` - ${Math.abs(totalMagicAcc)}` : '');
+              const formulaDisplay = state.magicFormula || '[INS + WLP]';
+              md += `> ${formulaDisplay}${accStr} ✦ 攻擊性咒語\n`;
+            }
+            if (spellData && replacedEffect) {
+              md += `> ${getPlainText(replacedEffect, selections, state.level, state.partyLevel, true).split('\n').join('\n> ')}\n`;
+            }
+            if (isSecretArtForSpell) {
+              md += `> *(此咒語為祕技，除了目標之外沒有人會意識到那是什麼。)*\n`;
+            }
+            md += `\n`;
+          });
+        }
+        customSpells.forEach(s => {
+          let rawName = s.customName || s.originalName;
+          let skillName = rawName.replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
           const spData = s.spellData || {};
           const spMp = spData.mp || '10';
           const spTarget = getPlainText(spData.target || '一個生物', s.selections, state.level, state.partyLevel);
           const spDuration = spData.duration || '瞬發';
-          md += `> (MP: ${spMp} | 目標: ${spTarget} | 持續: ${spDuration})\n`;
+          md += `> **${skillName}** (MP: ${spMp} | 目標: ${spTarget} | 持續: ${spDuration})\n`;
           const isOffensive = spData.isOffensive || isOffensiveSpell(skillName);
           if (isOffensive) {
             const totalMagicAcc = (stats.Acc || 0) + (stats.MagicAccModifier || 0);
             const accStr = totalMagicAcc > 0 ? ` +${totalMagicAcc}` : (totalMagicAcc < 0 ? ` - ${Math.abs(totalMagicAcc)}` : '');
             const formulaDisplay = state.magicFormula || spData.formula || '[INS + WLP]';
-            md += `> ${formulaDisplay}${accStr} ✦ 魔法攻擊\n`;
+            md += `> ${formulaDisplay}${accStr} ✦ 攻擊性咒語\n`;
           }
-        }
-        if (s.customDesc || s.originalDesc) {
-          md += `> ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true)}\n`;
-        }
-        const isSecret = s.isSecretArt || (secretArtTarget && (secretArtTarget === rawName || secretArtTarget === skillName || secretArtTarget === s.originalName || secretArtTarget === s.customName));
-        if (isSecret) {
-          const label = s.attack ? '攻擊' : s.category === 'spell' ? '咒語' : '技能';
-          md += `> *(此${label}為祕技，除了目標之外沒有人會意識到那是什麼。)*\n`;
-        }
-        md += `\n`;
-      });
+          const desc = getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true);
+          if (desc) {
+            md += `> ${desc.split('\n').join('\n> ')}\n`;
+          }
+          md += `\n`;
+        });
+      }
+
+      // 基本攻擊與行動（排除自訂咒語）
+      const nonSpellSkills = validSkills.filter(s => !(s.category === 'spell' || !!s.spellData));
+      if (nonSpellSkills.length > 0) {
+        md += `#### 基本攻擊與行動\n`;
+        nonSpellSkills.forEach(s => {
+          if (revealLevel !== 'full' && (s.source === 'bossSkill' || s.category === 'rule' || s.category === 'action')) return;
+          let rawName = s.customName || s.originalName;
+          let skillName = rawName.replace(/^(技能|能力)：/, '').replace(/\(定位技能\)/, '').trim();
+          md += `> **${skillName}**\n`;
+          if (s.attack) {
+            const atk = resolveAttack(s.attack, s.selections, s.selectionsConfig);
+            md += `> [${getPlainText(atk.distance, s.selections, state.level, state.partyLevel)}] [${getPlainText(atk.formula, s.selections, state.level, state.partyLevel)}] ${stats.Acc >= 0 ? '+' : '-'}${Math.abs(stats.Acc)} ✦ [HR + ${s.attack.baseDmg + stats.Dmg}] ${getPlainText(atk.type, s.selections, state.level, state.partyLevel)}傷害\n`;
+          }
+          if (s.customDesc || s.originalDesc) {
+            md += `> ${getPlainText(s.customDesc || s.originalDesc, s.selections, state.level, state.partyLevel, true)}\n`;
+          }
+          const isSecret = s.isSecretArt || (secretArtTarget && (secretArtTarget === rawName || secretArtTarget === skillName || secretArtTarget === s.originalName || secretArtTarget === s.customName));
+          if (isSecret) {
+            const label = s.attack ? '攻擊' : '技能';
+            md += `> *(此${label}為祕技，除了目標之外沒有人會意識到那是什麼。)*\n`;
+          }
+          md += `\n`;
+        });
+      }
     }
 
     if (revealLevel === 'full' && state.tactics) {
