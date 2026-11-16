@@ -1701,11 +1701,15 @@
      "src/features/character-sheet/utils/pendingBuffs.js:applyIBelieveInYou"
     ]
    },
-   "note": "由 pendingBuffs 暫存增益模組承載（扣除 5 MP 記錄激勵待生效增益）。",
+   "note": "由 PendingBuffsPanel ＋ pendingBuffs 承載（花費 1 點物語點支援盟友並可回 SL×10 MP）。",
    "evidence": [
     {
      "at": "src/features/character-sheet/utils/pendingBuffs.js:applyIBelieveInYou",
-     "what": "applyIBelieveInYou 純函式：扣除 5 MP，登記盟友暫存重擲/增益"
+     "what": "applyIBelieveInYou：消耗 1 點物語點，登記盟友重擲／+2 增益並（有羈絆時）標註恢復 SL×10 MP"
+    },
+    {
+     "at": "src/features/character-sheet/components/companions/PendingBuffsPanel.jsx",
+     "what": "PendingBuffsPanel 支援【我相信你】角色目標、特質與物語點扣點操作"
     }
    ]
   },
@@ -1777,7 +1781,7 @@
      "perSL": 20,
      "flat": 0,
      "scope": "scene",
-     "condition": "每花 SL×20 MP，命刻額外推進／回撥 1 格"
+     "condition": "每花 20 MP（至多 SL×20 MP），命刻額外填滿／清除 1 格"
     }
    ],
    "apply": {
@@ -1786,11 +1790,15 @@
      "src/features/character-sheet/utils/pendingBuffs.js:applySmoothTalker"
     ]
    },
-   "note": "由 pendingBuffs 模組承載（花費 10 MP 推進命刻進度）。",
+   "note": "由 PendingBuffsPanel ＋ pendingBuffs 承載（每 20 MP 額外推進或清除 1 格命刻，上限 SL 格）。",
    "evidence": [
     {
      "at": "src/features/character-sheet/utils/pendingBuffs.js:applySmoothTalker",
-     "what": "applySmoothTalker 純函式：扣除 10 MP 推進命刻 1 格"
+     "what": "applySmoothTalker：每花費 20 MP 額外填滿／清除 1 格命刻（至多 SL 格 / SL×20 MP）"
+    },
+    {
+     "at": "src/features/character-sheet/components/companions/PendingBuffsPanel.jsx",
+     "what": "PendingBuffsPanel 提供手段、刻度格數（20/40 MP）與個人／場景命刻連動"
     }
    ]
   },
@@ -2853,11 +2861,15 @@
      "src/features/character-sheet/utils/travelRoll.js:evalTravelRoll"
     ]
    },
-   "note": "由 travelRoll 模組承載（≥6 獲得 SL×100z 寶藏發現）。",
+   "note": "由 TravelRollPanel ＋ travelRoll 承載（擲出 SL+1 或更低獲得意外發現）。",
    "evidence": [
     {
      "at": "src/features/character-sheet/utils/travelRoll.js:evalTravelRoll",
-     "what": "evalTravelRoll：旅行骰 ≥6 時觸發獲得 SL×100z"
+     "what": "evalTravelRoll：旅行骰擲出 ≤ SL + 1 即判定獲得意外發現（≥ 6 仍為遭遇危險）"
+    },
+    {
+     "at": "src/features/character-sheet/components/companions/TravelRollPanel.jsx",
+     "what": "TravelRollPanel 依實際 SL+1 門檻判定並顯示意外發現"
     }
    ]
   },
@@ -2935,11 +2947,15 @@
      "src/features/character-sheet/utils/travelRoll.js:evalTravelRoll"
     ]
    },
-   "note": "由 travelRoll 模組承載（擲出 1 允許重擲）。",
+   "note": "由 TravelRollPanel ＋ travelRoll 承載（每次旅行骰後恢復 SL 點 IP）。",
    "evidence": [
     {
      "at": "src/features/character-sheet/utils/travelRoll.js:evalTravelRoll",
-     "what": "evalTravelRoll：旅行骰擲出 1 時允許重擲"
+     "what": "evalTravelRoll ＋ applyTravelOutcome：每次旅行骰後恢復 SL 點 IP（上限依 maxIp 夾制）"
+    },
+    {
+     "at": "src/features/character-sheet/components/companions/TravelRollPanel.jsx",
+     "what": "TravelRollPanel 於旅行骰結算時自動套用 IP 恢復"
     }
    ]
   },
@@ -2973,11 +2989,15 @@
      "src/features/character-sheet/utils/travelRoll.js:resolveTravelDie"
     ]
    },
-   "note": "由 travelRoll 模組承載（提升旅行骰骰階）。",
+   "note": "由 TravelRollPanel ＋ travelRoll 承載（旅行骰降一階，最低 d6）。",
    "evidence": [
     {
      "at": "src/features/character-sheet/utils/travelRoll.js:resolveTravelDie",
-     "what": "resolveTravelDie：提升旅行骰尺寸（d6 -> d8/d10/d12）"
+     "what": "resolveTravelDie：將威脅骰尺寸降低一階（d20->d12->d10->d8->d6，最低 d6，不疊加）"
+    },
+    {
+     "at": "src/features/character-sheet/components/companions/TravelRollPanel.jsx",
+     "what": "TravelRollPanel 自動顯示並以降階後骰型擲骰"
     }
    ]
   },
@@ -3487,7 +3507,7 @@
      "perSL": 0,
      "flat": 0,
      "scope": "instant",
-     "condition": "載具可隨時從世界上消失；花 2 IP 讓它出現在身邊並立即進入"
+     "condition": "載具可隨時從世界上消失；花 2 IP（外骨骼 0 IP）讓它出現在身邊並立即進入"
     }
    ],
    "apply": {
@@ -3496,11 +3516,15 @@
      "src/features/character-sheet/utils/pendingBuffs.js:applyCompressionTechnique"
     ]
    },
-   "note": "由 pendingBuffs 模組承載（花 2 IP 切換載具收納與展開狀態）。",
+   "note": "由 PilotVehicleCombatSheet ＋ pendingBuffs 承載（無人駕駛 0 IP 收納，2 IP／外骨骼 0 IP 召喚並駕駛）。",
    "evidence": [
     {
      "at": "src/features/character-sheet/utils/pendingBuffs.js:applyCompressionTechnique",
-     "what": "applyCompressionTechnique 純函式：扣除 2 IP，切換載具壓縮收納狀態"
+     "what": "applyCompressionTechnique：無人駕駛時 0 IP 收納（inWorld=false）；花 2 IP（外骨骼 0 IP）召喚並免費進入駕駛"
+    },
+    {
+     "at": "src/features/character-sheet/components/companions/PilotVehicleCombatSheet.jsx",
+     "what": "PilotVehicleCombatSheet 在步行與已收納狀態提供收納／召喚實際操作"
     }
    ]
   },
@@ -5474,7 +5498,7 @@
      "perSL": 2,
      "flat": 0,
      "scope": "scene",
-     "condition": "每次旅行移動骰後獲得 SL×2 份食材"
+     "condition": "習得烹飪時，每次旅行移動骰後獲得 SL×2 份食材"
     }
    ],
    "apply": {
@@ -5483,11 +5507,15 @@
      "src/features/character-sheet/utils/travelRoll.js:evalTravelRoll"
     ]
    },
-   "note": "由 travelRoll 模組承載（旅行移動結算自動獲取 SL×2 份食材）。",
+   "note": "由 TravelRollPanel ＋ travelRoll 承載（須習得烹飪，每次旅行移動自動獲取 SL×2 份食材）。",
    "evidence": [
     {
      "at": "src/features/character-sheet/utils/travelRoll.js:evalTravelRoll",
-     "what": "evalTravelRoll：每次旅行移動後獲得 SL×2 份食材"
+     "what": "evalTravelRoll ＋ applyTravelOutcome：須已習得【烹飪】，每次旅行骰獲得 SL×2 份食材（扁平陣列與背包上限夾制）"
+    },
+    {
+     "at": "src/features/character-sheet/components/companions/TravelRollPanel.jsx",
+     "what": "TravelRollPanel 擲 d6 口味表並寫入 gourmetData.ingredients"
     }
    ]
   },
@@ -6029,11 +6057,15 @@
      "src/features/character-sheet/utils/pendingBuffs.js:applySupportMagic"
     ]
    },
-   "note": "由 pendingBuffs 模組承載（花 5 MP 登記盟友檢定暫存增益）。",
+   "note": "由 PendingBuffsPanel ＋ pendingBuffs 承載（0 MP，需裝備奧術武器，對有羈絆盟友賦予等於羈絆強度之檢定加值）。",
    "evidence": [
     {
      "at": "src/features/character-sheet/utils/pendingBuffs.js:applySupportMagic",
-     "what": "applySupportMagic 純函式：花 5 MP 登記盟友下次檢定加值"
+     "what": "applySupportMagic：花 0 MP（檢驗奧術武器與羈絆）登記盟友本場景下次檢定 +羈絆強度"
+    },
+    {
+     "at": "src/features/character-sheet/components/companions/PendingBuffsPanel.jsx",
+     "what": "PendingBuffsPanel 自動偵測奧術武器與有情感之羈絆目標並登記增益"
     }
    ]
   },

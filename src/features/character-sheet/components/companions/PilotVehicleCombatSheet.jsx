@@ -20,6 +20,7 @@ import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 import { calculateCharacterStats } from '../../utils/characterEngine';
 import CopyTextButton from '../../../../components/ui/CopyTextButton';
 import { formatCompanionItemCopyText } from '../../utils/playCopyFormat';
+import { applyCompressionTechnique } from '../../utils/pendingBuffs';
 
 export default function PilotVehicleCombatSheet({
   character,
@@ -59,6 +60,22 @@ export default function PilotVehicleCombatSheet({
 
   const frame = findFrameById(vehicle.frameId);
   const isMounted = !!vehicle.isMounted;
+  const inWorld = vehicle.inWorld !== false;
+
+  const handleCompression = (action) => {
+    const res = applyCompressionTechnique(character, { action, frame });
+    if (!res.ok) {
+      showToast(res.reason, 'warning');
+      return;
+    }
+    onChange(res.character);
+    if (res.outcome.action === 'stow') {
+      showToast(`【壓縮技術】已將「${vehicle.name || '個人載具'}」安全收納離開遊戲世界（0 IP）`, 'success');
+    } else {
+      const costText = res.outcome.ipCost > 0 ? `消耗 ${res.outcome.ipCost} 點 IP` : '外骨骼免費 0 IP';
+      showToast(`【壓縮技術】${costText} 召喚「${vehicle.name || '個人載具'}」並立即免費進入駕駛`, 'success');
+    }
+  };
 
   // 解析啟用的各類模組
   const activeWeapons = (vehicle.activeModules || [])
@@ -191,11 +208,23 @@ export default function PilotVehicleCombatSheet({
           {/* 搭乘開關按鈕 */}
           <button
             type="button"
+            disabled={!inWorld}
             onClick={toggleMounted}
-            className={`px-3 py-1.5 rounded font-bold text-xs flex items-center gap-1.5 transition cursor-pointer ${ isMounted ? 'bg-[#27527a] hover:bg-[#214365] text-white ring-2 ring-[#27527a]/40' : 'bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] ' }`}
+            data-testid="pilot-mount-toggle"
+            className={`px-3 py-1.5 rounded font-bold text-xs flex items-center gap-1.5 transition ${
+              !inWorld
+                ? 'bg-[#f4ebd9] text-[#7c6a58] border border-[#d6c7ab] opacity-70 cursor-not-allowed'
+                : isMounted
+                  ? 'bg-[#27527a] hover:bg-[#214365] text-white ring-2 ring-[#27527a]/40 cursor-pointer'
+                  : 'bg-[#f4ebd9] hover:bg-[#e8dcc4] text-[#3c2415] border border-[#d6c7ab] cursor-pointer'
+            }`}
           >
             <GiSteeringWheel className="text-sm" />
-            <span>{isMounted ? '駕駛中（點擊離開）' : '步行中（點擊搭乘）'}</span>
+            <span>
+              {!inWorld
+                ? '已收納（請先召喚）'
+                : (isMounted ? '駕駛中（點擊離開）' : '步行中（點擊搭乘）')}
+            </span>
           </button>
         </div>
       </div>
@@ -229,18 +258,60 @@ export default function PilotVehicleCombatSheet({
             {compressionSkill && (
               <button
                 type="button"
-                onClick={() => showToast(frame.ipFreeCompression ? '【壓縮技術】外骨骼免費收納/召喚 (0 IP)' : '【壓縮技術】消耗 2 IP 收納/召喚載具')}
-                className="px-2 py-0.5 rounded bg-white border border-[#27527a] text-[#27527a] font-bold hover:bg-[#f4ebd9] transition"
+                data-testid="pilot-compression-stow-blocked"
+                onClick={() => handleCompression('stow')}
+                className="px-2 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#6b5a4b] font-bold hover:border-[#8c3235] transition cursor-pointer"
+                title="須在載具無人駕駛時才能以壓縮技術收納（0 IP）"
               >
-                壓縮技術 ({frame.ipFreeCompression ? '0' : '2'} IP)
+                壓縮收納（需無人駕駛，0 IP）
               </button>
             )}
           </div>
         </div>
       ) : (
-        <div className="p-2 rounded bg-[#f4ebd9]/80 border border-[#d6c7ab] text-t11 text-[#6b5a4b] flex items-center justify-between">
-          <span>目前處於步行狀態。戰鬥中可執行「目標」動作搭乘載具。</span>
-          <span className="font-mono">{renderTextWithAffinities(frame.specialRule)}</span>
+        <div className="space-y-2">
+          <div className="p-2 rounded bg-[#f4ebd9]/80 border border-[#d6c7ab] text-t11 text-[#6b5a4b] flex items-center justify-between flex-wrap gap-2">
+            <span>
+              {inWorld
+                ? '目前處於步行狀態。戰鬥中可執行「目標」動作搭乘載具。'
+                : '【壓縮技術】個人載具已安全從遊戲世界中消失（收納狀態）。'}
+            </span>
+            <span className="font-mono">{renderTextWithAffinities(frame.specialRule)}</span>
+          </div>
+          {compressionSkill && (
+            <div
+              data-testid="pilot-compression-bar"
+              className="p-2 rounded bg-[#fffdf9] border border-[#27527a] flex items-center justify-between flex-wrap gap-2 text-xs"
+            >
+              <div className="text-[#3c2415]">
+                <span className="font-bold text-[#27527a]">【壓縮技術】</span>
+                <span className="text-[#6b5a4b]">
+                  {inWorld
+                    ? '載具無人駕駛，隨時可免費安全收納離開遊戲世界（0 IP）。'
+                    : `使用庫存動作召喚載具重現並免費進入駕駛（${frame.ipFreeCompression ? '外骨骼 0 IP' : '2 IP'}）。`}
+                </span>
+              </div>
+              {inWorld ? (
+                <button
+                  type="button"
+                  data-testid="pilot-compression-stow"
+                  onClick={() => handleCompression('stow')}
+                  className="px-3 py-1 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#27527a] text-[#27527a] font-bold transition cursor-pointer"
+                >
+                  收納載具離開世界（0 IP）
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  data-testid="pilot-compression-summon"
+                  onClick={() => handleCompression('summon')}
+                  className="px-3 py-1 rounded bg-[#27527a] hover:bg-[#3c2415] text-[#fffdf9] font-bold transition cursor-pointer"
+                >
+                  召喚並進入載具（{frame.ipFreeCompression ? '0' : '2'} IP）
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 

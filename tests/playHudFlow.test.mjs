@@ -812,6 +812,106 @@ check('S6 死靈術士資源重置按鈕改為「HP 歸零時清空」（含說�
   necroProfileHtml.includes('HP 歸零時清空'),
   true);
 
+/* ────────────────────────────────────────────────────────────────
+   T. W8 §9 補齊：TravelRollPanel／PendingBuffsPanel／Pilot 壓縮技術真實 UI 接線
+   ──────────────────────────────────────────────────────────────── */
+const travelChar = createNewCharacter({ name: '旅行廚師' });
+travelChar.classes = [
+  {
+    className: '旅人',
+    level: 3,
+    skills: [
+      { name: '有備無患', sl: 2 },
+      { name: '寶藏獵人', sl: 2 },
+      { name: '通曉道路', sl: 1 }
+    ]
+  },
+  {
+    className: '美食家',
+    level: 2,
+    skills: [
+      { name: '烹飪', sl: 1 },
+      { name: '準備食材', sl: 2 }
+    ]
+  }
+];
+const travelHtml = render(travelChar, { initialTab: 'skills' });
+check('T1 TravelRollPanel 掛載於「職業技能」分頁並顯示降階骰（d10 -> d8）與各技能參數',
+  travelHtml.includes('data-testid="travel-roll-panel"')
+  && travelHtml.includes('data-testid="travel-threat-select"')
+  && travelHtml.includes('data-testid="travel-chosen-taste"')
+  && travelHtml.includes('data-testid="travel-roll-btn"')
+  && travelHtml.includes('擲 d8 並結算')
+  && travelHtml.includes('擲出 ≤ 3 獲發現')
+  && travelHtml.includes('每次 +2 IP')
+  && travelHtml.includes('+4 份'),
+  true);
+
+const noCookChar = withClassSkill('美食家', '準備食材', 2);
+const noCookHtml = render(noCookChar, { initialTab: 'skills' });
+check('T2 未習得【烹飪】時【準備食材】面板不顯示口味選單並明示缺少烹飪技能',
+  noCookHtml.includes('data-testid="travel-roll-panel"')
+  && !noCookHtml.includes('data-testid="travel-chosen-taste"')
+  && noCookHtml.includes('準備食材需先習得【烹飪】才能收集食材'),
+  true);
+
+const supportChar = createNewCharacter({ name: '聖音吟唱者' });
+supportChar.classes = [
+  { className: '靈師', level: 2, skills: [{ name: '支援魔法', sl: 1 }] },
+  { className: '吟唱者', level: 3, skills: [{ name: '我相信你', sl: 2 }, { name: '能言善辯', sl: 2 }] }
+];
+supportChar.equipment = { mainHand: '法杖', offHand: '', armor: '' };
+supportChar.bonds = [{ id: 'b1', target: '萊歐', feelings: ['欽佩', '喜愛'] }];
+supportChar.pendingBuffs = [
+  { id: 'buf1', sourceSkill: '支援魔法', targetName: '萊歐', effectDesc: '本場景下一次檢定獲得 +2 加值', scope: 'scene' }
+];
+const supportSkillsHtml = render(supportChar, { initialTab: 'skills' });
+check('T3 PendingBuffsPanel 顯示支援魔法（奧術武器＋羈絆強度 +2）、我相信你（1 點物語點／20 MP）與能言善辯（20/40 MP）',
+  supportSkillsHtml.includes('data-testid="pending-buffs-panel"')
+  && supportSkillsHtml.includes('已裝備奧術武器')
+  && supportSkillsHtml.includes('萊歐（羈絆強度 +2）')
+  && supportSkillsHtml.includes('目標回 20 MP')
+  && supportSkillsHtml.includes('+2 格（40 MP）')
+  && supportSkillsHtml.includes('data-testid="pending-buff-card-0"')
+  && !supportSkillsHtml.includes('（English')
+  && !supportSkillsHtml.includes('扣除 5 MP'),
+  true);
+
+const supportBondsHtml = render(supportChar, { initialTab: 'bonds' });
+check('T4 「情感羈絆」分頁於佇列有待生效增益時顯示跳轉提示列',
+  supportBondsHtml.includes('data-testid="bonds-pending-buffs-hint"')
+  && supportBondsHtml.includes('已有 1 條'),
+  true);
+
+const pilotCharStowed = createNewCharacter({ name: '重裝機師' });
+pilotCharStowed.classes = [{ className: '機師', level: 2, skills: [{ name: '個人載具', sl: 1 }, { name: '壓縮技術', sl: 1 }] }];
+pilotCharStowed.pilotVehicle = { name: '鋼鐵號', frameId: 'mecha', isMounted: false, inWorld: false, unlockedModules: [], activeModules: [] };
+const pilotStowedHtml = render(pilotCharStowed, { initialTab: 'attacks' });
+check('T5 載具已收納（inWorld=false）時於「武器與戰鬥」分頁顯示 2 IP 召喚並進入按鈕',
+  pilotStowedHtml.includes('data-testid="pilot-compression-summon"')
+  && pilotStowedHtml.includes('召喚並進入載具（2 IP）'),
+  true);
+
+const pilotCharUnmounted = {
+  ...pilotCharStowed,
+  pilotVehicle: { ...pilotCharStowed.pilotVehicle, frameId: 'exoskeleton', inWorld: true, isMounted: false }
+};
+const pilotUnmountedHtml = render(pilotCharUnmounted, { initialTab: 'attacks' });
+check('T6 載具無人駕駛位於世界中（inWorld=true, isMounted=false）時顯示 0 IP 收納按鈕',
+  pilotUnmountedHtml.includes('data-testid="pilot-compression-stow"')
+  && pilotUnmountedHtml.includes('收納載具離開世界（0 IP）'),
+  true);
+
+const pilotCharMounted = {
+  ...pilotCharUnmounted,
+  pilotVehicle: { ...pilotCharUnmounted.pilotVehicle, isMounted: true }
+};
+const pilotMountedHtml = render(pilotCharMounted, { initialTab: 'attacks' });
+check('T7 駕駛中時顯示需先離開載具方可收納提示鈕（取代舊假按鈕）',
+  pilotMountedHtml.includes('data-testid="pilot-compression-stow-blocked"')
+  && !pilotMountedHtml.includes('外骨骼免費收納/召喚'),
+  true);
+
 /* ──────────────────────────────────────────────────────────────── */
 const failed = results.filter((r) => !r.ok);
 for (const r of results) console.log(`  ${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.detail === '' ? '' : `  —— ${r.detail}`}`);

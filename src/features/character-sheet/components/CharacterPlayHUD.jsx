@@ -207,6 +207,9 @@ import ChanterComposer from './companions/ChanterComposer';
 import FloristGardenTracker from './companions/FloristGardenTracker';
 import SymbolistMarks from './companions/SymbolistMarks';
 import { listSymbolMarkBearers } from '../utils/symbolist';
+import TravelRollPanel, { hasTravelSkills } from './companions/TravelRollPanel';
+import PendingBuffsPanel, { hasPendingBuffFeatures } from './companions/PendingBuffsPanel';
+import { clearScenePendingBuffs, getPendingBuffs } from '../utils/pendingBuffs';
 import ErrorBoundary from '../../../components/ui/ErrorBoundary';
 import { shouldRenderArcanistPanel } from '../utils/arcanist';
 import { withEn } from '../../../utils/properNouns';
@@ -1291,8 +1294,18 @@ export default function CharacterPlayHUD({
   };
 
   const handleResetScope = (scope) => {
-    const nextChar = resetFlowScope(character, scope);
-    if (nextChar === character) {
+    let nextChar = resetFlowScope(character, scope);
+    const flowChanged = nextChar !== character;
+    let clearedBuffCount = 0;
+    if (scope === 'scene') {
+      const beforeBuffs = getPendingBuffs(character);
+      const afterBuffsChar = clearScenePendingBuffs(nextChar);
+      if (afterBuffsChar !== nextChar) {
+        clearedBuffCount = beforeBuffs.length - getPendingBuffs(afterBuffsChar).length;
+        nextChar = afterBuffsChar;
+      }
+    }
+    if (!flowChanged && clearedBuffCount === 0) {
       showToast(`目前沒有【${resetScopeLabel(scope)}】可重置的條目`, 'info');
       return;
     }
@@ -1302,7 +1315,10 @@ export default function CharacterPlayHUD({
       ...nextChar,
       updatedAt: new Date().toISOString()
     });
-    showToast(`已重置 ${count} 條【${resetScopeLabel(scope)}】效果`, 'info');
+    const parts = [];
+    if (flowChanged) parts.push(`已重置 ${count} 條【${resetScopeLabel(scope)}】效果`);
+    if (clearedBuffCount > 0) parts.push(`清空 ${clearedBuffCount} 條本場景暫存增益`);
+    showToast(parts.join('，'), 'info');
   };
 
   // 營地／旅店一鍵休整（Core p.91：回滿 HP 與 MP，並解除所有異常狀態）
@@ -4023,6 +4039,23 @@ export default function CharacterPlayHUD({
                 {/* TAB 3: 職業技能 (Class Skills - Streamlined) */}
                 {activeTab === 'skills' && (
                   <div className="space-y-4 animate-fade-in text-xs">
+                    {/* 旅行移動骰與場景支援面板（置於分頁頂端，有習得對應技能即立即可見、無需捲動翻找） */}
+                    {hasTravelSkills(character) && (
+                      <TravelRollPanel
+                        character={character}
+                        stats={stats}
+                        onChange={onChange}
+                        showToast={showToast}
+                      />
+                    )}
+                    {hasPendingBuffFeatures(character) && (
+                      <PendingBuffsPanel
+                        character={character}
+                        stats={stats}
+                        onChange={onChange}
+                        showToast={showToast}
+                      />
+                    )}
                     {(character.classes || []).map((cl, cIdx) => {
                       const cName = normalizeClassName(cl.className);
                       const classDef = rulesData.classes[cName];
@@ -4739,6 +4772,20 @@ export default function CharacterPlayHUD({
                     {bondInspireGate.blocked && (
                       <div data-testid="gate-bonds-notice" className="px-2.5 py-1.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] text-t12 font-bold text-[#8c3235]">
                         物語點不足（現有 {bondInspireGate.current} 點，激勵羈絆需要 1 點），下方「激勵」按鈕暫時不能用。
+                      </div>
+                    )}
+                    {getPendingBuffs(character).length > 0 && (
+                      <div data-testid="bonds-pending-buffs-hint" className="px-2.5 py-1.5 rounded bg-[#fbf7ee] border border-[#d6c7ab] flex items-center justify-between gap-2 flex-wrap">
+                        <span className="text-t12 font-bold text-[#3c2415]">
+                          ✦ 本場景已有 {getPendingBuffs(character).length} 條支援魔法／吟唱者待生效增益
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('skills')}
+                          className="px-2 py-0.5 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#8c3235] font-bold text-t11 cursor-pointer transition-colors"
+                        >
+                          前往「職業技能」管理 ➔
+                        </button>
                       </div>
                     )}
                     {/* 營地活動：休息場景的一部分（原書 p.130「進行活動與調整羈絆可以同時做」）。

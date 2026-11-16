@@ -17,11 +17,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { FLOW_ITEMS } from '../src/features/character-sheet/utils/effectFlow.js';
 
-/** 2026-11-07 實測不可達；補上入口後把名字刪掉（測試會逼你刪）。 */
-const KNOWN_UNREACHABLE = new Set([
-  '有備無患', '寶藏獵人', '通曉道路', '準備食材',
-  '支援魔法', '我相信你', '能言善辯', '壓縮技術'
-]);
+/** 2026-11-16：全 8 項 §9 技能已接上 UI 面板與入口，缺口歸零。 */
+const KNOWN_UNREACHABLE = new Set([]);
 
 let pass = 0;
 const fails = [];
@@ -49,27 +46,48 @@ const existing = appx
   .map((id) => FLOW_ITEMS.find((i) => i.id === id))
   .filter((i) => i && i.apply?.via === 'existing');
 
+const JSX_TEXT = new Map(JSX.map((f) => [f, fs.readFileSync(f, 'utf8')]));
+const isMountedJsx = (jsxPath) => {
+  const base = path.basename(jsxPath, '.jsx');
+  if (base === 'App' || base === 'CharacterPlayHUD') return true;
+  const importRe = new RegExp(`from\\s+['"](?:[^'"]*/)?${base}(?:\\.jsx)?['"]`);
+  return JSX.some((other) => other !== jsxPath && importRe.test(JSX_TEXT.get(other)));
+};
+
 const reachable = [];
 const unreachable = [];
 for (const item of existing) {
-  const files = [...(item.apply.evidence || []), item.apply.at || ''].map(fileOf).filter(Boolean);
+  const refs = [...(item.apply.evidence || []), item.apply.at || ''].filter(Boolean);
+  const files = refs.map(fileOf).filter(Boolean);
   const uniq = [...new Set(files)];
-  const direct = uniq.some((f) => f.endsWith('.jsx'));
-  const importers = uniq.filter((f) => f.endsWith('.js'))
-    .filter((f) => {
-      const base = path.basename(f, '.js');
-      return JSX.some((jsx) => new RegExp(`from\\s+['\"][^'\"]*${base}['\"]`).test(fs.readFileSync(jsx, 'utf8')));
+  const direct = uniq.some((f) => f.endsWith('.jsx') && isMountedJsx(f));
+  const jsEntries = refs
+    .map((r) => {
+      const f = fileOf(r);
+      const m = /\.js:([A-Za-z_][A-Za-z0-9_]*)/.exec(String(r));
+      return f && f.endsWith('.js') ? { file: f, symbol: m ? m[1] : null } : null;
+    })
+    .filter(Boolean);
+  const importers = jsEntries.filter(({ file, symbol }) => {
+    const base = path.basename(file, '.js');
+    const importRe = new RegExp(`from\\s+['"](?:[^'"]*/)?${base}(?:\\.js)?['"]`);
+    return JSX.some((jsx) => {
+      const text = JSX_TEXT.get(jsx);
+      return importRe.test(text) && (!symbol || text.includes(symbol)) && isMountedJsx(jsx);
     });
+  });
   (direct || importers.length ? reachable : unreachable).push(item.name);
 }
 
 ok('R1 每個 existing 條目都有可達路徑或列在已知缺口',
-  unreachable.filter((n) => !KNOWN_UNREACHABLE.has(n)), []);
+  unreachable.filter((n) => !KNOWN_UNREACHABLE.has(n)).length === 0,
+  unreachable.filter((n) => !KNOWN_UNREACHABLE.has(n)).join('、'));
 // 名單只能縮小：補好了卻沒刪名字 → 紅（逼人回頭更新這份清單與對外文件）
 ok('R2 已知缺口名單沒有殘留（補好就要刪）',
-  [...KNOWN_UNREACHABLE].filter((n) => !unreachable.includes(n)), []);
-ok('R3 可達的條目數 ≥ 12（W6 驗收當時的實測下限）', reachable.length >= 12, `${reachable.length} 筆`);
-ok('R4 缺口數 ≤ 8（不可再增加）', unreachable.length <= 8, `${unreachable.length} 筆：${unreachable.join('、')}`);
+  [...KNOWN_UNREACHABLE].filter((n) => !unreachable.includes(n)).length === 0,
+  [...KNOWN_UNREACHABLE].filter((n) => !unreachable.includes(n)).join('、'));
+ok('R3 可達的條目數 ≥ 20（全數 existing 工具已接線）', reachable.length >= 20, `${reachable.length} 筆`);
+ok('R4 缺口數 === 0（不得再出現不可達的「既有工具」條目）', unreachable.length === 0, `${unreachable.length} 筆：${unreachable.join('、')}`);
 
 console.log(`\n可達 ${reachable.length}／existing ${existing.length}；缺口 ${unreachable.length}`);
 console.log(`\n通過 ${pass} / ${pass + fails.length}${fails.length ? `　失敗 ${fails.length}` : '　（全部通過）'}`);

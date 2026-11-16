@@ -3729,3 +3729,23 @@ export const syncCharacterToActiveCombat = (char, activeCombat) => {
     changed: true
   };
 };
+
+/**
+ * 讀取角色身上的指定職業技能 SL（含別名與變體名稱正規化）。
+ */
+export function getCharacterSkillSL(character, targetSkillName) {
+  if (!character || !targetSkillName) return 0;
+  const target = normalizeSkillName(targetSkillName);
+  let best = 0;
+  for (const listKey of ['classes', 'customClasses']) {
+    const classes = Array.isArray(character[listKey]) ? character[listKey] : [];
+    for (const cl of classes) {
+      for (const sk of (Array.isArray(cl?.skills) ? cl.skills : [])) {
+        if (normalizeSkillName(sk?.name) === target) {
+          best = Math.max(best, Math.max(0, Math.floor(Number(sk?.sl) || 0)));
+        }
+      }
+    }
+  }
+  return best;
+}
