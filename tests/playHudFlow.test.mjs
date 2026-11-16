@@ -751,6 +751,67 @@ check('P3 金手指卡片裡就看得到差生點刻度',
   delinquentHtml.includes('金手指資源') && /差生點/.test(delinquentHtml), true);
 check('P4 刻度寫得出上限（出現「/ 10」）', /\/\s*10/.test(delinquentHtml), true);
 
+/* ────────────────────────────────────────────────────────────────
+   S. W7 回歸：多 multiSelect 隔離／Select 提示／Button 算式／解剖學家去重／被束縛的心／墓碑正名
+   ──────────────────────────────────────────────────────────────── */
+const specChar = createNewCharacter({ name: '老闆' });
+specChar.heroicSkills = [{ name: '本店特色' }];
+specChar.flowState = {
+  'heroic:本店特色': {
+    picks: ['苦味', '鹹味'],
+    fields: { _picks: { 1: ['解除場景咒語'] } }
+  }
+};
+const specHtml = render(specChar, { initialTab: 'skills' });
+check('S1 【本店特色】兩個 multiSelect 獨立追蹤，風味 2/3 與效果 1/3 不互蓋',
+  specHtml.includes('招牌風味（自選三種）') &&
+  specHtml.includes('招牌效果（十選三）') &&
+  specHtml.includes('已選 2 / 3') &&
+  specHtml.includes('已選 1 / 3') &&
+  specHtml.includes('✓ 苦味') &&
+  specHtml.includes('✓ 目標不再受持續時間為「場景」的咒語影響'),
+  true);
+
+const furyWeaponChar = createNewCharacter({ name: '熟練與不屈' });
+furyWeaponChar.classes = [{ className: '狂怒鬥士', skills: [{ name: '不屈意志', sl: 1 }] }];
+furyWeaponChar.heroicSkills = [{ name: '類別訓練' }];
+const furyWeaponHtml = render(furyWeaponChar, { initialTab: 'skills' });
+check('S2 Select 提示僅出現於【類別訓練】（不誤出現於【不屈意志】）',
+  countOf(furyWeaponHtml, '其他分頁（例如熟練度）才會跟著更新') === 1,
+  true);
+
+const wealthChar = withClassSkill('商人', '真正的財富', 2);
+const wealthHtml = render(wealthChar, { initialTab: 'skills' });
+check('S3 ButtonControl 代入 SL 算式（真正的財富於 SL 2 顯示 +3 點數）',
+  wealthHtml.includes('+3 點數') && !wealthHtml.includes('+【SL + 1】點數'),
+  true);
+
+const anatomyDupChar = createNewCharacter({ name: '三次解剖' });
+anatomyDupChar.heroicSkills = [{ name: '解剖學家' }, { name: '解剖學家' }, { name: '解剖學家' }];
+const anatomyDupHtml = render(anatomyDupChar, { initialTab: 'skills' });
+check('S4 【解剖學家】取得三次只渲染一張卡片，附「取得 3 次」且上限為 6',
+  countOf(anatomyDupHtml, '<span>解剖學家</span>') === 1 &&
+  anatomyDupHtml.includes('取得 3 次') &&
+  anatomyDupHtml.includes('/ 6'),
+  true);
+
+const fetteredSceneChar = createNewCharacter({ name: '誓言者' });
+fetteredSceneChar.quirk = '被束縛的心';
+fetteredSceneChar.flowState = { 'quirk:被束縛的心': { n: 1, on: false, fields: {} } };
+const fetteredSceneHtml = render(fetteredSceneChar, { initialTab: 'skills' });
+check('S5 【被束縛的心】跨場景保留 n=1 時，「違反戒律」按鈕仍為可按狀態',
+  hasDisabledAttr(fetteredSceneHtml, 'flow-quirk-c0-act') === false &&
+  fetteredSceneHtml.includes('1') &&
+  fetteredSceneHtml.includes('/ 7'),
+  true);
+
+const necroDelinqChar = createNewCharacter({ name: '雙資源測試' });
+necroDelinqChar.classes = [{ className: '死靈術士', skills: [{ name: '超越死界', sl: 1 }] }];
+const necroProfileHtml = render(necroDelinqChar, { initialTab: 'profile' });
+check('S6 死靈術士資源重置按鈕改為「HP 歸零時清空」（含說明 tooltip）',
+  necroProfileHtml.includes('HP 歸零時清空'),
+  true);
+
 /* ──────────────────────────────────────────────────────────────── */
 const failed = results.filter((r) => !r.ok);
 for (const r of results) console.log(`  ${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.detail === '' ? '' : `  —— ${r.detail}`}`);

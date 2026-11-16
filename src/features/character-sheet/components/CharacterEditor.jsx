@@ -117,7 +117,9 @@ import {
   HEROIC_SKILL_SOURCE_LABELS,
   resolveHeroicSkillEntry,
   buildQuirkPatch,
-  describeFreeBenefit
+  describeFreeBenefit,
+  syncCreationRulesPatch,
+  canOpenHeroicPickerInEditor
 } from '../utils/characterEngine';
 import {
   EQUIPMENT_SLOTS,
@@ -1332,7 +1334,7 @@ export default function CharacterEditor({
           <CreationRulesPanel
             rules={rules}
             diff={character.creationRules || {}}
-            onChange={(next) => updateField('creationRules', next, { kind: 'note', title: '調整開卡規則' })}
+            onChange={(next) => updateField(syncCreationRulesPatch(character, next), null, { kind: 'note', title: '調整開卡規則' })}
             theme={theme}
           />
 
@@ -2397,7 +2399,7 @@ export default function CharacterEditor({
                       表格會逐列寫出「為什麼現在不能選」。
                       **定稿後整個入口收起來**（使用者裁定：目錄是創角輔助；已經拿到的技能
                       在下面的清單與角色卡／跑團面板照常顯示）。 */}
-                  {!locked && (
+                  {canOpenHeroicPickerInEditor(character, rules, stats) && (
                     <>
                       <JRPGButton
                         variant="primary"

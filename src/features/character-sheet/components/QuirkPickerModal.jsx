@@ -296,7 +296,7 @@ export function QuirkPickerBody({
               <GiHazardSign className="w-8 h-8 opacity-40" />
               <p className="text-t12">從左邊選一個金手指</p>
               <p className="text-t12 opacity-80">
-                金手指是**選用規則**——原書只建議「想玩就用、而且開局一人一個」，不強制。
+                金手指是<strong className="font-bold">選用規則</strong>——原書只建議「想玩就用、而且開局一人一個」，不強制。
               </p>
             </div>
           )}

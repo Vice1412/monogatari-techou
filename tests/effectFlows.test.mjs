@@ -98,6 +98,31 @@ check('flow-control 的條目一定有控件（counter/toggle/button/select/mult
     && !['counter', 'toggle', 'button', 'select', 'multiSelect', 'text', 'recordList'].includes(i.control?.kind)).map((i) => i.id), []);
 check('narrative 一定是 via=none',
   FLOW_ITEMS.filter((i) => i.flow === 'narrative' && i.apply?.via !== 'none').map((i) => i.id), []);
+check('所有 select/multiSelect 選項不得為空、不得含 "undefined"/"null" 或重複 value',
+  FLOW_ITEMS.flatMap((it) => controlsOf(it).flatMap((ctrl, ci) => {
+    if (ctrl.kind !== 'select' && ctrl.kind !== 'multiSelect') return [];
+    const opts = ctrl.options || [];
+    if (opts.length === 0) return [`${it.id}#${ci}:empty`];
+    const seen = new Set();
+    const bad = [];
+    for (const o of opts) {
+      if (!o?.value || o.value === 'undefined' || o.value === 'null' || !o?.label || o.label === 'undefined' || o.label === 'null') {
+        bad.push(`${it.id}#${ci}:bad(${JSON.stringify(o)})`);
+      } else if (seen.has(o.value)) {
+        bad.push(`${it.id}#${ci}:dup(${o.value})`);
+      } else {
+        seen.add(o.value);
+      }
+    }
+    return bad;
+  })),
+  []);
+check('狂怒鬥士【不屈意志】三個選項皆完整有效',
+  flowItemForClassSkill('狂怒鬥士', '不屈意志')?.control?.options?.map((o) => o.value),
+  ['恢復【SL × 5】點 HP', '恢復【SL × 5】點 MP', '解除自選的單一異常狀態']);
+check('嵌合師【嵌合學派儀式】兩個屬性選項皆完整有效',
+  flowItemForClassSkill('嵌合師', '嵌合學派儀式')?.control?.options?.map((o) => o.value),
+  ['INS + WLP', 'MIG + WLP']);
 
 // ─────────────────────────────────────────────────────────── B
 section('B. evaluateControlValue：只認 + - * / 括號與兩個變數');
@@ -668,6 +693,63 @@ check('O11 取得一次時上限 2', multiSelectMax(anatomyControl, 1), 2);
 check('O12 取得三次時上限 6', multiSelectMax(anatomyControl, 3), 6);
 check('O13 取得十次也不會超過天花板 6', multiSelectMax(anatomyControl, 10), 6);
 check('O14 沒有 maxPerTake 的控件維持原本 max', multiSelectMax({ max: 3 }, 5), 3);
+
+// ─────────────────────────────────────────────────────────── P
+section('P. 【被束縛的心】半血半魔／動搖虛弱／+2FP／第7次覺醒 ＆ 【本店特色】十選三');
+const fetteredItem = flowItemById('quirk:被束縛的心');
+const fetteredBase = mkChar({
+  quirk: '被束縛的心',
+  currentHp: 41,
+  currentMp: 31,
+  fabulaPoints: 3,
+  statusAfflictions: {}
+});
+const fStats = { maxHp: 60, maxMp: 50 };
+const fPlan1 = flowActionPlan(fetteredItem, fetteredBase, { controlIndex: 0, stats: fStats });
+check('P1 第 1 次違反：扣除當前一半 HP（向下取整 41 -> 21）', fPlan1.patch?.currentHp, 21);
+check('P2 第 1 次違反：扣除當前一半 MP（向下取整 31 -> 16）', fPlan1.patch?.currentMp, 16);
+check('P3 第 1 次違反：+2 物語點（3 -> 5）', fPlan1.patch?.fabulaPoints, 5);
+check('P4 第 1 次違反：施加動搖與虛弱',
+  [fPlan1.patch?.statusAfflictions?.shaken, fPlan1.patch?.statusAfflictions?.weak],
+  [true, true]);
+check('P5 第 1 次違反：累計違反次數 0 -> 1', fPlan1.patch?.flowState?.['quirk:被束縛的心']?.n, 1);
+
+const fetteredUsedScene = {
+  ...fetteredBase,
+  ...fPlan1.patch,
+  flowState: fPlan1.patch.flowState
+};
+check('P6 同場景內不得重複按違反戒律',
+  flowActionPlan(fetteredItem, fetteredUsedScene, { controlIndex: 0, stats: fStats }).ok, false);
+
+const fetteredAfterScene = resetFlowScope(fetteredUsedScene, 'scene');
+check('P7 場景重置只重置按鈕次數，保留累計違反次數 n=1',
+  fetteredAfterScene.flowState?.['quirk:被束縛的心']?.n, 1);
+check('P8 場景重置後，新場景第 2 次違反戒律仍可執行並累加至 n=2',
+  flowActionPlan(fetteredItem, fetteredAfterScene, { controlIndex: 0, stats: fStats })
+    .patch?.flowState?.['quirk:被束縛的心']?.n,
+  2);
+
+const fetteredBefore7th = mkChar({
+  quirk: '被束縛的心',
+  currentHp: 12,
+  currentMp: 5,
+  fabulaPoints: 4,
+  statusAfflictions: { shaken: true, weak: true, poisoned: true },
+  flowState: { 'quirk:被束縛的心': { n: 6, on: true, fields: {}, text: '不違龍族' } }
+});
+const fPlan7 = flowActionPlan(fetteredItem, fetteredBefore7th, { controlIndex: 0, stats: fStats });
+check('P9 第 7 次違反（6 -> 7）：回滿 HP 與 MP', [fPlan7.patch?.currentHp, fPlan7.patch?.currentMp], [60, 50]);
+check('P10 第 7 次違反：清除全部異常狀態',
+  Object.values(fPlan7.patch?.statusAfflictions || {}).some(Boolean), false);
+check('P11 第 7 次違反後（n=7），第 8 次嘗試被擋下',
+  flowActionPlan(fetteredItem, { ...fetteredBefore7th, flowState: fPlan7.patch.flowState }, { controlIndex: 0, stats: fStats }).ok,
+  false);
+
+const specialtyItem = flowItemById('heroic:本店特色');
+check('P12 本店特色 controls[1] 具備官方全部 10 項效果且為十選三',
+  [specialtyItem?.controls?.[1]?.options?.length, specialtyItem?.controls?.[1]?.min, specialtyItem?.controls?.[1]?.max],
+  [10, 3, 3]);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

@@ -353,6 +353,25 @@ check('8g 同一筆再套用一次會被拒絕',
 check('8h 餘額不足時拒絕並說出金額',
   /資金不足/.test(String(applyUpgradeDraft({ ...upgReady, zenit: 50 }, 0).reason || '')), true);
 
+const upgradePanelHtml = renderToStaticMarkup(
+  React.createElement(FlowDataPanel, {
+    spec: FLOW_DATA_SPECS['heroic:升級'],
+    entry: readEntry(upgChar, UPGRADE_ID),
+    character: upgChar,
+    itemId: UPGRADE_ID,
+    theme: { subpanelBg: '#f4ebd9', border: '#d6c7ab', textDark: '#3c2415' }
+  })
+);
+const plainUpgradeText = upgradePanelHtml.replace(/<!--[\s\S]*?-->/g, '');
+const plainRichText = panelMarkup.replace(/<!--[\s\S]*?-->/g, '');
+check('8i 【富家子弟】出處純中文（特典合輯 p.20，不含 Bonus Collection）',
+  SPEC.source === '特典合輯 p.20' && !plainRichText.includes('Bonus Collection'), true);
+check('8j 【升級】改造列表量詞使用「筆」而非「位」（第 1 筆本次休息的改造）',
+  plainUpgradeText.includes('第 1 筆本次休息的改造') && !plainUpgradeText.includes('第 1 位本次休息的改造'),
+  true);
+check('8k 【富家子弟】保鑣列表仍維持量詞「位」（第 1 位保鑣）',
+  plainRichText.includes('第 1 位保鑣'), true);
+
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));
 console.log(`\n${'='.repeat(56)}`);

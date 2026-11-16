@@ -16,7 +16,7 @@ export const canPlantSeed = (character, maxCapacity = 1, costMp = 20) => {
   if (gardenList.length >= maxCapacity) {
     return { ok: false, reason: `花園容量已滿（上限 ${maxCapacity} 顆）！` };
   }
-  const currentMp = character?.currentMp ?? character?.maxMp ?? 0;
+  const { curMp: currentMp } = resolveVitalResources(character);
   if (currentMp < costMp) {
     return { ok: false, reason: `MP 不足（需要 ${costMp}，現有 ${currentMp}）！` };
   }
@@ -120,8 +120,7 @@ export const removeSeedWithTreeOfLife = (
   let healedAmount = 0;
   if (treeOfLifeSL > 0 && targetIsCrisis && healSelf) {
     healedAmount = getTreeOfLifeHeal(treeOfLifeSL);
-    const curHp = nextChar.currentHp ?? nextChar.maxHp ?? 0;
-    const maxHp = nextChar.maxHp ?? 999;
+    const { curHp, maxHp } = resolveVitalResources(nextChar);
     nextChar.currentHp = Math.min(maxHp, curHp + healedAmount);
   }
   return {
@@ -141,6 +140,7 @@ import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 import CopyTextButton from '../../../../components/ui/CopyTextButton';
 import { formatFloristSeedCopyText } from '../../utils/playCopyFormat';
 import { FLORIST_MAGISEEDS, isSeedEffectActiveAt } from '../../data/skillSuboptionsData';
+import { resolveVitalResources } from '../../utils/characterEngine';
 
 /**
  * 植物學家花園生長盤 (FloristGardenTracker)
@@ -231,8 +231,7 @@ export default function FloristGardenTracker({
 
   // 移出花園／收穫（結合【生命之樹】）
   const handleRemoveSeed = (instanceId, seedName) => {
-    const maxHp = character?.maxHp ?? 999;
-    const curHp = character?.currentHp ?? maxHp;
+    const { curHp, maxHp } = resolveVitalResources(character);
     const isSelfCrisis = isCrisisState(curHp, maxHp);
 
     const res = removeSeedWithTreeOfLife(character, instanceId, {
@@ -421,10 +420,11 @@ export default function FloristGardenTracker({
                     <button
                       type="button"
                       onClick={() => handleRemoveSeed(item.instanceId, item.seedName)}
-                      className="p-1 rounded text-[#6b5a4b] hover:text-[#8c2d36] transition-colors cursor-pointer"
-                      title="移出花園"
+                      className="px-1.5 py-0.5 rounded border border-[#d6c7ab] bg-[#fbf7ee] hover:border-[#8c2d36] text-[#6b5a4b] hover:text-[#8c2d36] text-t10 font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                      title="移出花園（若已滿 4 格或習得【生命之樹】將結算離園效果）"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3" />
+                      <span>離園</span>
                     </button>
                   </div>
                 </div>

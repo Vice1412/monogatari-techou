@@ -19,6 +19,7 @@ import {
 } from 'react-icons/gi';
 import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 import { STATUS_AFFLICTIONS } from '../../data/sourcebookConfig';
+import { resolveVitalResources } from '../../utils/characterEngine';
 import {
   SUITS,
   SUIT_KEYS,
@@ -187,7 +188,7 @@ export default function AceOfCardsTable({
   const trapSL = skillSL('陷阱卡');
 
   const level = Math.max(1, Math.floor(Number(character?.level) || 1));
-  const currentMp = character?.currentMp ?? 0;
+  const { curMp: currentMp } = resolveVitalResources(character);
   const knownHeroicSkills = useMemo(
     () => (character?.heroicSkills || []).map((h) => (typeof h === 'string' ? h : h?.name)).filter(Boolean),
     [character?.heroicSkills]

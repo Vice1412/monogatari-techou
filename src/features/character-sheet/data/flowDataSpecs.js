@@ -6,10 +6,11 @@
 export const FLOW_DATA_SPECS = Object.freeze({
   'quirk:富家子弟': {
     title: '保鑣',
-    source: 'Bonus Collection p.20',
+    source: '特典合輯 p.20',
     // A 名冊型：原文「給他們一個名字，描述一下他們的外表」
     records: {
       label: '保鑣',
+      unit: '位',
       min: 2,
       max: 2,
       fields: [

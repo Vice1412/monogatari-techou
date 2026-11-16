@@ -18,7 +18,7 @@ import {
   AVATAR_ATTRIBUTES,
   AVATAR_FEATURE_OPTIONS
 } from '../utils/summonAvatar';
-import { getCharacterLevel } from '../utils/characterEngine';
+import { getCharacterLevel, resolveVitalResources } from '../utils/characterEngine';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
 
 export default function SummonEntityCard({
@@ -88,7 +88,7 @@ export default function SummonEntityCard({
 
   const handleSummon = (avatar, idx) => {
     if (!avatar) return;
-    const curHp = Number(character.currentHp ?? character.maxHp ?? 40);
+    const { curHp } = resolveVitalResources(character);
     const hpCost = Math.floor(curHp / 2);
     const curFp = Number(character.fabulaPoints ?? 1);
 

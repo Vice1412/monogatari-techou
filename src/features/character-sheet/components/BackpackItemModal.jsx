@@ -10,17 +10,17 @@ import EquipmentItemFields, { DEFAULT_GEAR } from './EquipmentItemFields';
  * 數量預設 1，只有真的需要堆疊時才改——多一個常駐欄位就是多一次「這格要填嗎」的猶豫。
  */
 export default function BackpackItemModal({ isOpen, onClose, onSubmit, initial = null }) {
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState('equipment');
-  const [value, setValue] = useState('');
-  const [effect, setEffect] = useState('');
-  const [qty, setQty] = useState('1');
+  const [name, setName] = useState(initial?.name || '');
+  const [category, setCategory] = useState(initial?.category || 'equipment');
+  const [value, setValue] = useState(initial?.value === null || initial?.value === undefined ? '' : String(initial.value));
+  const [effect, setEffect] = useState(initial?.effect || '');
+  const [qty, setQty] = useState(String(initial?.qty || 1));
   // 裝備類才有的欄位（2026-11-03 使用者第二輪）：傷害／類別／屬性／檢定……
-  const [gear, setGear] = useState({ ...DEFAULT_GEAR });
+  const [gear, setGear] = useState({ ...DEFAULT_GEAR, ...(initial?.gear || {}) });
   // 消耗品專屬效果模型
-  const [healHp, setHealHp] = useState('');
-  const [healMp, setHealMp] = useState('');
-  const [isPotion, setIsPotion] = useState(false);
+  const [healHp, setHealHp] = useState(initial?.effectModel?.healHp ? String(initial.effectModel.healHp) : '');
+  const [healMp, setHealMp] = useState(initial?.effectModel?.healMp ? String(initial.effectModel.healMp) : '');
+  const [isPotion, setIsPotion] = useState(Boolean(initial?.effectModel?.isPotion));
 
   useEffect(() => {
     if (!isOpen) return;
@@ -148,7 +148,7 @@ export default function BackpackItemModal({ isOpen, onClose, onSubmit, initial =
                 onChange={(e) => setIsPotion(e.target.checked)}
                 className="rounded border-[#d6c7ab]"
               />
-              <span>此消耗品屬於「藥水／靈藥（Potion/Elixir）」</span>
+              <span>此消耗品屬於「藥水／靈藥」</span>
             </label>
           </div>
         )}

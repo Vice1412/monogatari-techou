@@ -113,7 +113,22 @@ check('G1 成功打包為消耗品美食', delicacy.category === 'consumable' &&
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import BackpackGrid from '../src/features/character-sheet/components/BackpackGrid.jsx';
+import GourmetCookbook from '../src/features/character-sheet/components/companions/GourmetCookbook.jsx';
 import { createNewCharacter } from '../src/features/character-sheet/utils/characterEngine.js';
+
+// H0. 未預存靜態 maxHp 的受傷角色服藥須夾在算出的上限，不可溢補
+const realInjuredChar = {
+  ...createNewCharacter({
+    attributes: { dex: 8, ins: 8, mig: 8, wlp: 8 },
+    level: 5,
+    equipment: { mainHand: '無武器', offHand: '無盾牌', armor: '無防具', accessory: '' }
+  }),
+  currentHp: 30,
+  inventory: [itemWithModel]
+};
+const resRealHeal = consumeInventoryItem(realInjuredChar, itemWithModel.id);
+// Lv 5 + d8×5 = maxHp 45；喝 +50 HP 藥水後應為 45，而非 80（或 999）
+check('H0 未帶靜態 maxHp 的角色服藥上限夾在 45（不溢補）', resRealHeal.ok && resRealHeal.character.currentHp === 45, String(resRealHeal.character.currentHp));
 
 const testHero = createNewCharacter({ name: '烹飪大師' });
 testHero.classes = [
@@ -145,6 +160,27 @@ check('H1 詳情區渲染消耗品使用區塊（backpack-consume-section）', b
 check('H2 渲染使用按鈕（backpack-consume-btn）', bp充Html.includes('data-testid="backpack-consume-btn"'), '有使用按鈕');
 check('H3 具備【藥水雨】技能渲染勾選框（backpack-toggle-potion-rain）', bp充Html.includes('data-testid="backpack-toggle-potion-rain"'), '有藥水雨勾選');
 check('H4 具備【過期食品】技能渲染勾選框（backpack-toggle-spoiled-food）', bp充Html.includes('data-testid="backpack-toggle-spoiled-food"'), '有過期食品勾選');
+
+// H5. 美食家新角色（currentIp: null）在【鹽與胡椒】SSR 必須顯示「目前 IP：6」且按鈕可點
+const gourmetHero = createNewCharacter({ name: '廚神' });
+gourmetHero.classes = [{ className: '美食家', level: 5, skills: [{ name: '烹飪', sl: 1 }, { name: '鹽與胡椒', sl: 1 }] }];
+gourmetHero.gourmetData = { ingredients: [{ id: 'ing_ssr_1', name: '夜光菇', taste: '苦味' }] };
+const gourmetHtml = renderToStaticMarkup(
+  React.createElement(GourmetCookbook, {
+    character: gourmetHero,
+    onChange: () => {},
+    showToast: () => {},
+    initialSubTab: 'cook',
+    initialPicked: ['ing_ssr_1']
+  })
+);
+const gourmetText = gourmetHtml.replace(/<!-- -->/g, '');
+const spBtnTag = gourmetHtml.match(/<button[^>]*data-testid="salt-pepper-apply-btn"[^>]*>/)?.[0] || '';
+check('H5 新創美食家（currentIp=null，基礎6 + 美食家+2 = 8 IP）SSR 顯示「目前 IP：8」',
+  gourmetText.includes('目前 IP：8') && !gourmetText.includes('目前 IP：0'),
+  gourmetText.match(/目前 IP：[^<]+/)?.[0] || '未出現');
+check('H6 【鹽與胡椒】調味按鈕於滿 IP 時不帶 disabled 屬性',
+  spBtnTag.length > 0 && !/\bdisabled(?:=|\s|$|>)/.test(spBtnTag), spBtnTag.slice(0, 80));
 
 // ── 輸出 ──
 const fails = results.filter((r) => !r.ok);

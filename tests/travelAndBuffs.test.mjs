@@ -78,6 +78,20 @@ hero.currentMp = 2;
 const resBlocked = applySupportMagic(hero, { targetName: '雷恩' });
 check('D5 MP 不足 5 點時支援魔法被擋', !resBlocked.ok && resBlocked.reason.includes('MP 不足'), resBlocked.reason);
 
+// ── E. 新創角 null MP/IP 語意回歸 ──
+const freshBuffer = {
+  level: 5,
+  attributes: { dex: 8, ins: 8, mig: 8, wlp: 8 },
+  classes: [],
+  currentMp: null,
+  currentIp: null,
+  pendingBuffs: []
+};
+const resFreshSup = applySupportMagic(freshBuffer, { targetName: '艾琳' }, 1);
+check('E1 currentMp=null 新角發動支援魔法（45 -> 40 MP）', resFreshSup.ok && resFreshSup.character.currentMp === 40, String(resFreshSup.character.currentMp));
+const resFreshComp = applyCompressionTechnique(freshBuffer);
+check('E2 currentIp=null 新角發動壓縮技術（6 -> 4 IP）', resFreshComp.ok && resFreshComp.character.currentIp === 4, String(resFreshComp.character.currentIp));
+
 // ── 輸出 ──
 const fails = results.filter((r) => !r.ok);
 for (const r of results) {

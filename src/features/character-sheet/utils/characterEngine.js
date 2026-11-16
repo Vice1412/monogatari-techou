@@ -2430,6 +2430,51 @@ export const calculateCharacterStats = (char) => {
 };
 
 /**
+ * 解析角色當前可用的 HP / MP / IP 上限與現值（單一事實來源）。
+ *
+ * 合約：
+ * - 新建或剛進團的角色，`currentHp / currentMp / currentIp` 皆為 `null`（代表滿值），
+ *   且角色物件通常**不會**預存靜態的 `maxHp / maxMp / maxIp`（須由 `calculateCharacterStats` 動態算出）。
+ * - `statsOverride`（呼叫端已算好的 `stats`）最優先，其次為精簡測試 mock 自帶的 `char.max*`，
+ *   兩者皆無時才即時計算 `calculateCharacterStats(char)`。
+ * - `current*` 為 `null`／`undefined`／空字串時視為滿值（回傳對應的 `max*`）；明確為數字（含 `0`）則原樣保留。
+ */
+export const resolveVitalResources = (char, statsOverride = null) => {
+  if (!char || typeof char !== 'object') {
+    return { maxHp: 0, maxMp: 0, maxIp: 0, curHp: 0, curMp: 0, curIp: 0 };
+  }
+  const isScalar = (v) => v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v));
+  const pickMax = (overrideVal, rawVal, computedVal) => {
+    if (isScalar(overrideVal)) return Math.max(0, Number(overrideVal));
+    if (isScalar(rawVal)) return Math.max(0, Number(rawVal));
+    return Math.max(0, Number(computedVal) || 0);
+  };
+  const needStats = (
+    (!isScalar(statsOverride?.maxHp) && !isScalar(char.maxHp))
+    || (!isScalar(statsOverride?.maxMp) && !isScalar(char.maxMp))
+    || (!isScalar(statsOverride?.maxIp) && !isScalar(char.maxIp))
+  );
+  const computed = needStats ? calculateCharacterStats(char) : null;
+
+  const maxHp = pickMax(statsOverride?.maxHp, char.maxHp, computed?.maxHp);
+  const maxMp = pickMax(statsOverride?.maxMp, char.maxMp, computed?.maxMp);
+  const maxIp = pickMax(statsOverride?.maxIp, char.maxIp, computed?.maxIp);
+
+  const pickCur = (rawCur, maxVal) => (
+    isScalar(rawCur) ? Math.max(0, Number(rawCur)) : maxVal
+  );
+
+  return {
+    maxHp,
+    maxMp,
+    maxIp,
+    curHp: pickCur(char.currentHp, maxHp),
+    curMp: pickCur(char.currentMp, maxMp),
+    curIp: pickCur(char.currentIp, maxIp)
+  };
+};
+
+/**
  * 經驗值成長與升級邏輯 (10 EXP = 1 Level)
  */
 /**
@@ -3358,6 +3403,49 @@ export const unlockCharacter = (char, { at, note = '' } = {}) => {
     { ...char, locked: false, lockedAt: null },
     createLogEntry({ kind: 'lock', title: '解除定稿（重新開放創角欄位）', note, at: ts })
   );
+};
+
+/**
+ * 在編輯器調整開卡規則時的欄位同步包：
+ * - 尚未定稿（`!locked`）且 `startingLevel` 變動時，同步 `character.level`
+ *   （避免規則設成 30 級、技能點也開到 30，角色本體卻還停在 5 級導致英雄技能門檻永遠不過）。
+ * - 尚未擲骰結算起始資金時，按 `startingZenit` 差額同步 `character.zenit`（保留既有金手指資金加成）。
+ * - 定稿後改開卡規則不追溯覆寫已成長的 `level` 與已結算錢包。
+ */
+export const syncCreationRulesPatch = (character, nextDiff) => {
+  const prevRules = resolveCreationRules(character?.creationRules);
+  const nextRules = resolveCreationRules(nextDiff);
+  const patch = { creationRules: nextDiff };
+
+  if (character && !isCharacterLocked(character)) {
+    if (nextRules.startingLevel !== prevRules.startingLevel) {
+      patch.level = nextRules.startingLevel;
+    }
+    if (!character.startingFundsRolled && nextRules.startingZenit !== prevRules.startingZenit) {
+      const deltaZenit = nextRules.startingZenit - prevRules.startingZenit;
+      patch.zenit = Math.max(0, (Number(character.zenit) || 0) + deltaZenit);
+    }
+  }
+  return patch;
+};
+
+/**
+ * 步驟 5「選擇英雄技能」鈕是否應該顯示：
+ * - 未定稿（`!locked`）：一律顯示（開局名額與高階創角皆在此挑選）。
+ * - 定稿後（`locked`）：僅當精通職業帶來的累積名額多於已領數量時開放，
+ *   讓玩家從跑團提示「領取英雄技能 (步驟5)」跳轉過來後真的拿得到；領完或未精通則維持隱藏。
+ */
+export const canOpenHeroicPickerInEditor = (character, rules = null, stats = null) => {
+  if (!isCharacterLocked(character)) return true;
+  const resolvedRules = rules || resolveCreationRules(character?.creationRules);
+  const resolvedStats = stats || calculateCharacterStats(character);
+  const masteredCount = (resolvedStats?.masteredClasses || []).length;
+  if (masteredCount === 0) return false;
+  const ownedCount = (character?.heroicSkills || []).length;
+  const earnedSlots = resolvedRules?.startingHeroicSkill
+    ? Math.max(1, masteredCount)
+    : masteredCount;
+  return ownedCount < earnedSlots;
 };
 
 /** 創角步驟（與 validateCharacter 的 step 編號一一對應）

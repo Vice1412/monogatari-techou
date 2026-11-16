@@ -77,6 +77,17 @@ check('13. 未選 damage_bonus 傷害為【HR + 8】', calculateAvatarDamageForm
 check('14. 選了 custom_type 傷害類型為指定屬性', calculateAvatarDamageType(validChoices), '電');
 check('15. 未選 custom_type 傷害類型為物理', calculateAvatarDamageType({ features: [] }), '物理');
 
+// 5. 高等真實角色未預存靜態 maxHp 時須依角色引擎算出上限（不可退回預設 40）
+const lv30Arcanist = {
+  level: 30,
+  attributes: { dex: 8, ins: 6, mig: 8, wlp: 6 },
+  classes: [{ className: '秘儀師', level: 30, skills: [] }],
+  equipment: { mainHand: '無武器', offHand: '無盾牌', armor: '無防具', accessory: '' }
+};
+// Lv 30 + MIG d8×5 (40) = maxHp 70 -> 顯現體 HP = 2×8 + floor(70/2) = 51
+check('16. Lv30 秘儀師（未帶 char.maxHp，算得 maxHp=70）顯現體 HP = 2×8 + 35 = 51（非預設 36）',
+  calculateAvatarMaxHp(lv30Arcanist), 51);
+
 const failed = results.filter((r) => !r.ok);
 for (const r of results) console.log(`  ${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.detail === '' ? '' : `  —— ${r.detail}`}`);
 console.log('');

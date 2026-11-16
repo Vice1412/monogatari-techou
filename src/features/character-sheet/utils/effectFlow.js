@@ -410,14 +410,29 @@ const toFiniteInt = (value) => {
   return Number.isFinite(n) ? n : null;
 };
 
+const STATUS_LABELS = Object.freeze({
+  slow: '緩慢',
+  dazed: '眩暈',
+  weak: '虛弱',
+  shaken: '動搖',
+  enraged: '憤怒',
+  poisoned: '中毒'
+});
+
+const ALL_STATUS_KEYS = Object.freeze(['slow', 'dazed', 'weak', 'shaken', 'enraged', 'poisoned']);
+
+const counterControlOf = (item) => controlsOf(item).find((c) => c && c.kind === 'counter') || null;
+
 const controlInitial = (item) => {
-  const n = toFiniteInt(item?.control?.initial);
+  const src = counterControlOf(item) || item?.control;
+  const n = toFiniteInt(src?.initial);
   return n === null ? 0 : n;
 };
 
 /** 這條目在該角色身上的上限；`null` ＝ 不夾。 */
 const controlMax = (character, item) => {
-  const expr = item?.control?.max;
+  const src = counterControlOf(item) || item?.control;
+  const expr = src?.max;
   if (expr === null || expr === undefined) return null;
   const max = evaluateControlValue(expr, {
     sl: resolveSl(character, item),
@@ -579,19 +594,69 @@ export const withFlowState = (character, id, nextState) => {
 };
 
 /**
- * 重置：清空 n/on/choice/picks/text/list，保留 fields。
+ * 重置：無 scope 時清空整個條目狀態並保留一般 fields；
+ * 有 scope 時只重置對應 reset 時機的控制項，不誤洗跨時機計數或永久選擇（如被束縛的心累計次數／新人類物種選擇）。
  */
-export const flowResetState = (character, item) => {
+export const flowResetState = (character, item, { scope = null } = {}) => {
   if (!item || typeof item.id !== 'string') return character;
   const current = readFlowState(character, item);
   const currentFields = { ...(current.fields || {}) };
-  delete currentFields._uses;
+
+  if (!scope) {
+    delete currentFields._uses;
+    delete currentFields._picks;
+    return withFlowState(character, item.id, {
+      n: controlInitial(item),
+      on: false,
+      choice: '',
+      fields: currentFields,
+      picks: [],
+      text: current.text || '',
+      list: []
+    });
+  }
+
+  const ctrls = controlsOf(item);
+  const counterCtrl = counterControlOf(item);
+
+  const rawUses = (currentFields._uses && typeof currentFields._uses === 'object') ? { ...currentFields._uses } : {};
+  let touchedUses = false;
+  ctrls.forEach((c, idx) => {
+    if (c?.kind === 'button' && c?.reset === scope && Object.prototype.hasOwnProperty.call(rawUses, idx)) {
+      delete rawUses[idx];
+      touchedUses = true;
+    }
+  });
+  if (Object.keys(rawUses).length === 0 || !ctrls.length) {
+    delete currentFields._uses;
+  } else if (touchedUses) {
+    currentFields._uses = rawUses;
+  }
+
+  if (currentFields._picks && typeof currentFields._picks === 'object') {
+    const subPicks = { ...currentFields._picks };
+    ctrls.forEach((c, idx) => {
+      if (idx > 0 && c?.kind === 'multiSelect' && c?.reset === scope) {
+        delete subPicks[idx];
+      }
+    });
+    if (Object.keys(subPicks).length === 0) delete currentFields._picks;
+    else currentFields._picks = subPicks;
+  }
+
+  const toggleCtrls = ctrls.filter((c) => c?.kind === 'toggle');
+  const selectCtrls = ctrls.filter((c) => c?.kind === 'select');
+  const resetCounter = counterCtrl ? counterCtrl.reset === scope : true;
+  const resetToggle = toggleCtrls.length === 0 || toggleCtrls.some((c) => c.reset === scope);
+  const resetChoice = selectCtrls.length === 0 || selectCtrls.some((c) => c.reset === scope);
+  const resetPicks = ctrls[0]?.kind !== 'multiSelect' || ctrls[0]?.reset === scope;
+
   return withFlowState(character, item.id, {
-    n: controlInitial(item),
-    on: false,
-    choice: '',
+    n: resetCounter ? controlInitial(item) : current.n,
+    on: resetToggle ? false : current.on,
+    choice: resetChoice ? '' : current.choice,
     fields: currentFields,
-    picks: [],
+    picks: resetPicks ? [] : current.picks,
     text: current.text || '',
     list: []
   });
@@ -650,7 +715,7 @@ export const resetFlowScope = (character, scope) => {
     const ctrls = controlsOf(item);
     const matches = ctrls.some((c) => c?.reset === scope);
     if (matches) {
-      nextChar = flowResetState(nextChar, item);
+      nextChar = flowResetState(nextChar, item, { scope });
       changed = true;
     }
   }
@@ -762,7 +827,8 @@ export const flowActionPlan = (item, character, ctx = {}) => {
     : (hasReset ? 1 : null);
 
   const rawUses = (state?.fields?._uses && typeof state.fields._uses === 'object') ? state.fields._uses : {};
-  const currentUses = Number.isInteger(rawUses[ctrlIndex]) ? rawUses[ctrlIndex] : (ctrlIndex === 0 ? state.n : 0);
+  const hasCounter = ctrls.some((c) => c && c.kind === 'counter');
+  const currentUses = Number.isInteger(rawUses[ctrlIndex]) ? rawUses[ctrlIndex] : (ctrlIndex === 0 && !hasCounter ? state.n : 0);
 
   if (maxLimit !== null && currentUses >= maxLimit) {
     const scopeName = resetScopeLabel(resetScope);
@@ -770,6 +836,20 @@ export const flowActionPlan = (item, character, ctx = {}) => {
       ...base,
       reason: `本${scopeName}使用次數已達上限（${currentUses}／${maxLimit}），等「${scopeName}」重置`
     };
+  }
+
+  let counterMax = null;
+  if (activeControl?.incrementCounter) {
+    const counterCtrl = counterControlOf(item);
+    counterMax = counterCtrl?.max
+      ? evaluateControlValue(counterCtrl.max, { sl, level, vars: ctx?.vars || flowVarsFor(character) })
+      : null;
+    if (counterMax !== null && state.n >= counterMax) {
+      return {
+        ...base,
+        reason: `已達【${counterCtrl?.label || '累計次數'}】上限（${state.n}／${counterMax}）`
+      };
+    }
   }
 
   const stats = ctx?.stats || null;
@@ -809,10 +889,17 @@ export const flowActionPlan = (item, character, ctx = {}) => {
     }
   }
 
-  const hasCounter = ctrls.some((c) => c && c.kind === 'counter');
   const nextUses = { ...rawUses, [ctrlIndex]: currentUses + 1 };
   const nextFields = { ...(state.fields || {}), _uses: nextUses };
-  const nextN = hasCounter ? state.n : (ctrlIndex === 0 ? state.n + 1 : state.n);
+  const willReachMaxAwakening = Boolean(
+    activeControl?.incrementCounter &&
+    activeControl?.onMaxCounter === 'fullRecoverAndClearStatuses' &&
+    counterMax !== null &&
+    state.n + 1 >= counterMax
+  );
+  const nextN = activeControl?.incrementCounter
+    ? state.n + 1
+    : (hasCounter ? state.n : (ctrlIndex === 0 ? state.n + 1 : state.n));
   const nextState = clampFlowState(character, item, { ...state, n: nextN, on: true, fields: nextFields });
   const patch = { flowState: { [item.id]: nextState } };
   const changes = [];
@@ -836,7 +923,7 @@ export const flowActionPlan = (item, character, ctx = {}) => {
 
   const gain = activeControl?.gain;
   const gainedNotes = [];
-  if (gain && typeof gain === 'object') {
+  if (gain && typeof gain === 'object' && !willReachMaxAwakening) {
     const vars = ctx?.vars || flowVarsFor(character);
     for (const key of Object.keys(gain)) {
       const rawVal = gain[key];
@@ -930,11 +1017,83 @@ export const flowActionPlan = (item, character, ctx = {}) => {
     }
   }
 
+  const extraNotes = [];
+  let awakeningNote = '';
+
+  if (willReachMaxAwakening) {
+    const curHpHave = readAvailable(character, 'hp', stats);
+    const maxHpTarget = toFiniteInt(stats?.maxHp);
+    patch.currentHp = maxHpTarget !== null ? maxHpTarget : null;
+    if (curHpHave !== null && maxHpTarget !== null && maxHpTarget !== curHpHave) {
+      changes.push({ field: 'currentHp', from: curHpHave, to: maxHpTarget });
+    }
+    const curMpHave = readAvailable(character, 'mp', stats);
+    const maxMpTarget = toFiniteInt(stats?.maxMp);
+    patch.currentMp = maxMpTarget !== null ? maxMpTarget : null;
+    if (curMpHave !== null && maxMpTarget !== null && maxMpTarget !== curMpHave) {
+      changes.push({ field: 'currentMp', from: curMpHave, to: maxMpTarget });
+    }
+    const nextAff = { ...(character?.statusAfflictions || {}) };
+    for (const sk of Object.keys(nextAff)) nextAff[sk] = false;
+    for (const sk of ALL_STATUS_KEYS) nextAff[sk] = false;
+    patch.statusAfflictions = nextAff;
+
+    extraNotes.push(`累計違反 ${state.n} → ${nextState.n}（第 ${nextState.n} 次覺醒）：HP/MP 回滿並解除所有異常狀態`);
+    awakeningNote = '請於角色編輯移除【被束縛的心】、將主題改為歸屬／罪惡感／正義／復仇之一、補領 1 個英雄技能，並將所有羈絆強度 +1';
+  } else {
+    if (Array.isArray(activeControl?.loseHalfResources)) {
+      for (const key of activeControl.loseHalfResources) {
+        const meta = COST_RESOURCES[key];
+        if (!meta) continue;
+        const have = readAvailable(character, key, stats);
+        if (have === null) {
+          unresolved.push({ label: meta.label, text: '未提供角色數值，無法扣除一半' });
+          continue;
+        }
+        const loss = Math.floor(have / 2);
+        const to = Math.max(0, have - loss);
+        if (meta.isClassResource) {
+          patch.classResources = {
+            ...(patch.classResources || character?.classResources || {}),
+            [meta.field]: to
+          };
+        } else {
+          patch[meta.field] = to;
+          if (to !== have) changes.push({ field: meta.field, from: have, to });
+        }
+        extraNotes.push(`${meta.label} ${have} → ${to}（失去一半 −${loss}）`);
+      }
+    }
+
+    if (Array.isArray(activeControl?.inflictStatuses) && activeControl.inflictStatuses.length > 0) {
+      const nextAff = { ...(patch.statusAfflictions || character?.statusAfflictions || {}) };
+      const statusNames = [];
+      for (const st of activeControl.inflictStatuses) {
+        if (!st) continue;
+        nextAff[st] = true;
+        statusNames.push(STATUS_LABELS[st] || st);
+      }
+      patch.statusAfflictions = nextAff;
+      if (statusNames.length > 0) {
+        extraNotes.push(`受到狀態：${statusNames.join('、')}`);
+      }
+    }
+
+    if (activeControl?.incrementCounter) {
+      const counterCtrl = counterControlOf(item);
+      extraNotes.push(`${counterCtrl?.label || '累計次數'} ${state.n} → ${nextState.n}`);
+    }
+  }
+
   const costText = costTextOf(paid);
   const title = costText ? `使用【${item.name}】（${costText}）` : `使用【${item.name}】`;
-  const note = unresolved.length > 0
-    ? `另有無法自動計算的成本：${unresolved.map((u) => `${u.label}：${u.text}`).join('；')}`
-    : '';
+  const noteParts = [];
+  if (awakeningNote) noteParts.push(awakeningNote);
+  if (unresolved.length > 0) {
+    noteParts.push(`另有無法自動計算的成本：${unresolved.map((u) => `${u.label}：${u.text}`).join('；')}`);
+  }
+  const note = noteParts.join('；');
+  const summaryNotes = [...paidNotes, ...gainedNotes, ...rolledNotes, ...zeroNotes, ...extraNotes];
 
   return {
     ...base,
@@ -950,8 +1109,8 @@ export const flowActionPlan = (item, character, ctx = {}) => {
       changes,
       ...(note ? { note } : {})
     },
-    toast: (paidNotes.length > 0 || gainedNotes.length > 0 || rolledNotes.length > 0 || zeroNotes.length > 0)
-      ? `${title}；${[...paidNotes, ...gainedNotes, ...rolledNotes, ...zeroNotes].join('、')}${note ? `；${note}` : ''}`
+    toast: summaryNotes.length > 0
+      ? `${title}；${summaryNotes.join('、')}${note ? `；${note}` : ''}`
       : `${title}${note ? `；${note}` : ''}`,
     unresolved
   };

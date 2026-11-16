@@ -78,7 +78,7 @@
     "test:equipmenttraits": "esbuild tests/equipmentTraits.test.mjs --bundle --platform=node --format=esm --packages=external --loader:.json=json --loader:.otf=dataurl --outfile=.test-build/equipmentTraits.mjs --log-level=warning && node .test-build/equipmentTraits.mjs",
     "build:worklist": "esbuild scratch/build-worklist.mjs --bundle --platform=node --format=esm --loader:.json=json --outfile=.test-build/buildWorklist.mjs --log-level=warning && node .test-build/buildWorklist.mjs",
     "test:planworklist": "esbuild tests/planWorklist.test.mjs --bundle --platform=node --format=esm --loader:.json=json --outfile=.test-build/planWorklist.mjs --log-level=warning && node .test-build/planWorklist.mjs",
-    "test:avatars": "node tests/summonAvatar.test.mjs",
+    "test:avatars": "esbuild tests/summonAvatar.test.mjs --bundle --platform=node --format=esm --packages=external --loader:.json=json --loader:.otf=dataurl --outfile=.test-build/summonAvatar.mjs --log-level=warning && node .test-build/summonAvatar.mjs",
     "test:quirkflow": "esbuild tests/quirkFlow.test.mjs --bundle --platform=node --format=esm --packages=external --loader:.json=json --loader:.otf=dataurl --outfile=.test-build/quirkFlow.mjs --log-level=warning && node .test-build/quirkFlow.mjs",
     "test:merchantflow": "esbuild tests/merchantFlow.test.mjs --bundle --platform=node --format=esm --packages=external --loader:.json=json --loader:.otf=dataurl --outfile=.test-build/merchantFlow.mjs --log-level=warning && node .test-build/merchantFlow.mjs",
     "test:rolloutcome": "node tests/rollOutcome.test.mjs",

@@ -55,7 +55,10 @@ import {
   buildQuirkPatch,
   normalizeBenefitKey,
   resolveChosenBenefit,
-  describeFreeBenefit
+  describeFreeBenefit,
+  resolveVitalResources,
+  syncCreationRulesPatch,
+  canOpenHeroicPickerInEditor
 } from '../src/features/character-sheet/utils/characterEngine.js';
 import { DEFAULT_CREATION_RULES } from '../src/features/character-sheet/data/creationRules.js';
 import { INNATE_MIN_LEVELS } from '../src/features/character-sheet/data/technospheres.js';
@@ -1420,6 +1423,72 @@ check('O describeFreeBenefit 未選 → 最大 HP +5',
   describeFreeBenefit(rulesData.classes['舞者'], { className: '舞者' }), '最大 HP +5');
 check('O describeFreeBenefit 非二選一 → 印資料層原文',
   describeFreeBenefit(rulesData.classes['守護者'], { className: '守護者' }), 'HP +5，職業防具/盾牌');
+
+// ─────────────────────────────────────────────────────────── P
+section('P. 資源現值/上限解析、開卡等級同步與定稿後英雄技能領取');
+const NEUTRAL_GEAR = { mainHand: '無武器', offHand: '無盾牌', armor: '無防具', accessory: '' };
+const freshVitalChar = createNewCharacter({
+  attributes: { dex: 8, ins: 8, mig: 8, wlp: 6 },
+  level: 5,
+  equipment: NEUTRAL_GEAR
+});
+// MIG d8×5 + Lv5 = 45, WLP d6×5 + Lv5 = 35, IP = 6
+check('P1 新角 null 資源解析為滿上限',
+  resolveVitalResources(freshVitalChar),
+  { maxHp: 45, maxMp: 35, maxIp: 6, curHp: 45, curMp: 35, curIp: 6 });
+check('P2 明確設為 0 時保留 0（不得回退為上限）',
+  resolveVitalResources({ ...freshVitalChar, currentMp: 0, currentIp: 0 }),
+  { maxHp: 45, maxMp: 35, maxIp: 6, curHp: 45, curMp: 0, curIp: 0 });
+check('P3 精簡 mock 自帶 maxHp 時優先採納',
+  resolveVitalResources({ currentHp: 10, maxHp: 40 }).maxHp, 40);
+check('P4 statsOverride 最優先',
+  resolveVitalResources({ ...freshVitalChar, currentMp: null }, { maxMp: 99 }).curMp, 99);
+
+// syncCreationRulesPatch：未定稿改起始等級 → level 與未結算資金同步；已定稿不動 level
+const patchTo30 = syncCreationRulesPatch(freshVitalChar, { startingLevel: 30 });
+check('P5 未定稿把起始等級調到 30：同步 level=30 與起始預算 2000z',
+  [patchTo30.level, patchTo30.zenit], [30, 2000]);
+const richChar = { ...freshVitalChar, ...buildQuirkPatch(freshVitalChar, '富家子弟', '') };
+const richTo30 = syncCreationRulesPatch(richChar, { startingLevel: 30 });
+check('P6 未定稿調高起始等級保留金手指資金加成（2000 + 1000 = 3000z）',
+  richTo30.zenit, 3000);
+const rolledChar = { ...freshVitalChar, startingFundsRolled: true, zenit: 320 };
+const rolledTo30 = syncCreationRulesPatch(rolledChar, { startingLevel: 30 });
+check('P7 已結算起始資金後調規則：只同步 level，不覆寫錢包 zenit',
+  [rolledTo30.level, rolledTo30.zenit], [30, undefined]);
+const lockedCharForRules = { ...freshVitalChar, locked: true };
+const lockedPatch = syncCreationRulesPatch(lockedCharForRules, { startingLevel: 30 });
+check('P8 已定稿改開卡規則：不追溯改寫 level 與 zenit',
+  [lockedPatch.level, lockedPatch.zenit], [undefined, undefined]);
+
+// canOpenHeroicPickerInEditor
+check('P9 未定稿時永遠允許打開英雄技能選單',
+  canOpenHeroicPickerInEditor({ ...freshVitalChar, locked: false }), true);
+check('P10 定稿但尚未精通任何職業：關閉選單入口',
+  canOpenHeroicPickerInEditor({ ...freshVitalChar, locked: true }), false);
+const lockedMasteredOne = {
+  ...freshVitalChar,
+  locked: true,
+  level: 10,
+  classes: [{ className: '修補匠', level: 10, skills: [] }],
+  heroicSkills: []
+};
+check('P11 定稿後精通 1 個職業且尚未領取：開放步驟 5 選擇英雄技能',
+  canOpenHeroicPickerInEditor(lockedMasteredOne), true);
+check('P12 領滿 1 個精通名額後再次隱藏入口',
+  canOpenHeroicPickerInEditor({ ...lockedMasteredOne, heroicSkills: [{ name: '緊急修復' }] }), false);
+const lockedPlaytest = {
+  ...lockedMasteredOne,
+  creationRules: { startingHeroicSkill: true },
+  heroicSkills: [{ name: '強健身軀' }]
+};
+check('P13 開啟開局贈送英雄技能時：第 1 次精通不重複給名額（已拿 1 個即滿）',
+  canOpenHeroicPickerInEditor(lockedPlaytest), false);
+check('P14 開啟開局贈送規則且精通第 2 個職業：再次開放領取第 2 個英雄技能',
+  canOpenHeroicPickerInEditor({
+    ...lockedPlaytest,
+    classes: [{ className: '修補匠', level: 10, skills: [] }, { className: '學者', level: 10, skills: [] }]
+  }), true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

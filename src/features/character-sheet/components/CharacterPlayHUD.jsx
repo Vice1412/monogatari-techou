@@ -178,7 +178,7 @@ import { describeCostGate, gateButtonAttrs, GATED_BUTTON_CLASS, GATED_SHELL_CLAS
 import UnavailableHint from './UnavailableHint';
 // 狀態異常的效果碼（2026-10-30，P7）：一律由 affectedStats 推導，不另立對照表。
 import { buildAfflictionRows } from '../utils/afflictionDisplay';
-import SkillDescription, { openRuleCodex } from '../utils/skillFormulaEvaluator';
+import SkillDescription, { getSkillLevel, openRuleCodex } from '../utils/skillFormulaEvaluator';
 // 咒語與儀式的「取得資格」（2026-11-02）：這一屏原本對**任何**角色都給
 // 「從規則庫選擇習得咒語」與「扣除 MP 並擲儀式檢定」。那兩顆按鈕在《FU》裡是無中生有——
 // 咒語只能經由【元素／熵系／靈魂魔法】、【咒語模仿】或英雄技能【額外咒語】取得；
@@ -409,6 +409,15 @@ export default function CharacterPlayHUD({
   // 使用者裁定「左翼消耗品池與右翼錢包各自收成一頁」。
   // 指令窗與內容頁共用這一份清單，**只有這一份**（以前是格子＋sticky 列兩份）。
   const [activeTab, setActiveTab] = useState(initialTab);
+  const rightWingRef = useRef(null);
+  const handleSelectTab = (tabId) => {
+    setActiveTab(tabId);
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setTimeout(() => {
+        rightWingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 30);
+    }
+  };
   const characterLevel = getCharacterLevel(character);
   const hudTabItems = useMemo(() => [
     // P14：`profile` 是預設頁——「最基本的默認信息」。
@@ -859,18 +868,27 @@ export default function CharacterPlayHUD({
       return;
     }
     const before = characterRef.current;
+    const patch = plan.patch || {};
+    const mergedFlowState = patch.flowState
+      ? { ...(before.flowState || {}), ...patch.flowState }
+      : before.flowState;
     const base = {
       ...before,
-      ...(plan.patch || {}),
+      ...patch,
+      ...(patch.flowState ? { flowState: mergedFlowState } : {}),
       updatedAt: new Date().toISOString()
     };
     commit(plan.log ? loggableChange(before, base, plan.log) : base);
     if (plan.toast && typeof showToast === 'function') showToast(plan.toast, 'success');
   };
 
-  /** 計數器加減／重置：只寫 `flowState`，不進履歷（那不是「發生了什麼事」，是一個刻度）。 */
-  const adjustFlowCounter = (item, nextState) => {
+  /** 計數器加減／重置：從最新 characterRef 計算，避免同幀連續點擊不同控制項互相覆寫。 */
+  const adjustFlowCounter = (item, updaterOrNext) => {
     const before = characterRef.current;
+    const current = readFlowState(before, item);
+    const nextState = typeof updaterOrNext === 'function'
+      ? updaterOrNext(current, before)
+      : updaterOrNext;
     const clamped = clampFlowState(before, item, nextState);
     commit(withFlowState(before, item.id, clamped));
   };
@@ -912,15 +930,25 @@ export default function CharacterPlayHUD({
         theme={theme}
         state={state}
         costBlocked={getCostBlocked}
-        onAdjust={(delta) => adjustFlowCounter(item, { ...state, n: state.n + delta })}
-        onReset={() => adjustFlowCounter(item, flowResetState(character, item))}
-        onToggle={() => adjustFlowCounter(item, { ...state, on: !state.on })}
+        onAdjust={(delta) => adjustFlowCounter(item, (cur) => ({ ...cur, n: cur.n + delta }))}
+        onReset={() => adjustFlowCounter(item, (_cur, ch) => flowResetState(ch, item))}
+        onToggle={() => adjustFlowCounter(item, (cur) => ({ ...cur, on: !cur.on }))}
         // `select`（第三期）：「選一個」的條目。【類別訓練】的所選類別就寫在這裡，
         // 引擎（`getProficiencies`）讀 `flowState[id].choice` 才知道要給哪一項熟練度。
-        onChoice={(value) => adjustFlowCounter(item, { ...state, choice: value })}
-        onPicks={(picks) => adjustFlowCounter(item, { ...state, picks })}
-        onText={(text) => adjustFlowCounter(item, { ...state, text })}
-        onListChange={(list) => adjustFlowCounter(item, { ...state, list })}
+        onChoice={(value) => adjustFlowCounter(item, (cur) => ({ ...cur, choice: value }))}
+        onPicks={(picks, ctrlIdx = 0) => adjustFlowCounter(item, (cur) => (
+          ctrlIdx > 0
+            ? {
+                ...cur,
+                fields: {
+                  ...(cur.fields || {}),
+                  _picks: { ...(cur.fields?._picks || {}), [ctrlIdx]: picks }
+                }
+              }
+            : { ...cur, picks }
+        ))}
+        onText={(text) => adjustFlowCounter(item, (cur) => ({ ...cur, text }))}
+        onListChange={(list) => adjustFlowCounter(item, (cur) => ({ ...cur, list }))}
         // 擲骰式累積（W5 驗收補上）：`control.roll` 存在時，這裡負責**擲**再交給純函式。
         // 純函式不擲骰（沒給 roll 就拒絕），所以骰子只能落在 UI 這一層。
         onAct={(idx) => {
@@ -933,7 +961,7 @@ export default function CharacterPlayHUD({
             roll = 0;
             for (let i = 0; i < count; i += 1) roll += Math.floor(Math.random() * faces) + 1;
           }
-          applyFlowPlan(flowActionPlan(item, character, {
+          applyFlowPlan(flowActionPlan(item, characterRef.current || character, {
             sl, level: characterLevel, stats, controlIndex: idx, vars, ...(roll ? { roll } : {})
           }));
         }}
@@ -1213,12 +1241,42 @@ export default function CharacterPlayHUD({
     }));
   };
 
-  // 呼叫全域擲骰器時自動附帶角色特質、羈絆與物語點回呼（支援重擲、羈絆激勵與大失敗領取 FP）
+  // 呼叫全域擲骰器時自動附帶角色特質、羈絆與物語點回呼（支援重擲、羈絆激勵、幸運七替換與大失敗領取 FP）
   const openCharacterDice = (config) => {
     if (!onOpenDice) return;
+    const latestChar = characterRef.current || character;
+    const hasLuckySeven = getSkillLevel(latestChar, '幸運七') > 0;
+    const currentLucky = Number.isFinite(Number(latestChar?.classResources?.luckyNumber))
+      && Number(latestChar?.classResources?.luckyNumber) > 0
+      ? Number(latestChar.classResources.luckyNumber)
+      : 7;
     onOpenDice({
       ...config,
-      character,
+      character: latestChar,
+      ...(hasLuckySeven ? {
+        luckyNumber: currentLucky,
+        onUpdateLuckyNumber: (nextLucky) => {
+          const latest = characterRef.current;
+          const prevLucky = Number.isFinite(Number(latest?.classResources?.luckyNumber))
+            && Number(latest?.classResources?.luckyNumber) > 0
+            ? Number(latest.classResources.luckyNumber)
+            : 7;
+          if (nextLucky === prevLucky) return;
+          const nextChar = {
+            ...latest,
+            classResources: {
+              ...(latest.classResources || {}),
+              luckyNumber: nextLucky
+            },
+            updatedAt: new Date().toISOString()
+          };
+          commit(loggableChange(latest, nextChar, {
+            kind: 'skill',
+            title: `使用【幸運七】：幸運數字 ${prevLucky} → ${nextLucky}`
+          }));
+          showToast(`【幸運七】幸運數字已更新：${prevLucky} → ${nextLucky}`, 'info');
+        }
+      } : {}),
       // 擲骰留痕：擲骰器每次擲完都回報一次，這裡決定要不要寫進履歷。
       onRecordRoll: recordRoll,
       onSpendFp: (reason) => {
@@ -2212,7 +2270,7 @@ export default function CharacterPlayHUD({
               <HudCommandList
                 items={hudTabItems}
                 value={activeTab}
-                onChange={setActiveTab}
+                onChange={handleSelectTab}
                 testId="hud-command-list"
                 activeColor={theme.accent}
                 activeBorder={theme.accentDark}
@@ -2516,7 +2574,11 @@ export default function CharacterPlayHUD({
               職業面板），所以它自己吃 `overflow-y-auto`。`overscroll-contain` 讓它捲到盡頭
               時不要把捲動傳給頁面（那正是使用者說的「在任何地方滑動大家一起動」）。
               `pr-1` 是給捲軸留的位子，避免內容被壓在捲軸底下。 */}
-          <div className="order-3 lg:order-none lg:col-span-6 lg:max-h-[calc(100vh-var(--chapter-header-h,52px)-9rem)] lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 space-y-3 min-w-0">
+          <div
+            ref={rightWingRef}
+            id="hud-tab-content"
+            className="order-3 lg:order-none lg:col-span-6 lg:max-h-[calc(100vh-var(--chapter-header-h,52px)-9rem)] lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 space-y-3 min-w-0"
+          >
             {activeTab === 'profile' ? (
               <>
               <HudWindow
@@ -4356,17 +4418,34 @@ export default function CharacterPlayHUD({
                           <span>掌握之英雄技能</span>
                         </div>
                         <div className="space-y-2">
-                          {(character.heroicSkills || []).map((hs, idx) => {
-                            const resolved = resolveHeroicSkillEntry(hs, character);
-                            if (!resolved) return null;
+                          {(() => {
+                            const deduped = [];
+                            const byName = new Map();
+                            for (const hs of (character.heroicSkills || [])) {
+                              const resolved = resolveHeroicSkillEntry(hs, character);
+                              if (!resolved) continue;
+                              if (byName.has(resolved.name)) {
+                                byName.get(resolved.name).takes += 1;
+                              } else {
+                                const entry = { hs, resolved, takes: 1 };
+                                byName.set(resolved.name, entry);
+                                deduped.push(entry);
+                              }
+                            }
+                            return deduped.map(({ resolved, takes }, idx) => {
                             const sourceLabel = HEROIC_SKILL_SOURCE_LABELS[resolved.source] || '';
                             const effectText = resolved.effect || resolved.desc || '';
                             return (
-                              <div key={idx} className="p-3 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-1">
+                              <div key={resolved.name} className="p-3 rounded bg-[#fbf7ee] border border-[#d6c7ab] space-y-1">
                                 <div className="flex items-center justify-between gap-2 flex-wrap">
                                   <span className="font-bold text-xs text-[#3c2415] flex items-center gap-1.5">
                                     <span className="text-[#a63d40]">★</span>
                                     <span>{resolved.name}</span>
+                                    {takes > 1 && (
+                                      <span className="text-t10 px-1.5 py-0.5 rounded bg-[#f4ebd9] border border-[#d6c7ab] text-[#8c3235] font-bold">
+                                        取得 {takes} 次
+                                      </span>
+                                    )}
                                   </span>
                                   <div className="flex items-center gap-1.5">
                                     {sourceLabel && (
@@ -4472,7 +4551,8 @@ export default function CharacterPlayHUD({
                                   )}
                               </div>
                             );
-                          })}
+                          });
+                          })()}
                         </div>
                       </div>
                     )}
@@ -5690,14 +5770,12 @@ export default function CharacterPlayHUD({
                 return 8;
               };
               setIsFreeRollModalOpen(false);
-              if (onOpenDice) {
-                onOpenDice({
-                  die1: getDie(freeRollAttr1),
-                  die2: getDie(freeRollAttr2),
-                  modifier: freeRollModifier,
-                  label: `自由檢定 [${freeRollAttr1.toUpperCase()} + ${freeRollAttr2.toUpperCase()}]`
-                });
-              }
+              openCharacterDice({
+                die1: getDie(freeRollAttr1),
+                die2: getDie(freeRollAttr2),
+                modifier: freeRollModifier,
+                label: `自由檢定 [${freeRollAttr1.toUpperCase()} + ${freeRollAttr2.toUpperCase()}]`
+              });
             }}
             className="w-full py-2.5 rounded text-white font-bold text-xs flex items-center justify-center gap-1.5 mt-2"
             style={{ backgroundColor: theme.accent }}

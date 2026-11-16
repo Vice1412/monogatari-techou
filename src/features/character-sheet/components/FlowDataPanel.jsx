@@ -191,7 +191,7 @@ export default function FlowDataPanel({
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-t11 font-bold text-[#6b5a4b]">
-                      第 {idx + 1} 位{spec.records.label}
+                      第 {idx + 1} {spec.records.unit || '筆'}{spec.records.label}
                     </span>
                     {records.length > minRecords && (
                       <button

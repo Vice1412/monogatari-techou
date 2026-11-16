@@ -5,6 +5,7 @@ import JRPGButton from '../../components/ui/JRPGButton';
 import FUIcon from '../../components/ui/FUIcon';
 import CopyTextButton from '../../components/ui/CopyTextButton';
 import { formatRollResultCopyText } from '../character-sheet/utils/playCopyFormat';
+import { getSkillLevel } from '../character-sheet/utils/skillFormulaEvaluator';
 import { GiSparkles, GiRollingDices, GiHazardSign, GiTrophyCup, GiCrossedSwords, GiHeartShield, GiCycle, GiScrollQuill } from 'react-icons/gi';
 import { computeRollOutcome, swapDieWithLuckyNumber } from './utils/rollOutcome';
 
@@ -46,6 +47,14 @@ export default function DiceRollerModal({
   // 用狀態而不是 disabled：`disabled` 會吃掉 title，也讓鍵盤使用者被跳過。
   const [manualRecorded, setManualRecorded] = useState(false);
 
+  // 【孤注一擲】與【幸運七】檢定介入狀態
+  const [useGambit, setUseGambit] = useState(initialConfig?.mode === 'gambit');
+  const [luckyNumberState, setLuckyNumberState] = useState(() => {
+    const num = Number(initialConfig?.luckyNumber);
+    return Number.isFinite(num) && num > 0 ? num : 7;
+  });
+  const [luckySwappedForRoll, setLuckySwappedForRoll] = useState(false);
+
   useEffect(() => {
     if (isOpen && initialConfig) {
       if (initialConfig.die1) setDie1Type(initialConfig.die1);
@@ -66,7 +75,11 @@ export default function DiceRollerModal({
       setFpSpentCount(0);
       setFumbleClaimed(false);
       setManualRecorded(false);
-      setRollResult(null);
+      setUseGambit(initialConfig.mode === 'gambit');
+      const nextLucky = Number(initialConfig.luckyNumber);
+      setLuckyNumberState(Number.isFinite(nextLucky) && nextLucky > 0 ? nextLucky : 7);
+      setLuckySwappedForRoll(false);
+      setRollResult(initialConfig.initialRollResult || null);
     } else if (isOpen && !initialConfig) {
       setRollLabel('');
       setLockDice(false);
@@ -79,16 +92,21 @@ export default function DiceRollerModal({
       setFpSpentCount(0);
       setFumbleClaimed(false);
       setManualRecorded(false);
+      setUseGambit(false);
+      setLuckySwappedForRoll(false);
     }
   }, [isOpen, initialConfig]);
 
   // 由跑團面板傳入：回報這一擲，讓履歷接得住。
   // 判定與格式化在 `character-sheet/utils/rollRecord.js`——擲骰器只回報「發生了什麼」，
   // 不決定「值不值得記」。判定只寫一份，兩邊才不會分岔。
+  const character = initialConfig?.character || null;
   const onRecordRoll = initialConfig?.onRecordRoll || null;
-  const rollMode = initialConfig?.mode || 'normal';
+  const rollMode = useGambit ? 'gambit' : (initialConfig?.mode || 'normal');
   const currentLuckyNumber = initialConfig?.luckyNumber || 0;
   const onUpdateLuckyNumber = initialConfig?.onUpdateLuckyNumber || null;
+  const hasGambit = getSkillLevel(character, '孤注一擲') > 0 || initialConfig?.mode === 'gambit';
+  const hasLuckySeven = getSkillLevel(character, '幸運七') > 0 || currentLuckyNumber > 0;
 
   const handleRoll = () => {
     setIsRolling(true);
@@ -102,6 +120,7 @@ export default function DiceRollerModal({
       setUsedBondName('');
       setFumbleClaimed(false);
       setManualRecorded(false);
+      setLuckySwappedForRoll(false);
       setIsRolling(false);
 
       if (outcome.isCritical) {
@@ -121,7 +140,6 @@ export default function DiceRollerModal({
     }, 200);
   };
 
-  const character = initialConfig?.character || null;
   const onSpendFp = initialConfig?.onSpendFp || null;
   const onGainFp = initialConfig?.onGainFp || null;
   // 由跑團面板的「激勵」按鈕發起時，帶上那條羈絆的 id：
@@ -143,12 +161,13 @@ export default function DiceRollerModal({
 
     const nextR1 = (target === 'die1' || target === 'both')
       ? Math.floor(Math.random() * die1Type) + 1
-      : rollResult.die1;
+      : (rollResult.rawDie1 ?? rollResult.die1);
     const nextR2 = (target === 'die2' || target === 'both')
       ? Math.floor(Math.random() * die2Type) + 1
-      : rollResult.die2;
-    const outcome = computeRollOutcome(nextR1, nextR2, rollResult.modifier);
+      : (rollResult.rawDie2 ?? rollResult.die2);
+    const outcome = computeRollOutcome(nextR1, nextR2, rollResult.modifier, { mode: rollMode });
     setRollResult(outcome);
+    setLuckySwappedForRoll(false);
     if (outcome.isCritical) {
       confetti({
         particleCount: 100,
@@ -169,6 +188,20 @@ export default function DiceRollerModal({
         reroll: true
       });
       setManualRecorded(true);
+    }
+  };
+
+  // 【幸運七】以幸運數字替換其中一顆骰值（Core p.191）
+  const handleLuckySevenSwap = (dieTarget) => {
+    if (!rollResult || luckySwappedForRoll || !hasLuckySeven) return;
+    const activeLucky = Number.isFinite(luckyNumberState) && luckyNumberState > 0 ? luckyNumberState : 7;
+    const { outcome, nextLuckyNumber } = swapDieWithLuckyNumber(rollResult, dieTarget, activeLucky);
+    if (!outcome) return;
+    setRollResult(outcome);
+    setLuckyNumberState(nextLuckyNumber);
+    setLuckySwappedForRoll(true);
+    if (onUpdateLuckyNumber) {
+      onUpdateLuckyNumber(nextLuckyNumber, { replacedDie: dieTarget, usedLucky: activeLucky });
     }
   };
 
@@ -288,6 +321,29 @@ export default function DiceRollerModal({
           </div>
         </div>
 
+        {/* 【孤注一擲】檢定前宣告（Bonus Collection p.7） */}
+        {hasGambit && (
+          <div className="flex items-center justify-between gap-2 bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab] text-xs">
+            <div className="min-w-0">
+              <span className="font-bold text-[#3c2415] block">孤注一擲</span>
+              <span className="text-t11 text-[#6b5a4b]">奇數視為 1、偶數點數翻倍（同時影響 HR）</span>
+            </div>
+            <button
+              type="button"
+              data-testid="dice-gambit-toggle"
+              aria-pressed={useGambit}
+              onClick={() => setUseGambit(prev => !prev)}
+              className={`px-3 py-1 rounded border font-bold text-t11 shrink-0 transition-colors cursor-pointer ${
+                useGambit
+                  ? 'bg-[#a63d40] border-[#8c3235] text-[#fffdf9]'
+                  : 'bg-[#fffdf9] border-[#d6c7ab] text-[#3c2415] hover:bg-[#e8dcc4]'
+              }`}
+            >
+              {useGambit ? '已宣告' : '宣告'}
+            </button>
+          </div>
+        )}
+
         {/* Roll Button */}
         <JRPGButton
           variant="primary"
@@ -336,14 +392,24 @@ export default function DiceRollerModal({
 
             {/* Dice Values */}
             <div className="flex items-center gap-3 my-1 flex-wrap justify-center">
-              <div className="w-14 h-14 rounded bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
+              <div className="min-w-[3.5rem] px-1.5 min-h-[3.5rem] py-1 rounded bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
                 <span className="text-t10 text-[#7c6a58]">d{die1Type}</span>
-                <span className="text-2xl font-bold text-[#2c221e]">{rollResult.die1}</span>
+                <span className="text-2xl font-bold text-[#2c221e] leading-tight">{rollResult.die1}</span>
+                {rollResult.replacedDie === 1 ? (
+                  <span className="text-t10 text-[#8c3235] leading-none">幸運替換</span>
+                ) : (rollResult.mode === 'gambit' && rollResult.rawDie1 !== undefined && rollResult.rawDie1 !== rollResult.die1) ? (
+                  <span className="text-t10 text-[#8c3235] leading-none">原 {rollResult.rawDie1}➔{rollResult.die1}</span>
+                ) : null}
               </div>
               <span className="text-[#7c6a58] font-mono text-xl font-bold">+</span>
-              <div className="w-14 h-14 rounded bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
+              <div className="min-w-[3.5rem] px-1.5 min-h-[3.5rem] py-1 rounded bg-[#fffdf9] border border-[#d6c7ab] flex flex-col items-center justify-center font-mono">
                 <span className="text-t10 text-[#7c6a58]">d{die2Type}</span>
-                <span className="text-2xl font-bold text-[#2c221e]">{rollResult.die2}</span>
+                <span className="text-2xl font-bold text-[#2c221e] leading-tight">{rollResult.die2}</span>
+                {rollResult.replacedDie === 2 ? (
+                  <span className="text-t10 text-[#8c3235] leading-none">幸運替換</span>
+                ) : (rollResult.mode === 'gambit' && rollResult.rawDie2 !== undefined && rollResult.rawDie2 !== rollResult.die2) ? (
+                  <span className="text-t10 text-[#8c3235] leading-none">原 {rollResult.rawDie2}➔{rollResult.die2}</span>
+                ) : null}
               </div>
               {rollResult.modifier !== 0 && (
                 <>
@@ -447,6 +513,45 @@ export default function DiceRollerModal({
               </p>
             )}
             </div>
+
+            {/* 【幸運七】以幸運數字替換骰值（Core p.191） */}
+            {hasLuckySeven && (
+              <div
+                data-testid="dice-lucky-seven"
+                className="w-full mt-1 p-2.5 rounded bg-[#fffdf9] border border-[#d6c7ab] space-y-1.5 text-left text-xs"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-[#3c2415]">
+                    幸運七（目前幸運數字：<strong className="tabular-nums text-[#8c3235]">{luckyNumberState}</strong>）
+                  </span>
+                  <span className="text-t10 text-[#6b5a4b]">每場景限一次</span>
+                </div>
+                {luckySwappedForRoll ? (
+                  <p data-testid="dice-lucky-seven-done" className="text-t12 text-[#6b5a4b]">
+                    已替換第 {rollResult.replacedDie} 顆骰子（原值 {rollResult.originalReplacedValue} 成為新幸運數字）
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      data-testid="dice-lucky-swap-1"
+                      onClick={() => handleLuckySevenSwap(1)}
+                      className="py-1 px-2 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#3c2415] font-bold text-t11 cursor-pointer transition-colors"
+                    >
+                      替換首顆 ({rollResult.die1} ➔ {luckyNumberState})
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="dice-lucky-swap-2"
+                      onClick={() => handleLuckySevenSwap(2)}
+                      className="py-1 px-2 rounded bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] text-[#3c2415] font-bold text-t11 cursor-pointer transition-colors"
+                    >
+                      替換次顆 ({rollResult.die2} ➔ {luckyNumberState})
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* 一鍵傷害結算區（武器／攻擊咒語自動帶入） */}
             {hasDamageCalc && (

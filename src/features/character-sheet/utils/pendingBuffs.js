@@ -9,6 +9,8 @@
  * - 機師【壓縮技術】：花 2 IP 收納/召喚載具
  */
 
+import { resolveVitalResources } from './characterEngine';
+
 export function getPendingBuffs(character) {
   return Array.isArray(character?.pendingBuffs) ? character.pendingBuffs : [];
 }
@@ -65,7 +67,7 @@ export function clearPendingBuffs(character) {
  * 【支援魔法】動作：花 5 MP 登記一筆支援增益。
  */
 export function applySupportMagic(character, { targetName, effectDesc = '下次檢定獲得 +SL 加值' }, sl = 1) {
-  const curMp = Number(character?.currentMp) || 0;
+  const { curMp } = resolveVitalResources(character);
   if (curMp < 5) {
     return { ok: false, character, reason: 'MP 不足（需要 5 點 MP）' };
   }
@@ -86,7 +88,7 @@ export function applySupportMagic(character, { targetName, effectDesc = '下次�
  * 【我相信你】動作：花 5 MP 登記一筆激勵增益。
  */
 export function applyIBelieveInYou(character, { targetName, effectDesc = '下次檢定可重擲一顆骰子' }) {
-  const curMp = Number(character?.currentMp) || 0;
+  const { curMp } = resolveVitalResources(character);
   if (curMp < 5) {
     return { ok: false, character, reason: 'MP 不足（需要 5 點 MP）' };
   }
@@ -107,7 +109,7 @@ export function applyIBelieveInYou(character, { targetName, effectDesc = '下次
  * 【能言善辯】動作：花 10 MP 推進 1 格命刻。
  */
 export function applySmoothTalker(character) {
-  const curMp = Number(character?.currentMp) || 0;
+  const { curMp } = resolveVitalResources(character);
   if (curMp < 10) {
     return { ok: false, character, reason: 'MP 不足（需要 10 點 MP）' };
   }
@@ -130,7 +132,7 @@ export function applySmoothTalker(character) {
  * 【壓縮技術】動作：花 2 IP 收納/展開載具。
  */
 export function applyCompressionTechnique(character) {
-  const curIp = Number(character?.currentIp) || 0;
+  const { curIp } = resolveVitalResources(character);
   if (curIp < 2) {
     return { ok: false, character, reason: 'IP 不足（需要 2 點 IP）' };
   }

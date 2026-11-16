@@ -227,6 +227,11 @@ function ToggleControl({ control, item, state, theme, testId, onToggle }) {
 function SelectControl({ control, item, state, theme, testId, onChoice }) {
   const options = Array.isArray(control.options) ? control.options : [];
   const value = typeof state.choice === 'string' ? state.choice : '';
+  const emptyHint = control.emptyHint || (
+    item?.id === 'heroic:類別訓練'
+      ? '還沒選——選了之後，其他分頁（例如熟練度）才會跟著更新。'
+      : ''
+  );
   return (
     <div data-testid={testId} className="space-y-1">
       <label className="flex items-center gap-2 flex-wrap">
@@ -248,19 +253,35 @@ function SelectControl({ control, item, state, theme, testId, onChoice }) {
           ))}
         </select>
       </label>
-      {!value ? (
+      {!value && emptyHint ? (
         <p className="text-t12 leading-relaxed" style={{ color: theme.accent }}>
-          還沒選——選了之後，其他分頁（例如熟練度）才會跟著更新。
+          {emptyHint}
         </p>
       ) : null}
     </div>
   );
 }
 
+const formatButtonLabel = (rawLabel, { sl = 0, level = 1, vars = null } = {}) => {
+  if (!rawLabel || typeof rawLabel !== 'string' || !rawLabel.includes('【')) return rawLabel;
+  return rawLabel.replace(/【([^】]+)】/g, (full, expr, offset, source) => {
+    const normalized = String(expr).replace(/[×*]/g, '*').replace(/[＋]/g, '+').replace(/[－]/g, '-');
+    const val = evaluateControlValue(normalized, { sl, level, vars });
+    if (val === null) return full;
+    const prevChar = offset > 0 ? source[offset - 1] : '';
+    const nextChar = source[offset + full.length] || '';
+    const lead = /[\u4e00-\u9fff]/.test(prevChar) ? ' ' : '';
+    const trail = /[\u4e00-\u9fff]/.test(nextChar) ? ' ' : '';
+    return `${lead}${val}${trail}`;
+  });
+};
+
 /** 一顆主按鈕 ＋ 一行「按了會怎樣」。 */
-function ButtonControl({ control, item, state, theme, testId, costBlocked, onAct, ctrlIndex = 0 }) {
+function ButtonControl({ control, item, sl = 0, level = 1, vars = null, state, theme, testId, costBlocked, onAct, ctrlIndex = 0 }) {
+  const ctrls = controlsOf(item);
+  const hasCounter = ctrls.some((c) => c && c.kind === 'counter');
   const rawUses = (state?.fields?._uses && typeof state.fields._uses === 'object') ? state.fields._uses : {};
-  const currentUses = Number.isInteger(rawUses[ctrlIndex]) ? rawUses[ctrlIndex] : (ctrlIndex === 0 ? state?.n : 0);
+  const currentUses = Number.isInteger(rawUses[ctrlIndex]) ? rawUses[ctrlIndex] : (ctrlIndex === 0 && !hasCounter ? state?.n : 0);
   const isResetLimited = Boolean(
     control?.reset &&
     control.reset !== 'none' &&
@@ -270,7 +291,7 @@ function ButtonControl({ control, item, state, theme, testId, costBlocked, onAct
   const blocked = Boolean((costBlocked && costBlocked.blocked) || isResetLimited);
   const resetReason = isResetLimited ? `已達使用次數上限（等重置後可再使用）` : '';
   const reason = (costBlocked && costBlocked.reason) || resetReason || '';
-  const text = control.label || item.name || '執行';
+  const text = formatButtonLabel(control.label || item.name || '執行', { sl, level, vars });
   const outcome = control.outcome || '';
 
   return (
@@ -562,6 +583,9 @@ export default function SkillFlowControls({
           key={cid}
           control={control}
           item={item}
+          sl={sl}
+          level={level}
+          vars={vars}
           state={safeState}
           theme={pal}
           testId={cid}
@@ -573,16 +597,19 @@ export default function SkillFlowControls({
     }
 
     if (control.kind === 'multiSelect') {
+      const subPicks = idx > 0
+        ? (Array.isArray(safeState.fields?._picks?.[idx]) ? safeState.fields._picks[idx] : [])
+        : safeState.picks;
       return (
         <MultiSelectControl
           key={cid}
           control={control}
           item={item}
-          state={safeState}
+          state={idx > 0 ? { ...safeState, picks: subPicks } : safeState}
           theme={pal}
           testId={cid}
           takes={takes}
-          onPicks={onPicks}
+          onPicks={(nextPicks) => onPicks(nextPicks, idx)}
         />
       );
     }

@@ -16,6 +16,8 @@
  * 8. 原文鐵律：「任何選擇都必須在首次召喚時做出並記錄。如果你再次使用本技能召喚相同的阿爾卡納，它會繼承最初的選擇。」
  */
 
+import { resolveVitalResources } from './characterEngine';
+
 export const AVATAR_DAMAGE_TYPES = Object.freeze([
   '物理', '風', '電', '暗', '土', '火', '冰', '光', '毒'
 ]);
@@ -45,7 +47,7 @@ export const AVATAR_FEATURE_OPTIONS = Object.freeze([
 export function calculateAvatarMaxHp(character) {
   if (!character || typeof character !== 'object') return 0;
   const baseMigSize = Number(character.attributes?.mig?.base || character.attributes?.mig) || 8;
-  const charMaxHp = Number(character.maxHp) || 40;
+  const charMaxHp = resolveVitalResources(character).maxHp || 40;
   return (2 * baseMigSize) + Math.floor(charMaxHp / 2);
 }
 

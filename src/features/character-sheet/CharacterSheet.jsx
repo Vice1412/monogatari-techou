@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Plus,
   Download,
@@ -9,7 +10,8 @@ import {
   Search,
   Filter,
   ArrowUpDown,
-  FileCode
+  FileCode,
+  Info
 } from 'lucide-react';
 import {
   GiCrossedSwords,
@@ -67,6 +69,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
   const [isLogOpen, setIsLogOpen] = useState(false);  // 成長履歷彈窗
   const [editorTab, setEditorTab] = useState(1);      // 編輯器開啟時要停在哪個分頁
   const [toastMessage, setToastMessage] = useState(null);
+  const [toastType, setToastType] = useState('info');
 
   // Gallery Search, Filter & Sort State
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,6 +87,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
   const duplicateStartingHeroic = findDuplicateStartingHeroicSkills(roster);
 
   const showToast = (msg, type = 'info') => {
+    setToastType(type || 'info');
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 2500);
   };
@@ -886,8 +890,8 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                       })()}
 
                       {/* 5. 底部操作區 */}
-                      <div className="pt-2 mt-auto border-t border-[#e8dcc4] flex items-center justify-between gap-1">
-                        <div className="flex items-center gap-0.5">
+                      <div className="pt-2 mt-auto border-t border-[#e8dcc4] flex flex-wrap items-center justify-between gap-1.5 gap-y-2">
+                        <div className="flex items-center gap-0.5 shrink-0">
                           <button
                             type="button"
                             onClick={() => handleDuplicateCharacter(char)}
@@ -938,14 +942,14 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                           </button>
                         </div>
 
-                        <div className="flex items-center gap-1.5 ml-auto">
+                        <div className="flex items-center gap-1.5 ml-auto shrink-0">
                           <button
                             type="button"
                             onClick={() => handleOpenEditorMode(char)}
-                            className="px-2.5 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-t11 font-bold text-[#3c2415] transition-colors flex items-center gap-1"
+                            className="px-2.5 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-t11 font-bold text-[#3c2415] transition-colors flex items-center gap-1 whitespace-nowrap shrink-0"
                             title="進入創角與加點工作台"
                           >
-                            <GiQuillInk className="w-3.5 h-3.5" style={{ color: charTheme.accent }} />
+                            <GiQuillInk className="w-3.5 h-3.5 shrink-0" style={{ color: charTheme.accent }} />
                             <span>構築與成長</span>
                           </button>
 
@@ -953,6 +957,7 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
                             variant="primary"
                             size="xs"
                             icon={Play}
+                            className="whitespace-nowrap shrink-0"
                             onClick={() => handleOpenPlayMode(char)}
                             title="跑團中用：HP／MP／狀態、攻擊與咒語、命刻"
                           >
@@ -1034,18 +1039,35 @@ export default function CharacterSheet({ onOpenDice = null, onSubNavChange = nul
           **容器必須常駐**：live region 要先存在於 DOM，內容變化才會被播報；
           條件渲染整個容器等於每次都插入新節點，播報不會觸發。所以無訊息時
           用 `sr-only` 收起來，而不是從 DOM 移除。 */}
-      <div
-        role="status"
-        aria-live="polite"
-        className={
-          toastMessage
-            ? 'fixed bottom-6 right-6 z-50 bg-white border-2 border-[#3c2415] text-[#2c221e] px-4 py-2.5 rounded shadow-e3 flex items-center gap-2 font-medium text-xs animate-fade-in'
-            : 'sr-only'
-        }
-      >
-        {toastMessage && <GiCheckMark className="w-4 h-4 text-[#6b5a4b] shrink-0" />}
-        <span>{toastMessage || ''}</span>
-      </div>
+      {(() => {
+        const toastEl = (
+          <div
+            role="status"
+            aria-live="polite"
+            className={
+              toastMessage
+                ? `fixed bottom-14 right-6 z-50 bg-white border-2 px-4 py-2.5 rounded shadow-e3 flex items-center gap-2 font-medium text-xs animate-fade-in ${
+                    (toastType === 'warning' || toastType === 'error')
+                      ? 'border-[#8c2d36] text-[#8c2d36]'
+                      : 'border-[#3c2415] text-[#2c221e]'
+                  }`
+                : 'sr-only'
+            }
+          >
+            {toastMessage && (
+              (toastType === 'warning' || toastType === 'error') ? (
+                <GiHazardSign className="w-4 h-4 text-[#8c2d36] shrink-0" />
+              ) : toastType === 'success' ? (
+                <GiCheckMark className="w-4 h-4 text-[#3c2415] shrink-0" />
+              ) : (
+                <Info className="w-4 h-4 text-[#6b5a4b] shrink-0" />
+              )
+            )}
+            <span>{toastMessage || ''}</span>
+          </div>
+        );
+        return typeof document !== 'undefined' ? createPortal(toastEl, document.body) : toastEl;
+      })()}
     </div>
   );
 }

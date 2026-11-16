@@ -2366,12 +2366,12 @@
     "label": "魔法檢定屬性",
     "options": [
      {
-      "value": "undefined",
-      "label": "undefined"
+      "value": "INS + WLP",
+      "label": "INS + WLP"
      },
      {
-      "value": "undefined",
-      "label": "undefined"
+      "value": "MIG + WLP",
+      "label": "MIG + WLP"
      }
     ]
    },
@@ -2381,12 +2381,12 @@
      "label": "魔法檢定屬性",
      "options": [
       {
-       "value": "undefined",
-       "label": "undefined"
+       "value": "INS + WLP",
+       "label": "INS + WLP"
       },
       {
-       "value": "undefined",
-       "label": "undefined"
+       "value": "MIG + WLP",
+       "label": "MIG + WLP"
       }
      ]
     }
@@ -4204,16 +4204,16 @@
     "label": "花費物語點時額外好處",
     "options": [
      {
-      "value": "undefined",
-      "label": "undefined"
+      "value": "恢復【SL × 5】點 HP",
+      "label": "恢復【SL × 5】點 HP"
      },
      {
-      "value": "undefined",
-      "label": "undefined"
+      "value": "恢復【SL × 5】點 MP",
+      "label": "恢復【SL × 5】點 MP"
      },
      {
-      "value": "undefined",
-      "label": "undefined"
+      "value": "解除自選的單一異常狀態",
+      "label": "解除自選的單一異常狀態"
      }
     ]
    },
@@ -4223,16 +4223,16 @@
      "label": "花費物語點時額外好處",
      "options": [
       {
-       "value": "undefined",
-       "label": "undefined"
+       "value": "恢復【SL × 5】點 HP",
+       "label": "恢復【SL × 5】點 HP"
       },
       {
-       "value": "undefined",
-       "label": "undefined"
+       "value": "恢復【SL × 5】點 MP",
+       "label": "恢復【SL × 5】點 MP"
       },
       {
-       "value": "undefined",
-       "label": "undefined"
+       "value": "解除自選的單一異常狀態",
+       "label": "解除自選的單一異常狀態"
       }
      ]
     },
@@ -9952,23 +9952,51 @@
     },
     {
      "kind": "multiSelect",
-     "label": "招牌效果（三選一）",
-     "max": 1,
+     "label": "招牌效果（十選三）",
+     "max": 3,
      "options": [
       {
        "value": "額外傷害",
-       "label": "對每個目標 20 點傷害（暗或光，30 級後 30 點）"
+       "label": "對每個目標 20 點暗／光傷害（30 級後 30 點）"
       },
       {
        "value": "傷害轉屬性",
-       "label": "目標下回合傷害變為所選屬性且無法改變"
+       "label": "目標下回合傷害變為暗／光屬性且無法改變"
       },
       {
        "value": "解除場景咒語",
        "label": "目標不再受持續時間為「場景」的咒語影響"
+      },
+      {
+       "value": "強制包含目標",
+       "label": "指定自己或盟友，目標攻擊或攻咒須儘可能包含該對象"
+      },
+      {
+       "value": "承受憤怒",
+       "label": "美食的每個目標承受憤怒"
+      },
+      {
+       "value": "承受中毒",
+       "label": "美食的每個目標承受中毒"
+      },
+      {
+       "value": "回復雙資源",
+       "label": "每個目標回復 30 點 HP 和 30 點 MP（30 級後 40 點）"
+      },
+      {
+       "value": "解除自選狀態",
+       "label": "每個目標從自選的單個異常狀態中回復"
+      },
+      {
+       "value": "解除心智狀態",
+       "label": "每個目標從眩暈、憤怒和動搖中回復"
+      },
+      {
+       "value": "解除生理狀態",
+       "label": "每個目標從中毒、緩慢和虛弱中回復"
       }
      ],
-     "min": 1
+     "min": 3
     },
     {
      "kind": "select",
@@ -12484,7 +12512,7 @@
    "bucket": "core",
    "control": {
     "kind": "multiSelect",
-    "label": "所選物種（至多三組共六種）",
+    "label": "所選物種（至多 2 × 取得次數 種）",
     "max": 6,
     "maxPerTake": 2,
     "options": [
@@ -12522,7 +12550,7 @@
    "controls": [
     {
      "kind": "multiSelect",
-     "label": "所選物種（至多三組共六種）",
+     "label": "所選物種（至多 2 × 取得次數 種）",
      "max": 6,
      "maxPerTake": 2,
      "options": [
@@ -13805,7 +13833,7 @@
      "perSL": 0,
      "flat": 0,
      "scope": "instant",
-     "condition": "−max（靈媒職業等級/2, 等級/10），在親和度之前套用"
+     "condition": "−max（靈師職業等級/2, 等級/10），在親和度之前套用"
     },
     {
      "target": "damage",
@@ -13901,7 +13929,7 @@
      "perSL": 0,
      "flat": 0,
      "scope": "instant",
-     "condition": "−max（靈媒職業等級/2, 等級/10）"
+     "condition": "−max（靈師職業等級/2, 等級/10）"
     },
     {
      "target": "damage",
@@ -16990,16 +17018,42 @@
    "flow": "state",
    "control": {
     "kind": "button",
-    "label": "違反戒律（每場景一次：+2 物語點、扣半血半魔）",
+    "label": "違反戒律（每場景一次：+2 物語點、扣半血半魔、動搖／虛弱）",
     "reset": "scene",
-    "outcome": "物語點 +2，受到動搖與虛弱，扣除當前一半 HP 與 MP；累積達 6 次免罰，第 7 次失去金手指"
+    "gain": {
+     "fp": 2
+    },
+    "loseHalfResources": [
+     "hp",
+     "mp"
+    ],
+    "inflictStatuses": [
+     "shaken",
+     "weak"
+    ],
+    "incrementCounter": true,
+    "onMaxCounter": "fullRecoverAndClearStatuses",
+    "outcome": "累計違反 +1；第 1~6 次：物語點 +2、受動搖與虛弱、失去當前一半 HP/MP；第 7 次：回滿 HP/MP 並解除所有狀態"
    },
    "controls": [
     {
      "kind": "button",
-     "label": "違反戒律（每場景一次：+2 物語點、扣半血半魔）",
+     "label": "違反戒律（每場景一次：+2 物語點、扣半血半魔、動搖／虛弱）",
      "reset": "scene",
-     "outcome": "物語點 +2，受到動搖與虛弱，扣除當前一半 HP 與 MP；累積達 6 次免罰，第 7 次失去金手指"
+     "gain": {
+      "fp": 2
+     },
+     "loseHalfResources": [
+      "hp",
+      "mp"
+     ],
+     "inflictStatuses": [
+      "shaken",
+      "weak"
+     ],
+     "incrementCounter": true,
+     "onMaxCounter": "fullRecoverAndClearStatuses",
+     "outcome": "累計違反 +1；第 1~6 次：物語點 +2、受動搖與虛弱、失去當前一半 HP/MP；第 7 次：回滿 HP/MP 並解除所有狀態"
     },
     {
      "kind": "counter",
@@ -17026,7 +17080,7 @@
    "apply": {
     "via": "flow-control"
    },
-   "note": "戒律與羈絆本身是敘事內容，但「每場景首次違反」「累積 6 次後免罰」「第 7 次失去金手指」全是計數規則，目前沒有任何計數器。",
+   "note": "戒律與羈絆本身是敘事內容，但「每場景首次違反」「累積 6 次後免罰」「第 7 次失去金手指」全是計數規則。",
    "evidence": [
     {
      "at": "src/features/character-sheet/data/classResources.js:115",

@@ -24,6 +24,16 @@
  * 預設填物品價值（那是最常見的成交價），但可以改——改了就是改了，不留第二套算法。
  */
 import { loggableChange } from './characterLog';
+import { resolveVitalResources } from './characterEngine';
+
+const applyVitalHealing = (nextChar, hpGain, mpGain, stats) => {
+  const healHp = hpGain > 0 && typeof nextChar.currentHp === 'number';
+  const healMp = mpGain > 0 && typeof nextChar.currentMp === 'number';
+  if (!healHp && !healMp) return;
+  const { maxHp, maxMp } = resolveVitalResources(nextChar, stats);
+  if (healHp) nextChar.currentHp = Math.min(maxHp, nextChar.currentHp + hpGain);
+  if (healMp) nextChar.currentMp = Math.min(maxMp, nextChar.currentMp + mpGain);
+};
 
 /** 三個官方類別 ＋ 一個收納格。順序＝介面順序。 */
 export const INVENTORY_CATEGORIES = Object.freeze([
@@ -286,14 +296,7 @@ export const consumeInventoryItem = (character, itemId, options = {}) => {
     const halvedHp = Math.floor(baseHp / 2);
     const halvedMp = Math.floor(baseMp / 2);
 
-    if (halvedHp > 0 && typeof nextChar.currentHp === 'number') {
-      const maxHp = Number(nextChar.maxHp) || 999;
-      nextChar.currentHp = Math.min(maxHp, nextChar.currentHp + halvedHp);
-    }
-    if (halvedMp > 0 && typeof nextChar.currentMp === 'number') {
-      const maxMp = Number(nextChar.maxMp) || 999;
-      nextChar.currentMp = Math.min(maxMp, nextChar.currentMp + halvedMp);
-    }
+    applyVitalHealing(nextChar, halvedHp, halvedMp, options.stats);
 
     return {
       ok: true,
@@ -310,14 +313,7 @@ export const consumeInventoryItem = (character, itemId, options = {}) => {
   }
 
   // 3. 一般消耗
-  if (baseHp > 0 && typeof nextChar.currentHp === 'number') {
-    const maxHp = Number(nextChar.maxHp) || 999;
-    nextChar.currentHp = Math.min(maxHp, nextChar.currentHp + baseHp);
-  }
-  if (baseMp > 0 && typeof nextChar.currentMp === 'number') {
-    const maxMp = Number(nextChar.maxMp) || 999;
-    nextChar.currentMp = Math.min(maxMp, nextChar.currentMp + baseMp);
-  }
+  applyVitalHealing(nextChar, baseHp, baseMp, options.stats);
 
   return {
     ok: true,

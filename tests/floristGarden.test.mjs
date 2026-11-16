@@ -350,6 +350,41 @@ const markupGraftClock0 = renderToStaticMarkup(
 );
 check('習得【嫁接】但 clock = 0 時不渲染嫁接按鈕', markupGraftClock0.includes('data-testid="graft-seed"'), false);
 
+// ─────────────────────────────────────────────────────────── J
+section('J. 新創角 null HP/MP 語意回歸（植生術播種與生命之樹上限）');
+const freshFloristChar = createNewCharacter({
+  attributes: { dex: 6, ins: 8, mig: 8, wlp: 8 },
+  level: 5,
+  equipment: { mainHand: '無武器', offHand: '無盾牌', armor: '無防具', accessory: '' },
+  classes: [{ className: '植物學家', level: 5, skills: [{ name: '植生術', sl: 1 }, { name: '生命之樹', sl: 5 }] }],
+  floristGarden: []
+});
+const freshCanPlant = canPlantSeed(freshFloristChar, 1, 20);
+check('新角色 currentMp=null 時視為滿值（d8×5 + Lv5 = 45 MP），允許播種',
+  [freshCanPlant.ok, freshCanPlant.currentMp], [true, 45]);
+const freshPlanted = plantSeed(freshFloristChar, '熾焰菊', { costMp: 20 });
+check('播種後實扣 20 MP（45 -> 25）', freshPlanted.ok && freshPlanted.character.currentMp, 25);
+
+const injuredFloristNoMaxHp = {
+  ...freshFloristChar,
+  currentHp: 35,
+  floristGarden: [{ instanceId: 'inst_tol', seedName: '熾焰菊', clock: 2 }]
+};
+// Lv5 + d8*5 + 植物學家免費增益(+5) = maxHp 50（角色物件不帶 maxHp），SL5 恢復 30 -> 35+30=65 應夾在 50，不得溢補
+const tolCapped = removeSeedWithTreeOfLife(injuredFloristNoMaxHp, 'inst_tol', {
+  treeOfLifeSL: 5,
+  targetIsCrisis: true,
+  healSelf: true
+});
+check('生命之樹治療受傷角色（未帶靜態 maxHp）時夾在算出的上限 50，不溢補',
+  tolCapped.ok && tolCapped.character.currentHp, 50);
+
+// ─────────────────────────────────────────────────────────── K
+section('K. 花園移出按鈕文字標示（離園）');
+check('K1 植物卡片包含可見的「離園」按鈕文字而非僅垃圾桶圖示',
+  markupGraft.includes('>離園<') && markupGraft.includes('結算離園效果'),
+  true);
+
 // ─────────────────────────────────────────────────────────── 收尾
 console.log(lines.join('\n'));
 console.log(`\n通過 ${pass}，失敗 ${fail}`);

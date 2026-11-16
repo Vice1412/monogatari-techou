@@ -32,7 +32,7 @@ export const CLASS_RESOURCES = [
     label: '墳墓點',
     maxFromSL: (sl) => sl + 1,
     // 原書有明確的清空時機（HP 歸零），故按鈕直接對應那個事件，而不是泛用「清空」。
-    resetLabel: 'HP 歸零',
+    resetLabel: 'HP 歸零時清空',
     resetTo: 0,
     hint: '上限 SL+1',
     source: 'Bonus Collection p.13',

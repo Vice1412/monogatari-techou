@@ -16,6 +16,7 @@ import { renderTextWithAffinities } from '../../../../components/ui/FUIcon';
 import EmptyState from '../../../../components/ui/EmptyState';
 import { addInventoryItem } from '../../utils/inventory';
 import { applySaltAndPepper, applyDashOfLove, buildCookedDelicacyItem } from '../../utils/gourmetActions';
+import { resolveVitalResources } from '../../utils/characterEngine';
 import {
   TASTES,
   TASTE_SHORT,
@@ -118,8 +119,11 @@ export default function GourmetCookbook({
   character,
   onChange,
   showToast = () => {},
-  initialSubTab = 'ingredients'
+  initialSubTab = 'ingredients',
+  // SSR 測試注入點：不傳時預設空陣列，正式行為完全不變
+  initialPicked = []
 }) {
+  const { curIp, curMp } = resolveVitalResources(character);
   const [subTab, setSubTab] = useState(initialSubTab);
   const [newName, setNewName] = useState('');
   const [newTaste, setNewTaste] = useState(TASTES[0]);
@@ -129,7 +133,7 @@ export default function GourmetCookbook({
   const [renameDraft, setRenameDraft] = useState('');
   const [selectedPair, setSelectedPair] = useState(null);
   const [pending, setPending] = useState(null);
-  const [picked, setPicked] = useState([]);
+  const [picked, setPicked] = useState(initialPicked);
   const [dishName, setDishName] = useState('');
   /** 口味篩選：null = 全部。食材與烹飪分頁共用（你在兩邊找的是同一批東西）。 */
   const [tasteFilter, setTasteFilter] = useState(null);
@@ -346,7 +350,7 @@ export default function GourmetCookbook({
     if (dashOfLoveSL > 0 && extraAllies > 0) {
       const resLove = applyDashOfLove({
         skillSL: dashOfLoveSL,
-        currentMp: character.currentMp,
+        currentMp: curMp,
         extraAllies
       });
       if (!resLove.ok) {
@@ -1050,7 +1054,7 @@ export default function GourmetCookbook({
                     <GiSaltShaker className="w-3.5 h-3.5 text-[#8c3235]" />
                     <span>【鹽與胡椒】花費 2 IP 調整食材口味</span>
                   </span>
-                  <span className="text-t10 text-[#6b5a4b] tabular-nums">目前 IP：{character.currentIp ?? 0}</span>
+                  <span className="text-t10 text-[#6b5a4b] tabular-nums">目前 IP：{curIp}</span>
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <select
@@ -1081,7 +1085,7 @@ export default function GourmetCookbook({
                   <button
                     type="button"
                     data-testid="salt-pepper-apply-btn"
-                    disabled={(character.currentIp ?? 0) < 2}
+                    disabled={curIp < 2}
                     onClick={() => {
                       const tId = seasonTargetId || pickedIngredients[0]?.id;
                       if (!tId) return;
@@ -1089,7 +1093,7 @@ export default function GourmetCookbook({
                         pickedIngredients,
                         targetId: tId,
                         newTaste: seasonTaste,
-                        currentIp: character.currentIp
+                        currentIp: curIp
                       });
                       if (!res.ok) {
                         showToast(res.reason, 'warning');
@@ -1104,7 +1108,7 @@ export default function GourmetCookbook({
                       showToast(`花費 2 IP 將食材口味調整為【${seasonTaste}】！`, 'success');
                     }}
                     className={`px-2 py-1 rounded text-t11 font-bold transition-colors ${
-                      (character.currentIp ?? 0) >= 2
+                      curIp >= 2
                         ? 'bg-[#245c45] text-[#fffdf9] hover:bg-[#1e4b39] cursor-pointer'
                         : 'bg-[#e8dcc4] text-[#7c6a58] cursor-not-allowed'
                     }`}

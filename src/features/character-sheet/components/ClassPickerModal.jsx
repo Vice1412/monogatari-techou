@@ -883,7 +883,7 @@ export default function ClassPickerModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-3 py-1.5 text-xs text-[#6b5a4b] hover:text-[#3c2415] rounded font-medium cursor-pointer"
+                    className="px-3 py-1.5 text-xs text-[#6b5a4b] hover:text-[#3c2415] rounded font-medium cursor-pointer whitespace-nowrap shrink-0"
                   >
                     取消
                   </button>

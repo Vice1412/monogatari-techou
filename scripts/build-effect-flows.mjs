@@ -279,6 +279,11 @@ for (const row of rows) {
       ...(ctrl?.roll && typeof ctrl.roll === 'object' ? { roll: ctrl.roll } : {}),
       // 歸零某個資源（裁定 1A：「自私片刻」把差生點清零）。
       ...(Array.isArray(ctrl?.zero) && ctrl.zero.length ? { zero: ctrl.zero } : {}),
+      // 扣除當前一半資源／施加異常狀態／按鈕連帶遞增同條目的 counter／滿上限觸發覺醒（被束縛的心）。
+      ...(Array.isArray(ctrl?.loseHalfResources) && ctrl.loseHalfResources.length ? { loseHalfResources: ctrl.loseHalfResources } : {}),
+      ...(Array.isArray(ctrl?.inflictStatuses) && ctrl.inflictStatuses.length ? { inflictStatuses: ctrl.inflictStatuses } : {}),
+      ...(ctrl?.incrementCounter ? { incrementCounter: true } : {}),
+      ...(ctrl?.onMaxCounter ? { onMaxCounter: ctrl.onMaxCounter } : {}),
       // 同組互斥（裁定 3A：【穩固突變】的追獵／腕力／靈巧只能選一個）。
       ...(Array.isArray(ctrl?.groups) && ctrl.groups.length ? { groups: ctrl.groups } : {}),
       // 每次取得的上限（裁定 5A：【解剖學家】2 × 取得次數）。
@@ -286,10 +291,14 @@ for (const row of rows) {
       ...(ctrl?.outcome ? { outcome: ctrl.outcome } : {}),
       ...(Array.isArray(ctrl?.options) && ctrl.options.length
         ? {
-          options: ctrl.options.map((o) => ({
-            value: String(o.value),
-            label: String(o.label || o.value)
-          }))
+          options: ctrl.options.map((o) => (
+            typeof o === 'string'
+              ? { value: o, label: o }
+              : {
+                value: o?.value != null ? String(o.value) : '',
+                label: String(o?.label ?? o?.value ?? '')
+              }
+          ))
         }
         : {}),
       ...(Array.isArray(ctrl?.fields) ? { fields: ctrl.fields } : {}),
@@ -300,6 +309,27 @@ for (const row of rows) {
   };
 
   const formattedControls = rawControls.map(formatControl);
+  formattedControls.forEach((fc, idx) => {
+    if (fc.kind === 'select' || fc.kind === 'multiSelect') {
+      const opts = fc.options;
+      if (!Array.isArray(opts) || opts.length === 0) {
+        errors.push(`${where}：controls[${idx}] (${fc.kind}) 缺少 options`);
+        return;
+      }
+      const seenValues = new Set();
+      opts.forEach((opt, optIdx) => {
+        const val = opt?.value;
+        const lbl = opt?.label;
+        if (!val || val === 'undefined' || val === 'null' || !lbl || lbl === 'undefined' || lbl === 'null') {
+          errors.push(`${where}：controls[${idx}].options[${optIdx}] 含無效值 (${JSON.stringify(opt)})`);
+        } else if (seenValues.has(val)) {
+          errors.push(`${where}：controls[${idx}] 選項 value 重複 (${val})`);
+        } else {
+          seenValues.add(val);
+        }
+      });
+    }
+  });
   const primaryControl = formattedControls[0] || { kind: 'none' };
 
   items.push({

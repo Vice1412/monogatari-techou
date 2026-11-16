@@ -46,6 +46,8 @@ import {
 import rulesData from '../src/features/character-sheet/data/rulesData.json';
 import { ATTRIBUTE_NAMES, CLASS_METADATA, VARIANT_ARCANIST_CLASS_NAME, normalizeClassName, normalizeSkillName, normalizeHeroicSkillName, normalizeEquipmentName, normalizeSpellName, normalizeQuirkName, normalizeCharacterLegacyNames, normalizeRosterClassNames, getClassInfo } from '../src/features/character-sheet/data/sourcebookConfig.js';
 import CharacterPlayHUD from '../src/features/character-sheet/components/CharacterPlayHUD.jsx';
+import BackpackItemModal from '../src/features/character-sheet/components/BackpackItemModal.jsx';
+import { computeRollOutcome } from '../src/features/dice-roller/utils/rollOutcome.js';
 import ArcanistManager from '../src/features/character-sheet/components/companions/ArcanistManager.jsx';
 import { stripClassSuffix } from '../src/features/character-sheet/data/classAliases.js';
 import { GAME_ICONS_MAP } from '../src/components/ui/GameIcon.jsx';
@@ -915,6 +917,24 @@ check('定稿後整塊瀏覽入口收起來（自己已拿到的效果照常顯�
 const lockedStep5 = renderEditorAt(5, { locked: true, lockedAt: '2026-01-01T00:00:00.000Z' });
 check('定稿後第 5 步不再有「選擇英雄技能」的入口',
   lockedStep5.includes('選擇英雄技能'), false);
+const lockedMasteryUnclaimed = renderEditorAt(5, {
+  locked: true,
+  lockedAt: '2026-01-01T00:00:00.000Z',
+  level: 10,
+  classes: [{ className: '修補匠', level: 10, skills: [] }],
+  heroicSkills: []
+});
+check('定稿後精通職業但尚未領取英雄技能時，第 5 步必須顯示「選擇英雄技能」',
+  lockedMasteryUnclaimed.includes('選擇英雄技能'), true);
+const lockedMasteryClaimed = renderEditorAt(5, {
+  locked: true,
+  lockedAt: '2026-01-01T00:00:00.000Z',
+  level: 10,
+  classes: [{ className: '修補匠', level: 10, skills: [] }],
+  heroicSkills: [{ name: '緊急修復', source: 'core', requirement: '', effect: '' }]
+});
+check('定稿後已領取該次精通的英雄技能後，「選擇英雄技能」再次隱藏',
+  lockedMasteryClaimed.includes('選擇英雄技能'), false);
 
 // 職業選擇流程重構（2026-10-06 使用者要求）：
 // 舊流程「選職業 → 點技能 → 確認 → 再選職業」來回很繁瑣，
@@ -3503,6 +3523,98 @@ check('（DA-4）對照組：上面三條的切片都不是空的（否則「找
     /title=\{hudTabLabel\}/.test(hudCode)
   ],
   [true, true, true]);
+
+// ─────────────────────────────────────────────────────────── DB
+section('DB. 純中文／Markdown 清除／Toast 類型圖示／手機防折行（W7 回歸）');
+
+const backpackHtml = renderToStaticMarkup(React.createElement(BackpackItemModal, {
+  isOpen: true,
+  onClose: () => {},
+  onSubmit: () => {},
+  initial: { category: 'consumable' }
+}));
+check('（DB-1）BackpackItemModal 消耗品選項純中文（不含 Potion/Elixir）',
+  backpackHtml.includes('此消耗品屬於「藥水／靈藥」') && !backpackHtml.includes('Potion/Elixir'),
+  true);
+
+const quirkPickerBlankHtml = renderToStaticMarkup(React.createElement(QuirkPickerBody, {
+  theme: {},
+  currentQuirk: '無',
+  onSelect: () => {}
+}));
+check('（DB-2）QuirkPickerModal 不再外露原始 Markdown **選用規則**，改為粗體標籤',
+  !quirkPickerBlankHtml.includes('**選用規則**') && quirkPickerBlankHtml.includes('選用規則</strong>'),
+  true);
+
+check('（DB-3）CharacterSheet Toast 依 toastType 區分圖示並貼高於 footer（bottom-14）',
+  sheetSrc.includes('toastType') &&
+  sheetSrc.includes('GiHazardSign') &&
+  sheetSrc.includes('bottom-14') &&
+  /className=\{[\s\S]{0,40}?toastMessage\s*\?/.test(sheetSrc),
+  true);
+
+{
+  const cpRaw = fs.readFileSync(
+    new URL('../src/features/character-sheet/components/ClassPickerModal.jsx', import.meta.url), 'utf8');
+  check('（DB-4）ClassPickerModal 取消鈕與 CharacterSheet 構築與成長按鈕具備 whitespace-nowrap 防拆行',
+    /whitespace-nowrap shrink-0[\s\S]{0,60}>[\s\S]{0,30}取消/.test(cpRaw) &&
+    /whitespace-nowrap shrink-0[\s\S]{0,240}構築與成長/.test(sheetSrc),
+    true);
+
+  const rsRaw = fs.readFileSync(
+    new URL('../src/features/character-sheet/components/ClassResourceStrip.jsx', import.meta.url), 'utf8');
+  check('（DB-5）ClassResourceStrip 依資源切換圖示，標題不再硬寫死 GiGraveFlowers 墓碑',
+    !rsRaw.includes('<GiGraveFlowers className="w-3.5 h-3.5') &&
+    rsRaw.includes('<HeaderIcon className="w-3.5 h-3.5') &&
+    rsRaw.includes('delinquent: GiFlame'),
+    true);
+}
+
+const plainRollHtml = renderToStaticMarkup(React.createElement(DiceRollerModal, {
+  isOpen: true,
+  onClose: () => {},
+  initialConfig: {
+    die1: 8,
+    die2: 8,
+    modifier: 0,
+    label: '一般檢定',
+    character: { name: '一般角色', classes: [] }
+  }
+}));
+check('（DB-6）DiceRollerModal 沒有孤注一擲／幸運七時不顯示對應控件',
+  !plainRollHtml.includes('dice-gambit-toggle') && !plainRollHtml.includes('dice-lucky-seven'),
+  true);
+
+const gambitLuckyChar = {
+  name: '賭徒',
+  classes: [
+    { className: '卡牌大師', skills: [{ name: '孤注一擲', sl: 1 }] },
+    { className: '熵師', skills: [{ name: '幸運七', sl: 1 }] }
+  ],
+  classResources: { luckyNumber: 7 }
+};
+const wiredRollHtml = renderToStaticMarkup(React.createElement(DiceRollerModal, {
+  isOpen: true,
+  onClose: () => {},
+  initialConfig: {
+    die1: 8,
+    die2: 10,
+    modifier: 1,
+    label: '命中檢定',
+    character: gambitLuckyChar,
+    luckyNumber: 7,
+    initialRollResult: computeRollOutcome(4, 5, 1, { mode: 'gambit' })
+  }
+}));
+check('（DB-7）DiceRollerModal 習得【孤注一擲】時渲染宣告按鈕並顯示原骰改寫',
+  wiredRollHtml.includes('data-testid="dice-gambit-toggle"') && wiredRollHtml.includes('原 4➔8'),
+  true);
+check('（DB-8）DiceRollerModal 習得【幸運七】且有結果時渲染骰面替換面板與替換首顆 (8 ➔ 7)',
+  wiredRollHtml.includes('data-testid="dice-lucky-seven"') &&
+  wiredRollHtml.includes('data-testid="dice-lucky-swap-1"') &&
+  wiredRollHtml.includes('data-testid="dice-lucky-swap-2"') &&
+  wiredRollHtml.includes('替換首顆 (8 ➔ 7)'),
+  true);
 
 // ─────────────────────────────────────────────────────────── 結果
 console.log(lines.join('\n'));

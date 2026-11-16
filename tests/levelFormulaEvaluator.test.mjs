@@ -228,6 +228,32 @@ const zeroScourge = ZERO_EFFECTS.find(e => e.id === 'scourge')?.desc || '';
 check('資料層零之天災：已套用計算式括號 【30 + 等級的一半】', zeroScourge.includes('【30 + 等級的一半】'), true);
 
 // -----------------------------------------------------------------------------
+section('F. 【升級】減號拆詞與【靈氣掌握】靈師職業等級一半（W7 回歸）');
+// -----------------------------------------------------------------------------
+const tinkerSpiritChar = {
+  level: 10,
+  classes: [
+    { className: '修補匠', level: 6, skills: [{ name: '高瞻遠矚', sl: 2 }] },
+    { className: '靈師', level: 4, skills: [{ name: '光環', sl: 1 }] }
+  ]
+};
+const upgradeDiscountEval = evaluateFormulaString('Z-高瞻遠矚SL*100', 0, { character: tinkerSpiritChar });
+check('F1 【Z-高瞻遠矚SL*100】於 SL 2 求值為 【Z - 200】（不得變 【0】）', upgradeDiscountEval.text, '【Z - 200】');
+
+const spiritHalfEval = evaluateFormulaString('你靈師職業等級的一半', 0, { character: tinkerSpiritChar });
+check('F2 【你靈師職業等級的一半】於靈師 Lv 4 求值為 【2】', spiritHalfEval.text, '【2】');
+
+const auraHeroicEffect = (rulesData.heroicSkills || []).find((h) => h.name === '靈氣掌握')?.effect || '';
+check('F3 rulesData【靈氣掌握】已正名為靈師職業等級（不含靈媒）',
+  auraHeroicEffect.includes('靈師職業等級') && !auraHeroicEffect.includes('靈媒'),
+  true);
+
+const specialtyEffect = (rulesData.heroicSkills || []).find((h) => h.name === '本店特色')?.effect || '';
+check('F4 rulesData【本店特色】明確為從以下十種效果中選擇三種不同效果',
+  specialtyEffect.includes('從以下十種效果中選擇三種不同效果'),
+  true);
+
+// -----------------------------------------------------------------------------
 section('結算');
 // -----------------------------------------------------------------------------
 console.log(`\n通過：${pass}　失敗：${fail}`);

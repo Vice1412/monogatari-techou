@@ -1,5 +1,18 @@
 import React from 'react';
-import { GiGraveFlowers, GiTwoCoins, GiClover } from 'react-icons/gi';
+import {
+  GiGraveFlowers,
+  GiTwoCoins,
+  GiClover,
+  GiFlame,
+  GiSparkles,
+  GiRoundBottomFlask,
+  GiPocketWatch,
+  GiBiohazard,
+  GiBrokenHeart,
+  GiCrystalBall,
+  GiEyeball,
+  GiCrossedSwords
+} from 'react-icons/gi';
 import {
   getActiveClassResources,
   readResource,
@@ -28,7 +41,16 @@ import {
 const ICONS = {
   gravePoints: GiGraveFlowers,
   tradePoints: GiTwoCoins,
-  luckyNumber: GiClover
+  luckyNumber: GiClover,
+  courage: GiCrossedSwords,
+  momentum: GiSparkles,
+  nebulization: GiRoundBottomFlask,
+  fatigue: GiPocketWatch,
+  instability: GiBiohazard,
+  subversion: GiBrokenHeart,
+  anomaly: GiCrystalBall,
+  doubt: GiEyeball,
+  delinquent: GiFlame
 };
 
 export default function ClassResourceStrip({
@@ -55,11 +77,15 @@ export default function ClassResourceStrip({
     });
   };
 
+  const HeaderIcon = resources.length === 1 && ICONS[resources[0].id]
+    ? ICONS[resources[0].id]
+    : (title.includes('金手指') ? GiSparkles : GiTwoCoins);
+
   return (
     <div className="p-3.5 rounded bg-white border border-[#d6c7ab] space-y-2">
       <div className="flex items-center justify-between text-xs">
         <span className="font-bold text-[#3c2415] flex items-center gap-1">
-          <GiGraveFlowers className="w-3.5 h-3.5 text-[#6b5a4b]" />
+          <HeaderIcon className="w-3.5 h-3.5 text-[#6b5a4b]" />
           <span>{title}</span>
         </span>
         <span className="text-t10 text-[#6b5a4b]">{subtitle}</span>
@@ -153,6 +179,7 @@ export default function ClassResourceStrip({
                     writeValue(resource, resource.resetTo);
                     showToast(`【${resource.label}】已重置為 ${resource.resetTo}`, 'info');
                   }}
+                  title={`重置【${resource.label}】為 ${resource.resetTo}`}
                   className="px-2 py-1 rounded border border-[#d6c7ab] bg-white text-t11 font-bold text-[#6b5a4b] hover:bg-[#e8dcc4] transition-colors cursor-pointer"
                 >
                   {resource.resetLabel}

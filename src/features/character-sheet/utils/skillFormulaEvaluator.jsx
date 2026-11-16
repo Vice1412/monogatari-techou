@@ -16,7 +16,20 @@ export function getSkillLevel(character, skillName) {
   return 0;
 }
 
+export function getClassLevel(character, className) {
+  if (!character || !Array.isArray(character.classes)) return 0;
+  const cleanTarget = String(className || '').trim();
+  const found = character.classes.find(c => c.className === cleanTarget);
+  if (found) return Math.max(0, Number(found.level) || 0);
+  if (Array.isArray(character.customClasses)) {
+    const customFound = character.customClasses.find(c => c.className === cleanTarget);
+    if (customFound) return Math.max(0, Number(customFound.level) || 0);
+  }
+  return 0;
+}
+
 import { RULE_CODEX } from '../data/ruleCodexData';
+import { getCharacterLevel } from './characterEngine';
 import React, { useMemo, useState } from 'react';
 import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
 import { resolveRefNames, hasEntry, openEntryRef } from '../data/crossRefs';
@@ -288,11 +301,26 @@ export function evaluateFormulaString(formulaStr, sl = 0, options = {}) {
     };
   }
 
-  // 3. 跨技能 SL 參照運算（如「你的鷹眼SL」、「你迅捷SL×5」、「你的閃避SL+你的竊取時間SL」）
-  if (character && /(?:你的?|你)?([^\s+×*xX()]+)\s*SL/.test(norm)) {
+  // 2.8 職業等級運算：例如「你靈師職業等級的一半」
+  const classHalfMatch = norm.match(/^(?:你的?|你)?([^\s+×*xX()\-]+?)\s*職業等級(?:的一半|\s*[\/÷]\s*2)$/);
+  if (classHalfMatch && character) {
+    const className = classHalfMatch[1].trim();
+    const classLevel = getClassLevel(character, className);
+    const res = Math.floor(classLevel / 2);
+    return {
+      text: `【${res}】`,
+      value: res,
+      rawFormula: trimmed,
+      note: `${className}職業等級 ${classLevel} 的一半 = ${res}`,
+      isCalculated: true
+    };
+  }
+
+  // 3. 跨技能 SL 參照運算（如「你的鷹眼SL」、「你迅捷SL×5」、「你的閃避SL+你的竊取時間SL」、「Z-高瞻遠矚SL*100」）
+  if (character && /(?:你的?|你)?([^\s+×*xX()\-]+)\s*SL/.test(norm)) {
     let resolvedFormula = norm;
     let anyResolved = false;
-    resolvedFormula = resolvedFormula.replace(/(?:你的?|你|你在「)?([^「」\s+×*xX()]+?)(?:」技能上的|技能上的|上的)?\s*SL/g, (_match, skillName) => {
+    resolvedFormula = resolvedFormula.replace(/(?:你的?|你|你在「)?([^「」\s+×*xX()\-]+?)(?:」技能上的|技能上的|上的)?\s*SL/g, (_match, skillName) => {
       const cleanName = skillName.trim();
       const refSl = getSkillLevel(character, cleanName);
       anyResolved = true;
@@ -305,6 +333,27 @@ export function evaluateFormulaString(formulaStr, sl = 0, options = {}) {
         resolvedFormula = resolvedFormula.replace(/(?:你的?|你角色|角色)?(?:等級|等级)/g, String(level));
       }
       const evalSafe = resolvedFormula.replace(/×/g, '*');
+      const zPrefixMatch = evalSafe.match(/^Z\s*-\s*(.+)$/i);
+      if (zPrefixMatch) {
+        const subExpr = zPrefixMatch[1].trim();
+        if (/^[0-9+\-* /()]+$/.test(subExpr)) {
+          try {
+            const subRes = Function(`"use strict"; return Math.floor(${subExpr});`)();
+            if (Number.isFinite(subRes)) {
+              const outText = `Z - ${subRes}`;
+              return {
+                text: `【${outText}】`,
+                value: outText,
+                rawFormula: trimmed,
+                note: `${trimmed} = ${outText}z`,
+                isCalculated: true
+              };
+            }
+          } catch {
+            // fall through
+          }
+        }
+      }
       if (/^[0-9+\-* /()]+$/.test(evalSafe)) {
         try {
           const res = Function(`"use strict"; return Math.floor(${evalSafe});`)();

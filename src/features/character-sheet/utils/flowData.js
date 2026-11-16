@@ -56,6 +56,7 @@ export const recordIssues = (spec, entry) => {
   if (!spec?.records) return [];
   const issues = [];
   const label = spec.records.label || '記錄';
+  const unit = spec.records.unit || '筆';
   const records = Array.isArray(entry?.records) ? entry.records : [];
   const min = spec.records.min ?? 0;
   const max = spec.records.max ?? Infinity;
@@ -64,13 +65,13 @@ export const recordIssues = (spec, entry) => {
     issues.push({
       index: 0,
       field: '',
-      message: `需要填寫至少 ${min} 位${label}（目前 ${records.length} 位）`
+      message: `需要填寫至少 ${min} ${unit}${label}（目前 ${records.length} ${unit}）`
     });
   } else if (records.length > max) {
     issues.push({
       index: 0,
       field: '',
-      message: `最多僅能登記 ${max} 位${label}（目前 ${records.length} 位）`
+      message: `最多僅能登記 ${max} ${unit}${label}（目前 ${records.length} ${unit}）`
     });
   }
 
@@ -83,7 +84,7 @@ export const recordIssues = (spec, entry) => {
           issues.push({
             index: i + 1,
             field: f.key,
-            message: `第 ${i + 1} 位${label}尚未填寫${f.label}`
+            message: `第 ${i + 1} ${unit}${label}尚未填寫${f.label}`
           });
         }
       }
