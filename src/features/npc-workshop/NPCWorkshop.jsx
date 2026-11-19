@@ -489,23 +489,6 @@ export default function App({
               })}
             </div>
 
-            {/* 規則模式切換 (自由 / 嚴謹) */}
-            {state && (
-              <button
-                type="button"
-                onClick={handleFreeModeToggleClick}
-                className={`px-3 py-1.5 rounded font-bold transition-all flex items-center gap-1.5 text-xs shadow-e1 border cursor-pointer ${
-                  state.isFreeModeEnabled
-                    ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235] hover:bg-[#8c3235]'
-                    : 'bg-white text-[#3c2415] border-[#d6c7ab] hover:bg-[#e8dcc4]'
-                }`}
-                title={state.isFreeModeEnabled ? '目前為自由模式（點擊切回嚴謹模式）' : '目前為嚴謹模式（點擊切換至自由模式）'}
-              >
-                {state.isFreeModeEnabled ? <Unlock size={13} /> : <Lock size={13} />}
-                <span>{state.isFreeModeEnabled ? '自由模式中' : '嚴謹模式'}</span>
-              </button>
-            )}
-
             {/* 儲存按鈕 */}
             <button
               type="button"
@@ -3264,16 +3247,7 @@ export default function App({
             {/* 嚴謹模式下的精簡唯讀數值條（避免筆電／平板在此分頁看不到基礎數值） */}
             {!state.isFreeModeEnabled && (
               <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-4 space-y-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-black text-[#3c2415] tracking-wider">目前基礎數值（依原書公式計算）</span>
-                  <button
-                    type="button"
-                    onClick={handleFreeModeToggleClick}
-                    className="text-t12 font-bold text-[#8c2d36] hover:underline flex items-center gap-1"
-                  >
-                    <Unlock size={12} /> 切換至自由模式以微調數值
-                  </button>
-                </div>
+                <div className="text-xs font-black text-[#3c2415] tracking-wider">目前基礎數值（依原書公式計算）</div>
                 <div className="grid grid-cols-4 sm:grid-cols-9 gap-2 text-center">
                   {[
                     { k: 'DEX', v: finalStats.DEX },
@@ -4544,7 +4518,6 @@ export default function App({
             <div className="bg-[#fffdf9] p-4 rounded border border-[#d6c7ab] mb-6">
               <textarea className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded p-3 text-[#2c221e] outline-none h-48 resize-none focus:border-[#3c2415] text-sm leading-relaxed font-medium" value={state.tactics || ""} onChange={e => setState({ ...state, tactics: e.target.value })} placeholder="描述這個 NPC 在戰鬥中會怎麼行動。例如：優先攻擊施法者；血量低於一半時退到後排，改用遠程攻擊。" />
             </div>
-            <div className="flex justify-end"><button onClick={() => setActiveMainTab('preview')} className="bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] px-6 py-3 rounded flex items-center gap-2 font-bold shadow-md transition-colors"><Eye size={18} /> 立即查看角色卡</button></div>
           </div>
         );
       default:
@@ -4911,12 +4884,12 @@ export default function App({
               )}
             </button>
 
-            {/* 頂部 HUD 右側顯眼自由模式切換藥丸（所有裝置可見） */}
+            {/* 手機／窄螢幕專用自由模式切換藥丸（桌面版已由左側步驟欄底部唯一承擔，避免重複） */}
             <button
               type="button"
               data-testid="hud-free-mode-toggle"
               onClick={handleFreeModeToggleClick}
-              className={`ml-auto flex items-center gap-1.5 text-t11 font-black px-3 py-1 rounded-full border-2 transition-all cursor-pointer ${
+              className={`md:hidden ml-auto flex items-center gap-1.5 text-t11 font-black px-3 py-1 rounded-full border-2 transition-all cursor-pointer ${
                 state.isFreeModeEnabled
                   ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235] hover:bg-[#8c3235]'
                   : 'bg-[#fffdf9] text-[#3c2415] border-[#3c2415]/60 hover:bg-[#e8dcc4]'
@@ -4957,13 +4930,6 @@ export default function App({
                       className="px-2.5 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t11 transition-colors"
                     >
                       {isBalanceGuideOpen ? '收合平衡參考' : '查看平衡參考'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleFreeModeToggleClick}
-                      className="px-2.5 py-1 rounded border border-[#a63d40] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#8c2d36] font-bold text-t11 transition-colors"
-                    >
-                      切回嚴謹模式
                     </button>
                   </div>
                 </div>
@@ -5187,60 +5153,6 @@ export default function App({
                       </button>
                     ))}
                   </div>
-                </div>
-
-                {/* 角色卡配色風格選擇器 (專屬移至預覽工具列) */}
-                <div className="relative">
-                  <button
-                    onClick={() => setIsPaletteOpen(prev => !prev)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded border bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] text-xs font-bold text-[#3c2415] transition-all"
-                    title="切換角色卡配色風格"
-                  >
-                    <Palette size={15} style={{ color: currentTheme.accent }} />
-                    <span className="hidden sm:inline">卡片風格：</span>
-                    <span>{currentTheme.name}</span>
-                    <ChevronDown size={13} className={`transition-transform duration-200 ${isPaletteOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {isPaletteOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setIsPaletteOpen(false)} />
-                      <div className="absolute left-0 top-full mt-1.5 bg-[#fffdf9] border-2 border-[#d6c7ab] rounded shadow-e3 p-2.5 z-50 min-w-[220px] duration-150 animate-fade-in">
-                        <div className="text-t11 font-bold text-[#6b5a4b] mb-2 px-1 flex items-center justify-between border-b border-[#d6c7ab]/60 pb-1.5">
-                          <span className="flex items-center gap-1"><Palette size={12} /> 選擇角色卡風格</span>
-                          <span className="text-t10 text-[#3c2415] font-mono">6 種經典主題</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          {Object.keys(THEMES).map(t => {
-                            const theme = THEMES[t];
-                            const isSelected = cardTheme === t;
-                            return (
-                              <button
-                                key={t}
-                                onClick={() => {
-                                  setCardTheme(t);
-                                  writeRaw(STORAGE_KEYS.npcCardTheme, t);
-                                  setIsPaletteOpen(false);
-                                }}
-                                className={`flex items-center gap-2 px-2.5 py-2 rounded border text-left transition-all text-xs font-bold ${
-                                  isSelected
-                                    ? 'border-[#3c2415] bg-[#f9f5eb] text-[#2c221e] ring-1 ring-[#3c2415]/35'
-                                    : 'border-[#d6c7ab]/80 bg-[#fffdf9] text-[#6b5a4b] hover:bg-[#f4ebd9] hover:border-[#7c6a58]'
-                                }`}
-                              >
-                                <div
-                                  className="w-3.5 h-3.5 rounded-full shrink-0 border shadow-e1"
-                                  style={{ backgroundColor: theme.accent, borderColor: theme.accentDark }}
-                                />
-                                <span className="truncate">{theme.name}</span>
-                                {isSelected && <Check size={12} className="ml-auto text-[#3c2415] shrink-0" />}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
               <div className="flex gap-2 flex-wrap">

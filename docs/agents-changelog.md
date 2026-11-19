@@ -9,6 +9,8 @@
 
 ---
 
+*2026-11-19（NPC 助手重複按鈕全面清查與收斂）：依使用者回報清除 NPC 工坊同畫面重複控制項：① 嚴謹／自由模式切換移除頂部 Header 舊鈕、步驟 4 唯讀數值條捷徑鈕與自由模式橫幅重複切回鈕，頂部 HUD 藥丸改為 `md:hidden`（僅手機顯示），桌面統一由左側步驟欄底部「規則模式」兩段卡片唯一承擔；② 預覽頁移除重複的「卡片風格」下拉選單（統一由頂部 Header 6 色圓圈切換）；③ 步驟 8 移除內容區底部重複的「立即查看角色卡」（統一由固定底部導航列「預覽角色卡」承擔）。同步於 `tests/npcCustomEffects.test.mjs` 補齊 3 條防重複回歸護欄（37/37 通過），`test:emoji`、`test:npcworkshopui`、`test:uisystem` 與 `npm run build` 皆通過。*
+
 *2026-11-19（NPC 助手全面體檢、Quick Assembly 原書校準、自訂能力擴充與自由模式重設計）：以 GM／玩家視角完整巡檢 NPC 工坊所有自訂效果操作路徑並逐條對照《Bestiary Vol. 1》Quick Assembly（印刷 p.24–74），經使用者裁定與文案預審後完成三批改版：
 ① Quick Assembly 原書規則對齊（`npcEngine.js`、`NPCWorkshop.jsx`、`speciesData.js`、`spells.js`）：`getDynamicValues` 的 `[少量]／[大量]／[巨量]` 改依 NPC 等級計算（p.28）；先攻改依 `(DEX + INS) / 2` 隨屬性成長與自由模式骰子連動重算（p.28）；暴徒客製化 `+10 HP`（`brute_cust_0`）改於套用精英倍率前加算（Lv.30 精英暴徒由 250 校準為 260 HP）；`processSkillBudgets` 補入物理弱點 `+1` 定位技能（p.29）並與 `calculateNpcBudgets` 收斂一致（植物 `b6`、魔獸 `b4` 計次數、移除類人重複固有 +1、排除自訂能力誤計）；類人弱點補回「物理」（p.72）；不死咒語校準為「詛咒」並依 Core p.310 補入 `SPELLS_DATA['詛咒']`；【狀態束縛】自動從異常免疫移除眩暈／動搖／緩慢／虛弱（p.69）；元素額外弱點排除「毒」與已選免疫屬性；取消物種額外代償時自動清空已勾選增益。
 ② 自訂能力擴充與高危 BUG 修復（`EditableSkill.jsx`、`ReadOnlySkill.jsx`、`SkillCard.jsx`、`SpellCard.jsx`、`NPCCardPreview.jsx`、`npcTextExport.js`、`displayText.jsx`）：快速新增表單支援「基本攻擊」（檢定公式純文字自行輸入、距離／傷害／九相屬性／選填額外效果）；卡片操作列改為常駐可見，新增上移／下移排序、複製與編輯模式事後修改分類（`moveCustomSkill`、`duplicateCustomSkill`、`convertSkillCategory`）；修復 `EditableSkill` 的 `syncDraft` 誤用舊 `editAttack`、自訂攻擊性咒語標題漏官方圖示、無法清空描述／額外效果；修復 `SkillCard`／`SpellCard` 編輯時誤觸空白處取消勾選與展開模板變數永久寫死並新增「還原原文」按鈕；修復 `exportNpcToCombatant` 與 `NPCCardPreview` 讀錯技能欄位名；修復反向定位缺 `id` 與未處理負面／物種；修復文字匯出漏 `attack.extra`、研究檢定 13+／7+ 外洩與 ccfolia 中文公式無法解析；`displayText.jsx` 改純 `inline` 並接入 `renderTextWithAffinities`。

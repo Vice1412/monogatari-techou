@@ -280,11 +280,30 @@ section('E. SSR 介面渲染守門');
     initialStep: 4,
   }));
   check('步驟 4：側邊欄渲染獨立的「規則模式」切換卡片', step4Html.includes('data-testid="sidebar-rule-mode"'));
-  check('步驟 4：頂部 HUD 渲染顯眼自由模式藥丸', step4Html.includes('data-testid="hud-free-mode-toggle"'));
-  check('步驟 4：自由模式渲染常駐橫幅與查看平衡參考按鈕',
-    step4Html.includes('data-testid="free-mode-banner"') && step4Html.includes('查看平衡參考'));
+  check('步驟 4：頂部 HUD 自由模式藥丸僅限手機（md:hidden），桌面不與側邊欄重複',
+    step4Html.includes('data-testid="hud-free-mode-toggle"') && /data-testid="hud-free-mode-toggle"[^>]*md:hidden/.test(step4Html));
+  const bannerMatch = step4Html.match(/data-testid="free-mode-banner"[\s\S]*?<\/div><div class="flex-1 flex overflow-hidden/);
+  const bannerHtml = bannerMatch ? bannerMatch[0] : '';
+  check('步驟 4：自由模式渲染常駐橫幅與查看平衡參考按鈕（橫幅內不再重複放切回按鈕）',
+    step4Html.includes('data-testid="free-mode-banner"') && bannerHtml.includes('查看平衡參考') && !bannerHtml.includes('切回嚴謹模式'));
   check('步驟 4：自訂能力表單提供「基本攻擊」分類選項',
     step4Html.includes('data-testid="custom-skill-category"') && step4Html.includes('<option value="attack">基本攻擊</option>'));
+
+  const step8Html = renderToStaticMarkup(React.createElement(NPCWorkshop, {
+    initialDraft: freeDraft,
+    initialMainTab: 'build',
+    initialStep: 8,
+  }));
+  check('步驟 8：不再重複出現「立即查看角色卡」與底部「預覽角色卡」兩顆主鈕',
+    step8Html.includes('預覽角色卡') && !step8Html.includes('立即查看角色卡'));
+
+  const previewHtml = renderToStaticMarkup(React.createElement(NPCWorkshop, {
+    initialDraft: freeDraft,
+    initialMainTab: 'preview',
+    initialStep: 1,
+  }));
+  check('預覽頁：工具列不再重複渲染「卡片風格」下拉選單（統一由頂部色點切換）',
+    !previewHtml.includes('選擇角色卡風格'));
 }
 
 console.log(lines.join('\n'));
