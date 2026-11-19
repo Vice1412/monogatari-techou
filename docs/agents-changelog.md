@@ -9,6 +9,16 @@
 
 ---
 
+*2026-11-17（W7 命刻搬家與唯讀退場階段一 ＋ Option 3 實機走查清單 W0–W7 修訂）：回應「目前是否尚有未解決問題」盤點並清理專案工作清單最後一項待辦 `system:fateclocks` 與已過時的測試手冊。
+① 個人命刻純函式層（`src/features/character-sheet/utils/fateClocks.js`）：抽離並建立 `normalizeClock`、`normalizeClocks`、`findClock`、`fullClocks`、`setClockSegments`、`addClockSegments`、`copyClockToCharacter`（不可變、2–12 格邊界夾制、缺 `theme`/`type` 容錯補全、`kind: 'clock'` 履歷記錄及 `{ skipLog: true }` 合併支援）；將 `pendingBuffs.js`（`applySmoothTalker`）與 `CharacterPlayHUD.jsx`（「個人命刻」分頁時鐘追蹤器變更）統一改走此純函式模組，消除平行狀態寫法。
+② 舊頁 `FateClockPage.jsx` 唯讀退場（階段一）：改為唯讀模式（`ClockTracker` `showControls={false}`、`onChange={null}`），移除新增／改名／刪除／寫回舊鍵邏輯並保留 `STORAGE_KEYS.fateClocks` 供唯讀查閱與全站備份相容；頁首新增明確退場公告、目標角色下拉選單與每顆命刻的「複製到目前角色」按鈕，將舊命刻以新 ID 安全複製至 `character.clocks[]`（待使用者確認不再需要舊頁後再於階段二評估刪除首頁入口）。
+③ Option 3 手測清單修訂與護欄收斂：全面修訂 `docs/plan/manual-checklist.md`，修正原先 9 處與現行系統或官方原書不符的步驟並補齊 Option 1／Option 2／W7 驗證節點；新增 `tests/fateClocks.test.mjs`（登錄為 `package.json` 的 `test:fateclocks`），更新 `tests/fateClockUi.test.mjs` 與 `scratch/build-worklist.mjs` 並重建 `docs/plan/worklist.json`／`worklist.md`（`86 / 86` 全數完成、待做 `0`）；完成 `tests/fateClocks.test.mjs` 與「複製到目前角色」兩組刻意破壞轉紅驗證，以及無頭 Chrome 實測 `scratch/verify-w7-clocks.mjs` 4 / 4 通過並目視複核 `w7-fateclock-readonly.png` 與 `w7-hud-copied-clock.png`。*
+
+*2026-11-17（跑團卡「已掌握項目戰鬥速查」子項目微卡片右側溢位修復）：依使用者截圖回報，定位並根治 `SuboptionDetailsList.jsx` 在雙欄／單卡模式下的版面跑位問題。
+① 根因：`SuboptionDetailsList.jsx` 原將右側標籤列與 `CopyTextButton` 包進同一個帶 `shrink-0` 的彈性群組中，在跑團卡雙欄窄框（約 248px）下標籤串（如 `5 × T MP` + `持續：場景` + `目標：至多三個生物` + `複製`）無法折行收縮而直接撐破右框邊界；且僅有 1 張卡片時仍套用雙欄網格導致右半留空。
+② 修復（`src/features/character-sheet/components/SuboptionDetailsList.jsx`）：將卡片頂列固定為「名稱＋分類徽章｜複製鈕」兩端對齊，把 `MP`／持續／目標／時機晶片獨立成可換行的 `min-w-0 flex-wrap` 次列並移除 `shrink-0`（同步去除冗餘 `font-mono`）；並依實際解析卡片數於單卡時自動使用單欄滿寬 `grid-cols-1`、兩張以上維持 `grid-cols-1 md:grid-cols-2`。
+③ 驗證：於 `tests/playHudFlow.test.mjs` 新增 U1–U3 SSR 護欄並完成 `shrink-0` 刻意破壞轉紅驗證；以無頭 Chrome 實測 `scratch/verify-suboption-layout.mjs` 4 / 4 通過（實測單卡 504px 與雙卡 248px／手機 268px 全部 `overflowCount: 0`）並目視複核 3 張截圖。*
+
 *2026-11-16（Option 2 全 8 項跨情境職業技能規則正名、UI 面板建置與可達性歸零）：依《物語手帳》人工檢查清單 §9 與 `tests/flowReachability.test.mjs` 的 `KNOWN_UNREACHABLE` 缺口清單，先逐條對齊官方英文原書修正半成品純函式的所有規則錯誤，再實作可操作 UI 面板並打通全站測試與實機操作驗證。
 ① 官方原書規則校準與純函式重構：
   - `src/features/character-sheet/utils/travelRoll.js`（對齊 Core p.106–107 / p.217、NF Atlas p.149–150）：修正【通曉道路】從錯誤升階（`d6->d12`）改為將區域威脅骰（`TRAVEL_THREAT_LEVELS` `d6..d20`）**降低 1 階（最低 `d6`，不疊加）**；修正旅行骰判定為 **≥ 6 遭遇危險**（原誤寫為 `r === 1`）、**≤ SL + 1 獲得發現**（移除虛構的 `≥6` 送 `SL×100z` 寶藏規則）；修正【有備無患】每次旅行骰後恢復 **SL 點 IP**（並以 `resolveVitalResources` 依 `maxIp` 夾制，移除虛構重擲）；修正【準備食材】必須已習得【烹飪】方能觸發，每趟依 `d6` 口味表產生 **SL × 2** 份食材並以扁平陣列寫入 `gourmetData.ingredients`（修復巢狀陣列缺陷、套用背包容量上限並記帳 `kind: 'camp'`）。

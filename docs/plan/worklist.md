@@ -122,4 +122,4 @@
 
 | 狀態 | id | 群 | 要做什麼 | 驗收 |
 |---|---|---|---|---|
-| ☐ | `system:fateclocks` | W6 | 命刻搬到 character.clocks＋fateClocks 工具 | 技能可推進命刻；FateClocks 頁轉唯讀＋複製鈕 |
+| ✓ | `system:fateclocks` | W6 | 命刻搬到 character.clocks＋fateClocks 工具 | 技能可推進命刻；FateClocks 頁轉唯讀＋複製鈕 |

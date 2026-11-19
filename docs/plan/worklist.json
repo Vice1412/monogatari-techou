@@ -949,10 +949,10 @@
       "name": "命刻改由角色卡持有",
       "group": "W6",
       "wave": "W7",
-      "status": "todo",
+      "status": "done",
       "need": "命刻搬到 character.clocks＋fateClocks 工具",
       "accept": "技能可推進命刻；FateClocks 頁轉唯讀＋複製鈕",
-      "note": "使用者裁定：FateClockPage 之後刪除"
+      "note": "階段一已完成（utils/fateClocks ＋ FateClockPage 唯讀並可複製至角色卡；階段二待確認後刪除）"
     }
   ]
 }

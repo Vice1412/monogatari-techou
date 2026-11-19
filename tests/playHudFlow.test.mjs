@@ -912,6 +912,36 @@ check('T7 駕駛中時顯示需先離開載具方可收納提示鈕（取代舊�
   && !pilotMountedHtml.includes('外骨骼免費收納/召喚'),
   true);
 
+/* ────────────────────────────────────────────────────────────────
+   U. SuboptionDetailsList 跑團速查卡片排版防溢位護欄
+   ──────────────────────────────────────────────────────────────── */
+const spiritistOneChar = createNewCharacter({ name: '單咒語靈師' });
+spiritistOneChar.classes = [
+  { className: '靈師', level: 2, skills: [{ name: '靈魂魔法', sl: 1, selectedOptions: ['光環'] }] }
+];
+const spiritistOneHtml = render(spiritistOneChar, { initialTab: 'skills' });
+const metaTagSnippetOne = /data-testid="suboption-meta-tags-0"[^>]*>/.exec(spiritistOneHtml)?.[0] || '';
+const gridSnippetOne = /data-testid="suboption-details-grid"[^>]*>/.exec(spiritistOneHtml)?.[0] || '';
+check('U1 僅掌握 1 項子項目時【已掌握項目戰鬥速查】使用單欄滿寬（grid-cols-1，不留空白右半邊）',
+  gridSnippetOne.includes('grid-cols-1') && !gridSnippetOne.includes('md:grid-cols-2'),
+  gridSnippetOne);
+check('U2 數值／持續／目標標籤容器不帶 shrink-0，避免將複製按鈕擠出卡片右側邊界',
+  Boolean(metaTagSnippetOne) && !metaTagSnippetOne.includes('shrink-0') && metaTagSnippetOne.includes('flex-wrap'),
+  metaTagSnippetOne);
+
+const spiritistTwoChar = createNewCharacter({ name: '雙咒語靈師' });
+spiritistTwoChar.classes = [
+  { className: '靈師', level: 3, skills: [{ name: '靈魂魔法', sl: 2, selectedOptions: ['光環', '屏障'] }] }
+];
+const spiritistTwoHtml = render(spiritistTwoChar, { initialTab: 'skills' });
+const gridSnippetTwo = /data-testid="suboption-details-grid"[^>]*>/.exec(spiritistTwoHtml)?.[0] || '';
+check('U3 掌握 2 項以上子項目時切回雙欄網格且兩張卡片皆正確渲染複製鈕與標籤列',
+  gridSnippetTwo.includes('md:grid-cols-2')
+  && spiritistTwoHtml.includes('data-testid="copy-suboption-0"')
+  && spiritistTwoHtml.includes('data-testid="copy-suboption-1"')
+  && spiritistTwoHtml.includes('data-testid="suboption-meta-tags-1"'),
+  true);
+
 /* ──────────────────────────────────────────────────────────────── */
 const failed = results.filter((r) => !r.ok);
 for (const r of results) console.log(`  ${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.detail === '' ? '' : `  —— ${r.detail}`}`);

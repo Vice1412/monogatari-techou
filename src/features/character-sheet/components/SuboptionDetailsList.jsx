@@ -50,6 +50,14 @@ export default function SuboptionDetailsList({
     ? describeTheriomorphosis(therioRules, { hasGreater: hasGreaterTheriomorphosis })
     : [];
 
+  const resolvedCards = rawList
+    .map((rawName, idx) => ({
+      rawName,
+      idx,
+      detail: getSuboptionDetails(className, skillName, rawName)
+    }))
+    .filter((entry) => Boolean(entry.detail));
+
   return (
     <div className={`space-y-2.5 ${classNameCustom}`}>
       {/* 1. 魔奏者專屬：基礎 3 大音量常駐外顯卡片 */}
@@ -69,11 +77,11 @@ export default function SuboptionDetailsList({
             {CHANTER_DATA.volumes.map(vol => (
               <div
                 key={vol.id}
-                className="p-2 bg-white rounded border border-[#e8dcc4] space-y-1"
+                className="p-2 bg-white rounded border border-[#e8dcc4] space-y-1 min-w-0"
               >
-                <div className="flex items-center justify-between font-bold text-xs">
+                <div className="flex items-center justify-between font-bold text-xs gap-1">
                   <span className="text-[#3c2415] font-serif">{vol.name}</span>
-                  <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] font-mono text-t10 font-bold">
+                  <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] border border-[#d6c7ab] tabular-nums text-t10 font-bold shrink-0">
                     {vol.mp} MP
                   </span>
                 </div>
@@ -116,30 +124,32 @@ export default function SuboptionDetailsList({
 
       {/* 2. 已選子項目詳細微卡片清單 */}
       {rawList.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {rawList.map((rawName, idx) => {
-            const detail = getSuboptionDetails(className, skillName, rawName);
-            if (!detail) return null;
-
+        <div
+          data-testid="suboption-details-grid"
+          className={`grid gap-2 ${resolvedCards.length <= 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}
+        >
+          {resolvedCards.map(({ rawName, idx, detail }) => {
             const isOffensive = detail.isOffensive;
             const isChanterKey = detail.itemType === 'key' || String(rawName).startsWith('音調:');
             const isChanterTone = detail.itemType === 'tone' || String(rawName).startsWith('曲風:');
+            const hasMetaTags = Boolean(detail.mp || detail.duration || detail.target || detail.event);
 
             return (
               <div
                 key={`${detail.name || rawName}_${idx}`}
-                className="p-2.5 rounded border border-[#e8dcc4] bg-white/95 hover:border-[#7c6a58] transition-all space-y-1.5 text-xs"
+                data-testid={`suboption-detail-card-${idx}`}
+                className="p-2.5 rounded border border-[#e8dcc4] bg-white/95 hover:border-[#7c6a58] transition-all space-y-1.5 text-xs min-w-0"
               >
-                {/* 卡片標題與標籤列 */}
-                <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-[#3c2415] text-xs">✦</span>
+                {/* 卡片標題與複製鈕（固定單行兩端對齊，不再與長標籤擠成一列爆框） */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                    <span className="text-[#3c2415] text-xs shrink-0">✦</span>
                     {isOffensive && (
-                      <span className="fu-icon text-[#8c2d36] font-bold" title="攻擊性咒語">
+                      <span className="fu-icon text-[#8c2d36] font-bold shrink-0" title="攻擊性咒語">
                         o
                       </span>
                     )}
-                    <span className="font-bold text-[#2c221e] font-serif text-t12 tracking-wide truncate">
+                    <span className="font-bold text-[#2c221e] font-serif text-t12 tracking-wide">
                       {detail.name}
                     </span>
 
@@ -156,10 +166,30 @@ export default function SuboptionDetailsList({
                     )}
                   </div>
 
-                  {/* 右側數值標籤群與複製鈕 */}
-                  <div className="flex items-center gap-1 shrink-0 text-t10 font-mono flex-wrap">
+                  <CopyTextButton
+                    testId={`copy-suboption-${idx}`}
+                    toastLabel={detail.name}
+                    showToast={showToast}
+                    getText={() =>
+                      formatSuboptionCopyText({
+                        className,
+                        skillName,
+                        categoryLabel: isChanterKey ? '音調' : isChanterTone ? '曲風' : '',
+                        detail,
+                        characterName
+                      })
+                    }
+                  />
+                </div>
+
+                {/* 數值與目標標籤列：移除 shrink-0，允許在窄欄卡內自動換行，絕不衝出右側邊界 */}
+                {hasMetaTags && (
+                  <div
+                    data-testid={`suboption-meta-tags-${idx}`}
+                    className="flex items-center gap-1 text-t10 flex-wrap min-w-0"
+                  >
                     {detail.mp && (
-                      <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] font-bold border border-[#d6c7ab]">
+                      <span className="px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#6b5a4b] tabular-nums font-bold border border-[#d6c7ab]">
                         {detail.mp} MP
                       </span>
                     )}
@@ -178,22 +208,8 @@ export default function SuboptionDetailsList({
                         時機：{detail.event}
                       </span>
                     )}
-                    <CopyTextButton
-                      testId={`copy-suboption-${idx}`}
-                      toastLabel={detail.name}
-                      showToast={showToast}
-                      getText={() =>
-                        formatSuboptionCopyText({
-                          className,
-                          skillName,
-                          categoryLabel: isChanterKey ? '音調' : isChanterTone ? '曲風' : '',
-                          detail,
-                          characterName
-                        })
-                      }
-                    />
                   </div>
-                </div>
+                )}
 
                 {/* 寓意 / 語錄 */}
                 {detail.quote && (

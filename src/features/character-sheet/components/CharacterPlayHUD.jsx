@@ -210,6 +210,7 @@ import { listSymbolMarkBearers } from '../utils/symbolist';
 import TravelRollPanel, { hasTravelSkills } from './companions/TravelRollPanel';
 import PendingBuffsPanel, { hasPendingBuffFeatures } from './companions/PendingBuffsPanel';
 import { clearScenePendingBuffs, getPendingBuffs } from '../utils/pendingBuffs';
+import { setClockSegments } from '../utils/fateClocks';
 import ErrorBoundary from '../../../components/ui/ErrorBoundary';
 import { shouldRenderArcanistPanel } from '../utils/arcanist';
 import { withEn } from '../../../utils/properNouns';
@@ -5082,19 +5083,10 @@ export default function CharacterPlayHUD({
                             type={clk.type || 'circle'}
                             size={90}
                             onChange={newVal => {
-                              const prev = clk.filledSegments || 0;
-                              const total = clk.totalSegments || 6;
-                              if (newVal === prev) return;
-                              const updated = (character.clocks || []).map(c => c.id === clk.id ? { ...c, filledSegments: newVal } : c);
-                              // 命刻填滿是「目標達成」，跟「再推進一格」不是同一件事——
-                              // 履歷上要分得出來，否則完成的時刻會混在一堆推進裡。
-                              updateField('clocks', updated, {
-                                kind: 'clock',
-                                title: newVal >= total
-                                  ? `命刻【${clk.title}】完成`
-                                  : `命刻【${clk.title}】${newVal > prev ? '推進' : '回退'}`,
-                                changes: [{ field: `clock:${clk.title}`, from: prev, to: newVal }]
-                              });
+                              const nextChar = setClockSegments(characterRef.current, clk.id, newVal);
+                              if (nextChar !== characterRef.current) {
+                                commit(nextChar);
+                              }
                             }}
                           />
                           <button

@@ -22,6 +22,7 @@ import { loggableChange } from './characterLog';
 import { applyFabulaPointsFlow, FP_DIRECTIONS } from './fabulaPointsFlow';
 import { evaluateCondition } from './effectConditions';
 import { PILOT_FRAMES, PILOT_WEAPON_MODULES } from '../data/pilotVehicleData';
+import { findClock, addClockSegments } from './fateClocks';
 
 /**
  * 讀取角色的暫存增益陣列。
@@ -327,35 +328,35 @@ export function applySmoothTalker(character, options = {}, statsOverride = null)
   }
 
   const nextMp = curMp - mpCost;
-  const clocks = Array.isArray(character.clocks) ? character.clocks : [];
-  const targetClock = clockId ? clocks.find((c) => c && c.id === clockId) || null : null;
-  let nextClocks = clocks;
+  const prevClock = clockId ? findClock(character, clockId) : null;
   let updatedClock = null;
 
   const changes = [{ field: 'currentMp', from: curMp, to: nextMp }];
 
-  if (targetClock) {
-    const total = Math.max(2, Number(targetClock.totalSegments) || 4);
-    const oldSeg = Math.max(0, Math.min(total, Number(targetClock.filledSegments) || 0));
-    const newSeg = clockAction === 'erase'
-      ? Math.max(0, oldSeg - ticks)
-      : Math.min(total, oldSeg + ticks);
-    updatedClock = { ...targetClock, filledSegments: newSeg };
-    nextClocks = clocks.map((c) => (c.id === targetClock.id ? updatedClock : c));
-    if (oldSeg !== newSeg) {
-      changes.push({ field: `clock:${targetClock.title || '未命名命刻'}`, from: oldSeg, to: newSeg });
+  const mpPatched = {
+    ...character,
+    currentMp: nextMp,
+    updatedAt: new Date().toISOString()
+  };
+
+  let clockPatched = mpPatched;
+  if (prevClock) {
+    const delta = clockAction === 'erase' ? -ticks : ticks;
+    clockPatched = addClockSegments(mpPatched, prevClock.id, delta, { skipLog: true });
+    updatedClock = findClock(clockPatched, prevClock.id);
+    if (updatedClock && prevClock.filledSegments !== updatedClock.filledSegments) {
+      changes.push({
+        field: `clock:${prevClock.title || '未命名命刻'}`,
+        from: prevClock.filledSegments,
+        to: updatedClock.filledSegments
+      });
     }
   }
 
   const actionWord = clockAction === 'erase' ? '清除' : '填滿';
   const targetDisplay = updatedClock?.title || clockLabel || '場景／對話命刻';
 
-  const baseNext = {
-    ...character,
-    currentMp: nextMp,
-    ...(updatedClock ? { clocks: nextClocks } : {}),
-    updatedAt: new Date().toISOString()
-  };
+  const baseNext = clockPatched;
 
   let afterBuff = baseNext;
   let createdBuff = null;
