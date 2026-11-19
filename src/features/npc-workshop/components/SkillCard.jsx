@@ -7,9 +7,9 @@
  * ※ 下方 import 由腳本依「區塊實際用到的識別字」自動產生，未使用的都已剔除。
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { Edit3, Save, CheckCircle2, Lock, AlertCircle } from 'lucide-react';
+import { Edit3, Save, CheckCircle2, Lock, AlertCircle, RotateCcw } from 'lucide-react';
 import { GiBroadsword } from 'react-icons/gi';
-import { resolveTemplateVariablesForDisplay, renderFormattedText } from '../utils/displayText';
+import { renderFormattedText } from '../utils/displayText';
 
 const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onToggle, onSelectionChange, onUpdateSkill, npcLevel, partyLevel }) => {
   const isClickableTag = (tag) => ['select', 'input', 'textarea', 'button'].includes(tag);
@@ -52,7 +52,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
   }, [isActive, currentDesc]);
 
   return (
-    <div className={`relative flex flex-col p-4 rounded border-2 transition-all duration-200 text-left overflow-hidden group ${lockedMsg ? 'bg-[#f4ebd9]/70 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed select-none' : isOverBudget && isActive ? 'bg-[#f9f5eb] border-[#8c2d36] opacity-90 shadow-md transform z-10' : isActive ? 'bg-[#f9f5eb] border-[#3c2415] shadow-md transform z-10' : isDisabled ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee] cursor-pointer'}`} onClick={(e) => { if (isClickableTag(e.target.tagName.toLowerCase())) return; if (lockedMsg && !isActive) return; if (!isDisabled || isActive) onToggle(); }}>
+    <div className={`relative flex flex-col p-4 rounded border-2 transition-all duration-200 text-left overflow-hidden group ${lockedMsg ? 'bg-[#f4ebd9]/70 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed select-none' : isOverBudget && isActive ? 'bg-[#f9f5eb] border-[#8c2d36] opacity-90 shadow-md transform z-10' : isActive ? 'bg-[#f9f5eb] border-[#3c2415] shadow-md transform z-10' : isDisabled ? 'bg-[#f4ebd9]/50 border-[#d6c7ab] opacity-60 grayscale cursor-not-allowed' : 'bg-[#fffdf9] border-[#d6c7ab] hover:border-[#3c2415] hover:bg-[#fbf7ee] cursor-pointer'}`} onClick={(e) => { if (isEditing) return; if (isClickableTag(e.target.tagName.toLowerCase())) return; if (lockedMsg && !isActive) return; if (!isDisabled || isActive) onToggle(); }}>
       <div className="absolute top-3 right-3 flex flex-col items-end gap-2 z-10">
         {!isActive && <div className="w-5 h-5 rounded-full border-2 border-[#d6c7ab] group-hover:border-[#3c2415]"></div>}
         {isActive && (
@@ -60,6 +60,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
             {!isOverBudget && <CheckCircle2 className="text-[#6b5a4b] drop-shadow-sm" size={24} />}
             {!isEditing ? (
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
                 className="p-1.5 bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] rounded hover:bg-[#e8dcc4] transition-all group/edit hide-on-export"
                 title="編輯技能文字"
@@ -67,13 +68,29 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
                 <Edit3 size={16} />
               </button>
             ) : (
-              <button
-                onClick={(e) => { e.stopPropagation(); setIsEditing(false); }}
-                className="p-1.5 bg-[#a63d40] text-[#fffdf9] rounded hover:bg-[#8c3235] transition-all shadow-sm hide-on-export"
-                title="完成編輯"
-              >
-                <Save size={16} />
-              </button>
+              <div className="flex items-center gap-1 hide-on-export">
+                {(skill.customName !== undefined || skill.customDesc !== undefined) && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdateSkill(skill.id, { customName: undefined, customDesc: undefined });
+                    }}
+                    className="px-2 py-1.5 bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] rounded hover:bg-[#e8dcc4] text-t10 font-bold flex items-center gap-1 transition-all"
+                    title="還原原文"
+                  >
+                    <RotateCcw size={12} /> 還原原文
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setIsEditing(false); }}
+                  className="p-1.5 bg-[#a63d40] text-[#fffdf9] rounded hover:bg-[#8c3235] transition-all shadow-sm"
+                  title="完成編輯"
+                >
+                  <Save size={16} />
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -107,23 +124,26 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
         </div>
       )}
       {isEditing ? (
-        <textarea
-          ref={textareaRef}
-          className={`text-sm leading-relaxed w-full bg-transparent border border-transparent rounded px-1 -mx-1 outline-none resize-none overflow-hidden transition-colors hover:border-[#d6c7ab] hover:bg-[#f4ebd9] focus:border-[#a63d40] focus:bg-[#fffdf9] min-h-[3rem] ${isOverBudget ? 'text-[#8c2d36]' : skill.customDesc !== undefined ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}
-          value={resolveTemplateVariablesForDisplay(getCleanTextForEditor(skill.customDesc !== undefined ? skill.customDesc : effectiveDesc), skill.selections, { damageEmojis: true })}
-          placeholder={resolveTemplateVariablesForDisplay(getCleanTextForEditor(effectiveDesc), skill.selections, { damageEmojis: true })}
-          onChange={(e) => {
-            onUpdateSkill(skill.id, { customDesc: e.target.value });
-            adjustHeight();
-          }}
-          onBlur={(e) => {
-            if (!e.target.value.trim()) {
-              onUpdateSkill(skill.id, { customDesc: undefined });
-              setTimeout(adjustHeight, 0);
-            }
-          }}
-          onClick={(e) => e.stopPropagation()}
-        />
+        <div className="space-y-1">
+          <textarea
+            ref={textareaRef}
+            className={`text-sm leading-relaxed w-full bg-[#fffdf9] border border-[#d6c7ab] rounded p-1.5 outline-none resize-none overflow-hidden transition-colors focus:border-[#a63d40] min-h-[3.5rem] ${isOverBudget ? 'text-[#8c2d36]' : skill.customDesc !== undefined ? 'text-[#2c221e]' : 'text-[#3c2415]'}`}
+            value={getCleanTextForEditor(skill.customDesc !== undefined ? skill.customDesc : effectiveDesc)}
+            placeholder={getCleanTextForEditor(effectiveDesc)}
+            onChange={(e) => {
+              onUpdateSkill(skill.id, { customDesc: e.target.value });
+              adjustHeight();
+            }}
+            onBlur={(e) => {
+              if (!e.target.value.trim()) {
+                onUpdateSkill(skill.id, { customDesc: undefined });
+                setTimeout(adjustHeight, 0);
+              }
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <p className="text-t12 text-[#6b5a4b]">※ 保留 [少量]、[大量] 等標記可繼續隨等級自動換算。</p>
+        </div>
       ) : (
         <div className={`text-sm leading-relaxed ${isOverBudget && isActive ? 'text-[#8c2d36]' : skill.customDesc !== undefined ? 'text-[#3c2415] font-medium' : 'text-[#6b5a4b]'}`}>{renderFormattedText(currentDesc, skill.selections, npcLevel, partyLevel)}</div>
       )}
@@ -133,7 +153,7 @@ const SkillCard = ({ skill, isActive, isDisabled, isOverBudget, lockedMsg, onTog
         <div className="mt-2 text-t10 text-[#3c2415] font-bold">選取後可填 {skill.selectionsConfig.length} 個欄位</div>
       )}
       {isActive && skill.selectionsConfig && skill.category !== 'attack' && (
-        <div className={`mt-4 pt-3 border-t flex flex-col gap-2 animate-fade-in${isOverBudget ? 'border-[#8c2d36]/50' : 'border-[#d6c7ab]/60'}`}>
+        <div className={`mt-4 pt-3 border-t flex flex-col gap-2 animate-fade-in ${isOverBudget ? 'border-[#8c2d36]/50' : 'border-[#d6c7ab]/60'}`}>
           {skill.selectionsConfig
             .filter(cfg => (!cfg.showIfKey || (skill.selections?.[cfg.showIfKey] || "").includes(cfg.showIfValue)) && (!cfg.reqLevel || npcLevel >= cfg.reqLevel))
             .map(cfg => {

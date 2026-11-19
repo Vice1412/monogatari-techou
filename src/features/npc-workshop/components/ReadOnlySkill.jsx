@@ -35,17 +35,18 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
     });
   }
 
-  const hasCustomDesc = skill.customDesc !== undefined && skill.customDesc.trim() !== '';
+  const hasExplicitCustomDesc = skill.customDesc !== undefined;
   let displayDesc = effectiveOrigDesc;
   let displayExtra = skill.attack?.extra;
 
   if (skill.category === 'attack' && !effectiveOrigDesc) {
-    if (hasCustomDesc) {
+    if (hasExplicitCustomDesc) {
       displayDesc = "";
       displayExtra = skill.customDesc;
     }
-  } else if (hasCustomDesc) {
+  } else if (hasExplicitCustomDesc) {
     displayDesc = skill.customDesc;
+    if (skill.category === 'attack') displayExtra = "";
   }
 
   const replacedDesc = replaceNPC(displayDesc);
@@ -94,7 +95,16 @@ const ReadOnlySkill = ({ skill, finalStats, npcName, npcLevel, partyLevel, onIns
   const handleCardClick = (e) => {
     if (e.target.closest('button')) return;
     if (onInspectorClick && (skill.id || skill.libId)) {
-      onInspectorClick(skill.id || skill.libId, skill.source === 'bossSkill' ? 'boss' : skill.category === 'spell' ? 'spells' : 'skills');
+      const hint = skill.source === 'bossSkill'
+        ? 'boss'
+        : (skill.source === 'negative' || skill.source === 'negativeSkill')
+        ? 'negative'
+        : skill.source === 'species'
+        ? 'species'
+        : skill.category === 'spell'
+        ? 'spells'
+        : 'skills';
+      onInspectorClick(skill.id || skill.libId, hint);
     }
   };
 

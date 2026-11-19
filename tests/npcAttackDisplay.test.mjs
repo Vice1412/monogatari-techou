@@ -105,7 +105,7 @@ const editableSrc = await read('components/EditableSkill.jsx');
 const readonlySrc = await read('components/ReadOnlySkill.jsx');
 const exportSrc = await read('utils/npcTextExport.js');
 
-const unfreezeOnSave = (editableSrc.match(/unfreezeAttackField\(editAttack\./g) || []).length;
+const unfreezeOnSave = (editableSrc.match(/unfreezeAttackField\(activeAttack\./g) || []).length;
 const unfreezeOnSeed = (editableSrc.match(/unfreezeAttackField\(base\./g) || []).length;
 check('EditableSkill 存檔前逐一 unfreeze 距離／公式／屬性（3 個）', unfreezeOnSave >= 3, `實際 ${unfreezeOnSave} 個`);
 check('EditableSkill 編輯狀態起點也先 unfreeze（舊存檔可自癒）', unfreezeOnSeed >= 3, `實際 ${unfreezeOnSeed} 個`);

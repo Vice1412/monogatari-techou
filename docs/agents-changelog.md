@@ -9,6 +9,12 @@
 
 ---
 
+*2026-11-19（NPC 助手全面體檢、Quick Assembly 原書校準、自訂能力擴充與自由模式重設計）：以 GM／玩家視角完整巡檢 NPC 工坊所有自訂效果操作路徑並逐條對照《Bestiary Vol. 1》Quick Assembly（印刷 p.24–74），經使用者裁定與文案預審後完成三批改版：
+① Quick Assembly 原書規則對齊（`npcEngine.js`、`NPCWorkshop.jsx`、`speciesData.js`、`spells.js`）：`getDynamicValues` 的 `[少量]／[大量]／[巨量]` 改依 NPC 等級計算（p.28）；先攻改依 `(DEX + INS) / 2` 隨屬性成長與自由模式骰子連動重算（p.28）；暴徒客製化 `+10 HP`（`brute_cust_0`）改於套用精英倍率前加算（Lv.30 精英暴徒由 250 校準為 260 HP）；`processSkillBudgets` 補入物理弱點 `+1` 定位技能（p.29）並與 `calculateNpcBudgets` 收斂一致（植物 `b6`、魔獸 `b4` 計次數、移除類人重複固有 +1、排除自訂能力誤計）；類人弱點補回「物理」（p.72）；不死咒語校準為「詛咒」並依 Core p.310 補入 `SPELLS_DATA['詛咒']`；【狀態束縛】自動從異常免疫移除眩暈／動搖／緩慢／虛弱（p.69）；元素額外弱點排除「毒」與已選免疫屬性；取消物種額外代償時自動清空已勾選增益。
+② 自訂能力擴充與高危 BUG 修復（`EditableSkill.jsx`、`ReadOnlySkill.jsx`、`SkillCard.jsx`、`SpellCard.jsx`、`NPCCardPreview.jsx`、`npcTextExport.js`、`displayText.jsx`）：快速新增表單支援「基本攻擊」（檢定公式純文字自行輸入、距離／傷害／九相屬性／選填額外效果）；卡片操作列改為常駐可見，新增上移／下移排序、複製與編輯模式事後修改分類（`moveCustomSkill`、`duplicateCustomSkill`、`convertSkillCategory`）；修復 `EditableSkill` 的 `syncDraft` 誤用舊 `editAttack`、自訂攻擊性咒語標題漏官方圖示、無法清空描述／額外效果；修復 `SkillCard`／`SpellCard` 編輯時誤觸空白處取消勾選與展開模板變數永久寫死並新增「還原原文」按鈕；修復 `exportNpcToCombatant` 與 `NPCCardPreview` 讀錯技能欄位名；修復反向定位缺 `id` 與未處理負面／物種；修復文字匯出漏 `attack.extra`、研究檢定 13+／7+ 外洩與 ccfolia 中文公式無法解析；`displayText.jsx` 改純 `inline` 並接入 `renderTextWithAffinities`。
+③ 自由模式按鈕重設計與平衡尺度指南（`NPCWorkshop.jsx`、`FreeModeConfirmModal.jsx`）：全站統一稱「自由模式」；於側邊欄底部新增獨立「規則模式」兩段切換卡片、頂部預算 HUD 右側放顯眼切換藥丸、啟用時顯示「自由模式運作中」常駐一行橫幅（含 `getFreeModeDeviations` 即時偏離摘要與可展開「查看平衡參考」）；步驟 4 補上嚴謹模式唯讀數值條，自由模式開放「手動覆寫面板數值（支援覆寫 0 值並顯示原書標準與差值）」與解鎖物種相性／增益上限，並於各調整區附「原書算法」與「平衡尺度建議」。
+④ 測試與驗證：更新 `tests/npcWorkshop.test.mjs`、`tests/npcAttackDisplay.test.mjs`、`tests/sentinelMigration.test.mjs` 對齊原書新規，新增 `tests/npcCustomEffects.test.mjs`（35/35 通過並掛進 `package.json` 的 `test:npccustom`），3 組刻意破壞驗證全數抓到；`test:emoji`、`test:affinity`、`test:sentinel`、`test:propernouns`、`test:npcworkshop`、`test:npcworkshopui`、`test:npcattack`、`test:npcdrag`、`test:npccustom`、`test:uisystem` 與 `npm run build` 全部通過（註：全鏈 `npm test` 中 `test:log` 有 1 筆既有上游失敗「命刻的寫入端都帶記錄」，與本次 NPC 助手改動無關）。*
+
 *2026-11-19（`/learn` 更新 `.agents/rules/10-code-rules.md`：納入防垃圾碼原則）：從 Lauren Tan（`poteto`）演講《All Code Is Slop (Except Mine)》提煉可持久化工作準則，經使用者核准後於 `.agents/rules/10-code-rules.md` 新增 §3.5「防垃圾碼原則（倒置信任金字塔）」：確立「修正升級階梯（靜態檢查／單一入口 API ＞ `npm test` 護欄 ＞ 文字規則）」、大型歷史檔「軟體花園原則（不模仿舊檔壞寫法）」及「禁止藉口型註解」。未改動 `src/` 與 `tests/`。*
 
 *2026-11-17（W7 命刻搬家與唯讀退場階段一 ＋ Option 3 實機走查清單 W0–W7 修訂）：回應「目前是否尚有未解決問題」盤點並清理專案工作清單最後一項待辦 `system:fateclocks` 與已過時的測試手冊。

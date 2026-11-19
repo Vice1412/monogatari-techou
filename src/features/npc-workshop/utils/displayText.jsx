@@ -19,6 +19,7 @@
 import React from 'react';
 import { DAMAGE_TYPES, TYPE_STYLES } from '../data';
 import { getDynamicValues } from './npcEngine';
+import { renderTextWithAffinities } from '../../../components/ui/FUIcon';
 
 /** `{type}` 這類模板變數名 → 中文標籤。找不到時見 `getChineseKeyLabel`。 */
 export const TEMPLATE_KEY_TRANSLATIONS = {
@@ -43,6 +44,7 @@ export const TEMPLATE_KEY_TRANSLATIONS = {
   spell_curse_breath_type: "詛咒屬性",
   spell_curse_breath_status: "詛咒狀態",
   spell_mass_status_status: "群體狀態",
+  spell_curse_status: "詛咒狀態",
   spell_great_curse_status1: "大詛咒狀態1",
   spell_great_curse_status2: "大詛咒狀態2",
   spell_life_steal_type: "偷取屬性",
@@ -238,15 +240,15 @@ export const renderFormattedText = (text, selections, npcLevel = 5, partyLevel =
       }
       if (Array.isArray(val)) return <span key={i} className="font-bold text-[#2c221e]">{val.map((v, vi) => <span key={vi} className="block ml-2">● {v}</span>)}</span>;
       if (typeof val === 'string' && (val.includes('{') || val.includes('['))) return <React.Fragment key={i}>{renderFormattedText(val, selections, npcLevel, partyLevel, hideMeta)}</React.Fragment>;
-      if (DAMAGE_TYPES.includes(val)) return <span key={i} className={`inline-flex items-center gap-1 font-extrabold ${TYPE_STYLES[val].color} tracking-wide drop-shadow-sm`}><span className="fu-icon text-sm leading-none translate-y-[0.5px]">{TYPE_STYLES[val].fuIcon}</span><span>{val}</span></span>;
+      if (DAMAGE_TYPES.includes(val)) return <span key={i} className={`inline font-extrabold ${TYPE_STYLES[val].color} tracking-wide`}><span className="fu-icon text-sm mx-0.5">{TYPE_STYLES[val].fuIcon}</span>{val}</span>;
       return <span key={i} className="font-extrabold text-[#2c221e]">{val}</span>;
     }
     if (part.startsWith('<') && part.endsWith('>')) {
       const type = part.slice(1, -1);
       if (/^\/?(?:meta|status)/i.test(type)) return null;
-      if (DAMAGE_TYPES.includes(type)) return <span key={i} className={`inline-flex items-center gap-1 font-extrabold ${TYPE_STYLES[type].color} tracking-wide drop-shadow-sm`}><span className="fu-icon text-sm leading-none translate-y-[0.5px]">{TYPE_STYLES[type].fuIcon}</span><span>{type}</span></span>;
+      if (DAMAGE_TYPES.includes(type)) return <span key={i} className={`inline font-extrabold ${TYPE_STYLES[type].color} tracking-wide`}><span className="fu-icon text-sm mx-0.5">{TYPE_STYLES[type].fuIcon}</span>{type}</span>;
       return part;
     }
-    return part;
+    return <React.Fragment key={i}>{renderTextWithAffinities(part)}</React.Fragment>;
   });
 };

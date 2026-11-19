@@ -15,13 +15,13 @@ import { unfreezeAttackField } from './attackDisplay';
  */
 const LEGACY_OFFENSIVE_SENTINEL = '\u26A1';
 
-export const getDynamicValues = (npcLevel, partyLevel = 5) => {
-  const pl = parseInt(partyLevel) || 5;
+// Bestiary Vol. 1 Quick Assembly (印刷 p.28) 明文：Minor / Heavy / Massive 依 NPC 等級決定。
+export const getDynamicValues = (npcLevel, _partyLevel = 5) => {
   const nl = parseInt(npcLevel) || 5;
 
   let tier = 0;
-  if (pl >= 40) tier = 2;
-  else if (pl >= 20) tier = 1;
+  if (nl >= 40) tier = 2;
+  else if (nl >= 20) tier = 1;
 
   let small, large, massive;
   if (tier === 0) { small = 10; large = 30; massive = 40; }
@@ -44,6 +44,10 @@ export const getDynamicValues = (npcLevel, partyLevel = 5) => {
     '[碾壓傷害]': nl >= 30 ? 30 : 20
   };
 };
+
+export const hasNumericOverride = (val) => (
+  val !== undefined && val !== null && val !== '' && Number.isFinite(Number(val))
+);
 
 export const getInitialAffinities = () => {
   const init = {};
@@ -181,44 +185,46 @@ export const calculateNpcBudgets = (npc) => {
   if (lvl >= 40) levelBonus += 1;
   if (lvl >= 60) levelBonus += 1;
 
-  // 3. Negative Skill Bonus
+  // 3. Negative Skill Bonus（工坊存於 selectedNegativeSkills；亦相容舊 skills 內的 negativeSkill）
   const skills = npc.skills || [];
-  const hasNegativeSkill = skills.some(s => s.source === 'negativeSkill' || s.category === 'negative');
-  const negBonus = hasNegativeSkill ? 1 : 0;
+  const selectedNegCount = Array.isArray(npc.selectedNegativeSkills) ? npc.selectedNegativeSkills.length : 0;
+  const legacyNegCount = skills.filter(s => s.source === 'negativeSkill' || s.category === 'negative').length;
+  const negBonus = selectedNegCount > 0 ? selectedNegCount : (legacyNegCount > 0 ? 1 : 0);
 
-  // 4. Species Bonus
+  // 4. Species Bonus（Bestiary Vol. 1 p.70-73：類人 3 選增益已包含額外技能選項，無額外固有 +1；植物額外技能為 b6；野獸／類人／魔獸可選 2 次）
   let speciesBonus = 0;
   const sid = npc.selectedSpeciesId;
   const sBenefits = npc.speciesConfig?.selectedBenefits || [];
-  if (sid === 'sp_humanoid') {
-    speciesBonus += 1; // Humanoid inherent bonus
+  const speciesSkillBenefitIds = {
+    sp_beast: 'b5', sp_construct: 'b4', sp_demon: 'b4', sp_element: 'b4',
+    sp_humanoid: 'b5', sp_monster: 'b4', sp_plant: 'b6', sp_undead: 'b4'
+  };
+  const targetSpeciesBenefit = speciesSkillBenefitIds[sid];
+  if (targetSpeciesBenefit) {
+    speciesBonus = sBenefits.filter(b => b === targetSpeciesBenefit).length;
   }
-  if (sid === 'sp_beast' && sBenefits.includes('b5')) speciesBonus += sBenefits.filter(b => b === 'b5').length;
-  if (sid === 'sp_construct' && sBenefits.includes('b4')) speciesBonus += 1;
-  if (sid === 'sp_demon' && sBenefits.includes('b4')) speciesBonus += 1;
-  if (sid === 'sp_element' && sBenefits.includes('b4')) speciesBonus += 1;
-  if (sid === 'sp_humanoid' && sBenefits.includes('b5')) speciesBonus += sBenefits.filter(b => b === 'b5').length;
-  if (sid === 'sp_monster' && sBenefits.includes('b4')) speciesBonus += 1;
-  if (sid === 'sp_plant' && sBenefits.includes('b4')) speciesBonus += 1;
-  if (sid === 'sp_undead' && sBenefits.includes('b4')) speciesBonus += 1;
 
-  // 5. Weakness Bonus (Physical vulnerability gives +1 skill)
-  const weaknessBonus = (npc.affinities && npc.affinities['物理'] === 'vul') ? 1 : 0;
+  // 5. Weakness Bonus（Bestiary Vol. 1 p.29：物理弱點送 1 個額外定位技能，包含物種給予或手動分配）
+  const speciesAffs = getSpeciesAffinities(sid, npc.speciesConfig);
+  const mergedPhysical = (npc.isFreeModeEnabled && npc.affinities?.['物理'] && npc.affinities['物理'] !== 'normal')
+    ? npc.affinities['物理']
+    : (speciesAffs['物理'] || npc.affinities?.['物理']);
+  const weaknessBonus = mergedPhysical === 'vul' ? 1 : 0;
 
   const totalRoleSkills = rankBonus + levelBonus + negBonus + speciesBonus + weaknessBonus;
 
-  // Used role skills count
+  // Used role skills count（排除自訂能力 source === 'custom'）
   const usedRoleSkills = skills.filter(s =>
     s.source === 'roleSkill' ||
     s.isRoleSkill ||
-    (s.category === 'rule' && s.source !== 'customization' && s.source !== 'negativeSkill' && s.source !== 'levelPassive' && s.source !== 'bossSkill')
+    (s.category === 'rule' && s.source !== 'custom' && s.source !== 'customization' && s.source !== 'negativeSkill' && s.source !== 'levelPassive' && s.source !== 'bossSkill')
   ).length;
 
   // Customization
   const usedCustomization = skills.filter(s => s.source === 'customization').length;
 
   // Boss Skills
-  const maxBossSkills = rank === '冠位' ? (1 + (hasNegativeSkill ? 1 : 0)) : 0;
+  const maxBossSkills = rank === '冠位' ? (1 + (negBonus > 0 ? 1 : 0)) : 0;
   const usedBossSkills = skills.filter(s => s.category === 'boss' || s.source === 'bossSkill').length;
 
   // Resistances and Immunities
@@ -231,7 +237,6 @@ export const calculateNpcBudgets = (npc) => {
     if (lvl >= 30) maxImm = 1;
   }
 
-  const speciesAffs = getSpeciesAffinities(sid, npc.speciesConfig);
   let usedRes = 0;
   let usedImm = 0;
   let currentVul = 0;
@@ -283,8 +288,16 @@ export const calculateNpcStats = (npc) => {
   const effDEXVal = parseDice(finalDEX);
   const effINSVal = parseDice(finalINS);
 
-  let baseHP = lvlData.hp + (effMIGVal - defMIGVal) * 5;
+  const skills = npc.skills || [];
+  // Bestiary Vol. 1 p.28 (The Juggernaut 範例)：暴徒客製化 +10 HP 需於套用精英倍率前先加算
+  const isBruteCustHp = (sk) => Boolean(sk && sk.source === 'customization' && (sk.libId === 'brute_cust_0' || sk.id === 'brute_cust_0') && sk.modifiers?.hp);
+  const preRankHpBonus = skills.reduce((sum, sk) => (isBruteCustHp(sk) ? sum + sk.modifiers.hp : sum), 0);
+
+  let baseHP = lvlData.hp + (effMIGVal - defMIGVal) * 5 + preRankHpBonus;
   let baseMP = lvlData.mp + (effWLPVal - defWLPVal) * 5;
+
+  // Bestiary Vol. 1 p.28：先攻基準為 (DEX + INS) / 2，隨等級屬性成長與自由模式骰子連動
+  const computedBaseInit = Math.floor((effDEXVal + effINSVal) / 2);
 
   let stats = {
     DEX: finalDEX,
@@ -293,7 +306,7 @@ export const calculateNpcStats = (npc) => {
     WLP: finalWLP,
     HP: baseHP,
     MP: baseMP,
-    Init: roleData.base.initBase,
+    Init: computedBaseInit,
     Def: effDEXVal + roleData.base.def,
     MDef: effINSVal + roleData.base.mdef,
     Acc: lvlData.acc,
@@ -342,7 +355,6 @@ export const calculateNpcStats = (npc) => {
   }
 
   // Skills passive modifiers
-  const skills = npc.skills || [];
   skills.forEach(skill => {
     if (skill.source === 'levelPassive') {
       if (skill.libId === "sab_p10" && skill.selections) {
@@ -352,7 +364,7 @@ export const calculateNpcStats = (npc) => {
       if (skill.libId === "hun_p10") stats.Acc += 3;
     }
     if (skill.modifiers) {
-      if (skill.modifiers.hp) stats.HP += skill.modifiers.hp;
+      if (skill.modifiers.hp && !isBruteCustHp(skill)) stats.HP += skill.modifiers.hp;
       if (skill.modifiers.mp) stats.MP += skill.modifiers.mp;
       if (skill.modifiers.def) stats.Def += skill.modifiers.def;
       if (skill.modifiers.mdef) stats.MDef += skill.modifiers.mdef;
@@ -369,12 +381,27 @@ export const calculateNpcStats = (npc) => {
     }
   });
 
+  // Bestiary Vol. 1 p.69：【狀態束縛】失去且無法獲得眩暈、動搖、緩慢、虛弱之免疫
+  const hasStatusBind = (npc.selectedNegativeSkills || []).some(s => s.id === 'ns_8');
+  if (hasStatusBind) {
+    const blocked = new Set(['眩暈', '動搖', '緩慢', '虛弱']);
+    stats.statusImmunities = stats.statusImmunities.filter(st => !blocked.has(st));
+  }
+
+  stats.baseStats = {
+    HP: stats.HP,
+    MP: stats.MP,
+    Init: stats.Init,
+    Def: stats.Def,
+    MDef: stats.MDef
+  };
+
   if (npc.overrideEnabled && npc.overrides) {
-    if (npc.overrides.hp) stats.HP = npc.overrides.hp;
-    if (npc.overrides.mp) stats.MP = npc.overrides.mp;
-    if (npc.overrides.init) stats.Init = npc.overrides.init;
-    if (npc.overrides.def) stats.Def = npc.overrides.def;
-    if (npc.overrides.mdef) stats.MDef = npc.overrides.mdef;
+    if (hasNumericOverride(npc.overrides.hp)) stats.HP = Number(npc.overrides.hp);
+    if (hasNumericOverride(npc.overrides.mp)) stats.MP = Number(npc.overrides.mp);
+    if (hasNumericOverride(npc.overrides.init)) stats.Init = Number(npc.overrides.init);
+    if (hasNumericOverride(npc.overrides.def)) stats.Def = Number(npc.overrides.def);
+    if (hasNumericOverride(npc.overrides.mdef)) stats.MDef = Number(npc.overrides.mdef);
   }
 
   return stats;
@@ -412,7 +439,7 @@ export const createNewNPC = () => {
     selectedSpeciesId: 'sp_beast',
     speciesConfig: { selectedBenefits: [] },
     overrideEnabled: false,
-    overrides: { hp: 0, mp: 0, init: 0, def: 0, mdef: 0 },
+    overrides: { hp: '', mp: '', init: '', def: '', mdef: '' },
     affinities: getInitialAffinities(),
     customDice: {},
     isFreeModeEnabled: false,
@@ -518,7 +545,13 @@ export const migrateNpcState = (npc) => {
   ['skills', 'linkedNpcs', 'selectedNegativeSkills', 'selectedBossSkills', 'customRules', 'tags']
     .forEach((k) => { migrated[k] = asArray(migrated[k]); });
   ['speciesConfig', 'customDice', 'attributes'].forEach((k) => { migrated[k] = asObject(migrated[k]); });
-  migrated.overrides = { hp: 0, mp: 0, init: 0, def: 0, mdef: 0, ...asObject(migrated.overrides) };
+  migrated.overrides = { hp: '', mp: '', init: '', def: '', mdef: '', ...asObject(migrated.overrides) };
+  // 舊存檔的 overrides 預設為全 0（未啟用覆寫）；僅在未啟用時清回空字串，避免開啟覆寫開關時瞬間歸零
+  if (!migrated.overrideEnabled) {
+    ['hp', 'mp', 'init', 'def', 'mdef'].forEach((k) => {
+      if (migrated.overrides[k] === 0) migrated.overrides[k] = '';
+    });
+  }
   ['name', 'traits', 'story', 'tactics', 'faction'].forEach((k) => {
     if (typeof migrated[k] !== 'string') migrated[k] = k === 'name' ? '未命名實體' : '';
   });
@@ -655,11 +688,114 @@ export const exportNpcToCombatant = (npc) => {
     affinities: finalAffs,
     skills: (npc.skills || []).map(sk => ({
       id: sk.id,
-      name: sk.name || sk.skillName || '招式',
+      name: (sk.customName && sk.customName.trim()) || sk.originalName || sk.name || sk.skillName || '招式',
       category: sk.category || 'attack',
-      desc: sk.desc || sk.customDesc || '',
+      desc: sk.customDesc !== undefined ? sk.customDesc : (sk.originalDesc || sk.attack?.extra || sk.desc || ''),
       isRevealed: false // GM can reveal skills step by step to players in combat!
     })),
     rawNpcData: npc
   };
+};
+
+/**
+ * 自訂能力上下排序（純函式）。只在 custom_ 技能之間交換相對位置，不動其他技能。
+ */
+export const moveCustomSkill = (skills, targetId, direction) => {
+  if (!Array.isArray(skills)) return [];
+  const customIndices = [];
+  skills.forEach((s, idx) => {
+    if (s && typeof s.id === 'string' && s.id.startsWith('custom_')) {
+      customIndices.push(idx);
+    }
+  });
+  const pos = customIndices.findIndex(idx => skills[idx].id === targetId);
+  if (pos === -1) return skills;
+  const swapPos = direction === 'up' ? pos - 1 : pos + 1;
+  if (swapPos < 0 || swapPos >= customIndices.length) return skills;
+  const next = [...skills];
+  const a = customIndices[pos];
+  const b = customIndices[swapPos];
+  [next[a], next[b]] = [next[b], next[a]];
+  return next;
+};
+
+/**
+ * 自訂能力複製（純函式）。插入於原項目正後方，名稱附加「（副本）」。
+ */
+export const duplicateCustomSkill = (skills, targetId) => {
+  if (!Array.isArray(skills)) return [];
+  const idx = skills.findIndex(s => s && s.id === targetId);
+  if (idx === -1) return skills;
+  const orig = skills[idx];
+  const baseName = (orig.customName || orig.originalName || '自訂能力').trim();
+  const copyName = `${baseName}（副本）`;
+  const clone = JSON.parse(JSON.stringify(orig));
+  clone.id = `custom_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  clone.originalName = copyName;
+  clone.customName = copyName;
+  clone.source = 'custom';
+  const next = [...skills];
+  next.splice(idx + 1, 0, clone);
+  return next;
+};
+
+/**
+ * 自訂能力事後切換分類（純函式）。切換至 attack / spell 時自動補齊預設結構。
+ */
+export const convertSkillCategory = (skill, newCategory) => {
+  if (!skill || skill.category === newCategory) return skill;
+  const next = { ...skill, category: newCategory };
+  if (newCategory === 'attack') {
+    next.attack = skill.attack || {
+      distance: '近戰',
+      formula: '[DEX + MIG]',
+      baseDmg: 5,
+      type: '物理',
+      extra: skill.customDesc || skill.originalDesc || ''
+    };
+    delete next.spellData;
+  } else if (newCategory === 'spell') {
+    next.spellData = skill.spellData || {
+      mp: '10',
+      baseMp: '10',
+      targetType: '一個生物',
+      maxTargets: '3',
+      target: '一個生物',
+      duration: '瞬發',
+      isOffensive: false
+    };
+    delete next.attack;
+  } else {
+    delete next.attack;
+    delete next.spellData;
+  }
+  return next;
+};
+
+/**
+ * 計算自由模式下「目前實際偏離原書」的項目摘要（純函式，供常駐橫幅使用）。
+ */
+export const getFreeModeDeviations = (npc, opts = {}) => {
+  if (!npc || !npc.isFreeModeEnabled) return [];
+  const items = [];
+  const diceCount = Object.values(npc.customDice || {}).filter(Boolean).length;
+  if (diceCount > 0) items.push(`體質骰子 ${diceCount} 項`);
+
+  const ovCount = npc.overrideEnabled
+    ? ['hp', 'mp', 'init', 'def', 'mdef'].filter(k => hasNumericOverride(npc.overrides?.[k])).length
+    : 0;
+  if (ovCount > 0) items.push(`手動覆寫 ${ovCount} 項`);
+
+  const speciesAffs = getSpeciesAffinities(npc.selectedSpeciesId, npc.speciesConfig);
+  const overriddenSpeciesAffCount = Object.entries(speciesAffs).filter(([type, spVal]) => {
+    const manual = npc.affinities?.[type];
+    return manual && manual !== 'normal' && manual !== spVal;
+  }).length;
+  if (overriddenSpeciesAffCount > 0) items.push(`覆寫物種相性 ${overriddenSpeciesAffCount} 項`);
+
+  if (opts.overBudgetSkillCount > 0) items.push(`超額技能 ${opts.overBudgetSkillCount} 項`);
+  if (opts.overBudgetAffinityCount > 0) items.push(`超額相性 ${opts.overBudgetAffinityCount} 項`);
+  if (opts.overSpeciesBenefitCount > 0) items.push(`超額物種增益 ${opts.overSpeciesBenefitCount} 項`);
+
+  return items;
 };

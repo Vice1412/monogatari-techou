@@ -53,6 +53,7 @@ export const SPELLS_DATA = {
   "半影": { mp: "10 × T", target: "至多三個生物", duration: "瞬發", isOffensive: true, effect: "每個被此咒語擊中的目標受到【HR+15】的<暗>屬性傷害。\n機會：每個被此咒語擊中的目標陷入虛弱狀態。" },
   "烈風": { mp: "10 × T", target: "至多三個生物", duration: "瞬發", isOffensive: true, effect: "每個被此咒語擊中的目標受到【HR+15】的<風>屬性傷害。\n機會：每個被此咒語擊中的飛行目標被強制立即降落。" },
   "群體狀態": { mp: 20, target: "特殊", duration: "瞬發", effect: "選擇任意數量的可見生物：每個目標陷入{spell_mass_status_status}狀態。", selectionsConfig: [{ key: "spell_mass_status_status", label: "狀態效果", options: STATUS_OPTIONS }] },
+  "詛咒": { mp: 5, target: "一個生物", duration: "瞬發", isOffensive: true, effect: "目標陷入{spell_curse_status}狀態。", selectionsConfig: [{ key: "spell_curse_status", label: "狀態", options: STATUS_OPTIONS }] },
   "大詛咒": { mp: 10, target: "一個生物", duration: "瞬發", isOffensive: true, effect: "目標陷入{spell_great_curse_status1}與{spell_great_curse_status2}狀態。", selectionsConfig: [{ key: "spell_great_curse_status1", label: "狀態1", options: STATUS_OPTIONS }, { key: "spell_great_curse_status2", label: "狀態2", options: STATUS_OPTIONS }] },
   "激怒": { mp: 10, target: "一個生物", duration: "瞬發", isOffensive: true, effect: "目標陷入憤怒狀態，並且在其下一個回合不能執行防禦或咒語動作。" },
   "舔舐傷口": { mp: 5, target: "自身", duration: "瞬發", effect: "恢復 <lv20->20</lv20-><lv20+><lv40->30</lv40-></lv20+><lv40+><lv60->40</lv60-></lv40+><lv60+>50</lv60+> 點 HP。" },

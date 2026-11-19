@@ -16,6 +16,7 @@ import {
   resolveTemplateVariables,
   getDynamicValues
 } from '../utils/npcEngine';
+import { resolveAttack } from '../utils/attackDisplay';
 import {
   DAMAGE_TYPES,
   AFFINITY_STATES,
@@ -234,28 +235,33 @@ export default function NPCCardPreview({
             </h4>
             <div className="space-y-2">
               {attacks.map((att, idx) => {
-                const attType = att.selections?.type || '物理';
+                const resolvedAtk = att.attack ? resolveAttack(att.attack, att.selections, att.selectionsConfig) : null;
+                const attDist = resolvedAtk?.distance || att.selections?.distance || '近戰';
+                const attFormula = resolvedAtk?.formula || att.selections?.formula || 'DEX + MIG';
+                const attType = resolvedAtk?.type || att.selections?.type || '物理';
+                const attDmg = (att.attack?.baseDmg ?? 5) + (stats.Dmg || 0);
+                const attDesc = att.customDesc !== undefined ? att.customDesc : (att.originalDesc || att.attack?.extra || att.desc || '');
                 const style = TYPE_STYLES[attType] || TYPE_STYLES['物理'];
                 return (
                   <div key={idx} className="bg-[#fbf7ee] rounded p-2.5 border border-[#d6c7ab] text-xs">
                     <div className="flex items-center justify-between font-bold text-[#3c2415] mb-1">
-                      <span>{att.name || att.skillName || '普通攻擊'}</span>
+                      <span>{(att.customName && att.customName.trim()) || att.originalName || att.name || att.skillName || '普通攻擊'}</span>
                       <span className="inline-flex items-center gap-1.5 font-mono text-[#6b5a4b]">
                         <span className="inline-flex items-center gap-1 text-[#3c2415] bg-[#e8dcc4] px-1.5 py-0.5 rounded text-t11 font-bold leading-none shrink-0 shadow-e1">
-                          <span className="fu-icon text-xs leading-none translate-y-[0.5px]">{(att.selections?.distance || '').includes('遠程') ? 'r' : 'm'}</span>
-                          <span>{att.selections?.distance || '近戰'}</span>
+                          <span className="fu-icon text-xs leading-none translate-y-[0.5px]">{String(attDist).includes('遠程') ? 'r' : 'm'}</span>
+                          <span>{attDist}</span>
                         </span>
-                        <span>【{att.selections?.formula || 'DEX + MIG'}】+ {stats.Acc || 0}</span>
+                        <span>{attFormula}{stats.Acc ? ` + ${stats.Acc}` : ''}</span>
                       </span>
                     </div>
                     <p className="text-[#3c2415] leading-relaxed font-sans flex flex-wrap items-center gap-1">
-                      <span>傷害: 【HR + {stats.Dmg || 5}】點</span>
+                      <span>傷害: 【HR + {attDmg}】點</span>
                       <span className={`inline-flex items-center gap-0.5 ${style.color || ''}`}>
                         <span className="fu-icon text-xs leading-none translate-y-[0.5px]">{style.fuIcon}</span>
                         <strong>{attType}</strong>
                       </span>
                       <span>傷害。</span>
-                      {att.desc && <span className="ml-1">{renderDescription(att.desc, att.selections)}</span>}
+                      {attDesc && <span className="ml-1">{renderDescription(attDesc, att.selections)}</span>}
                     </p>
                   </div>
                 );
@@ -272,8 +278,10 @@ export default function NPCCardPreview({
             </h4>
             <div className="space-y-2">
               {spells.map((sp, idx) => {
-                const isOffensive = sp.isOffensive || isOffensiveSpell(sp.name) || isOffensiveSpell(sp.spellName) || (sp.desc && (sp.desc.includes('傷害') || sp.desc.includes('【HR+')));
-                const rawName = normalizeSpellName(sp.name || sp.spellName || '法術');
+                const spNameRaw = (sp.customName && sp.customName.trim()) || sp.originalName || sp.name || sp.spellName || '法術';
+                const spDesc = sp.customDesc !== undefined ? sp.customDesc : (sp.originalDesc || sp.desc || '');
+                const isOffensive = sp.spellData?.isOffensive || sp.isOffensive || isOffensiveSpell(spNameRaw);
+                const rawName = normalizeSpellName(spNameRaw);
                 return (
                   <div key={idx} className="bg-[#fbf7ee] rounded p-2.5 border border-[#d6c7ab] text-xs">
                     <div className="flex items-center justify-between font-bold text-[#3c2415] mb-1">
@@ -282,11 +290,11 @@ export default function NPCCardPreview({
                         <span>{rawName}</span>
                       </span>
                       <span className="text-t11 font-mono text-[#6b5a4b]">
-                        MP {sp.selections?.mpCost || 10} · {sp.selections?.target || '單體'}
+                        MP {sp.spellData?.mp || sp.selections?.mpCost || 10} · {sp.spellData?.target || sp.selections?.target || '單體'}
                       </span>
                     </div>
                     <p className="text-[#3c2415] leading-relaxed font-sans">
-                      {renderDescription(sp.desc || sp.customDesc, sp.selections)}
+                      {renderDescription(spDesc, sp.selections)}
                     </p>
                   </div>
                 );
@@ -303,8 +311,8 @@ export default function NPCCardPreview({
             </h4>
             <div className="space-y-2">
               {otherActions.filter(sk => !sk.hideInPreview).map((sk, idx) => {
-                const nameText = sk.name || sk.originalName || sk.skillName || '行動';
-                const descText = sk.desc || sk.originalDesc || sk.customDesc || '';
+                const nameText = (sk.customName && sk.customName.trim()) || sk.originalName || sk.name || sk.skillName || '行動';
+                const descText = sk.customDesc !== undefined ? sk.customDesc : (sk.originalDesc || sk.desc || '');
                 return (
                   <div key={idx} className="bg-[#fbf7ee] rounded p-2.5 border border-[#d6c7ab] text-xs">
                     <div className="flex items-center justify-between font-bold text-[#3c2415] mb-1">
@@ -353,8 +361,8 @@ export default function NPCCardPreview({
                   icon = '✕';
                 }
 
-                const nameText = sk.name || sk.originalName || sk.skillName || '技能';
-                const descText = sk.desc || sk.originalDesc || sk.customDesc || '';
+                const nameText = (sk.customName && sk.customName.trim()) || sk.originalName || sk.name || sk.skillName || '技能';
+                const descText = sk.customDesc !== undefined ? sk.customDesc : (sk.originalDesc || sk.desc || '');
 
                 return (
                   <div key={idx} className="bg-[#fbf7ee] rounded p-2.5 border border-[#d6c7ab] text-xs">

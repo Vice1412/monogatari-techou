@@ -87,25 +87,25 @@ const npc = (over = {}) => ({
 });
 
 // ─────────────────────────────────────────────────────────── A
-section('A. 動態數值（[少量]／[大量]／[巨量] 等依隊伍與 NPC 等級變動）');
+section('A. 動態數值（Bestiary Vol. 1 印刷 p.28：[少量]／[大量]／[巨量] 依 NPC 等級變動）');
 {
-  // 隊伍等級決定三檔基礎值
-  check('隊伍 5 級', getDynamicValues(5, 5), {
+  // NPC 等級決定三檔基礎值（Lv.5+: 10/30/40、Lv.20+: 20/40/60、Lv.40+: 30/50/80）
+  check('NPC 5 級', getDynamicValues(5, 5), {
     '[少量]': 10, '[大量]': 30, '[巨量]': 40, '[條件大量]': 10,
     '[消耗戰HP]': 5, '[消耗戰MP]': 10, '[臨時防禦]': 12, '[碾壓傷害]': 20,
   });
-  check('隊伍 20 級', getDynamicValues(5, 20), {
+  check('NPC 20 級（即使 partyLevel 仍為 5 亦依 NPC 等級升級）', getDynamicValues(20, 5), {
     '[少量]': 20, '[大量]': 40, '[巨量]': 60, '[條件大量]': 20,
-    '[消耗戰HP]': 5, '[消耗戰MP]': 10, '[臨時防禦]': 12, '[碾壓傷害]': 20,
+    '[消耗戰HP]': 5, '[消耗戰MP]': 10, '[臨時防禦]': 13, '[碾壓傷害]': 20,
   });
-  check('隊伍 40 級', getDynamicValues(5, 40), {
-    '[少量]': 30, '[大量]': 50, '[巨量]': 80, '[條件大量]': 30,
-    '[消耗戰HP]': 5, '[消耗戰MP]': 10, '[臨時防禦]': 12, '[碾壓傷害]': 20,
+  check('NPC 40 級', getDynamicValues(40, 5), {
+    '[少量]': 30, '[大量]': 50, '[巨量]': 80, '[條件大量]': 50,
+    '[消耗戰HP]': 10, '[消耗戰MP]': 20, '[臨時防禦]': 14, '[碾壓傷害]': 30,
   });
 
-  // NPC 等級 30 是分水嶺
+  // NPC 等級 30 是分水嶺（30 級的大量為 40）
   const nl30 = getDynamicValues(30, 5);
-  check('NPC 30 級：條件大量升級', nl30['[條件大量]'], 30);
+  check('NPC 30 級：條件大量升級為 40', nl30['[條件大量]'], 40);
   check('NPC 30 級：消耗戰 HP', nl30['[消耗戰HP]'], 10);
   check('NPC 30 級：消耗戰 MP', nl30['[消耗戰MP]'], 20);
   check('NPC 30 級：碾壓傷害', nl30['[碾壓傷害]'], 30);
@@ -156,9 +156,9 @@ section('D. 模板變數解析（技能文字裡的 [少量] 與 {type}）');
   check('空字串 -> 空字串', resolveTemplateVariables('', {}), '');
   check('null -> 空字串', resolveTemplateVariables(null, {}), '');
 
-  // 動態方括號依等級換成數字
-  check('動態值：隊伍 5 級', resolveTemplateVariables('造成[少量]點傷害，[巨量]則…', {}, { npcLevel: 5, partyLevel: 5 }), '造成10點傷害，40則…');
-  check('動態值：隊伍 20 級', resolveTemplateVariables('[少量]／[大量]／[巨量]', {}, { npcLevel: 5, partyLevel: 20 }), '20／40／60');
+  // 動態方括號依 NPC 等級換成數字（Bestiary Vol. 1 p.28）
+  check('動態值：NPC 5 級', resolveTemplateVariables('造成[少量]點傷害，[巨量]則…', {}, { npcLevel: 5, partyLevel: 5 }), '造成10點傷害，40則…');
+  check('動態值：NPC 20 級', resolveTemplateVariables('[少量]／[大量]／[巨量]', {}, { npcLevel: 20, partyLevel: 5 }), '20／40／60');
   check('動態值：NPC 30 級', resolveTemplateVariables('[碾壓傷害]／[消耗戰MP]', {}, { npcLevel: 30 }), '30／20');
 
   // 選擇槽
@@ -191,30 +191,27 @@ section('E. NPC 數值計算（等級 × 階級 × 物種）');
   check('暴徒 30 級 傷害', brute30.Dmg, 5);
   check('物防 = DEX 骰面 + 定位基礎', brute30.Def, 8);
   check('魔防 = INS 骰面 + 定位基礎', brute30.MDef, 8);
-  check('先攻 = 定位基礎值', brute30.Init, 7);
+  // 暴徒 30 級：DEX d8 + INS d8（升級）→ 先攻 = (8+8)/2 = 8（Bestiary Vol. 1 p.28）
+  check('先攻 = (DEX + INS) / 2', brute30.Init, 8);
 
   // 階級乘算
   check('精英：HP ×2', calculateNpcStats(npc({ level: 30, rank: '精英' })).HP, 240);
-  check('精英：先攻 +2', calculateNpcStats(npc({ level: 30, rank: '精英' })).Init, 9);
+  check('精英：先攻 8 + 2 = 10', calculateNpcStats(npc({ level: 30, rank: '精英' })).Init, 10);
   check('冠位 ×3：HP ×3', calculateNpcStats(npc({ level: 30, rank: '冠位', championMultiplier: 3 })).HP, 360);
   check('冠位 ×3：MP ×2', calculateNpcStats(npc({ level: 30, rank: '冠位', championMultiplier: 3 })).MP, 140);
-  check('冠位 ×3：先攻 +3', calculateNpcStats(npc({ level: 30, rank: '冠位', championMultiplier: 3 })).Init, 10);
+  check('冠位 ×3：先攻 8 + 3 = 11', calculateNpcStats(npc({ level: 30, rank: '冠位', championMultiplier: 3 })).Init, 11);
   check('冠位倍率非法 -> 視為 1', calculateNpcStats(npc({ level: 30, rank: '冠位', championMultiplier: 'x' })).HP, 120);
 
-  // ★ 官方範例（NPC_WORKSHOP_REFACTOR_GUIDE.md §6 測試案例 1）
-  //   等級 30、精英、構造體、暴徒。
-  //   本檔只釘住「實測當下的行為」，不裁定對錯。
-  //   ★ 待核對：該指南寫期望 HP 260（＝(基礎 120 + 客製化 10) × 精英 2）。
-  //     但引擎的順序是「先乘階級、後加技能修正」，所以實得 250。
-  //     客製化 +10 HP 是否應被階級倍率一起放大，需查《快速建構》官方原文才能定論。
+  // ★ 官方範例（Bestiary Vol. 1 印刷 p.28：The Juggernaut）
+  //   等級 30、精英、構造體、暴徒：INS d8 → 先攻 8+2=10；客製化 +10 HP 乘以精英 ×2 → 260 HP。
   const officialBase = npc({ level: 30, rank: '精英', selectedSpeciesId: 'sp_construct' });
   check('官方範例：精英構造體暴徒 HP（無客製化）', calculateNpcStats(officialBase).HP, 240);
   check('官方範例：INS 提升為 d8', calculateNpcStats(officialBase).INS, 'd8');
-  check('官方範例：先攻 7+2', calculateNpcStats(officialBase).Init, 9);
+  check('官方範例：先攻 8+2=10（含 INS d8 成長）', calculateNpcStats(officialBase).Init, 10);
   check('官方範例：構造體自帶中毒免疫', calculateNpcStats(officialBase).statusImmunities, ['中毒']);
 
   const withCustom = { ...officialBase, skills: [{ id: 'brute_cust_0', source: 'customization', modifiers: { hp: 10 } }] };
-  check('官方範例：加客製化 +10 HP 後為 250（非指南寫的 260）', calculateNpcStats(withCustom).HP, 250);
+  check('官方範例：加客製化 +10 HP 乘精英倍率後為 260', calculateNpcStats(withCustom).HP, 260);
   check('士兵 + 客製化 = 130（無倍率時為純加算）', calculateNpcStats({ ...withCustom, rank: '士兵' }).HP, 130);
 
   // 物種 HP／MP 加成
@@ -237,7 +234,7 @@ section('E. NPC 數值計算（等級 × 階級 × 物種）');
   check('技能修正 MP', withMods.MP, 75);
   check('技能修正 物防', withMods.Def, 10);
   check('技能修正 魔防', withMods.MDef, 9);
-  check('技能修正 先攻', withMods.Init, 8);
+  check('技能修正 先攻', withMods.Init, 9);
 
   // 手動覆寫優先於一切
   const over = calculateNpcStats(npc({
@@ -278,7 +275,7 @@ section('F. 轉為戰鬥員（exportNpcToCombatant）');
   // 骰階轉為數字
   check('屬性轉數字：dex', c.attributes.dex, 8);
   check('屬性轉數字：mig', c.attributes.mig, 10);
-  check('無 role 時給 0 而非 undefined', c.initiative, 9);
+  check('精英構造體暴徒先攻為 10', c.initiative, 10);
 
   // 技能被壓成最小欄位（廣播用），且一律未公開
   const withSkills = exportNpcToCombatant(npc({
@@ -397,7 +394,9 @@ section('I. ★ 死碼與分歧的護欄（calculateNpcBudgets）');
   check('死碼：冠位 ×3 給 3 個', calculateNpcBudgets(npc({ level: 5, rank: '冠位', championMultiplier: 3 })).roleSkills.max, 3);
   check('死碼：20/40/60 級各 +1', calculateNpcBudgets(npc({ level: 60 })).roleSkills.max, 3);
   check('死碼：負面技能 +1', calculateNpcBudgets(npc({ level: 5, skills: [{ source: 'negativeSkill' }] })).roleSkills.max, 1);
-  check('死碼：類人 +1', calculateNpcBudgets(npc({ level: 5, selectedSpeciesId: 'sp_humanoid' })).roleSkills.max, 1);
+  // Bestiary Vol. 1 p.72：類人 3 選增益已包含額外技能選項（b5），未選 b5 時不額外贈送
+  check('類人未選 b5 時為 0', calculateNpcBudgets(npc({ level: 5, selectedSpeciesId: 'sp_humanoid' })).roleSkills.max, 0);
+  check('類人選 b5 兩次 -> +2', calculateNpcBudgets(npc({ level: 5, selectedSpeciesId: 'sp_humanoid', speciesConfig: { selectedBenefits: ['b5', 'b5'] } })).roleSkills.max, 2);
   check('死碼：物理弱點 +1', calculateNpcBudgets(npc({ level: 5, affinities: { ...getInitialAffinities(), 物理: 'vul' } })).roleSkills.max, 1);
   check('死碼：冠位 + 負面技能 = 2 個 Boss 技能', calculateNpcBudgets(npc({ level: 5, rank: '冠位', skills: [{ source: 'negativeSkill' }] })).bossSkills.max, 2);
   check('死碼：非冠位沒有 Boss 技能額度', calculateNpcBudgets(npc({ level: 5, rank: '精英' })).bossSkills.max, 0);

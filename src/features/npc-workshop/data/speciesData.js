@@ -75,7 +75,7 @@ export const SPECIES_DATA = [
     ],
     optionalDrawback: {
       desc: '你可以給予你的 NPC 一個額外的對與其本性不合的傷害類型的弱點（例：寒冰精靈怕火）。如果你這樣做，添加以下一項：',
-      selectionConfig: { key: 'sp_element_extra_vul', label: '額外弱點', type: 'select', options: ['無', '風', '電', '暗', '土', '火', '冰', '光', '物理', '毒'] }
+      selectionConfig: { key: 'sp_element_extra_vul', label: '額外弱點', type: 'select', options: ['無', '風', '電', '暗', '土', '火', '冰', '光', '物理'] }
     },
     benefitsConfig: {
       conditionKey: 'sp_element_extra_vul',
@@ -91,9 +91,9 @@ export const SPECIES_DATA = [
   {
     id: 'sp_humanoid',
     name: '類人物種',
-    fixedDesc: '添加一個傷害弱點（物理除外）。',
+    fixedDesc: '添加一個傷害弱點（暗、光、物理或毒）。',
     mandatorySelections: [
-      { key: 'sp_humanoid_weakness', label: '選擇弱點', type: 'select', options: ['暗', '光', '毒'] }
+      { key: 'sp_humanoid_weakness', label: '選擇弱點', type: 'select', options: ['暗', '光', '物理', '毒'] }
     ],
     optionalDrawback: null,
     benefitsConfig: {
@@ -161,7 +161,7 @@ export const SPECIES_DATA = [
       maxPicks: 1,
       options: [
         { id: 'b1', text: '將對暗傷害的免疫替換為對暗傷害的吸收。' },
-        { id: 'b2', text: '學習一個咒語：吐息、大詛咒、生命偷取或毒藥，並將最大 MP 增加 10 點。', needsSelection: true, selectionConfig: { key: 'spell', label: '選擇咒語', type: 'spellbook', options: ['吐息', '大詛咒', '生命偷取', '毒藥'] } },
+        { id: 'b2', text: '學習一個咒語：吐息、詛咒、生命偷取或毒藥，並將最大 MP 增加 10 點。', needsSelection: true, selectionConfig: { key: 'spell', label: '選擇咒語', type: 'spellbook', options: ['吐息', '詛咒', '生命偷取', '毒藥'] } },
         { id: 'b3', text: '飛行技能。近戰攻擊能以飛行生物為目標。不能被作爲近戰攻擊的目標，除非攻擊者正在飛行或是有能接觸飛行目標的方法。受到弱點傷害時，直到該輪結束都會被迫降落，並失去這個技能的所有收益。PC也可通過花費一個機會來迫使降落。處於危機時，失去這個技能的所有收益。' },
         { id: 'b4', text: '一個來自你 NPC 定位的額外定位技能。' }
       ]

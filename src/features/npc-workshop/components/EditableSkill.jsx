@@ -7,18 +7,34 @@
  * ※ 下方 import 由腳本依「區塊實際用到的識別字」自動產生，未使用的都已剔除。
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { Edit3, Save, Trash2, X, Lock } from 'lucide-react';
+import { Edit3, Save, Trash2, Lock, Copy, ArrowUp, ArrowDown } from 'lucide-react';
 import { DAMAGE_TYPES, CATEGORIES, TYPE_STYLES, isOffensiveSpell, normalizeSpellName } from '../data';
 import { renderFormattedText } from '../utils/displayText';
 import { resolveAttack, unfreezeAttackField } from '../utils/attackDisplay';
+import { convertSkillCategory } from '../utils/npcEngine';
 
-const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection, finalStats, npcLevel, partyLevel }) => {
+const EditableSkill = ({
+  skill,
+  rawSkill,
+  onUpdate,
+  onDelete,
+  onUpdateSelection,
+  onDuplicate,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false,
+  allowCategoryChange = false,
+  finalStats,
+  npcLevel,
+  partyLevel
+}) => {
   const baseSkill = rawSkill || skill;
 
   // 距離／公式／屬性只要技能宣告了同名選單欄位，選單就是唯一真相（見 utils/attackDisplay.js）。
   // 這裡把「被寫死的舊值」還原成佔位符再當成編輯狀態的起點，存檔才不會把選單鎖死。
   const seedAttack = (a) => {
-    const base = a || { distance: '近戰', formula: '【靈】+【靈】', baseDmg: 5, type: '物理' };
+    const base = a || { distance: '近戰', formula: '[DEX + MIG]', baseDmg: 5, type: '物理' };
     return {
       ...base,
       distance: unfreezeAttackField(base.distance, 'distance', skill.selectionsConfig),
@@ -103,17 +119,20 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
 
     const finalName = (activeName || '').trim();
 
+    const activeCategory = overrides.category !== undefined ? overrides.category : skill.category;
+
     onUpdate(skill.id, {
+      category: activeCategory,
       customName: finalName === (skill.originalName || '') ? undefined : finalName,
       customDesc: activeDesc,
-      attack: skill.category === 'attack' ? {
+      attack: activeCategory === 'attack' ? {
         ...activeAttack,
         // 有同名選單的欄位一律存回佔位符：寫死等於把選單永久鎖住（見 utils/attackDisplay.js）。
-        distance: unfreezeAttackField(editAttack.distance, 'distance', skill.selectionsConfig),
-        formula: unfreezeAttackField(editAttack.formula, 'formula', skill.selectionsConfig),
-        type: unfreezeAttackField(editAttack.type, 'type', skill.selectionsConfig),
+        distance: unfreezeAttackField(activeAttack.distance, 'distance', skill.selectionsConfig),
+        formula: unfreezeAttackField(activeAttack.formula, 'formula', skill.selectionsConfig),
+        type: unfreezeAttackField(activeAttack.type, 'type', skill.selectionsConfig),
       } : undefined,
-      spellData: skill.category === 'spell' ? {
+      spellData: activeCategory === 'spell' ? {
         mp: computedMp,
         baseMp: cleanBaseMp,
         targetType: activeSpell.targetType,
@@ -135,12 +154,53 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
     syncDraft();
     setIsEditing(false);
   };
-  const handleCategoryChange = (e) => onUpdate(skill.id, { category: e.target.value });
+  const handleCategoryChange = (e) => {
+    const newCat = e.target.value;
+    const converted = convertSkillCategory({ ...skill, customDesc: editDesc, attack: editAttack, spellData: editSpellData }, newCat);
+    if (newCat === 'attack' && converted.attack) {
+      setEditAttack(seedAttack(converted.attack));
+    }
+    if (newCat === 'spell' && converted.spellData) {
+      setEditSpellData({
+        baseMp: converted.spellData.baseMp || '10',
+        targetType: converted.spellData.targetType || '一個生物',
+        maxTargets: converted.spellData.maxTargets || '3',
+        duration: converted.spellData.duration || '瞬發',
+        isOffensive: !!converted.spellData.isOffensive
+      });
+    }
+    syncDraft({
+      category: newCat,
+      attack: converted.attack,
+      spellData: converted.spellData
+    });
+  };
 
   if (isEditing) {
     return (
-      <div className="border-2 border-dashed border-[#a63d40] p-3 mb-3 bg-[#fffdf9] rounded text-[#2c221e]">
-        <div className="flex items-center gap-2 mb-2"><span className="text-xs font-bold text-[#6b5a4b]">編輯名稱：</span><input type="text" className="flex-1 bg-[#fbf7ee] border border-[#d6c7ab] p-1.5 rounded text-sm text-[#2c221e] font-bold outline-none focus:border-[#3c2415]" value={editName} onChange={(e) => { setEditName(e.target.value); syncDraft({ name: e.target.value }); }} /></div>
+      <div className="border-2 border-dashed border-[#a63d40] p-3 mb-3 bg-[#fffdf9] rounded text-[#2c221e]" data-testid={`editable-skill-form-${skill.id}`}>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 flex-1">
+            <span className="text-xs font-bold text-[#6b5a4b] shrink-0">編輯名稱：</span>
+            <input type="text" className="flex-1 bg-[#fbf7ee] border border-[#d6c7ab] p-1.5 rounded text-sm text-[#2c221e] font-bold outline-none focus:border-[#3c2415]" value={editName} onChange={(e) => { setEditName(e.target.value); syncDraft({ name: e.target.value }); }} />
+          </div>
+          {(allowCategoryChange || !isDefault) && (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-xs font-bold text-[#6b5a4b]">分類：</span>
+              <select
+                data-testid={`editable-skill-category-${skill.id}`}
+                className="bg-[#fbf7ee] border border-[#d6c7ab] p-1.5 rounded text-xs text-[#2c221e] font-bold outline-none focus:border-[#3c2415]"
+                value={skill.category}
+                onChange={handleCategoryChange}
+              >
+                <option value="attack">基本攻擊</option>
+                <option value="spell">咒語</option>
+                <option value="action">其餘行動</option>
+                <option value="rule">特殊規則</option>
+              </select>
+            </div>
+          )}
+        </div>
 
         {skill.category === 'attack' && (
           <>
@@ -268,13 +328,35 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
     );
   }
 
+  const isOffensiveDisplay = (skill.category === 'spell' || skill.spellData) && (skill.spellData?.isOffensive || isOffensiveSpell(skill.customName || skill.originalName));
+
   return (
-    <div className={`group relative border-l-4 ${skill.source === 'levelPassive' ? 'border-[#3c2415] bg-[#f9f5eb]' : 'border-[#7c6a58] bg-[#fffdf9]'} hover:bg-[#fbf7ee] transition-colors rounded-r py-2.5 pl-3 mb-3 border border-[#d6c7ab] ${skill.isSecretArt ? 'ring-1 ring-[#3c2415]/30 bg-[#fffdf9]' : ''}`}>
-      <div className="absolute right-1 top-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-[#fffdf9] p-1 rounded shadow border border-[#d6c7ab] z-10"><button onClick={startEditing} className="p-1 hover:text-[#3c2415]" title="編輯"><Edit3 size={14} /></button>{!isDefault && <button onClick={() => onDelete(skill.id)} className="p-1 hover:text-[#76252d]" title="刪除"><Trash2 size={14} /></button>}</div>
-      <div className="font-bold text-t14 mb-1 flex items-center gap-2 text-[#3c2415]"><span className="text-[#6b5a4b] text-xs bg-[#f4ebd9] px-1.5 py-0.5 rounded border border-[#d6c7ab]">{CATEGORIES.find(c => c.id === skill.category)?.name || '未分類'}</span>{normalizeSpellName(skill.customName || skill.originalName)}
-        {skill.isSecretArt && (
-          <span className="text-t10 text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
-        )}{isOffensiveSpell(skill.customName || skill.originalName) && <span className="fu-icon text-[#8c2d36] drop- text-lg ml-0.5">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}{!isDefault && <span className="text-t10 text-[#8c2d36] border border-[#8c2d36]/50 bg-[#f9f5eb] px-1 rounded">自訂</span>}{skill.source === 'levelPassive' && <span className="text-t10 text-[#3c2415] border border-[#d6c7ab] bg-[#f4ebd9] px-1 rounded"><Lock size={10} className="inline mr-1 mb-0.5" />等級解鎖</span>}</div>
+    <div className={`group relative border-l-4 ${skill.source === 'levelPassive' ? 'border-[#3c2415] bg-[#f9f5eb]' : 'border-[#7c6a58] bg-[#fffdf9]'} hover:bg-[#fbf7ee] transition-colors rounded-r py-2.5 pl-3 pr-2 mb-3 border border-[#d6c7ab] ${skill.isSecretArt ? 'ring-1 ring-[#3c2415]/30 bg-[#fffdf9]' : ''}`}>
+      <div className="flex items-start justify-between gap-2 mb-1">
+        <div className="font-bold text-t14 flex flex-wrap items-center gap-1.5 text-[#3c2415] min-w-0">
+          <span className="text-[#6b5a4b] text-xs bg-[#f4ebd9] px-1.5 py-0.5 rounded border border-[#d6c7ab] shrink-0">{CATEGORIES.find(c => c.id === skill.category)?.name || '未分類'}</span>
+          <span className="break-words">{normalizeSpellName(skill.customName || skill.originalName)}</span>
+          {skill.isSecretArt && (
+            <span className="text-t10 text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] px-1 rounded font-normal">※ 祕技</span>
+          )}
+          {isOffensiveDisplay && <span className="fu-icon text-[#8c2d36] text-lg ml-0.5" title="攻擊性咒語">{TYPE_STYLES['攻擊性咒語']?.fuIcon || 'o'}</span>}
+          {!isDefault && <span className="text-t10 text-[#8c2d36] border border-[#8c2d36]/50 bg-[#f9f5eb] px-1 rounded">自訂</span>}
+          {skill.source === 'levelPassive' && <span className="text-t10 text-[#3c2415] border border-[#d6c7ab] bg-[#f4ebd9] px-1 rounded"><Lock size={10} className="inline mr-1 mb-0.5" />等級解鎖</span>}
+        </div>
+        <div className="flex items-center gap-1 shrink-0 bg-[#f9f5eb] px-1 py-0.5 rounded border border-[#d6c7ab]">
+          {onMoveUp && (
+            <button type="button" onClick={() => onMoveUp(skill.id)} disabled={!canMoveUp} className="p-1 text-[#6b5a4b] hover:text-[#3c2415] disabled:opacity-30 disabled:cursor-not-allowed" title="上移" aria-label="上移"><ArrowUp size={13} /></button>
+          )}
+          {onMoveDown && (
+            <button type="button" onClick={() => onMoveDown(skill.id)} disabled={!canMoveDown} className="p-1 text-[#6b5a4b] hover:text-[#3c2415] disabled:opacity-30 disabled:cursor-not-allowed" title="下移" aria-label="下移"><ArrowDown size={13} /></button>
+          )}
+          {onDuplicate && (
+            <button type="button" onClick={() => onDuplicate(skill.id)} className="p-1 text-[#6b5a4b] hover:text-[#3c2415]" title="複製" aria-label="複製"><Copy size={13} /></button>
+          )}
+          <button type="button" onClick={startEditing} className="p-1 text-[#6b5a4b] hover:text-[#3c2415]" title="編輯" aria-label="編輯"><Edit3 size={14} /></button>
+          {!isDefault && <button type="button" onClick={() => onDelete(skill.id)} className="p-1 text-[#6b5a4b] hover:text-[#76252d]" title="刪除" aria-label="刪除"><Trash2 size={14} /></button>}
+        </div>
+      </div>
       {skill.selectionsConfig && (
         <div className={`mt-2 flex flex-col gap-2 p-2 bg-[#f7f3e8] border border-[#e8dcc4] rounded text-xs border-l-2 ${skill.source === 'levelPassive' ? 'border-[#3c2415]' : 'border-[#8c2d36]'} mb-2`}>
           {skill.selectionsConfig
@@ -315,17 +397,18 @@ const EditableSkill = ({ skill, rawSkill, onUpdate, onDelete, onUpdateSelection,
       )}
 
       {(() => {
-        const hasCustomDesc = skill.customDesc !== undefined && skill.customDesc.trim() !== '';
+        const hasExplicitCustomDesc = skill.customDesc !== undefined;
         let displayDesc = skill.originalDesc || "";
         let displayExtra = skill.attack?.extra;
 
         if (skill.category === 'attack' && !skill.originalDesc) {
-          if (hasCustomDesc) {
+          if (hasExplicitCustomDesc) {
             displayDesc = "";
             displayExtra = skill.customDesc;
           }
-        } else if (hasCustomDesc) {
+        } else if (hasExplicitCustomDesc) {
           displayDesc = skill.customDesc;
+          if (skill.category === 'attack') displayExtra = "";
         }
 
         return (

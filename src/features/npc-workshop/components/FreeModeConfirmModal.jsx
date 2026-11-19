@@ -20,8 +20,8 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
             <Unlock size={24} className="text-[#a63d40]" />
           </div>
           <div>
-            <h3 className="text-base md:text-lg font-black tracking-widest text-[#3c2415]">開啟自定義模式</h3>
-            <p className="text-t12 text-[#6b5a4b] font-bold tracking-wider">解除規則限制</p>
+            <h3 className="text-base md:text-lg font-black tracking-widest text-[#3c2415]">切換至自由模式</h3>
+            <p className="text-t12 text-[#6b5a4b] font-bold tracking-wider">解除 Quick Assembly 規則限制，保留原書數值對照</p>
           </div>
         </div>
 
@@ -29,23 +29,20 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
           <div className="bg-[#f9f5eb] border border-[#d6c7ab] p-3 rounded text-[#3c2415] text-xs flex items-start gap-2.5">
             <AlertTriangle size={18} className="shrink-0 text-[#6b5a4b] mt-0.5" />
             <div>
-              <span className="font-bold text-[#3c2415]">警示：</span>
-              <span>開啟自定義模式將解除官方平衡規則限制。</span>
+              <span className="font-bold text-[#3c2415]">說明：</span>
+              <span>開啟自由模式後，系統將解除以下限制，並在每個調整區旁顯示「原書算法」與「平衡尺度建議」，協助您掌控遭遇難度：</span>
             </div>
           </div>
 
-          <p className="text-[#3c2415]">
-            解鎖後，您將獲得以下權限：
-          </p>
-
           <ul className="list-disc list-inside text-xs text-[#6b5a4b] space-y-1.5 pl-1 bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab]">
-            <li>自由調整 NPC 的 <strong className="text-[#3c2415]">體質骰子大小</strong>。</li>
-            <li><strong className="text-[#3c2415]">HP, MP, 物防, 魔防</strong> 將依據 Fabula Ultima 體質公式自動連動重算。</li>
-            <li>無視等級、職能與技能額度上限限制，自由組合技能與能力。</li>
+            <li><strong className="text-[#3c2415]">四維體質骰子</strong>：可自由調整 DEX／INS／MIG／WLP（d6–d12），HP、MP、物防、魔防與先攻自動連動。</li>
+            <li><strong className="text-[#3c2415]">手動覆寫面板數值</strong>：可直接覆寫 HP、MP、先攻、物防、魔防（支援設為 0）。</li>
+            <li><strong className="text-[#3c2415]">屬性相性與物種規則</strong>：解除額度上限、允許修改物種固有相性與加選物種增益。</li>
+            <li><strong className="text-[#3c2415]">技能與咒語配置</strong>：解除等級、階級、前置與額度上限限制。</li>
           </ul>
 
-          <p className="text-t12 text-[#7c6a58] italic">
-            此模式適合設計獨特遭遇、強大 Boss 或測試家規。您可隨時點擊右上角按鈕恢復嚴謹模式。
+          <p className="text-t12 text-[#7c6a58]">
+            ※ 您可隨時切回「嚴謹模式」，未符合原書限制的設定會暫時停用但資料不會遺失。
           </p>
         </div>
 
@@ -62,7 +59,7 @@ export default function FreeModeConfirmModal({ isOpen, onClose, onConfirm }) {
             onClick={onConfirm}
             className="px-5 py-2 rounded font-bold text-xs md:text-sm bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] transition-colors flex items-center gap-1.5"
           >
-            <Check size={16} /> 確認開啟自定義
+            <Check size={16} /> 確認開啟自由模式
           </button>
         </div>
       </div>

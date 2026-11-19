@@ -80,7 +80,16 @@ import {
 // 兩份並存時「測試綠燈」只保證 npcEngine 那份正確，**生產端用的是沒被測到的那份**。
 // 現在本檔已不再需要它（唯一的使用點隨顯示用文字工具搬到 `utils/displayText.jsx`），
 // 故不再匯入。護欄見 `tests/npcWorkshop.test.mjs` J 段。
-import { exportNpcToCombatant, migrateNpcState, getSpeciesAffinities, getInitialAffinities } from './utils/npcEngine';
+import {
+  exportNpcToCombatant,
+  migrateNpcState,
+  getSpeciesAffinities,
+  getInitialAffinities,
+  hasNumericOverride,
+  moveCustomSkill,
+  duplicateCustomSkill,
+  getFreeModeDeviations,
+} from './utils/npcEngine';
 import { resolveDragDirection } from './utils/dragDirection';
 // 顯示用文字工具（2026-10-16 抽出）：純函式，原本埋在下面，抽出去才測得到。
 import { getPlainText, renderFormattedText } from './utils/displayText';
@@ -237,6 +246,7 @@ export default function App({
   const [cropImageSource, setCropImageSource] = useState(null);
   const [pendingRawSource, setPendingRawSource] = useState(null);
   const [isFreeModeConfirmOpen, setIsFreeModeConfirmOpen] = useState(false);
+  const [isBalanceGuideOpen, setIsBalanceGuideOpen] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   // 2026-10-22：子頁由三頁收斂成兩頁（'stats' | 'skills'），並預設停在「技能」。
   // 理由見 `docs/decisions.md` §BT——舊版預設停在「基礎數值與相性」，而
@@ -484,17 +494,15 @@ export default function App({
               <button
                 type="button"
                 onClick={handleFreeModeToggleClick}
-                className={`px-2.5 py-1.5 rounded font-bold transition-all flex items-center gap-1 text-xs shadow-e1 border cursor-pointer ${
+                className={`px-3 py-1.5 rounded font-bold transition-all flex items-center gap-1.5 text-xs shadow-e1 border cursor-pointer ${
                   state.isFreeModeEnabled
-                    ? 'bg-[#fffdf9] text-[#a63d40] border-[#a63d40] ring-1 ring-[#a63d40]/40 hover:bg-[#f4ebd9]'
+                    ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235] hover:bg-[#8c3235]'
                     : 'bg-white text-[#3c2415] border-[#d6c7ab] hover:bg-[#e8dcc4]'
                 }`}
-                title={state.isFreeModeEnabled ? '規則限制已解除（點擊恢復嚴謹模式）' : '點擊解除規則限制'}
+                title={state.isFreeModeEnabled ? '目前為自由模式（點擊切回嚴謹模式）' : '目前為嚴謹模式（點擊切換至自由模式）'}
               >
-                {state.isFreeModeEnabled ? <Unlock size={13} className="text-[#a63d40]" /> : <Lock size={13} className="text-[#3c2415]" />}
-                <span className="hidden sm:inline">
-                  {state.isFreeModeEnabled ? '自由模式' : '嚴謹模式'}
-                </span>
+                {state.isFreeModeEnabled ? <Unlock size={13} /> : <Lock size={13} />}
+                <span>{state.isFreeModeEnabled ? '自由模式中' : '嚴謹模式'}</span>
               </button>
             )}
 
@@ -654,6 +662,10 @@ export default function App({
     }
     if (subTabHint === 'boss') {
       setCurrentStep(5);
+    } else if (subTabHint === 'negative') {
+      setCurrentStep(6);
+    } else if (subTabHint === 'species') {
+      setCurrentStep(3);
     } else {
       setCurrentStep(4);
       // 2026-10-22：子頁只剩「數值」與「技能・咒語・能力」兩頁（§BT）。任何其他提示值
@@ -664,7 +676,9 @@ export default function App({
     showToast("已反向定位至該技能配置卡片", "info");
 
     setTimeout(() => {
-      const el = document.getElementById(`skill-card-${skillId}`) || document.getElementById(`boss-skill-${skillId}`);
+      const el = document.getElementById(`skill-card-${skillId}`)
+        || document.getElementById(`boss-skill-${skillId}`)
+        || document.getElementById(`negative-skill-${skillId}`);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
@@ -683,18 +697,24 @@ export default function App({
     baseMp: '10',
     targetType: '一個生物',
     maxTargets: '3',
-    duration: '瞬發'
+    duration: '瞬發',
+    attackDistance: '近戰',
+    attackFormula: '[DEX + MIG]',
+    attackBaseDmg: 5,
+    attackType: '物理'
   });
 
   const handleAddCustomSkill = () => {
-    if (!newCustomSkill.name.trim() || !newCustomSkill.desc.trim()) {
-      showToast('名稱與效果敘述不可為空！', 'error');
+    const isAttack = newCustomSkill.category === 'attack';
+    if (!newCustomSkill.name.trim() || (!isAttack && !newCustomSkill.desc.trim())) {
+      showToast(isAttack ? '基本攻擊的名稱不可為空！' : '名稱與效果敘述不可為空！', 'error');
       return;
     }
 
     // 攻擊性與否改由結構化欄位 spellData.isOffensive 承載（見下方 onAdd），
     // 不再以名稱後綴哨兵標記（AGENTS.md §3.1）。
     let finalName = newCustomSkill.name.trim();
+    const trimmedDesc = newCustomSkill.desc.trim();
 
     let computedTarget = newCustomSkill.targetType;
     if (newCustomSkill.targetType === '至多 X 個生物') {
@@ -705,14 +725,23 @@ export default function App({
     let computedMp = newCustomSkill.targetType === '至多 X 個生物' ? `${cleanBaseMp} × T` : cleanBaseMp;
 
     const newSkill = {
-      id: `custom_${Date.now()}`,
+      id: `custom_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       category: newCustomSkill.category,
       originalName: finalName,
-      originalDesc: newCustomSkill.desc.trim(),
+      originalDesc: isAttack ? '' : trimmedDesc,
       customName: finalName,
-      customDesc: newCustomSkill.desc.trim(),
+      customDesc: trimmedDesc,
       isModified: true,
       source: 'custom',
+      ...(isAttack ? {
+        attack: {
+          distance: newCustomSkill.attackDistance || '近戰',
+          formula: (newCustomSkill.attackFormula || '').trim() || '[DEX + MIG]',
+          baseDmg: parseInt(newCustomSkill.attackBaseDmg, 10) || 0,
+          type: newCustomSkill.attackType || '物理',
+          extra: trimmedDesc
+        }
+      } : {}),
       ...(newCustomSkill.category === 'spell' ? {
         spellData: {
           mp: computedMp,
@@ -730,14 +759,27 @@ export default function App({
     setNewCustomSkill({
       name: '',
       desc: '',
-      category: 'action',
+      category: newCustomSkill.category,
       isOffensiveSpell: false,
       baseMp: '10',
       targetType: '一個生物',
       maxTargets: '3',
-      duration: '瞬發'
+      duration: '瞬發',
+      attackDistance: '近戰',
+      attackFormula: '[DEX + MIG]',
+      attackBaseDmg: 5,
+      attackType: '物理'
     });
-    showToast(`成功新增自訂技能：「${finalName}」`, 'success');
+    showToast(`成功新增自訂能力：「${finalName}」`, 'success');
+  };
+
+  const handleMoveCustomSkill = (id, direction) => {
+    setState(prev => ({ ...prev, skills: moveCustomSkill(prev.skills, id, direction) }));
+  };
+
+  const handleDuplicateCustomSkill = (id) => {
+    setState(prev => ({ ...prev, skills: duplicateCustomSkill(prev.skills, id) }));
+    showToast('已複製自訂能力', 'success');
   };
 
   const speciesAffinities = useMemo(() => getSpeciesAffinities(state?.selectedSpeciesId, state?.speciesConfig), [state?.selectedSpeciesId, state?.speciesConfig]);
@@ -757,10 +799,26 @@ export default function App({
     if (!state) return getInitialAffinities();
     const affs = { ...state.affinities };
     Object.entries(speciesAffinities).forEach(([type, value]) => {
+      // 自由模式下允許覆寫物種相性：'__clear__' 代表刻意改回一般，其他非 normal 值則以手動為準
+      if (state.isFreeModeEnabled) {
+        const manual = state.affinities?.[type];
+        if (manual === '__clear__') {
+          affs[type] = 'normal';
+          return;
+        }
+        if (manual && manual !== 'normal') {
+          affs[type] = manual;
+          return;
+        }
+      }
       affs[type] = value;
     });
+    // 清理自由模式解除後的 __clear__ 哨兵值，確保對外永遠是合法相性鍵
+    DAMAGE_TYPES.forEach(t => {
+      if (affs[t] === '__clear__') affs[t] = 'normal';
+    });
     return affs;
-  }, [state?.affinities, speciesAffinities]);
+  }, [state?.affinities, state?.isFreeModeEnabled, speciesAffinities]);
 
   const allLearnedSpells = useMemo(() => {
     if (!state) return [];
@@ -807,7 +865,7 @@ export default function App({
       avatarBase64: null, avatarScale: 1, avatarFit: 'cover', avatarOffsetX: 0, avatarOffsetY: 0, skills: initialSkills,
       selectedSpeciesId: null,
       speciesConfig: { selectedBenefits: [] },
-      overrideEnabled: false, overrides: { hp: 0, mp: 0, init: 0, def: 0, mdef: 0 }, affinities: getInitialAffinities(),
+      overrideEnabled: false, overrides: { hp: '', mp: '', init: '', def: '', mdef: '' }, affinities: getInitialAffinities(),
       customDice: {},
       isFreeModeEnabled: false
     };
@@ -957,7 +1015,10 @@ export default function App({
       }
     }
 
-    let availableRoleSkillsBudget = baseRoleSkills + extraRoleSkills + bonusSkillFromNegative + bonusSkillsFromSpecies;
+    // Bestiary Vol. 1 p.29：物理弱點（不論手動或物種給予）提供 +1 額外定位技能
+    const bonusSkillFromPhysicalVul = mergedAffinities?.['物理'] === 'vul' ? 1 : 0;
+
+    let availableRoleSkillsBudget = baseRoleSkills + extraRoleSkills + bonusSkillFromNegative + bonusSkillsFromSpecies + bonusSkillFromPhysicalVul;
 
     const baseBossSkills = state.rank === "冠位" ? 1 : 0;
     let currentBossSkills = 0;
@@ -1035,16 +1096,17 @@ export default function App({
       availableTargets = [...new Set(availableTargets)].filter(Boolean);
       secretSkill.selectionsConfig = [{ key: "secretArtTarget", label: "▶ 指定祕技目標", options: availableTargets, isLinked: true }];
     }
+    const overBudgetSkillCount = processedSkills.filter(s => s.isOverBudget).length;
     if (state.isFreeModeEnabled) {
       processedSkills.forEach(s => {
         s.isOverBudget = false;
       });
     }
 
-    return { processedSkills, maxCustomizations, maxRoleSkills, maxBossSkills, maxAllowedBossSkills, hasChampSupport, isRoleSlotOccupiedByBoss, bonusSkillFromNegative, isMoreThanTwoBossSkills, hasDuplicateBossSubCategory, usedRoleSkillForBoss };
+    return { processedSkills, maxCustomizations, maxRoleSkills, maxBossSkills, maxAllowedBossSkills, hasChampSupport, isRoleSlotOccupiedByBoss, bonusSkillFromNegative, bonusSkillFromPhysicalVul, isMoreThanTwoBossSkills, hasDuplicateBossSubCategory, usedRoleSkillForBoss, overBudgetSkillCount };
   };
 
-  const { processedSkills, maxCustomizations, maxRoleSkills, maxBossSkills, maxAllowedBossSkills, hasChampSupport, isRoleSlotOccupiedByBoss, bonusSkillFromNegative, isMoreThanTwoBossSkills, hasDuplicateBossSubCategory, usedRoleSkillForBoss } = processSkillBudgets();
+  const { processedSkills, maxCustomizations, maxRoleSkills, maxBossSkills, maxAllowedBossSkills, hasChampSupport, isRoleSlotOccupiedByBoss, bonusSkillFromNegative, bonusSkillFromPhysicalVul, isMoreThanTwoBossSkills, hasDuplicateBossSubCategory, usedRoleSkillForBoss, overBudgetSkillCount } = processSkillBudgets();
   const validSkills = processedSkills.filter(s => !s.isOverBudget);
 
   const affinityBudgets = state ? (ROLES_DATA[state.role]?.getAffinityBudgets ? ROLES_DATA[state.role].getAffinityBudgets(state.level, validSkills) : { vul: 1, res: 0, imm: 0, abs: 0 }) : { vul: 1, res: 0, imm: 0, abs: 0 };
@@ -1058,7 +1120,16 @@ export default function App({
   }
 
   const handleAffinityClick = (type) => {
-    if (!activeAffinityTab || speciesAffinities[type]) return;
+    if (!activeAffinityTab) return;
+    const spVal = speciesAffinities[type];
+    if (spVal && !state.isFreeModeEnabled) return;
+    const currentEffective = mergedAffinities[type] || 'normal';
+    if (spVal && state.isFreeModeEnabled) {
+      // 自由模式覆寫物種相性：點相同狀態 → 改回一般（__clear__）；點其他狀態 → 覆寫為該狀態
+      const nextVal = currentEffective === activeAffinityTab ? '__clear__' : activeAffinityTab;
+      setState(prev => ({ ...prev, affinities: { ...prev.affinities, [type]: nextVal } }));
+      return;
+    }
     const currentState = state.affinities[type] || 'normal';
     if (currentState === activeAffinityTab) { setState(prev => ({ ...prev, affinities: { ...prev.affinities, [type]: 'normal' } })); return; }
     if (!state.isFreeModeEnabled && currentAffinities[activeAffinityTab] >= affinityBudgets[activeAffinityTab]) return;
@@ -1127,10 +1198,33 @@ export default function App({
   };
 
   const handleSpeciesConfigChange = (key, value) => {
-    setState(prev => ({
-      ...prev,
-      speciesConfig: { ...prev.speciesConfig, [key]: value }
-    }));
+    const sp = SPECIES_DATA.find(s => s.id === state?.selectedSpeciesId);
+    const isCancellingDrawback = sp?.benefitsConfig?.conditionKey === key && value === '無';
+    const hadBenefits = (state?.speciesConfig?.selectedBenefits || []).length > 0;
+
+    setState(prev => {
+      const nextCfg = { ...prev.speciesConfig, [key]: value };
+      // 取消額外代償時，一併清除已勾選的物種增益與對應咒語，避免未付代價卻保留效果
+      if (isCancellingDrawback) {
+        nextCfg.selectedBenefits = [];
+        delete nextCfg.spell;
+        delete nextCfg.sp_construct_imm_status;
+        delete nextCfg.sp_construct_domain;
+        delete nextCfg.sp_element_abs_choice;
+      }
+      // 元素物種：切換免疫屬性時，若原本額外弱點與新免疫重疊則清空額外弱點
+      if (key === 'sp_element_immune' && nextCfg.sp_element_extra_vul === value) {
+        nextCfg.sp_element_extra_vul = '無';
+        nextCfg.selectedBenefits = [];
+        delete nextCfg.spell;
+        delete nextCfg.sp_element_abs_choice;
+      }
+      return { ...prev, speciesConfig: nextCfg };
+    });
+
+    if (isCancellingDrawback && hadBenefits) {
+      showToast('已取消額外代償，對應的物種增益已一併清除。', 'info');
+    }
   };
 
   const handleSpeciesSpellSelectionChange = (spellName, key, value) => {
@@ -1174,14 +1268,15 @@ export default function App({
     setState(prev => {
       const selected = prev.speciesConfig?.selectedBenefits || [];
       const currentCount = selected.filter(b => b === benefitId).length;
+      const effectiveMax = prev.isFreeModeEnabled ? Infinity : maxAllowed;
       let newSelected = [...selected];
 
       if (isMulti) {
         // Counter logic: 0 -> 1 -> 2 -> 0
         if (currentCount === 0) {
-          if (selected.length < maxAllowed) newSelected.push(benefitId);
+          if (selected.length < effectiveMax) newSelected.push(benefitId);
         } else if (currentCount === 1) {
-          if (selected.length < maxAllowed) newSelected.push(benefitId);
+          if (selected.length < effectiveMax) newSelected.push(benefitId);
           else newSelected = newSelected.filter(b => b !== benefitId);
         } else {
           newSelected = newSelected.filter(b => b !== benefitId);
@@ -1190,7 +1285,7 @@ export default function App({
         const isSelected = selected.includes(benefitId);
         if (isSelected) {
           newSelected = selected.filter(b => b !== benefitId);
-        } else if (selected.length < maxAllowed) {
+        } else if (selected.length < effectiveMax) {
           newSelected.push(benefitId);
         }
       }
@@ -1243,9 +1338,16 @@ export default function App({
     const effDEXVal = parseDice(finalDEX);
     const effINSVal = parseDice(finalINS);
 
+    // Bestiary Vol. 1 p.28 (The Juggernaut 範例)：暴徒客製化 +10 HP 需於套用精英倍率前先加算
+    const isBruteCustHp = (sk) => Boolean(sk && sk.source === 'customization' && (sk.libId === 'brute_cust_0' || sk.id === 'brute_cust_0') && sk.modifiers?.hp);
+    const preRankHpBonus = validSkills.reduce((sum, sk) => (isBruteCustHp(sk) ? sum + sk.modifiers.hp : sum), 0);
+
     // HP & MP base formula adjustments based on MIG and WLP dice sizes (5 HP/MP per die size step)
-    let baseHP = lvlData.hp + (effMIGVal - defMIGVal) * 5;
+    let baseHP = lvlData.hp + (effMIGVal - defMIGVal) * 5 + preRankHpBonus;
     let baseMP = lvlData.mp + (effWLPVal - defWLPVal) * 5;
+
+    // Bestiary Vol. 1 p.28：先攻基準為 (DEX + INS) / 2，隨等級成長與自由模式骰子連動
+    const computedBaseInit = Math.floor((effDEXVal + effINSVal) / 2);
 
     let stats = {
       DEX: finalDEX,
@@ -1254,7 +1356,7 @@ export default function App({
       WLP: finalWLP,
       HP: baseHP,
       MP: baseMP,
-      Init: roleData.base.initBase,
+      Init: computedBaseInit,
       Def: effDEXVal + roleData.base.def,
       MDef: effINSVal + roleData.base.mdef,
       Acc: lvlData.acc,
@@ -1313,7 +1415,7 @@ export default function App({
         if (skill.libId === "hun_p10") stats.Acc += 3;
       }
       if (skill.modifiers) {
-        if (skill.modifiers.hp) stats.HP += skill.modifiers.hp; if (skill.modifiers.mp) stats.MP += skill.modifiers.mp;
+        if (skill.modifiers.hp && !isBruteCustHp(skill)) stats.HP += skill.modifiers.hp; if (skill.modifiers.mp) stats.MP += skill.modifiers.mp;
         if (skill.modifiers.def) stats.Def += skill.modifiers.def; if (skill.modifiers.mdef) stats.MDef += skill.modifiers.mdef;
         if (skill.modifiers.init) stats.Init += skill.modifiers.init; if (skill.modifiers.magicAcc) stats.MagicAccModifier += skill.modifiers.magicAcc;
       }
@@ -1336,9 +1438,27 @@ export default function App({
       }
     });
 
-    if (state.overrideEnabled) {
-      if (state.overrides.hp) stats.HP = state.overrides.hp; if (state.overrides.mp) stats.MP = state.overrides.mp;
-      if (state.overrides.init) stats.Init = state.overrides.init; if (state.overrides.def) stats.Def = state.overrides.def; if (state.overrides.mdef) stats.MDef = state.overrides.mdef;
+    // Bestiary Vol. 1 p.69：【狀態束縛】失去且無法獲得眩暈、動搖、緩慢、虛弱免疫
+    const hasStatusBind = (state.selectedNegativeSkills || []).some(s => s.id === 'ns_8');
+    if (hasStatusBind) {
+      const blocked = new Set(['眩暈', '動搖', '緩慢', '虛弱']);
+      stats.statusImmunities = stats.statusImmunities.filter(st => !blocked.has(st));
+    }
+
+    stats.baseStats = {
+      HP: stats.HP,
+      MP: stats.MP,
+      Init: stats.Init,
+      Def: stats.Def,
+      MDef: stats.MDef
+    };
+
+    if (state.isFreeModeEnabled && state.overrideEnabled && state.overrides) {
+      if (hasNumericOverride(state.overrides.hp)) stats.HP = Number(state.overrides.hp);
+      if (hasNumericOverride(state.overrides.mp)) stats.MP = Number(state.overrides.mp);
+      if (hasNumericOverride(state.overrides.init)) stats.Init = Number(state.overrides.init);
+      if (hasNumericOverride(state.overrides.def)) stats.Def = Number(state.overrides.def);
+      if (hasNumericOverride(state.overrides.mdef)) stats.MDef = Number(state.overrides.mdef);
     }
     return stats;
   };
@@ -2186,6 +2306,11 @@ export default function App({
                       </div>
                     </div>
                   )}
+                  {(state.selectedNegativeSkills || []).some(s => s.id === 'ns_8') && (
+                    <p className="text-t12 text-[#6b5a4b] leading-relaxed">
+                      ※ 已受【狀態束縛】影響：移除且無法獲得眩暈、動搖、緩慢、虛弱免疫。
+                    </p>
+                  )}
                 </div>
               );
             })()}
@@ -2828,7 +2953,7 @@ export default function App({
 
                     return (
                       <>
-                        <div className={`p-5 rounded border-2 duration-500 shadow-sm animate-fade-in${selectedTheme.bg} ${selectedTheme.border}`}>
+                        <div className={`p-5 rounded border-2 duration-500 shadow-sm animate-fade-in ${selectedTheme.bg} ${selectedTheme.border}`}>
                           <div className="flex items-center gap-4 mb-4">
                             <div className={`p-3 rounded bg-[#fffdf9] ${selectedTheme.text} border border-[#d6c7ab]`}>
                               {selectedTheme.icon}
@@ -2898,7 +3023,10 @@ export default function App({
                                 onChange={(e) => handleSpeciesConfigChange(sp.optionalDrawback.selectionConfig.key, e.target.value)}
                               >
                                 <option value="無">-- 不啟動代價 --</option>
-                                {sp.optionalDrawback.selectionConfig.options.filter(o => o !== '無').map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                {sp.optionalDrawback.selectionConfig.options
+                                  .filter(o => o !== '無')
+                                  .filter(o => !(sp.id === 'sp_element' && state.speciesConfig?.sp_element_immune === o))
+                                  .map(opt => <option key={opt} value={opt}>{opt}</option>)}
                               </select>
                             </div>
                           </div>
@@ -2923,16 +3051,21 @@ export default function App({
                           return (
                             <div className="space-y-4">
                               <div className="flex justify-between items-center border-b border-[#d6c7ab] pb-2">
-                                <label className="text-t11 font-black text-[#3c2415] tracking-widest uppercase flex items-center gap-2">
-                                  <GiStarSwirl size={14} /> 物種增益選擇 (Pick {maxPicks})
+                                <label className="text-t11 font-black text-[#3c2415] tracking-widest flex items-center gap-2">
+                                  <GiStarSwirl size={14} /> 物種增益選擇（擇 {maxPicks} 項）
                                 </label>
                                 <span className={`text-t11 font-black tracking-widest px-2 py-0.5 rounded ${selectedCount >= maxPicks ? 'bg-[#a63d40] text-[#fffdf9]' : 'bg-[#f4ebd9] text-[#6b5a4b]'}`}>
-                                  {selectedCount} / {maxPicks}
+                                  {selectedCount} / {state.isFreeModeEnabled ? '∞' : maxPicks}
                                 </span>
                               </div>
-                              {selectedCount >= maxPicks && (
+                              {!state.isFreeModeEnabled && selectedCount >= maxPicks && (
                                 <p className="text-t12 font-bold text-[#3c2415]">
                                   已選滿 {maxPicks} 項，要改選請先取消其中一項。
+                                </p>
+                              )}
+                              {state.isFreeModeEnabled && selectedCount > maxPicks && (
+                                <p className="text-t12 text-[#8c2d36] bg-[#f9f5eb] border border-[#8c2d36]/40 rounded px-3 py-1.5 leading-relaxed">
+                                  自由模式已超選物種增益（目前 {selectedCount} 項，原書上限 {maxPicks} 項）。
                                 </p>
                               )}
                               <div className="grid grid-cols-1 gap-4">
@@ -2940,7 +3073,7 @@ export default function App({
                                   const count = (state.speciesConfig.selectedBenefits || []).filter(b => b === opt.id).length;
                                   const isChecked = count > 0;
                                   const isFull = selectedCount >= maxPicks;
-                                  const isDisabled = !isChecked && isFull;
+                                  const isDisabled = !state.isFreeModeEnabled && !isChecked && isFull;
 
                                   return (
                                     <div key={opt.id} className="space-y-3">
@@ -3128,17 +3261,51 @@ export default function App({
             {step4SubTab === 'stats' && (
               <div className="space-y-6">
 
-            {/* Attribute Dice Customization Card (僅在開啟自定義模式時顯示) */}
+            {/* 嚴謹模式下的精簡唯讀數值條（避免筆電／平板在此分頁看不到基礎數值） */}
+            {!state.isFreeModeEnabled && (
+              <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-4 space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-black text-[#3c2415] tracking-wider">目前基礎數值（依原書公式計算）</span>
+                  <button
+                    type="button"
+                    onClick={handleFreeModeToggleClick}
+                    className="text-t12 font-bold text-[#8c2d36] hover:underline flex items-center gap-1"
+                  >
+                    <Unlock size={12} /> 切換至自由模式以微調數值
+                  </button>
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-9 gap-2 text-center">
+                  {[
+                    { k: 'DEX', v: finalStats.DEX },
+                    { k: 'INS', v: finalStats.INS },
+                    { k: 'MIG', v: finalStats.MIG },
+                    { k: 'WLP', v: finalStats.WLP },
+                    { k: 'HP', v: finalStats.HP },
+                    { k: 'MP', v: finalStats.MP },
+                    { k: '先攻', v: finalStats.Init },
+                    { k: '物防', v: finalStats.Def },
+                    { k: '魔防', v: finalStats.MDef },
+                  ].map(item => (
+                    <div key={item.k} className="bg-[#f9f5eb] border border-[#e8dcc4] rounded py-1.5 px-1">
+                      <div className="text-t10 text-[#6b5a4b] font-bold">{item.k}</div>
+                      <div className="text-sm font-black text-[#2c221e]">{item.v}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 自由模式：四維體質骰子 */}
             {state.isFreeModeEnabled && (
               <div className="p-5 md:p-6 rounded border-2 transition-all duration-300 relative overflow-hidden bg-[#fffdf9] border-[#a63d40] animate-fade-in">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 border-b border-[#d6c7ab] pb-4">
                   <div>
                     <h4 className="text-base md:text-lg font-black tracking-widest text-[#3c2415] flex items-center gap-2">
                       <GiSparkles size={20} className="text-[#a63d40]" />
-                      自定義 NPC 體質與基礎骰子
+                      自由模式：四維體質骰子
                     </h4>
                     <p className="text-xs text-[#6b5a4b] mt-1 leading-relaxed">
-                      自定義模式已啟動：可自由調整 DEX, INS, MIG, WLP 骰子大小。HP/MP/物防/魔防將自動連動計算調整。
+                      可自由調整 DEX、INS、MIG、WLP 骰子大小，HP、MP、物防、魔防與先攻會依原書公式自動連動。
                     </p>
                   </div>
                   {state.customDice && Object.keys(state.customDice).some(k => state.customDice[k]) && (
@@ -3170,25 +3337,25 @@ export default function App({
                       const diff = parseDice(currentDie) - parseDice(attr.defaultDie);
                       const mult = state.rank === '精英' ? 2 : state.rank === '冠位' ? state.championMultiplier : 1;
                       const hpChange = diff * 5 * mult;
-                      impactText = `HP ${hpChange >= 0 ? '+' : ''}${hpChange} (${diff >= 0 ? '+' : ''}${diff * 5} Base)`;
+                      impactText = `HP ${hpChange >= 0 ? '+' : ''}${hpChange}（基礎 ${diff >= 0 ? '+' : ''}${diff * 5}）`;
                     } else if (attr.key === 'WLP') {
                       const diff = parseDice(currentDie) - parseDice(attr.defaultDie);
                       const mult = state.rank === '冠位' ? 2 : 1;
                       const mpChange = diff * 5 * mult;
-                      impactText = `MP ${mpChange >= 0 ? '+' : ''}${mpChange} (${diff >= 0 ? '+' : ''}${diff * 5} Base)`;
+                      impactText = `MP ${mpChange >= 0 ? '+' : ''}${mpChange}（基礎 ${diff >= 0 ? '+' : ''}${diff * 5}）`;
                     } else if (attr.key === 'DEX') {
-                      impactText = `物防 Base = ${parseDice(currentDie)} + ${roleData.base.def}`;
+                      impactText = `物防基礎 = ${parseDice(currentDie)} + ${roleData.base.def}`;
                     } else if (attr.key === 'INS') {
-                      impactText = `魔防 Base = ${parseDice(currentDie)} + ${roleData.base.mdef}`;
+                      impactText = `魔防基礎 = ${parseDice(currentDie)} + ${roleData.base.mdef}`;
                     }
 
                     return (
                       <div key={attr.key} className="p-3.5 rounded border border-[#d6c7ab] bg-[#fffdf9] flex flex-col gap-2.5 relative">
                         <div className="flex justify-between items-center">
-                          <span className={`text-xs font-black tracking-wider uppercase ${attr.color}`}>{attr.label}</span>
+                          <span className={`text-xs font-black tracking-wider ${attr.color}`}>{attr.label}</span>
                           {isCustomized ? (
-                            <span className="text-t10 font-bold px-1.5 py-0.5 rounded text-[#3c2415]">
-                              已自定義
+                            <span className="text-t10 font-bold px-1.5 py-0.5 rounded bg-[#f4ebd9] text-[#8c2d36]">
+                              已調整
                             </span>
                           ) : (
                             <span className="text-t10 font-bold opacity-70">
@@ -3223,7 +3390,7 @@ export default function App({
                               >
                                 {die}
                                 {isDefault && (
-                                  <span className="absolute -top-1 -right-0.5 w-1.5 h-1.5 rounded-full bg-[#a63d40]" title="預設體質" />
+                                  <span className="absolute -top-1 -right-0.5 w-1.5 h-1.5 rounded-full bg-[#a63d40]" title="原書預設骰面" />
                                 )}
                               </button>
                             );
@@ -3236,6 +3403,85 @@ export default function App({
                       </div>
                     );
                   })}
+                </div>
+
+                <div className="mt-4 bg-[#f9f5eb] border border-[#d6c7ab] rounded p-3 space-y-1.5 text-t12 text-[#3c2415] leading-relaxed">
+                  <p><strong className="text-[#2c221e]">原書算法：</strong>基礎 HP 依定位與等級表決定，力量（MIG）每升／降 1 階骰面，基礎 HP 增減 10 點（再乘以精英 ×2 或冠位倍率）；意志（WLP）每升／降 1 階，基礎 MP 增減 10 點（冠位 ×2）；物防＝靈巧骰面＋定位加值；魔防＝洞察骰面＋定位加值；先攻＝（靈巧＋洞察）÷ 2＋階級加值。</p>
+                  <p><strong className="text-[#8c2d36]">平衡尺度建議：</strong>建議維持四維骰面總和與原定位接近（例：調高 1 階靈巧時，可調降 1 階意志平衡）。避免讓暴徒擁有高防禦，或讓高傷害的法師／獵人同時擁有暴徒級的 HP 與高魔防。</p>
+                </div>
+              </div>
+            )}
+
+            {/* 自由模式：手動覆寫面板數值 */}
+            {state.isFreeModeEnabled && (
+              <div data-testid="free-mode-overrides" className="p-5 md:p-6 rounded border-2 border-[#d6c7ab] bg-[#fffdf9] space-y-4 animate-fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#d6c7ab] pb-3">
+                  <div>
+                    <h4 className="text-base font-black text-[#3c2415] flex items-center gap-2">
+                      <GiRollingDices size={18} className="text-[#a63d40]" />
+                      手動覆寫面板數值
+                    </h4>
+                    <p className="text-xs text-[#6b5a4b] mt-0.5">
+                      留空即採用原書標準值；輸入數字（包含 0）則強制覆寫。
+                    </p>
+                  </div>
+                  {['hp', 'mp', 'init', 'def', 'mdef'].some(k => hasNumericOverride(state.overrides?.[k])) && (
+                    <button
+                      type="button"
+                      onClick={() => setState(prev => ({ ...prev, overrideEnabled: false, overrides: { hp: '', mp: '', init: '', def: '', mdef: '' } }))}
+                      className="px-3 py-1.5 text-xs font-bold text-[#3c2415] bg-[#f4ebd9] hover:bg-[#e8dcc4] border border-[#d6c7ab] rounded flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
+                    >
+                      <RotateCcw size={13} /> 全部還原標準值
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  {[
+                    { key: 'hp', label: 'HP', std: finalStats.baseStats?.HP ?? finalStats.HP },
+                    { key: 'mp', label: 'MP', std: finalStats.baseStats?.MP ?? finalStats.MP },
+                    { key: 'init', label: '先攻 INIT', std: finalStats.baseStats?.Init ?? finalStats.Init },
+                    { key: 'def', label: '物防 DEF', std: finalStats.baseStats?.Def ?? finalStats.Def },
+                    { key: 'mdef', label: '魔防 M.DEF', std: finalStats.baseStats?.MDef ?? finalStats.MDef },
+                  ].map(field => {
+                    const rawVal = state.overrides?.[field.key];
+                    const hasVal = hasNumericOverride(rawVal);
+                    const diff = hasVal ? Number(rawVal) - field.std : 0;
+                    return (
+                      <div key={field.key} className={`p-2.5 rounded border ${hasVal ? 'border-[#a63d40] bg-[#f9f5eb]' : 'border-[#d6c7ab] bg-[#fffdf9]'}`}>
+                        <label className="block text-t11 font-black text-[#3c2415] mb-1">{field.label}</label>
+                        <input
+                          type="number"
+                          min="0"
+                          data-testid={`override-input-${field.key}`}
+                          className="w-full bg-[#fffdf9] border border-[#d6c7ab] rounded px-2 py-1.5 text-sm font-black text-[#2c221e] outline-none focus:border-[#3c2415]"
+                          placeholder={String(field.std)}
+                          value={hasVal ? rawVal : ''}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setState(prev => {
+                              const nextOv = { ...(prev.overrides || {}), [field.key]: v === '' ? '' : Number(v) };
+                              const anyActive = ['hp', 'mp', 'init', 'def', 'mdef'].some(k => hasNumericOverride(nextOv[k]));
+                              return { ...prev, overrideEnabled: anyActive, overrides: nextOv };
+                            });
+                          }}
+                        />
+                        <div className="mt-1 flex items-center justify-between text-t10 font-bold text-[#6b5a4b]">
+                          <span>原書標準：{field.std}</span>
+                          {hasVal && diff !== 0 && (
+                            <span className={diff > 0 ? 'text-[#8c2d36]' : 'text-[#3c2415]'}>
+                              {diff > 0 ? `+${diff}` : diff}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="bg-[#f9f5eb] border border-[#d6c7ab] rounded p-3 space-y-1.5 text-t12 text-[#3c2415] leading-relaxed">
+                  <p><strong className="text-[#2c221e]">原書算法：</strong>系統已依定位、等級、階級、物種與技能算好標準值；留空即採用原書標準值，輸入數字（包含 0）則強制覆寫。</p>
+                  <p><strong className="text-[#8c2d36]">平衡尺度建議：</strong>HP 建議控制在標準值的 <strong>±20% 以內</strong>（過高易拖長戰鬥，過低易首輪被秒）；物防／魔防單項調整建議不超過 <strong>±2</strong>（每 +2 會顯著降低玩家命中率）；無施法需求可將 MP 設為 0；先攻調整建議不超過 <strong>±2</strong>。</p>
                 </div>
               </div>
             )}
@@ -3268,9 +3514,9 @@ export default function App({
             <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-4">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 border-b border-[#d6c7ab] pb-2">
                 <h2 className="text-sm font-bold text-[#3c2415]">屬性相性配置</h2>
-                {bonusSkillFromNegative > 0 && (
+                {bonusSkillFromPhysicalVul > 0 && (
                   <div className="text-t10 bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-2 py-0.5 rounded-full font-bold">
-                    (包含負面技能獎勵 +{bonusSkillFromNegative})
+                    ✓ 物理弱點已提供定位技能額度 +1
                   </div>
                 )}
               </div>
@@ -3300,7 +3546,7 @@ export default function App({
               {/* 為什麼有分頁是灰的：額度為 0 時按鈕會 disabled，若不說明，新手會以為壞了 */}
               {!state.isFreeModeEnabled && ['vul', 'res', 'imm', 'abs'].some(st => affinityBudgets[st] === 0 && currentAffinities[st] === 0) && (
                 <p className="text-t12 text-[#6b5a4b] mb-3 -mt-1 leading-relaxed">
-                  灰色的分頁額度為 0（由職業與等級決定）。升到對應等級會自動解鎖，屆時分頁會亮起來。
+                  灰色的分頁額度為 0（由定位與等級決定）。升到對應等級會自動解鎖，屆時分頁會亮起來。
                 </p>
               )}
 
@@ -3309,8 +3555,9 @@ export default function App({
                   const playerState = state.affinities[type] || 'normal';
                   const typeStyle = TYPE_STYLES[type];
                   const speciesVal = speciesAffinities[type];
-                  const isSpeciesLocked = !!speciesVal;
-                  const effectiveState = isSpeciesLocked ? speciesVal : playerState;
+                  const hasSpeciesVal = !!speciesVal;
+                  const isSpeciesLocked = hasSpeciesVal && !state.isFreeModeEnabled;
+                  const effectiveState = mergedAffinities[type] || 'normal';
                   const style = AFFINITY_STATES[effectiveState];
                   const isCurrentTabFull = currentAffinities[activeAffinityTab] >= affinityBudgets[activeAffinityTab];
                   const isDisabled = isSpeciesLocked || (!state.isFreeModeEnabled && playerState !== activeAffinityTab && isCurrentTabFull);
@@ -3324,10 +3571,10 @@ export default function App({
                     >
                       {/* 狀態的極性：只有 4px，只在左緣。面全部相同（第十五輪）。 */}
                       <span className={`absolute left-0 top-0 bottom-0 w-1 rounded-l ${style.bar}`} aria-hidden="true" />
-                      {isSpeciesLocked && (
-                        <div className="absolute -top-2 -right-1 bg-[#fffdf9] border-2 border-[#3c2415] text-[#3c2415] px-1.5 py-0.5 rounded-full shadow z-20 flex items-center gap-0.5" title="此相性由物種提供，不能手動修改；換物種才會變">
-                          <Lock size={9} strokeWidth={3} />
-                          <span className="text-t12 font-bold leading-none">物種</span>
+                      {hasSpeciesVal && (
+                        <div className={`absolute -top-2 -right-1 bg-[#fffdf9] border-2 px-1.5 py-0.5 rounded-full shadow z-20 flex items-center gap-0.5 ${state.isFreeModeEnabled ? 'border-[#a63d40] text-[#8c2d36]' : 'border-[#3c2415] text-[#3c2415]'}`} title={state.isFreeModeEnabled ? '此相性原由物種提供，自由模式下可點擊覆寫' : '此相性由物種提供，不能手動修改；換物種才會變'}>
+                          {state.isFreeModeEnabled ? <Unlock size={9} strokeWidth={3} /> : <Lock size={9} strokeWidth={3} />}
+                          <span className="text-t12 font-bold leading-none">{state.isFreeModeEnabled ? '物種（可改）' : '物種'}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-1 sm:gap-2 mb-1.5">
@@ -3339,6 +3586,13 @@ export default function App({
                   )
                 })}
               </div>
+
+              {state.isFreeModeEnabled && (
+                <div className="mt-3 bg-[#f9f5eb] border border-[#d6c7ab] rounded p-3 space-y-1.5 text-t12 text-[#3c2415] leading-relaxed">
+                  <p><strong className="text-[#2c221e]">原書算法：</strong>依 Quick Assembly 規則，每個 NPC 至少需保留 1 個弱點（暴徒與衛士為 2 個）；抗性／免疫額度隨定位與等級解鎖，且「吸收」僅能透過特定物種增益或 Boss 技能取得。</p>
+                  <p><strong className="text-[#8c2d36]">平衡尺度建議：</strong>務必為敵人保留至少 1–2 個玩家隊伍能觸及的弱點；過度堆疊免疫或吸收會讓特定輸出職業整場無所事事，建議改用「特定條件下才觸發免疫」的特殊規則替代。</p>
+                </div>
+              )}
             </div>
 
             {/* 全域攻擊性咒語檢定公式選擇區塊 */}
@@ -3388,7 +3642,7 @@ export default function App({
                 新手因此不知道有這個系統，也不知道它會在升級後冒出來——所以在這裡留一句說明。 */}
             {!state.isFreeModeEnabled && maxRoleSkills === 0 && (
               <p className="text-t12 text-[#6b5a4b] bg-[#f4ebd9] border border-[#d6c7ab] rounded px-3 py-2 leading-relaxed">
-                「定位技能」的額度由職業與等級決定，目前是 0，所以這一區暫時不會出現。升級或換職業後會自動解鎖。
+                「定位技能」的額度由定位與等級決定，目前是 0，所以這一區暫時不會出現。升級、換定位或取得物理弱點／負面技能後會自動解鎖。
               </p>
             )}
 
@@ -3436,7 +3690,7 @@ export default function App({
                         isActive={isActive}
                         isDisabled={isDisabled}
                         isOverBudget={isOverBudget}
-                        lockedMsg={lockedMsg}
+                        lockedMsg={lockedMsg || budgetMsg}
                         onToggle={() => toggleLibrarySkill(skill)}
                         onSelectionChange={updateSelection}
                         onUpdateSkill={updateSkill}
@@ -3450,6 +3704,26 @@ export default function App({
             </SectionAccordion>
 
             <SectionAccordion title="定位技能" icon={<GiCheckedShield size={16} />} current={usedRoleSkills} max={maxRoleSkills} hideIfZeroMax={true} titleColor="text-[#2c221e]" borderColor="border-[#d6c7ab]" isFreeMode={state.isFreeModeEnabled}>
+              {(bonusSkillFromNegative > 0 || bonusSkillFromPhysicalVul > 0) && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {bonusSkillFromPhysicalVul > 0 && (
+                    <span className="text-t10 bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-2.5 py-0.5 rounded-full font-bold">
+                      （含物理弱點獎勵 +1）
+                    </span>
+                  )}
+                  {bonusSkillFromNegative > 0 && (
+                    <span className="text-t10 bg-[#f4ebd9] text-[#3c2415] border border-[#d6c7ab] px-2.5 py-0.5 rounded-full font-bold">
+                      （含負面技能獎勵 +{bonusSkillFromNegative}）
+                    </span>
+                  )}
+                </div>
+              )}
+              {state.isFreeModeEnabled && usedRoleSkills > maxRoleSkills && (
+                <div className="mb-3 bg-[#f9f5eb] border border-[#d6c7ab] p-3 rounded text-t12 text-[#3c2415] space-y-1 leading-relaxed">
+                  <p><strong className="text-[#2c221e]">原書算法：</strong>定位技能額度＝等級解鎖（Lv.20/40/60 各 +1）＋階級（精英 +1／冠位 +倍率）＋物種獎勵＋物理弱點（+1）＋負面技能（+1）；目前原書標準額度為 {maxRoleSkills}，已選 {usedRoleSkills}。</p>
+                  <p><strong className="text-[#8c2d36]">平衡尺度建議：</strong>即使解除上限，單一 NPC 建議不超過 2 個 Boss 技能且避免過度堆疊定位技能，以免場上機制過於繁雜導致跑團節奏卡頓。</p>
+                </div>
+              )}
               {usedRoleSkillForBoss > 0 && !state.isFreeModeEnabled && (
                 <div className="mb-4 bg-[#f9f5eb] border border-[#d6c7ab] p-3 rounded text-t11 text-[#3c2415] flex items-center gap-2">
                   <AlertTriangle size={14} className="text-[#6b5a4b]" />
@@ -3575,123 +3849,182 @@ export default function App({
             )}
 
             {/* Custom Abilities Section (Permanent / 常駐) */}
-            <SectionAccordion title="完全自訂技能" icon={<GiSparkles size={16} />} current={state.skills.filter(s => s.id.startsWith('custom_')).length} max={0} titleColor="text-[#3c2415]" borderColor="border-[#d6c7ab]" alwaysComplete={true} isFreeMode={state.isFreeModeEnabled} defaultExpanded={true}>
+            <SectionAccordion title="自訂能力" icon={<GiSparkles size={16} />} current={state.skills.filter(s => s.id.startsWith('custom_')).length} max={0} titleColor="text-[#3c2415]" borderColor="border-[#d6c7ab]" alwaysComplete={true} isFreeMode={state.isFreeModeEnabled} defaultExpanded={true}>
               <div className="bg-[#f9f5eb] border border-[#d6c7ab] p-4 rounded mb-6">
                 <h4 className="text-[#3c2415] text-xs font-bold mb-3 flex items-center gap-2"><PlusCircle size={14} /> 快速新增自訂能力</h4>
                 <div className="flex flex-col gap-3">
-                  <input
-                    type="text"
-                    className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-2 border border-[#d6c7ab] outline-none rounded focus:border-[#3c2415] transition-colors"
-                    placeholder="能力名稱"
-                    value={newCustomSkill.name}
-                    onChange={(e) => setNewCustomSkill(prev => ({ ...prev, name: e.target.value }))}
-                  />
-                  <textarea
-                    className="w-full bg-[#fffdf9] text-[#3c2415] p-2 border border-[#d6c7ab] outline-none h-20 resize-none rounded text-sm focus:border-[#3c2415] transition-colors"
-                    placeholder="輸入效果與敘述..."
-                    value={newCustomSkill.desc}
-                    onChange={(e) => setNewCustomSkill(prev => ({ ...prev, desc: e.target.value }))}
-                  />
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <select
-                        className="bg-[#fbf7ee] text-[#3c2415] text-xs font-bold border border-[#d6c7ab] p-2 rounded outline-none focus:border-[#3c2415]"
-                        value={newCustomSkill.category}
-                        onChange={(e) => setNewCustomSkill(prev => ({ ...prev, category: e.target.value }))}
-                      >
-                        <option value="spell">咒語</option>
-                        <option value="action">其餘行動</option>
-                        <option value="rule">特殊規則</option>
-                      </select>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <select
+                      data-testid="custom-skill-category"
+                      className="bg-[#fbf7ee] text-[#3c2415] text-xs font-bold border border-[#d6c7ab] p-2 rounded outline-none focus:border-[#3c2415] sm:w-36 shrink-0"
+                      value={newCustomSkill.category}
+                      onChange={(e) => setNewCustomSkill(prev => ({ ...prev, category: e.target.value }))}
+                    >
+                      <option value="attack">基本攻擊</option>
+                      <option value="spell">咒語</option>
+                      <option value="action">其餘行動</option>
+                      <option value="rule">特殊規則</option>
+                    </select>
+                    <input
+                      type="text"
+                      data-testid="custom-skill-name"
+                      className="flex-1 bg-[#fffdf9] text-[#3c2415] font-bold p-2 border border-[#d6c7ab] outline-none rounded focus:border-[#3c2415] transition-colors"
+                      placeholder="能力名稱"
+                      value={newCustomSkill.name}
+                      onChange={(e) => setNewCustomSkill(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
 
-                      {newCustomSkill.category === 'spell' && (
-                        <div className="flex flex-col gap-3 w-full bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab] text-xs">
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div>
-                              <label className="block text-[#3c2415] font-bold mb-1">目標</label>
-                              <select
-                                className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
-                                value={newCustomSkill.targetType}
-                                onChange={(e) => setNewCustomSkill(prev => ({ ...prev, targetType: e.target.value }))}
-                              >
-                                <option value="一個生物">一個生物</option>
-                                <option value="自身">自身</option>
-                                <option value="至多 X 個生物">至多 X 個生物</option>
-                                <option value="特殊">特殊</option>
-                              </select>
-                            </div>
+                  {newCustomSkill.category === 'attack' && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab] text-xs">
+                      <div>
+                        <label className="block text-[#3c2415] font-bold mb-1">距離</label>
+                        <select
+                          data-testid="custom-attack-distance"
+                          className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
+                          value={newCustomSkill.attackDistance}
+                          onChange={(e) => setNewCustomSkill(prev => ({ ...prev, attackDistance: e.target.value }))}
+                        >
+                          <option value="近戰">近戰</option>
+                          <option value="遠程">遠程</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[#3c2415] font-bold mb-1">檢定公式</label>
+                        <input
+                          type="text"
+                          data-testid="custom-attack-formula"
+                          className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
+                          placeholder="例：[DEX + MIG]"
+                          value={newCustomSkill.attackFormula}
+                          onChange={(e) => setNewCustomSkill(prev => ({ ...prev, attackFormula: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[#3c2415] font-bold mb-1 font-mono">基礎傷害 HR+</label>
+                        <input
+                          type="number"
+                          data-testid="custom-attack-dmg"
+                          className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
+                          value={newCustomSkill.attackBaseDmg}
+                          onChange={(e) => setNewCustomSkill(prev => ({ ...prev, attackBaseDmg: parseInt(e.target.value, 10) || 0 }))}
+                        />
+                        {finalStats.Dmg > 0 && (
+                          <span className="text-t10 text-[#6b5a4b] block mt-0.5">系統會自動加上等級傷害加值 +{finalStats.Dmg}</span>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-[#3c2415] font-bold mb-1">傷害屬性</label>
+                        <select
+                          data-testid="custom-attack-type"
+                          className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
+                          value={newCustomSkill.attackType}
+                          onChange={(e) => setNewCustomSkill(prev => ({ ...prev, attackType: e.target.value }))}
+                        >
+                          {DAMAGE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  )}
 
-                            {newCustomSkill.targetType === '至多 X 個生物' ? (
-                              <div>
-                                <label className="block text-[#3c2415] font-bold mb-1">目標數量</label>
-                                <input
-                                  type="number"
-                                  min="1"
-                                  max="99"
-                                  className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
-                                  placeholder="例: 3"
-                                  value={newCustomSkill.maxTargets}
-                                  onChange={(e) => setNewCustomSkill(prev => ({ ...prev, maxTargets: e.target.value }))}
-                                />
-                              </div>
-                            ) : (
-                              <div className="hidden sm:block"></div>
-                            )}
+                  {newCustomSkill.category === 'spell' && (
+                    <div className="flex flex-col gap-3 w-full bg-[#f4ebd9] p-3 rounded border border-[#d6c7ab] text-xs">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[#3c2415] font-bold mb-1">目標</label>
+                          <select
+                            className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
+                            value={newCustomSkill.targetType}
+                            onChange={(e) => setNewCustomSkill(prev => ({ ...prev, targetType: e.target.value }))}
+                          >
+                            <option value="一個生物">一個生物</option>
+                            <option value="自身">自身</option>
+                            <option value="至多 X 個生物">至多 X 個生物</option>
+                            <option value="特殊">特殊</option>
+                          </select>
+                        </div>
 
-                            <div>
-                              <label className="block text-[#3c2415] font-bold mb-1">
-                                MP 消耗 {newCustomSkill.targetType === '至多 X 個生物' && <span className="text-[#6b5a4b] font-normal">(自動填寫 × T)</span>}
-                              </label>
-                              <div className="flex items-center gap-1">
-                                <input
-                                  type="text"
-                                  className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
-                                  placeholder="例: 10"
-                                  value={newCustomSkill.baseMp}
-                                  onChange={(e) => setNewCustomSkill(prev => ({ ...prev, baseMp: e.target.value }))}
-                                />
-                                {newCustomSkill.targetType === '至多 X 個生物' && (
-                                  <span className="text-[#3c2415] font-extrabold text-sm shrink-0">× T</span>
-                                )}
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-[#3c2415] font-bold mb-1">持續時間</label>
-                              <select
-                                className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
-                                value={newCustomSkill.duration}
-                                onChange={(e) => setNewCustomSkill(prev => ({ ...prev, duration: e.target.value }))}
-                              >
-                                <option value="瞬發">瞬發</option>
-                                <option value="場景">場景</option>
-                                <option value="特別">特別</option>
-                              </select>
-                            </div>
+                        {newCustomSkill.targetType === '至多 X 個生物' ? (
+                          <div>
+                            <label className="block text-[#3c2415] font-bold mb-1">目標數量</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="99"
+                              className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
+                              placeholder="例: 3"
+                              value={newCustomSkill.maxTargets}
+                              onChange={(e) => setNewCustomSkill(prev => ({ ...prev, maxTargets: e.target.value }))}
+                            />
                           </div>
+                        ) : (
+                          <div className="hidden sm:block"></div>
+                        )}
 
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 border-t border-[#e8dcc4]">
-                            <label className="flex items-center gap-1.5 cursor-pointer group">
-                              <input
-                                type="checkbox"
-                                className="w-4 h-4 rounded border-[#7c6a58] accent-[#a63d40] bg-[#fffdf9] focus:ring-[#a63d40] focus:ring-2"
-                                checked={newCustomSkill.isOffensiveSpell}
-                                onChange={(e) => setNewCustomSkill(prev => ({ ...prev, isOffensiveSpell: e.target.checked }))}
-                              />
-                              <span className="text-xs font-bold text-[#3c2415] group-hover:text-[#2c221e] transition-colors">攻擊性咒語 (包含魔法命中檢定)</span>
-                            </label>
-
-                            {newCustomSkill.isOffensiveSpell && (
-                              <span className="text-xs text-[#6b5a4b] font-bold">
-                                檢定公式：<span className="text-[#3c2415] font-mono">{finalStats.magicFormula || '[INS + WLP]'}</span>（全域設定）
-                              </span>
+                        <div>
+                          <label className="block text-[#3c2415] font-bold mb-1">
+                            MP 消耗 {newCustomSkill.targetType === '至多 X 個生物' && <span className="text-[#6b5a4b] font-normal">(自動填寫 × T)</span>}
+                          </label>
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
+                              placeholder="例: 10"
+                              value={newCustomSkill.baseMp}
+                              onChange={(e) => setNewCustomSkill(prev => ({ ...prev, baseMp: e.target.value }))}
+                            />
+                            {newCustomSkill.targetType === '至多 X 個生物' && (
+                              <span className="text-[#3c2415] font-extrabold text-sm shrink-0">× T</span>
                             )}
                           </div>
                         </div>
-                      )}
-                    </div>
 
+                        <div>
+                          <label className="block text-[#3c2415] font-bold mb-1">持續時間</label>
+                          <select
+                            className="w-full bg-[#fffdf9] text-[#3c2415] font-bold p-1.5 border border-[#d6c7ab] rounded outline-none focus:border-[#3c2415]"
+                            value={newCustomSkill.duration}
+                            onChange={(e) => setNewCustomSkill(prev => ({ ...prev, duration: e.target.value }))}
+                          >
+                            <option value="瞬發">瞬發</option>
+                            <option value="場景">場景</option>
+                            <option value="特別">特別</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2 border-t border-[#e8dcc4]">
+                        <label className="flex items-center gap-1.5 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-[#7c6a58] accent-[#a63d40] bg-[#fffdf9] focus:ring-[#a63d40] focus:ring-2"
+                            checked={newCustomSkill.isOffensiveSpell}
+                            onChange={(e) => setNewCustomSkill(prev => ({ ...prev, isOffensiveSpell: e.target.checked }))}
+                          />
+                          <span className="text-xs font-bold text-[#3c2415] group-hover:text-[#2c221e] transition-colors">攻擊性咒語 (包含魔法命中檢定)</span>
+                        </label>
+
+                        {newCustomSkill.isOffensiveSpell && (
+                          <span className="text-xs text-[#6b5a4b] font-bold">
+                            檢定公式：<span className="text-[#3c2415] font-mono">{finalStats.magicFormula || '[INS + WLP]'}</span>（全域設定）
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <textarea
+                    data-testid="custom-skill-desc"
+                    className="w-full bg-[#fffdf9] text-[#3c2415] p-2 border border-[#d6c7ab] outline-none h-20 resize-none rounded text-sm focus:border-[#3c2415] transition-colors"
+                    placeholder={newCustomSkill.category === 'attack' ? '額外效果（選填，留空則為純傷害攻擊）...' : '輸入效果與敘述...'}
+                    value={newCustomSkill.desc}
+                    onChange={(e) => setNewCustomSkill(prev => ({ ...prev, desc: e.target.value }))}
+                  />
+
+                  <div className="flex justify-end">
                     <button
+                      type="button"
+                      data-testid="custom-skill-add"
                       onClick={handleAddCustomSkill}
                       className="px-4 py-2 bg-[#a63d40] hover:bg-[#8c3235] text-[#fffdf9] text-xs font-bold rounded flex items-center gap-2 transition-all w-full sm:w-auto justify-center"
                     >
@@ -3702,24 +4035,38 @@ export default function App({
               </div>
 
               <div className="space-y-4">
-                {state.skills.filter(s => s.id.startsWith('custom_')).map(skill => (
-                  <EditableSkill
-                    key={skill.id}
-                    skill={skill}
-                    onUpdate={updateSkill}
-                    onDelete={deleteSkill}
-                    onUpdateSelection={updateSelection}
-                    finalStats={finalStats}
-                    npcLevel={state.level}
-                    partyLevel={state.partyLevel}
-                  />
-                ))}
+                {(() => {
+                  const customList = state.skills.filter(s => s.id.startsWith('custom_'));
+                  return customList.map((skill, idx) => (
+                    <div
+                      key={skill.id}
+                      id={`skill-card-${skill.id}`}
+                      className={`transition-all duration-300 ${highlightedSkillId === skill.id ? 'ring-4 ring-[#3c2415] bg-[#f4ebd9] rounded p-1 shadow-lg' : ''}`}
+                    >
+                      <EditableSkill
+                        skill={skill}
+                        onUpdate={updateSkill}
+                        onDelete={deleteSkill}
+                        onUpdateSelection={updateSelection}
+                        onDuplicate={handleDuplicateCustomSkill}
+                        onMoveUp={(id) => handleMoveCustomSkill(id, 'up')}
+                        onMoveDown={(id) => handleMoveCustomSkill(id, 'down')}
+                        canMoveUp={idx > 0}
+                        canMoveDown={idx < customList.length - 1}
+                        allowCategoryChange={true}
+                        finalStats={finalStats}
+                        npcLevel={state.level}
+                        partyLevel={state.partyLevel}
+                      />
+                    </div>
+                  ));
+                })()}
                 {state.skills.filter(s => s.id.startsWith('custom_')).length === 0 && (
                   <EmptyState
                     kind="npc-custom-skill"
                     icon={GiScrollQuill}
                     title="還沒有自訂能力"
-                    teach="自訂能力是這隻 NPC 獨有的招式，不從技能表挑；用上方「新增自訂能力」寫下名稱與效果即可。"
+                    teach="自訂能力是這隻 NPC 獨有的招式，不從技能表挑；用上方「快速新增自訂能力」寫下名稱與效果即可。"
                   />
                 )}
               </div>
@@ -4552,7 +4899,7 @@ export default function App({
             {/* 屬性相性 (弱點 / 抗性 / 免疫) */}
             <button
               onClick={() => { setCurrentStep(4); setStep4SubTab('stats'); }}
-              className="flex items-center gap-1.5 text-t10 font-bold px-2.5 py-1 rounded-full border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] transition-all hover:border-[#3c2415] ml-auto md:ml-0"
+              className="flex items-center gap-1.5 text-t10 font-bold px-2.5 py-1 rounded-full border border-[#d6c7ab] bg-[#f9f5eb] text-[#3c2415] transition-all hover:border-[#3c2415]"
               title="數字只計算你手動分配的額度；物種自帶的抗性另計、不佔額度。點擊前往相性配置"
             >
               <span className="text-t12 font-normal opacity-70">手動</span>
@@ -4563,7 +4910,78 @@ export default function App({
                 </span>
               )}
             </button>
+
+            {/* 頂部 HUD 右側顯眼自由模式切換藥丸（所有裝置可見） */}
+            <button
+              type="button"
+              data-testid="hud-free-mode-toggle"
+              onClick={handleFreeModeToggleClick}
+              className={`ml-auto flex items-center gap-1.5 text-t11 font-black px-3 py-1 rounded-full border-2 transition-all cursor-pointer ${
+                state.isFreeModeEnabled
+                  ? 'bg-[#a63d40] text-[#fffdf9] border-[#8c3235] hover:bg-[#8c3235]'
+                  : 'bg-[#fffdf9] text-[#3c2415] border-[#3c2415]/60 hover:bg-[#e8dcc4]'
+              }`}
+              title={state.isFreeModeEnabled ? '目前為自由模式，點擊切回嚴謹模式' : '點擊切換至自由模式以解除規則限制'}
+            >
+              {state.isFreeModeEnabled ? <Unlock size={13} /> : <Lock size={13} />}
+              <span>{state.isFreeModeEnabled ? '自由模式中' : '切換自由模式'}</span>
+            </button>
           </div>
+
+          {/* 自由模式常駐橫幅（僅開啟時顯示，預設精簡一行） */}
+          {state.isFreeModeEnabled && (() => {
+            const spObj = SPECIES_DATA.find(s => s.id === state.selectedSpeciesId);
+            const spMax = spObj?.benefitsConfig?.maxPicks ?? Infinity;
+            const spOver = Math.max(0, (state.speciesConfig?.selectedBenefits || []).length - spMax);
+            const affOver = ['vul', 'res', 'imm', 'abs'].reduce((sum, k) => sum + Math.max(0, (currentAffinities[k] || 0) - (affinityBudgets[k] || 0)), 0);
+            const deviations = getFreeModeDeviations(state, {
+              overBudgetSkillCount,
+              overBudgetAffinityCount: affOver,
+              overSpeciesBenefitCount: spOver,
+            });
+            return (
+              <div data-testid="free-mode-banner" className="flex-shrink-0 bg-[#f9f5eb] border-b-2 border-[#a63d40]/60 px-4 py-2 text-xs text-[#3c2415]">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Unlock size={14} className="text-[#a63d40] shrink-0" />
+                    <span className="font-black text-[#8c2d36] shrink-0">自由模式運作中</span>
+                    <span className="text-[#6b5a4b] truncate">
+                      {deviations.length > 0 ? `目前偏離原書：${deviations.join('、')}` : '尚未修改任何超出原書的項目'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      data-testid="toggle-balance-guide"
+                      onClick={() => setIsBalanceGuideOpen(prev => !prev)}
+                      className="px-2.5 py-1 rounded border border-[#d6c7ab] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#3c2415] font-bold text-t11 transition-colors"
+                    >
+                      {isBalanceGuideOpen ? '收合平衡參考' : '查看平衡參考'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleFreeModeToggleClick}
+                      className="px-2.5 py-1 rounded border border-[#a63d40] bg-[#fffdf9] hover:bg-[#f4ebd9] text-[#8c2d36] font-bold text-t11 transition-colors"
+                    >
+                      切回嚴謹模式
+                    </button>
+                  </div>
+                </div>
+                {isBalanceGuideOpen && (
+                  <div data-testid="free-mode-balance-guide" className="mt-2.5 pt-2.5 border-t border-[#d6c7ab] grid grid-cols-1 md:grid-cols-2 gap-2.5 text-t12 leading-relaxed">
+                    <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-2.5">
+                      <div className="font-black text-[#2c221e] mb-1">數值與體質尺度</div>
+                      <p className="text-[#6b5a4b]">HP 建議落在標準值 ±20% 內；物防／魔防與先攻建議單項不超過 ±2。四維骰子調高一項時，建議調降另一項以維持定位特色。</p>
+                    </div>
+                    <div className="bg-[#fffdf9] border border-[#d6c7ab] rounded p-2.5">
+                      <div className="font-black text-[#2c221e] mb-1">相性與技能尺度</div>
+                      <p className="text-[#6b5a4b]">務必保留至少 1–2 個玩家隊伍可觸及的弱點，避免過多常駐免疫／吸收；單一 NPC 建議不超過 2 個 Boss 技能以免節奏過於繁雜。</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           <div className="flex-1 flex overflow-hidden relative">
             {/* 步驟側邊欄 ( md:flex, 手機端隱藏轉為頂部條 ) */}
@@ -4571,7 +4989,7 @@ export default function App({
               <div className="p-4 border-b border-[#d6c7ab]">
                 <h2 className="text-xs font-black text-[#6b5a4b] uppercase tracking-wider">建構步驟</h2>
               </div>
-              <div className="p-2 space-y-1">
+              <div className="p-2 space-y-1 flex-1">
                 {steps.map((s) => (
                   <button
                     key={s.num}
@@ -4593,10 +5011,45 @@ export default function App({
                       >
                         {s.num}
                       </span>
-                      <span className="font-bold text-sm tracking-widest whitespace-nowrap">{s.num}. {s.title}</span>
+                      <span className="font-bold text-sm tracking-widest whitespace-nowrap">{s.title}</span>
                     </div>
                   </button>
                 ))}
+              </div>
+
+              {/* 側邊欄底部：規則模式兩段切換卡片 */}
+              <div data-testid="sidebar-rule-mode" className="p-3 m-2 mt-auto rounded border border-[#d6c7ab] bg-[#fffdf9] space-y-2">
+                <div className="text-t11 font-black text-[#3c2415] tracking-wider flex items-center justify-between">
+                  <span>規則模式</span>
+                  {state.isFreeModeEnabled ? <Unlock size={13} className="text-[#a63d40]" /> : <Lock size={13} className="text-[#6b5a4b]" />}
+                </div>
+                <div className="grid grid-cols-2 gap-1 p-1 rounded bg-[#f4ebd9] border border-[#d6c7ab]">
+                  <button
+                    type="button"
+                    onClick={() => { if (state.isFreeModeEnabled) handleFreeModeToggleClick(); }}
+                    className={`py-1.5 rounded text-t11 font-black transition-all ${
+                      !state.isFreeModeEnabled
+                        ? 'bg-[#fffdf9] text-[#2c221e] border border-[#d6c7ab]'
+                        : 'text-[#6b5a4b] hover:text-[#2c221e]'
+                    }`}
+                  >
+                    嚴謹模式
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { if (!state.isFreeModeEnabled) handleFreeModeToggleClick(); }}
+                    className={`py-1.5 rounded text-t11 font-black transition-all ${
+                      state.isFreeModeEnabled
+                        ? 'bg-[#a63d40] text-[#fffdf9]'
+                        : 'text-[#6b5a4b] hover:text-[#2c221e]'
+                    }`}
+                  >
+                    自由模式
+                  </button>
+                </div>
+                <p className="text-t12 text-[#6b5a4b] leading-relaxed">
+                  {state.isFreeModeEnabled ? '已解除規則限制，可自由微調' : '依循原書規則計算額度與數值'}
+                </p>
               </div>
             </div>
 
