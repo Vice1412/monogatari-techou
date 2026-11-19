@@ -9,6 +9,8 @@
 
 ---
 
+*2026-11-19（`/learn` 更新 `.agents/rules/10-code-rules.md`：納入防垃圾碼原則）：從 Lauren Tan（`poteto`）演講《All Code Is Slop (Except Mine)》提煉可持久化工作準則，經使用者核准後於 `.agents/rules/10-code-rules.md` 新增 §3.5「防垃圾碼原則（倒置信任金字塔）」：確立「修正升級階梯（靜態檢查／單一入口 API ＞ `npm test` 護欄 ＞ 文字規則）」、大型歷史檔「軟體花園原則（不模仿舊檔壞寫法）」及「禁止藉口型註解」。未改動 `src/` 與 `tests/`。*
+
 *2026-11-17（W7 命刻搬家與唯讀退場階段一 ＋ Option 3 實機走查清單 W0–W7 修訂）：回應「目前是否尚有未解決問題」盤點並清理專案工作清單最後一項待辦 `system:fateclocks` 與已過時的測試手冊。
 ① 個人命刻純函式層（`src/features/character-sheet/utils/fateClocks.js`）：抽離並建立 `normalizeClock`、`normalizeClocks`、`findClock`、`fullClocks`、`setClockSegments`、`addClockSegments`、`copyClockToCharacter`（不可變、2–12 格邊界夾制、缺 `theme`/`type` 容錯補全、`kind: 'clock'` 履歷記錄及 `{ skipLog: true }` 合併支援）；將 `pendingBuffs.js`（`applySmoothTalker`）與 `CharacterPlayHUD.jsx`（「個人命刻」分頁時鐘追蹤器變更）統一改走此純函式模組，消除平行狀態寫法。
 ② 舊頁 `FateClockPage.jsx` 唯讀退場（階段一）：改為唯讀模式（`ClockTracker` `showControls={false}`、`onChange={null}`），移除新增／改名／刪除／寫回舊鍵邏輯並保留 `STORAGE_KEYS.fateClocks` 供唯讀查閱與全站備份相容；頁首新增明確退場公告、目標角色下拉選單與每顆命刻的「複製到目前角色」按鈕，將舊命刻以新 ID 安全複製至 `character.clocks[]`（待使用者確認不再需要舊頁後再於階段二評估刪除首頁入口）。
